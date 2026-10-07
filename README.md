@@ -83,7 +83,7 @@ specification and one for implementation files. The same schema gives editors
 validation and completion through `yaml-language-server`: put this on the
 first line of a root file and most editors pick it up.
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.1.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.1.0/schema/specarch-design-0.1.schema.json
 
 ## The rules SpecArch serves
 
@@ -139,7 +139,7 @@ from the specification to code, `extract` (designed, built later) from
 existing code to a specification. It has two builds from the same design.
 The Go build has every verb. With Go 1.26 or later:
 
-    go install github.com/SpecArch/specarch/cmd/specarch@latest
+    go install github.com/SpecArch/specarch/cmd/specarch@v0.1.0
 
 or, from a clone of this repository:
 

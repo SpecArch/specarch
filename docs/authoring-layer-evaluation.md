@@ -118,7 +118,7 @@ Two of them stay useful in supporting roles:
 
 - CUE as a second validator. The cross-reference rules the JSON Schema
   cannot express can be written in CUE and run against the exported YAML in
-  CI, until the validator CLI covers them. Written once by a person, this
+  CI, as an independent check of the validator. Written once by a person, this
   plays to CUE's strength and avoids its weakness.
 - TypeSpec for teams that already have it. A project whose API is already
   in TypeSpec can keep it there and emit OpenAPI, and SpecArch can import that

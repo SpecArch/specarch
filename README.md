@@ -93,6 +93,7 @@ a defect in the roadmap, not an accepted state.
 | `schema/specarch-design-0.1.schema.json` | the meta-model for design files, JSON Schema 2020-12 |
 | `schema/specarch-implementation-0.1.schema.json` | the meta-model for implementation files |
 | `spec/` | SpecArch's own specification: the design of the `specarch` command and its Go implementation |
+| `history/` | what changed and why, one file per day |
 | `docs/principles.md` | the Low IQ Tax principle and how SpecArch applies it |
 | `docs/conventions.md` | YAML layout, Markdown sections, generated and hand-drawn diagrams |
 | `docs/authoring-layer-evaluation.md` | TypeSpec, CUE and Pkl as an optional authoring layer |
@@ -102,32 +103,48 @@ a defect in the roadmap, not an accepted state.
 | `docs/roadmap.md` | validator, generators, sync gates, first real projects, meta-model 0.2 |
 | `examples/library-lending/` | a small complete example, with a design file and a Go implementation file |
 
-## Validating a specification
+## Installing and running the validator
 
-Until the SpecArch validator exists, any JSON Schema 2020-12 validator that
-reads YAML will do. The repository uses `jv`, pinned by version and run with a
-Go toolchain:
+`specarch` is one program, written in Go. With Go 1.26 or later:
 
-    go run github.com/santhosh-tekuri/jsonschema/cmd/jv@v0.7.0 -f \
-      schema/specarch-design-0.1.schema.json examples/library-lending/library-lending.specarch-design.yaml
+    go install github.com/SpecArch/specarch/cmd/specarch@latest
 
-An implementation file is checked the same way against
-`schema/specarch-implementation-0.1.schema.json`.
+or, from a clone of this repository:
 
-JSON Schema checks shape, types, required keys and identifier patterns. It
-cannot check that a relation points at an entity that exists or that a page
-lists only fields its entity has. Those cross-reference checks are the first
-job of the validator CLI (see `docs/roadmap.md`), and until it ships a file
-that passes the schema may still be inconsistent.
+    go install ./cmd/specarch
+
+Check files, or folders of them:
+
+    specarch validate spec/ examples/library-lending/
+
+Every problem is one line: the file, the line, `error` or `warning`, the
+YAML path, the rule, and one sentence saying what is wrong and how to fix
+it.
+
+    shop.specarch-design.yaml:58: error: /entities/Order/relations/customer/target: relation_target: Custmer is not an entity of this file; did you mean Customer?
+
+The exit status is 0 when every file is valid (warnings may be printed), 1
+when any file has an error, and 2 for a usage error, a path that cannot be
+read, or a folder with no SpecArch file in it. `specarch version` prints the
+program version and the meta-model versions it reads.
+
+The validator applies the JSON Schema of each file's kind first, then what a
+schema cannot express: references between objects, fail-closed access, the
+boundary between design and implementation, expressions and their types,
+worked examples evaluated to the last digit, concrete integer types, and the
+test scenarios each subject needs. `docs/conventions.md` describes every
+rule; the rule names are the `Rule` enum in `spec/specarch.specarch-design.yaml`.
+
+The schemas also work alone, in an editor through `yaml-language-server`,
+or with any JSON Schema 2020-12 validator that reads YAML.
 
 ## Status
 
 Version 0.1 of the meta-model, October 2026. The two schemas, the
-conventions, one example and SpecArch's own specification exist. The
-validator CLI is being built from that specification; no generator exists
-yet. The meta-model
-will change: the first real projects written in SpecArch are expected to find
-concepts it cannot express, and those gaps define v0.2.
+conventions, one example, SpecArch's own specification and the validator
+exist; no generator exists yet. The meta-model will change: the first real
+projects written in SpecArch are expected to find concepts it cannot
+express, and those gaps define v0.2.
 
 ## Licence
 

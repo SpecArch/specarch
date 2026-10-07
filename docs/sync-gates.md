@@ -7,9 +7,9 @@ most of it.
 
 ## 0. The spec validates
 
-Every `*.specarch-design.yaml` file passes `specarch validate`, or the pinned
-schema validator in `CONTRIBUTING.md` until the CLI exists. The other gates
-assume a valid spec.
+Every `*.specarch-design.yaml` and `*.specarch-implementation.yaml` file
+passes `specarch validate` with no error. The other gates assume a valid
+spec.
 
 ## 1. Spec against the route table
 

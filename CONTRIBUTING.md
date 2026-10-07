@@ -22,36 +22,28 @@ organisation's own repository, where it points at this one as a dependency.
 
 ## Checks before a change is proposed
 
-Every `*.specarch-design.yaml` file in the repository must validate against the
-meta-model. The check runs with a pinned, Apache-2.0 validator and needs only
-a Go toolchain:
+These are the checks CI runs on every change:
 
-    go run github.com/santhosh-tekuri/jsonschema/cmd/jv@v0.7.0 -f \
-      schema/specarch-design-0.1.schema.json examples/library-lending/library-lending.specarch-design.yaml
+    go build ./...
+    go test ./...
+    govulncheck ./...
+    go run ./cmd/specarch validate spec examples
 
-Implementation files (`*.specarch-implementation.yaml`) are checked the same way
-against `schema/specarch-implementation-0.1.schema.json`. The schema itself must
-compile, which the same command checks first.
+`go test` runs the conformance suite in `conformance/`: every folder holds
+the input files of one case and a `case.yaml` with the arguments, the exit
+status and the exact output expected. The folders are the design tests of
+the `validate` and `version` commands in `spec/specarch.specarch-design.yaml`,
+and a second implementation of `specarch` must pass the same folders.
+
+A change to the program changes its specification first, in `spec/`, and the
+validator must pass on `spec/` and `examples/` with no error.
 
 Dependencies are added only when their licence is OSI-approved and their SBOM
 scan (syft, then grype and osv-scanner; govulncheck for Go) is clean, or when
 the only finding is proven unreachable by govulncheck and the owner has
-accepted it. The result goes in the commit message. The dependency record for
-the validator above, checked 2026-10-07:
-
-| Module | Version | Licence |
-|---|---|---|
-| github.com/santhosh-tekuri/jsonschema/cmd/jv | v0.7.0 | Apache-2.0 |
-| github.com/santhosh-tekuri/jsonschema/v6 | v6.0.1 | Apache-2.0 |
-| github.com/spf13/pflag | v1.0.5 | BSD-3-Clause |
-| gopkg.in/yaml.v3 | v3.0.1 | MIT and Apache-2.0 |
-| golang.org/x/text | v0.14.0 | BSD-3-Clause |
-
-grype and osv-scanner report one advisory, GO-2026-5970 (infinite loop on
-invalid input in `golang.org/x/text/unicode/norm`, fixed in x/text 0.39.0).
-govulncheck run on the jv module reports 0 affecting vulnerabilities: jv does
-not call that package. The validator CLI on the roadmap replaces this
-dependency with the repository's own module, pinned to a fixed x/text.
+accepted it. The result goes in the commit message, and each library is
+listed with its version and licence under `libraries` in
+`spec/specarch.go.specarch-implementation.yaml`.
 
 ## Style
 

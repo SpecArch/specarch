@@ -160,6 +160,8 @@ func Load(dir string) *Spec {
 			switch stage := Sections[e.Name()]; {
 			case isStage(e.Name()):
 				s.problem(s.RootFile, 1, "/stages", "layout", "the folder %s/ exists but stages in %s does not list %s; add it to stages, or move its files into %s", e.Name(), RootFile, e.Name(), RootFile)
+			case stage != "" && listed[stage]:
+				s.problem(s.RootFile, 1, "/", "layout", "the folder %s/ is a section of the %s stage, not a stage; move it to %s/%s/", e.Name(), stage, stage, e.Name())
 			case stage != "":
 				s.problem(s.RootFile, 1, "/", "layout", "the folder %s/ is a section of the %s stage, not a stage; move it to %s/%s/ and list %s in stages", e.Name(), stage, stage, e.Name(), stage)
 			default:

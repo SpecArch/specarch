@@ -122,6 +122,7 @@ a defect in the roadmap, not an accepted state.
 | `docs/principles.md` | the Low IQ Tax principle and how SpecArch applies it |
 | `docs/conventions.md` | the tree layout, YAML layout, Markdown sections, generated and hand-drawn diagrams |
 | `docs/stages.md` | the six life-cycle stages: what each holds, which standard says so, and why |
+| `docs/maintenance.md` | after commissioning: change requests, defects, releases and operation, as designed |
 | `docs/authoring-layer-evaluation.md` | TypeSpec, CUE and Pkl as an optional authoring layer |
 | `docs/generators.md` | the rules every document and code target follows, and the plug-in protocol |
 | `docs/sync-gates.md` | the CI checks that keep a spec and its code equal |

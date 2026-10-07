@@ -171,8 +171,6 @@ Other known candidates:
 - row-level permissions (a member sees only their own loans);
 - a schema per fragment file, so an editor can validate one file of a tree
   on its own;
-- commissioning records checked by the validator, so a record names only
-  checks that exist;
 - missing golden tests of a designed but unbuilt command, so the validator
   stops warning about `extract` without a test that cannot run;
 - a fixed expression grammar;
@@ -186,6 +184,20 @@ Other known candidates:
   count;
 - background jobs and schedules;
 - configuration and settings as a first-class concept.
+
+## 6. Changes, defects, releases and operation
+
+The life after commissioning, designed in `docs/maintenance.md`: change
+requests, defects, releases and incidents as records beside the
+specification, and an operation stage with monitors. Built in this order:
+
+1. the operation stage and its monitors;
+2. records and their rules, including commissioning records checked
+   against the checks that exist;
+3. release records and the version rules;
+4. `specarch diff <old> <new>`, which compares two versions of a
+   specification and checks a release's version step;
+5. the documentor targets `changes` and `releases`.
 
 ## Not planned
 

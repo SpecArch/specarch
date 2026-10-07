@@ -87,8 +87,12 @@ difference. The rules and the pattern each target follows are in
    how the web implementation carries them.
 5. Other DSL formats on request, limited to what that DSL can execute:
    a concept the target cannot represent is reported, not silently omitted.
-6. Test cases from worked examples, one test per example, in the target
-   stack's test framework.
+6. Tests from the specification. The design file gives the business cases:
+   every design test (golden and red, given, when and then) and every worked
+   example. The implementation file gives the target: the test framework,
+   the suites, fixtures and how each suite runs. One generated test per
+   design test and per worked example, with the given, when and then written
+   into the test as its steps.
 7. User manual, operations guide and other project documents: pages and
    permissions give the manual its structure; endpoints, channels and
    deployment notes give the operations guide its checklist.
@@ -147,7 +151,11 @@ for 0.2 rather than being written into 0.1 unchecked:
 - `flows`: a workflow binding (trigger, form schema, steps) as an object of
   its own, not an annotation on an endpoint.
 
-Known candidates from the first meta-model:
+- missing test scenarios as errors: in 0.1 the validator warns for every
+  derived case no test covers; in 0.2 that becomes an error, once real
+  specifications show the derivation is right.
+
+Other known candidates:
 
 - row-level permissions (a member sees only their own loans);
 - cross-file references between bounded contexts;
@@ -155,8 +163,8 @@ Known candidates from the first meta-model:
 - interfaces beyond HTTP, messaging and the command line, which 0.1 has:
   gRPC, file exchange, a Bluetooth or serial protocol, a menu-bar UI;
 - value objects: data that is passed around but not stored and has no
-  identity (a diagnostic, a request summary), now written as entities with a
-  made-up key;
+  identity (a diagnostic, a request summary), which 0.1 writes as entities
+  with a made-up key;
 - sets and lists in the expression language, so a rule over many objects
   (every permission granted by some role) can be a formula rather than a
   count;

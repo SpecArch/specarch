@@ -167,6 +167,9 @@
         "$ref": "#/$defs/task"
       }
     },
+    "testing": {
+      "$ref": "#/$defs/testing"
+    },
     "deployments": {
       "description": "Real deployments, keyed by environment name: servers, hosts and ports.",
       "type": "object",
@@ -536,6 +539,139 @@
           "supersededBy"
         ]
       }
+    },
+    "testing": {
+      "description": "How this implementation is tested: the framework, how to run the tests, and the suites. Design tests are defined in the design file; a suite here only says how they are run on this stack.",
+      "type": "object",
+      "properties": {
+        "framework": {
+          "type": "string",
+          "minLength": 1
+        },
+        "run": {
+          "description": "The command that runs every suite.",
+          "type": "string",
+          "minLength": 1
+        },
+        "platforms": {
+          "description": "Operating systems and architectures the tests run on.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "fixtures": {
+          "$ref": "#/$defs/markdown"
+        },
+        "mocks": {
+          "description": "What is replaced by a stand-in in tests, and why.",
+          "$ref": "#/$defs/markdown"
+        },
+        "performance": {
+          "description": "Performance and load targets.",
+          "$ref": "#/$defs/markdown"
+        },
+        "suites": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/suite"
+          },
+          "minProperties": 1
+        }
+      },
+      "required": [
+        "framework",
+        "run",
+        "suites"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "suite": {
+      "description": "One test suite. It runs design tests (by name, or every test of a subject) or is implementation-only, never neither.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "run": {
+          "type": "string",
+          "minLength": 1
+        },
+        "designTests": {
+          "description": "Names of design tests this suite runs.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "designTestsOf": {
+          "description": "Subjects whose design tests this suite runs, every one of them, such as {command: validate}.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string"
+              },
+              "command": {
+                "type": "string"
+              },
+              "page": {
+                "type": "string"
+              }
+            },
+            "minProperties": 1,
+            "maxProperties": 1,
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "implementationOnly": {
+          "description": "The suite tests this implementation's own code and runs no design test.",
+          "type": "boolean",
+          "const": true
+        },
+        "ci": {
+          "description": "The suite runs in CI on every change.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "description",
+        "run"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "designTests"
+          ]
+        },
+        {
+          "required": [
+            "designTestsOf"
+          ]
+        },
+        {
+          "required": [
+            "implementationOnly"
+          ]
+        }
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
     }
   }
 }

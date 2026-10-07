@@ -1,0 +1,15 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+algorithms: {}
+enums:
+  ItemState: { type: string, enum: [draft, live] }
+entities:
+  Item:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      state: { $ref: "#/enums/ItemState" }
+    primaryKey: [id]
+    stateField: id
+    transitions:
+      - { from: draft, to: live, trigger: total }

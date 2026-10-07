@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  case.specarch-design.yaml:7: error: /decisions/ADR-001/date: unquoted_date: 2026-10-07 is read by YAML as a timestamp; quote it: "2026-10-07"

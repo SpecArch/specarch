@@ -100,15 +100,25 @@ unused, next to the screens people had written by hand instead. The first
 emitter for a component library is therefore written against one hand-built
 screen in a real project and has to reproduce it before it is accepted.
 
-## Tests from worked examples
+## Tests from the specification
 
-One test per worked example, in the stack's own test framework, named after
-the example's `name`. The test calls the hand-written algorithm body with the
-example's `inputs` and asserts the `expected` value. Decimals are compared as
-decimals, never as floating point.
+The design file says what is tested; the implementation file says with
+what. One test per worked example and one per design test, in the
+framework the implementation file's `testing` names, each named after its
+example or test.
 
-The validator has already checked that the formula gives `expected` on those
-inputs, so a generated test that fails points at the body, not at the spec.
+A worked example's test calls the hand-written algorithm body with the
+example's `inputs` and asserts the `expected` value, with every value in its
+declared type: decimals as decimals, never as floating point. The validator
+has already checked that the formula gives `expected` on those inputs, so a
+generated test that fails points at the body, not at the spec.
+
+A design test becomes a test with three marked steps, its `given`, `when`
+and `then`, and a body the implementation fills in where the sentences
+cannot be turned into code. Its subject and scenario go into the test's
+name, so a failing red test says which refusal broke. A design test marked
+`notApplicable` becomes no test; its reason is printed in the generated
+file's header.
 
 ## Guarded operational scripts
 

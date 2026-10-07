@@ -114,10 +114,6 @@ sequenceDiagram
 ```
 <!-- specarch:end -->
 
-## 7. Deployment
-
-Nothing yet.
-
 ## 8. Cross-cutting concepts
 
 <!-- specarch:generate permissions -->

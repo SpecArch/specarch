@@ -100,6 +100,14 @@ The validator reports each case with its own rule, `stack_key` or
 `design_key`. Other interface kinds (gRPC, file exchange, a serial protocol)
 have no keyword yet; they are 0.2 items in `docs/roadmap.md`.
 
+### No change log inside a file
+
+A design or implementation file says what is true now. Text such as
+"previously", "changed from", "updated on" or "new in" does not belong in a
+description; the history of a project lives in its own history files and in
+git. Version fields stay, because they describe the current file. The
+validator warns on the most common change-log phrases (`change_log`).
+
 ## YAML layout
 
 Top-level keys appear in this order. A generator does not care; a reader does.
@@ -114,7 +122,8 @@ Top-level keys appear in this order. A generator does not care; a reader does.
 8. `channels`
 9. `pages`
 10. `algorithms`
-11. `decisions`
+11. `tests`
+12. `decisions`
 
 Inside an entity: `description`, `type`, `properties`, `required`,
 `primaryKey`, `relations`, `constraints`, `stateField`, `transitions`,
@@ -153,6 +162,41 @@ make it.
 The schema enforces these patterns. Generators rely on them to derive names in
 the target (table names, URL segments, constant names) without a mapping table.
 
+### Types
+
+Every value has a concrete type, and the type says how wide it is. A design
+that only says "number" leaves each implementation to guess, and the guesses
+differ: in JavaScript every number is a 64-bit float, so an int64 ID above
+2^53 silently loses its last digits, and `1` and `"1"` are easy to mix up.
+Stating the concrete type is what makes a correct implementation possible.
+
+A field's `type` says how the value travels in JSON; its `format` says what
+the value is. The types, one line each:
+
+| Type | Written as | Holds |
+|---|---|---|
+| int32 | `type: integer, format: int32` | a signed 32-bit integer; safe as a JSON number everywhere |
+| int | `type: integer, format: int64` | a signed 64-bit integer, as a JSON number; needs `minimum` and `maximum` within plus or minus 2^53 - 1 (9007199254740991) |
+| int, carried as text | `type: string, format: int64` | a signed 64-bit integer that may exceed 2^53, carried as a JSON string of digits |
+| uint | `type: integer, format: uint64` or `type: string, format: uint64` | an unsigned 64-bit integer, with the same rule for 2^53 |
+| double | `type: number, format: double` | a 64-bit IEEE float: approximate, never for money |
+| decimal | `type: string, format: decimal, precision: P, scale: S` | an exact decimal of P digits, S after the point, carried as a JSON string |
+| string | `type: string` | text; a string of digits (a card number, a postcode) is a string, never a number |
+| bool | `type: boolean` | true or false |
+| bytes | `type: string, format: byte` | binary data, base64 in JSON |
+| date | `type: string, format: date` | a calendar date, `"2026-10-07"` |
+| timestamp | `type: string, format: date-time` | an instant, RFC 3339, `"2026-10-07T09:30:00Z"` |
+| duration | `type: string, format: duration` | a length of time, ISO 8601, `"PT2H"` |
+| enum | `$ref: "#/enums/Name"` | one of the enum's values, carried as a string |
+
+The schema refuses an `integer` without `int32`, `int64` or `uint64`, a
+`number` without `double`, and a decimal without `precision` and `scale`.
+The validator refuses an int64 or uint64 carried as a JSON number without
+bounds inside 2^53 (`unsafe_integer`): either bound it, or carry it as a
+string. `format` keeps its JSON Schema and OpenAPI meaning; `uint64` and
+`decimal` are SpecArch's additions to the format list, because neither
+standard names them.
+
 ### Where each keyword comes from
 
 Every keyword in the meta-model is either borrowed from a standard, with its
@@ -175,6 +219,8 @@ redefined.
 | `pages`, `kind`, `route`, `entity`, `source`, `submit`, `columns`, `fields`, `filters`, `actions` | SpecArch | UI page definitions |
 | `algorithms`, `inputs`, `output`, `formula`, `examples` (of an algorithm), `pseudocode` | SpecArch | IEEE 1016 algorithm viewpoint, made testable |
 | `decisions` and the ADR fields | SpecArch | the common ADR shape: context, decision, consequences |
+| `tests`, `scenario`, `given`, `when`, `then`, `covers`, `notApplicable` | SpecArch | design tests; given, when and then are the Gherkin words, without Gherkin's file format |
+| `testing`, `suites`, `designTests`, `designTestsOf`, `implementationOnly` | SpecArch | in implementation files: how one stack runs the design tests |
 
 ### Requirement links
 
@@ -198,57 +244,140 @@ enforced by the service, and are on the list for v0.2.
 ### Expressions
 
 `check` constraints and `formula` strings are written in a small subset of
-CEL, the Common Expression Language (cel.dev). Its syntax is the one C,
-Java and JavaScript use, so most readers already know it. A check is one
-expression that gives true or false. A formula is one expression that gives
-the algorithm's output; it has no `name =` in front. The validator parses
-every expression, refuses anything outside the subset by name, checks the
-names and the types, and evaluates every formula on its worked examples.
+CEL, the Common Expression Language (cel.dev). Its syntax is the one C, Java
+and JavaScript use, so most readers already know it, and its type rules are
+strict: values of different types never mix without a written conversion.
+CEL is strict on purpose. An implicit conversion is where precision is lost
+without anyone seeing it (an int64 turned into a double, a decimal into a
+float), so every conversion is written where it happens.
+
+A check is one expression that gives a bool. A formula is one expression
+whose type is the algorithm's output type. The validator parses every
+expression, refuses anything outside the subset by name, checks every name
+and type against the declared fields and inputs, and evaluates every formula
+on its worked examples.
+
+Types in expressions are CEL's: `int` (every integer field, int32 included,
+is an int; the field's width is checked when a value is computed), `uint`,
+`double`, `string`, `bool`, `bytes`, `timestamp` and `duration`, plus three
+that CEL does not have and SpecArch adds: `decimal`, `date` and enum values.
+CEL has no decimal because it was built for protocol buffers, which have
+none; money needs one.
 
 | Part | Example | Meaning |
 |---|---|---|
-| number | `21`, `0.50` | an exact number; there is no binary floating point |
-| text | `"open"`, `'open'` | a string, in double or single quotes |
-| `true`, `false` | `active == true` | the two booleans |
+| int | `21`, `-3` | a 64-bit integer |
+| uint | `21u` | an unsigned 64-bit integer |
+| double | `0.5`, `2.0` | a 64-bit float; `2` is an int and `2.0` a double |
+| string | `"open"`, `'open'` | text, in double or single quotes |
+| bool | `true`, `false` | |
 | `null` | `returnedAt == null` | no value; only for a field that allows null |
 | name | `dueOn` | a field of the entity (in a check) or an input of the algorithm (in a formula) |
 | `( )` | `(a + b) * c` | grouping |
 | `-x` | `-discount` | negation |
 | `!x` | `!active` | not |
-| `*` | `daysLate * dailyRate` | multiplication |
-| `/` | `total / count` | division, exact |
-| `+` | `subtotal + tax` | addition |
-| `-` | `price - discount` | subtraction of numbers |
-| `==`, `!=` | `status == "open"` | equal, not equal |
-| `<`, `<=`, `>`, `>=` | `copiesAvailable <= copiesOwned` | order of numbers, dates and date-times |
-| `&&` | `a > 0 && b > 0` | and |
-| `\|\|` | `returnedAt == null \|\| returnedAt >= loanedAt` | or |
-| `c ? a : b` | `daysLate > 0 ? daysLate * dailyRate : 0` | `a` when `c` holds, otherwise `b` |
-| `size(x)` | `size(fullName) <= 200` | length of a text (CEL's own function) |
-| `date(x)` | `dueOn > date(loanedAt)` | the date of a date-time, or a quoted date such as `date("2026-10-07")` |
-| `min(a, b, ...)` | `min(daysLate * dailyRate, replacementCost)` | the smallest of two or more numbers, dates or date-times |
-| `max(a, b, ...)` | `max(balance, 0)` | the largest of two or more |
-| `round(x, places)` | `round(total, 2)` | rounds half away from zero to that many decimal places |
+| `*`, `/`, `+`, `-` | `subtotal + tax` | arithmetic on two values of the same numeric type |
+| `==`, `!=` | `status == "open"` | equal, not equal; same type on both sides |
+| `<`, `<=`, `>`, `>=` | `copiesAvailable <= copiesOwned` | order; same type on both sides |
+| `&&`, `\|\|` | `returnedAt == null \|\| returnedAt >= loanedAt` | and, or |
+| `c ? a : b` | `daysLate > 0 ? 1 : 0` | `a` when `c` holds, otherwise `b`; both of one type |
+| `int(x)` | `int(round(total, 0))` | to int, from uint, a string of digits, or a rounded decimal or double |
+| `uint(x)` | `uint(count)` | to uint, from int or a string of digits |
+| `double(x)` | `double(count)` | to double, from int, uint or decimal; the result is approximate |
+| `decimal(x, scale)` | `decimal(daysLate, 0)`, `decimal("0.50", 2)` | to decimal with that scale, from int, uint, a quoted number, or a decimal of no larger scale |
+| `string(x)` | `string(count)` | to string |
+| `date(x)` | `dueOn > date(loanedAt)` | the date of a timestamp, or a quoted date: `date("2026-10-07")` |
+| `timestamp(x)` | `timestamp("2026-10-07T09:30:00Z")` | a quoted RFC 3339 instant |
+| `size(x)` | `size(fullName) <= 200` | the length of a string or a list, an int |
+| `round(x, places)` | `round(total, 2)` | a decimal or double rounded half away from zero; a decimal result has that scale |
+| `floor(x)`, `ceil(x)` | `floor(hours)` | down or up to a whole number, keeping the type |
+| `min(a, b, ...)`, `max(a, b, ...)` | `min(fee, replacementCost)` | the smallest or largest of two or more values of one type |
 
-Nothing else is in the subset: no `%`, no `in`, no lists or maps, no field
-access with `.`, no macros (`has`, `all`, `exists`, `map`, `filter`), and no
-other function. Each of these is refused with a message naming it. A
-comparison does not chain: `a < b < c` is a type error, written
-`a < b && b < c`. Anything a real specification needs beyond this list is
-added on purpose, in its own change, with an example here.
+Decimal scales are tracked. `+` and `-` give the larger of the two scales,
+`*` the sum of the scales, `min`, `max` and `? :` the larger; `/` gives an
+exact result of no fixed scale, so it has to be rounded before it is
+returned. A formula's decimal result must have no more places than the
+output's `scale`: write `round(x, 2)` where the design wants rounding. A
+conversion that would lose information is refused unless the rounding is
+written: `int(round(x, 0))`, `decimal(round(x, 2), 2)`. A double cannot be
+turned into a decimal at all, because the digits it lost cannot be brought
+back.
 
-Types come from the fields. `integer`, `number` and a string with
-`format: decimal` are numbers; `format: date` and `format: date-time` are
-dates and date-times, which do not mix (use `date(x)`); a `$ref` to an enum
-is compared with a string of one of its values; a field that allows null may
-be compared with `null`, and one that does not may not. `&&`, `||`, `!`, the
-condition of `? :` and a check's result need booleans.
+Nothing else is in the subset: no `%`, no `in`, no lists or maps written in
+the expression, no field access with `.`, no macros (`has`, `all`,
+`exists`, `map`, `filter`), and no other function. Each is refused with a
+message naming it. Comparisons do not chain: `a < b < c` is an error,
+written `a < b && b < c`. CEL itself lets numbers of different types be
+compared; SpecArch does not, so that every operator follows one rule, and a
+mixed comparison is written with a conversion. Anything a real
+specification needs beyond this list is added on purpose, with an example
+here.
 
-A worked example's inputs and expected value are typed by the algorithm's
-`inputs` and `output`: an integer is a YAML integer, a decimal a quoted
-string (`"0.50"`), a date a quoted date. When the output is a decimal with a
-`scale`, the result is rounded to that scale before it is compared, so
-`"3.50"` and `3.5` are equal and a third with scale 2 is `"0.33"`.
+A worked example's values have the declared types: an int32 or int64 is a
+YAML integer, an int64 carried as text a quoted string of digits, a decimal
+a quoted string (`"0.50"`) with no more places than its scale, a date a
+quoted date, a timestamp a quoted RFC 3339 instant.
+
+### Tests
+
+Tests are part of the specification, split along the same line as
+everything else. A design file's `tests` say what must hold on every stack;
+an implementation file's `testing` says how one stack runs them, plus the
+tests of its own code (unit and integration tests, fixtures, mocks,
+performance targets, platforms).
+
+A design test is about one subject: an `operation`, a `command`, a `page`,
+or an `entity` with one of its `constraint`s or `transition`s. It is marked
+`scenario: golden` for the path that succeeds or `scenario: red` for a path
+that fails, and says what happens in three plain sentences: `given`, `when`
+and `then`. There is no test language beyond that.
+
+    tests:
+      lend-limit-reached:
+        operation: createLoan
+        scenario: red
+        covers: [response 409]
+        given: a standard-tier member with three open loans
+        when: createLoan is called for a fourth book
+        then: it answers 409 and no loan is created
+
+Every subject needs at least one golden scenario and its red ones. The
+validator derives the cases a subject needs from the rest of the file, and
+warns once for every case no test lists under `covers`, with a test to copy:
+
+| Found in the design | Case | Scenario |
+|---|---|---|
+| a required field of a request body | `missing <field>` | red |
+| `minimum` / `maximum` of a field or parameter | `<field> below minimum N` / `<field> above maximum N` | red |
+| | `<field> at minimum N` / `<field> at maximum N` | golden |
+| `exclusiveMinimum` / `exclusiveMaximum` | `<field> at exclusive minimum N` / `... maximum N` | red |
+| `minLength` / `maxLength` | `<field> shorter than N characters` / `<field> longer than N characters` | red |
+| | `<field> of N characters` | golden |
+| `minItems` / `maxItems` | `<field> with fewer than N items` / `<field> with more than N items` | red |
+| `pattern` | `<field> not matching its pattern` | red |
+| an enum | `<field> not one of its values` | red |
+| a format that values can break (email, uuid, date, decimal...) | `<field> not a valid <format>` | red |
+| a permission other than `public` on an operation, command or page | `denied without <permission>` | red |
+| a path parameter, or a route parameter of a page | `not found <parameter>` | red |
+| a body field that is the `via` of a relation of the entity the operation returns | `not found <field>` | red |
+| a unique constraint of the entity a POST with a 201 response creates | `duplicate <constraint>` | red |
+| a channel the operation `emits` on | `dependency fails <channel>` | red |
+| a 4xx or 5xx response | `response <status>` | red |
+| a command | `usage error`, and `exit <status>` for each non-zero exit code | red |
+| a check constraint / a unique constraint | `violates <constraint>` / `duplicate <constraint>` | red |
+| a transition | `from wrong state` | red |
+
+One test may cover several cases when they are one scenario (a lookup that
+answers 404 covers `not found memberId` and `response 404`). A case that
+does not apply is covered by a test with `notApplicable` and a written
+reason instead of given, when and then. In 0.1 a missing scenario is a
+warning, so a specification can be written before its tests; it is meant to
+become an error in 0.2.
+
+An implementation file's suite names the design tests it runs, by name
+(`designTests`) or by subject (`designTestsOf: [{ command: validate }]`),
+or says `implementationOnly: true`. The validator checks every name it
+gives exists in the design file.
 
 ### What the schema cannot check
 
@@ -290,8 +419,9 @@ to look.
     spec rather than in an external tool. Each entry is the ID the YAML's
     `requirements` links point at.
 
-Not every section needs text. An empty section stays in the file with the
-line "Nothing yet." so its absence is visible rather than silent.
+A section with nothing to say is left out; the others keep their numbers,
+so section 8 is always cross-cutting concepts. A placeholder line would only
+be noise for the reader.
 
 ## Mermaid diagrams: generated or hand-drawn
 
@@ -317,7 +447,7 @@ edit inside the markers; edit the YAML.
 | deployment picture | prose | hand-drawn |
 | any explanatory sketch of an algorithm or a flow | prose | hand-drawn |
 
-Generators do not exist yet. Until they do, generated diagrams are written by
+Until a generator writes them, generated diagrams are written by
 hand inside the markers and checked against the YAML in review. The example in
 `examples/library-lending/` shows the markers in use.
 

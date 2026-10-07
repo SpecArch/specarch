@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  case.specarch-design.yaml:9: error: /algorithms/total/formula: expression_syntax: the formula, column 21: the expression ends where a value or a closing bracket was expected; complete it

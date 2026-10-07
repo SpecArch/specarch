@@ -61,25 +61,29 @@ libraries:
 
 layout:
   cmd/specarch:
-    description: The command line. Argument parsing, file discovery, output and exit status.
-    implements: ["#/commands/validate", "#/commands/version", "#/algorithms/exitStatus"]
+    description: The command line. Argument handling, finding the files under folders, printing the diagnostics and the exit status.
+    implements: ["#/commands/validate", "#/commands/version", "#/entities/SpecFile", "#/algorithms/exitStatus"]
   schema:
     description: The JSON Schemas, embedded into the binary from the files editors use.
   internal/source:
     description: Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys.
   internal/expr:
-    description: The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks and evaluates over exact rationals.
-    implements: ["#/algorithms/workedExampleHolds"]
+    description: The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals.
   internal/validate:
-    description: Schema validation, cross-references, fail-closed access, the interface boundary, worked examples and implementation references.
-    implements: ["#/entities/Diagnostic", "#/entities/SpecFile", "#/enums/Rule", "#/algorithms/referenceResolves", "#/algorithms/permissionGranted"]
+    description: Schema validation with plain messages, the interface boundary, cross-references, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases, and implementation references.
+    implements: ["#/entities/Diagnostic", "#/enums/Rule", "#/enums/Severity", "#/algorithms/referenceResolves", "#/algorithms/permissionGranted", "#/algorithms/workedExampleHolds"]
 
 mappings:
   "#/entities/Diagnostic": { target: validate.Diagnostic, description: "A struct; `String()` prints the one-line form." }
-  "#/entities/SpecFile": { target: validate.File }
-  "#/enums/Rule": { target: validate.Rule, description: A string type with one constant per value. }
+  "#/entities/SpecFile": { target: a path string in main.collect, description: The kind is read from the name by validate.KindOf; the versions are read where they are checked. }
+  "#/enums/Rule": { target: validate.Rule, description: "A string type with one constant per value; validate.Rules lists them, and a test checks they equal the design's enum." }
+  "#/enums/Severity": { target: validate.Severity }
   "#/commands/validate": { target: main.runValidate }
   "#/commands/version": { target: main.runVersion }
+  "#/algorithms/exitStatus": { target: the end of main.runValidate }
+  "#/algorithms/workedExampleHolds": { target: validate.checker.checkExample }
+  "#/algorithms/permissionGranted": { target: validate.checker.checkAccess }
+  "#/algorithms/referenceResolves": { target: the validate.checker.check... methods for each kind of reference }
 
 bindings:
   cli:
@@ -90,7 +94,7 @@ tasks:
   build: { run: go build ./..., ci: true }
   test: { run: go test ./..., ci: true }
   vet: { run: go vet ./..., ci: true }
-  vulncheck: { run: govulncheck ./..., ci: true }
+  vulncheck: { run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./..., ci: true }
   validate-specs:
     run: go run ./cmd/specarch validate spec examples
     description: The validator checks its own specification and every example.
@@ -99,6 +103,31 @@ tasks:
   sbom:
     run: syft dir:. -o syft-json=sbom.json && grype sbom:sbom.json && osv-scanner scan source -r .
     description: Run on every dependency change; the result goes in the commit message.
+
+testing:
+  framework: go test
+  run: go test ./...
+  platforms: [linux/amd64, darwin/arm64]
+  fixtures: The conformance suite in `conformance/` holds every input and expected output; the Go tests read it and add none of their own.
+  mocks: None. Every test runs the real program on real files.
+  suites:
+    conformance:
+      description: |
+        Runs every folder of `conformance/` through the program's own entry
+        point, in that folder, and compares the exit status and standard
+        output exactly. It also checks that the folders and the design
+        file's tests of validate and version name the same cases, and that
+        the validator's rules are exactly the design's Rule enum.
+      run: go test ./cmd/specarch
+      designTestsOf:
+        - { command: validate }
+        - { command: version }
+      ci: true
+    expressions:
+      description: Unit tests of the expression package, for cases the conformance suite reaches only indirectly (rounding, floor and ceil of negative decimals, integer overflow).
+      run: go test ./internal/expr
+      implementationOnly: true
+      ci: true
 
 decisions:
   ADR-101:
@@ -113,9 +142,9 @@ decisions:
     status: accepted
     date: "2026-10-07"
     context: |
-      The repository checked files with `jv`, the command of this library,
-      before the validator existed. Changing library would change which files
-      pass.
+      `jv`, the command of this library, is a common way to check a file
+      against the schemas alone. Using the same library means a file passes
+      the schema check in both.
     decision: |
       Use `github.com/santhosh-tekuri/jsonschema/v6` with format assertion
       on, and require `golang.org/x/text` v0.42.0 so GO-2026-5970 (fixed in
@@ -149,5 +178,5 @@ decisions:
     decision: |
       Parse with `go.yaml.in/yaml/v3` into `yaml.Node`, keep the tree for
       lines, and convert it to plain values by tag for the schema check.
-      The maintained module replaces the archived `gopkg.in/yaml.v3`.
+      It is the maintained successor of the archived `gopkg.in/yaml.v3`.
     consequences: Rules walk the node tree directly. A date without quotes is caught by its tag before the schema check.

@@ -1,0 +1,7 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  public: { description: Everyone. }
+paths:
+  /total:
+    get: { operationId: getTotal, summary: Total, permission: public, algorithm: totl, responses: { "200": { description: The total. } } }

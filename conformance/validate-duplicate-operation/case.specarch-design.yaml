@@ -1,0 +1,9 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  public: { description: Everyone. }
+paths:
+  /a:
+    get: { operationId: getThing, summary: A, permission: public, responses: { "200": { description: A. } } }
+  /b:
+    get: { operationId: getThing, summary: B, permission: public, responses: { "200": { description: B. } } }

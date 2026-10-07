@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  case.specarch-design.yaml:11: error: /entities/Item/relations/owner/target: relation_target: Ownr is not an entity of this file; use one of Item

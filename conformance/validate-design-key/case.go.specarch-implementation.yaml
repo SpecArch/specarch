@@ -1,0 +1,5 @@
+specarchImplementation: "0.1"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: case.specarch-design.yaml, version: 1.0.0 }
+target: { language: { name: Go, version: "1.26" } }
+entities: {}

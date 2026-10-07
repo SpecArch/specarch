@@ -1,0 +1,25 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  public: { description: Everyone. }
+entities:
+  Item:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      name: { type: string }
+    primaryKey: [id]
+paths:
+  /items:
+    get: { operationId: listItems, summary: List items, permission: public, responses: { "200": { description: The items. } } }
+pages:
+  items-list:
+    kind: list
+    title: Items
+    route: /items
+    entity: Item
+    permission: public
+    columns: [name]
+    source: listItems
+    actions:
+      - { label: New, kind: navigate, target: item-form }

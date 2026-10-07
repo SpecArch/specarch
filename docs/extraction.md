@@ -85,16 +85,13 @@ emitter waits on the `guard` concept in meta-model 0.2.
 
 ## What extraction asked of the meta-model
 
-Extracting real systems showed four concepts that 0.1 lacks, or carries only
-in part, and that are needed early. One is fixed in 0.1; three are named 0.2 items, because a
-keyword that no tool checks is a defect, and only the validator CLI can check
-them.
+Extracting real systems asks for four concepts. Meta-model 0.1 has one of
+them; the other three are 0.2 items, because a keyword that no tool checks is
+a defect, and only the validator or an emitter can check them.
 
-- Trace, fixed in 0.1: every object names the requirements it serves. 0.1
-  already had `requirements` on most objects; it now also sits on relations,
-  constraints, transitions, permissions, roles and channels. Fields,
-  parameters, responses, actions and worked examples trace through the
-  object that holds them.
+- Trace, in 0.1: every named object carries `requirements`, the
+  requirements it serves. Fields, parameters, responses, actions and worked
+  examples trace through the object that holds them.
 - Guard, 0.2: preconditions and postconditions on a data change, with exact
   expected counts. A new top-level object; its emitter is the guarded script
   above.

@@ -1,0 +1,3 @@
+arguments: [validate, empty]
+exitStatus: 2
+standardOutput: ""

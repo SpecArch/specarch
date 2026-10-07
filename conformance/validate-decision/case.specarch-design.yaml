@@ -1,0 +1,11 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+decisions:
+  ADR-001:
+    title: One
+    status: superseded
+    supersededBy: ADR-002
+    date: "2026-10-07"
+    context: C.
+    decision: D.
+    consequences: E.

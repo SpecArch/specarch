@@ -63,6 +63,14 @@ enums:
       - example_error
       - implements
       - design_ref
+      - unsafe_integer
+      - change_log
+      - test_subject
+      - test_case
+      - test_golden_missing
+      - test_red_missing
+      - test_case_missing
+      - suite
     valueDescriptions:
       file_kind: the file name ends in neither `.specarch-design.yaml` nor `.specarch-implementation.yaml`, or its root key does not match its name
       yaml_syntax: the file is not well-formed YAML
@@ -98,7 +106,22 @@ enums:
       example_error: the formula cannot be evaluated on a worked example's inputs (division by zero, null in arithmetic)
       implements: an implementation file's `implements` does not name a readable design file of the same version
       design_ref: a pointer into the design file does not resolve
+      unsafe_integer: an int64 or uint64 is carried as a JSON number without bounds inside 2^53
+      change_log: a description reads as a change log instead of the current truth (a warning)
+      test_subject: a test is about an operation, command, page, constraint or transition that does not exist
+      test_case: a test covers a case its subject does not have, or a red case in a golden test
+      test_golden_missing: a subject has no golden scenario (a warning in 0.1)
+      test_red_missing: a subject has no red scenario and no derived red case (a warning in 0.1)
+      test_case_missing: a case derived from the design has no test (a warning in 0.1)
+      suite: an implementation's test suite names a design test or subject that does not exist
     requirements: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10]
+  Severity:
+    type: string
+    enum: [error, warning]
+    valueDescriptions:
+      error: the file is invalid
+      warning: printed, but the file stays valid; in 0.1 only missing test scenarios and change-log phrases
+    requirements: [SA-6]
   GeneratorTarget:
     type: string
     enum: [techspec, openapi, sql, ui, tests, manual, scripts]
@@ -128,15 +151,16 @@ entities:
   Diagnostic:
     description: |
       One problem found in one file. Printed as one line:
-      `file:line: /yaml/path: rule: message`.
+      `file:line: severity: /yaml/path: rule: message`.
     type: object
     properties:
       file: { type: string, description: The file's path as given. }
-      line: { type: integer, minimum: 1, description: "Line of the YAML node the problem is at; for an expression, the line inside the expression." }
+      severity: { $ref: "#/enums/Severity" }
+      line: { type: integer, format: int32, minimum: 1, description: "Line of the YAML node the problem is at; for an expression, the line inside the expression." }
       path: { type: string, description: "JSON pointer to the node, such as `/entities/Loan/relations/member/target`; `/` for the whole file." }
       rule: { $ref: "#/enums/Rule" }
       message: { type: string, minLength: 1, description: "What is wrong and how to fix it, in one plain sentence." }
-    required: [file, line, path, rule, message]
+    required: [file, line, severity, path, rule, message]
     primaryKey: [file, line, path, rule]
     relations:
       specFile: { target: SpecFile, kind: many-to-one, via: file }
@@ -188,8 +212,8 @@ commands:
     standardError: A usage message on a usage error, the reason on an unreadable file, and a one-line count at the end.
     exitCodes:
       "0": every file is valid
-      "1": at least one file has a diagnostic
-      "2": usage error, or a file or folder could not be read
+      "1": at least one file has an error
+      "2": usage error, a file or folder could not be read, or a folder holds no SpecArch file
     algorithm: exitStatus
     requirements: [SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10]
 
@@ -251,27 +275,27 @@ algorithms:
     inputs:
       usageError: { type: boolean }
       ioError: { type: boolean }
-      diagnostics: { type: integer, minimum: 0 }
-    output: { type: integer }
-    formula: "usageError || ioError ? 2 : (diagnostics > 0 ? 1 : 0)"
+      errors: { type: integer, format: int32, minimum: 0, description: Diagnostics with severity error. }
+    output: { type: integer, format: int32 }
+    formula: "usageError || ioError ? 2 : (errors > 0 ? 1 : 0)"
     examples:
       - name: every file valid
-        inputs: { usageError: false, ioError: false, diagnostics: 0 }
+        inputs: { usageError: false, ioError: false, errors: 0 }
         expected: 0
       - name: three problems
-        inputs: { usageError: false, ioError: false, diagnostics: 3 }
+        inputs: { usageError: false, ioError: false, errors: 3 }
         expected: 1
       - name: no arguments
-        inputs: { usageError: true, ioError: false, diagnostics: 0 }
+        inputs: { usageError: true, ioError: false, errors: 0 }
         expected: 2
       - name: one file unreadable, another invalid
-        inputs: { usageError: false, ioError: true, diagnostics: 2 }
+        inputs: { usageError: false, ioError: true, errors: 2 }
         expected: 2
     pseudocode: |
-      function exitStatus(usageError, ioError, diagnostics):
+      function exitStatus(usageError, ioError, errors):
           if usageError or ioError:
               return 2
-          if diagnostics > 0:
+          if errors > 0:
               return 1
           return 0
     requirements: [SA-6]
@@ -284,7 +308,7 @@ algorithms:
       happen for operationIds, which are not map keys, and is reported as a
       duplicate.
     inputs:
-      definitions: { type: integer, minimum: 0, description: "Objects of the referenced kind with that name, in the same file." }
+      definitions: { type: integer, format: int32, minimum: 0, description: "Objects of the referenced kind with that name, in the same file." }
     output: { type: boolean }
     formula: definitions == 1
     examples:
@@ -317,7 +341,7 @@ algorithms:
     inputs:
       declared: { type: boolean }
       name: { type: string }
-      grantingRoles: { type: integer, minimum: 0 }
+      grantingRoles: { type: integer, format: int32, minimum: 0 }
     output: { type: boolean }
     formula: declared && (name == "public" || grantingRoles >= 1)
     examples:
@@ -346,40 +370,32 @@ algorithms:
   workedExampleHolds:
     description: |
       A worked example holds when the formula, evaluated on the example's
-      inputs with exact decimal arithmetic, gives the expected value. A
-      decimal result is rounded to the output's scale, half away from zero,
-      before the comparison, as a cashier would round it. Numbers are compared
-      by value, so "3.50" and 3.5 are equal.
+      inputs with exact decimal arithmetic, gives the expected value. The
+      type checker has already made sure a decimal result has no more places
+      than the output's scale, so the comparison is exact and by value:
+      "3.50" equals "3.5". Where the design wants rounding, the formula says
+      so with round(x, places), which rounds half away from zero.
     inputs:
-      computed: { type: string, format: decimal, description: The formula's exact result. }
-      scale: { type: integer, minimum: 0, description: The output's scale. }
-      expected: { type: string, format: decimal }
+      computed: { type: string, format: decimal, precision: 38, scale: 6, description: The formula's result. }
+      expected: { type: string, format: decimal, precision: 38, scale: 6 }
     output: { type: boolean }
-    formula: round(computed, scale) == expected
+    formula: computed == expected
     examples:
-      - name: exact result, written with trailing zero
-        inputs: { computed: "3.5", scale: 2, expected: "3.50" }
-        expected: true
-      - name: a third, rounded down
-        inputs: { computed: "0.333333", scale: 2, expected: "0.33" }
-        expected: true
-      - name: half rounds away from zero
-        inputs: { computed: "2.675", scale: 2, expected: "2.68" }
+      - name: same value, written with a trailing zero
+        inputs: { computed: "3.5", expected: "3.50" }
         expected: true
       - name: the example forgot the cap
-        inputs: { computed: "25.00", scale: 2, expected: "45.00" }
+        inputs: { computed: "25.00", expected: "45.00" }
         expected: false
         note: "A wrong example fails validation instead of becoming a wrong test."
     pseudocode: |
       for each algorithm a, for each example e in a.examples:
           check e.inputs has exactly the names of a.inputs, each of its type
           check e.expected has the type of a.output
-          env = e.inputs converted: decimals and integers to exact rationals,
-                dates and date-times to calendar values
-          result = evaluate(a.formula, env)       # error -> example_error
-          if a.output is a decimal with a scale:
-              result = round(result, a.output.scale)
-          if result != e.expected:
+          values = e.inputs read by their declared types: int, uint and
+                   decimal as exact numbers, dates and timestamps as instants
+          result = evaluate(a.formula, values)     # error -> example_error
+          if result != e.expected:                  # by value: 3.5 == 3.50
               report example_mismatch: "gives <result>, expected <expected>"
     requirements: [SA-4]
 
@@ -387,8 +403,8 @@ algorithms:
     description: The status of `generate --check`.
     inputs:
       invalidInput: { type: boolean }
-      differingFiles: { type: integer, minimum: 0 }
-    output: { type: integer }
+      differingFiles: { type: integer, format: int32, minimum: 0 }
+    output: { type: integer, format: int32 }
     formula: "invalidInput || differingFiles > 0 ? 1 : 0"
     examples:
       - name: output is current
@@ -416,9 +432,9 @@ algorithms:
       `<!-- specarch:generate <what> -->` and `<!-- specarch:end -->`. Every
       begin has its end before the next begin, so regions never nest.
     inputs:
-      begins: { type: integer, minimum: 0 }
-      ends: { type: integer, minimum: 0 }
-      nested: { type: integer, minimum: 0, description: Begins found inside an open region. }
+      begins: { type: integer, format: int32, minimum: 0 }
+      ends: { type: integer, format: int32, minimum: 0 }
+      nested: { type: integer, format: int32, minimum: 0, description: Begins found inside an open region. }
     output: { type: boolean }
     formula: begins == ends && nested == 0
     examples:
@@ -441,6 +457,455 @@ algorithms:
       if open: error "begin without end"
       if open.what names an object that no longer exists: error, never an empty block
     requirements: [SA-8]
+
+tests:
+  validate-valid-design:
+    command: validate
+    scenario: golden
+    given: "a design file with only specarch and info"
+    when: "validate is run on its folder"
+    then: "it prints nothing and exits 0"
+  validate-valid-implementation:
+    command: validate
+    scenario: golden
+    given: "a design file and an implementation file that names it at the same version"
+    when: "validate is run on their folder"
+    then: "it prints nothing and exits 0"
+  validate-folder-search:
+    command: validate
+    scenario: golden
+    given: "a folder holding a design file two levels down and a text file"
+    when: "validate is run on the folder"
+    then: "it finds and checks the design file, ignores the text file, and exits 0"
+  validate-derived-cases-listed:
+    command: validate
+    scenario: golden
+    given: "an operation with a required field, length limits, a permission and a 409 response, and no tests"
+    when: "validate is run"
+    then: "it warns once for every derived case no test covers, each with a test to copy, and exits 0"
+  validate-derived-cases-covered:
+    command: validate
+    scenario: golden
+    given: "an operation whose every derived case is covered by a test, one of them marked not applicable with a reason"
+    when: "validate is run"
+    then: "it prints nothing and exits 0"
+  validate-change-log-warning:
+    command: validate
+    scenario: golden
+    given: "a description that says how the file changed"
+    when: "validate is run"
+    then: "it warns with change_log and exits 0, since the file is still valid"
+  version-prints-versions:
+    command: version
+    scenario: golden
+    given: "the program"
+    when: "version is run"
+    then: "it prints the program version and the meta-model versions it reads, and exits 0"
+  validate-yaml-syntax:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a flow mapping that is never closed"
+    when: "validate is run"
+    then: "it reports yaml_syntax with the line and exits 1"
+  validate-unquoted-date:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a decision date written without quotes"
+    when: "validate is run"
+    then: "it reports unquoted_date and exits 1"
+  validate-duplicate-key:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a file with info twice"
+    when: "validate is run"
+    then: "it reports duplicate_key at the second info and exits 1"
+  validate-file-kind-root:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a file named as a design file that starts with specarchImplementation"
+    when: "validate is run"
+    then: "it reports file_kind and exits 1"
+  validate-file-kind-name:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a file whose name ends in neither SpecArch suffix, given by name"
+    when: "validate is run"
+    then: "it reports file_kind and exits 1"
+  validate-schema-operation-without-permission:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "an operation with no permission"
+    when: "validate is run"
+    then: "it reports the missing permission with rule schema and exits 1"
+  validate-schema-empty-role:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a role that grants an empty list of permissions"
+    when: "validate is run"
+    then: "it reports the empty list with rule schema and exits 1"
+  validate-schema-algorithm-without-pseudocode:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "an algorithm without pseudocode"
+    when: "validate is run"
+    then: "it reports the missing pseudocode with rule schema and exits 1"
+  validate-schema-list-page-without-source:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a list page without a source operation"
+    when: "validate is run"
+    then: "it reports the missing source with rule schema and exits 1"
+  validate-schema-requirement-link-form:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a role whose requirement link is in lower case"
+    when: "validate is run"
+    then: "it reports the link's form with rule schema and exits 1"
+  validate-schema-requirements-on-field:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a field that carries its own requirements"
+    when: "validate is run"
+    then: "it reports requirements as a key a field cannot have and exits 1"
+  validate-schema-untyped-integer:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "an integer field without a format"
+    when: "validate is run"
+    then: "it reports the missing format with rule schema and exits 1"
+  validate-stack-key:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a design file with an x-oapi-codegen key on an operation"
+    when: "validate is run"
+    then: "it reports stack_key and exits 1"
+  validate-design-key:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "an implementation file with an entities key"
+    when: "validate is run"
+    then: "it reports design_key and exits 1"
+  validate-ref-type:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a field whose $ref names an enum that does not exist"
+    when: "validate is run"
+    then: "it reports ref_type and exits 1"
+  validate-relation-target:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a relation whose target is misspelt"
+    when: "validate is run"
+    then: "it reports relation_target and exits 1"
+  validate-relation-via:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a many-to-one relation whose via field does not exist"
+    when: "validate is run"
+    then: "it reports relation_via and exits 1"
+  validate-field:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a primary key naming a field that does not exist"
+    when: "validate is run"
+    then: "it reports field and exits 1"
+  validate-state-field:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a state field that is not an enum"
+    when: "validate is run"
+    then: "it reports state_field and exits 1"
+  validate-state-value:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a transition to a value the enum does not have"
+    when: "validate is run"
+    then: "it reports state_value and exits 1"
+  validate-trigger:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a transition whose trigger names nothing in the file"
+    when: "validate is run"
+    then: "it reports trigger and exits 1"
+  validate-requirement:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a requirement link whose prefix is not a requirement source"
+    when: "validate is run"
+    then: "it reports requirement and exits 1"
+  validate-emits:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "an operation that emits on a channel that does not exist"
+    when: "validate is run"
+    then: "it reports emits and exits 1"
+  validate-operation:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a list page whose source operation does not exist"
+    when: "validate is run"
+    then: "it reports operation and exits 1"
+  validate-page:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a navigate action to a page that does not exist"
+    when: "validate is run"
+    then: "it reports page and exits 1"
+  validate-algorithm:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "an operation that names an algorithm that does not exist"
+    when: "validate is run"
+    then: "it reports algorithm and exits 1"
+  validate-decision:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a decision superseded by one that does not exist"
+    when: "validate is run"
+    then: "it reports decision and exits 1"
+  validate-enum-value:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a value description for a value the enum does not have"
+    when: "validate is run"
+    then: "it reports enum_value and exits 1"
+  validate-path-parameter:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a path with {itemId} and no path parameter for it"
+    when: "validate is run"
+    then: "it reports path_parameter and exits 1"
+  validate-duplicate-operation:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "two operations with the same operationId"
+    when: "validate is run"
+    then: "it reports duplicate_operation at the second and exits 1"
+  validate-permission-undeclared:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "an operation whose permission is not declared"
+    when: "validate is run"
+    then: "it reports permission_undeclared and exits 1"
+  validate-permission-ungranted:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a declared permission that no role grants"
+    when: "validate is run"
+    then: "it reports permission_ungranted and exits 1"
+  validate-expression-syntax:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a formula that ends after an operator"
+    when: "validate is run"
+    then: "it reports expression_syntax with the column and exits 1"
+  validate-expression-not-in-subset:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a formula that uses %, which the subset leaves out"
+    when: "validate is run"
+    then: "it reports expression_syntax naming % and exits 1"
+  validate-expression-name:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a formula that names an input that does not exist"
+    when: "validate is run"
+    then: "it reports expression_name and exits 1"
+  validate-expression-type:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a formula that multiplies an int by a decimal without a conversion"
+    when: "validate is run"
+    then: "it reports expression_type with the conversion to write and exits 1"
+  validate-formula-output-scale:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a formula whose decimal result has no fixed scale and is not rounded"
+    when: "validate is run"
+    then: "it reports expression_type asking for round and exits 1"
+  validate-example-input:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a worked example whose decimal input is not quoted"
+    when: "validate is run"
+    then: "it reports example_input and exits 1"
+  validate-example-expected:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a worked example whose expected value has more places than the output's scale"
+    when: "validate is run"
+    then: "it reports example_expected and exits 1"
+  validate-example-mismatch:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a worked example whose expected value is wrong"
+    when: "validate is run"
+    then: "it reports example_mismatch with the computed value and exits 1"
+  validate-example-error:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a formula that divides by zero on a worked example"
+    when: "validate is run"
+    then: "it reports example_error and exits 1"
+  validate-implements:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "an implementation file written against an older version of its design"
+    when: "validate is run"
+    then: "it reports implements and exits 1"
+  validate-design-ref:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "an implementation mapping that points at an entity the design does not have"
+    when: "validate is run"
+    then: "it reports design_ref and exits 1"
+  validate-unsafe-integer:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "an int64 field carried as a JSON number with no maximum"
+    when: "validate is run"
+    then: "it reports unsafe_integer and exits 1"
+  validate-test-subject:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a test about an operation that does not exist"
+    when: "validate is run"
+    then: "it reports test_subject and exits 1"
+  validate-test-case:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a test that covers a case its operation does not have"
+    when: "validate is run"
+    then: "it reports test_case with the cases it has, warns for the case now uncovered, and exits 1"
+  validate-suite:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "an implementation suite that names a design test that does not exist"
+    when: "validate is run"
+    then: "it reports suite and exits 1"
+  validate-usage-error:
+    command: validate
+    scenario: red
+    covers: [usage error, exit 2]
+    given: "no file or folder"
+    when: "validate is run without arguments"
+    then: "it prints how to use it and exits 2, with nothing on standard output"
+  validate-unreadable:
+    command: validate
+    scenario: red
+    covers: [exit 2]
+    given: "a path that does not exist"
+    when: "validate is run on it"
+    then: "it says it cannot read the path and exits 2"
+  validate-empty-folder:
+    command: validate
+    scenario: red
+    covers: [exit 2]
+    given: "a folder that holds no SpecArch file"
+    when: "validate is run on it"
+    then: "it says so and exits 2 rather than passing silently"
+  version-usage-error:
+    command: version
+    scenario: red
+    covers: [usage error]
+    given: "the program"
+    when: "version is run with an argument"
+    then: "it prints how to use it and exits 2"
+  generate-writes-target:
+    command: generate
+    scenario: golden
+    given: a valid design file and an implementation file that names the target's folder
+    when: generate is run for that target
+    then: it writes the target's files, each with a header naming the design file, its version and the meta-model, and exits 0
+  generate-check-current:
+    command: generate
+    scenario: golden
+    given: committed output that matches the design file
+    when: generate is run with --check
+    then: it writes nothing, prints nothing and exits 0
+  generate-usage-error:
+    command: generate
+    scenario: red
+    covers: [usage error, exit 2]
+    given: no target
+    when: generate is run without arguments
+    then: it prints how to use it and exits 2
+  generate-check-differs:
+    command: generate
+    scenario: red
+    covers: [exit 1]
+    given: a generated diagram edited by hand
+    when: generate is run with --check
+    then: it prints the path of the file that differs, writes nothing, and exits 1
+  generate-invalid-input:
+    command: generate
+    scenario: red
+    covers: [exit 1]
+    given: a design file with a relation to an entity that does not exist
+    when: generate is run
+    then: it prints the diagnostics, writes nothing, and exits 1
+  diagnostic-line-from-one:
+    entity: Diagnostic
+    constraint: diagnostic_line_positive
+    scenario: golden
+    given: a problem on the first line of a file
+    when: the diagnostic is made
+    then: its line is 1
+  diagnostic-line-zero:
+    entity: Diagnostic
+    constraint: diagnostic_line_positive
+    scenario: red
+    covers: [violates diagnostic_line_positive]
+    given: a problem found before any line was read
+    when: a diagnostic with line 0 is made
+    then: it is refused; a problem about the whole file is reported on line 1
 
 decisions:
   ADR-001:
@@ -500,25 +965,29 @@ decisions:
     consequences: A file an editor accepts and the validator refuses is always a cross-reference or semantic problem, never a shape problem.
     requirements: [SA-1]
   ADR-004:
-    title: Expressions are a small subset of CEL, with exact decimal arithmetic
+    title: Expressions are a small subset of CEL, with CEL's strict types
     status: accepted
     date: "2026-10-07"
     context: |
-      Checks and formulas were free text in the first meta-model, so nothing
-      could tell a typo from an operator. A grammar of SpecArch's own would be
-      one more thing for a reader to learn. Money must not round like a
-      binary float.
+      A check or a formula kept as free text cannot be told apart from a
+      typo. A grammar of SpecArch's own would be one more thing to learn.
+      CEL keeps int, uint and double apart and never converts between them
+      by itself; its authors did that because an implicit conversion is
+      where precision is lost without anyone noticing.
     decision: |
-      Checks and formulas are written in a small subset of CEL, the Common
-      Expression Language: its C-like operators, the conditional `? :`, and
-      a closed list of functions, listed in `docs/conventions.md`. A formula
-      is one expression. Every expression is parsed and type-checked, and
-      every formula is evaluated with exact decimal numbers.
+      Checks and formulas are written in a small subset of CEL with CEL's
+      type rules: no implicit conversion, every conversion written, and a
+      lossy one only after the rounding is written. SpecArch adds three
+      types CEL lacks: decimal (CEL serves protocol buffers, which have no
+      decimal, and money needs one), date and enum values. It is stricter
+      than CEL in one place: numbers of different types are not compared
+      without a conversion, so every operator follows one rule.
     consequences: |
-      A reader who knows C, Java or JavaScript reads the expressions without
-      learning anything. A generator translates an expression it has parsed,
-      and a construct the target cannot express fails generation. A worked
-      example is checked to the last digit.
+      A reader who knows C, Java or JavaScript reads the expressions. A
+      formula's result has exactly its declared type, and a worked example
+      is checked to the last digit. Generators translate a parsed
+      expression, and a construct the target cannot express fails
+      generation.
     requirements: [SA-3, SA-4]
   ADR-005:
     title: Report every problem, one line each, with a stable rule name
@@ -527,7 +996,8 @@ decisions:
     context: A validator that stops at the first error makes a large file take as many runs as it has errors.
     decision: |
       All problems in all files are reported, one per line, in the form
-      `file:line: /yaml/path: rule: message`, sorted. The rule is a value of
+      `file:line: severity: /yaml/path: rule: message`, sorted. The severity
+      is error or warning; only errors make a file invalid. The rule is a value of
       the `Rule` enum. Status 0 means valid, 1 invalid, 2 a usage or read
       error.
     consequences: Editors and CI can parse the output. Tests assert the exact lines.
@@ -577,3 +1047,25 @@ decisions:
       in one plain sentence.
     consequences: A keyword, option or message that needs explaining is a defect to fix, not documentation to add.
     requirements: [SA-6]
+  ADR-009:
+    title: Types are concrete, and the design says how they travel
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      Implementations differ in exactly the places an abstract type hides:
+      a JavaScript number is a 64-bit float, so an int64 above 2^53 loses
+      digits, and a string of digits is easily read as a number. JSON Schema
+      separates `type` (the JSON value) from `format` (what it means), and
+      OpenAPI uses `format` for widths such as int32 and int64, so a client
+      knows the range before it parses a value.
+    decision: |
+      Every field has a concrete type: an integer names int32, int64 or
+      uint64, a number names double, a decimal names precision and scale.
+      `type` is how the value travels in JSON and `format` what it is. An
+      int64 or uint64 that can pass 2^53 travels as a string; one sent as a
+      JSON number must be bounded inside 2^53.
+    consequences: |
+      Every implementation reads the same range and representation from the
+      design. The validator refuses an unbounded int64 carried as a JSON
+      number.
+    requirements: [SA-1]

@@ -76,8 +76,8 @@ entities:
       isbn: { type: string, pattern: "^[0-9]{13}$" }
       title: { type: string, minLength: 1, maxLength: 500 }
       author: { type: string, minLength: 1, maxLength: 200 }
-      copiesOwned: { type: integer, minimum: 0 }
-      copiesAvailable: { type: integer, minimum: 0, readOnly: true }
+      copiesOwned: { type: integer, format: int32, minimum: 0 }
+      copiesAvailable: { type: integer, format: int32, minimum: 0, readOnly: true }
       replacementCost: { type: string, format: decimal, precision: 10, scale: 2 }
     required: [id, isbn, title, author, copiesOwned, copiesAvailable, replacementCost]
     primaryKey: [id]
@@ -124,7 +124,7 @@ entities:
         message: The due date must be after the loan date.
       loan_returned_after_loaned:
         kind: check
-        expression: returnedAt == null or returnedAt >= loanedAt
+        expression: returnedAt == null || returnedAt >= loanedAt
         message: A copy cannot be returned before it was lent.
     stateField: status
     transitions:
@@ -320,7 +320,7 @@ channels:
           properties:
             loanId: { type: string, format: uuid }
             memberId: { type: string, format: uuid }
-            daysLate: { type: integer, minimum: 1 }
+            daysLate: { type: integer, format: int32, minimum: 1 }
           required: [loanId, memberId, daysLate]
         requirements: [LIB-4]
 
@@ -381,11 +381,11 @@ algorithms:
       Fee charged when a copy comes back after its due date. A flat daily rate,
       capped so that a long-overdue book never costs more than replacing it.
     inputs:
-      daysLate: { type: integer, minimum: 0, description: Whole days after dueOn; 0 when returned on time. }
+      daysLate: { type: integer, format: int32, minimum: 0, description: Whole days after dueOn; 0 when returned on time. }
       dailyRate: { type: string, format: decimal, precision: 10, scale: 2, description: "Library setting, currently 0.50." }
       replacementCost: { type: string, format: decimal, precision: 10, scale: 2, description: The book's replacementCost. }
     output: { type: string, format: decimal, precision: 10, scale: 2 }
-    formula: min(daysLate * dailyRate, replacementCost)
+    formula: min(decimal(daysLate, 0) * dailyRate, replacementCost)
     examples:
       - name: returned on time
         inputs: { daysLate: 0, dailyRate: "0.50", replacementCost: "25.00" }
@@ -410,6 +410,188 @@ algorithms:
               fee = replacementCost
           return fee
     requirements: [LIB-5]
+
+tests:
+  # Operations
+  browse-catalogue:
+    operation: listBooks
+    scenario: golden
+    covers: [q of 200 characters]
+    given: three books by two authors, and a visitor without a card
+    when: listBooks is called with q set to one author's name, and again with a 200-character q
+    then: the first call answers that author's books, the second an empty list
+    requirements: [LIB-2]
+  browse-catalogue-query-too-long:
+    { operation: listBooks, scenario: red, covers: [q longer than 200 characters], given: a visitor, when: listBooks is called with a 201-character q, then: it is refused as invalid input }
+  list-members:
+    { operation: listMembers, scenario: golden, given: two members and a librarian, when: listMembers is called, then: both members are answered }
+  list-members-denied:
+    { operation: listMembers, scenario: red, covers: [denied without members.read], given: a caller holding only the member role, when: listMembers is called, then: it is refused as not allowed }
+  register-member:
+    operation: createMember
+    scenario: golden
+    covers: [fullName of 1 character, fullName of 200 characters]
+    given: a librarian
+    when: createMember is called for a standard-tier member with a one-letter name, and again with a 200-character name
+    then: both members are created, each with a new eight-digit card number and no fees
+    requirements: [LIB-1]
+  register-member-missing-field:
+    { operation: createMember, scenario: red, covers: [missing fullName, missing email, missing tier], given: a librarian, when: createMember is called three times each time without one of fullName and email and tier, then: each call is refused as invalid input }
+  register-member-name-length:
+    { operation: createMember, scenario: red, covers: [fullName shorter than 1 character, fullName longer than 200 characters], given: a librarian, when: createMember is called with an empty fullName and with a 201-character one, then: both are refused as invalid input }
+  register-member-bad-values:
+    { operation: createMember, scenario: red, covers: [email not a valid email, tier not one of its values], given: a librarian, when: "createMember is called with email set to 'not-an-address', and with tier set to gold", then: both are refused as invalid input }
+  register-member-denied:
+    { operation: createMember, scenario: red, covers: [denied without members.write], given: a caller holding only the member role, when: createMember is called, then: it is refused as not allowed }
+  register-member-email-taken:
+    operation: createMember
+    scenario: red
+    covers: [duplicate member_email_unique, response 409]
+    given: a member registered with ana@example.org
+    when: createMember is called with the same email address
+    then: it answers 409 and no member is created
+    requirements: [LIB-1]
+  register-member-card-number-clash:
+    operation: createMember
+    scenario: red
+    covers: [duplicate member_card_number_unique]
+    notApplicable: The card number is assigned by the system, never sent by a client, so a request cannot clash on it. The constraint itself is tested under member-card-number-twice.
+  show-member:
+    { operation: getMember, scenario: golden, given: a member and a librarian, when: getMember is called with the member's id, then: the member is answered }
+  show-member-not-found:
+    { operation: getMember, scenario: red, covers: [not found memberId, response 404], given: a librarian and no member with a given id, when: getMember is called with that id, then: it answers 404 }
+  show-member-bad-id:
+    { operation: getMember, scenario: red, covers: [memberId not a valid uuid], given: a librarian, when: getMember is called with memberId abc, then: it is refused as invalid input }
+  show-member-denied:
+    { operation: getMember, scenario: red, covers: [denied without members.read], given: a caller holding only the member role, when: getMember is called, then: it is refused as not allowed }
+  list-loans:
+    { operation: listLoans, scenario: golden, given: an open loan and a returned loan, when: listLoans is called with status open, then: only the open loan is answered }
+  list-loans-bad-filter:
+    { operation: listLoans, scenario: red, covers: [status not one of its values, memberId not a valid uuid], given: a librarian, when: listLoans is called with status lent and again with memberId abc, then: both are refused as invalid input }
+  list-loans-denied:
+    { operation: listLoans, scenario: red, covers: [denied without loans.read], given: a caller holding no role, when: listLoans is called, then: it is refused as not allowed }
+  lend-a-copy:
+    operation: createLoan
+    scenario: golden
+    given: a standard-tier member with no loans and no fees, and a book with one copy available
+    when: createLoan is called for them
+    then: an open loan due in 21 days is created, the book has no copy available, and LoanCreated is published
+    requirements: [LIB-3]
+  lend-missing-field:
+    { operation: createLoan, scenario: red, covers: [missing memberId, missing bookId], given: a librarian, when: createLoan is called without memberId and again without bookId, then: both are refused as invalid input }
+  lend-bad-ids:
+    { operation: createLoan, scenario: red, covers: [memberId not a valid uuid, bookId not a valid uuid], given: a librarian, when: createLoan is called with memberId abc and again with bookId abc, then: both are refused as invalid input }
+  lend-unknown-member-or-book:
+    { operation: createLoan, scenario: red, covers: [not found memberId, not found bookId], given: a librarian, when: createLoan is called with a memberId and then a bookId that no record has, then: both are refused as not found }
+  lend-limit-reached:
+    operation: createLoan
+    scenario: red
+    covers: [response 409]
+    given: a standard-tier member with three open loans
+    when: createLoan is called for a fourth book
+    then: it answers 409 and no loan is created
+    requirements: [LIB-3]
+  lend-denied:
+    { operation: createLoan, scenario: red, covers: [denied without loans.create], given: a caller holding only the member role, when: createLoan is called, then: it is refused as not allowed }
+  lend-event-not-delivered:
+    { operation: createLoan, scenario: red, covers: [dependency fails loan.lifecycle], given: the loan.lifecycle channel is unavailable, when: createLoan is called, then: "no loan is created and the call fails, so a loan never exists without its event" }
+  return-late:
+    operation: returnLoan
+    scenario: golden
+    given: an overdue loan returned 7 days late, a daily rate of 0.50 and a replacement cost of 25.00
+    when: returnLoan is called
+    then: the loan is returned with a late fee of 3.50, the copy is available again, and LoanReturned is published
+    requirements: [LIB-5]
+  return-already-closed:
+    { operation: returnLoan, scenario: red, covers: [response 409], given: a loan already returned, when: returnLoan is called on it, then: it answers 409 and nothing changes }
+  return-unknown-loan:
+    { operation: returnLoan, scenario: red, covers: [not found loanId, loanId not a valid uuid], given: a librarian, when: returnLoan is called with an id no loan has and again with abc, then: the first is refused as not found and the second as invalid input }
+  return-denied:
+    { operation: returnLoan, scenario: red, covers: [denied without loans.return], given: a caller holding only the member role, when: returnLoan is called, then: it is refused as not allowed }
+  return-event-not-delivered:
+    { operation: returnLoan, scenario: red, covers: [dependency fails loan.lifecycle], given: the loan.lifecycle channel is unavailable, when: returnLoan is called, then: the loan stays open and the call fails }
+  report-lost:
+    { operation: reportLost, scenario: golden, given: an open loan of a book whose replacement cost is 25.00, when: reportLost is called, then: the loan is lost and 25.00 is added to the member's outstanding fees }
+  report-lost-already-closed:
+    { operation: reportLost, scenario: red, covers: [response 409], given: a loan already lost, when: reportLost is called on it, then: it answers 409 and nothing is charged twice }
+  report-lost-unknown-loan:
+    { operation: reportLost, scenario: red, covers: [not found loanId, loanId not a valid uuid], given: a librarian, when: reportLost is called with an id no loan has and again with abc, then: the first is refused as not found and the second as invalid input }
+  report-lost-denied:
+    { operation: reportLost, scenario: red, covers: [denied without loans.return], given: a caller holding only the member role, when: reportLost is called, then: it is refused as not allowed }
+  report-lost-event-not-delivered:
+    { operation: reportLost, scenario: red, covers: [dependency fails loan.lifecycle], given: the loan.lifecycle channel is unavailable, when: reportLost is called, then: "the loan stays open, nothing is charged, and the call fails" }
+
+  # Pages
+  members-list-shown:
+    { page: members-list, scenario: golden, given: a librarian, when: the page members-list is opened, then: "it lists members with card number, name, email, tier and fees" }
+  members-list-denied:
+    { page: members-list, scenario: red, covers: [denied without members.read], given: a caller holding only the member role, when: the page members-list is opened, then: it is not shown }
+  member-form-shown:
+    { page: member-form, scenario: golden, given: a librarian, when: the page member-form is filled in and sent, then: the member is registered }
+  member-form-denied:
+    { page: member-form, scenario: red, covers: [denied without members.write], given: a caller holding only the member role, when: the page member-form is opened, then: it is not shown }
+  member-view-shown:
+    { page: member-view, scenario: golden, given: a librarian and a member, when: the page member-view is opened for that member, then: it shows the member and offers Lend a book }
+  member-view-not-found:
+    { page: member-view, scenario: red, covers: [not found memberId], given: a librarian, when: the page member-view is opened for an id no member has, then: it says the member was not found }
+  member-view-denied:
+    { page: member-view, scenario: red, covers: [denied without members.read], given: a caller holding only the member role, when: the page member-view is opened, then: it is not shown }
+  loan-form-shown:
+    { page: loan-form, scenario: golden, given: a librarian, when: the page loan-form is filled in and sent, then: the copy is lent }
+  loan-form-denied:
+    { page: loan-form, scenario: red, covers: [denied without loans.create], given: a caller holding only the member role, when: the page loan-form is opened, then: it is not shown }
+  loans-list-shown:
+    { page: loans-list, scenario: golden, given: a librarian and some loans, when: the page loans-list is opened, then: "it lists the loans with their due dates, states and fees" }
+  loans-list-denied:
+    { page: loans-list, scenario: red, covers: [denied without loans.read], given: a caller holding no role, when: the page loans-list is opened, then: it is not shown }
+
+  # Constraints
+  member-card-number-once:
+    { entity: Member, constraint: member_card_number_unique, scenario: golden, given: no member with card number 00000001, when: a member with that card number is saved, then: it is saved }
+  member-card-number-twice:
+    { entity: Member, constraint: member_card_number_unique, scenario: red, covers: [duplicate member_card_number_unique], given: a member with card number 00000001, when: another member with that card number is saved, then: it is refused }
+  member-email-once:
+    { entity: Member, constraint: member_email_unique, scenario: golden, given: no member with ana@example.org, when: a member with that address is saved, then: it is saved }
+  member-email-twice:
+    { entity: Member, constraint: member_email_unique, scenario: red, covers: [duplicate member_email_unique], given: a member with ana@example.org, when: another member with that address is saved, then: it is refused }
+  book-isbn-once:
+    { entity: Book, constraint: book_isbn_unique, scenario: golden, given: no book with ISBN 9780000000001, when: a book with that ISBN is saved, then: it is saved }
+  book-isbn-twice:
+    { entity: Book, constraint: book_isbn_unique, scenario: red, covers: [duplicate book_isbn_unique], given: a book with ISBN 9780000000001, when: another book with that ISBN is saved, then: it is refused }
+  book-available-at-most-owned:
+    { entity: Book, constraint: book_available_within_owned, scenario: golden, given: a book with 2 copies owned, when: it is saved with 2 available, then: it is saved }
+  book-available-above-owned:
+    { entity: Book, constraint: book_available_within_owned, scenario: red, covers: [violates book_available_within_owned], given: a book with 2 copies owned, when: it is saved with 3 available, then: it is refused }
+  loan-due-after-loaned:
+    { entity: Loan, constraint: loan_due_after_loaned, scenario: golden, given: a loan made on 2026-10-07, when: it is saved due on 2026-10-28, then: it is saved }
+  loan-due-on-loan-day:
+    { entity: Loan, constraint: loan_due_after_loaned, scenario: red, covers: [violates loan_due_after_loaned], given: a loan made on 2026-10-07, when: it is saved due on 2026-10-07, then: it is refused }
+  loan-returned-after-loaned:
+    { entity: Loan, constraint: loan_returned_after_loaned, scenario: golden, given: a loan made at 2026-10-07T10:00:00Z, when: it is saved returned at 2026-10-08T10:00:00Z, then: it is saved }
+  loan-returned-before-loaned:
+    { entity: Loan, constraint: loan_returned_after_loaned, scenario: red, covers: [violates loan_returned_after_loaned], given: a loan made at 2026-10-07T10:00:00Z, when: it is saved returned at 2026-10-06T10:00:00Z, then: it is refused }
+
+  # Transitions
+  loan-becomes-overdue:
+    { entity: Loan, transition: { from: open, to: overdue }, scenario: golden, given: an open loan due yesterday, when: the nightly job runs, then: the loan is overdue and LoanOverdue is published, requirements: [LIB-4] }
+  loan-overdue-only-from-open:
+    { entity: Loan, transition: { from: open, to: overdue }, scenario: red, covers: [from wrong state], given: a returned loan due last week, when: the nightly job runs, then: the loan stays returned }
+  loan-returned-on-time:
+    { entity: Loan, transition: { from: open, to: returned }, scenario: golden, given: an open loan, when: returnLoan is called, then: the loan is returned with no fee }
+  loan-returned-only-when-out:
+    { entity: Loan, transition: { from: open, to: returned }, scenario: red, covers: [from wrong state], given: a lost loan, when: returnLoan is called, then: it is refused and the loan stays lost }
+  overdue-loan-returned:
+    { entity: Loan, transition: { from: overdue, to: returned }, scenario: golden, given: an overdue loan, when: returnLoan is called, then: the loan is returned with its late fee }
+  overdue-loan-returned-twice:
+    { entity: Loan, transition: { from: overdue, to: returned }, scenario: red, covers: [from wrong state], given: a loan already returned, when: returnLoan is called again, then: it is refused and the fee is not charged twice }
+  open-loan-lost:
+    { entity: Loan, transition: { from: open, to: lost }, scenario: golden, given: an open loan, when: reportLost is called, then: the loan is lost and the replacement cost is charged }
+  open-loan-lost-after-return:
+    { entity: Loan, transition: { from: open, to: lost }, scenario: red, covers: [from wrong state], given: a returned loan, when: reportLost is called, then: it is refused and the loan stays returned }
+  overdue-loan-lost:
+    { entity: Loan, transition: { from: overdue, to: lost }, scenario: golden, given: an overdue loan, when: reportLost is called, then: the loan is lost and the replacement cost is charged }
+  overdue-loan-lost-twice:
+    { entity: Loan, transition: { from: overdue, to: lost }, scenario: red, covers: [from wrong state], given: a loan already lost, when: reportLost is called again, then: it is refused and nothing is charged twice }
 
 decisions:
   ADR-001:

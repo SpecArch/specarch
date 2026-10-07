@@ -94,20 +94,27 @@ reports all of them:
 
 1. YAML: well-formed, no repeated key, no unquoted date.
 2. Schema: the JSON Schema of the meta-model version the file declares.
-3. Interface boundary: no stack-specific extension key.
+3. Interface boundary: no stack-specific extension key. No change-log
+   wording in descriptions (a warning).
 4. Cross-references: `$ref`, relation targets and `via`, primary keys,
    required fields, unique fields, `stateField` and transition states and
    triggers, page entities, columns, fields, filters, sources, submits and
    actions, `emits`, `algorithm`, `supersededBy`, `valueDescriptions`, path
    parameters, duplicate operationIds, requirement prefixes.
-5. Fail-closed access (`permissionGranted`).
-6. Expressions: every check and formula parsed and type-checked.
-7. Worked examples: inputs and expected values typed, formula evaluated
-   (`workedExampleHolds`).
+5. Concrete integers: an int64 or uint64 sent as a JSON number stays
+   inside 2^53.
+6. Fail-closed access (`permissionGranted`).
+7. Expressions: every check and formula parsed as CEL, held to the subset,
+   and type-checked with CEL's strict rules.
+8. Worked examples: inputs and expected values typed, formula evaluated
+   with exact decimals (`workedExampleHolds`).
+9. Tests: every test's subject and cases exist; every case the design
+   implies has a test (warnings in 0.1).
 
 On an implementation file: YAML, schema, no design keyword, `implements`
 names a readable design file of the same `info.version`, every pointer in
-`layout` and `mappings` resolves in it, and no decision ID is used in both.
+`layout` and `mappings` resolves in it, no decision ID is used in both, and
+every test suite names design tests that exist.
 
 ## 6. Runtime view
 
@@ -148,13 +155,13 @@ file says how it is built.
 The program has no roles: anyone who has it may run it, and it touches only
 the files it is given and the folder a generator owns.
 
-Diagnostics: `file:line: /yaml/path: rule: message`, for example
+Diagnostics: `file:line: severity: /yaml/path: rule: message`, for example
 
-    examples/x.specarch-design.yaml:58: /entities/Member/relations/loans/target: relation_target: Lone is not an entity of this file
+    examples/x.specarch-design.yaml:58: error: /entities/Member/relations/loans/target: relation_target: Lone is not an entity of this file; did you mean Loan?
 
-Numbers in expressions are exact rationals. A decimal result is rounded to
-the output's scale, half away from zero, before it is compared with a worked
-example.
+Numbers in expressions have CEL's types plus decimal. Int, uint and decimal
+arithmetic is exact; a formula's decimal result may not have more places
+than its output's scale, so any rounding is written in the formula.
 
 ## 9. Architecture decisions
 
@@ -170,6 +177,8 @@ example.
 - ADR-007, accepted: file names say which kind of file they are.
 - ADR-008, accepted: the Low IQ Tax principle governs the language and its
   tools.
+- ADR-009, accepted: types are concrete, and the design says how they
+  travel.
 
 The implementation's own decisions (language, libraries, parser) are in the
 implementation file.
@@ -182,6 +191,9 @@ implementation file.
 - The library-lending example and this specification pass.
 
 ## 11. Risks and technical debt
+
+The `generate` command and its tests are designed here but not built; the
+implementation file runs only the tests of `validate` and `version`.
 
 The entities here are values, not stored records; a value-object concept is a
 0.2 candidate. The formulas of `referenceResolves` and `permissionGranted`

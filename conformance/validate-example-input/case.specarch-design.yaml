@@ -1,0 +1,12 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+algorithms:
+  total:
+    inputs:
+      count: { type: integer, format: int32, minimum: 0 }
+      price: { type: string, format: decimal, precision: 10, scale: 2 }
+    output: { type: string, format: decimal, precision: 12, scale: 2 }
+    formula: decimal(count, 0) * price
+    examples:
+      - { name: three items, inputs: { count: 3, price: 2.5 }, expected: "7.50" }
+    pseudocode: return count * price

@@ -1,0 +1,24 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  items.create: { description: Add items. }
+roles:
+  clerk: { description: Staff., permissions: [items.create] }
+paths:
+  /items:
+    post:
+      operationId: createItem
+      x-oapi-codegen-middlewares: [auth]
+      summary: Add an item
+      permission: items.create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, minLength: 1, maxLength: 40 }
+              required: [name]
+      responses:
+        "201": { description: Added. }
+        "409": { description: An item with that name exists. }

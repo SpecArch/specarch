@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  case.specarch-design.yaml:11: error: /algorithms/total/examples/0: example_error: the formula cannot be computed for "three items": division by zero; correct the inputs or the formula

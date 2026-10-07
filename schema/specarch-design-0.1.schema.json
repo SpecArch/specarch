@@ -113,6 +113,16 @@
         "$ref": "#/$defs/algorithm"
       }
     },
+    "tests": {
+      "description": "SpecArch keyword. Design tests: what must hold whatever the stack, in plain given, when and then sentences. Each test is about one subject (an operation, a command, a page, or an entity's constraint or transition) and is marked golden (the path that succeeds) or red (a path that fails). The validator derives the cases each subject needs from the rest of the file and reports every one no test covers; see 'Tests' in docs/conventions.md.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/test"
+      }
+    },
     "decisions": {
       "description": "SpecArch keyword. Architecture decision records, keyed by ID such as 'ADR-001'.",
       "type": "object",
@@ -332,9 +342,14 @@
           "$ref": "#/$defs/markdown"
         },
         "format": {
-          "description": "JSON Schema and OpenAPI formats. Generators map each to the target's type.",
+          "description": "The concrete type of the value, where the JSON type alone would leave it open. type says how the value is carried in JSON; format says what it is. An integer needs int32, int64 or uint64; a number needs double; a decimal is a string with format decimal, precision and scale; an int64 or uint64 that can exceed 2^53 is carried as a string with format int64 or uint64. See 'Types' in docs/conventions.md.",
           "type": "string",
           "enum": [
+            "int32",
+            "int64",
+            "uint64",
+            "double",
+            "decimal",
             "date",
             "date-time",
             "time",
@@ -345,11 +360,6 @@
             "hostname",
             "ipv4",
             "ipv6",
-            "int32",
-            "int64",
-            "float",
-            "double",
-            "decimal",
             "byte",
             "binary",
             "password"
@@ -450,12 +460,12 @@
           "type": "boolean"
         },
         "precision": {
-          "description": "SpecArch keyword. Total digits of a decimal field; JSON Schema has no equivalent. Used only with format: decimal.",
+          "description": "SpecArch keyword. Total digits of a decimal; required with format: decimal.",
           "type": "integer",
           "minimum": 1
         },
         "scale": {
-          "description": "SpecArch keyword. Digits after the decimal point; used only with format: decimal.",
+          "description": "SpecArch keyword. Digits after the decimal point; required with format: decimal.",
           "type": "integer",
           "minimum": 0
         }
@@ -480,7 +490,152 @@
       "patternProperties": {
         "^x-": {}
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "anyOf": [
+              {
+                "properties": {
+                  "type": {
+                    "const": "integer"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              },
+              {
+                "properties": {
+                  "type": {
+                    "type": "array",
+                    "contains": {
+                      "const": "integer"
+                    }
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            ]
+          },
+          "then": {
+            "required": [
+              "format"
+            ],
+            "properties": {
+              "format": {
+                "enum": [
+                  "int32",
+                  "int64",
+                  "uint64"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "anyOf": [
+              {
+                "properties": {
+                  "type": {
+                    "const": "number"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              },
+              {
+                "properties": {
+                  "type": {
+                    "type": "array",
+                    "contains": {
+                      "const": "number"
+                    }
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            ]
+          },
+          "then": {
+            "required": [
+              "format"
+            ],
+            "properties": {
+              "format": {
+                "enum": [
+                  "double"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "anyOf": [
+              {
+                "properties": {
+                  "type": {
+                    "const": "string"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              },
+              {
+                "properties": {
+                  "type": {
+                    "type": "array",
+                    "contains": {
+                      "const": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            ]
+          },
+          "then": {
+            "properties": {
+              "format": {
+                "not": {
+                  "enum": [
+                    "int32",
+                    "double"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "format": {
+                "const": "decimal"
+              }
+            },
+            "required": [
+              "format"
+            ]
+          },
+          "then": {
+            "required": [
+              "precision",
+              "scale"
+            ]
+          }
+        }
+      ]
     },
     "entity": {
       "type": "object",
@@ -654,7 +809,7 @@
           "uniqueItems": true
         },
         "expression": {
-          "description": "For check: a boolean expression over the entity's fields, in the expression language of docs/conventions.md.",
+          "description": "For check: one expression in SpecArch's subset of CEL (docs/conventions.md) over the entity's fields, giving true or false.",
           "type": "string",
           "minLength": 1
         },
@@ -1344,7 +1499,7 @@
           "$ref": "#/$defs/field"
         },
         "formula": {
-          "description": "The computation in the expression language of docs/conventions.md: one expression, or a short list of 'name = expression' lines whose last line is the result. The validator parses it and evaluates it on every worked example.",
+          "description": "The computation as one expression in SpecArch's subset of CEL (docs/conventions.md). It is type-checked against the inputs' declared types, with no implicit conversion, and its result must have the output's type. The validator evaluates it on every worked example.",
           "type": "string",
           "minLength": 1
         },
@@ -1674,6 +1829,199 @@
       "description": "Extension keys that belong to one implementation, not to the design: code-generator settings, a language or framework binding, servers, hosts, ports and deployments. They go in a SpecArch Implementation File (*.specarch-implementation.yaml), never in a design file. See 'Design and implementation' in docs/conventions.md.",
       "type": "string",
       "pattern": "^x-(oapi-codegen|ogen|openapi-generator|codegen|protoc|grpc|go|java|kotlin|python|typescript|javascript|rust|swift|dotnet|csharp|php|ruby|framework|router|middleware|cli-library|server|servers|host|port|deploy|deployment|environment)(-|$)"
+    },
+    "test": {
+      "description": "SpecArch keyword. One test scenario. Exactly one subject: operation, command, page, or entity with constraint or transition.",
+      "type": "object",
+      "properties": {
+        "operation": {
+          "description": "The operationId under test.",
+          "$ref": "#/$defs/memberName"
+        },
+        "command": {
+          "description": "The command under test.",
+          "$ref": "#/$defs/commandName"
+        },
+        "page": {
+          "description": "The page under test.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "entity": {
+          "description": "The entity whose constraint or transition is under test.",
+          "$ref": "#/$defs/typeName"
+        },
+        "constraint": {
+          "description": "With entity: the constraint under test.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+        },
+        "transition": {
+          "description": "With entity: the transition under test.",
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "string",
+              "minLength": 1
+            },
+            "to": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "from",
+            "to"
+          ],
+          "additionalProperties": false
+        },
+        "scenario": {
+          "description": "golden for the path that succeeds, red for a path that fails.",
+          "type": "string",
+          "enum": [
+            "golden",
+            "red"
+          ]
+        },
+        "given": {
+          "description": "The state before, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "when": {
+          "description": "What happens, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "then": {
+          "description": "The outcome, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "covers": {
+          "description": "The derived cases this test covers, written exactly as the validator names them, such as 'missing memberId'.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "notApplicable": {
+          "description": "Instead of given, when and then: why the derived cases in covers do not apply to this subject. Only with a written reason.",
+          "type": "string",
+          "minLength": 1
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirementLinks"
+        }
+      },
+      "required": [
+        "scenario"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "operation"
+          ]
+        },
+        {
+          "required": [
+            "command"
+          ]
+        },
+        {
+          "required": [
+            "page"
+          ]
+        },
+        {
+          "required": [
+            "entity"
+          ]
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "entity"
+            ]
+          },
+          "then": {
+            "oneOf": [
+              {
+                "required": [
+                  "constraint"
+                ]
+              },
+              {
+                "required": [
+                  "transition"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "dependentRequired": {
+            "constraint": [
+              "entity"
+            ],
+            "transition": [
+              "entity"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "notApplicable"
+            ]
+          },
+          "then": {
+            "required": [
+              "covers"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "given"
+                  ]
+                },
+                {
+                  "required": [
+                    "when"
+                  ]
+                },
+                {
+                  "required": [
+                    "then"
+                  ]
+                }
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "given",
+              "when",
+              "then"
+            ]
+          }
+        }
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
     }
   }
 }

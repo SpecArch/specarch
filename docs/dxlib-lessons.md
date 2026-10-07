@@ -525,19 +525,12 @@ waiting; where its specification would live is the owner's call.
 
 ### Job C and the OpenAPI route
 
-Whether the private service of job C is a dxlib service could not be read
-from here and changes the answer, so both branches are given.
-
-If it is, the route is: write the specification from the documents, approve
-it, generate the OpenAPI document in the dxlib dialect and bind it, generate
-the models and tables, and write the algorithm bodies. The sync gate is
-dxlib's own start-up check. The readiness report's plan stands with
-`specarch-gen-openapi` first; go-dxlib adds the second half.
-
-If it is not, the route is plain Go as the readiness report described, and
-the only thing this document adds to it is the type-rendering idiom under
-`specarch-gen-sql` and the Go idioms of `docs/idioms.md` as the conventions
-the agent follows when it writes the handlers.
+Job C's private service is generated as plain Go, not in the dxlib
+dialect; that is the owner's decision. The route is plain Go as the
+readiness report described, and the only thing this document adds to it
+is the type-rendering idiom under `specarch-gen-sql` and the Go idioms of
+`docs/idioms.md` as the conventions the agent follows when it writes the
+handlers. The order of the implementation items below stands as it is.
 
 ## 4. What not to take
 
@@ -614,7 +607,7 @@ where it adds a rule, and the conformance cases; the generators are Go only.
    entity mapping's settings, encrypted columns through their idiom.
 6. The `dialect: dxlib` setting on the openapi target, and
    `specarch-gen-go-dxlib`, against the notification service as the real
-   project, when the owner decides job C or that service goes on dxlib.
+   project, when the owner decides that service's specification goes ahead.
 7. Reported to dxlib's own queue, not done here: enforce the JSON Schema
    bounds in the parameter validator and accept them in the OpenAPI reader;
    route by method and URI; add `money` to the parameter registry and make

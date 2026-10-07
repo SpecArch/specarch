@@ -48,16 +48,16 @@ this on the first line of a file and most editors pick it up.
    after the algorithm is specified.
 2. One specification covers data, API, events, UI, permissions,
    algorithms, requirements and decisions.
-3. Spec and code stay in sync, enforced in CI. If code is ever written
-   first, its spec is added in the same change and the merge waits until they
-   match.
+3. Spec and code stay in sync, enforced in CI (`docs/sync-gates.md`). If
+   code is ever written first, its spec is added in the same change and the
+   merge waits until they match.
 4. Algorithms are specified three ways: a formula, a worked numeric example
    and pseudocode. The worked examples become test cases.
 5. Generated UI reuses the target project's component library, so it looks
    like the hand-built screens around it.
-6. Existing code enters by extraction. An as-built spec is produced from the
-   code, checked by regenerating and comparing, and from then on changes go
-   spec first.
+6. Existing code enters by extraction (`docs/extraction.md`). An as-built
+   spec is produced from the code, checked by regenerating and comparing, and
+   from then on changes go spec first.
 
 Two design choices follow from lessons learned on an earlier in-house language.
 Access control is fail-closed: an operation with no permission is a validation
@@ -72,7 +72,10 @@ a defect in the roadmap, not an accepted state.
 | `schema/specarch-0.1.schema.json` | the meta-model, JSON Schema 2020-12 |
 | `docs/conventions.md` | YAML layout, Markdown sections, generated and hand-drawn diagrams |
 | `docs/authoring-layer-evaluation.md` | TypeSpec, CUE and Pkl as an optional authoring layer |
-| `docs/roadmap.md` | validator, generators, first real projects |
+| `docs/generators.md` | the rules every emitter follows and the pattern each target copies |
+| `docs/sync-gates.md` | the CI checks that keep a spec and its code equal |
+| `docs/extraction.md` | how an existing system gets its as-built spec, and what goes wrong |
+| `docs/roadmap.md` | validator, generators, sync gates, first real projects, meta-model 0.2 |
 | `examples/library-lending/` | a small complete example that validates against the schema |
 
 ## Validating a specification

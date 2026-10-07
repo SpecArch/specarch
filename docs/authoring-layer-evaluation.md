@@ -125,7 +125,7 @@ Two of them stay useful in supporting roles:
   OpenAPI into the `paths` section. That is an import path, not an authoring
   layer, and belongs to the extraction tooling in the roadmap.
 
-Revisit after the first real projects (roadmap step 3). If writing the YAML by
+Revisit after the first real projects (roadmap step 4). If writing the YAML by
 hand proves too repetitive at that scale, Pkl is the candidate to try first:
 it reads well and renders YAML directly, so a Pkl module could define the
 repeated shapes once. The decision will rest on the first test again, measured

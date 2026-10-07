@@ -89,7 +89,7 @@ redefined.
 | `type`, `properties`, `required`, `enum`, `const`, `format`, `default`, `examples`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`, `minLength`, `maxLength`, `pattern`, `items`, `minItems`, `maxItems`, `uniqueItems`, `readOnly`, `writeOnly`, `$ref` | JSON Schema 2020-12 | `$ref` is restricted to `#/entities/X` and `#/enums/X`; nullability is written `type: [string, "null"]` as JSON Schema does |
 | `channels`, `messages`, `payload` | AsyncAPI | one level: channel, messages, payload; no servers, bindings or operations objects |
 | `x-*` | OpenAPI convention | allowed in every object, ignored by validation |
-| `requirementSources`, `requirements` | SpecArch | requirement links into an external set (ISO/IEC/IEEE 29148 traceability) |
+| `requirementSources`, `requirements` | SpecArch | requirement links into an external set (ISO/IEC/IEEE 29148 traceability); see "Requirement links" below |
 | `primaryKey`, `relations`, `constraints`, `stateField`, `transitions` | SpecArch | data-model concepts JSON Schema has no words for |
 | `precision`, `scale` | SpecArch | decimal size; JSON Schema has no decimal type, so `format: decimal` on a string carries them |
 | `valueDescriptions` | SpecArch | per-value meaning of an enum |
@@ -98,6 +98,16 @@ redefined.
 | `pages`, `kind`, `route`, `entity`, `source`, `submit`, `columns`, `fields`, `filters`, `actions` | SpecArch | UI page definitions |
 | `algorithms`, `inputs`, `output`, `formula`, `examples` (of an algorithm), `pseudocode` | SpecArch | IEEE 1016 algorithm viewpoint, made testable |
 | `decisions` and the ADR fields | SpecArch | the common ADR shape: context, decision, consequences |
+
+### Requirement links
+
+Every named object carries a `requirements` list: entity, enum, relation,
+constraint, transition, permission, role, operation, channel, message, page,
+algorithm and decision. A field, a parameter, a response, an action or a
+worked example does not; each traces through the object that holds it. The
+list is optional, because not every object serves a requirement a project
+has written down, but a generator that builds a traceability matrix treats
+an object with no links as a gap to show, not as fully covered.
 
 ### Access control is fail-closed
 

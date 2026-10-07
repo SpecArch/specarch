@@ -61,6 +61,7 @@ entities:
         kind: unique
         fields: [cardNumber]
         message: A member with this card number already exists.
+        requirements: [LIB-1]
       member_email_unique:
         kind: unique
         fields: [email]
@@ -127,7 +128,7 @@ entities:
         message: A copy cannot be returned before it was lent.
     stateField: status
     transitions:
-      - { from: open, to: overdue, trigger: loan.overdue/LoanOverdue, description: Nightly job finds the due date has passed. }
+      - { from: open, to: overdue, trigger: loan.overdue/LoanOverdue, description: "Nightly job finds the due date has passed.", requirements: [LIB-4] }
       - { from: open, to: returned, trigger: returnLoan }
       - { from: overdue, to: returned, trigger: returnLoan }
       - { from: open, to: lost, trigger: reportLost }
@@ -141,7 +142,7 @@ permissions:
   loans.read: { description: See loans. }
   loans.create: { description: Lend a copy to a member. }
   loans.return: { description: Record a return or a lost copy. }
-  public: { description: "Open to everyone, including visitors without a card." }
+  public: { description: "Open to everyone, including visitors without a card.", requirements: [LIB-2] }
 
 roles:
   librarian:
@@ -310,6 +311,7 @@ channels:
         payload: { $ref: "#/entities/Loan" }
   loan.overdue:
     description: Published by the nightly job for each loan whose due date passed.
+    requirements: [LIB-4]
     messages:
       LoanOverdue:
         summary: A loan became overdue.

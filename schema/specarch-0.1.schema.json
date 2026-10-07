@@ -142,7 +142,7 @@
       "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
     },
     "requirementLink": {
-      "description": "SpecArch keyword. An ID in an external requirement set: the prefix names a requirementSources entry, the rest is the ID inside that set.",
+      "description": "SpecArch keyword. An ID in an external requirement set: the prefix names a requirementSources entry, the rest is the ID inside that set. Every named object carries a 'requirements' list of these (entity, enum, relation, constraint, transition, permission, role, operation, channel, message, page, algorithm, decision); fields, parameters, responses, actions and worked examples trace through the object that holds them.",
       "type": "string",
       "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
     },
@@ -571,6 +571,9 @@
             "set_null"
           ],
           "default": "restrict"
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirementLinks"
         }
       },
       "required": [
@@ -613,6 +616,9 @@
         "message": {
           "description": "What a user is told when the constraint fails.",
           "type": "string"
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirementLinks"
         }
       },
       "required": [
@@ -669,6 +675,9 @@
         },
         "description": {
           "$ref": "#/$defs/markdown"
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirementLinks"
         }
       },
       "required": [
@@ -685,6 +694,9 @@
       "properties": {
         "description": {
           "$ref": "#/$defs/markdown"
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirementLinks"
         }
       },
       "required": [
@@ -709,6 +721,9 @@
           },
           "minItems": 1,
           "uniqueItems": true
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirementLinks"
         }
       },
       "required": [
@@ -981,6 +996,9 @@
             "$ref": "#/$defs/message"
           },
           "minProperties": 1
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirementLinks"
         }
       },
       "required": [

@@ -160,6 +160,9 @@ loan. Acceptable for the example; a real library would add a `Copy` entity.
 
 ## 12. Glossary
 
-The glossary is in `requirements/glossary/`; the stakeholders, needs,
-requirements and traceability matrix are in `requirements/` and in chapter
-13 of `../docs/techspec.md`.
+The glossary is in `requirements/glossary/`.
+
+## 13. Requirements
+
+The stakeholders, needs and requirements are in `requirements/`, and the
+traceability matrix is chapter 13 of `../docs/techspec.md`.

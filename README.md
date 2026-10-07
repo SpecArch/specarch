@@ -125,6 +125,7 @@ a defect in the roadmap, not an accepted state.
 | `docs/stages.md` | the seven life-cycle stages: what each holds, which standard says so, and why |
 | `docs/maintenance.md` | after commissioning: change requests, defects, releases and operation, as designed |
 | `docs/refinement.md` | from an old document to code: partial specifications, open questions, origin, approval and the gate on generation |
+| `docs/test-generation.md` | tests from the specification: the golden paths, which red paths are written and why, structured test data, the derive verb and the tests target, as designed |
 | `docs/authoring-layer-evaluation.md` | TypeSpec, CUE and Pkl as an optional authoring layer |
 | `docs/generators.md` | the rules every document and code target follows, and the plug-in protocol |
 | `docs/sync-gates.md` | the CI checks that keep a spec and its code equal |

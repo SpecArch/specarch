@@ -103,7 +103,12 @@ difference. The rules and the pattern each target follows are in
    example. The implementation file gives the target: the test framework,
    the suites, fixtures and how each suite runs. One generated test per
    design test and per worked example, with the given, when and then written
-   into the test as its steps.
+   into the test as its steps. `docs/test-generation.md` designs the step
+   before it: `specarch derive` writes the derived cases as tests, choosing
+   the red paths by the harm a requirement names and by how often users
+   make the mistake, with the cases left out listed in the test plan; and
+   structured `fixture`, `input` and `expect` on a test give the generator
+   something to run.
 7. User manual, operations guide and other project documents: pages and
    permissions give the manual its structure; endpoints, channels and
    deployment notes give the operations guide its checklist.
@@ -188,7 +193,13 @@ Other known candidates:
   (every permission granted by some role) can be a formula rather than a
   count;
 - background jobs and schedules;
-- configuration and settings as a first-class concept.
+- configuration and settings as a first-class concept;
+- the concepts the red paths of `docs/test-generation.md` wait for:
+  external dependencies an operation calls, with a time limit per call
+  (dependency down, timeout); idempotency on an operation (a repeated
+  request that is not a duplicate); validity on a field or an entity
+  (expired data); sessions on access (session expiry); the guard above
+  (two writers, one record).
 
 ## 6. Changes, defects, releases and operation
 

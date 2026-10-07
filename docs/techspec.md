@@ -740,7 +740,9 @@ unclosed-block messages.
 Consequences: Diagnostics agree line for line with the Go build. For a few broken
 files libyaml's newer version inside Yams explains the error
 differently from yaml.v3 (an unclosed quote is one); the line and the
-rule may then differ.
+rule may then differ. A key repeated inside a flow mapping, such as
+`{ a: 1, a: 2 }`, is refused as yaml_syntax at the mapping, where the
+Go build reports duplicate_key for the repeat and checks the rest.
 
 ##### ADR-203: A JSON Schema evaluator for exactly the keywords the schemas use
 

@@ -56,7 +56,9 @@ public func plainIOError(_ error: Error) -> String {
     let ns = error as NSError
     if let posix = ns.userInfo[NSUnderlyingErrorKey] as? NSError, posix.domain == NSPOSIXErrorDomain,
        let message = strerror(Int32(posix.code)) {
-        return String(cString: message)
+        // Go's error texts are the C library's in lower case.
+        let text = String(cString: message)
+        return text.prefix(1).lowercased() + text.dropFirst()
     }
     switch ns.code {
     case NSFileReadNoSuchFileError, NSFileNoSuchFileError: return "no such file or directory"

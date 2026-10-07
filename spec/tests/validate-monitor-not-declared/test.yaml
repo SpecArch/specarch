@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an installation that watches a monitor the specification does not declare"
+when: "validate is run"
+then: "it reports monitor with the name it probably meant and exits 1"
+verifies: [SA-12]

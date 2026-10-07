@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.1.0 of the specification: 120 design tests, 30 golden and 89 red, about 6 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 123 design tests, 31 golden and 91 red, about 6 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -10,7 +10,7 @@ Version 0.1.0 of the specification: 120 design tests, 30 golden and 89 red, abou
 
 | Level | Design tests |
 |---|---|
-| system | 120 |
+| system | 123 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -649,6 +649,30 @@ Scenario: red; level: system; covers exit 1; verifies SA-11.
 - Given: a test folder that holds data but no test.yaml
 - When: validate is run
 - Then: it reports layout at the folder and exits 1
+
+#### validate-monitor-environment
+
+Scenario: red; level: system; covers exit 1; verifies SA-12.
+
+- Given: a monitor whose environment is not one of the specification's
+- When: validate is run
+- Then: it reports environment at the monitor's environment and exits 1
+
+#### validate-monitor-not-declared
+
+Scenario: red; level: system; covers exit 1; verifies SA-12.
+
+- Given: an installation that watches a monitor the specification does not declare
+- When: validate is run
+- Then: it reports monitor with the name it probably meant and exits 1
+
+#### validate-monitor-valid
+
+Scenario: golden; level: system; verifies SA-12.
+
+- Given: an operation stage with a monitor that verifies the one requirement, and an installation that watches it
+- When: validate is run
+- Then: it prints nothing, since the monitor counts as verifying the requirement, and exits 0
 
 #### validate-need
 

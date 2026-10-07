@@ -52,6 +52,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case environment = "environment"
     case setting = "setting"
     case secretValue = "secret_value"
+    case monitor = "monitor"
     case needUnrefined = "need_unrefined"
     case acceptanceMissing = "acceptance_missing"
     case requirementUnsatisfied = "requirement_unsatisfied"

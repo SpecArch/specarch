@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "an operation stage with a monitor that verifies the one requirement, and an installation that watches it"
+when: "validate is run"
+then: "it prints nothing, since the monitor counts as verifying the requirement, and exits 0"
+verifies: [SA-12]

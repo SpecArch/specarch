@@ -1,0 +1,6 @@
+monitors:
+  catalogue-latency:
+    description: How long the catalogue takes to answer.
+    environment: production
+    objective: Nine calls in ten answer within a second over each day.
+    verifies: [CASE-1]

@@ -1,0 +1,12 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [operation]
+requirements:
+  CASE-1:
+    statement: The catalogue shall answer within a second.
+    kind: quality
+    priority: must
+    status: accepted
+    acceptance: [Nine calls in ten answer within a second.]
+environments:
+  production: { description: The live system. }

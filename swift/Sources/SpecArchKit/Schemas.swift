@@ -27,7 +27,8 @@ let designSchemaJSON = #"""
           "implementation",
           "tests",
           "deployment",
-          "commissioning"
+          "commissioning",
+          "operation"
         ]
       },
       "uniqueItems": true
@@ -263,6 +264,16 @@ let designSchemaJSON = #"""
     "signoff": {
       "$ref": "#/$defs/signoff",
       "description": "SpecArch keyword. What must be true for the installed system to be accepted, and which roles sign."
+    },
+    "monitors": {
+      "description": "SpecArch keyword. What is watched on the live system (ISO/IEC/IEEE 12207:2017, 6.4.12 Operation process), keyed by kebab-case name: each says what is measured, the objective it must meet, the environment it runs in and the requirements it verifies. The tool, the query and where an alert goes are implementation; the implementation file's deployments name them per monitor. Lives in the operation stage.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/monitor"
+      }
     }
   },
   "required": [
@@ -316,7 +327,7 @@ let designSchemaJSON = #"""
       "uniqueItems": true
     },
     "verifies": {
-      "description": "SpecArch keyword. The requirements this test or commissioning check verifies, by ID (the verify relation of ISO/IEC/IEEE 29148:2018, 6.5.2). A requirement no test verifies is reported by the validator.",
+      "description": "SpecArch keyword. The requirements this test, commissioning check or monitor verifies, by ID (the verify relation of ISO/IEC/IEEE 29148:2018, 6.5.2). A requirement no test verifies is reported by the validator.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/requirementLink"
@@ -2887,6 +2898,50 @@ let designSchemaJSON = #"""
       },
       "additionalProperties": false
     },
+    "monitor": {
+      "description": "SpecArch keyword. One monitor of the live system.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "description": "What is measured, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "environment": {
+          "description": "The environment the monitor watches, by key.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "objective": {
+          "description": "What the measurement must stay within, as one verifiable sentence, such as 'nine calls in ten answer within 300 ms over a day'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "verifies": {
+          "$ref": "#/$defs/verifies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "description",
+        "environment",
+        "objective"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
     "signoff": {
       "description": "SpecArch keyword. The acceptance of the installed system.",
       "type": "object",
@@ -3502,6 +3557,42 @@ let implementationSchemaJSON = #"""
               "number",
               "boolean"
             ]
+          }
+        },
+        "monitors": {
+          "description": "How this deployment watches each monitor of the specification, keyed by monitor name: the tool that measures, how, and where an alert goes.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "tool": {
+                "description": "The tool that measures, such as a metrics system or an uptime checker.",
+                "type": "string",
+                "minLength": 1
+              },
+              "description": {
+                "$ref": "#/$defs/markdown"
+              },
+              "alert": {
+                "description": "Where an alert goes when the objective is missed: a channel or a role, never a person.",
+                "type": "string",
+                "minLength": 1
+              },
+              "settings": {
+                "description": "Free-form settings of the tool, such as the query.",
+                "type": "object"
+              }
+            },
+            "required": [
+              "tool"
+            ],
+            "patternProperties": {
+              "^x-": {}
+            },
+            "additionalProperties": false
           }
         },
         "why": {

@@ -547,6 +547,42 @@
             ]
           }
         },
+        "monitors": {
+          "description": "How this deployment watches each monitor of the specification, keyed by monitor name: the tool that measures, how, and where an alert goes.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "tool": {
+                "description": "The tool that measures, such as a metrics system or an uptime checker.",
+                "type": "string",
+                "minLength": 1
+              },
+              "description": {
+                "$ref": "#/$defs/markdown"
+              },
+              "alert": {
+                "description": "Where an alert goes when the objective is missed: a channel or a role, never a person.",
+                "type": "string",
+                "minLength": 1
+              },
+              "settings": {
+                "description": "Free-form settings of the tool, such as the query.",
+                "type": "object"
+              }
+            },
+            "required": [
+              "tool"
+            ],
+            "patternProperties": {
+              "^x-": {}
+            },
+            "additionalProperties": false
+          }
+        },
         "why": {
           "$ref": "#/$defs/why"
         },

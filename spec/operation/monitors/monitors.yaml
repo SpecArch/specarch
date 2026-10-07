@@ -1,0 +1,7 @@
+monitors:
+  main-stays-green:
+    description: The continuous-integration run on every change to main, both the Go and the Swift job.
+    environment: ci-runner
+    objective: Every run on main passes both jobs; a failed run is fixed or reverted before the next change lands.
+    verifies: [SA-1, SA-7]
+    why: The documents and both builds are only trusted while CI keeps them current, so a red run on main is the one thing that must never stay.

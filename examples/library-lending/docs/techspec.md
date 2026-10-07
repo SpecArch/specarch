@@ -408,6 +408,17 @@ The system is accepted when:
 
 Signed by: head-librarian, library-board.
 
+### Monitors
+
+What is watched on the live system, and the objective each must meet.
+
+| Monitor | Environment | Measures | Objective | Verifies |
+|---|---|---|---|---|
+| catalogue-latency | production | How long listBooks takes to answer at the desk. | Nine calls in ten answer within 200 milliseconds over each opening day. | LIB-7 |
+| overdue-notices-sent | production | Whether the nightly job published LoanOverdue for every loan that became overdue. | Every loan marked overdue in a night has its LoanOverdue message published the same night. | LIB-4 |
+
+**Insight on catalogue-latency:** A slow catalogue is the first thing a librarian notices, and the commissioning check measured it only once.
+
 ### Implementation: Library Lending in Go and PostgreSQL
 
 From the implementation file version 0.1.0.
@@ -480,6 +491,11 @@ local: A developer's machine. Environment: development. Servers: http://localhos
 staging: The staging host the librarians try a release on. Environment: staging. Servers: https://staging.library.example. Settings: dailyRate 0.50, notificationChannelUrl https://notify-staging.library.example/events.
 
 production: The live host. Environment: production. Servers: https://library.example. Settings: dailyRate 0.50, notificationChannelUrl https://notify.library.example/events.
+
+| Monitor | Tool | How | Alert |
+|---|---|---|---|
+| catalogue-latency | Prometheus | The service's request histogram for listBooks. | the desk's on-call channel |
+| overdue-notices-sent | Prometheus | The count of loans marked overdue against the count of LoanOverdue messages published, per night. | the desk's on-call channel |
 
 #### Implementation decisions
 
@@ -728,10 +744,10 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | LIB-1 | entities Member constraints member_card_number_unique; entities Member; paths /members post | tests register-member; tests register-member-email-taken; checks lend-and-return; checks migrated-members |
 | LIB-2 | entities Book; permissions public; paths /books get | tests browse-catalogue; checks service-answers |
 | LIB-3 | entities Loan; paths /loans post; migrations add-membership-tier | tests lend-a-copy; tests lend-limit-reached; checks lend-and-return |
-| LIB-4 | entities Loan transitions 1; entities Loan; paths /loans/{loanId}/return post; channels loan.overdue; channels loan.overdue messages LoanOverdue; configuration notificationChannelUrl | tests loan-becomes-overdue |
+| LIB-4 | entities Loan transitions 1; entities Loan; paths /loans/{loanId}/return post; channels loan.overdue; channels loan.overdue messages LoanOverdue; configuration notificationChannelUrl | tests loan-becomes-overdue; monitors overdue-notices-sent |
 | LIB-5 | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; configuration dailyRate | tests return-late; checks lend-and-return |
 | LIB-6 | roles member | checks member-sees-own-loans |
-| LIB-7 | pages loan-form; pages member-form | checks lend-and-return |
+| LIB-7 | pages loan-form; pages member-form | checks lend-and-return; monitors catalogue-latency |
 
 ## Sources
 

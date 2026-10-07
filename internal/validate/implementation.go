@@ -122,6 +122,11 @@ func (c *checker) checkDeployments(d *design) {
 		case env == "" && len(d.environments) > 0:
 			c.add(p.Key, source.Pointer(base...), RuleEnvironment, "the specification declares environments, so this deployment must say which one it installs; add environment with one of %s", strings.Join(sortedKeys(d.environments), ", "))
 		}
+		for _, m := range source.Pairs(source.Child(p.Value, "monitors")) {
+			if d.monitors[m.Key.Value] == nil {
+				c.add(m.Key, source.Pointer(append(base, "monitors", m.Key.Value)...), RuleMonitor, "%s is not a monitor of the specification%s", m.Key.Value, suggest(m.Key.Value, d.monitors))
+			}
+		}
 		for _, cfg := range source.Pairs(source.Child(p.Value, "configuration")) {
 			ptr := source.Pointer(append(base, "configuration", cfg.Key.Value)...)
 			setting := d.settings[cfg.Key.Value]

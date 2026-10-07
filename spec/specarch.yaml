@@ -11,7 +11,7 @@ info:
     `implementation/<stack>/`.
   owners: [specarch-maintainers]
 
-stages: [requirements, design, implementation, tests, deployment, commissioning]
+stages: [requirements, design, implementation, tests, deployment, commissioning, operation]
 
 sources:
   iso-29148:

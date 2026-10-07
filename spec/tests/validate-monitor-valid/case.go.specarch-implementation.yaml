@@ -1,0 +1,10 @@
+specarchImplementation: "0.1"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+deployments:
+  live:
+    description: The live host.
+    environment: production
+    monitors:
+      catalogue-latency: { tool: an uptime checker, alert: the on-call channel }

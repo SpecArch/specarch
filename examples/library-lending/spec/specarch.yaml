@@ -12,7 +12,7 @@ info:
     a real library's system.
   owners: [example-maintainers]
 
-stages: [requirements, design, implementation, tests, deployment, commissioning]
+stages: [requirements, design, implementation, tests, deployment, commissioning, operation]
 
 sources:
   desk-interview:

@@ -61,6 +61,7 @@ const (
 	RuleEnvironment            Rule = "environment"
 	RuleSetting                Rule = "setting"
 	RuleSecretValue            Rule = "secret_value"
+	RuleMonitor                Rule = "monitor"
 	RuleNeedUnrefined          Rule = "need_unrefined"
 	RuleAcceptanceMissing      Rule = "acceptance_missing"
 	RuleRequirementUnsatisfied Rule = "requirement_unsatisfied"
@@ -118,6 +119,7 @@ var Rules = []Rule{
 	RuleEnvironment,
 	RuleSetting,
 	RuleSecretValue,
+	RuleMonitor,
 	RuleNeedUnrefined,
 	RuleAcceptanceMissing,
 	RuleRequirementUnsatisfied,

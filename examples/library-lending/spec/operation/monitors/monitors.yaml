@@ -1,0 +1,12 @@
+monitors:
+  catalogue-latency:
+    description: How long listBooks takes to answer at the desk.
+    environment: production
+    objective: Nine calls in ten answer within 200 milliseconds over each opening day.
+    verifies: [LIB-7]
+    why: A slow catalogue is the first thing a librarian notices, and the commissioning check measured it only once.
+  overdue-notices-sent:
+    description: Whether the nightly job published LoanOverdue for every loan that became overdue.
+    environment: production
+    objective: Every loan marked overdue in a night has its LoanOverdue message published the same night.
+    verifies: [LIB-4]

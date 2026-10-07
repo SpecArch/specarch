@@ -11,13 +11,13 @@ requirements:
     needs: [NEED-4]
     why: One file for a whole system grows past what a reader can navigate; a tree whose folder names say what is inside lets the reader walk to a thing.
   SA-12:
-    statement: A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment and commissioning, each optional until the project reaches it.
+    statement: A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it.
     kind: functional
     priority: must
     status: accepted
     acceptance:
       - A specification with only a requirements stage validates with no error.
-      - A requirement no design element satisfies, a requirement no test or check verifies, and a need no requirement refines are reported as warnings once the later stage exists.
+      - A requirement no design element satisfies, a requirement no test, check or monitor verifies, and a need no requirement refines are reported as warnings once the later stage exists.
     verification: test
     needs: [NEED-5]
     cites:

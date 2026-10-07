@@ -4,9 +4,10 @@ A specification describes a system as it is now. After commissioning the
 system keeps changing: a stakeholder asks for something new, someone finds
 a defect, a release goes out, the live system misbehaves. This document is
 the design of how SpecArch records that life, during development and in
-production, without turning the specification into a change log. It is a
-design: the validator does not read any of it yet, and the implementation
-items are listed at the end.
+production, without turning the specification into a change log. The
+operation stage is built; the records, the release rules, the diff verb
+and the two documents are not yet, and the implementation items are listed
+at the end.
 
 The processes come from ISO/IEC/IEEE 12207:2017: configuration management
 (6.3.5), operation (6.4.12) and maintenance (6.4.13). Versions follow

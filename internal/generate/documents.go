@@ -305,7 +305,7 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation) strin
 			hasDesign = true
 		}
 	}
-	hasTests := len(pairs(root, "tests")) > 0 || len(pairs(root, "checks")) > 0
+	hasTests := len(pairs(root, "tests")) > 0 || len(pairs(root, "checks")) > 0 || len(pairs(root, "monitors")) > 0
 	var unrefined, noAcceptance, unsatisfied, unverified []string
 	for _, n := range needs {
 		if str(n.Value, "status") != "rejected" && len(refinedBy[n.Key.Value]) == 0 {
@@ -367,7 +367,7 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation) strin
 
 	d.section("Gaps")
 	if gaps == 0 {
-		d.para("None: every need is refined, and every requirement has acceptance criteria, is satisfied once there is a design, and is verified once there are tests or checks.")
+		d.para("None: every need is refined, and every requirement has acceptance criteria, is satisfied once there is a design, and is verified once there are tests, checks or monitors.")
 	} else {
 		d.para("The work the specification still owes, the same gaps the validator warns about. Rejected needs and rejected or retired requirements are left out.")
 		for _, g := range []struct {
@@ -377,7 +377,7 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation) strin
 			{unrefined, "Needs no requirement refines"},
 			{noAcceptance, "Requirements without acceptance criteria"},
 			{unsatisfied, "Requirements no design element satisfies"},
-			{unverified, "Requirements no test or check verifies"},
+			{unverified, "Requirements no test, check or monitor verifies"},
 		} {
 			if len(g.ids) > 0 {
 				d.line("- %s: %s.", g.what, strings.Join(g.ids, ", "))
@@ -471,6 +471,7 @@ func DeploymentGuide(root *yaml.Node, relRoot string, impls []Implementation) st
 				}
 				d.blank()
 			}
+			deploymentMonitors(d, dep.Value)
 			d.explain(dep.Value)
 		}
 	}
@@ -486,6 +487,10 @@ func DeploymentGuide(root *yaml.Node, relRoot string, impls []Implementation) st
 		d.para(str(rollback, "description"))
 		d.explain(rollback)
 		stepsTable(d, get(rollback, "steps"))
+	}
+	if mons := pairs(root, "monitors"); len(mons) > 0 {
+		d.section("Monitors")
+		monitorsTable(d, mons)
 	}
 	if migs := pairs(root, "migrations"); len(migs) > 0 {
 		d.section("Migrations")

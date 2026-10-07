@@ -26,7 +26,7 @@ const ImplementationSuffix = ".specarch-implementation.yaml"
 const TestFile = "test.yaml"
 
 // Stages lists the life-cycle stages in order; each is a folder name.
-var Stages = []string{"requirements", "design", "implementation", "tests", "deployment", "commissioning"}
+var Stages = []string{"requirements", "design", "implementation", "tests", "deployment", "commissioning", "operation"}
 
 // Sections maps every section to its stage.
 var Sections = map[string]string{
@@ -38,6 +38,7 @@ var Sections = map[string]string{
 	"environments": "deployment", "configuration": "deployment", "release": "deployment",
 	"rollback": "deployment", "migrations": "deployment",
 	"checks": "commissioning", "signoff": "commissioning",
+	"monitors": "operation",
 }
 
 // sectionOrder is the order sections appear in the merged document and in
@@ -48,6 +49,7 @@ var sectionOrder = []string{
 	"tests", "decisions",
 	"environments", "configuration", "release", "rollback", "migrations",
 	"checks", "signoff",
+	"monitors",
 }
 
 // singleSections hold one object, not a map of named objects, so they

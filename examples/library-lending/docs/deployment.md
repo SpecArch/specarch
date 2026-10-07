@@ -66,6 +66,11 @@ The live host. Environment: production.
 | databaseUrl | a secret; its description says where the value comes from |
 | notificationChannelUrl | https://notify.library.example/events |
 
+| Monitor | Tool | How | Alert |
+|---|---|---|---|
+| catalogue-latency | Prometheus | The service's request histogram for listBooks. | the desk's on-call channel |
+| overdue-notices-sent | Prometheus | The count of loans marked overdue against the count of LoanOverdue messages published, per night. | the desk's on-call channel |
+
 ## 4. Release
 
 A release goes to staging first, where a librarian tries the desk tasks, then to production outside opening hours.
@@ -86,7 +91,18 @@ The previous build is kept installed beside the new one, so a rollback is a swit
 | 1. Switch back | Point the service at the previous build and restart it. | The smoke check passes and the version shown is the previous one. |
 | 2. Reverse the migrations | Run the rollback steps of every migration the release carried, newest first. | The schema gate against the previous entities passes. |
 
-## 6. Migrations
+## 6. Monitors
+
+What is watched on the live system, and the objective each must meet.
+
+| Monitor | Environment | Measures | Objective | Verifies |
+|---|---|---|---|---|
+| catalogue-latency | production | How long listBooks takes to answer at the desk. | Nine calls in ten answer within 200 milliseconds over each opening day. | LIB-7 |
+| overdue-notices-sent | production | Whether the nightly job published LoanOverdue for every loan that became overdue. | Every loan marked overdue in a night has its LoanOverdue message published the same night. | LIB-4 |
+
+**Insight on catalogue-latency:** A slow catalogue is the first thing a librarian notices, and the commissioning check measured it only once.
+
+## 7. Migrations
 
 ### add-membership-tier
 

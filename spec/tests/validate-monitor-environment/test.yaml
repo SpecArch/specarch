@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a monitor whose environment is not one of the specification's"
+when: "validate is run"
+then: "it reports environment at the monitor's environment and exits 1"
+verifies: [SA-12]

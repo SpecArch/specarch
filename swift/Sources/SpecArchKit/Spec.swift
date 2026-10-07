@@ -7,7 +7,7 @@ public let rootFile = "specarch.yaml"
 public let testFile = "test.yaml"
 
 /// The life-cycle stages in order; each is a folder name.
-public let stages = ["requirements", "design", "implementation", "tests", "deployment", "commissioning"]
+public let stages = ["requirements", "design", "implementation", "tests", "deployment", "commissioning", "operation"]
 
 /// Every section and its stage.
 public let sections: [String: String] = [
@@ -19,6 +19,7 @@ public let sections: [String: String] = [
     "environments": "deployment", "configuration": "deployment", "release": "deployment",
     "rollback": "deployment", "migrations": "deployment",
     "checks": "commissioning", "signoff": "commissioning",
+    "monitors": "operation",
 ]
 
 /// The order sections take in the merged document: life-cycle order.
@@ -28,6 +29,7 @@ let sectionOrder = [
     "tests", "decisions",
     "environments", "configuration", "release", "rollback", "migrations",
     "checks", "signoff",
+    "monitors",
 ]
 
 /// Sections that hold one object, not a map of named objects, so they

@@ -123,6 +123,22 @@ commissioning procedure that `specarch document commissioning` writes is
 the form a run fills in; reading the filled-in records belongs to the
 records design in `docs/maintenance.md`.
 
+## Operation
+
+Section: `monitors`. Standard: the operation process of ISO/IEC/IEEE
+12207:2017 (6.4.12).
+
+A monitor says what is measured on the live system, in which environment,
+the objective it must meet as one verifiable sentence, and the requirements
+it verifies. A monitor is a promise about the live system, the way a
+requirement is, so it belongs in the specification; an incident that
+breaks one is a record, as `docs/maintenance.md` designs. The tool that
+measures, how, and where an alert goes are implementation: each deployment
+in the implementation file names them per monitor, and the validator
+refuses a deployment that watches a monitor the specification does not
+declare (`monitor`). A monitor counts as verifying the requirements it
+names, like a test or a check.
+
 ## Traceability
 
 The links between the stages are plain lists of IDs: a requirement's
@@ -130,6 +146,6 @@ The links between the stages are plain lists of IDs: a requirement's
 validator checks every one resolves and reports, as warnings, a need no
 requirement refines, a requirement without acceptance criteria, a
 requirement nothing satisfies once there is a design, and a requirement
-nothing verifies once there are tests or checks. The techspec's chapter 13
+nothing verifies once there are tests, checks or monitors. The techspec's chapter 13
 is the matrix. Warnings rather than errors, because a specification is
 written in order and the gaps are its to-do list.

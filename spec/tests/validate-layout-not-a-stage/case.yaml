@@ -1,5 +1,5 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:1: error: /: layout: the folder docs/ is not a stage; a specification's folders are requirements, design, implementation, tests, deployment, commissioning
+  specarch.yaml:1: error: /: layout: the folder docs/ is not a stage; a specification's folders are requirements, design, implementation, tests, deployment, commissioning, operation
 

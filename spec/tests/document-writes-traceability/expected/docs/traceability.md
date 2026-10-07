@@ -26,5 +26,5 @@ The work the specification still owes, the same gaps the validator warns about. 
 - Needs no requirement refines: NEED-2.
 - Requirements without acceptance criteria: SHOP-2.
 - Requirements no design element satisfies: SHOP-2.
-- Requirements no test or check verifies: SHOP-2.
+- Requirements no test, check or monitor verifies: SHOP-2.
 

@@ -147,6 +147,9 @@ extension Checker {
             } else if env.isEmpty && !d.environments.isEmpty {
                 add(p.key, pointer(base), .environment, "the specification declares environments, so this deployment must say which one it installs; add environment with one of \(d.environments.keys.sorted(by: byteLess).joined(separator: ", "))")
             }
+            for m in pairs(p.value.child("monitors")) where d.monitors[m.key.value] == nil {
+                add(m.key, pointer(base + ["monitors", m.key.value]), .monitor, "\(m.key.value) is not a monitor of the specification\(suggest(m.key.value, d.monitors))")
+            }
             for cfg in pairs(p.value.child("configuration")) {
                 let ptr = pointer(base + ["configuration", cfg.key.value])
                 guard let setting = d.settings[cfg.key.value] else {

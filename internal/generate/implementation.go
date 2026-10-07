@@ -36,7 +36,8 @@ func sortedLinks[V any](m map[string]V) []string {
 
 // deployment is chapter 7: the deployment stage of the specification
 // (environments, configuration, release, rollback, migrations), the
-// commissioning stage (checks and sign-off), then each implementation
+// commissioning stage (checks and sign-off), the operation stage
+// (monitors), then each implementation
 // file: how one stack builds the design, where it runs, and the decisions
 // that depend on it.
 func deployment(d *doc, root *yaml.Node, impls []Implementation) {
@@ -47,7 +48,7 @@ func deployment(d *doc, root *yaml.Node, impls []Implementation) {
 	migs := pairs(root, "migrations")
 	checks := pairs(root, "checks")
 	signoff := get(root, "signoff")
-	if len(envs)+len(cfg)+len(migs)+len(checks)+len(impls) == 0 && release == nil && rollback == nil && signoff == nil {
+	if len(envs)+len(cfg)+len(migs)+len(checks)+len(impls)+len(pairs(root, "monitors")) == 0 && release == nil && rollback == nil && signoff == nil {
 		return
 	}
 	d.heading(2, "7. Deployment and implementation")
@@ -121,10 +122,43 @@ func deployment(d *doc, root *yaml.Node, impls []Implementation) {
 		d.para("Signed by: " + strings.Join(signers, ", ") + ".")
 		d.explain(signoff)
 	}
+	if mons := pairs(root, "monitors"); len(mons) > 0 {
+		d.heading(3, "Monitors")
+		monitorsTable(d, mons)
+	}
 	for _, i := range impls {
 		implementation(d, i.Node)
 	}
 }
+
+// monitorsTable lists the monitors of the operation stage under a heading
+// the caller writes.
+func monitorsTable(d *doc, mons []source.Pair) {
+	d.para("What is watched on the live system, and the objective each must meet.")
+	d.line("| Monitor | Environment | Measures | Objective | Verifies |")
+	d.line("|---|---|---|---|---|")
+	for _, m := range mons {
+		d.line("| %s | %s | %s | %s | %s |", m.Key.Value, str(m.Value, "environment"), cell(str(m.Value, "description")), cell(str(m.Value, "objective")), cell(strings.Join(strs(m.Value, "verifies"), ", ")))
+	}
+	d.blank()
+	d.explainRows(rowsOf(mons))
+}
+
+// deploymentMonitors is the table of how one installation watches the
+// monitors.
+func deploymentMonitors(d *doc, dep *yaml.Node) {
+	mons := pairs(dep, "monitors")
+	if len(mons) == 0 {
+		return
+	}
+	d.line("| Monitor | Tool | How | Alert |")
+	d.line("|---|---|---|---|")
+	for _, m := range mons {
+		d.line("| %s | %s | %s | %s |", m.Key.Value, cell(str(m.Value, "tool")), cell(str(m.Value, "description")), cell(str(m.Value, "alert")))
+	}
+	d.blank()
+}
+
 
 func stepsTable(d *doc, steps *yaml.Node) {
 	list := itemsOf(steps)
@@ -280,6 +314,7 @@ func implementation(d *doc, impl *yaml.Node) {
 				line += " Settings: " + strings.Join(settings, ", ") + "."
 			}
 			d.para(line)
+			deploymentMonitors(d, dep.Value)
 		}
 		d.explainRows(rowsOf(deps))
 	}

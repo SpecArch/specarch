@@ -119,6 +119,15 @@ deployments:
     configuration:
       dailyRate: "0.50"
       notificationChannelUrl: "https://notify.library.example/events"
+    monitors:
+      catalogue-latency:
+        tool: Prometheus
+        description: The service's request histogram for listBooks.
+        alert: the desk's on-call channel
+      overdue-notices-sent:
+        tool: Prometheus
+        description: The count of loans marked overdue against the count of LoanOverdue messages published, per night.
+        alert: the desk's on-call channel
 
 decisions:
   ADR-101:

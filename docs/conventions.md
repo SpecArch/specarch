@@ -18,6 +18,7 @@ file `specarch.yaml`, and one folder per life-cycle stage it keeps.
       tests/<name>/                  test.yaml, and the scenario's own input and expected-output files
       deployment/                    environments, configuration, release, rollback, migrations
       commissioning/                 checks, signoff
+      operation/                     monitors
 
 The rules, each of which the validator checks under the rule `layout`:
 
@@ -82,7 +83,8 @@ compiler and framework: stakeholders, needs and requirements; entities,
 enums, operations, commands, events, pages, permissions and roles,
 algorithms with formula, worked examples and pseudocode; tests; environments,
 settings, release, rollback and migration steps; commissioning checks and
-sign-off; and the decisions that hold whatever the stack.
+sign-off; monitors of the live system; and the decisions that hold whatever
+the stack.
 
 A **SpecArch Implementation File** (SIF, `<name>.<stack>.specarch-implementation.yaml`,
 root key `specarchImplementation`) is one stack's implementation of one
@@ -130,6 +132,7 @@ implementation file.
 | the permission each operation, command and page needs; roles | |
 | environments and what each is for; the settings and which are secret; release, rollback and migration steps | servers, hosts, ports and the values of the non-secret settings per deployment; the exact commands |
 | the commissioning checks and the sign-off | |
+| the monitors: what is measured, in which environment, and the objective | the tool that measures, how, and where an alert goes, per monitor in each deployment |
 
 A standalone `openapi.yaml` or `asyncapi.yaml` is made from the
 specification. It is never a third source kept by hand.
@@ -304,6 +307,7 @@ redefined.
 | `tests`, `scenario`, `level`, `given`, `when`, `then`, `covers`, `notApplicable` | SpecArch, after ISO/IEC/IEEE 29119 and Gherkin | design tests; the levels are 29119-1's; given, when and then are the Gherkin words, without Gherkin's file format |
 | `environments`, `promotesTo`, `configuration`, `secret`, `release`, `rollback`, `migrations`, `steps`, `action`, `check` | SpecArch, after ISO/IEC/IEEE 12207 6.4.10 | the deployment stage: the transition process, written as environments, settings and steps |
 | `checks`, `signoff`, `criteria`, `signers` | SpecArch, after ISO/IEC/IEEE 12207 6.4.11 and IEC 62381 | the commissioning stage: validation on the installed system, the site acceptance test |
+| `monitors`, `objective` | SpecArch, after ISO/IEC/IEEE 12207 6.4.12 | the operation stage: what is watched on the live system |
 | `testing`, `suites`, `designTests`, `designTestsOf`, `implementationOnly` | SpecArch | in implementation files: how one stack runs the design tests |
 | `stack`, `targets`, `deployments`, `environment` (of a deployment) | SpecArch | in implementation files: the stack, the output folders per target, and where the system really runs |
 
@@ -313,8 +317,8 @@ A design or deployment element names the requirements it meets under
 `satisfies`: entity, enum, relation, constraint, transition, permission,
 role, operation, command, channel, message, page, algorithm, decision,
 environment, setting, release, rollback, migration, and an implementation
-decision. A test or a commissioning check names the ones it shows to be met
-under `verifies`. A requirement names the needs it refines under `needs`. A
+decision. A test, a commissioning check or a monitor names the ones it
+shows to be met under `verifies`. A requirement names the needs it refines under `needs`. A
 field, a parameter, a response, an action or a worked example carries no
 link; each traces through the object that holds it. Every ID must be a
 requirement of the specification, or belong to an external set declared
@@ -326,7 +330,7 @@ the validator warns for every gap: a need no requirement refines, unless
 its status is rejected (`need_unrefined`), a requirement without acceptance criteria
 (`acceptance_missing`), a requirement nothing satisfies once the
 specification has a design (`requirement_unsatisfied`), and a requirement
-nothing verifies once it has tests or checks (`requirement_unverified`).
+nothing verifies once it has tests, checks or monitors (`requirement_unverified`).
 Chapter 13 of the techspec is the matrix.
 
 ### Access control is fail-closed

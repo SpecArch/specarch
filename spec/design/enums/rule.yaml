@@ -54,6 +54,7 @@ enums:
       - environment
       - setting
       - secret_value
+      - monitor
       - need_unrefined
       - acceptance_missing
       - requirement_unsatisfied
@@ -108,8 +109,9 @@ enums:
       environment: a check, an environment's `promotesTo` or an implementation's deployment names an environment that does not exist, or a deployment names none when the specification declares them
       setting: an implementation's deployment gives a value to a setting the specification does not declare
       secret_value: a setting marked secret carries a value, as a default or in a deployment
+      monitor: an implementation's deployment watches a monitor the specification does not declare
       need_unrefined: no requirement refines a need whose status is not rejected (a warning)
       acceptance_missing: a requirement has no acceptance criteria (a warning)
       requirement_unsatisfied: the specification has a design and no element of it satisfies a requirement (a warning)
-      requirement_unverified: the specification has tests or checks and none verifies a requirement (a warning)
+      requirement_unverified: the specification has tests, checks or monitors and none verifies a requirement (a warning)
     satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13]

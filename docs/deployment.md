@@ -34,6 +34,16 @@ A user who hits a problem in a release installs the previous tag; the tags of ev
 | 1. Install the previous tag | Install the program from the previous release tag with the implementation's install task. | specarch version prints the previous version. |
 | 2. Record the problem | Open an issue naming the release and the problem, and note the rollback in the history file. | The issue exists and the history file names it. |
 
+## 4. Monitors
+
+What is watched on the live system, and the objective each must meet.
+
+| Monitor | Environment | Measures | Objective | Verifies |
+|---|---|---|---|---|
+| main-stays-green | ci-runner | The continuous-integration run on every change to main, both the Go and the Swift job. | Every run on main passes both jobs; a failed run is fixed or reverted before the next change lands. | SA-1, SA-7 |
+
+**Insight on main-stays-green:** The documents and both builds are only trusted while CI keeps them current, so a red run on main is the one thing that must never stay.
+
 ## Sources
 
 Every source a Note in this document cites.

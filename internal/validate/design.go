@@ -32,6 +32,7 @@ type design struct {
 	environments map[string]*yaml.Node
 	settings     map[string]*yaml.Node
 	checks       map[string]*yaml.Node
+	monitors     map[string]*yaml.Node
 	operations   map[string]operation // by operationId, the first definition
 	opList       []operation          // every operation in document order
 }
@@ -73,6 +74,7 @@ func newDesign(root *yaml.Node) *design {
 		environments: topMap(root, "environments"),
 		settings:     topMap(root, "configuration"),
 		checks:       topMap(root, "checks"),
+		monitors:     topMap(root, "monitors"),
 		operations:   map[string]operation{},
 	}
 	for _, p := range source.Pairs(source.Child(root, "paths")) {

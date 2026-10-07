@@ -122,7 +122,7 @@ a defect in the roadmap, not an accepted state.
 | `history/` | what changed and why, one file per day |
 | `docs/principles.md` | the Low IQ Tax principle and how SpecArch applies it |
 | `docs/conventions.md` | the tree layout, YAML layout, Markdown sections, generated and hand-drawn diagrams |
-| `docs/stages.md` | the six life-cycle stages: what each holds, which standard says so, and why |
+| `docs/stages.md` | the seven life-cycle stages: what each holds, which standard says so, and why |
 | `docs/maintenance.md` | after commissioning: change requests, defects, releases and operation, as designed |
 | `docs/authoring-layer-evaluation.md` | TypeSpec, CUE and Pkl as an optional authoring layer |
 | `docs/generators.md` | the rules every document and code target follows, and the plug-in protocol |
@@ -206,7 +206,7 @@ specification on its standard input, and writes the files it answers with.
 ## Status
 
 Version 0.1 of the meta-model, October 2026. The two schemas, the tree
-layout and the six stages, one example, SpecArch's own specification, the
+layout and the seven stages, one example, SpecArch's own specification, the
 validator in Go and in Swift, and six documents exist; the manual, the
 operations guide and the code targets are on the roadmap. The meta-model will change: the first real
 projects written in SpecArch are expected to find concepts it cannot

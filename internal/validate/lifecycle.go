@@ -30,8 +30,8 @@ func (c *checker) checkRequirementsStage(d *design) {
 	}
 }
 
-// checkDeploymentStage checks the links inside the deployment and
-// commissioning stages, and that no secret carries a value.
+// checkDeploymentStage checks the links inside the deployment,
+// commissioning and operation stages, and that no secret carries a value.
 func (c *checker) checkDeploymentStage(d *design) {
 	for name, env := range d.environments {
 		next := source.Child(env, "promotesTo")
@@ -44,6 +44,13 @@ func (c *checker) checkDeploymentStage(d *design) {
 		env := source.Child(chk, "environment")
 		if v := source.Str(env); v != "" && d.environments[v] == nil {
 			c.add(env, source.Pointer("checks", name, "environment"), RuleEnvironment,
+				"%s is not an environment of the specification%s", v, suggest(v, d.environments))
+		}
+	}
+	for name, mon := range d.monitors {
+		env := source.Child(mon, "environment")
+		if v := source.Str(env); v != "" && d.environments[v] == nil {
+			c.add(env, source.Pointer("monitors", name, "environment"), RuleEnvironment,
 				"%s is not an environment of the specification%s", v, suggest(v, d.environments))
 		}
 	}
@@ -61,7 +68,7 @@ func (c *checker) checkDeploymentStage(d *design) {
 // checkTraceability reports what the stages a specification covers leave
 // open: a need no requirement refines, a requirement without acceptance
 // criteria, a requirement nothing satisfies once there is a design, and a
-// requirement nothing verifies once there are tests or checks. All are
+// requirement nothing verifies once there are tests, checks or monitors. All are
 // warnings.
 func (c *checker) checkTraceability(d *design) {
 	satisfied := map[string]bool{}
@@ -91,7 +98,7 @@ func (c *checker) checkTraceability(d *design) {
 		}
 	}
 	hasDesign := d.covers("design")
-	hasTests := len(source.Pairs(source.Child(d.root, "tests"))) > 0 || len(d.checks) > 0
+	hasTests := len(source.Pairs(source.Child(d.root, "tests"))) > 0 || len(d.checks) > 0 || len(d.monitors) > 0
 	for _, p := range source.Pairs(source.Child(d.root, "needs")) {
 		if source.Str(source.Child(p.Value, "status")) == "rejected" {
 			continue // a rejected need will not be met, so no requirement refines it
@@ -115,7 +122,7 @@ func (c *checker) checkTraceability(d *design) {
 			c.warn(p.Key, ptr, RuleRequirementUnsatisfied, "no design element satisfies requirement %s; add satisfies: [%s] to the entity, operation, command, page, algorithm or decision that meets it", id, id)
 		}
 		if hasTests && !verified[id] {
-			c.warn(p.Key, ptr, RuleRequirementUnverified, "no test or commissioning check verifies requirement %s; add verifies: [%s] to the test that shows it is met", id, id)
+			c.warn(p.Key, ptr, RuleRequirementUnverified, "no test, commissioning check or monitor verifies requirement %s; add verifies: [%s] to the test that shows it is met", id, id)
 		}
 	}
 }

@@ -27,7 +27,7 @@ final class Design {
     let root: YNode
     var spec: Spec? // the specification on disk, when known
     let entities, enums, permissions, roles, commands, channels, pages, algorithms, decisions, sources: [String: YNode]
-    let stakeholders, needs, requirements, environments, settings, checks: [String: YNode]
+    let stakeholders, needs, requirements, environments, settings, checks, monitors: [String: YNode]
     var operations: [String: Operation] = [:] // by operationId, the first definition
     var opList: [Operation] = []              // every operation in document order
 
@@ -54,6 +54,7 @@ final class Design {
         environments = topMap("environments")
         settings = topMap("configuration")
         checks = topMap("checks")
+        monitors = topMap("monitors")
         for p in pairs(root.child("paths")) {
             for m in methods {
                 guard let op = p.value.child(m) else { continue }
@@ -273,8 +274,8 @@ extension Checker {
         }
     }
 
-    /// Checks the links inside the deployment and commissioning stages, and
-    /// that no secret carries a value.
+    /// Checks the links inside the deployment, commissioning and operation
+    /// stages, and that no secret carries a value.
     func checkDeploymentStage(_ d: Design) {
         for (name, env) in d.environments {
             let next = env.child("promotesTo")
@@ -292,6 +293,14 @@ extension Checker {
                     "\(v) is not an environment of the specification\(suggest(v, d.environments))")
             }
         }
+        for (name, mon) in d.monitors {
+            let env = mon.child("environment")
+            let v = str(env)
+            if !v.isEmpty && d.environments[v] == nil {
+                add(env, pointer("monitors", name, "environment"), .environment,
+                    "\(v) is not an environment of the specification\(suggest(v, d.environments))")
+            }
+        }
         for (name, setting) in d.settings where str(setting.child("secret")) == "true" {
             if let def = child(setting.child("schema"), "default") {
                 add(def, pointer("configuration", name, "schema", "default"), .secretValue,
@@ -303,7 +312,7 @@ extension Checker {
     /// Reports what the stages a specification covers leave open: a need no
     /// requirement refines, a requirement without acceptance criteria, a
     /// requirement nothing satisfies once there is a design, and a
-    /// requirement nothing verifies once there are tests or checks. All are
+    /// requirement nothing verifies once there are tests, checks or monitors. All are
     /// warnings.
     func checkTraceability(_ d: Design) {
         var satisfied = Set<String>(), verified = Set<String>()
@@ -322,7 +331,7 @@ extension Checker {
             for n in items(req.child("needs")) { refined.insert(n.value) }
         }
         let hasDesign = d.covers("design")
-        let hasTests = !pairs(d.root.child("tests")).isEmpty || !d.checks.isEmpty
+        let hasTests = !pairs(d.root.child("tests")).isEmpty || !d.checks.isEmpty || !d.monitors.isEmpty
         for p in pairs(d.root.child("needs")) {
             if str(p.value.child("status")) == "rejected" { continue } // a rejected need will not be met, so no requirement refines it
             if !refined.contains(p.key.value) {
@@ -342,7 +351,7 @@ extension Checker {
                 warn(p.key, ptr, .requirementUnsatisfied, "no design element satisfies requirement \(id); add satisfies: [\(id)] to the entity, operation, command, page, algorithm or decision that meets it")
             }
             if hasTests && !verified.contains(id) {
-                warn(p.key, ptr, .requirementUnverified, "no test or commissioning check verifies requirement \(id); add verifies: [\(id)] to the test that shows it is met")
+                warn(p.key, ptr, .requirementUnverified, "no test, commissioning check or monitor verifies requirement \(id); add verifies: [\(id)] to the test that shows it is met")
             }
         }
     }

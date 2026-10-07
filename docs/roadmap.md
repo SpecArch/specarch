@@ -75,7 +75,9 @@ difference. The rules and the pattern each target follows are in
    OpenAPI's. Permissions become a security scheme plus a `x-specarch-permission`
    extension per operation. Server interfaces and types then come from a
    standard OpenAPI code generator per stack, not from SpecArch.
-3. SQL migrations, new files only, in PostgreSQL by default. The generator diffs the spec against
+3. SQL migrations, new files only, in PostgreSQL by default; the other
+   dialects render through the type-rendering idiom of `docs/idioms.md`,
+   with the table in `docs/dxlib-lessons.md`. The generator diffs the spec against
    the last generated snapshot and writes a forward migration. A deployed
    migration is never regenerated or edited, and a destructive step is its
    own file, so a live column changes by expand and contract across
@@ -193,6 +195,10 @@ Other known candidates:
   (every permission granted by some role) can be a formula rather than a
   count;
 - background jobs and schedules;
+- the keywords `docs/dxlib-lessons.md` found needed: the sensitivity of a
+  field, encryption at rest, audited entities and soft delete, list
+  operations, a problem catalogue for error responses, limits on an
+  operation, menus, and a read model;
 - configuration and settings as a first-class concept;
 - the concepts the red paths of `docs/test-generation.md` wait for:
   external dependencies an operation calls, with a time limit per call

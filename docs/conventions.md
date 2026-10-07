@@ -61,11 +61,11 @@ file's pointers use.
 
 The first line of the root file is the editor hint:
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.1.0/schema/specarch-design-0.1.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.2.0/schema/specarch-design-0.1.schema.json
 
 For an implementation file:
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.1.0/schema/specarch-implementation-0.1.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.2.0/schema/specarch-implementation-0.1.schema.json
 
 The schema describes the merged document, so a fragment file under a stage
 folder has no hint yet; an editor validates the root file and the

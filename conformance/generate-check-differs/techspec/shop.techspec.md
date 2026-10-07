@@ -114,17 +114,19 @@ sequenceDiagram
 
 ## 7. Deployment and implementation
 
+### Shop in Go
+
 From the implementation file Shop in Go, version 1.0.0.
 
 Stack: language Go 1.26.
 
-### Libraries
+#### Libraries
 
 | Library | Version | Licence | Purpose |
 |---|---|---|---|
 | github.com/go-chi/chi/v5 | v5.3.2 | MIT | HTTP router. |
 
-### Generators
+#### Generators
 
 | Target | Output folder | Settings |
 |---|---|---|

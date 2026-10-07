@@ -95,6 +95,7 @@ a defect in the roadmap, not an accepted state.
 | `spec/` | SpecArch's own specification: the design of the `specarch` command and its Go implementation |
 | `docs/techspec/` | SpecArch's technical specification, generated from `spec/` |
 | `conformance/` | the cases every implementation of `specarch` must pass |
+| `swift/` | the Swift build of `specarch` |
 | `history/` | what changed and why, one file per day |
 | `docs/principles.md` | the Low IQ Tax principle and how SpecArch applies it |
 | `docs/conventions.md` | YAML layout, Markdown sections, generated and hand-drawn diagrams |
@@ -107,13 +108,20 @@ a defect in the roadmap, not an accepted state.
 
 ## Installing and running the validator
 
-`specarch` is one program, written in Go. With Go 1.26 or later:
+`specarch` is one program with two builds from the same design. The Go
+build has every command. With Go 1.26 or later:
 
     go install github.com/SpecArch/specarch/cmd/specarch@latest
 
 or, from a clone of this repository:
 
     go install ./cmd/specarch
+
+The Swift build, for macOS, has the validate and version commands and gives
+the same output. With Swift 6:
+
+    swift build -c release --package-path swift
+    swift/.build/release/specarch validate spec examples
 
 Check files, or folders of them:
 
@@ -157,8 +165,8 @@ committed output differs, which is how CI keeps the documents current.
 ## Status
 
 Version 0.1 of the meta-model, October 2026. The two schemas, the
-conventions, one example, SpecArch's own specification, the validator and
-the techspec generator exist; the other generators are on the roadmap. The meta-model will change: the first real
+conventions, one example, SpecArch's own specification, the validator in Go
+and in Swift, and the techspec generator exist; the other generators are on the roadmap. The meta-model will change: the first real
 projects written in SpecArch are expected to find concepts it cannot
 express, and those gaps define v0.2.
 

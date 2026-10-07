@@ -11,6 +11,7 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/santhosh-tekuri/jsonschema/v6/kind"
+	"go.yaml.in/yaml/v3"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 
@@ -101,19 +102,19 @@ func (c *checker) checkSchema(k Kind, value any) {
 		return
 	}
 	seen := map[string]bool{}
-	c.schemaLeaves(k, ve, seen)
+	c.schemaLeaves(k, ve, nil, seen)
 }
 
 // schemaLeaves reports the innermost causes, one per value and kind of
-// problem, in plain words.
-func (c *checker) schemaLeaves(k Kind, ve *jsonschema.ValidationError, seen map[string]bool) {
+// problem, in plain words. parent is the location of the enclosing error.
+func (c *checker) schemaLeaves(k Kind, ve *jsonschema.ValidationError, parent []string, seen map[string]bool) {
 	if pn, ok := ve.ErrorKind.(*kind.PropertyNames); ok {
-		c.schemaPropertyName(k, ve, pn, seen)
+		c.schemaPropertyName(k, ve, c.propertyNameObject(pn.Property, ve.InstanceLocation, ve.SchemaURL), pn, seen)
 		return
 	}
 	if len(ve.Causes) > 0 {
 		for _, cause := range ve.Causes {
-			c.schemaLeaves(k, cause, seen)
+			c.schemaLeaves(k, cause, ve.InstanceLocation, seen)
 		}
 		return
 	}
@@ -134,8 +135,14 @@ func (c *checker) schemaLeaves(k Kind, ve *jsonschema.ValidationError, seen map[
 			c.add(source.Key(node, p), kp, RuleSchema, "%s is not a key this object can have; remove it or correct its spelling", p)
 		}
 		return
-	case *kind.Required:
-		for _, m := range e.Missing {
+	case *kind.Required, *kind.DependentRequired:
+		var missing []string
+		if r, ok := e.(*kind.Required); ok {
+			missing = r.Missing
+		} else {
+			missing = e.(*kind.DependentRequired).Missing
+		}
+		for _, m := range missing {
 			id := path + "|required|" + m
 			if seen[id] {
 				continue
@@ -154,12 +161,12 @@ func (c *checker) schemaLeaves(k Kind, ve *jsonschema.ValidationError, seen map[
 	c.add(node, path, RuleSchema, "%s", plainSchemaMessage(ve.ErrorKind))
 }
 
-func (c *checker) schemaPropertyName(k Kind, ve *jsonschema.ValidationError, pn *kind.PropertyNames, seen map[string]bool) {
+func (c *checker) schemaPropertyName(k Kind, ve *jsonschema.ValidationError, location []string, pn *kind.PropertyNames, seen map[string]bool) {
 	if k == KindDesign && stackKeyPattern.MatchString(pn.Property) {
 		return // reported as stack_key
 	}
-	obj, _ := source.Resolve(c.root, ve.InstanceLocation)
-	path := source.Pointer(append(slices.Clone(ve.InstanceLocation), pn.Property)...)
+	obj, _ := source.Resolve(c.root, location)
+	path := source.Pointer(append(slices.Clone(location), pn.Property)...)
 	if seen[path+"|name"] {
 		return
 	}
@@ -174,6 +181,53 @@ func (c *checker) schemaPropertyName(k Kind, ve *jsonschema.ValidationError, pn 
 		}
 	}
 	c.add(source.Key(obj, pn.Property), path, RuleSchema, "the name %s is not valid: %s; rename it", pn.Property, why)
+}
+
+// propertyNameObject finds the object a propertyNames error is about. The
+// schema library stores that error's location in a slice it goes on
+// changing, so only the length of the location it reports can be trusted.
+// The schema location says under which key the object sits
+// (".../properties/responses/propertyNames"). Of the mappings at that depth
+// that sit under that key and hold the property, the one whose path agrees
+// most with the reported location is taken.
+func (c *checker) propertyNameObject(property string, reported []string, schemaURL string) []string {
+	under := ""
+	if _, frag, ok := strings.Cut(schemaURL, "#"); ok {
+		tokens := strings.Split(strings.TrimPrefix(frag, "/"), "/")
+		if n := len(tokens); n >= 3 && tokens[n-1] == "propertyNames" && (tokens[n-3] == "properties" || tokens[n-3] == "$defs") {
+			under = source.UnescapeToken(tokens[n-2])
+		}
+	}
+	if found := c.findPropertyObject(property, reported, under); found != nil {
+		return found
+	}
+	if found := c.findPropertyObject(property, reported, ""); found != nil {
+		return found
+	}
+	return reported
+}
+
+func (c *checker) findPropertyObject(property string, reported []string, under string) []string {
+	var best []string
+	bestScore := -1
+	walk(c.root, nil, func(n *yaml.Node, path []string) {
+		if len(path) != len(reported) || source.Key(n, property) == nil {
+			return
+		}
+		if under != "" && (len(path) == 0 || path[len(path)-1] != under) {
+			return
+		}
+		score := 0
+		for i := range path {
+			if path[i] == reported[i] {
+				score++
+			}
+		}
+		if score > bestScore {
+			best, bestScore = slices.Clone(path), score
+		}
+	})
+	return best
 }
 
 func leaves(ve *jsonschema.ValidationError) []*jsonschema.ValidationError {
@@ -208,6 +262,8 @@ func plainSchemaMessage(k jsonschema.ErrorKind) string {
 		return "this text is empty; write it, or leave the key out where that is allowed"
 	case *kind.MinProperties:
 		return "this object is empty; give at least one entry"
+	case *kind.MaxProperties:
+		return fmt.Sprintf("this object has %d entries and allows at most %d", e.Got, e.Want)
 	case *kind.MaxItems:
 		return fmt.Sprintf("this list has %d items and allows at most %d", e.Got, e.Want)
 	case *kind.UniqueItems:

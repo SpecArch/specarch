@@ -29,3 +29,16 @@ jobs:
         run: go run ./cmd/specarch validate spec examples
       - name: Generated technical specifications are current
         run: go run ./cmd/specarch generate techspec --check spec examples
+
+  swift:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Toolchain
+        run: swift --version
+      - name: Build
+        run: swift build -c release --package-path swift
+      - name: Test, including the conformance suite
+        run: swift test --package-path swift
+      - name: Validate SpecArch's own specification and every example
+        run: swift/.build/release/specarch validate spec examples

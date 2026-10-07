@@ -986,6 +986,19 @@ tests:
     given: "a marker with no end marker"
     when: "generate techspec is run"
     then: "it reports the marker's line, writes nothing and exits 1"
+  validate-schema-name-form:
+    command: validate
+    scenario: red
+    covers: [exit 1]
+    given: "a requirement source whose name is in lower case, next to one that is not"
+    when: "validate is run"
+    then: "it reports the name with rule schema at its own line and path, and exits 1"
+  generate-two-implementations:
+    command: generate
+    scenario: golden
+    given: "a design file with two implementation files, one of which names techspec's output folder"
+    when: "generate techspec is run on all three"
+    then: "chapter 7 has one part for each implementation, the header names both, and it exits 0"
   diagnostic-line-from-one:
     entity: Diagnostic
     constraint: diagnostic_line_positive

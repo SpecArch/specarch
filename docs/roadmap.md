@@ -11,12 +11,13 @@ the `specarch` command and `spec/specarch.go.specarch-implementation.yaml` the G
 implementation of it. The validator checks both files, which is the first
 self-hosting check.
 
-The first implementation is in Go, for macOS, Linux, Windows and Android. A
-second one in Swift for macOS follows, built from the same design file with
-its own implementation file, to prove the split: one design, two languages.
-Both must pass the same conformance suite in `conformance/`, which holds
-only inputs and the expected exit status and output, with no code from
-either language.
+The validator has two implementations of the one design file: Go, for
+macOS, Linux, Windows and Android, and Swift, for macOS, each with its own
+implementation file. They prove the split: one design, two languages, and
+nothing in the design changed for the second. Both pass the same
+conformance suite in `conformance/`, which holds only inputs and the
+expected exit status, output and files, with no code from either language.
+The generators are built in Go.
 
 A single binary, `specarch validate <files>`, written in Go in this
 repository. It checks design and implementation files and does what

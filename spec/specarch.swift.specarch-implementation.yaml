@@ -1,0 +1,159 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-0.1.schema.json
+specarchImplementation: "0.1"
+
+info:
+  title: SpecArch toolchain in Swift
+  version: 0.1.0
+  description: |
+    A second implementation of `specarch.specarch-design.yaml`, for macOS,
+    built from the same design file as the Go one. It offers the validate and
+    version commands and passes the same conformance cases; the generators
+    are built in Go only.
+
+implements:
+  file: specarch.specarch-design.yaml
+  version: 0.1.0
+
+target:
+  language: { name: Swift, version: "6.0", description: Swift 6 language mode with strict concurrency checking. }
+  toolchain: { name: Swift Package Manager, version: "6.0", description: The swift-tools-version in Package.swift; the minimum toolchain. }
+  platforms: [darwin/arm64, darwin/amd64]
+
+libraries:
+  github.com/jpsim/Yams:
+    version: 6.2.2
+    licence: MIT
+    purpose: YAML parsing, with the libyaml C library bundled inside it. Pinned in Package.swift and Package.resolved.
+
+layout:
+  swift/Package.swift:
+    description: The package. One library, one executable, one test target.
+  swift/Sources/specarch:
+    description: The executable; it passes the arguments to the library and exits with its status.
+  swift/Sources/SpecArchKit:
+    description: Everything else. Reading YAML, the JSON Schema evaluator and its messages, the design and implementation checks, the expression subset, tests and their derived cases, and the commands.
+    implements: ["#/commands/validate", "#/commands/version", "#/entities/Diagnostic", "#/entities/SpecFile", "#/enums/Rule", "#/enums/Severity", "#/algorithms/exitStatus", "#/algorithms/referenceResolves", "#/algorithms/permissionGranted", "#/algorithms/workedExampleHolds"]
+  swift/embed-schemas.sh:
+    description: Writes the schemas of schema/ into the library as Swift source; a test fails when they differ.
+
+mappings:
+  "#/entities/Diagnostic": { target: SpecArchKit.Diagnostic, description: "A struct; its description is the one-line form." }
+  "#/entities/SpecFile": { target: a path string in SpecArchKit.collect }
+  "#/enums/Rule": { target: SpecArchKit.Rule, description: A String enum with one case per value; a test checks they equal the design's enum. }
+  "#/enums/Severity": { target: SpecArchKit.Severity }
+  "#/commands/validate": { target: SpecArchKit.runValidate }
+  "#/commands/version": { target: SpecArchKit.run }
+  "#/commands/generate": { target: SpecArchKit.run, description: "Exits 2: this build offers no generator target." }
+  "#/algorithms/exitStatus": { target: the end of SpecArchKit.runValidate }
+  "#/algorithms/workedExampleHolds": { target: SpecArchKit.Checker.checkExample }
+  "#/algorithms/permissionGranted": { target: SpecArchKit.Checker.checkAccess }
+
+bindings:
+  cli:
+    framework: standard library
+    description: "Hand-written argument handling over CommandLine.arguments, as in the Go build."
+
+tasks:
+  build: { run: swift build -c release --package-path swift, ci: true }
+  test: { run: swift test --package-path swift, ci: true }
+  validate-specs:
+    run: swift/.build/release/specarch validate spec examples
+    description: The Swift build checks the design file it was built from, and every example.
+    ci: true
+  embed-schemas: { run: swift/embed-schemas.sh, description: Run after a change to schema/. }
+  sbom:
+    run: syft dir:swift -o syft-json=sbom.json && grype sbom:sbom.json && osv-scanner scan source -r swift
+    description: Run on every dependency change; the result goes in the commit message.
+
+testing:
+  framework: Swift Testing
+  run: swift test --package-path swift
+  platforms: [darwin/arm64]
+  fixtures: The conformance suite in `conformance/`; the Swift tests read it and add none of their own.
+  mocks: None. Every test runs the real program on real files.
+  suites:
+    conformance:
+      description: |
+        Runs every conformance case of the validate and version commands
+        through the library's own entry point, in a copy of the case's
+        folder, and compares the exit status, the standard output and the
+        files after the run. It also checks that every design test of those
+        commands has a folder, that the rules equal the design's Rule enum,
+        and that the embedded schemas equal the files in schema/.
+      run: swift test --package-path swift --filter ConformanceTests
+      designTestsOf:
+        - { command: validate }
+        - { command: version }
+      ci: true
+    expressions:
+      description: Unit tests of the expression subset, including the column CEL gives each kind of node.
+      run: swift test --package-path swift --filter ExprTests
+      implementationOnly: true
+      ci: true
+
+decisions:
+  ADR-201:
+    title: Swift and the Swift Package Manager, for macOS
+    status: accepted
+    date: "2026-10-07"
+    context: The design should be implementable in a second language with nothing changed but the implementation file.
+    decision: Swift 6 with the Swift Package Manager; Foundation and the standard library wherever they do the job.
+    consequences: The macOS build needs no Go toolchain. It offers validate and version; generate exits 2 until a Swift generator is wanted.
+  ADR-202:
+    title: Yams for YAML, with SpecArch's own tag resolution
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      Yams wraps libyaml and keeps every node's line, counted from 1, with a
+      block scalar's line on its indicator, as yaml.v3 does. It leaves plain
+      scalars untagged, and it refuses a repeated key outright, reporting
+      only where the mapping starts.
+    decision: |
+      Parse with Yams and resolve plain scalars by YAML 1.2's core schema
+      (null, bool, int, float, timestamp), as yaml.v3 does. When Yams refuses
+      a repeated key, rename every later repeat in the text, keeping all
+      lines in place, and parse again, so each repeat is reported on its own
+      line with its path. Report a YAML error's line by the rule yaml.v3
+      uses: a scanner error on the line its context starts, a parser error
+      on the line before, corrected for the unclosed-block messages.
+    consequences: |
+      Diagnostics agree line for line with the Go build. For a few broken
+      files libyaml's newer version inside Yams explains the error
+      differently from yaml.v3 (an unclosed quote is one); the line and the
+      rule may then differ.
+  ADR-203:
+    title: A JSON Schema evaluator for exactly the keywords the schemas use
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      No Swift JSON Schema library reports errors in the shape the
+      diagnostics need, and the messages must be the same sentences as the
+      Go build's.
+    decision: |
+      A small evaluator in SpecArchKit for the keywords of the two schemas.
+      Loading a schema with any other keyword fails, and a test loads both,
+      so a schema change cannot be ignored without anyone noticing. Regular
+      expressions run on ICU through NSRegularExpression, not RE2; the
+      schemas' patterns mean the same in both.
+    consequences: The schemas stay the single definition. A new keyword in a schema is a failing test until the evaluator implements it.
+  ADR-204:
+    title: A hand-written parser for the CEL subset, with CEL's positions
+    status: accepted
+    date: "2026-10-07"
+    context: There is no CEL parser for Swift, and error columns must match the Go build's, which come from cel-go.
+    decision: |
+      A recursive-descent parser of the subset with CEL's precedence. It
+      places an identifier at its first character, an operator at the
+      operator and a call at its opening bracket, as cel-go does, and
+      refuses what is outside the subset with the same sentences.
+    consequences: No dependency. A test pins the columns of each kind of node.
+  ADR-205:
+    title: Foundation Decimal for every exact number
+    status: accepted
+    date: "2026-10-07"
+    context: The design asks for exact decimal and integer arithmetic. Swift has no arbitrary-precision number in its standard library.
+    decision: Int, uint and decimal values are Foundation Decimal, exact to 38 significant digits, with range checks for int and uint as in the Go build.
+    consequences: |
+      Results agree with the Go build, which uses unbounded rationals,
+      wherever a value has 38 digits or fewer. The design does not yet bound
+      a decimal's precision; that is reported as a finding.

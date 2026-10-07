@@ -37,8 +37,8 @@ func sortedLinks[V any](m map[string]V) []string {
 // implementation is chapter 7, from the implementation file: how one stack
 // builds the design, where it runs, and the decisions that depend on it.
 func implementation(d *doc, impl *yaml.Node) {
-	d.heading(2, "7. Deployment and implementation")
 	info := get(impl, "info")
+	d.heading(3, str(info, "title"))
 	d.para(fmt.Sprintf("From the implementation file %s, version %s.", str(info, "title"), str(info, "version")))
 	d.para(str(info, "description"))
 
@@ -56,7 +56,7 @@ func implementation(d *doc, impl *yaml.Node) {
 	d.para("Stack: " + strings.Join(stack, "; ") + ".")
 
 	if libs := pairs(impl, "libraries"); len(libs) > 0 {
-		d.heading(3, "Libraries")
+		d.heading(4, "Libraries")
 		d.line("| Library | Version | Licence | Purpose |")
 		d.line("|---|---|---|---|")
 		for _, l := range libs {
@@ -69,7 +69,7 @@ func implementation(d *doc, impl *yaml.Node) {
 		d.blank()
 	}
 	if layout := pairs(impl, "layout"); len(layout) > 0 {
-		d.heading(3, "Layout")
+		d.heading(4, "Layout")
 		d.line("| Path | Holds | Implements |")
 		d.line("|---|---|---|")
 		for _, l := range layout {
@@ -78,7 +78,7 @@ func implementation(d *doc, impl *yaml.Node) {
 		d.blank()
 	}
 	if maps := pairs(impl, "mappings"); len(maps) > 0 {
-		d.heading(3, "Mappings")
+		d.heading(4, "Mappings")
 		d.line("| Design object | Implemented by | Notes |")
 		d.line("|---|---|---|")
 		for _, m := range maps {
@@ -87,13 +87,13 @@ func implementation(d *doc, impl *yaml.Node) {
 		d.blank()
 	}
 	if binds := pairs(impl, "bindings"); len(binds) > 0 {
-		d.heading(3, "Bindings")
+		d.heading(4, "Bindings")
 		for _, b := range binds {
 			d.para(fmt.Sprintf("%s: %s. %s", b.Key.Value, str(b.Value, "framework"), strings.TrimSpace(str(b.Value, "description"))))
 		}
 	}
 	if gens := pairs(impl, "generators"); len(gens) > 0 {
-		d.heading(3, "Generators")
+		d.heading(4, "Generators")
 		d.line("| Target | Output folder | Settings |")
 		d.line("|---|---|---|")
 		for _, g := range gens {
@@ -108,7 +108,7 @@ func implementation(d *doc, impl *yaml.Node) {
 		d.blank()
 	}
 	if tasks := pairs(impl, "tasks"); len(tasks) > 0 {
-		d.heading(3, "Tasks")
+		d.heading(4, "Tasks")
 		d.line("| Task | Command | In CI |")
 		d.line("|---|---|---|")
 		for _, t := range tasks {
@@ -121,7 +121,7 @@ func implementation(d *doc, impl *yaml.Node) {
 		d.blank()
 	}
 	if testing := get(impl, "testing"); testing != nil {
-		d.heading(3, "Testing")
+		d.heading(4, "Testing")
 		d.para(fmt.Sprintf("Framework: %s. Run: `%s`.", str(testing, "framework"), str(testing, "run")))
 		for _, k := range [][2]string{{"fixtures", "Fixtures"}, {"mocks", "Stand-ins"}, {"performance", "Performance"}} {
 			if s := str(testing, k[0]); s != "" {
@@ -149,7 +149,7 @@ func implementation(d *doc, impl *yaml.Node) {
 		d.blank()
 	}
 	if deps := pairs(impl, "deployments"); len(deps) > 0 {
-		d.heading(3, "Deployments")
+		d.heading(4, "Deployments")
 		for _, dep := range deps {
 			var urls []string
 			for _, s := range items(dep.Value, "servers") {

@@ -1,8 +1,9 @@
 # SpecArch toolchain
 
 Explanation for `specarch.specarch-design.yaml`, the design of the `specarch`
-command. The Go implementation is described in
-`specarch.go.specarch-implementation.yaml`. The sections follow `docs/conventions.md`;
+command. It has two implementations, each described in its own file:
+`specarch.go.specarch-implementation.yaml` and
+`specarch.swift.specarch-implementation.yaml`. The sections follow `docs/conventions.md`;
 the regions between `specarch:generate` markers are written by
 `specarch generate techspec` from the YAML: edit the YAML, not the regions.
 The full technical specification is `docs/techspec/specarch.techspec.md`.
@@ -136,8 +137,8 @@ sequenceDiagram
 
 ## 7. Deployment
 
-A single program on the user's machine or a CI runner. The implementation
-file says how it is built.
+A single program on the user's machine or a CI runner. Each implementation
+file says how its build is made.
 
 ## 8. Cross-cutting concepts
 

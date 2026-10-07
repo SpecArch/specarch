@@ -49,6 +49,10 @@ and the history file. Make no other change in that folder.
   standard's rule for convenience without saying what it protects against
   and why that does not apply.
 - Types are concrete and width-aware (`docs/conventions.md`, Types).
+- The validator has two builds, Go (root) and Swift (`swift/`). A change to
+  the validator is made in both, a new case goes into `conformance/` with
+  its design test, and both must print the same output. The generators are
+  Go only.
 - Contributions from outside are the owner's decision; never merge one.
 - Commits and pushes follow the repository's switches (`agentq policy
   specarch`).

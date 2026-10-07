@@ -29,13 +29,15 @@ These are the checks CI runs on every change:
     govulncheck ./...
     go run ./cmd/specarch validate spec examples
     go run ./cmd/specarch generate techspec --check spec examples
+    swift build --package-path swift && swift test --package-path swift
 
 `go test` runs the conformance suite in `conformance/`: every folder holds
 the input files of one case, a `case.yaml` with the arguments, the exit
 status and the exact output expected, and, when the case writes files, an
 `expected/` folder with each file as it must be afterwards. The folders are
 the design tests of the commands in `spec/specarch.specarch-design.yaml`,
-and a second implementation of `specarch` must pass the same folders.
+and the Go and Swift builds of `specarch` both pass them. A change to the
+validator is made in both builds, and their output stays identical.
 
 A new case is added together with its design test. Put the input files in a
 new folder, run the program in a copy of it, and record the arguments, the

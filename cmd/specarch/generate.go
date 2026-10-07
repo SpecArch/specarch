@@ -89,18 +89,26 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 	failed := false
 	outFolders := map[string]bool{}
 	for _, d := range designs {
-		var impl *yaml.Node
-		implPath := ""
+		var mine []input
 		for _, i := range impls {
 			named := filepath.Join(filepath.Dir(i.path), filepath.FromSlash(source.Str(source.Child(source.Child(i.root, "implements"), "file"))))
 			if filepath.Clean(named) == filepath.Clean(d.path) {
-				impl, implPath = i.root, i.path
+				mine = append(mine, i)
 			}
 		}
 		folder := out
-		if folder == "" && impl != nil {
-			if o := source.Str(source.Child(source.Child(source.Child(impl, "generators"), target), "output")); o != "" {
-				folder = filepath.Join(filepath.Dir(implPath), filepath.FromSlash(o))
+		if folder == "" {
+			for _, i := range mine {
+				o := source.Str(source.Child(source.Child(source.Child(i.root, "generators"), target), "output"))
+				if o == "" {
+					continue
+				}
+				f := filepath.Clean(filepath.Join(filepath.Dir(i.path), filepath.FromSlash(o)))
+				if folder != "" && folder != f {
+					fmt.Fprintf(stderr, "specarch generate: the implementation files of %s name different folders for %s (%s and %s); give --out, or let one of them name it\n", d.path, target, folder, f)
+					return 2
+				}
+				folder = f
 			}
 		}
 		if folder == "" {
@@ -110,11 +118,11 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 		folder = filepath.Clean(folder)
 		outFolders[folder] = true
 		relDesign := relSlash(folder, d.path)
-		relImpl := ""
-		if impl != nil {
-			relImpl = relSlash(folder, implPath)
+		var given []generate.Implementation
+		for _, i := range mine {
+			given = append(given, generate.Implementation{Root: i.root, Rel: relSlash(folder, i.path)})
 		}
-		plan = append(plan, planned{filepath.Join(folder, generate.TechspecName(d.path)), generate.Techspec(d.root, relDesign, impl, relImpl)})
+		plan = append(plan, planned{filepath.Join(folder, generate.TechspecName(d.path)), generate.Techspec(d.root, relDesign, given)})
 
 		companion := strings.TrimSuffix(d.path, ".yaml") + ".md"
 		if text, err := os.ReadFile(companion); err == nil {

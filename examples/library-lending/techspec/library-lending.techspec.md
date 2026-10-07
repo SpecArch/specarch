@@ -271,6 +271,8 @@ sequenceDiagram
 
 ## 7. Deployment and implementation
 
+### Library Lending in Go and PostgreSQL
+
 From the implementation file Library Lending in Go and PostgreSQL, version 0.1.0.
 
 How one stack would build the lending example. No code for it exists in
@@ -279,7 +281,7 @@ and what stays in the definition beside it.
 
 Stack: language Go 1.26; toolchain go 1.26.0.
 
-### Libraries
+#### Libraries
 
 | Library | Version | Licence | Purpose |
 |---|---|---|---|
@@ -288,7 +290,7 @@ Stack: language Go 1.26; toolchain go 1.26.0.
 | github.com/go-chi/chi/v5 | v5.3.2 | MIT | HTTP router. |
 | github.com/jackc/pgx/v5 | v5.11.0 | MIT | PostgreSQL driver. |
 
-### Layout
+#### Layout
 
 | Path | Holds | Implements |
 |---|---|---|
@@ -296,7 +298,7 @@ Stack: language Go 1.26; toolchain go 1.26.0.
 | internal/lending | Hand-written handlers that implement the generated interface, and the late-fee algorithm. | #/algorithms/lateFee, #/entities/Loan |
 | migrations | Generated forward migrations, new files only. |   |
 
-### Mappings
+#### Mappings
 
 | Design object | Implemented by | Notes |
 |---|---|---|
@@ -306,13 +308,13 @@ Stack: language Go 1.26; toolchain go 1.26.0.
 | #/algorithms/lateFee | lending.LateFee | Takes and returns `decimal.Decimal` values with scale 2. |
 | #/paths/~1loans/post | lending.Server.CreateLoan |   |
 
-### Bindings
+#### Bindings
 
 http: github.com/go-chi/chi/v5. The generated strict handler is mounted on a chi router; a middleware checks the operation's permission before the handler runs.
 
 storage: github.com/jackc/pgx/v5. Money columns are `numeric(10,2)`.
 
-### Generators
+#### Generators
 
 | Target | Output folder | Settings |
 |---|---|---|
@@ -322,20 +324,20 @@ storage: github.com/jackc/pgx/v5. Money columns are `numeric(10,2)`.
 | ui | web | platform web, framework plain-javascript |
 | tests | internal/lending |   |
 
-### Tasks
+#### Tasks
 
 | Task | Command | In CI |
 |---|---|---|
 | generate | `go generate ./...` |   |
 | test | `go test ./...` | yes |
 
-### Deployments
+#### Deployments
 
 local: A developer's machine. Servers: http://localhost:8080.
 
-### Implementation decisions
+#### Implementation decisions
 
-#### ADR-101: PostgreSQL numeric for money
+##### ADR-101: PostgreSQL numeric for money
 
 Status: accepted, 2026-10-07.
 

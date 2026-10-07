@@ -6,8 +6,14 @@ the validator, and the real projects check all of it.
 
 ## 1. Validator CLI
 
+Specified first, in SpecArch: `spec/specarch.specarch.yaml` is the design of
+the `specarch` command and `spec/specarch.go.specarch-impl.yaml` the Go
+implementation of it. The validator checks both files, which is the first
+self-hosting check.
+
 A single binary, `specarch validate <files>`, written in Go in this
-repository. It does what JSON Schema cannot:
+repository. It checks definition and implementation files and does what
+JSON Schema cannot:
 
 - cross-references: relation targets, primary-key fields, page columns and
   fields, transition states, requirement prefixes, `emits` targets, `source`
@@ -18,7 +24,10 @@ repository. It does what JSON Schema cannot:
   produce the expected value, so a wrong example fails validation rather than
   becoming a wrong test;
 - fail-closed access: every operation and page has a permission that exists,
-  every permission is granted by at least one role or is `public`.
+  every permission is granted by at least one role or is `public`;
+- the interface boundary: no stack-specific key in a definition file, no
+  design in an implementation file, and an implementation file's
+  `implements` and pointers resolve in its definition file.
 
 It uses the same JSON Schema library the repository validates with today, so
 the schema stays the single definition. It ships with a test suite of valid and
@@ -29,7 +38,9 @@ lessons from an earlier in-house language made the first requirement.
 ## 2. Generators, in order of payoff
 
 Each generator is one command, `specarch generate <target> <files>`, and
-writes into a folder it owns. Generated files carry a header naming the spec
+writes into a folder it owns. It reads the definition file for the design
+and the implementation file for the target choices: the folder, the
+downstream code generator and its settings, the type each field maps to. Generated files carry a header naming the spec
 file and version they came from. A generator never edits a hand-written file;
 Markdown documents are updated only between the `specarch:generate` markers.
 Every emitter has a `--check` form that regenerates and fails on a
@@ -120,7 +131,14 @@ Known candidates from the first meta-model:
 - row-level permissions (a member sees only their own loans);
 - cross-file references between bounded contexts;
 - a fixed expression grammar;
-- non-HTTP interfaces (a Bluetooth or serial protocol, a menu-bar UI);
+- interfaces beyond HTTP, messaging and the command line, which 0.1 has:
+  gRPC, file exchange, a Bluetooth or serial protocol, a menu-bar UI;
+- value objects: data that is passed around but not stored and has no
+  identity (a diagnostic, a request summary), now written as entities with a
+  made-up key;
+- sets and lists in the expression language, so a rule over many objects
+  (every permission granted by some role) can be a formula rather than a
+  count;
 - background jobs and schedules;
 - configuration and settings as a first-class concept.
 

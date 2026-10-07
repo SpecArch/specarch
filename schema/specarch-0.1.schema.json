@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-0.1.schema.json",
   "title": "SpecArch Definition File, meta-model 0.1",
-  "description": "A SpecArch Definition File (*.specarch.yaml) describes one system: its entities, enums, relations, constraints, endpoints, events, roles and permissions, pages, algorithms, requirement links and decisions. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "description": "A SpecArch Definition File (*.specarch.yaml) describes one system: its entities, enums, relations, constraints, endpoints, commands, events, roles and permissions, pages, algorithms, requirement links and decisions. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
     "specarch": {
@@ -73,6 +73,16 @@
         "$ref": "#/$defs/pathItem"
       }
     },
+    "commands": {
+      "description": "SpecArch keyword. Command-line commands, keyed by the words a user types after the program name, such as 'validate' or 'generate techspec'. A command is an interface like an HTTP operation: it names a permission (fail-closed) and lists its arguments, options, files and exit codes.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/commandName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/command"
+      }
+    },
     "channels": {
       "description": "AsyncAPI keyword. Event channels keyed by channel name (dotted lower-case). Each channel carries one or more messages; a message is an event.",
       "type": "object",
@@ -118,6 +128,11 @@
     "specarch",
     "info"
   ],
+  "propertyNames": {
+    "not": {
+      "$ref": "#/$defs/stackSpecificKey"
+    }
+  },
   "patternProperties": {
     "^x-": {}
   },
@@ -142,7 +157,7 @@
       "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
     },
     "requirementLink": {
-      "description": "SpecArch keyword. An ID in an external requirement set: the prefix names a requirementSources entry, the rest is the ID inside that set. Every named object carries a 'requirements' list of these (entity, enum, relation, constraint, transition, permission, role, operation, channel, message, page, algorithm, decision); fields, parameters, responses, actions and worked examples trace through the object that holds them.",
+      "description": "SpecArch keyword. An ID in an external requirement set: the prefix names a requirementSources entry, the rest is the ID inside that set. Every named object carries a 'requirements' list of these (entity, enum, relation, constraint, transition, permission, role, operation, command, channel, message, page, algorithm, decision); fields, parameters, responses, actions and worked examples trace through the object that holds them.",
       "type": "string",
       "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
     },
@@ -190,6 +205,11 @@
         "title",
         "version"
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -209,6 +229,11 @@
       "required": [
         "description"
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -249,6 +274,11 @@
         "type",
         "enum"
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -442,6 +472,11 @@
           ]
         }
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -533,6 +568,11 @@
           "transitions"
         ]
       },
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -581,6 +621,11 @@
         "kind",
         "via"
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -655,6 +700,11 @@
           }
         }
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -670,7 +720,7 @@
           "type": "string"
         },
         "trigger": {
-          "description": "The operationId, channel message or algorithm that causes the move.",
+          "description": "The operationId, command, channel message ('channel/Message') or algorithm that causes the move.",
           "type": "string"
         },
         "description": {
@@ -684,6 +734,11 @@
         "from",
         "to"
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -702,6 +757,11 @@
       "required": [
         "description"
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -730,6 +790,11 @@
         "description",
         "permissions"
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -788,6 +853,11 @@
           ]
         }
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -846,6 +916,11 @@
         "required": [
           "required"
         ]
+      },
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
       },
       "patternProperties": {
         "^x-": {}
@@ -912,6 +987,11 @@
         "permission",
         "responses"
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -933,6 +1013,11 @@
       "required": [
         "content"
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -952,6 +1037,11 @@
       "required": [
         "description"
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -973,6 +1063,11 @@
         "required": [
           "schema"
         ],
+        "propertyNames": {
+          "not": {
+            "$ref": "#/$defs/stackSpecificKey"
+          }
+        },
         "patternProperties": {
           "^x-": {}
         },
@@ -1004,6 +1099,11 @@
       "required": [
         "messages"
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -1031,6 +1131,11 @@
         "summary",
         "payload"
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -1165,6 +1270,11 @@
           }
         }
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -1203,6 +1313,11 @@
         "kind",
         "target"
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -1229,7 +1344,7 @@
           "$ref": "#/$defs/field"
         },
         "formula": {
-          "description": "The computation in one expression or a short list of them, plain text or LaTeX.",
+          "description": "The computation in the expression language of docs/conventions.md: one expression, or a short list of 'name = expression' lines whose last line is the result. The validator parses it and evaluates it on every worked example.",
           "type": "string",
           "minLength": 1
         },
@@ -1255,6 +1370,11 @@
         "examples",
         "pseudocode"
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -1285,6 +1405,11 @@
         "inputs",
         "expected"
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
@@ -1348,10 +1473,207 @@
           "supersededBy"
         ]
       },
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
       "patternProperties": {
         "^x-": {}
       },
       "additionalProperties": false
+    },
+    "commandName": {
+      "description": "SpecArch keyword. One or more kebab-case words separated by single spaces, as typed after the program name.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*( [a-z][a-z0-9]*(-[a-z0-9]+)*)*$"
+    },
+    "command": {
+      "description": "SpecArch keyword. One command of a command-line interface. Design only: how the arguments are parsed and which library does it belong in an implementation file.",
+      "type": "object",
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "permission": {
+          "description": "SpecArch keyword. The one permission a caller must hold. A local tool that anyone may run uses 'public'.",
+          "$ref": "#/$defs/permissionName"
+        },
+        "arguments": {
+          "description": "Positional arguments, in order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/commandArgument"
+          }
+        },
+        "options": {
+          "description": "Named options, keyed by the long name without its leading dashes.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/commandOption"
+          }
+        },
+        "reads": {
+          "description": "Files and folders the command reads.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fileUse"
+          }
+        },
+        "writes": {
+          "description": "Files and folders the command writes. A command that writes nothing leaves this out.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fileUse"
+          }
+        },
+        "stdout": {
+          "description": "What the command prints on standard output.",
+          "$ref": "#/$defs/markdown"
+        },
+        "stderr": {
+          "description": "What the command prints on standard error.",
+          "$ref": "#/$defs/markdown"
+        },
+        "exitCodes": {
+          "description": "Every exit status the command can return, keyed by number. Status 0 is required.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^(0|[1-9][0-9]?|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required": [
+            "0"
+          ]
+        },
+        "algorithm": {
+          "description": "SpecArch keyword. The algorithm this command runs, if any.",
+          "$ref": "#/$defs/memberName"
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirementLinks"
+        },
+        "deprecated": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "summary",
+        "permission",
+        "exitCodes"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "commandArgument": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "variadic": {
+          "description": "The argument takes one or more values; only the last argument may.",
+          "type": "boolean"
+        },
+        "schema": {
+          "$ref": "#/$defs/field"
+        }
+      },
+      "required": [
+        "name",
+        "schema"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "commandOption": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "schema": {
+          "$ref": "#/$defs/field"
+        },
+        "required": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "description",
+        "schema"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "fileUse": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "description": "A path or a pattern; {name} marks a part taken from an argument or option.",
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        }
+      },
+      "required": [
+        "path",
+        "description"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "stackSpecificKey": {
+      "description": "Extension keys that belong to one implementation, not to the design: code-generator settings, a language or framework binding, servers, hosts, ports and deployments. They go in a SpecArch Implementation File (*.specarch-impl.yaml), never in a definition file. See 'Definition and implementation' in docs/conventions.md.",
+      "type": "string",
+      "pattern": "^x-(oapi-codegen|ogen|openapi-generator|codegen|protoc|grpc|go|java|kotlin|python|typescript|javascript|rust|swift|dotnet|csharp|php|ruby|framework|router|middleware|cli-library|server|servers|host|port|deploy|deployment|environment)(-|$)"
     }
   }
 }

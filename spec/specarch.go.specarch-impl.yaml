@@ -1,0 +1,117 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-impl-0.1.schema.json
+specarchImpl: "0.1"
+
+info:
+  title: SpecArch toolchain in Go
+  version: 0.1.0
+  description: |
+    The Go implementation of `specarch.specarch.yaml`: one static binary,
+    `specarch`, installed with `go install ./cmd/specarch`.
+
+implements:
+  file: specarch.specarch.yaml
+  version: 0.1.0
+
+target:
+  language: { name: Go, version: "1.26" }
+  toolchain: { name: go, version: "1.26.0", description: The minimum in go.mod. CI builds with the latest stable release. }
+  platforms: [darwin/arm64, darwin/amd64, linux/amd64, linux/arm64, windows/amd64]
+
+libraries:
+  github.com/santhosh-tekuri/jsonschema/v6:
+    version: v6.0.3
+    licence: Apache-2.0
+    purpose: JSON Schema 2020-12 validation against the schemas in `schema/`; the same library the repository's pinned `jv` check used.
+  golang.org/x/text:
+    version: v0.42.0
+    licence: BSD-3-Clause
+    purpose: Message printing for the schema library. Pinned above 0.39.0, which fixes GO-2026-5970.
+  go.yaml.in/yaml/v3:
+    version: v3.0.5
+    licence: MIT AND Apache-2.0
+    purpose: YAML parsing into a node tree, which keeps the line of every value for diagnostics.
+
+layout:
+  cmd/specarch:
+    description: The command line. Argument parsing, file discovery, output and exit status.
+    implements: ["#/commands/validate", "#/commands/version", "#/algorithms/exitStatus"]
+  schema:
+    description: The JSON Schemas, embedded into the binary from the files editors use.
+  internal/source:
+    description: Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys.
+  internal/expr:
+    description: The expression language. Lexer, recursive-descent parser, type checker and evaluator over exact rationals.
+    implements: ["#/algorithms/workedExampleHolds"]
+  internal/validate:
+    description: Schema validation, cross-references, fail-closed access, the interface boundary, worked examples and implementation references.
+    implements: ["#/entities/Diagnostic", "#/entities/SpecFile", "#/enums/Rule", "#/algorithms/referenceResolves", "#/algorithms/permissionGranted"]
+
+mappings:
+  "#/entities/Diagnostic": { target: validate.Diagnostic, description: "A struct; `String()` prints the one-line form." }
+  "#/entities/SpecFile": { target: validate.File }
+  "#/enums/Rule": { target: validate.Rule, description: A string type with one constant per value. }
+  "#/commands/validate": { target: main.runValidate }
+  "#/commands/version": { target: main.runVersion }
+
+bindings:
+  cli:
+    framework: standard library
+    description: "Hand-written argument handling over `os.Args`; three commands do not justify a CLI library."
+
+generators:
+  techspec:
+    output: docs/spec
+    description: Roadmap step 2.1; the generate command is not built yet.
+
+tasks:
+  build: { run: go build ./..., ci: true }
+  test: { run: go test ./..., ci: true }
+  vet: { run: go vet ./..., ci: true }
+  vulncheck: { run: govulncheck ./..., ci: true }
+  validate-specs:
+    run: go run ./cmd/specarch validate spec examples
+    description: The validator checks its own specification and every example.
+    ci: true
+  install: { run: go install ./cmd/specarch }
+  sbom:
+    run: syft dir:. -o syft-json=sbom.json && grype sbom:sbom.json && osv-scanner scan source -r .
+    description: Run on every dependency change; the result goes in the commit message.
+
+decisions:
+  ADR-101:
+    title: Go, one static binary
+    status: accepted
+    date: "2026-10-07"
+    context: The validator must be installable by anyone with one command and run in CI without a runtime.
+    decision: Go. `go install` builds it from source; the binary has no runtime dependency.
+    consequences: The schema library is a Go module. Generators written later are Go too, in the same binary.
+  ADR-102:
+    title: santhosh-tekuri/jsonschema as the schema library
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      The repository checked files with `jv`, the command of this library,
+      before the validator existed. Changing library would change which files
+      pass.
+    decision: |
+      Use `github.com/santhosh-tekuri/jsonschema/v6` with format assertion
+      on, and require `golang.org/x/text` v0.42.0 so GO-2026-5970 (fixed in
+      0.39.0) is not in the build.
+    consequences: The same files pass as with `jv`. The schemas are embedded and registered under their `$id`, so validation needs no network.
+  ADR-103:
+    title: A hand-written parser for the expression language
+    status: accepted
+    date: "2026-10-07"
+    context: The grammar is a dozen rules. A parser generator would add a build step and a dependency for less code than it generates.
+    decision: A recursive-descent parser with precedence climbing, and `math/big.Rat` for every number.
+    consequences: Errors name the column and the token expected. No dependency beyond the standard library.
+  ADR-104:
+    title: The YAML node tree, not decoding into structs
+    status: accepted
+    date: "2026-10-07"
+    context: Every diagnostic needs the line of the value it is about.
+    decision: |
+      Parse with `go.yaml.in/yaml/v3` into `yaml.Node`, keep the tree for
+      lines, and convert it to plain values by tag for the schema check.
+      The maintained module replaces the archived `gopkg.in/yaml.v3`.
+    consequences: Rules walk the node tree directly. A date without quotes is caught by its tag before the schema check.

@@ -33,7 +33,9 @@ a Go toolchain:
     go run github.com/santhosh-tekuri/jsonschema/cmd/jv@v0.7.0 -f \
       schema/specarch-0.1.schema.json examples/library-lending/library-lending.specarch.yaml
 
-The schema itself must compile, which the same command checks first.
+Implementation files (`*.specarch-impl.yaml`) are checked the same way
+against `schema/specarch-impl-0.1.schema.json`. The schema itself must
+compile, which the same command checks first.
 
 Dependencies are added only when their licence is OSI-approved and their SBOM
 scan (syft, then grype and osv-scanner; govulncheck for Go) is clean, or when

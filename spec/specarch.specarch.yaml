@@ -1,0 +1,544 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-0.1.schema.json
+specarch: "0.1"
+
+info:
+  title: SpecArch toolchain
+  version: 0.1.0
+  description: |
+    The `specarch` command: it validates SpecArch files and generates
+    documents and code from them. This file is the design, with no language,
+    library or build tool in it. How one stack implements it is in
+    `specarch.go.specarch-impl.yaml` beside it.
+  owners: [specarch-maintainers]
+
+requirementSources:
+  SA:
+    description: Requirement list of the SpecArch toolchain, kept in `specarch.specarch.md` under "Requirements".
+
+enums:
+  DocumentKind:
+    type: string
+    enum: [definition, implementation]
+    valueDescriptions:
+      definition: a SpecArch Definition File (SDF), `*.specarch.yaml`, the design
+      implementation: a SpecArch Implementation File (SIF), `*.specarch-impl.yaml`, one stack's implementation of a definition file
+    requirements: [SA-1, SA-9]
+  Rule:
+    type: string
+    description: |
+      Every check the validator makes. A diagnostic names one of these, so a
+      test can assert the exact rule and a reader can look it up here.
+    enum:
+      - file_kind
+      - yaml_syntax
+      - unquoted_date
+      - duplicate_key
+      - schema
+      - stack_key
+      - design_key
+      - ref_type
+      - relation_target
+      - relation_via
+      - field
+      - state_field
+      - state_value
+      - trigger
+      - requirement
+      - emits
+      - operation
+      - page
+      - algorithm
+      - decision
+      - enum_value
+      - path_parameter
+      - duplicate_operation
+      - permission_undeclared
+      - permission_ungranted
+      - expression_syntax
+      - expression_name
+      - expression_type
+      - example_input
+      - example_expected
+      - example_mismatch
+      - example_error
+      - implements
+      - design_ref
+    valueDescriptions:
+      file_kind: the file name ends in neither `.specarch.yaml` nor `.specarch-impl.yaml`, or its root key does not match its name
+      yaml_syntax: the file is not well-formed YAML
+      unquoted_date: a date written without quotes, which YAML reads as a timestamp
+      duplicate_key: a mapping repeats a key
+      schema: the file breaks the meta-model's JSON Schema
+      stack_key: a definition file carries a key that belongs to one implementation
+      design_key: an implementation file carries a key that belongs to the design
+      ref_type: a `$ref` names an entity or enum the file does not have
+      relation_target: a relation's target is not an entity of the file
+      relation_via: a relation's `via` is not the field or join entity its kind needs
+      field: a name that must be a field of an entity is not one (required, primaryKey, unique fields, page columns, fields and filters)
+      state_field: the `stateField` is not a field whose type is an enum
+      state_value: a transition's `from` or `to` is not a value of the state field's enum
+      trigger: a transition's trigger is not an operation, command, channel message or algorithm
+      requirement: a requirement link's prefix is not a requirement source
+      emits: an `emits` entry names a channel or message that does not exist
+      operation: a `source`, `submit` or operation action names an operationId that does not exist
+      page: a navigate action names a page that does not exist
+      algorithm: an `algorithm` reference names an algorithm that does not exist
+      decision: a `supersededBy` names a decision that does not exist, or an implementation decision reuses a definition decision's ID
+      enum_value: a `valueDescriptions` key is not a value of its enum
+      path_parameter: a `{name}` in a path has no path parameter, or a path parameter is not in the path
+      duplicate_operation: two operations share an operationId
+      permission_undeclared: an operation, command, page, action or role names a permission that is not declared
+      permission_ungranted: a declared permission is granted by no role and is not `public`
+      expression_syntax: a check or formula does not parse
+      expression_name: an expression names a field, input or function that does not exist
+      expression_type: an expression combines values of types that do not fit
+      example_input: a worked example's inputs are missing one, name an unknown one, or have the wrong type
+      example_expected: a worked example's expected value does not have the output's type
+      example_mismatch: the formula evaluated on a worked example's inputs does not give the expected value
+      example_error: the formula cannot be evaluated on a worked example's inputs (division by zero, null in arithmetic)
+      implements: an implementation file's `implements` does not name a readable definition file of the same version
+      design_ref: a pointer into the definition file does not resolve
+    requirements: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10]
+  GeneratorTarget:
+    type: string
+    enum: [techspec, openapi, sql, ui, tests, manual, scripts]
+    valueDescriptions:
+      techspec: arc42 technical specification in Markdown with generated Mermaid diagrams
+      openapi: OpenAPI 3.1 document
+      sql: forward SQL migrations, new files only
+      ui: page definitions for the target component library
+      tests: one test per worked example
+      manual: user manual and operations guide
+      scripts: guarded operational scripts for data changes
+    requirements: [SA-7]
+
+entities:
+  SpecFile:
+    description: One file given to a command, as the command read it.
+    type: object
+    properties:
+      path: { type: string, description: The path as given on the command line or found under a given folder. }
+      kind: { $ref: "#/enums/DocumentKind" }
+      metaModel: { type: string, description: "The meta-model version the file declares: `specarch` for a definition file, `specarchImpl` for an implementation file." }
+      version: { type: string, description: The file's own `info.version`. }
+    required: [path, kind, metaModel, version]
+    primaryKey: [path]
+    requirements: [SA-1]
+
+  Diagnostic:
+    description: |
+      One problem found in one file. Printed as one line:
+      `file:line: /yaml/path: rule: message`.
+    type: object
+    properties:
+      file: { type: string, description: The file's path as given. }
+      line: { type: integer, minimum: 1, description: "Line of the YAML node the problem is at; for an expression, the line inside the expression." }
+      path: { type: string, description: "JSON pointer to the node, such as `/entities/Loan/relations/member/target`; `/` for the whole file." }
+      rule: { $ref: "#/enums/Rule" }
+      message: { type: string, minLength: 1, description: "What is wrong and, where it helps, what was expected." }
+    required: [file, line, path, rule, message]
+    primaryKey: [file, line, path, rule]
+    relations:
+      specFile: { target: SpecFile, kind: many-to-one, via: file }
+    constraints:
+      diagnostic_line_positive:
+        kind: check
+        expression: line >= 1
+        message: Every diagnostic points at a line.
+    requirements: [SA-6]
+
+  GeneratedFile:
+    description: A file a generator wrote. Its header names where it came from.
+    type: object
+    properties:
+      path: { type: string, description: Path inside the generator's own folder. }
+      target: { $ref: "#/enums/GeneratorTarget" }
+      sourceFile: { type: string, description: The definition file it was generated from. }
+      sourceVersion: { type: string, description: That file's `info.version`. }
+      metaModel: { type: string, description: The meta-model version of that file. }
+      markersOnly: { type: boolean, description: "True for a hand-written Markdown document, where only the text between `specarch:generate` markers is rewritten." }
+    required: [path, target, sourceFile, sourceVersion, metaModel, markersOnly]
+    primaryKey: [path]
+    relations:
+      source: { target: SpecFile, kind: many-to-one, via: sourceFile }
+    requirements: [SA-7, SA-8]
+
+permissions:
+  public: { description: "Anyone who has the program may run it. It reads and writes local files only." }
+
+commands:
+  validate:
+    summary: Check SpecArch files
+    description: |
+      Checks every file given, and every `*.specarch.yaml` and
+      `*.specarch-impl.yaml` under every folder given, against the meta-model
+      and against the rules JSON Schema cannot express. It reports every
+      problem in every file, not only the first.
+    permission: public
+    arguments:
+      - name: paths
+        description: Files and folders. A folder is searched recursively.
+        required: true
+        variadic: true
+        schema: { type: string }
+    reads:
+      - { path: "{paths}", description: Definition and implementation files. }
+      - { path: "the definition file named in each implementation file's `implements`", description: Read to resolve the implementation file's references. }
+    stdout: One line per diagnostic, sorted by file, then line, then path, then rule.
+    stderr: A usage message on a usage error, the reason on an unreadable file, and a one-line count at the end.
+    exitCodes:
+      "0": every file is valid
+      "1": at least one file has a diagnostic
+      "2": usage error, or a file or folder could not be read
+    algorithm: exitStatus
+    requirements: [SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10]
+
+  generate:
+    summary: Generate one target from definition files
+    description: |
+      Validates its input first and refuses an invalid file. Then writes the
+      target into the folder it owns, and nothing outside it. Every generated
+      file starts with a header naming the definition file, its
+      `info.version` and the meta-model version. A hand-written Markdown
+      document is changed only between its `specarch:generate` markers. With
+      `--check` nothing is written: the output is generated in memory and
+      compared with what is on disk. The targets themselves are roadmap
+      step 2; this command is their shared frame.
+    permission: public
+    arguments:
+      - name: target
+        required: true
+        schema: { $ref: "#/enums/GeneratorTarget" }
+      - name: paths
+        description: Definition files, and the implementation file for the stack when the target needs one.
+        required: true
+        variadic: true
+        schema: { type: string }
+    options:
+      out:
+        description: The folder the target owns. Defaults to the one the implementation file names for this target.
+        schema: { type: string }
+      check:
+        description: Generate in memory and fail when the files on disk differ. Writes nothing.
+        schema: { type: boolean, default: false }
+    reads:
+      - { path: "{paths}", description: The input files. }
+      - { path: "{out}", description: "The current output, with `--check`, and Markdown documents with markers." }
+    writes:
+      - { path: "{out}", description: "The generated files, each with its header. Nothing is written with `--check`." }
+    stdout: With `--check`, one line per file that differs.
+    stderr: Diagnostics when the input is invalid, and errors.
+    exitCodes:
+      "0": generated, or with `--check` the output is current
+      "1": the input is invalid, the target cannot express something in it, or with `--check` the output differs
+      "2": usage error, or a file could not be read or written
+    algorithm: checkStatus
+    requirements: [SA-7, SA-8]
+
+  version:
+    summary: Print the program version and the meta-model versions it reads
+    permission: public
+    stdout: The program version, then one line per meta-model version it supports.
+    exitCodes:
+      "0": printed
+
+algorithms:
+  exitStatus:
+    description: |
+      The status of a whole `validate` run. A usage or read error outranks
+      diagnostics, because a run that could not read its input has not
+      checked it.
+    inputs:
+      usageError: { type: boolean }
+      ioError: { type: boolean }
+      diagnostics: { type: integer, minimum: 0 }
+    output: { type: integer }
+    formula: "status = if(usageError or ioError, 2, if(diagnostics > 0, 1, 0))"
+    examples:
+      - name: every file valid
+        inputs: { usageError: false, ioError: false, diagnostics: 0 }
+        expected: 0
+      - name: three problems
+        inputs: { usageError: false, ioError: false, diagnostics: 3 }
+        expected: 1
+      - name: no arguments
+        inputs: { usageError: true, ioError: false, diagnostics: 0 }
+        expected: 2
+      - name: one file unreadable, another invalid
+        inputs: { usageError: false, ioError: true, diagnostics: 2 }
+        expected: 2
+    pseudocode: |
+      function exitStatus(usageError, ioError, diagnostics):
+          if usageError or ioError:
+              return 2
+          if diagnostics > 0:
+              return 1
+          return 0
+    requirements: [SA-6]
+
+  referenceResolves:
+    description: |
+      Every cross-reference check is the same question: of the objects of the
+      kind the reference names, in the same file, how many carry that name?
+      Exactly one resolves. None is a dangling reference. Two can only
+      happen for operationIds, which are not map keys, and is reported as a
+      duplicate.
+    inputs:
+      definitions: { type: integer, minimum: 0, description: "Objects of the referenced kind with that name, in the same file." }
+    output: { type: boolean }
+    formula: resolves = definitions == 1
+    examples:
+      - name: relation target exists
+        inputs: { definitions: 1 }
+        expected: true
+      - name: relation target misspelt
+        inputs: { definitions: 0 }
+        expected: false
+        note: "`target: Lone` in a file with an entity `Loan`."
+      - name: operationId used twice
+        inputs: { definitions: 2 }
+        expected: false
+    pseudocode: |
+      for each reference r in the file, in document order:
+          candidates = objects of kind(r) in the file whose name is r.name
+          if count(candidates) == 0:
+              report r.rule at r: "<name> is not a <kind> of this file"
+          # duplicates are reported once, at the second definition
+      for each operationId seen more than once:
+          report duplicate_operation at the second and later uses
+    requirements: [SA-2]
+
+  permissionGranted:
+    description: |
+      Fail-closed access. A permission an operation, command, page, action or
+      role names must be declared. A declared permission must be granted by
+      at least one role, unless it is `public`. An operation with no
+      permission at all is already a schema error.
+    inputs:
+      declared: { type: boolean }
+      name: { type: string }
+      grantingRoles: { type: integer, minimum: 0 }
+    output: { type: boolean }
+    formula: ok = declared and (name == "public" or grantingRoles >= 1)
+    examples:
+      - name: granted by the librarian role
+        inputs: { declared: true, name: loans.create, grantingRoles: 1 }
+        expected: true
+      - name: public needs no role
+        inputs: { declared: true, name: public, grantingRoles: 0 }
+        expected: true
+      - name: declared but nobody holds it
+        inputs: { declared: true, name: loans.export, grantingRoles: 0 }
+        expected: false
+        note: Nobody could ever call an operation guarded by it.
+      - name: used but never declared
+        inputs: { declared: false, name: loans.delete, grantingRoles: 0 }
+        expected: false
+    pseudocode: |
+      for each use u of a permission (operation, command, page, action, role):
+          if u.name not in permissions:
+              report permission_undeclared at u
+      for each declared permission p other than "public":
+          if no role lists p:
+              report permission_ungranted at p
+    requirements: [SA-5]
+
+  workedExampleHolds:
+    description: |
+      A worked example holds when the formula, evaluated on the example's
+      inputs with exact decimal arithmetic, gives the expected value. A
+      decimal result is rounded to the output's scale, half away from zero,
+      before the comparison, as a cashier would round it. Numbers are compared
+      by value, so "3.50" and 3.5 are equal.
+    inputs:
+      computed: { type: string, format: decimal, description: The formula's exact result. }
+      scale: { type: integer, minimum: 0, description: The output's scale. }
+      expected: { type: string, format: decimal }
+    output: { type: boolean }
+    formula: holds = round(computed, scale) == expected
+    examples:
+      - name: exact result, written with trailing zero
+        inputs: { computed: "3.5", scale: 2, expected: "3.50" }
+        expected: true
+      - name: a third, rounded down
+        inputs: { computed: "0.333333", scale: 2, expected: "0.33" }
+        expected: true
+      - name: half rounds away from zero
+        inputs: { computed: "2.675", scale: 2, expected: "2.68" }
+        expected: true
+      - name: the example forgot the cap
+        inputs: { computed: "25.00", scale: 2, expected: "45.00" }
+        expected: false
+        note: "A wrong example fails validation instead of becoming a wrong test."
+    pseudocode: |
+      for each algorithm a, for each example e in a.examples:
+          check e.inputs has exactly the names of a.inputs, each of its type
+          check e.expected has the type of a.output
+          env = e.inputs converted: decimals and integers to exact rationals,
+                dates and date-times to calendar values
+          result = evaluate(a.formula, env)       # error -> example_error
+          if a.output is a decimal with a scale:
+              result = round(result, a.output.scale)
+          if result != e.expected:
+              report example_mismatch: "gives <result>, expected <expected>"
+    requirements: [SA-4]
+
+  checkStatus:
+    description: The status of `generate --check`.
+    inputs:
+      invalidInput: { type: boolean }
+      differingFiles: { type: integer, minimum: 0 }
+    output: { type: integer }
+    formula: "status = if(invalidInput or differingFiles > 0, 1, 0)"
+    examples:
+      - name: output is current
+        inputs: { invalidInput: false, differingFiles: 0 }
+        expected: 0
+      - name: a diagram was edited by hand
+        inputs: { invalidInput: false, differingFiles: 1 }
+        expected: 1
+      - name: the spec does not validate
+        inputs: { invalidInput: true, differingFiles: 0 }
+        expected: 1
+    pseudocode: |
+      if validate(paths) has diagnostics:
+          return 1
+      wanted = generate(target, paths) in memory
+      differing = files in wanted whose bytes differ from disk,
+                  plus files on disk in the target's folder not in wanted
+      print each differing path
+      return 1 if differing else 0
+    requirements: [SA-7]
+
+  markersWellFormed:
+    description: |
+      A hand-written Markdown document is rewritten only between its markers:
+      `<!-- specarch:generate <what> -->` and `<!-- specarch:end -->`. Every
+      begin has its end before the next begin, so regions never nest.
+    inputs:
+      begins: { type: integer, minimum: 0 }
+      ends: { type: integer, minimum: 0 }
+      nested: { type: integer, minimum: 0, description: Begins found inside an open region. }
+    output: { type: boolean }
+    formula: wellFormed = begins == ends and nested == 0
+    examples:
+      - name: two diagrams
+        inputs: { begins: 2, ends: 2, nested: 0 }
+        expected: true
+      - name: an end deleted by hand
+        inputs: { begins: 2, ends: 1, nested: 1 }
+        expected: false
+    pseudocode: |
+      open = none
+      for each line l of the document:
+          if l is a begin marker:
+              if open: error "marker inside an open region"
+              open = l
+          else if l is an end marker:
+              if not open: error "end without begin"
+              replace the lines between open and l with generate(open.what)
+              open = none
+      if open: error "begin without end"
+      if open.what names an object that no longer exists: error, never an empty block
+    requirements: [SA-8]
+
+decisions:
+  ADR-001:
+    title: Two kinds of file, design and implementation
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      A design written next to its language, libraries and build commands
+      turns into a description of one implementation, and a second stack
+      cannot reuse it. Stack details in the design also make every library
+      upgrade look like a design change.
+    decision: |
+      A SpecArch Definition File (`*.specarch.yaml`) holds the design: what
+      the system is and does, including its interfaces as a client sees them.
+      A SpecArch Implementation File (`<name>.<stack>.specarch-impl.yaml`)
+      holds one stack's implementation: language, toolchain, libraries,
+      layout, mappings, generator settings, tasks, deployments and the
+      decisions that depend on the stack. It names the definition file and
+      version it implements and has no keyword that adds design.
+    consequences: |
+      One design can have several implementations. Generators read the
+      definition for design and the implementation for target choices. The
+      validator checks both kinds and that an implementation's references
+      resolve in its definition.
+    requirements: [SA-9]
+  ADR-002:
+    title: The interface boundary between the two kinds
+    status: accepted
+    date: "2026-10-07"
+    context: The same interface has a contract and a build, and they change for different reasons.
+    decision: |
+      Whatever a client of an interface must know is design: the kind of
+      interface (HTTP, messaging, command line), operations, paths,
+      parameters, bodies, responses and status codes, channels and messages,
+      commands, arguments, options and exit codes, and the permission each
+      needs. Whatever only the builders or operators of one implementation
+      need is implementation: code-generator settings, framework binding,
+      the CLI library, servers, hosts, ports and environments. A standalone
+      OpenAPI or AsyncAPI document is generated from the definition, never
+      kept by hand beside it.
+    consequences: |
+      The definition schema refuses stack-specific extension keys and the
+      implementation schema has no design keywords; the validator reports
+      both with their own rule.
+    requirements: [SA-9]
+  ADR-003:
+    title: The validator applies the published JSON Schema first, then its own rules
+    status: accepted
+    date: "2026-10-07"
+    context: A second definition of the language inside the validator would drift from the schema editors use.
+    decision: |
+      The JSON Schema in `schema/` is the one definition of each file's
+      shape. The validator applies it unchanged, then runs the checks a
+      schema cannot express: cross-references, expressions, worked examples,
+      fail-closed access, the interface boundary and implementation
+      references.
+    consequences: A file an editor accepts and the validator refuses is always a cross-reference or semantic problem, never a shape problem.
+    requirements: [SA-1]
+  ADR-004:
+    title: A fixed expression language with exact decimal arithmetic
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      Checks and formulas were free text in the first meta-model, so nothing
+      could tell a typo from an operator. Money must not round like a binary
+      float.
+    decision: |
+      The grammar in `docs/conventions.md` is fixed: literals, field and
+      input names, comparison, arithmetic, `and`, `or`, `not`, and the
+      functions `date`, `min`, `max`, `len`, `round` and `if`. Expressions
+      are parsed and type-checked. Formulas are evaluated with exact
+      rationals.
+    consequences: A generator can translate an expression it has parsed, and a worked example is checked to the last digit.
+    requirements: [SA-3, SA-4]
+  ADR-005:
+    title: Report every problem, one line each, with a stable rule name
+    status: accepted
+    date: "2026-10-07"
+    context: A validator that stops at the first error makes a large file take as many runs as it has errors.
+    decision: |
+      All problems in all files are reported, one per line, in the form
+      `file:line: /yaml/path: rule: message`, sorted. The rule is a value of
+      the `Rule` enum. Status 0 means valid, 1 invalid, 2 a usage or read
+      error.
+    consequences: Editors and CI can parse the output. Tests assert the exact lines.
+    requirements: [SA-6]
+  ADR-006:
+    title: Commands are part of meta-model 0.1
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      SpecArch's own specification is a command-line tool, and 0.1 could
+      describe HTTP and events but not a command line.
+    decision: |
+      `commands` is added to 0.1 as an additive keyword: summary, permission,
+      arguments, options, files read and written, standard output and error,
+      exit codes and the algorithm a command runs. Other non-HTTP interfaces
+      (gRPC, file exchange, Bluetooth or serial, a menu-bar UI) stay 0.2
+      items.
+    consequences: Existing files stay valid. The validator checks a command's permission and algorithm like an operation's.
+    requirements: [SA-1, SA-5]

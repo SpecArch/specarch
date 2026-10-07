@@ -10,8 +10,10 @@ A project keeps its specification in a `spec/` folder at the repository root
 
 | File | Holds |
 |---|---|
-| `<name>.specarch.yaml` | the structure: everything a generator reads |
+| `<name>.specarch.yaml` | the definition (SDF): the design, everything a generator reads about what the system is and does |
 | `<name>.specarch.md` | the explanation: everything written for a person |
+| `<name>.<stack>.specarch-impl.yaml` | an implementation (SIF): how one stack builds the definition |
+| `<name>.<stack>.specarch-impl.md` | optional explanation of that implementation |
 
 A small system fits in one YAML file. A larger one will split by bounded
 context, one pair of files per context, each a complete document with its own
@@ -20,12 +22,83 @@ context, one pair of files per context, each a complete document with its own
 rejects anything else. References between contexts are a v0.2 item in
 `docs/roadmap.md`.
 
-The first line of every YAML file is the editor hint:
+The first line of every YAML file is the editor hint. For a definition file:
 
     # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-0.1.schema.json
 
+For an implementation file:
+
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-impl-0.1.schema.json
+
 Pin the schema version a project is written against. A project moves to a new
 meta-model version on purpose, in its own change.
+
+## Definition and implementation
+
+SpecArch has two kinds of file, and every fact belongs in exactly one of
+them.
+
+A **SpecArch Definition File** (SDF, `*.specarch.yaml`, root key
+`specarch`) is the design. It is neutral about language, compiler and
+framework: entities, enums, operations, commands, events, pages,
+permissions and roles, algorithms with formula, worked examples and
+pseudocode, requirement links, and the decisions that hold whatever the
+stack.
+
+A **SpecArch Implementation File** (SIF, `*.specarch-impl.yaml`, root key
+`specarchImpl`) is one stack's implementation of one definition file. It
+names that file and the `info.version` it was written against under
+`implements`, and holds everything that depends on the stack and nothing
+else: the language and toolchain with versions (`target`), every library
+with its version and licence (`libraries`), the package layout and the
+design objects each package implements (`layout`), how each design object
+maps onto the stack (`mappings`), the framework per interface kind
+(`bindings`), generator targets and their settings (`generators`), build,
+test and CI commands (`tasks`), real servers, hosts and ports
+(`deployments`), and implementation decisions (`decisions`). Its schema,
+`schema/specarch-impl-0.1.schema.json`, has no keyword for an entity, an
+operation or any other design object, so an implementation file cannot add
+or change design. One definition file can have several implementation
+files, one per stack; the `<stack>` part of the name tells them apart
+(`library-lending.go.specarch-impl.yaml`).
+
+Pointers from an implementation file into its definition are JSON pointers
+written from the definition's root: `#/entities/Loan`,
+`#/commands/validate`, `#/paths/~1loans/post` (a `/` inside a key is
+written `~1`). The validator checks that `implements` names a definition
+file with the same `info.version` and that every pointer resolves, so a
+design change is noticed by every implementation of it.
+
+Generators read the definition for the design and the implementation for
+the target choices: which folder a target owns, the settings of the code
+generator that follows it, the type a decimal maps to.
+
+### The interface boundary
+
+The rule of thumb: if a client of the interface needs to know it, it is
+design and goes in the definition file. If only the people building or
+running one particular implementation need it, it goes in the
+implementation file.
+
+| Definition file (design) | Implementation file (one stack) |
+|---|---|
+| the kind of interface: HTTP (`paths`), messaging (`channels`), command line (`commands`) | the framework binding: router, middleware, how handlers implement the generated interface; the CLI library |
+| operations with operationId, method and path; parameters, request bodies, responses with schemas, status codes and error shapes | code-generator configuration: package names, strict-server mode, `x-oapi-codegen-*` extensions, protoc plugins |
+| channels and messages | the messaging client and its settings |
+| commands, arguments, options and exit codes | |
+| the permission each operation, command and page needs; roles | servers, hosts, ports and environments of real deployments |
+
+A standalone `openapi.yaml` or `asyncapi.yaml` is generated from the
+definition file. It is never a third source kept by hand.
+
+Both schemas enforce the boundary. The definition schema refuses extension
+keys that name one implementation: `x-oapi-codegen-*`, `x-go-*` and the
+other language prefixes, `x-server`, `x-host`, `x-port`, `x-deploy`,
+`x-router`, `x-framework` and the rest of the `stackSpecificKey` pattern in
+the schema. The implementation schema is closed and has no design keyword.
+The validator reports each case with its own rule, `stack_key` or
+`design_key`. Other interface kinds (gRPC, file exchange, a serial protocol)
+have no keyword yet; they are 0.2 items in `docs/roadmap.md`.
 
 ## YAML layout
 
@@ -37,10 +110,11 @@ Top-level keys appear in this order. A generator does not care; a reader does.
 4. `entities`
 5. `permissions`, `roles`
 6. `paths`
-7. `channels`
-8. `pages`
-9. `algorithms`
-10. `decisions`
+7. `commands`
+8. `channels`
+9. `pages`
+10. `algorithms`
+11. `decisions`
 
 Inside an entity: `description`, `type`, `properties`, `required`,
 `primaryKey`, `relations`, `constraints`, `stateField`, `transitions`,
@@ -71,6 +145,8 @@ make it.
 | permission | dotted lower-case, `area.verb` | `loans.create` |
 | role, page | kebab-case | `librarian`, `members-list` |
 | channel | dotted lower-case | `loan.lifecycle` |
+| command | kebab-case words separated by spaces | `validate`, `generate techspec` |
+| command argument, option | kebab-case | `paths`, `out` |
 | decision | `ADR-` and three or more digits | `ADR-001` |
 | requirement link | `SOURCE-id` | `LIB-5` |
 
@@ -93,6 +169,7 @@ redefined.
 | `primaryKey`, `relations`, `constraints`, `stateField`, `transitions` | SpecArch | data-model concepts JSON Schema has no words for |
 | `precision`, `scale` | SpecArch | decimal size; JSON Schema has no decimal type, so `format: decimal` on a string carries them |
 | `valueDescriptions` | SpecArch | per-value meaning of an enum |
+| `commands`, `arguments`, `options`, `reads`, `writes`, `stdout`, `stderr`, `exitCodes`, `variadic` | SpecArch | command-line interfaces; no standard describes one |
 | `permissions`, `roles`, `permission` | SpecArch | OpenAPI's `security` names a scheme, not a right; SpecArch needs the right |
 | `emits`, `algorithm` | SpecArch | links from an operation to its events and its computation |
 | `pages`, `kind`, `route`, `entity`, `source`, `submit`, `columns`, `fields`, `filters`, `actions` | SpecArch | UI page definitions |
@@ -102,8 +179,8 @@ redefined.
 ### Requirement links
 
 Every named object carries a `requirements` list: entity, enum, relation,
-constraint, transition, permission, role, operation, channel, message, page,
-algorithm and decision. A field, a parameter, a response, an action or a
+constraint, transition, permission, role, operation, command, channel,
+message, page, algorithm and decision. A field, a parameter, a response, an action or a
 worked example does not; each traces through the object that holds it. The
 list is optional, because not every object serves a requirement a project
 has written down, but a generator that builds a traceability matrix treats
@@ -111,7 +188,7 @@ an object with no links as a gap to show, not as fully covered.
 
 ### Access control is fail-closed
 
-Every operation and every page names exactly one `permission`. Leaving it out
+Every operation, command and page names exactly one `permission`. Leaving it out
 is a schema error. The permission `public` is reserved for things open to
 everyone and must be written out; there is no default. A role lists the
 permissions it grants and cannot be empty. Row-level rules (a member sees only
@@ -120,12 +197,54 @@ enforced by the service, and are on the list for v0.2.
 
 ### Expressions
 
-`check` constraints and `formula` strings are plain text in 0.1. The
-expression language is deliberately small and will be fixed when the validator
-CLI starts checking it: field names, literals, `null`, the comparison and
-arithmetic operators, `and`, `or`, `not`, and the functions `date()`,
-`min()`, `max()`, `len()`. Until then a generator copies the expression into
-the target with the operators translated, and a reviewer checks it by eye.
+`check` constraints and `formula` strings are written in one small, fixed
+language. The validator parses every one of them, checks the names and the
+types, and evaluates every formula on its worked examples.
+
+    formula     = statement { (newline | ";") statement }
+    statement   = [ name "=" ] expression
+    expression  = or
+    or          = and { "or" and }
+    and         = not { "and" not }
+    not         = "not" not | comparison
+    comparison  = sum [ ("==" | "!=" | "<" | "<=" | ">" | ">=") sum ]
+    sum         = product { ("+" | "-") product }
+    product     = unary { ("*" | "/") unary }
+    unary       = "-" unary | primary
+    primary     = number | string | "true" | "false" | "null"
+                | name | name "(" [ expression { "," expression } ] ")"
+                | "(" expression ")"
+
+- A name is a field of the entity (in a check) or an input of the
+  algorithm (in a formula), or a name an earlier formula line assigned.
+- A number is written with digits and an optional decimal point
+  (`0.50`). Every number is exact: there is no binary floating point.
+- A string is in single or double quotes.
+- `×`, `÷`, `≤`, `≥` and `≠` may be written for `*`, `/`, `<=`, `>=` and
+  `!=`.
+- Comparisons do not chain: `a < b < c` is an error.
+- The functions: `date(x)` takes the date of a date-time or turns a quoted
+  date into a date; `min(a, b, ...)` and `max(a, b, ...)` take two or more
+  numbers, dates or date-times; `len(x)` is the length of a string or an
+  array; `round(x, places)` rounds half away from zero; `if(condition, a, b)`
+  is `a` when the condition holds and `b` otherwise.
+
+A check is one expression without a name in front, and it must be a
+boolean. A formula is one line or several; the last line is the result, and
+a `name =` in front of it only names the result for the reader.
+
+Types come from the fields. `integer`, `number` and a string with
+`format: decimal` are numbers; `format: date` and `format: date-time` are
+dates and date-times, which do not mix (use `date(x)`); a `$ref` to an enum is
+compared with a string of one of its values; a field that allows null may be
+compared with `null`, and one that does not may not. `and`, `or`, `not` and a
+check's result need booleans.
+
+A worked example's inputs and expected value are typed by the algorithm's
+`inputs` and `output`: an integer is a YAML integer, a decimal a quoted
+string (`"0.50"`), a date a quoted date. When the output is a decimal with a
+`scale`, the result is rounded to that scale before it is compared, so
+`"3.50"` and `3.5` are equal and a third with scale 2 is `"0.33"`.
 
 ### What the schema cannot check
 
@@ -134,8 +253,9 @@ It does not know that `target: Loan` must name an entity in the same file,
 that a `primaryKey` field must exist in `properties`, that a page's `columns`
 belong to its `entity`, that a `transition` uses values of the state field's
 enum, or that a `requirements` entry has a prefix in `requirementSources`.
-Those are cross-reference checks and they are the first job of the validator
-CLI. A file that passes the schema today can still be inconsistent.
+Those are cross-reference checks, made by `specarch validate`
+together with the expression, worked-example and access checks. A file that
+passes the schema can still fail the validator.
 
 ## Markdown sections
 

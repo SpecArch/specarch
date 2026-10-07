@@ -1,0 +1,5 @@
+arguments: [approve, --by, owner, project]
+exitStatus: 1
+standardOutput: |
+  docs/requirements.md: differs from what the specification says now; run specarch document requirements and read it again
+

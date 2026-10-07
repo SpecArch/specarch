@@ -28,6 +28,7 @@ func Techspec(root *yaml.Node, relRoot string, impls []Implementation) string {
 	d.line("# %s: technical specification", str(info, "title"))
 	d.blank()
 	d.para(fmt.Sprintf("Version %s of the specification: %s. The chapters follow arc42, and a chapter with nothing in the specification is left out.", str(info, "version"), contents(root)))
+	d.draftNotice("techspec")
 
 	introduction(d, root)
 	constraints(d, root)
@@ -48,9 +49,12 @@ func Techspec(root *yaml.Node, relRoot string, impls []Implementation) string {
 // registry of sources; cited collects the ones its Notes name.
 type doc struct {
 	strings.Builder
-	sources  *yaml.Node
-	cited    map[string]bool
-	sections int // the sections numbered so far, for documents numbered as they go
+	sources   *yaml.Node
+	decisions *yaml.Node
+	cited     map[string]bool
+	sections  int                   // the sections numbered so far, for documents numbered as they go
+	questions []question            // the open questions, for Open paragraphs and draft notices
+	pointerOf map[*yaml.Node]string // every mapping's pointer, to find the questions about it
 }
 
 // section starts the next numbered section of a document whose sections
@@ -65,7 +69,7 @@ func (d *doc) section(title string) {
 // root file and each implementation file, with their versions, and the
 // meta-model.
 func newDoc(target string, root *yaml.Node, relRoot string, impls []Implementation) *doc {
-	d := &doc{sources: get(root, "sources")}
+	d := &doc{sources: get(root, "sources"), decisions: get(root, "decisions"), questions: questionsOf(root), pointerOf: pointers(root)}
 	from := fmt.Sprintf("%s, version %s", relRoot, str(get(root, "info"), "version"))
 	for _, i := range impls {
 		from += fmt.Sprintf(", and %s, version %s", i.Rel, str(get(i.Node, "info"), "version"))

@@ -1,0 +1,29 @@
+decisions:
+  ADR-018:
+    title: Every element may say how it is known, with a declared trigger for the warning
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      A specification extracted from sources must mark every element by how
+      it is known: the source says it, it was inferred, or it is missing.
+      Every element already carries `why` and `cites`.
+    decision: |
+      `origin` on every element that may carry `why` and `cites`, in the
+      specification and in implementation files, with three values. stated
+      requires at least one citation; inferred requires `why`; decided
+      requires `decidedIn`, an accepted decision. Missing is not a value:
+      the open question is the missing mark. A specification that tracks
+      origin says so once, with `info.tracksOrigin: true`; then every named
+      element of a section without `origin` is a warning.
+    consequences: |
+      The documents show an Origin line before an element's Insight and
+      Notes. The traceability of an extracted specification back to its
+      source is the citations the stated elements already carry; no second
+      way to cite is added.
+    why: |
+      The citation is the provenance: "from the old design document,
+      section 4.2" is both the Note a reader wants and the proof the
+      element was stated. The trigger for the warning is declared rather
+      than inferred from the presence of one `origin`, so that marking one
+      element never turns a quiet specification into hundreds of warnings.
+    satisfies: [SA-18]

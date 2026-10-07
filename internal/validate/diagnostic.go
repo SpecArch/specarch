@@ -66,6 +66,13 @@ const (
 	RuleAcceptanceMissing      Rule = "acceptance_missing"
 	RuleRequirementUnsatisfied Rule = "requirement_unsatisfied"
 	RuleRequirementUnverified  Rule = "requirement_unverified"
+	RuleQuestionBlock          Rule = "question_block"
+	RuleQuestionStage          Rule = "question_stage"
+	RuleQuestionAnswered       Rule = "question_answered"
+	RuleOriginCitation         Rule = "origin_citation"
+	RuleOriginReason           Rule = "origin_reason"
+	RuleOriginDecision         Rule = "origin_decision"
+	RuleOriginMissing          Rule = "origin_missing"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -124,6 +131,13 @@ var Rules = []Rule{
 	RuleAcceptanceMissing,
 	RuleRequirementUnsatisfied,
 	RuleRequirementUnverified,
+	RuleQuestionBlock,
+	RuleQuestionStage,
+	RuleQuestionAnswered,
+	RuleOriginCitation,
+	RuleOriginReason,
+	RuleOriginDecision,
+	RuleOriginMissing,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

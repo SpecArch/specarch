@@ -1,0 +1,56 @@
+requirements:
+  SA-17:
+    statement: A specification shall be able to say what it does not yet know as an open question that names what is asked, who decides, what it blocks and how urgent it is; and the validator shall accept a required key missing exactly where a must question says it is unknown, and nowhere else.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - An entity written as an empty mapping and blocked by a must question validates with no error, and its missing keys are listed under the question by specarch gaps.
+      - The same entity without the question is reported with the missing keys.
+      - A question whose blocks names nothing in the specification, whose decider is not a stakeholder, or which sits in another stage's folder, is reported.
+      - An accepted decision that answers a question still present is reported.
+    verification: test
+    needs: [NEED-8]
+    why: A placeholder looks like data and every tool downstream treats it as data; a question says in the specification itself that something is not known, so nothing can be built on it unseen.
+    cites:
+      - source: iso-29148
+        clause: "5.2.6"
+        says: "A complete set of requirements holds no to-be-defined, to-be-specified or to-be-resolved clause; resolving them is iterative, within a time set by risk and dependency."
+      - source: ieee-830
+        clause: "4.3.3"
+        says: "A to-be-determined item is accompanied by why it is open, what must be done to close it, who is responsible and by when."
+  SA-18:
+    statement: Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - An element with origin stated and no citation, one with origin inferred and no why, and one with origin decided naming no decision or a proposed one, are each reported.
+      - When the root file says the specification tracks origin, every element of a section without one is reported as a warning.
+    verification: test
+    needs: [NEED-8]
+  SA-19:
+    statement: specarch gaps shall list the open questions by stage with what each blocks and who decides, and shall say for every document and code target whether it is ready, a draft or waiting; the same text shall be the document target questions, and every other document shall mark the open questions about its elements.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A specification with two must questions in two stages prints them under their stages, lists the missing keys of a blocked element, and exits 1.
+      - A specification without open questions prints that it has none and exits 0.
+      - A requirements document whose requirement a question blocks starts with a Draft notice and shows the question under the requirement.
+    verification: test
+    needs: [NEED-8, NEED-3]
+  SA-20:
+    statement: specarch generate shall refuse to run a target while a must or should question blocks a section it reads, and shall refuse without a record that a stakeholder read the current documents and approved the specification's files as they are, unless --unapproved is given; specarch approve shall write that record only when the documents on disk are current.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - generate on a specification with an approval record whose digest matches writes its files; after one byte of one file changes it refuses, and runs with --unapproved.
+      - approve refuses while a configured document differs from what the specification generates, and writes records/approvals/<version>.yaml once the documents are current.
+    verification: test
+    needs: [NEED-8]
+    cites:
+      - source: iso-29148
+        clause: "6.3.3.6"
+        says: "Requirements validation is subject to approval by the project authority and the key stakeholders."

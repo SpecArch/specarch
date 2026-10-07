@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "a requirement without priority and acceptance, an entity that is only a name, and must questions in every stage folder that block exactly those, including files directly under tests/ and implementation/"
+when: "validate is run"
+then: "the missing keys and the warnings about the blocked elements are covered by the questions; it prints nothing and exits 0"
+verifies: [SA-17]

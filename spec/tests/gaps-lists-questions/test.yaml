@@ -1,0 +1,8 @@
+command: gaps
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification that tracks origin, with two must questions in two stages, one of them blocking an entity that is only a name, a could question, and an implementation file whose code target echo reads only the requirements"
+when: "gaps is run"
+then: "it prints the questions by stage with the missing keys of the blocked entity, the elements by origin, and the outputs with what each waits on, and exits 1"
+verifies: [SA-19]

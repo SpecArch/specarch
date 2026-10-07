@@ -10,6 +10,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/SpecArch/specarch/internal/approval"
+	"github.com/SpecArch/specarch/internal/generate"
 	"github.com/SpecArch/specarch/internal/source"
 )
 
@@ -67,7 +69,7 @@ type pluginDiagnostic struct {
 // write. specarch writes them, so --check and the output folder are the
 // same for every target.
 func runGenerate(args []string, stdout, stderr io.Writer) int {
-	target, out, check, paths, msg := parseTargetArgs("generate", nil, args)
+	target, out, check, paths, set, msg := parseTargetArgs("generate", nil, []string{"unapproved"}, args)
 	if msg != "" {
 		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
 		return 2
@@ -88,6 +90,11 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 	specs, status := loadSpecs(paths, "generate", stdout, stderr)
 	if status != 0 {
 		return status
+	}
+	for _, l := range specs {
+		if status := gate(l, target, set["unapproved"], stderr); status != 0 {
+			return status
+		}
 	}
 	var plan []planned
 	failed := false
@@ -133,6 +140,31 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 		return checkPlan("generate", plan, stdout, stderr)
 	}
 	return writePlan("generate", plan, stderr)
+}
+
+// gate refuses to generate a target while a must or should question blocks
+// a section it reads, and without an approval of the files as they are,
+// unless --unapproved was given.
+func gate(l loaded, target string, unapproved bool, stderr io.Writer) int {
+	if ids := generate.Holding(l.spec.Root, l.impls, target); len(ids) > 0 {
+		verb := "block"
+		if len(ids) == 1 {
+			verb = "blocks"
+		}
+		fmt.Fprintf(stderr, "specarch generate: %s of %s %s what %s reads (%s); answer them before generating, as specarch gaps lists them\n",
+			plural(len(ids), "open question"), l.spec.Dir, verb, target, strings.Join(ids, ", "))
+		return 1
+	}
+	if unapproved {
+		return 0
+	}
+	version := source.Str(source.Child(source.Child(l.spec.Root, "info"), "version"))
+	approved, text := approval.State(l.spec.Dir, version)
+	if !approved {
+		fmt.Fprintf(stderr, "specarch generate: %s is %s; read the documents and run specarch approve --by <stakeholder> %s, or pass --unapproved\n", l.spec.Dir, text, l.spec.Dir)
+		return 1
+	}
+	return 0
 }
 
 func validTarget(t string) bool {

@@ -42,8 +42,28 @@ func KindOf(name string) Kind {
 type Loader func(dir string) *spec.Spec
 
 // CheckSpec runs every check on a specification and on the implementation
-// files inside it, and returns the diagnostics, sorted.
+// files inside it, and returns the diagnostics to report, sorted. What an
+// open question covers is left out; CheckSpecCovered returns it too.
 func CheckSpec(s *spec.Spec) []Diagnostic {
+	kept, _ := CheckSpecCovered(s)
+	return kept
+}
+
+// CheckSpecCovered runs every check and returns the diagnostics to report
+// and, apart, the ones an open must question covers (see Covered), both
+// sorted.
+func CheckSpecCovered(s *spec.Spec) (kept, covered []Diagnostic) {
+	all := checkSpecAll(s)
+	if s.Root == nil {
+		return all, nil
+	}
+	kept, covered = Covered(all, s.Root)
+	Sort(kept)
+	Sort(covered)
+	return kept, covered
+}
+
+func checkSpecAll(s *spec.Spec) []Diagnostic {
 	c := &checker{file: s.RootFile, files: s.Files}
 	for _, p := range s.Problems {
 		c.addFile(p.File, p.Line, p.Path, Rule(p.Rule), "%s", p.Message)

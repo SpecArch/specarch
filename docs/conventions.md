@@ -19,6 +19,7 @@ file `specarch.yaml`, and one folder per life-cycle stage it keeps.
       deployment/                    environments, configuration, release, rollback, migrations
       commissioning/                 checks, signoff
       operation/                     monitors
+      <stage>/questions.yaml         the open questions about that stage, in any stage folder
 
 The rules, each of which the validator checks under the rule `layout`:
 
@@ -154,9 +155,9 @@ description; the history of a project lives in its own history files and in
 git. Version fields stay, because they describe the current file. The
 validator warns on the most common change-log phrases (`change_log`).
 
-## Why and citations
+## Why, citations and origin
 
-Every element at every stage may carry two optional fields, the same
+Every element at every stage may carry three optional fields, the same
 everywhere:
 
 - `why`: the rationale in plain words, why the element is the way it is
@@ -165,6 +166,16 @@ everywhere:
 - `cites`: a list of citations, each naming a `source` declared in the root
   file, the `clause` where relevant, and what the source `says` that
   applies here. A document renders each as a Note under the Insight.
+- `origin`: how the element is known. `stated`: a source says it, and
+  `cites` names the source and where in it (`origin_citation` otherwise).
+  `inferred`: it was concluded from evidence, and `why` says from what
+  (`origin_reason`). `decided`: a stakeholder settled it, and `decidedIn`
+  names the accepted decision (`origin_decision`). An element without
+  `origin` was written spec-first. A specification built from sources says
+  `tracksOrigin: true` in `info`; the validator then warns for every element
+  of a section without an origin (`origin_missing`). A document renders the
+  origin as one line, **Origin:**, before the Insight. `docs/refinement.md`
+  is the design.
 
 An Insight is one paragraph that starts with **Insight:**, a Note one that
 starts with **Note:** and reads "From <title>, <edition>, clause <clause>:
@@ -181,7 +192,57 @@ interview, system, or requirement-set for an external tracker), `title`,
 `edition`, `author`, `date` and `url`. A citation of a source that is not
 declared is refused (`source`). Decisions keep their context, decision and
 consequences: the context is what was true and at stake, `why` the
-reasoning that led from it to the decision.
+reasoning that led from it to the decision. A decision that answers open
+questions names them under `answers` and the stakeholder who decided under
+`decidedBy`; an answer given in words is declared as a source of kind
+`interview` with its date.
+
+## Open questions
+
+What the sources do not say is not invented and not left blank: it is an
+open question, in the section `questions`, the one section every stage
+folder may hold. A question is written in the folder of the stage it is
+about: beside the elements it blocks, as `questions.yaml` or under a
+`questions/` sub-folder, and as a file directly under `tests/` or
+`implementation/`, whose other entries are folders. A stage with no folder
+has its questions in the root file.
+
+    questions:
+      Q-12:
+        question: What is the loan period for a reference copy?
+        kind: decision
+        priority: must
+        blocks: ["#/entities/Loan/properties/dueOn"]
+        decidedBy: head-librarian
+        options: ["14 days, as for an ordinary copy", "Reference copies are not lent"]
+        why: The policy sheet gives periods for ordinary copies only.
+
+Each question says what is asked, its `kind` (`decision`, or `material` to
+be provided), its `priority` (`must`: what it blocks is not defined;
+`should`: what it blocks is inferred and must be confirmed; `could`: the
+answer would help but nothing waits), what it `blocks` (a stage, a section,
+or a pointer to an element or to one key of it), who decides (`decidedBy`,
+a stakeholder key), and the `options` when the answer is a choice. The ID
+is an upper-case prefix of one or more letters, a dash and a number.
+
+The question is the one licence for an element to be incomplete. A
+required key missing at or under a pointer a `must` question blocks is
+covered: the validator reports neither it nor the warnings about that
+element, and `specarch gaps` lists the missing keys under the question. An
+element known only by name is written as an empty mapping and blocked by
+pointer. Nothing else is covered: a wrong value beside the gap is still an
+error, and a `should` question covers no missing key.
+
+The validator checks that every `blocks` entry resolves (`question_block`),
+that a question sits in the stage of what it blocks and blocks one stage
+(`question_stage`), that `decidedBy` is a stakeholder (`stakeholder`), and
+that no accepted decision `answers` a question still present
+(`question_answered`). `validate` counts the open questions in its summary
+line and lists none; `specarch gaps` and the document `questions` list them
+by stage, with what each holds up and which outputs are ready, drafts or
+waiting. A question is removed when it is answered; the answer is a
+decision with `answers` and `decidedBy`, and the elements it settled carry
+`origin: decided`.
 
 ## YAML layout
 
@@ -512,6 +573,33 @@ signed and when. The commissioning procedure (`specarch document
 commissioning`) is the form a run fills in. Neither the validator nor the
 documentor reads the records yet; `docs/maintenance.md` designs how they
 will.
+
+### Approval records
+
+`specarch approve --by <stakeholder>` records that a stakeholder read the
+documents of a specification and approves it for code generation, as
+`records/approvals/<version>.yaml` beside the specification's folder:
+
+    specarchRecord: "0.1"
+    kind: approval
+    version: 1.4.0
+    approvedBy: product-owner
+    date: "2026-10-08"
+    documents: [techspec, requirements, testplan]
+    digest: sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08
+
+The record is written only when the specification has no error and no
+`must` or `should` question, `--by` is one of its stakeholders, and every
+configured document on disk is what the specification generates now. The
+digest is the SHA-256 of every `.yaml` file under the specification's
+folder, in byte order of their paths relative to it, each as its path, a
+zero byte, its bytes and a zero byte; any later change to one of those
+files voids the approval. `specarch generate` refuses a target while a
+`must` or `should` question blocks a section it reads (the sections the
+implementation file names under `targets.<name>.reads`, or every section),
+and refuses without an approval whose digest is the digest of the files
+now, unless `--unapproved` is given. An earlier approval of the same
+version is replaced.
 
 ### What the schema cannot check
 

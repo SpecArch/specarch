@@ -1,0 +1,7 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  design/all.yaml:10: error: /questions/Q-3: question_stage: question Q-3 blocks the design and requirements stages; a question is about one stage, so split it
+  requirements/all.yaml:13: error: /questions/Q-1: question_stage: question Q-1 sits under requirements/ but is about the design stage; move it to design/
+  specarch.yaml:6: error: /questions/Q-2: question_stage: question Q-2 is about the requirements stage, which has a folder; move it to requirements/
+

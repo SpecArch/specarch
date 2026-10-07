@@ -33,6 +33,7 @@ type design struct {
 	settings     map[string]*yaml.Node
 	checks       map[string]*yaml.Node
 	monitors     map[string]*yaml.Node
+	questions    map[string]*yaml.Node
 	operations   map[string]operation // by operationId, the first definition
 	opList       []operation          // every operation in document order
 }
@@ -75,6 +76,7 @@ func newDesign(root *yaml.Node) *design {
 		settings:     topMap(root, "configuration"),
 		checks:       topMap(root, "checks"),
 		monitors:     topMap(root, "monitors"),
+		questions:    topMap(root, "questions"),
 		operations:   map[string]operation{},
 	}
 	for _, p := range source.Pairs(source.Child(root, "paths")) {
@@ -178,6 +180,9 @@ func (c *checker) checkDesign(d *design) {
 	c.checkTests(d)
 	c.checkDeploymentStage(d)
 	c.checkTraceability(d)
+	c.checkQuestions(d)
+	c.checkOrigin(d.root, d.decisions, func(path []string) bool { return len(path) == 2 && path[0] == "decisions" })
+	c.checkOriginTracked(d)
 }
 
 // checkRefs finds every $ref in the file and checks its target exists.

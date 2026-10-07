@@ -57,6 +57,13 @@ public enum Rule: String, CaseIterable, Sendable {
     case acceptanceMissing = "acceptance_missing"
     case requirementUnsatisfied = "requirement_unsatisfied"
     case requirementUnverified = "requirement_unverified"
+    case questionBlock = "question_block"
+    case questionStage = "question_stage"
+    case questionAnswered = "question_answered"
+    case originCitation = "origin_citation"
+    case originReason = "origin_reason"
+    case originDecision = "origin_decision"
+    case originMissing = "origin_missing"
 }
 
 /// Whether a diagnostic makes the file invalid.

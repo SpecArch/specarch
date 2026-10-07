@@ -1,0 +1,7 @@
+questions:
+  Q-2:
+    question: What are the fields of a loan?
+    kind: material
+    priority: must
+    blocks: ["#/entities/Loan"]
+    decidedBy: owner

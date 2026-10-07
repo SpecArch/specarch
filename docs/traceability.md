@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.1.0 of the specification: 7 needs, 16 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.1.0 of the specification: 8 needs, 20 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 ## 1. Needs to requirements
 
@@ -10,11 +10,12 @@ Version 0.1.0 of the specification: 7 needs, 16 requirements, and 0 gaps. Each r
 |---|---|---|
 | NEED-1 | accepted | SA-1, SA-2, SA-3, SA-4, SA-5, SA-6 |
 | NEED-2 | accepted | SA-9, SA-10 |
-| NEED-3 | accepted | SA-7, SA-8, SA-16 |
+| NEED-3 | accepted | SA-7, SA-8, SA-16, SA-19 |
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-16, SA-12 |
 | NEED-6 | accepted | SA-15, SA-13 |
 | NEED-7 | accepted | SA-14 |
+| NEED-8 | accepted | SA-17, SA-18, SA-19, SA-20 |
 
 ## 2. Requirements to design and verification
 
@@ -36,6 +37,10 @@ Version 0.1.0 of the specification: 7 needs, 16 requirements, and 0 gaps. Each r
 | SA-14 | NEED-7 | enums GeneratorTarget; commands generate; decisions ADR-013 | tests generate-no-plugin; tests generate-plugin-path-outside; tests generate-with-plugin |
 | SA-15 | NEED-6 | commands document; decisions ADR-015 | tests document-writes-requirements |
 | SA-16 | NEED-3, NEED-5 | enums DocumentTarget; commands document; decisions ADR-016 | tests document-writes-commissioning; tests document-writes-deployment; tests document-writes-requirements; tests document-writes-testplan; tests document-writes-traceability |
+| SA-17 | NEED-8 | enums Rule; commands validate; decisions ADR-017 | tests validate-question-answered; tests validate-question-block; tests validate-question-covers-missing; tests validate-question-should-not-covering; tests validate-question-stage |
+| SA-18 | NEED-8 | enums Rule; commands validate; decisions ADR-018 | tests document-draft-notice; tests validate-origin; tests validate-origin-tracked |
+| SA-19 | NEED-8, NEED-3 | enums DocumentTarget; commands document; commands gaps | tests document-draft-notice; tests document-writes-questions; tests gaps-lists-questions; tests gaps-none |
+| SA-20 | NEED-8 | commands approve; commands generate; decisions ADR-019 | tests approve-refuses-open-question; tests approve-refuses-stale-document; tests approve-writes-record; tests generate-refuses-open-question; tests generate-refuses-unapproved; tests generate-unapproved |
 
 ## 3. Gaps
 

@@ -1,0 +1,7 @@
+questions:
+  Q-4:
+    question: Which language is the service written in?
+    kind: decision
+    priority: must
+    blocks: [implementation]
+    decidedBy: owner

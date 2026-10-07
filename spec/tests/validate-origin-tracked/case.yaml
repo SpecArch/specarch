@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  specarch.yaml:8: warning: /requirements/CASE-1: origin_missing: CASE-1 carries no origin, and the specification tracks origin; add origin: stated, inferred or decided
+  specarch.yaml:18: warning: /entities/Member: origin_missing: Member carries no origin, and the specification tracks origin; add origin: stated, inferred or decided
+

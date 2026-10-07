@@ -1,0 +1,7 @@
+command: document
+level: system
+scenario: golden
+given: "a requirement a must question blocks, one stated in a source and one inferred"
+when: "document requirements is run"
+then: "it writes requirements.md with a Draft notice under the summary, an Origin line for each requirement and the open question under the blocked one, and exits 0"
+verifies: [SA-18, SA-19]

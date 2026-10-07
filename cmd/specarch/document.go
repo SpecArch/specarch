@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/SpecArch/specarch/internal/approval"
 	"github.com/SpecArch/specarch/internal/generate"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
@@ -17,8 +18,8 @@ import (
 // documentTargets are the document targets of the design; builtDocuments
 // says which this program has.
 var (
-	documentTargets = []string{"techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "manual", "operations"}
-	builtDocuments  = map[string]bool{"techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true}
+	documentTargets = generate.DocumentTargets
+	builtDocuments  = generate.BuiltDocuments
 )
 
 // planned is one file a target wants on disk.
@@ -28,17 +29,33 @@ type planned struct {
 }
 
 // loaded is one validated specification with its implementation files
-// parsed.
+// parsed, and the diagnostics its open questions cover.
 type loaded struct {
-	spec  *spec.Spec
-	impls []generate.Implementation
+	spec    *spec.Spec
+	impls   []generate.Implementation
+	covered []validate.Diagnostic
+}
+
+// state gathers what the questions document needs beyond the
+// specification: the keys the open questions cover, and where the approval
+// of this version stands.
+func (l loaded) state() *generate.State {
+	st := &generate.State{Missing: map[string][]string{}}
+	for _, d := range l.covered {
+		if d.Rule == validate.RuleSchema && strings.HasSuffix(d.Message, " is missing; add it here") {
+			st.Missing[d.Path] = append(st.Missing[d.Path], strings.TrimSuffix(d.Message, " is missing; add it here"))
+		}
+	}
+	version := source.Str(source.Child(source.Child(l.spec.Root, "info"), "version"))
+	st.Approved, st.Approval = approval.State(l.spec.Dir, version)
+	return st
 }
 
 // runDocument implements the document command and its checkStatus
 // algorithm: 2 for a usage or read error, 1 for invalid input, a marker
 // error or, with --check, a difference, 0 otherwise.
 func runDocument(args []string, stdout, stderr io.Writer) int {
-	target, out, check, paths, msg := parseTargetArgs("document", documentTargets, args)
+	target, out, check, paths, _, msg := parseTargetArgs("document", documentTargets, nil, args)
 	if msg != "" {
 		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
 		return 2
@@ -68,7 +85,7 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		for _, i := range l.impls {
 			impls = append(impls, generate.Implementation{Node: i.Node, Rel: relSlash(folder, i.Path), Path: i.Path})
 		}
-		text, _ := generate.Document(target, l.spec.Root, relSlash(folder, l.spec.RootFile), impls)
+		text, _ := generate.Document(target, l.spec.Root, relSlash(folder, l.spec.RootFile), impls, l.state())
 		plan = append(plan, planned{filepath.Join(folder, generate.DocumentName(target)), text})
 		if target != "techspec" {
 			continue
@@ -116,7 +133,7 @@ func loadSpecs(paths []string, verb string, stdout, stderr io.Writer) ([]loaded,
 			return nil, 2
 		}
 		s := spec.Load(in.root)
-		diags := validate.CheckSpec(s)
+		diags, covered := validate.CheckSpecCovered(s)
 		if validate.Errors(diags) > 0 {
 			for _, d := range diags {
 				if d.Severity == validate.Error {
@@ -126,7 +143,7 @@ func loadSpecs(paths []string, verb string, stdout, stderr io.Writer) ([]loaded,
 			invalid = true
 			continue
 		}
-		l := loaded{spec: s}
+		l := loaded{spec: s, covered: covered}
 		for _, impl := range s.Implementations {
 			doc := source.Parse(impl.Data)
 			l.impls = append(l.impls, generate.Implementation{Node: doc.Root, Path: impl.Path})
@@ -229,10 +246,12 @@ func relSlash(from, to string) string {
 }
 
 // parseTargetArgs reads: <target> [--out <folder>] [--check] <path>...
-// With known given, the target must be one of them.
-func parseTargetArgs(verb string, known []string, args []string) (target, out string, check bool, paths []string, msg string) {
+// With known given, the target must be one of them. flags names the verb's
+// other boolean options; set says which were given.
+func parseTargetArgs(verb string, known, flags []string, args []string) (target, out string, check bool, paths []string, set map[string]bool, msg string) {
+	set = map[string]bool{}
 	if len(args) == 0 {
-		return "", "", false, nil, fmt.Sprintf("specarch %s needs a target and at least one folder", verb)
+		return "", "", false, nil, set, fmt.Sprintf("specarch %s needs a target and at least one folder", verb)
 	}
 	target = args[0]
 	if known != nil {
@@ -243,7 +262,7 @@ func parseTargetArgs(verb string, known []string, args []string) (target, out st
 			}
 		}
 		if !found {
-			return "", "", false, nil, fmt.Sprintf("specarch %s has no target %q; the targets are %s", verb, target, strings.Join(known, ", "))
+			return "", "", false, nil, set, fmt.Sprintf("specarch %s has no target %q; the targets are %s", verb, target, strings.Join(known, ", "))
 		}
 	}
 	rest := args[1:]
@@ -257,20 +276,35 @@ func parseTargetArgs(verb string, known []string, args []string) (target, out st
 			check = true
 		case a == "--out":
 			if i+1 >= len(rest) {
-				return "", "", false, nil, "--out needs a folder"
+				return "", "", false, nil, set, "--out needs a folder"
 			}
 			out = rest[i+1]
 			i++
 		case strings.HasPrefix(a, "--out="):
 			out = strings.TrimPrefix(a, "--out=")
+		case strings.HasPrefix(a, "--") && contains(flags, a[2:]):
+			set[a[2:]] = true
 		case strings.HasPrefix(a, "-") && len(a) > 1:
-			return "", "", false, nil, fmt.Sprintf("specarch %s has no option %s; its options are --out and --check", verb, a)
+			options := "--out and --check"
+			for _, f := range flags {
+				options = "--out, --check and --" + f
+			}
+			return "", "", false, nil, set, fmt.Sprintf("specarch %s has no option %s; its options are %s", verb, a, options)
 		default:
 			paths = append(paths, a)
 		}
 	}
 	if len(paths) == 0 {
-		return "", "", false, nil, fmt.Sprintf("specarch %s needs at least one folder", verb)
+		return "", "", false, nil, set, fmt.Sprintf("specarch %s needs at least one folder", verb)
 	}
-	return target, out, check, paths, ""
+	return target, out, check, paths, set, ""
+}
+
+func contains(list []string, s string) bool {
+	for _, v := range list {
+		if v == s {
+			return true
+		}
+	}
+	return false
 }

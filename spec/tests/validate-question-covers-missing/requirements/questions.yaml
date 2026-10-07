@@ -1,0 +1,8 @@
+questions:
+  Q-1:
+    question: How important is the five-book limit, and how is it shown to be met?
+    kind: decision
+    priority: must
+    blocks: ["#/requirements/CASE-1/priority", "#/requirements/CASE-1/acceptance"]
+    decidedBy: owner
+    options: [must, should]

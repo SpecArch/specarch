@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an accepted decision that answers a question still present"
+when: "validate is run"
+then: "it reports question_answered at the answers entry and exits 1"
+verifies: [SA-17]

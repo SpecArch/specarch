@@ -1,0 +1,5 @@
+arguments: [gaps, project]
+exitStatus: 2
+standardOutput: |
+  project/specarch.yaml:9: error: /requirements/CASE-1/kind: schema: functonal is not allowed here; use one of constraint, functional, interface, quality
+

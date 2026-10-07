@@ -1,0 +1,3 @@
+arguments: [document, questions, --out, docs, project]
+exitStatus: 0
+standardOutput: ""

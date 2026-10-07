@@ -1,0 +1,7 @@
+command: approve
+level: system
+scenario: red
+covers: [usage error, exit 2]
+given: "no --by"
+when: "approve is run without saying who approves"
+then: "it prints how to use it and exits 2"

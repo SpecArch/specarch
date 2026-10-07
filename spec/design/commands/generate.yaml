@@ -3,9 +3,15 @@ commands:
     summary: Write code or data from a specification
     description: |
       Validates its input first and writes nothing from an invalid
-      specification. Then writes the target into the folder it owns, and
-      nothing outside it. With `--check` nothing is written: the output is
-      made in memory and compared with what is on disk.
+      specification. Then refuses, with status 1, while a must or should
+      question blocks a section the target reads: the sections the
+      implementation file names under `targets.<target>.reads`, or every
+      section when it names none. Then refuses, with status 1, when
+      `records/approvals/<version>.yaml` is missing or its digest is not the
+      digest of the specification's files now, unless `--unapproved` is
+      given. Then writes the target into the folder it owns, and nothing
+      outside it. With `--check` nothing is written: the output is made in
+      memory and compared with what is on disk.
 
       A target this program does not build in is produced by a plug-in: the
       executable `specarch-gen-<target>` found on PATH. The program runs it
@@ -40,8 +46,12 @@ commands:
       check:
         description: Make the output in memory and fail when the files on disk differ. Writes nothing.
         schema: { type: boolean, default: false }
+      unapproved:
+        description: Generate from a specification that no approval record covers. The refusal is the default; this says, visibly, that the output is not from an approved specification.
+        schema: { type: boolean, default: false }
     reads:
       - { path: "{paths}", description: The specifications and their implementation files. }
+      - { path: "records/approvals/<version>.yaml", description: "The approval of the specification's version, beside its folder." }
       - { path: "{out}", description: "The current output, with `--check`." }
       - { path: "specarch-gen-{target} on PATH", description: The plug-in for a target that is not built in. }
     writes:
@@ -53,10 +63,10 @@ commands:
     standardError: A usage message on a usage error, the reason a plug-in was not found or failed, the plug-in's own standard error, and a one-line count at the end.
     exitCodes:
       "0": written, or with `--check` the output is current
-      "1": a specification has an error, the plug-in reported an error, or with `--check` the output differs
+      "1": a specification has an error, an open question blocks what the target reads, the specification is not approved, the plug-in reported an error, or with `--check` the output differs
       "2": usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-14]
+    satisfies: [SA-7, SA-8, SA-14, SA-20]
     why: |
       One program with verbs, and generators as plug-ins found on PATH, is
       the pattern of protoc, git and kubectl: one name to learn and install,

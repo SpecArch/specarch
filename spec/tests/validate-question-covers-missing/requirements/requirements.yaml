@@ -1,0 +1,5 @@
+requirements:
+  CASE-1:
+    statement: A member shall borrow at most five books.
+    kind: functional
+    status: accepted

@@ -259,6 +259,20 @@
       },
       "minItems": 1
     },
+    "origin": {
+      "description": "SpecArch keyword. How the element is known. stated: a source says it, and cites names the source and where in it. inferred: it was concluded from evidence (code, data, the source's silence), and why says from what. decided: a stakeholder settled it, answering a question or correcting the source, and decidedIn names the decision. An element without origin was written spec-first. What is not known at all is not an element with an origin but an open question under questions.",
+      "type": "string",
+      "enum": [
+        "stated",
+        "inferred",
+        "decided"
+      ]
+    },
+    "decidedIn": {
+      "description": "SpecArch keyword. With origin decided: the decision record that settled this element, such as ADR-021.",
+      "type": "string",
+      "pattern": "^ADR-[0-9]{3,}$"
+    },
     "tool": {
       "type": "object",
       "properties": {
@@ -316,6 +330,12 @@
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -371,6 +391,12 @@
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -420,11 +446,53 @@
         "settings": {
           "type": "object"
         },
+        "reads": {
+          "description": "The sections of the specification this code target reads. A target that names none reads every section. specarch generate refuses to run a target while a must or should question blocks a section it reads, and specarch gaps says per target what waits.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "stakeholders",
+              "needs",
+              "requirements",
+              "glossary",
+              "assumptions",
+              "constraints",
+              "enums",
+              "entities",
+              "permissions",
+              "roles",
+              "paths",
+              "commands",
+              "channels",
+              "pages",
+              "algorithms",
+              "tests",
+              "decisions",
+              "environments",
+              "configuration",
+              "release",
+              "rollback",
+              "migrations",
+              "checks",
+              "signoff",
+              "monitors"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
         "why": {
           "$ref": "#/$defs/why"
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -588,6 +656,12 @@
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -639,6 +713,12 @@
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -787,6 +867,12 @@
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [

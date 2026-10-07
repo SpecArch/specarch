@@ -14,7 +14,7 @@ type sourcePair = source.Pair
 // Document writes the document of a target from a specification and its
 // implementation files. ok is false for a target this package does not
 // write.
-func Document(target string, root *yaml.Node, relRoot string, impls []Implementation) (text string, ok bool) {
+func Document(target string, root *yaml.Node, relRoot string, impls []Implementation, state *State) (text string, ok bool) {
 	switch target {
 	case "techspec":
 		return Techspec(root, relRoot, impls), true
@@ -28,6 +28,8 @@ func Document(target string, root *yaml.Node, relRoot string, impls []Implementa
 		return DeploymentGuide(root, relRoot, impls), true
 	case "commissioning":
 		return Commissioning(root, relRoot, impls), true
+	case "questions":
+		return Questions(root, relRoot, impls, state), true
 	}
 	return "", false
 }
@@ -55,6 +57,7 @@ func Requirements(root *yaml.Node, relRoot string, impls []Implementation) strin
 	d.blank()
 	d.para(fmt.Sprintf("Version %s of the specification: %s, %s and %s. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.",
 		str(info, "version"), countText(len(pairs(root, "stakeholders")), "stakeholder", "stakeholders"), countText(len(needs), "need", "needs"), countText(len(reqs), "requirement", "requirements")))
+	d.draftNotice("requirements")
 
 	d.section("Purpose and scope")
 	d.para(str(info, "description"))
@@ -102,14 +105,24 @@ func Requirements(root *yaml.Node, relRoot string, impls []Implementation) strin
 		for _, r := range reqs {
 			d.heading(3, r.Key.Value)
 			d.para(str(r.Value, "statement"))
-			attrs := []string{"Kind: " + str(r.Value, "kind"), "priority: " + str(r.Value, "priority"), "status: " + str(r.Value, "status")}
+			var attrs []string
+			for _, a := range []struct{ label, key string }{{"Kind", "kind"}, {"priority", "priority"}, {"status", "status"}} {
+				if v := str(r.Value, a.key); v != "" {
+					attrs = append(attrs, a.label+": "+v)
+				}
+			}
+			if len(attrs) > 0 {
+				attrs[0] = strings.ToUpper(attrs[0][:1]) + attrs[0][1:]
+			}
 			if v := str(r.Value, "verification"); v != "" {
 				attrs = append(attrs, "verified by "+v)
 			}
 			if n := strs(r.Value, "needs"); len(n) > 0 {
 				attrs = append(attrs, "refines "+strings.Join(n, ", "))
 			}
-			d.para(strings.Join(attrs, "; ") + ".")
+			if len(attrs) > 0 {
+				d.para(strings.Join(attrs, "; ") + ".")
+			}
 			if acc := strs(r.Value, "acceptance"); len(acc) > 0 {
 				d.line("Acceptance criteria:")
 				d.blank()
@@ -200,6 +213,7 @@ func Testplan(root *yaml.Node, relRoot string, impls []Implementation) string {
 	d.blank()
 	d.para(fmt.Sprintf("Version %s of the specification: %s, %d golden and %d red, about %s. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.",
 		str(info, "version"), countText(len(tests), "design test", "design tests"), golden, red, countText(len(order), "subject", "subjects")))
+	d.draftNotice("testplan")
 	if na > 0 {
 		d.para(fmt.Sprintf("%s marked not applicable, with the reason.", countText(na, "test is", "tests are")))
 	}
@@ -334,6 +348,7 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation) strin
 	summary := fmt.Sprintf("Version %s of the specification: %s, %s, and %s.", str(info, "version"),
 		countText(len(needs), "need", "needs"), countText(len(reqs), "requirement", "requirements"), countText(gaps, "gap", "gaps"))
 	d.para(summary + " Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.")
+	d.draftNotice("traceability")
 
 	if len(needs) > 0 {
 		d.section("Needs to requirements")
@@ -401,6 +416,7 @@ func DeploymentGuide(root *yaml.Node, relRoot string, impls []Implementation) st
 	d.blank()
 	d.para(fmt.Sprintf("Version %s of the specification: %s, %s and %s. Secrets are named here with where their value comes from, never with a value.",
 		str(info, "version"), countText(len(envs), "environment", "environments"), countText(len(cfg), "setting", "settings"), countText(len(pairs(root, "migrations")), "migration", "migrations")))
+	d.draftNotice("deployment")
 
 	if len(envs) > 0 {
 		d.section("Environments")
@@ -548,6 +564,7 @@ func Commissioning(root *yaml.Node, relRoot string, impls []Implementation) stri
 	d.blank()
 	d.para(fmt.Sprintf("Version %s of the specification: %s run on the installed system before it is handed over, and the sign-off sheet. Fill in the Result column as each step is run; the filled-in run is kept as a record under `records/commissioning/`, beside the specification, not in it.",
 		str(info, "version"), countText(len(checks), "check", "checks")))
+	d.draftNotice("commissioning")
 
 	envOrder := []string{}
 	envs := pairs(root, "environments")

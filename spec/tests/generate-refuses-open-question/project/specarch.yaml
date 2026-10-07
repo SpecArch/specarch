@@ -1,0 +1,22 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+
+requirements:
+  CASE-1:
+    statement: A member shall borrow at most five books.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A sixth loan is refused.]
+
+entities:
+  Loan: { satisfies: [CASE-1] }
+questions:
+  Q-1:
+    question: What are the fields of a loan?
+    kind: material
+    priority: must
+    blocks: ["#/entities/Loan"]
+    decidedBy: owner

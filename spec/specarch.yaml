@@ -20,6 +20,12 @@ sources:
     edition: "2018"
     author: ISO, IEC and IEEE
     url: https://www.iso.org/standard/72089.html
+  ieee-830:
+    kind: standard
+    title: IEEE Std 830-1998, IEEE Recommended Practice for Software Requirements Specifications
+    edition: "1998"
+    author: IEEE
+    description: Replaced by ISO/IEC/IEEE 29148; cited for its rule on to-be-determined items, which 29148 keeps in substance.
   iso-29119-1:
     kind: standard
     title: ISO/IEC/IEEE 29119-1, Software and systems engineering, Software testing, Part 1, General concepts

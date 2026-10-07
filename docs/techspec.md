@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.1.0 of the specification: 16 requirements, 3 entities, 5 commands, 6 algorithms, 123 tests, 16 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 20 requirements, 3 entities, 7 commands, 6 algorithms, 143 tests, 19 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -57,9 +57,11 @@ The interfaces the system offers, as its clients see them.
 
 | Command | Summary | Permission | Exit statuses |
 |---|---|---|---|
+| approve | Record that the documents were read and the specification is approved | public | 0: the approval was recorded; 1: refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current; 2: usage error, or a file that could not be read or written |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder, or a file that could not be read or written |
 | extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects; 2: usage error, a source this build does not offer, or a path that could not be read or written |
-| generate | Write code or data from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, the plug-in reported an error, or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written |
+| gaps | List the open questions and what they hold up | public | 0: no must or should question is open; 1: at least one must or should question is open; 2: usage error, a path that could not be read, or a specification with errors |
+| generate | Write code or data from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads, the specification is not approved, the plug-in reported an error, or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written |
 | validate | Check specifications and implementation files | public | 0: every input is valid; 1: at least one input has an error; 2: usage error, a path could not be read, or a folder holds no specification and no implementation file |
 | version | Print the program version and the meta-model versions it reads | public | 0: printed |
 
@@ -161,6 +163,7 @@ Primary key: path.
 | DocumentTarget | traceability | the traceability matrix from needs through requirements to design elements, tests and checks |
 | DocumentTarget | deployment | deployment guide, from the deployment stage and the implementation's deployments |
 | DocumentTarget | commissioning | commissioning test procedure and sign-off sheet |
+| DocumentTarget | questions | the open questions by stage, what each blocks and who decides, and which outputs are ready, drafts or waiting |
 | DocumentTarget | manual | user manual, from the pages and permissions |
 | DocumentTarget | operations | operations guide, from the endpoints, channels and deployments |
 | GeneratorTarget | openapi | OpenAPI 3.1 document |
@@ -222,12 +225,66 @@ Primary key: path.
 | Rule | acceptance_missing | a requirement has no acceptance criteria (a warning) |
 | Rule | requirement_unsatisfied | the specification has a design and no element of it satisfies a requirement (a warning) |
 | Rule | requirement_unverified | the specification has tests, checks or monitors and none verifies a requirement (a warning) |
+| Rule | question_block | a question's `blocks` entry is neither a stage, a section, nor a pointer to an element of the specification or to one missing key of it |
+| Rule | question_stage | a question blocks more than one stage, or sits in a file of another stage than the one it blocks |
+| Rule | question_answered | an accepted decision answers a question that is still in the specification |
+| Rule | origin_citation | an element whose origin is stated cites nothing |
+| Rule | origin_reason | an element whose origin is inferred has no why |
+| Rule | origin_decision | an element whose origin is decided names no decision, or a decision that does not exist or is not accepted, or is a decision itself; or decidedIn is set without origin decided |
+| Rule | origin_missing | the specification tracks origin and an element of a section carries none (a warning) |
 | Severity | error | the file is invalid |
-| Severity | warning | printed, but the file stays valid; in 0.1 only missing test scenarios and change-log phrases |
+| Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
 **Note on DocumentTarget:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 7.2 and 8.3: A test plan and test case specifications are the test documentation items of a project. <https://www.iso.org/standard/79429.html>
 
 ## 6. Runtime view
+
+### Command approve
+
+Validates its input first and approves nothing with errors. Then
+refuses while a must or should question is open, when `--by` is not a
+stakeholder of the specification, when no document target is
+configured, and when any configured document on disk is not what the
+specification generates now, so that what was read is what is
+approved. Otherwise writes `records/approvals/<version>.yaml` beside
+the specification's folder: the record kind, the version, who
+approved, the date, the documents that were current, and the digest
+of the specification's files (the SHA-256 of every `.yaml` file under
+its folder, in byte order of their relative paths, each as its path,
+a zero byte, its bytes and a zero byte). A later change to any of
+those files voids the approval, and `generate` says so.
+
+**Insight:** A specification is reviewed in the form its readers use, the documents, and approval must be of exactly what was read; a digest of the files says so where a version number, which does not change while a specification is being written, cannot. The record names a role, because a specification is read and copied by more people than a ticket system.
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3.3.6: Requirements validation is subject to approval by the project authority and the key stakeholders. <https://www.iso.org/standard/72089.html>
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 3: A baseline is a formally approved version of a configuration item, fixed at a point in time. <https://www.iso.org/standard/72089.html>
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<paths>` | string, one or more | yes | Folders holding specifications, searched as validate searches them. |
+| `--by` | string | yes | The stakeholder who read the documents and approves, by key; a role, never a person. |
+| `--date` | date |   | The date of the approval, as YYYY-MM-DD. Today when not given. |
+
+Reads `{paths}`: The specifications and their implementation files; `<output>/<target>.md`: Every configured document, compared with what the specification generates now.
+
+Writes `records/approvals/<version>.yaml`: The approval record, beside the specification's folder; an earlier approval of the same version is replaced.
+
+Standard output: The errors of an invalid specification, and one line per configured document that is missing or differs.
+
+Standard error: A usage message on a usage error, the reason a refusal, and one line naming the record written.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: approve <paths>
+  P->>F: read {paths}
+  P->>F: read <output>/<target>.md
+  P->>F: write records/approvals/<version>.yaml
+  P-->>U: exit status 0, 1, 2
+```
 
 ### Command document
 
@@ -269,6 +326,13 @@ named), release, rollback and the migrations. The commissioning
 target writes `commissioning.md`: the checks by environment in the
 order a release reaches them, each step with a Result column, and
 the sign-off sheet.
+
+The questions target writes `questions.md`: the open questions by
+stage with what each blocks and who decides, and which outputs are
+ready, drafts or waiting; the same text `gaps` prints. Every other
+document shows an element's origin as an Origin line and the open
+questions about it as Open question paragraphs, and starts with a
+Draft notice when a must or should question blocks what it reads.
 
 In every document an element's why is an Insight and each citation
 a Note (ADR-015), and a document that cites sources ends with them.
@@ -348,12 +412,58 @@ sequenceDiagram
   P-->>U: exit status 0, 1, 2
 ```
 
+### Command gaps
+
+Validates its input first and prints nothing but the errors from a
+specification that has them. Then prints the open questions
+document, the text `document questions` writes, from its title:
+the counts by priority, the elements by origin when the
+specification tracks it, the questions grouped by stage in
+life-cycle order and within a stage by priority then ID, each with
+who decides, what it blocks (and for a blocked element, which keys
+are missing there), its options, its Insight and Notes; then the
+outputs, one row per document target and per code target the
+implementation files name, each ready, a draft (the questions that
+concern it) or waiting (the questions, and the approval that is
+missing or void).
+
+**Insight:** The owner and the agent run validate after every edit, so validate counts the open questions and lists none; this verb is the list, with what each question holds up, so that the next decision is always in view. The same text is the document, because the people who decide read documents, not terminals.
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.6.3: The closure of to-be-determined and to-be-resolved items against plan is a measure of the requirements work. <https://www.iso.org/standard/72089.html>
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<paths>` | string, one or more | yes | Folders holding specifications, searched as validate searches them. |
+
+Reads `{paths}`: The specifications and their implementation files; `records/approvals/<version>.yaml`: The approval of the specification's version, beside its folder, when there is one.
+
+Standard output: The errors of an invalid specification, one line each; otherwise the open questions document of each specification.
+
+Standard error: A usage message on a usage error, and the reason on an unreadable path.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: gaps <paths>
+  P->>F: read {paths}
+  P->>F: read records/approvals/<version>.yaml
+  P-->>U: exit status 0, 1, 2
+```
+
 ### Command generate
 
 Validates its input first and writes nothing from an invalid
-specification. Then writes the target into the folder it owns, and
-nothing outside it. With `--check` nothing is written: the output is
-made in memory and compared with what is on disk.
+specification. Then refuses, with status 1, while a must or should
+question blocks a section the target reads: the sections the
+implementation file names under `targets.<target>.reads`, or every
+section when it names none. Then refuses, with status 1, when
+`records/approvals/<version>.yaml` is missing or its digest is not the
+digest of the specification's files now, unless `--unapproved` is
+given. Then writes the target into the folder it owns, and nothing
+outside it. With `--check` nothing is written: the output is made in
+memory and compared with what is on disk.
 
 A target this program does not build in is produced by a plug-in: the
 executable `specarch-gen-<target>` found on PATH. The program runs it
@@ -381,8 +491,9 @@ status 2; its standard error is passed through.
 | `<paths>` | string, one or more | yes | Folders holding specifications, searched as validate searches them. |
 | `--out` | string |   | The folder the target owns. Without it, the folder the implementation files' `targets` name for the target, relative to each implementation file; they must agree. |
 | `--check` | bool |   | Make the output in memory and fail when the files on disk differ. Writes nothing. |
+| `--unapproved` | bool |   | Generate from a specification that no approval record covers. The refusal is the default; this says, visibly, that the output is not from an approved specification. |
 
-Reads `{paths}`: The specifications and their implementation files; `{out}`: The current output, with `--check`; `specarch-gen-{target} on PATH`: The plug-in for a target that is not built in.
+Reads `{paths}`: The specifications and their implementation files; `records/approvals/<version>.yaml`: The approval of the specification's version, beside its folder; `{out}`: The current output, with `--check`; `specarch-gen-{target} on PATH`: The plug-in for a target that is not built in.
 
 Writes `{out}/`: The files the target produces, as the plug-in answers them. Nothing is written with `--check`.
 
@@ -399,6 +510,7 @@ sequenceDiagram
   participant F as Files
   U->>P: generate <target> <paths>
   P->>F: read {paths}
+  P->>F: read records/approvals/<version>.yaml
   P->>F: read {out}
   P->>F: read specarch-gen-{target} on PATH
   P->>P: checkStatus
@@ -430,7 +542,7 @@ Reads `{paths}`: Root files, the files under their stage folders, and implementa
 
 Standard output: One line per diagnostic, sorted by file, then line, then path, then rule.
 
-Standard error: A usage message on a usage error, the reason on an unreadable path, and a one-line count at the end.
+Standard error: A usage message on a usage error, the reason on an unreadable path, and a one-line count at the end, with the number of open questions when there are any.
 
 ```mermaid
 sequenceDiagram
@@ -567,13 +679,14 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 
 | Path | Holds | Implements |
 |---|---|---|
-| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/document, #/commands/generate, #/commands/extract, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
+| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
+| internal/approval | The approval record beside a specification, its digest of the specification's files, and where a version's approval stands against the files now. |   |
 | internal/expr | The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals. |   |
-| internal/generate | The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents. Every one renders why as an Insight and each citation as a Note. | #/algorithms/markersWellFormed |
-| internal/validate | Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases, the life-cycle links and traceability warnings, and implementation references. | #/entities/Diagnostic, #/enums/Rule, #/enums/Severity, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
+| internal/generate | The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents; questions writes the open questions and what they hold up, the text gaps prints. Every one renders why as an Insight, each citation as a Note, an element's origin as an Origin line and the open questions about it as Open question paragraphs. | #/algorithms/markersWellFormed |
+| internal/validate | Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases, the life-cycle links and traceability warnings, the open questions and what they cover, origin, and implementation references. | #/entities/Diagnostic, #/enums/Rule, #/enums/Severity, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
 
 #### Mappings
 
@@ -584,9 +697,11 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | #/enums/Rule | validate.Rule | A string type with one constant per value; validate.Rules lists them, and a test checks they equal the design's enum. |
 | #/enums/Severity | validate.Severity |   |
 | #/commands/validate | main.runValidate |   |
+| #/commands/gaps | main.runGaps | Prints generate.Questions, the text the questions document target writes. |
+| #/commands/approve | main.runApprove | Writes the record through the approval package after checking the documents with generate.Document. |
 | #/commands/version | main.runVersion |   |
 | #/commands/document | main.runDocument |   |
-| #/commands/generate | main.runGenerate | Runs the plug-in with main.runPlugin; the request and answer are the pluginRequest and pluginResponse structs. |
+| #/commands/generate | main.runGenerate | Refuses through main.gate while a question blocks what the target reads or the approval is missing or void; then runs the plug-in with main.runPlugin; the request and answer are the pluginRequest and pluginResponse structs. |
 | #/commands/extract | main.runExtract | Answers with status 2 until it is built. |
 | #/enums/DocumentTarget | main.documentTargets |   |
 | #/enums/GeneratorTarget | main.builtGenerators | Empty; every target is a plug-in. |
@@ -612,6 +727,7 @@ cli: standard library. Hand-written argument handling over `os.Args`; three comm
 | traceability | ../../../docs |   |
 | deployment | ../../../docs |   |
 | commissioning | ../../../docs |   |
+| questions | ../../../docs |   |
 
 #### Tasks
 
@@ -622,7 +738,7 @@ cli: standard library. Hand-written argument handling over `os.Args`; three comm
 | vet | `go vet ./...` | yes |
 | vulncheck | `go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...` | yes |
 | validate-specs | `go run ./cmd/specarch validate spec examples` | yes |
-| documents-current | `for target in techspec requirements testplan traceability deployment commissioning; do go run ./cmd/specarch document $target --check spec examples \|\| exit 1; done` | yes |
+| documents-current | `for target in techspec requirements testplan traceability deployment commissioning questions; do go run ./cmd/specarch document $target --check spec examples \|\| exit 1; done` | yes |
 | install | `go install ./cmd/specarch` |   |
 | sbom | `syft dir:. -o syft-json=sbom.json && grype sbom:sbom.json && osv-scanner scan source -r .` |   |
 
@@ -636,7 +752,7 @@ Stand-ins: None. Every test runs the real program on real files.
 
 | Suite | Level | Runs | Command |
 |---|---|---|---|
-| conformance | system | every design test of command validate, command document, command generate, command extract, command version | `go test ./cmd/specarch` |
+| conformance | system | every design test of command validate, command gaps, command document, command approve, command generate, command extract, command version | `go test ./cmd/specarch` |
 | expressions | unit | tests of this implementation only | `go test ./internal/expr` |
 
 #### Implementation decisions
@@ -704,7 +820,7 @@ From the implementation file version 0.1.0.
 A second implementation of the specification in `spec/`, for macOS,
 built from the same specification as the Go one. It offers the validate
 and version commands and passes the same conformance cases; the
-documents and generators are built in Go only.
+documents, the generators, gaps and approve are built in Go only.
 
 Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin/arm64, darwin/amd64.
 
@@ -720,7 +836,7 @@ Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin
 |---|---|---|
 | swift/Package.swift | The package. One library, one executable, one test target. |   |
 | swift/Sources/specarch | The executable; it passes the arguments to the library and exits with its status. |   |
-| swift/Sources/SpecArchKit | Everything else. Reading YAML, reading a specification tree into one document, the JSON Schema evaluator and its messages, the specification and implementation checks, the expression subset, tests and their derived cases, the life-cycle links, and the commands. | #/commands/validate, #/commands/version, #/entities/Diagnostic, #/entities/SpecFile, #/enums/Rule, #/enums/Severity, #/algorithms/exitStatus, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
+| swift/Sources/SpecArchKit | Everything else. Reading YAML, reading a specification tree into one document, the JSON Schema evaluator and its messages, the specification and implementation checks, the expression subset, tests and their derived cases, the life-cycle links, the open questions and origin, and the commands. | #/commands/validate, #/commands/version, #/entities/Diagnostic, #/entities/SpecFile, #/enums/Rule, #/enums/Severity, #/algorithms/exitStatus, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
 | swift/embed-schemas.sh | Writes the schemas of schema/ into the library as Swift source; a test fails when they differ. |   |
 
 #### Mappings
@@ -734,6 +850,8 @@ Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin
 | #/commands/validate | SpecArchKit.runValidate |   |
 | #/commands/version | SpecArchKit.run |   |
 | #/commands/document | SpecArchKit.run | Exits 2: this build offers no document target. |
+| #/commands/gaps | SpecArchKit.run | Exits 2: the report is a document, built in Go only; the rules about questions are in this build. |
+| #/commands/approve | SpecArchKit.run | Exits 2: the record is written by the Go build only. |
 | #/commands/generate | SpecArchKit.run | Exits 2: this build runs no generator. |
 | #/commands/extract | SpecArchKit.run | Exits 2, as the Go build does until it is built. |
 | #/algorithms/exitStatus | the end of SpecArchKit.runValidate |   |
@@ -1480,18 +1598,116 @@ CI runs --check for every built target.
 
 **Note:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 7.2 and 8.3: A test plan and test case specifications are the test documentation items of a project. <https://www.iso.org/standard/79429.html>
 
+### ADR-017: An open question is the one licence for an incomplete element
+
+Status: accepted, 2026-10-07.
+
+Context: A specification built from an old document or from code cannot say
+everything at once, and must not invent what the source does not say.
+The Low IQ Tax principle forbids placeholders, and a missing required
+key is a schema error. The owner asked for a partial mode in which
+incomplete elements are allowed and reported instead of failing.
+
+Decision: A section `questions`, which every stage folder may hold, names what
+is not known: the question, its kind (decision or material), its
+priority (must, should, could), what it blocks (a stage, a section,
+or a pointer to an element or to one key of it), who decides, and
+the options when the answer is a choice. A required key missing at or
+under a pointer a must question blocks is covered, as are the warnings
+about that element; nothing else is. validate counts the open
+questions and lists none; `gaps` and the document `questions` list
+them with what they hold up. A question is written in the folder of
+the stage it blocks and is removed when answered; the decision that
+answered it names it under `answers`, and the validator refuses an
+accepted decision that answers a question still present.
+
+Consequences: There is no partial-mode switch: a specification with open questions
+is partial, one without is complete. `questions` is the one section
+allowed in every stage folder, and in a file directly under `tests/`
+or `implementation/`, whose other entries are folders. Seven rules
+join the Rule enum. The questions are reported on standard error by
+validate only as a count.
+
+**Insight:** A placeholder looks like data; a question says it is not data, and says who turns it into data and what waits. Covering only what a question names keeps the rule "nothing half-defined is accepted as defined": the element is accepted as open, not as defined, and generation refuses it. One section in every stage folder, rather than a root-only list, keeps what changes often (questions come and go) apart from the root file, which rarely changes, and puts each question beside what it is about.
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.6: A complete set of requirements holds no to-be-defined, to-be-specified or to-be-resolved clause; resolving them is iterative, within a time set by risk and dependency. <https://www.iso.org/standard/72089.html>
+
+**Note:** From IEEE Std 830-1998, IEEE Recommended Practice for Software Requirements Specifications, 1998, clause 4.3.3: A to-be-determined item is accompanied by why it is open, what must be done to close it, who is responsible and by when.
+
+### ADR-018: Every element may say how it is known, with a declared trigger for the warning
+
+Status: accepted, 2026-10-07.
+
+Context: A specification extracted from sources must mark every element by how
+it is known: the source says it, it was inferred, or it is missing.
+Every element already carries `why` and `cites`.
+
+Decision: `origin` on every element that may carry `why` and `cites`, in the
+specification and in implementation files, with three values. stated
+requires at least one citation; inferred requires `why`; decided
+requires `decidedIn`, an accepted decision. Missing is not a value:
+the open question is the missing mark. A specification that tracks
+origin says so once, with `info.tracksOrigin: true`; then every named
+element of a section without `origin` is a warning.
+
+Consequences: The documents show an Origin line before an element's Insight and
+Notes. The traceability of an extracted specification back to its
+source is the citations the stated elements already carry; no second
+way to cite is added.
+
+**Insight:** The citation is the provenance: "from the old design document, section 4.2" is both the Note a reader wants and the proof the element was stated. The trigger for the warning is declared rather than inferred from the presence of one `origin`, so that marking one element never turns a quiet specification into hundreds of warnings.
+
+### ADR-019: Code is generated only from a specification approved through its documents
+
+Status: accepted, 2026-10-07.
+
+Context: The owner reviews a specification by reading the documents made from
+it, and wants code generated only from what was read and approved.
+The version does not change while a specification is being written,
+so it cannot say what was approved.
+
+Decision: `specarch approve --by <stakeholder>` writes
+`records/approvals/<version>.yaml` beside the specification's folder,
+with the role, the date, the documents that were current, and the
+SHA-256 digest of the specification's files, after checking that the
+specification has no error and no must or should question, and that
+every configured document on disk is what the specification
+generates now. `specarch generate` refuses while a must or should
+question blocks a section the target reads, and without an approval
+whose digest is the digest of the files now, unless `--unapproved` is
+given. The sections a code target reads are declared in the
+implementation file under `targets.<name>.reads`; a target that
+declares none reads every section.
+
+Consequences: Any edit to a specification file voids its approval, and the owner
+approves again after reading again. The documents are never refused:
+they are how a partial specification is reviewed. The record is a
+record, not specification, and will sit under the record schema of
+the maintenance design when that is built.
+
+**Insight:** Approval is of exactly what was read, and a digest of the files says so where a version cannot. Documents reads are fixed in the program; a plug-in's are not known to it, so the person who installed the plug-in declares them, and the default is the conservative one.
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3.3.6: Requirements validation is subject to approval by the project authority and the key stakeholders. <https://www.iso.org/standard/72089.html>
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 3: A baseline is a formally approved version of a configuration item, fixed at a point in time. <https://www.iso.org/standard/72089.html>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
 
 | Test | Subject | Level | Scenario | Given | When | Then |
 |---|---|---|---|---|---|---|
+| approve-refuses-open-question | command approve | system | red | a specification with an open should question | approve is run | it refuses, writes nothing and exits 1 |
+| approve-refuses-stale-document | command approve | system | red | a configured requirements document that is not what the specification generates now | approve is run | it names the document that differs, writes nothing and exits 1 |
+| approve-usage-error | command approve | system | red | no --by | approve is run without saying who approves | it prints how to use it and exits 2 |
+| approve-writes-record | command approve | system | golden | a specification without open questions, a configured requirements document that is current, and a stakeholder owner | approve is run with --by owner and a date | it writes records/approvals/1.0.0.yaml with the role, the date, the document and the digest of the files, and exits 0 |
 | diagnostic-line-from-one | Diagnostic constraint diagnostic_line_positive | system | golden | a problem on the first line of a file | the diagnostic is made | its line is 1 |
 | diagnostic-line-zero | Diagnostic constraint diagnostic_line_positive | system | red | a problem found before any line was read | a diagnostic with line 0 is made | it is refused; a problem about the whole file is reported on line 1 |
 | document-check-current | command document | system | golden | output that matches the design file | document techspec is run with --check | it writes nothing, prints nothing and exits 0 |
 | document-check-differs | command document | system | red | a generated file edited by hand | document techspec is run with --check | it names the file that differs, writes nothing and exits 1 |
 | document-check-missing | command document | system | red | no generated output yet | document techspec is run with --check | it names the missing file and exits 1 |
 | document-citation-unknown-source | command document | system | red | a stakeholder that cites a source the specification does not declare | document requirements is run | it prints the validator's source error, writes nothing and exits 1 |
+| document-draft-notice | command document | system | golden | a requirement a must question blocks, one stated in a source and one inferred | document requirements is run | it writes requirements.md with a Draft notice under the summary, an Origin line for each requirement and the open question under the blocked one, and exits 0 |
 | document-entity-diagram | command document | system | golden | a hand-written document with an erDiagram marker | document techspec is run | the region holds the entity diagram, every other line is unchanged, and it exits 0 |
 | document-invalid-input | command document | system | red | a design file with a relation to an entity that does not exist | document techspec is run | it prints the diagnostic, writes nothing and exits 1 |
 | document-marker-unclosed | command document | system | red | a marker with no end marker | document techspec is run | it reports the marker's line, writes nothing and exits 1 |
@@ -1508,6 +1724,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-usage-error | command document | system | red | no target | document is run without arguments | it prints how to use it and exits 2 |
 | document-writes-commissioning | command document | system | golden | checks in two environments, one with a why and a citation, and a sign-off with one criterion and one signer | document commissioning is run | it writes commissioning.md with the staging checks before the production ones, a Result column for every step, the sign-off sheet, and exits 0 |
 | document-writes-deployment | command document | system | golden | two environments, a plain and a secret setting, release and rollback steps (one with a why and a citation), a migration that cannot be reversed, and an implementation file with two installations | document deployment is run | it writes deployment.md with the path a release takes, each installation's servers and setting values with the secret only named and an unset value marked, the steps, and exits 0 |
+| document-writes-questions | command document | system | golden | a specification with two must questions in two stages and a could question, and no implementation file | document questions is run | it writes questions.md with the questions by stage and the outputs, where code generation waits on the questions and the approval, and exits 0 |
 | document-writes-requirements | command document | system | golden | a specification whose elements have an Insight only, a Note only, both, several Notes and neither | document requirements is run | it writes requirements.md with an Insight for every why and a Note for every citation, after the table for a row, ends with the two sources cited, and exits 0 |
 | document-writes-techspec | command document | system | golden | a design file and an implementation file that names techspec's output folder | document techspec is run on both | it writes techspec/shop.techspec.md with every chapter the design fills, chapter 7 from the implementation file, and exits 0 |
 | document-writes-testplan | command document | system | golden | a specification with a golden and a red test of one entity constraint, one with a why | document testplan is run | it writes testplan.md with the count of each scenario, the levels, both test cases under their subject with given, when and then, and exits 0 |
@@ -1515,11 +1732,18 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-exit-1 | command extract | system | red | not applicable |   | Status 1, a surface that cannot be read as the source expects, can only happen once extract is built; this build answers every call with status 2. |
 | extract-not-offered | command extract | system | red | a build that does not offer extract | extract openapi is run on a file | it says extract is not built yet and exits 2 |
 | extract-usage-error | command extract | system | red | no source | extract is run without arguments | it prints how to use it and exits 2 |
+| gaps-invalid-spec | command gaps | system | red | a specification with an error | gaps is run | it prints the error and exits 2, since the questions of an invalid specification cannot be trusted |
+| gaps-lists-questions | command gaps | system | red | a specification that tracks origin, with two must questions in two stages, one of them blocking an entity that is only a name, a could question, and an implementation file whose code target echo reads only the requirements | gaps is run | it prints the questions by stage with the missing keys of the blocked entity, the elements by origin, and the outputs with what each waits on, and exits 1 |
+| gaps-none | command gaps | system | golden | a specification without open questions and without an approval | gaps is run | it prints that there is no open question, that every document is ready and that code generation waits on the approval, and exits 0 |
+| gaps-usage-error | command gaps | system | red | no folder | gaps is run without arguments | it prints how to use it and exits 2 |
 | generate-no-plugin | command generate | system | red | a target this build does not have and no specarch-gen-openapi on PATH | generate openapi is run | it says there is no generator for the target and exits 2 |
 | generate-plugin-path-outside | command generate | system | red | a plug-in that answers a path outside the output folder | generate escape is run | it refuses the path, writes nothing and exits 2 |
 | generate-plugin-reports-error | command generate | system | red | a plug-in that answers an error diagnostic | generate strict is run | it prints the diagnostic, writes nothing and exits 1 |
+| generate-refuses-open-question | command generate | system | red | a specification with a must question that blocks an entity, and specarch-gen-echo on PATH | generate echo is run | it refuses because the question blocks what the target reads, writes nothing and exits 1 |
+| generate-refuses-unapproved | command generate | system | red | a specification without open questions and without an approval record, and specarch-gen-echo on PATH | generate echo is run | it refuses because the specification is not approved, writes nothing and exits 1 |
+| generate-unapproved | command generate | system | golden | a specification without an approval record, and specarch-gen-echo on PATH | generate echo is run with --unapproved | it writes the files under out/ and exits 0 |
 | generate-usage-error | command generate | system | red | no target | generate is run without arguments | it prints how to use it and exits 2 |
-| generate-with-plugin | command generate | system | golden | a specification and specarch-gen-echo on PATH, which answers two files | generate echo is run with --out out | it writes both files under out/ and exits 0 |
+| generate-with-plugin | command generate | system | golden | an approved specification, its approval record beside it, and specarch-gen-echo on PATH, which answers two files | generate echo is run with --out out | it writes both files under out/ and exits 0 |
 | validate-algorithm | command validate | system | red | an operation that names an algorithm that does not exist | validate is run | it reports algorithm and exits 1 |
 | validate-change-log-warning | command validate | system | golden | a description that says how the file changed | validate is run | it warns with change_log and exits 0, since the file is still valid |
 | validate-cites | command validate | system | golden | elements that carry why and citations of declared sources | validate is run | it prints nothing and exits 0 |
@@ -1568,10 +1792,17 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-need | command validate | system | red | a requirement whose needs name a need that does not exist | validate is run | it reports need and exits 1 |
 | validate-need-rejected | command validate | system | golden | a need with status rejected that no requirement refines, beside a need a requirement refines | validate is run | it does not warn need_unrefined for the rejected need, prints nothing and exits 0 |
 | validate-operation | command validate | system | red | a list page whose source operation does not exist | validate is run | it reports operation and exits 1 |
+| validate-origin | command validate | system | red | elements whose origin is stated without a citation, inferred without a why, decided without a decision, with an unknown decision, with a proposed decision, or with decidedIn beside another origin or no origin, and a decision decided by another; beside two elements whose origin is right | validate is run | it reports each wrong one with origin_citation, origin_reason or origin_decision and exits 1 |
+| validate-origin-tracked | command validate | system | golden | a specification that tracks origin, with one requirement and one entity that carry none | validate is run | it warns origin_missing for each of them, and exits 0 |
 | validate-page | command validate | system | red | a navigate action to a page that does not exist | validate is run | it reports page and exits 1 |
 | validate-path-parameter | command validate | system | red | a path with {itemId} and no path parameter for it | validate is run | it reports path_parameter and exits 1 |
 | validate-permission-undeclared | command validate | system | red | an operation whose permission is not declared | validate is run | it reports permission_undeclared and exits 1 |
 | validate-permission-ungranted | command validate | system | red | a declared permission that no role grants | validate is run | it reports permission_ungranted and exits 1 |
+| validate-question-answered | command validate | system | red | an accepted decision that answers a question still present | validate is run | it reports question_answered at the answers entry and exits 1 |
+| validate-question-block | command validate | system | red | a question whose decider is misspelt and whose blocks name a misspelt entity, a word that is no stage or section, a key below a missing key, a pointer into no section and a pointer with no name | validate is run | it reports each with question_block or stakeholder and exits 1 |
+| validate-question-covers-missing | command validate | system | golden | a requirement without priority and acceptance, an entity that is only a name, and must questions in every stage folder that block exactly those, including files directly under tests/ and implementation/ | validate is run | the missing keys and the warnings about the blocked elements are covered by the questions; it prints nothing and exits 0 |
+| validate-question-should-not-covering | command validate | system | red | a requirement without priority and a should question that blocks the key | validate is run | the missing key is still reported, because only a must question covers one, and it exits 1 |
+| validate-question-stage | command validate | system | red | a question under requirements/ about an entity, one in the root file about a requirement although requirements/ exists, and one that blocks two stages | validate is run | it reports each with question_stage, naming the folder to move to, and exits 1 |
 | validate-ref-type | command validate | system | red | a field whose $ref names an enum that does not exist | validate is run | it reports ref_type and exits 1 |
 | validate-relation-target | command validate | system | red | a relation whose target is misspelt | validate is run | it reports relation_target and exits 1 |
 | validate-relation-via | command validate | system | red | a many-to-one relation whose via field does not exist | validate is run | it reports relation_via and exits 1 |
@@ -1638,6 +1869,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted |
+| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted |
 
 ### Requirements
 
@@ -1651,6 +1883,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-11 | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. | functional | must | accepted | test | A tree whose root lists its stages and holds each stage's files under that folder validates. A file in the wrong folder, a section in the wrong file, a listed stage without a folder, and a folder that is not a stage are each reported as layout. | NEED-4 |
 | SA-12 | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. | functional | must | accepted | test | A specification with only a requirements stage validates with no error. A requirement no design element satisfies, a requirement no test, check or monitor verifies, and a need no requirement refines are reported as warnings once the later stage exists. | NEED-5 |
 | SA-13 | Every element of a specification, at every stage, may carry a rationale (why) and citations of declared sources (cites), and the validator shall check that every citation names a declared source. | functional | must | accepted | test | An element with why and cites validates, and a citation of a source that is not declared is reported as source. | NEED-6 |
+| SA-17 | A specification shall be able to say what it does not yet know as an open question that names what is asked, who decides, what it blocks and how urgent it is; and the validator shall accept a required key missing exactly where a must question says it is unknown, and nowhere else. | functional | must | accepted | test | An entity written as an empty mapping and blocked by a must question validates with no error, and its missing keys are listed under the question by specarch gaps. The same entity without the question is reported with the missing keys. A question whose blocks names nothing in the specification, whose decider is not a stakeholder, or which sits in another stage's folder, is reported. An accepted decision that answers a question still present is reported. | NEED-8 |
+| SA-18 | Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision. | functional | must | accepted | test | An element with origin stated and no citation, one with origin inferred and no why, and one with origin decided naming no decision or a proposed one, are each reported. When the root file says the specification tracks origin, every element of a section without one is reported as a warning. | NEED-8 |
+| SA-19 | specarch gaps shall list the open questions by stage with what each blocks and who decides, and shall say for every document and code target whether it is ready, a draft or waiting; the same text shall be the document target questions, and every other document shall mark the open questions about its elements. | functional | must | accepted | test | A specification with two must questions in two stages prints them under their stages, lists the missing keys of a blocked element, and exits 1. A specification without open questions prints that it has none and exits 0. A requirements document whose requirement a question blocks starts with a Draft notice and shows the question under the requirement. | NEED-8, NEED-3 |
+| SA-20 | specarch generate shall refuse to run a target while a must or should question blocks a section it reads, and shall refuse without a record that a stakeholder read the current documents and approved the specification's files as they are, unless --unapproved is given; specarch approve shall write that record only when the documents on disk are current. | functional | must | accepted | test | generate on a specification with an approval record whose digest matches writes its files; after one byte of one file changes it refuses, and runs with --unapproved. approve refuses while a configured document differs from what the specification generates, and writes records/approvals/<version>.yaml once the documents are current. | NEED-8 |
 | SA-1 | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. | functional | must | accepted | test | A file that breaks the schema is reported with rule schema, its file, line and YAML path. A file that passes the schema and every other rule produces no output and status 0. | NEED-1 |
 | SA-2 | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. | functional | must | accepted | test | A misspelt relation target, enum, operation, page, algorithm, decision, requirement, need, stakeholder, source or environment is reported with its own rule, naming the file and line of the reference. A name defined in two files of the specification is reported with both files. | NEED-1, NEED-4 |
 | SA-3 | Every check constraint and formula shall parse and type-check in the fixed expression language. | functional | must | accepted | test | An expression outside the subset is refused with a message naming the construct. An expression that mixes types without a written conversion is refused with the conversion to write. | NEED-1 |
@@ -1673,6 +1909,14 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Note on SA-12:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3 and 6.4: Stakeholder needs are defined first and then transformed into system requirements; each requirement carries attributes and traces to its source. <https://www.iso.org/standard/72089.html>
 
 **Note on SA-13:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.8: Rationale and source are attributes every requirement should carry. <https://www.iso.org/standard/72089.html>
+
+**Insight on SA-17:** A placeholder looks like data and every tool downstream treats it as data; a question says in the specification itself that something is not known, so nothing can be built on it unseen.
+
+**Note on SA-17:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.6: A complete set of requirements holds no to-be-defined, to-be-specified or to-be-resolved clause; resolving them is iterative, within a time set by risk and dependency. <https://www.iso.org/standard/72089.html>
+
+**Note on SA-17:** From IEEE Std 830-1998, IEEE Recommended Practice for Software Requirements Specifications, 1998, clause 4.3.3: A to-be-determined item is accompanied by why it is open, what must be done to close it, who is responsible and by when.
+
+**Note on SA-20:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3.3.6: Requirements validation is subject to approval by the project authority and the key stakeholders. <https://www.iso.org/standard/72089.html>
 
 **Insight on SA-1:** The schema is the one definition of a file's shape; checking it first means every later rule can assume the shape.
 
@@ -1700,6 +1944,10 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-14 | enums GeneratorTarget; commands generate; decisions ADR-013 | tests generate-no-plugin; tests generate-plugin-path-outside; tests generate-with-plugin |
 | SA-15 | commands document; decisions ADR-015 | tests document-writes-requirements |
 | SA-16 | enums DocumentTarget; commands document; decisions ADR-016 | tests document-writes-commissioning; tests document-writes-deployment; tests document-writes-requirements; tests document-writes-testplan; tests document-writes-traceability |
+| SA-17 | enums Rule; commands validate; decisions ADR-017 | tests validate-question-answered; tests validate-question-block; tests validate-question-covers-missing; tests validate-question-should-not-covering; tests validate-question-stage |
+| SA-18 | enums Rule; commands validate; decisions ADR-018 | tests document-draft-notice; tests validate-origin; tests validate-origin-tracked |
+| SA-19 | enums DocumentTarget; commands document; commands gaps | tests document-draft-notice; tests document-writes-questions; tests gaps-lists-questions; tests gaps-none |
+| SA-20 | commands approve; commands generate; decisions ADR-019 | tests approve-refuses-open-question; tests approve-refuses-stale-document; tests approve-writes-record; tests generate-refuses-open-question; tests generate-refuses-unapproved; tests generate-unapproved |
 
 ## Sources
 
@@ -1713,6 +1961,7 @@ Every source a Note in this document cites.
 | ecma-262 | ECMA-262, ECMAScript language specification, the Number type | 2025 | Ecma International | https://tc39.es/ecma262/#sec-ecmascript-language-types-number-type |
 | go-tool | The go command, Go documentation | 1.26 | The Go project | https://go.dev/doc/ |
 | iec-62381 | IEC 62381, Automation systems in the process industry, Factory acceptance test (FAT), site acceptance test (SAT) and site integration test (SIT) | 2024 | IEC |   |
+| ieee-830 | IEEE Std 830-1998, IEEE Recommended Practice for Software Requirements Specifications | 1998 | IEEE |   |
 | iso-12207 | ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes | 2017 | ISO, IEC and IEEE | https://www.iso.org/standard/63712.html |
 | iso-29119-1 | ISO/IEC/IEEE 29119-1, Software and systems engineering, Software testing, Part 1, General concepts | 2022 | ISO, IEC and IEEE |   |
 | iso-29119-3 | ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation | 2021 | ISO, IEC and IEEE | https://www.iso.org/standard/79429.html |

@@ -1,0 +1,8 @@
+command: generate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification with a must question that blocks an entity, and specarch-gen-echo on PATH"
+when: "generate echo is run"
+then: "it refuses because the question blocks what the target reads, writes nothing and exits 1"
+verifies: [SA-20]

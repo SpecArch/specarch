@@ -1,0 +1,7 @@
+command: approve
+level: system
+scenario: golden
+given: "a specification without open questions, a configured requirements document that is current, and a stakeholder owner"
+when: "approve is run with --by owner and a date"
+then: "it writes records/approvals/1.0.0.yaml with the role, the date, the document and the digest of the files, and exits 0"
+verifies: [SA-20]

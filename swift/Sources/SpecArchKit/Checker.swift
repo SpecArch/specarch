@@ -20,8 +20,24 @@ public func kindOf(_ name: String) -> Kind {
 typealias Loader = (String) -> Spec
 
 /// Runs every check on a specification and on the implementation files
-/// inside it, and returns the diagnostics, sorted.
+/// inside it, and returns the diagnostics to report, sorted. What an open
+/// question covers is left out; checkSpecCovered returns it too.
 func checkSpec(_ s: Spec) -> [Diagnostic] {
+    checkSpecCovered(s).kept
+}
+
+/// Runs every check and returns the diagnostics to report and, apart, the
+/// ones an open must question covers (see covered), both sorted.
+func checkSpecCovered(_ s: Spec) -> (kept: [Diagnostic], covered: [Diagnostic]) {
+    let all = checkSpecAll(s)
+    guard let root = s.root else { return (all, []) }
+    var (kept, covered) = coveredByQuestions(all, root)
+    sortDiagnostics(&kept)
+    sortDiagnostics(&covered)
+    return (kept, covered)
+}
+
+private func checkSpecAll(_ s: Spec) -> [Diagnostic] {
     let c = Checker(file: s.rootPath, files: s.files)
     for p in s.problems {
         c.addFile(p.file, p.line, p.path, Rule(rawValue: p.rule)!, p.message)

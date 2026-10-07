@@ -117,13 +117,14 @@ a defect in the roadmap, not an accepted state.
 | `schema/specarch-implementation-0.1.schema.json` | the meta-model of implementation files |
 | `spec/` | SpecArch's own specification: every stage, the design of the `specarch` command, its Go and Swift implementation files, and in `spec/tests/` the conformance suite every implementation of `specarch` must pass |
 | `docs/techspec.md` | SpecArch's technical specification, generated from `spec/` |
-| `docs/requirements.md`, `testplan.md`, `traceability.md`, `deployment.md`, `commissioning.md` | SpecArch's other documents, generated from `spec/` |
+| `docs/requirements.md`, `testplan.md`, `traceability.md`, `deployment.md`, `commissioning.md`, `questions.md` | SpecArch's other documents, generated from `spec/` |
 | `swift/` | the Swift build of `specarch` |
 | `history/` | what changed and why, one file per day |
 | `docs/principles.md` | the Low IQ Tax principle and how SpecArch applies it |
 | `docs/conventions.md` | the tree layout, YAML layout, Markdown sections, generated and hand-drawn diagrams |
 | `docs/stages.md` | the seven life-cycle stages: what each holds, which standard says so, and why |
 | `docs/maintenance.md` | after commissioning: change requests, defects, releases and operation, as designed |
+| `docs/refinement.md` | from an old document to code: partial specifications, open questions, origin, approval and the gate on generation |
 | `docs/authoring-layer-evaluation.md` | TypeSpec, CUE and Pkl as an optional authoring layer |
 | `docs/generators.md` | the rules every document and code target follows, and the plug-in protocol |
 | `docs/sync-gates.md` | the CI checks that keep a spec and its code equal |
@@ -134,8 +135,10 @@ a defect in the roadmap, not an accepted state.
 ## Installing and running
 
 `specarch` is one program with verbs named by direction: `validate`
-checks, `document` goes from the specification to a document, `generate`
-from the specification to code, `extract` (designed, built later) from
+checks, `gaps` lists the open questions and what they hold up, `document`
+goes from the specification to a document, `approve` records that the
+documents were read and the specification is approved, `generate` from
+the approved specification to code, `extract` (designed, built later) from
 existing code to a specification. It has two builds from the same design.
 The Go build has every verb. With Go 1.26 or later:
 
@@ -193,21 +196,37 @@ the committed output differs, which is how CI keeps the documents current.
 The other document targets work the same way: `requirements` (the
 requirements specification), `testplan` (the test plan and test cases),
 `traceability` (the matrix and its gaps), `deployment` (the deployment
-guide) and `commissioning` (the commissioning procedure and sign-off
-sheet), each as `<target>.md`. Wherever the specification says why an
-element is so, or cites a standard for it, the document shows an Insight
-or a Note next to the element.
+guide), `commissioning` (the commissioning procedure and sign-off sheet)
+and `questions` (the open questions and what they hold up), each as
+`<target>.md`. Wherever the specification says why an element is so, or
+cites a standard for it, the document shows an Insight or a Note next to
+the element; wherever it says how an element is known, an Origin line; and
+wherever an open question blocks an element, the question.
+
+## From an old document to code
+
+A specification built from what exists, a prose document or running code,
+says what its sources support and asks about the rest: every element
+carries its `origin` (stated, with a citation; inferred, with a reason; or
+decided), and what is not known is an open question that names who decides
+and what it blocks. `specarch gaps` lists the questions by stage and says
+which documents and code targets are ready, drafts or waiting. The owner
+answers with decisions and material, the questions shrink, the documents
+are regenerated and read, and `specarch approve --by <stakeholder>` records
+the approval with a digest of the files. `specarch generate` runs only
+then. `docs/refinement.md` is the design.
 
 Code targets (OpenAPI, SQL, UI, tests) are plug-ins: `specarch generate
-<target>` runs `specarch-gen-<target>` from PATH, hands it the validated
-specification on its standard input, and writes the files it answers with.
-`docs/generators.md` has the protocol.
+<target>` runs `specarch-gen-<target>` from PATH, hands it the validated and
+approved specification on its standard input, and writes the files it
+answers with. `docs/generators.md` has the protocol.
 
 ## Status
 
 Version 0.1 of the meta-model, October 2026. The two schemas, the tree
 layout and the seven stages, one example, SpecArch's own specification, the
-validator in Go and in Swift, and six documents exist; the manual, the
+validator in Go and in Swift, seven documents, open questions with the
+gaps report, and the approval gate on generation exist; the manual, the
 operations guide and the code targets are on the roadmap. The meta-model will change: the first real
 projects written in SpecArch are expected to find concepts it cannot
 express, and those gaps define the next version.

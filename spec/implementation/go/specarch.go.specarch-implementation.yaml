@@ -62,20 +62,22 @@ libraries:
 layout:
   cmd/specarch:
     description: The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status.
-    implements: ["#/commands/validate", "#/commands/document", "#/commands/generate", "#/commands/extract", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
+    implements: ["#/commands/validate", "#/commands/gaps", "#/commands/document", "#/commands/approve", "#/commands/generate", "#/commands/extract", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
   schema:
     description: The JSON Schemas, embedded into the binary from the files editors use.
   internal/source:
     description: Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys.
   internal/spec:
     description: Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems.
+  internal/approval:
+    description: The approval record beside a specification, its digest of the specification's files, and where a version's approval stands against the files now.
   internal/expr:
     description: The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals.
   internal/generate:
-    description: The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents. Every one renders why as an Insight and each citation as a Note.
+    description: The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents; questions writes the open questions and what they hold up, the text gaps prints. Every one renders why as an Insight, each citation as a Note, an element's origin as an Origin line and the open questions about it as Open question paragraphs.
     implements: ["#/algorithms/markersWellFormed"]
   internal/validate:
-    description: Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases, the life-cycle links and traceability warnings, and implementation references.
+    description: Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases, the life-cycle links and traceability warnings, the open questions and what they cover, origin, and implementation references.
     implements: ["#/entities/Diagnostic", "#/enums/Rule", "#/enums/Severity", "#/algorithms/referenceResolves", "#/algorithms/permissionGranted", "#/algorithms/workedExampleHolds"]
 
 mappings:
@@ -84,9 +86,11 @@ mappings:
   "#/enums/Rule": { target: validate.Rule, description: "A string type with one constant per value; validate.Rules lists them, and a test checks they equal the design's enum." }
   "#/enums/Severity": { target: validate.Severity }
   "#/commands/validate": { target: main.runValidate }
+  "#/commands/gaps": { target: main.runGaps, description: "Prints generate.Questions, the text the questions document target writes." }
+  "#/commands/approve": { target: main.runApprove, description: "Writes the record through the approval package after checking the documents with generate.Document." }
   "#/commands/version": { target: main.runVersion }
   "#/commands/document": { target: main.runDocument }
-  "#/commands/generate": { target: main.runGenerate, description: "Runs the plug-in with main.runPlugin; the request and answer are the pluginRequest and pluginResponse structs." }
+  "#/commands/generate": { target: main.runGenerate, description: "Refuses through main.gate while a question blocks what the target reads or the approval is missing or void; then runs the plug-in with main.runPlugin; the request and answer are the pluginRequest and pluginResponse structs." }
   "#/commands/extract": { target: main.runExtract, description: Answers with status 2 until it is built. }
   "#/enums/DocumentTarget": { target: main.documentTargets }
   "#/enums/GeneratorTarget": { target: main.builtGenerators, description: Empty; every target is a plug-in. }
@@ -117,6 +121,9 @@ targets:
   commissioning:
     output: ../../../docs
     description: The commissioning procedure and sign-off sheet, kept current by CI.
+  questions:
+    output: ../../../docs
+    description: The open questions and what they hold up, kept current by CI.
 
 bindings:
   cli:
@@ -133,7 +140,7 @@ tasks:
     description: The validator checks its own specification and every example.
     ci: true
   documents-current:
-    run: for target in techspec requirements testplan traceability deployment commissioning; do go run ./cmd/specarch document $target --check spec examples || exit 1; done
+    run: for target in techspec requirements testplan traceability deployment commissioning questions; do go run ./cmd/specarch document $target --check spec examples || exit 1; done
     description: The committed technical specifications match their specifications.
     ci: true
   install: { run: go install ./cmd/specarch }
@@ -160,7 +167,9 @@ testing:
       level: system
       designTestsOf:
         - { command: validate }
+        - { command: gaps }
         - { command: document }
+        - { command: approve }
         - { command: generate }
         - { command: extract }
         - { command: version }

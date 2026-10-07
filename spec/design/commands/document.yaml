@@ -41,6 +41,13 @@ commands:
       order a release reaches them, each step with a Result column, and
       the sign-off sheet.
 
+      The questions target writes `questions.md`: the open questions by
+      stage with what each blocks and who decides, and which outputs are
+      ready, drafts or waiting; the same text `gaps` prints. Every other
+      document shows an element's origin as an Origin line and the open
+      questions about it as Open question paragraphs, and starts with a
+      Draft notice when a must or should question blocks what it reads.
+
       In every document an element's why is an Insight and each citation
       a Note (ADR-015), and a document that cites sources ends with them.
     permission: public
@@ -77,7 +84,7 @@ commands:
       "1": a specification has an error, a marker is wrong, or with `--check` the output differs
       "2": usage error, a target this build does not offer, no output folder, or a file that could not be read or written
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-15, SA-16]
+    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19]
     why: Documents are read by more people than the YAML, so they come first among the targets and are made from the specification rather than kept beside it.
     cites:
       - source: arc42

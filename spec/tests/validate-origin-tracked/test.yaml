@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "a specification that tracks origin, with one requirement and one entity that carry none"
+when: "validate is run"
+then: "it warns origin_missing for each of them, and exits 0"
+verifies: [SA-18]

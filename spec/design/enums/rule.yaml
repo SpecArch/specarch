@@ -59,6 +59,13 @@ enums:
       - acceptance_missing
       - requirement_unsatisfied
       - requirement_unverified
+      - question_block
+      - question_stage
+      - question_answered
+      - origin_citation
+      - origin_reason
+      - origin_decision
+      - origin_missing
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: the file is not well-formed YAML
@@ -114,4 +121,11 @@ enums:
       acceptance_missing: a requirement has no acceptance criteria (a warning)
       requirement_unsatisfied: the specification has a design and no element of it satisfies a requirement (a warning)
       requirement_unverified: the specification has tests, checks or monitors and none verifies a requirement (a warning)
-    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13]
+      question_block: a question's `blocks` entry is neither a stage, a section, nor a pointer to an element of the specification or to one missing key of it
+      question_stage: a question blocks more than one stage, or sits in a file of another stage than the one it blocks
+      question_answered: an accepted decision answers a question that is still in the specification
+      origin_citation: an element whose origin is stated cites nothing
+      origin_reason: an element whose origin is inferred has no why
+      origin_decision: an element whose origin is decided names no decision, or a decision that does not exist or is not accepted, or is a decision itself; or decidedIn is set without origin decided
+      origin_missing: the specification tracks origin and an element of a section carries none (a warning)
+    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18]

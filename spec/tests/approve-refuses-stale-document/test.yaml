@@ -1,0 +1,8 @@
+command: approve
+level: system
+scenario: red
+covers: [exit 1]
+given: "a configured requirements document that is not what the specification generates now"
+when: "approve is run"
+then: "it names the document that differs, writes nothing and exits 1"
+verifies: [SA-20]

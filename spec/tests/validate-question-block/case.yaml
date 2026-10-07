@@ -1,0 +1,10 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:27: error: /questions/Q-1/blocks/0: question_block: #/entities/Lon does not point at anything in the specification; did you mean Loan?
+  specarch.yaml:27: error: /questions/Q-1/blocks/1: question_block: nowhere is neither a stage, a section nor a #/ pointer to an element; name the stage (requirements, design, implementation, tests, deployment, commissioning, operation), a section, or #/<section>/<name>
+  specarch.yaml:27: error: /questions/Q-1/blocks/2: question_block: #/entities/Loan/properties/dueOn/type points below a key that does not exist; name the element, or one missing key of it
+  specarch.yaml:27: error: /questions/Q-1/blocks/3: question_block: #/nothing/x does not point into a section; a pointer is #/<section>/<name>, such as #/entities/Loan, with at most one key after them
+  specarch.yaml:27: error: /questions/Q-1/blocks/4: question_block: #/entities does not point into a section; a pointer is #/<section>/<name>, such as #/entities/Loan, with at most one key after them
+  specarch.yaml:28: error: /questions/Q-1/decidedBy: stakeholder: ownr is not a stakeholder of the specification; did you mean owner?
+

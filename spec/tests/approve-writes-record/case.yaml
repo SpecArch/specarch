@@ -1,0 +1,3 @@
+arguments: [approve, --by, owner, --date, 2026-10-08, project]
+exitStatus: 0
+standardOutput: ""

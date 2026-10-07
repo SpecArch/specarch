@@ -1,0 +1,8 @@
+command: generate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification without open questions and without an approval record, and specarch-gen-echo on PATH"
+when: "generate echo is run"
+then: "it refuses because the specification is not approved, writes nothing and exits 1"
+verifies: [SA-20]

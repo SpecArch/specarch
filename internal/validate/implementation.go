@@ -96,6 +96,14 @@ func (c *checker) checkImplementation(s *spec.Spec, load Loader) {
 	for _, p := range source.Pairs(source.Child(c.root, "mappings")) {
 		c.checkDesignRef(s.Root, p.Key, p.Key.Value, source.Pointer("mappings", p.Key.Value), rel)
 	}
+	decisions := map[string]*yaml.Node{}
+	for k, v := range d.decisions {
+		decisions[k] = v
+	}
+	for _, p := range source.Pairs(source.Child(c.root, "decisions")) {
+		decisions[p.Key.Value] = p.Value
+	}
+	c.checkOrigin(c.root, decisions, func(path []string) bool { return len(path) == 2 && path[0] == "decisions" })
 	for _, p := range source.Pairs(source.Child(c.root, "decisions")) {
 		if d.decisions[p.Key.Value] != nil {
 			c.add(p.Key, source.Pointer("decisions", p.Key.Value), RuleDecision,

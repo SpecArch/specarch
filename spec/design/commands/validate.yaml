@@ -26,10 +26,10 @@ commands:
       - { path: "{paths}", description: "Root files, the files under their stage folders, and implementation files." }
       - { path: "the specification named in each standalone implementation file's `implements`", description: Read to resolve that file's references. }
     standardOutput: One line per diagnostic, sorted by file, then line, then path, then rule.
-    standardError: A usage message on a usage error, the reason on an unreadable path, and a one-line count at the end.
+    standardError: A usage message on a usage error, the reason on an unreadable path, and a one-line count at the end, with the number of open questions when there are any.
     exitCodes:
       "0": every input is valid
       "1": at least one input has an error
       "2": usage error, a path could not be read, or a folder holds no specification and no implementation file
     algorithm: exitStatus
-    satisfies: [SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13]
+    satisfies: [SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18]

@@ -141,7 +141,11 @@ examples.
 Extraction stays a manual method with scripts kept in each project until
 these first projects show which readers repeat; those become the readers of
 `specarch extract <source>`, the verb that is designed in `spec/` and built
-then.
+then. What the extraction cannot settle becomes open questions, and the
+path from there to approved code is `docs/refinement.md`: `gaps`, the
+decisions that answer questions, `approve` and the gate on `generate` are
+built; `specarch decide`, `gaps --json` for the agent queue, and the
+comparison of the old document with the refined one are its next items.
 
 Candidates, in rough order of size: a menu-bar agent manager (macOS), a home
 solar monitoring system (Go services on a small board plus an iPhone app), a

@@ -48,7 +48,7 @@ public func run(_ args: [String], stdout: TextSink, stderr: TextSink) -> Int32 {
         }
         stdout.write("specarch \(programVersion)\nspecifications: meta-model 0.1\nimplementation files: meta-model 0.1\n")
         return 0
-    case "document", "generate", "extract":
+    case "document", "generate", "extract", "gaps", "approve":
         stderr.write("specarch \(command): this build has no \(command) verb; the Go build of specarch has it\n")
         return 2
     case "help", "-h", "--help":
@@ -76,10 +76,13 @@ func runValidate(_ argsIn: [String], _ stdout: TextSink, _ stderr: TextSink) -> 
     let (inputs, collectError) = collect(args, stderr)
     var ioError = collectError
     var all: [Diagnostic] = []
+    var open = 0
     for input in inputs {
         switch input {
         case .root(let dir):
-            all += checkSpec(Spec(dir: dir))
+            let s = Spec(dir: dir)
+            all += checkSpec(s)
+            open += openQuestions(s.root)
         case .implementation(let path):
             guard let data = try? readFile(path) else {
                 stderr.write("specarch: cannot read \(path)\n")
@@ -94,7 +97,8 @@ func runValidate(_ argsIn: [String], _ stdout: TextSink, _ stderr: TextSink) -> 
     sortDiagnostics(&all)
     for d in all { stdout.write(d.description + "\n") }
     let errors = errorCount(all)
-    stderr.write("specarch: \(plural(inputs.count, "input")) checked: \(plural(errors, "error")), \(plural(all.count - errors, "warning"))\n")
+    let questions = open > 0 ? ", " + plural(open, "open question") : ""
+    stderr.write("specarch: \(plural(inputs.count, "input")) checked: \(plural(errors, "error")), \(plural(all.count - errors, "warning"))\(questions)\n")
     if ioError { return 2 }
     return errors > 0 ? 1 : 0
 }

@@ -27,3 +27,7 @@ needs:
     statement: I want one tool to learn and install, not one program per task.
     stakeholders: [specification-author, ci-job]
     status: accepted
+  NEED-8:
+    statement: I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made.
+    stakeholders: [specification-author, reviewer]
+    status: accepted

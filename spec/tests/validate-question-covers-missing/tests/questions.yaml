@@ -1,0 +1,7 @@
+questions:
+  Q-3:
+    question: Which flows need an acceptance test?
+    kind: decision
+    priority: should
+    blocks: [tests]
+    decidedBy: owner

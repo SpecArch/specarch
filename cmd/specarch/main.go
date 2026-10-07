@@ -23,10 +23,13 @@ const version = "0.1.0"
 
 const usage = `usage:
   specarch validate <folder or file>...    check specifications and implementation files
+  specarch gaps <folder>...                 list the open questions and what they hold up
   specarch document <target> [--out <folder>] [--check] <folder>...
                                             write a document from a specification
-  specarch generate <target> [--out <folder>] [--check] <folder>...
-                                            write code or data from a specification
+  specarch approve --by <stakeholder> [--date <date>] <folder>...
+                                            record that the documents were read and the specification is approved
+  specarch generate <target> [--out <folder>] [--check] [--unapproved] <folder>...
+                                            write code or data from an approved specification
   specarch extract <source> ...             write a specification from existing code or documents
   specarch version                          print the program version
 
@@ -47,6 +50,10 @@ func run(args []string, stdout, stderr io.Writer) int {
 	switch args[0] {
 	case "validate":
 		return runValidate(args[1:], stdout, stderr)
+	case "gaps":
+		return runGaps(args[1:], stdout, stderr)
+	case "approve":
+		return runApprove(args[1:], stdout, stderr)
 	case "document":
 		return runDocument(args[1:], stdout, stderr)
 	case "generate":
@@ -92,10 +99,14 @@ func runValidate(args []string, stdout, stderr io.Writer) int {
 	}
 	inputs, ioError := collect(args, stderr)
 	var all []validate.Diagnostic
+	open := 0
 	for _, in := range inputs {
 		switch {
 		case in.root != "":
-			all = append(all, validate.CheckSpec(spec.Load(in.root))...)
+			s := spec.Load(in.root)
+			all = append(all, validate.CheckSpec(s)...)
+			must, should, could := validate.Questions(s.Root)
+			open += must + should + could
 		case in.implementation != "":
 			data, err := os.ReadFile(in.implementation)
 			if err != nil {
@@ -113,7 +124,11 @@ func runValidate(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stdout, d.String())
 	}
 	errors := validate.Errors(all)
-	fmt.Fprintf(stderr, "specarch: %s checked: %s, %s\n", plural(len(inputs), "input"), plural(errors, "error"), plural(len(all)-errors, "warning"))
+	questions := ""
+	if open > 0 {
+		questions = ", " + plural(open, "open question")
+	}
+	fmt.Fprintf(stderr, "specarch: %s checked: %s, %s%s\n", plural(len(inputs), "input"), plural(errors, "error"), plural(len(all)-errors, "warning"), questions)
 	switch {
 	case ioError:
 		return 2

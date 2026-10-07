@@ -1,0 +1,42 @@
+decisions:
+  ADR-019:
+    title: Code is generated only from a specification approved through its documents
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      The owner reviews a specification by reading the documents made from
+      it, and wants code generated only from what was read and approved.
+      The version does not change while a specification is being written,
+      so it cannot say what was approved.
+    decision: |
+      `specarch approve --by <stakeholder>` writes
+      `records/approvals/<version>.yaml` beside the specification's folder,
+      with the role, the date, the documents that were current, and the
+      SHA-256 digest of the specification's files, after checking that the
+      specification has no error and no must or should question, and that
+      every configured document on disk is what the specification
+      generates now. `specarch generate` refuses while a must or should
+      question blocks a section the target reads, and without an approval
+      whose digest is the digest of the files now, unless `--unapproved` is
+      given. The sections a code target reads are declared in the
+      implementation file under `targets.<name>.reads`; a target that
+      declares none reads every section.
+    consequences: |
+      Any edit to a specification file voids its approval, and the owner
+      approves again after reading again. The documents are never refused:
+      they are how a partial specification is reviewed. The record is a
+      record, not specification, and will sit under the record schema of
+      the maintenance design when that is built.
+    why: |
+      Approval is of exactly what was read, and a digest of the files says
+      so where a version cannot. Documents reads are fixed in the program;
+      a plug-in's are not known to it, so the person who installed the
+      plug-in declares them, and the default is the conservative one.
+    satisfies: [SA-20]
+    cites:
+      - source: iso-29148
+        clause: "6.3.3.6"
+        says: "Requirements validation is subject to approval by the project authority and the key stakeholders."
+      - source: iso-29148
+        clause: "3"
+        says: "A baseline is a formally approved version of a configuration item, fixed at a point in time."

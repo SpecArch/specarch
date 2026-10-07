@@ -1,0 +1,12 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+
+requirements:
+  CASE-1:
+    statement: One.
+    kind: functonal
+    priority: must
+    status: accepted
+    acceptance: [One.]

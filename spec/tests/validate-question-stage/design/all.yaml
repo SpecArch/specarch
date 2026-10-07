@@ -1,0 +1,15 @@
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string }
+    primaryKey: [id]
+    satisfies: [CASE-1]
+
+questions:
+  Q-3:
+    question: Does the loan carry the limit?
+    kind: decision
+    priority: should
+    blocks: ["#/entities/Loan", "#/requirements/CASE-1"]
+    decidedBy: owner

@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a question under requirements/ about an entity, one in the root file about a requirement although requirements/ exists, and one that blocks two stages"
+when: "validate is run"
+then: "it reports each with question_stage, naming the folder to move to, and exits 1"
+verifies: [SA-17]

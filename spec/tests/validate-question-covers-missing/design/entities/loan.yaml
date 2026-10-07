@@ -1,0 +1,2 @@
+entities:
+  Loan: { satisfies: [CASE-1] }

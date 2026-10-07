@@ -1,0 +1,48 @@
+decisions:
+  ADR-017:
+    title: An open question is the one licence for an incomplete element
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      A specification built from an old document or from code cannot say
+      everything at once, and must not invent what the source does not say.
+      The Low IQ Tax principle forbids placeholders, and a missing required
+      key is a schema error. The owner asked for a partial mode in which
+      incomplete elements are allowed and reported instead of failing.
+    decision: |
+      A section `questions`, which every stage folder may hold, names what
+      is not known: the question, its kind (decision or material), its
+      priority (must, should, could), what it blocks (a stage, a section,
+      or a pointer to an element or to one key of it), who decides, and
+      the options when the answer is a choice. A required key missing at or
+      under a pointer a must question blocks is covered, as are the warnings
+      about that element; nothing else is. validate counts the open
+      questions and lists none; `gaps` and the document `questions` list
+      them with what they hold up. A question is written in the folder of
+      the stage it blocks and is removed when answered; the decision that
+      answered it names it under `answers`, and the validator refuses an
+      accepted decision that answers a question still present.
+    consequences: |
+      There is no partial-mode switch: a specification with open questions
+      is partial, one without is complete. `questions` is the one section
+      allowed in every stage folder, and in a file directly under `tests/`
+      or `implementation/`, whose other entries are folders. Seven rules
+      join the Rule enum. The questions are reported on standard error by
+      validate only as a count.
+    why: |
+      A placeholder looks like data; a question says it is not data, and
+      says who turns it into data and what waits. Covering only what a
+      question names keeps the rule "nothing half-defined is accepted as
+      defined": the element is accepted as open, not as defined, and
+      generation refuses it. One section in every stage folder, rather than
+      a root-only list, keeps what changes often (questions come and go)
+      apart from the root file, which rarely changes, and puts each question
+      beside what it is about.
+    satisfies: [SA-17]
+    cites:
+      - source: iso-29148
+        clause: "5.2.6"
+        says: "A complete set of requirements holds no to-be-defined, to-be-specified or to-be-resolved clause; resolving them is iterative, within a time set by risk and dependency."
+      - source: ieee-830
+        clause: "4.3.3"
+        says: "A to-be-determined item is accompanied by why it is open, what must be done to close it, who is responsible and by when."

@@ -40,9 +40,13 @@ a step, the emitter stops at that tool's input and lets it do the rest.
 A code target that `specarch` does not build in is produced by the
 executable `specarch-gen-<target>` found on PATH, the pattern of
 `protoc-gen-*`, `git-*` and `kubectl-*`, with protoc's protocol: the plug-in
-never touches the disk. `specarch` validates the specification, runs the
-plug-in once per specification, and writes on its standard input one JSON
-object:
+never touches the disk. `specarch` validates the specification, refuses
+while a must or should question blocks a section the target reads (the
+sections the implementation file names under `targets.<target>.reads`, or
+every section when it names none) and refuses without an approval record
+of the files as they are unless `--unapproved` is given (`docs/refinement.md`),
+then runs the plug-in once per specification, and writes on its standard
+input one JSON object:
 
 | Key | Holds |
 |---|---|
@@ -91,14 +95,21 @@ release takes, the settings, each installation of each implementation with
 its servers and setting values, a secret only named, then release, rollback
 and migrations. `commissioning` writes `commissioning.md`: the checks by
 environment in the order a release reaches them, a Result column for every
-step, and the sign-off sheet. `manual` and `operations` wait until the
-specification holds what they need.
+step, and the sign-off sheet. `questions` writes `questions.md`: the open
+questions by stage with what each blocks and who decides, and a table of
+the outputs, each ready, a draft or waiting; `specarch gaps` prints the
+same text and exits 1 while a must or should question is open. `manual`
+and `operations` wait until the specification holds what they need.
 
 In every document, an element's `why` is a paragraph that starts with
 **Insight:** and each of its citations one that starts with **Note:**,
 under the element's heading, or after the table when the element is a row,
-labelled with the row's name. A document that cites sources ends with a
-table of them.
+labelled with the row's name. Before them, an element that says how it is
+known gets one line, **Origin:**, and an element an open question blocks
+gets one paragraph per question, **Open question Q-12 (must, decision):**.
+A document whose sections a must or should question blocks starts with a
+**Draft:** notice under its summary. A document that cites sources ends
+with a table of them.
 
 The techspec target also rewrites the generated diagrams and tables between the
 markers of the hand-written `specarch.md` beside the root file and leaves

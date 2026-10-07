@@ -27,7 +27,7 @@ final class Design {
     let root: YNode
     var spec: Spec? // the specification on disk, when known
     let entities, enums, permissions, roles, commands, channels, pages, algorithms, decisions, sources: [String: YNode]
-    let stakeholders, needs, requirements, environments, settings, checks, monitors: [String: YNode]
+    let stakeholders, needs, requirements, environments, settings, checks, monitors, questions: [String: YNode]
     var operations: [String: Operation] = [:] // by operationId, the first definition
     var opList: [Operation] = []              // every operation in document order
 
@@ -55,6 +55,7 @@ final class Design {
         settings = topMap("configuration")
         checks = topMap("checks")
         monitors = topMap("monitors")
+        questions = topMap("questions")
         for p in pairs(root.child("paths")) {
             for m in methods {
                 guard let op = p.value.child(m) else { continue }
@@ -192,6 +193,9 @@ extension Checker {
         checkTests(d)
         checkDeploymentStage(d)
         checkTraceability(d)
+        checkQuestions(d)
+        checkOrigin(d.root, d.decisions) { path in path.count == 2 && path[0] == "decisions" }
+        checkOriginTracked(d)
     }
 
     /// Finds every $ref in the file and checks its target exists.

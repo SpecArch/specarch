@@ -274,6 +274,16 @@ let designSchemaJSON = #"""
       "additionalProperties": {
         "$ref": "#/$defs/monitor"
       }
+    },
+    "questions": {
+      "description": "SpecArch keyword. The open questions: what the sources do not say and a stakeholder must decide or provide, keyed by ID such as Q-12. A question is written in the folder of the stage it is about, so every stage folder may hold questions; the validator merges them into one section and checks each sits in the stage of what it blocks. A question leaves the specification when it is answered; the decision that answered it names it under answers.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Z][A-Z0-9]{0,15}-[A-Za-z0-9._]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/question"
+      }
     }
   },
   "required": [
@@ -312,6 +322,11 @@ let designSchemaJSON = #"""
       "description": "SpecArch keyword. The ID of a requirement, need, assumption or constraint: an upper-case prefix of 2 to 16 letters or digits, a dash, and an ID, such as SA-1 or NEED-12.",
       "type": "string",
       "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+    },
+    "questionId": {
+      "description": "SpecArch keyword. The ID of an open question: an upper-case prefix of 1 to 16 letters or digits, a dash, and an ID, such as Q-12 or OPEN-3.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{0,15}-[A-Za-z0-9._]+$"
     },
     "requirementLink": {
       "description": "SpecArch keyword. The ID of a requirement: one defined under 'requirements' in this specification, or one in an external requirement set declared under 'sources' with kind requirement-set, whose prefix is the set's prefix.",
@@ -381,6 +396,20 @@ let designSchemaJSON = #"""
       },
       "minItems": 1
     },
+    "origin": {
+      "description": "SpecArch keyword. How the element is known. stated: a source says it, and cites names the source and where in it. inferred: it was concluded from evidence (code, data, the source's silence), and why says from what. decided: a stakeholder settled it, answering a question or correcting the source, and decidedIn names the decision. An element without origin was written spec-first. What is not known at all is not an element with an origin but an open question under questions.",
+      "type": "string",
+      "enum": [
+        "stated",
+        "inferred",
+        "decided"
+      ]
+    },
+    "decidedIn": {
+      "description": "SpecArch keyword. With origin decided: the decision record that settled this element, such as ADR-021.",
+      "type": "string",
+      "pattern": "^ADR-[0-9]{3,}$"
+    },
     "markdown": {
       "description": "Prose in Markdown.",
       "type": "string"
@@ -412,6 +441,10 @@ let designSchemaJSON = #"""
           "items": {
             "type": "string"
           }
+        },
+        "tracksOrigin": {
+          "description": "SpecArch keyword. true when the specification was built from sources and every element says how it is known: the validator then reports each element of a section that carries no origin (origin_missing, a warning).",
+          "type": "boolean"
         }
       },
       "required": [
@@ -527,6 +560,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -575,6 +614,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -662,6 +707,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -694,6 +745,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -722,6 +779,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -759,6 +822,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -810,6 +879,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -1246,6 +1321,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -1313,6 +1394,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -1369,6 +1456,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -1439,6 +1532,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -1469,6 +1568,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -1507,6 +1612,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -1708,6 +1819,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -1829,6 +1946,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -1866,6 +1989,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -1961,6 +2090,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -2114,6 +2249,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -2202,6 +2343,20 @@ let designSchemaJSON = #"""
           "type": "string",
           "pattern": "^ADR-[0-9]{3,}$"
         },
+        "answers": {
+          "description": "SpecArch keyword. The open questions this decision answers, by ID. The questions themselves are removed from the specification once answered, so these IDs are text, not references; the validator refuses an accepted decision that answers a question still present.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/questionId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "decidedBy": {
+          "description": "SpecArch keyword. The stakeholder who decided, by key; a role, never a person. Required when the decision answers questions.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
         },
@@ -2210,6 +2365,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -2232,6 +2393,86 @@ let designSchemaJSON = #"""
           "supersededBy"
         ]
       },
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false,
+      "dependentRequired": {
+        "answers": [
+          "decidedBy"
+        ]
+      }
+    },
+    "question": {
+      "description": "SpecArch keyword. One open question: something the sources do not say and a stakeholder must decide or provide. ISO/IEC/IEEE 29148:2018 (5.2.6) says a complete set of requirements holds no 'to be defined' clause and that resolving them is iterative within a time set by risk; IEEE Std 830-1998 (4.3.3) says such an item carries why it is open, what must be done, who is responsible and by when. A question is the one licence for an element to be incomplete: a required key may be missing exactly where a must question says it is unknown.",
+      "type": "object",
+      "properties": {
+        "question": {
+          "description": "What is asked, as one plain question.",
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "description": "decision: the stakeholder decides; material: the stakeholder provides something to read, such as a document, a file, a screenshot or a record.",
+          "type": "string",
+          "enum": [
+            "decision",
+            "material"
+          ]
+        },
+        "priority": {
+          "description": "must: what it blocks is not defined, and nothing that reads it can be generated; should: what it blocks is written as inferred and the stakeholder should confirm it before it is built on; could: the answer would improve the specification, but nothing waits for it.",
+          "type": "string",
+          "enum": [
+            "must",
+            "should",
+            "could"
+          ]
+        },
+        "blocks": {
+          "description": "What cannot be final until the question is answered: a stage name, a section name, or a pointer to an element (#/entities/Loan, #/paths/~1loans/post) or to one key of it (#/requirements/BR-3/priority). A must question covers the required keys missing at or under an element pointer, and the one key of a key pointer.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "decidedBy": {
+          "description": "The stakeholder who decides or provides, by key; a role, never a person.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "options": {
+          "description": "For a decision with a known set of answers: the answers, two or more, so that the question can be put as a choice.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 2,
+          "uniqueItems": true
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "question",
+        "kind",
+        "priority",
+        "blocks",
+        "decidedBy"
+      ],
       "propertyNames": {
         "not": {
           "$ref": "#/$defs/stackSpecificKey"
@@ -2330,6 +2571,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -2539,6 +2786,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -2672,6 +2925,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -2713,6 +2972,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -2750,6 +3015,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -2789,6 +3060,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -2829,6 +3106,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -2880,6 +3163,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -2925,6 +3214,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -2989,6 +3284,12 @@ let designSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -3271,6 +3572,20 @@ let implementationSchemaJSON = #"""
       },
       "minItems": 1
     },
+    "origin": {
+      "description": "SpecArch keyword. How the element is known. stated: a source says it, and cites names the source and where in it. inferred: it was concluded from evidence (code, data, the source's silence), and why says from what. decided: a stakeholder settled it, answering a question or correcting the source, and decidedIn names the decision. An element without origin was written spec-first. What is not known at all is not an element with an origin but an open question under questions.",
+      "type": "string",
+      "enum": [
+        "stated",
+        "inferred",
+        "decided"
+      ]
+    },
+    "decidedIn": {
+      "description": "SpecArch keyword. With origin decided: the decision record that settled this element, such as ADR-021.",
+      "type": "string",
+      "pattern": "^ADR-[0-9]{3,}$"
+    },
     "tool": {
       "type": "object",
       "properties": {
@@ -3328,6 +3643,12 @@ let implementationSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -3383,6 +3704,12 @@ let implementationSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -3432,11 +3759,53 @@ let implementationSchemaJSON = #"""
         "settings": {
           "type": "object"
         },
+        "reads": {
+          "description": "The sections of the specification this code target reads. A target that names none reads every section. specarch generate refuses to run a target while a must or should question blocks a section it reads, and specarch gaps says per target what waits.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "stakeholders",
+              "needs",
+              "requirements",
+              "glossary",
+              "assumptions",
+              "constraints",
+              "enums",
+              "entities",
+              "permissions",
+              "roles",
+              "paths",
+              "commands",
+              "channels",
+              "pages",
+              "algorithms",
+              "tests",
+              "decisions",
+              "environments",
+              "configuration",
+              "release",
+              "rollback",
+              "migrations",
+              "checks",
+              "signoff",
+              "monitors"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
         "why": {
           "$ref": "#/$defs/why"
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -3600,6 +3969,12 @@ let implementationSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -3651,6 +4026,12 @@ let implementationSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [
@@ -3799,6 +4180,12 @@ let implementationSchemaJSON = #"""
         },
         "cites": {
           "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [

@@ -8,7 +8,7 @@ info:
     A second implementation of the specification in `spec/`, for macOS,
     built from the same specification as the Go one. It offers the validate
     and version commands and passes the same conformance cases; the
-    documents and generators are built in Go only.
+    documents, the generators, gaps and approve are built in Go only.
 
 implements:
   file: ../../specarch.yaml
@@ -31,7 +31,7 @@ layout:
   swift/Sources/specarch:
     description: The executable; it passes the arguments to the library and exits with its status.
   swift/Sources/SpecArchKit:
-    description: Everything else. Reading YAML, reading a specification tree into one document, the JSON Schema evaluator and its messages, the specification and implementation checks, the expression subset, tests and their derived cases, the life-cycle links, and the commands.
+    description: Everything else. Reading YAML, reading a specification tree into one document, the JSON Schema evaluator and its messages, the specification and implementation checks, the expression subset, tests and their derived cases, the life-cycle links, the open questions and origin, and the commands.
     implements: ["#/commands/validate", "#/commands/version", "#/entities/Diagnostic", "#/entities/SpecFile", "#/enums/Rule", "#/enums/Severity", "#/algorithms/exitStatus", "#/algorithms/referenceResolves", "#/algorithms/permissionGranted", "#/algorithms/workedExampleHolds"]
   swift/embed-schemas.sh:
     description: Writes the schemas of schema/ into the library as Swift source; a test fails when they differ.
@@ -44,6 +44,8 @@ mappings:
   "#/commands/validate": { target: SpecArchKit.runValidate }
   "#/commands/version": { target: SpecArchKit.run }
   "#/commands/document": { target: SpecArchKit.run, description: "Exits 2: this build offers no document target." }
+  "#/commands/gaps": { target: SpecArchKit.run, description: "Exits 2: the report is a document, built in Go only; the rules about questions are in this build." }
+  "#/commands/approve": { target: SpecArchKit.run, description: "Exits 2: the record is written by the Go build only." }
   "#/commands/generate": { target: SpecArchKit.run, description: "Exits 2: this build runs no generator." }
   "#/commands/extract": { target: SpecArchKit.run, description: "Exits 2, as the Go build does until it is built." }
   "#/algorithms/exitStatus": { target: the end of SpecArchKit.runValidate }

@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:7: warning: /requirements/CASE-1: requirement_unsatisfied: no design element satisfies requirement CASE-1; add satisfies: [CASE-1] to the entity, operation, command, page, algorithm or decision that meets it
+  specarch.yaml:22: error: /decisions/ADR-001/answers/0: question_answered: ADR-001 answers question Q-1, but Q-1 is still open; remove the question now that it is answered, or set the decision's status to proposed
+

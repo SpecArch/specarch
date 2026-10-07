@@ -1,0 +1,21 @@
+arguments: [gaps, project]
+exitStatus: 0
+standardOutput: |+
+  # Case: open questions
+
+  Version 1.0.0 of the specification has no open question: nothing it says waits on a decision or on material from a stakeholder.
+
+  ## 1. Outputs
+
+  What can be made from the specification now. A document is a draft while a must or should question blocks what it reads; code generation waits for those questions and for the approval.
+
+  | Output | State | Waits on |
+  |---|---|---|
+  | techspec document | ready | |
+  | requirements document | ready | |
+  | testplan document | ready | |
+  | traceability document | ready | |
+  | deployment document | ready | |
+  | commissioning document | ready | |
+  | code generation | waits | not approved: there is no records/approvals/1.0.0.yaml |
+

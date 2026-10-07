@@ -1,0 +1,7 @@
+command: generate
+level: system
+scenario: golden
+given: "a specification without an approval record, and specarch-gen-echo on PATH"
+when: "generate echo is run with --unapproved"
+then: "it writes the files under out/ and exits 0"
+verifies: [SA-20]

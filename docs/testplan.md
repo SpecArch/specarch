@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.1.0 of the specification: 123 design tests, 31 golden and 91 red, about 6 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 143 design tests, 38 golden and 104 red, about 8 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -10,7 +10,7 @@ Version 0.1.0 of the specification: 123 design tests, 31 golden and 91 red, abou
 
 | Level | Design tests |
 |---|---|
-| system | 123 |
+| system | 143 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -20,7 +20,7 @@ Framework: go test. Run: `go test ./...`.
 
 | Suite | Level | Runs | Command |
 |---|---|---|---|
-| conformance | system | every design test of command validate, command document, command generate, command extract, command version | `go test ./cmd/specarch` |
+| conformance | system | every design test of command validate, command gaps, command document, command approve, command generate, command extract, command version | `go test ./cmd/specarch` |
 | expressions | unit | tests of this implementation only | `go test ./internal/expr` |
 
 ### Implementation: SpecArch toolchain in Swift
@@ -33,6 +33,40 @@ Framework: Swift Testing. Run: `swift test --package-path swift`.
 | expressions | unit | tests of this implementation only | `swift test --package-path swift --filter ExprTests` |
 
 ## 2. Test cases
+
+### Command approve
+
+#### approve-refuses-open-question
+
+Scenario: red; level: system; covers exit 1; verifies SA-20.
+
+- Given: a specification with an open should question
+- When: approve is run
+- Then: it refuses, writes nothing and exits 1
+
+#### approve-refuses-stale-document
+
+Scenario: red; level: system; covers exit 1; verifies SA-20.
+
+- Given: a configured requirements document that is not what the specification generates now
+- When: approve is run
+- Then: it names the document that differs, writes nothing and exits 1
+
+#### approve-usage-error
+
+Scenario: red; level: system; covers usage error, exit 2.
+
+- Given: no --by
+- When: approve is run without saying who approves
+- Then: it prints how to use it and exits 2
+
+#### approve-writes-record
+
+Scenario: golden; level: system; verifies SA-20.
+
+- Given: a specification without open questions, a configured requirements document that is current, and a stakeholder owner
+- When: approve is run with --by owner and a date
+- Then: it writes records/approvals/1.0.0.yaml with the role, the date, the document and the digest of the files, and exits 0
 
 ### Diagnostic constraint diagnostic_line_positive
 
@@ -85,6 +119,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-13.
 - Given: a stakeholder that cites a source the specification does not declare
 - When: document requirements is run
 - Then: it prints the validator's source error, writes nothing and exits 1
+
+#### document-draft-notice
+
+Scenario: golden; level: system; verifies SA-18, SA-19.
+
+- Given: a requirement a must question blocks, one stated in a source and one inferred
+- When: document requirements is run
+- Then: it writes requirements.md with a Draft notice under the summary, an Origin line for each requirement and the open question under the blocked one, and exits 0
 
 #### document-entity-diagram
 
@@ -214,6 +256,14 @@ Scenario: golden; level: system; verifies SA-16.
 - When: document deployment is run
 - Then: it writes deployment.md with the path a release takes, each installation's servers and setting values with the secret only named and an unset value marked, the steps, and exits 0
 
+#### document-writes-questions
+
+Scenario: golden; level: system; verifies SA-19.
+
+- Given: a specification with two must questions in two stages and a could question, and no implementation file
+- When: document questions is run
+- Then: it writes questions.md with the questions by stage and the outputs, where code generation waits on the questions and the approval, and exits 0
+
 #### document-writes-requirements
 
 Scenario: golden; level: system; verifies SA-15, SA-16.
@@ -270,6 +320,40 @@ Scenario: red; level: system; covers usage error, exit 2.
 - When: extract is run without arguments
 - Then: it prints how to use it and exits 2
 
+### Command gaps
+
+#### gaps-invalid-spec
+
+Scenario: red; level: system; covers exit 2.
+
+- Given: a specification with an error
+- When: gaps is run
+- Then: it prints the error and exits 2, since the questions of an invalid specification cannot be trusted
+
+#### gaps-lists-questions
+
+Scenario: red; level: system; covers exit 1; verifies SA-19.
+
+- Given: a specification that tracks origin, with two must questions in two stages, one of them blocking an entity that is only a name, a could question, and an implementation file whose code target echo reads only the requirements
+- When: gaps is run
+- Then: it prints the questions by stage with the missing keys of the blocked entity, the elements by origin, and the outputs with what each waits on, and exits 1
+
+#### gaps-none
+
+Scenario: golden; level: system; verifies SA-19.
+
+- Given: a specification without open questions and without an approval
+- When: gaps is run
+- Then: it prints that there is no open question, that every document is ready and that code generation waits on the approval, and exits 0
+
+#### gaps-usage-error
+
+Scenario: red; level: system; covers usage error, exit 2.
+
+- Given: no folder
+- When: gaps is run without arguments
+- Then: it prints how to use it and exits 2
+
 ### Command generate
 
 #### generate-no-plugin
@@ -296,6 +380,30 @@ Scenario: red; level: system; covers exit 1.
 - When: generate strict is run
 - Then: it prints the diagnostic, writes nothing and exits 1
 
+#### generate-refuses-open-question
+
+Scenario: red; level: system; covers exit 1; verifies SA-20.
+
+- Given: a specification with a must question that blocks an entity, and specarch-gen-echo on PATH
+- When: generate echo is run
+- Then: it refuses because the question blocks what the target reads, writes nothing and exits 1
+
+#### generate-refuses-unapproved
+
+Scenario: red; level: system; covers exit 1; verifies SA-20.
+
+- Given: a specification without open questions and without an approval record, and specarch-gen-echo on PATH
+- When: generate echo is run
+- Then: it refuses because the specification is not approved, writes nothing and exits 1
+
+#### generate-unapproved
+
+Scenario: golden; level: system; verifies SA-20.
+
+- Given: a specification without an approval record, and specarch-gen-echo on PATH
+- When: generate echo is run with --unapproved
+- Then: it writes the files under out/ and exits 0
+
 #### generate-usage-error
 
 Scenario: red; level: system; covers usage error, exit 2.
@@ -308,7 +416,7 @@ Scenario: red; level: system; covers usage error, exit 2.
 
 Scenario: golden; level: system; verifies SA-7, SA-14.
 
-- Given: a specification and specarch-gen-echo on PATH, which answers two files
+- Given: an approved specification, its approval record beside it, and specarch-gen-echo on PATH, which answers two files
 - When: generate echo is run with --out out
 - Then: it writes both files under out/ and exits 0
 
@@ -698,6 +806,22 @@ Scenario: red; level: system; covers exit 1.
 - When: validate is run
 - Then: it reports operation and exits 1
 
+#### validate-origin
+
+Scenario: red; level: system; covers exit 1; verifies SA-18.
+
+- Given: elements whose origin is stated without a citation, inferred without a why, decided without a decision, with an unknown decision, with a proposed decision, or with decidedIn beside another origin or no origin, and a decision decided by another; beside two elements whose origin is right
+- When: validate is run
+- Then: it reports each wrong one with origin_citation, origin_reason or origin_decision and exits 1
+
+#### validate-origin-tracked
+
+Scenario: golden; level: system; verifies SA-18.
+
+- Given: a specification that tracks origin, with one requirement and one entity that carry none
+- When: validate is run
+- Then: it warns origin_missing for each of them, and exits 0
+
 #### validate-page
 
 Scenario: red; level: system; covers exit 1.
@@ -729,6 +853,46 @@ Scenario: red; level: system; covers exit 1; verifies SA-5.
 - Given: a declared permission that no role grants
 - When: validate is run
 - Then: it reports permission_ungranted and exits 1
+
+#### validate-question-answered
+
+Scenario: red; level: system; covers exit 1; verifies SA-17.
+
+- Given: an accepted decision that answers a question still present
+- When: validate is run
+- Then: it reports question_answered at the answers entry and exits 1
+
+#### validate-question-block
+
+Scenario: red; level: system; covers exit 1; verifies SA-17.
+
+- Given: a question whose decider is misspelt and whose blocks name a misspelt entity, a word that is no stage or section, a key below a missing key, a pointer into no section and a pointer with no name
+- When: validate is run
+- Then: it reports each with question_block or stakeholder and exits 1
+
+#### validate-question-covers-missing
+
+Scenario: golden; level: system; verifies SA-17.
+
+- Given: a requirement without priority and acceptance, an entity that is only a name, and must questions in every stage folder that block exactly those, including files directly under tests/ and implementation/
+- When: validate is run
+- Then: the missing keys and the warnings about the blocked elements are covered by the questions; it prints nothing and exits 0
+
+#### validate-question-should-not-covering
+
+Scenario: red; level: system; covers exit 1; verifies SA-17.
+
+- Given: a requirement without priority and a should question that blocks the key
+- When: validate is run
+- Then: the missing key is still reported, because only a must question covers one, and it exits 1
+
+#### validate-question-stage
+
+Scenario: red; level: system; covers exit 1; verifies SA-17.
+
+- Given: a question under requirements/ about an entity, one in the root file about a requirement although requirements/ exists, and one that blocks two stages
+- When: validate is run
+- Then: it reports each with question_stage, naming the folder to move to, and exits 1
 
 #### validate-ref-type
 

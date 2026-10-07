@@ -28,6 +28,11 @@ const TestFile = "test.yaml"
 // Stages lists the life-cycle stages in order; each is a folder name.
 var Stages = []string{"requirements", "design", "implementation", "tests", "deployment", "commissioning", "operation"}
 
+// QuestionsSection is the one section every stage folder may hold: a
+// question is written with what it is about, and questions arise at every
+// stage. The loader merges them into one section.
+const QuestionsSection = "questions"
+
 // Sections maps every section to its stage.
 var Sections = map[string]string{
 	"stakeholders": "requirements", "needs": "requirements", "requirements": "requirements",
@@ -42,7 +47,7 @@ var Sections = map[string]string{
 }
 
 // sectionOrder is the order sections appear in the merged document and in
-// docs/conventions.md: life-cycle order.
+// docs/conventions.md: life-cycle order, the questions last.
 var sectionOrder = []string{
 	"stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
 	"enums", "entities", "permissions", "roles", "paths", "commands", "channels", "pages", "algorithms",
@@ -50,6 +55,7 @@ var sectionOrder = []string{
 	"environments", "configuration", "release", "rollback", "migrations",
 	"checks", "signoff",
 	"monitors",
+	QuestionsSection,
 }
 
 // singleSections hold one object, not a map of named objects, so they
@@ -132,6 +138,10 @@ func Load(dir string) *Spec {
 	// sections of stages that have no folder.
 	for _, p := range source.Pairs(doc.Root) {
 		key := p.Key.Value
+		if key == QuestionsSection {
+			s.mergeSection(sections, key, p.Value, s.RootFile)
+			continue
+		}
 		stage, isSection := Sections[key]
 		if isSection && listed[stage] {
 			s.problem(s.RootFile, p.Key.Line, source.Pointer(key), "layout",
@@ -201,7 +211,7 @@ func Load(dir string) *Spec {
 		case "tests":
 			s.loadTests(folder, sections)
 		case "implementation":
-			s.loadImplementations(folder)
+			s.loadImplementations(folder, sections)
 		default:
 			s.loadStage(stage, folder, sections)
 		}
@@ -288,7 +298,7 @@ func (s *Spec) loadStage(stage, folder string, sections map[string]*yaml.Node) {
 		}
 		only := ""
 		for _, part := range strings.Split(filepath.ToSlash(filepath.Dir(rel)), "/") {
-			if Sections[part] == stage {
+			if Sections[part] == stage || part == QuestionsSection {
 				only = part
 			}
 		}
@@ -314,6 +324,8 @@ func (s *Spec) loadStage(stage, folder string, sections map[string]*yaml.Node) {
 			switch {
 			case only != "" && key != only:
 				s.problem(p, pair.Key.Line, source.Pointer(key), "layout", "a file under %s/%s/ holds only %s; move %s to %s/%s/", stage, only, only, key, stage, sectionFolder(key, stage))
+			case key == QuestionsSection:
+				s.mergeSection(sections, key, pair.Value, p)
 			case Sections[key] == stage && singleSections[key]:
 				if first := sections[key]; first != nil {
 					s.problem(p, pair.Key.Line, source.Pointer(key), "duplicate_key", "%s is already defined in %s on line %d; it is one object, written in one file", key, s.Files[first], first.Line)
@@ -338,10 +350,62 @@ func (s *Spec) loadStage(stage, folder string, sections map[string]*yaml.Node) {
 }
 
 func sectionFolder(key, stage string) string {
-	if Sections[key] == stage {
+	if Sections[key] == stage || key == QuestionsSection {
 		return key
 	}
 	return "<section>"
+}
+
+// loadQuestionsFile reads a YAML file directly under tests/ or
+// implementation/, whose entries are otherwise folders: it holds only
+// questions. It reports whether the file was one.
+func (s *Spec) loadQuestionsFile(p string, sections map[string]*yaml.Node) bool {
+	data, err := os.ReadFile(p)
+	if err != nil {
+		return false
+	}
+	doc := source.Parse(data)
+	if doc.Root == nil || doc.Root.Kind != yaml.MappingNode {
+		return false
+	}
+	for _, pair := range source.Pairs(doc.Root) {
+		if pair.Key.Value != QuestionsSection {
+			return false
+		}
+	}
+	for _, pr := range doc.Problems {
+		s.problem(p, pr.Line, pr.Path, pr.Rule, "%s", pr.Message)
+	}
+	s.record(doc.Root, p)
+	for _, pair := range source.Pairs(doc.Root) {
+		s.mergeSection(sections, QuestionsSection, pair.Value, p)
+	}
+	return true
+}
+
+// StageOfFile tells which stage folder a file of the specification sits
+// under, or "" for the root file and the files beside it.
+func (s *Spec) StageOfFile(file string) string {
+	rel, err := filepath.Rel(s.Dir, file)
+	if err != nil {
+		return ""
+	}
+	first := strings.Split(filepath.ToSlash(rel), "/")[0]
+	if isStage(first) {
+		return first
+	}
+	return ""
+}
+
+// Listed reports whether the root file lists a stage, so that it has a
+// folder.
+func (s *Spec) Listed(stage string) bool {
+	for _, st := range s.Stages {
+		if st == stage {
+			return true
+		}
+	}
+	return false
 }
 
 // loadTests reads tests/<name>/test.yaml for every test folder.
@@ -360,8 +424,11 @@ func (s *Spec) loadTests(folder string, sections map[string]*yaml.Node) {
 		}
 		p := filepath.Join(folder, e.Name())
 		if !e.IsDir() {
+			if strings.HasSuffix(e.Name(), ".yaml") && s.loadQuestionsFile(p, sections) {
+				continue
+			}
 			if strings.HasSuffix(e.Name(), ".yaml") || strings.HasSuffix(e.Name(), ".yml") {
-				s.problem(p, 1, "/", "layout", "a file directly under tests/ is not read; each test is a folder tests/<name>/ holding %s", TestFile)
+				s.problem(p, 1, "/", "layout", "a file directly under tests/ holds only questions; each test is a folder tests/<name>/ holding %s", TestFile)
 			}
 			continue
 		}
@@ -392,7 +459,7 @@ func (s *Spec) loadTests(folder string, sections map[string]*yaml.Node) {
 }
 
 // loadImplementations finds implementation/<stack>/<name>.<stack>.specarch-implementation.yaml.
-func (s *Spec) loadImplementations(folder string) {
+func (s *Spec) loadImplementations(folder string, sections map[string]*yaml.Node) {
 	entries, err := os.ReadDir(folder)
 	if err != nil {
 		s.problem(folder, 1, "/", "layout", "cannot read the folder (%s)", plainIOError(err))
@@ -404,8 +471,11 @@ func (s *Spec) loadImplementations(folder string) {
 		}
 		p := filepath.Join(folder, e.Name())
 		if !e.IsDir() {
+			if strings.HasSuffix(e.Name(), ".yaml") && s.loadQuestionsFile(p, sections) {
+				continue
+			}
 			if strings.HasSuffix(e.Name(), ".yaml") || strings.HasSuffix(e.Name(), ".yml") {
-				s.problem(p, 1, "/", "layout", "an implementation file lives in implementation/<stack>/, named <name>.<stack>%s; move it there", ImplementationSuffix)
+				s.problem(p, 1, "/", "layout", "a file directly under implementation/ holds only questions; an implementation file lives in implementation/<stack>/, named <name>.<stack>%s", ImplementationSuffix)
 			}
 			continue
 		}
@@ -525,4 +595,65 @@ func plainIOError(err error) string {
 		return msg[i+2:]
 	}
 	return msg
+}
+
+// Block is one entry of a question's blocks: a stage, a section, or a
+// pointer to an element of the specification or to one key of it.
+type Block struct {
+	Stage   string   // the stage the block is about
+	Section string   // the section, for a section or a pointer
+	Tokens  []string // for a pointer: section, name, and the keys below
+}
+
+// IsPointer reports whether the block names an element or a key of one.
+func (b Block) IsPointer() bool { return len(b.Tokens) > 0 }
+
+// Element is the pointer of the element the block is about, such as
+// /entities/Loan, or "" for a stage or a section.
+func (b Block) Element() string {
+	if len(b.Tokens) < 2 {
+		return ""
+	}
+	return source.Pointer(b.Tokens[:2]...)
+}
+
+// Key is the key of the element the block is about, when it names one.
+func (b Block) Key() string {
+	if len(b.Tokens) < 3 {
+		return ""
+	}
+	return b.Tokens[len(b.Tokens)-1]
+}
+
+// Sections lists the sections the block holds up: every section of its
+// stage, or the one section.
+func (b Block) Sections() []string {
+	if b.Section != "" {
+		return []string{b.Section}
+	}
+	return SectionsOf(b.Stage)
+}
+
+// ParseBlock reads one entry of a question's blocks. ok is false when the
+// text is neither a stage, a section, nor a pointer whose first token is a
+// section; whether the pointer resolves is the validator's check.
+func ParseBlock(s string) (b Block, ok bool) {
+	if isStage(s) {
+		return Block{Stage: s}, true
+	}
+	if stage, isSection := Sections[s]; isSection {
+		return Block{Stage: stage, Section: s}, true
+	}
+	if !strings.HasPrefix(s, "#/") {
+		return Block{}, false
+	}
+	for _, t := range strings.Split(strings.TrimPrefix(s, "#/"), "/") {
+		b.Tokens = append(b.Tokens, source.UnescapeToken(t))
+	}
+	stage, isSection := Sections[b.Tokens[0]]
+	if !isSection || len(b.Tokens) < 2 {
+		return Block{}, false
+	}
+	b.Stage, b.Section = stage, b.Tokens[0]
+	return b, true
 }

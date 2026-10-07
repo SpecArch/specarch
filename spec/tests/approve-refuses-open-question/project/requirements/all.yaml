@@ -1,0 +1,18 @@
+stakeholders:
+  owner: { description: The product owner. }
+
+requirements:
+  CASE-1:
+    statement: A member shall borrow at most five books.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A sixth loan is refused.]
+
+questions:
+  Q-1:
+    question: Is five the right limit?
+    kind: decision
+    priority: should
+    blocks: ["#/requirements/CASE-1"]
+    decidedBy: owner

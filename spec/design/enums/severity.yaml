@@ -4,5 +4,5 @@ enums:
     enum: [error, warning]
     valueDescriptions:
       error: the file is invalid
-      warning: printed, but the file stays valid; in 0.1 only missing test scenarios and change-log phrases
+      warning: printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin
     satisfies: [SA-6]

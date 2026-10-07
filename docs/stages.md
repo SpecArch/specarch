@@ -149,3 +149,19 @@ requirement nothing satisfies once there is a design, and a requirement
 nothing verifies once there are tests, checks or monitors. The techspec's chapter 13
 is the matrix. Warnings rather than errors, because a specification is
 written in order and the gaps are its to-do list.
+
+## Open questions and origin
+
+A specification built from an old document or from code says what it does
+not know instead of inventing it. Every stage folder may hold `questions`:
+what is asked, who decides, what it blocks and how urgent it is, as ISO/IEC/IEEE
+29148:2018 (5.2.6) and IEEE Std 830-1998 (4.3.3) ask of a "to be defined"
+item. A `must` question is the one licence for an element to be
+incomplete: the required keys missing where it points are covered until it
+is answered. Every element may say how it is known with `origin`: stated
+by a cited source, inferred with a reason, or decided in a decision record.
+`specarch gaps` lists the open questions by stage and says which documents
+and code targets are ready, drafts or waiting; `specarch approve` records
+that the owner read current documents; `specarch generate` runs only from
+an approved specification whose questions are answered. `docs/refinement.md`
+is the design, and "Open questions" in `docs/conventions.md` the rules.

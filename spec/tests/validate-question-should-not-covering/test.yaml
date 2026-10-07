@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a requirement without priority and a should question that blocks the key"
+when: "validate is run"
+then: "the missing key is still reported, because only a must question covers one, and it exits 1"
+verifies: [SA-17]

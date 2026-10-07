@@ -1,0 +1,57 @@
+commands:
+  approve:
+    summary: Record that the documents were read and the specification is approved
+    description: |
+      Validates its input first and approves nothing with errors. Then
+      refuses while a must or should question is open, when `--by` is not a
+      stakeholder of the specification, when no document target is
+      configured, and when any configured document on disk is not what the
+      specification generates now, so that what was read is what is
+      approved. Otherwise writes `records/approvals/<version>.yaml` beside
+      the specification's folder: the record kind, the version, who
+      approved, the date, the documents that were current, and the digest
+      of the specification's files (the SHA-256 of every `.yaml` file under
+      its folder, in byte order of their relative paths, each as its path,
+      a zero byte, its bytes and a zero byte). A later change to any of
+      those files voids the approval, and `generate` says so.
+    permission: public
+    arguments:
+      - name: paths
+        description: Folders holding specifications, searched as validate searches them.
+        required: true
+        repeatable: true
+        schema: { type: string }
+    options:
+      by:
+        description: The stakeholder who read the documents and approves, by key; a role, never a person.
+        schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
+        required: true
+      date:
+        description: The date of the approval, as YYYY-MM-DD. Today when not given.
+        schema: { type: string, format: date }
+    reads:
+      - { path: "{paths}", description: The specifications and their implementation files. }
+      - { path: "<output>/<target>.md", description: "Every configured document, compared with what the specification generates now." }
+    writes:
+      - { path: "records/approvals/<version>.yaml", description: "The approval record, beside the specification's folder; an earlier approval of the same version is replaced." }
+    standardOutput: The errors of an invalid specification, and one line per configured document that is missing or differs.
+    standardError: A usage message on a usage error, the reason a refusal, and one line naming the record written.
+    exitCodes:
+      "0": the approval was recorded
+      "1": refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current
+      "2": usage error, or a file that could not be read or written
+    satisfies: [SA-20]
+    why: |
+      A specification is reviewed in the form its readers use, the
+      documents, and approval must be of exactly what was read; a digest of
+      the files says so where a version number, which does not change while
+      a specification is being written, cannot. The record names a role,
+      because a specification is read and copied by more people than a
+      ticket system.
+    cites:
+      - source: iso-29148
+        clause: "6.3.3.6"
+        says: "Requirements validation is subject to approval by the project authority and the key stakeholders."
+      - source: iso-29148
+        clause: "3"
+        says: "A baseline is a formally approved version of a configuration item, fixed at a point in time."

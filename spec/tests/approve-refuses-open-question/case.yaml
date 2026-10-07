@@ -1,0 +1,3 @@
+arguments: [approve, --by, owner, project]
+exitStatus: 1
+standardOutput: ""

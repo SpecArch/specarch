@@ -1,0 +1,33 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+
+sources:
+  old-doc: { kind: document, title: The old design document, edition: "2024", author: The team }
+stakeholders:
+  owner: { description: The product owner., origin: stated }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.], origin: inferred }
+  CASE-2: { statement: Two., kind: functional, priority: must, status: accepted, acceptance: [Two.], origin: decided }
+  CASE-3: { statement: Three., kind: functional, priority: must, status: accepted, acceptance: [Three.], origin: decided, decidedIn: ADR-009 }
+  CASE-4: { statement: Four., kind: functional, priority: must, status: accepted, acceptance: [Four.], origin: decided, decidedIn: ADR-002 }
+  CASE-5: { statement: Five., kind: functional, priority: must, status: accepted, acceptance: [Five.], origin: stated, decidedIn: ADR-001, cites: [{ source: old-doc, clause: "5", says: "Five." }] }
+  CASE-6: { statement: Six., kind: functional, priority: must, status: accepted, acceptance: [Six.], decidedIn: ADR-001 }
+  CASE-7: { statement: Seven., kind: functional, priority: must, status: accepted, acceptance: [Seven.], origin: stated, cites: [{ source: old-doc, clause: "7", says: "Seven." }] }
+  CASE-8: { statement: Eight., kind: functional, priority: must, status: accepted, acceptance: [Eight.], origin: decided, decidedIn: ADR-001 }
+decisions:
+  ADR-001:
+    title: Accepted
+    status: accepted
+    date: "2026-10-08"
+    context: C.
+    decision: D.
+    consequences: E.
+    origin: decided
+    decidedIn: ADR-002
+  ADR-002:
+    title: Proposed
+    status: proposed
+    date: "2026-10-08"
+    context: C.
+    decision: D.
+    consequences: E.

@@ -1,0 +1,3 @@
+#!/bin/sh
+while IFS= read -r line; do :; done
+printf '%s' '{"files":[{"path":"hello.txt","content":"hello from the plug-in\n"},{"path":"nested/item.txt","content":"Item\n"}],"diagnostics":[]}'

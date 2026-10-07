@@ -1,0 +1,7 @@
+command: gaps
+level: system
+scenario: red
+covers: [exit 2]
+given: "a specification with an error"
+when: "gaps is run"
+then: "it prints the error and exits 2, since the questions of an invalid specification cannot be trusted"

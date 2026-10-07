@@ -1,0 +1,7 @@
+command: document
+level: system
+scenario: golden
+given: "a specification with two must questions in two stages and a could question, and no implementation file"
+when: "document questions is run"
+then: "it writes questions.md with the questions by stage and the outputs, where code generation waits on the questions and the approval, and exits 0"
+verifies: [SA-19]

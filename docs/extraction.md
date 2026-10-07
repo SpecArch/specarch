@@ -23,6 +23,13 @@ spec first.
 5. Record what the meta-model could not hold. Every concept the code has that
    the spec cannot express is listed with the extraction. Those lists are the
    input to the next meta-model version.
+6. Write what the source does not say as open questions, never as guesses.
+   Every element carries its `origin`: stated, with the citation of where
+   the source says it; inferred, with the reason; or decided, once a
+   stakeholder has answered. `specarch gaps` lists what is still open and
+   which outputs can already be made; code is generated only once the
+   questions are answered and the owner has approved the documents.
+   `docs/refinement.md` is the design of that path.
 
 | Surface | Authoritative source | How to read it |
 |---|---|---|

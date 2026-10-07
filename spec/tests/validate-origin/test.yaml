@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "elements whose origin is stated without a citation, inferred without a why, decided without a decision, with an unknown decision, with a proposed decision, or with decidedIn beside another origin or no origin, and a decision decided by another; beside two elements whose origin is right"
+when: "validate is run"
+then: "it reports each wrong one with origin_citation, origin_reason or origin_decision and exits 1"
+verifies: [SA-18]

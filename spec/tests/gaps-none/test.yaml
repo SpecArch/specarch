@@ -1,0 +1,7 @@
+command: gaps
+level: system
+scenario: golden
+given: "a specification without open questions and without an approval"
+when: "gaps is run"
+then: "it prints that there is no open question, that every document is ready and that code generation waits on the approval, and exits 0"
+verifies: [SA-19]

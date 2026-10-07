@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a question whose decider is misspelt and whose blocks name a misspelt entity, a word that is no stage or section, a key below a missing key, a pointer into no section and a pointer with no name"
+when: "validate is run"
+then: "it reports each with question_block or stakeholder and exits 1"
+verifies: [SA-17]

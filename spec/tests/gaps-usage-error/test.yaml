@@ -1,0 +1,7 @@
+command: gaps
+level: system
+scenario: red
+covers: [usage error, exit 2]
+given: "no folder"
+when: "gaps is run without arguments"
+then: "it prints how to use it and exits 2"

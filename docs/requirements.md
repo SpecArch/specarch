@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.1.0 of the specification: 5 stakeholders, 7 needs and 16 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.1.0 of the specification: 5 stakeholders, 8 needs and 20 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 ## 1. Purpose and scope
 
@@ -33,11 +33,12 @@ What the stakeholders said they need, before it was shaped into requirements, an
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-1, SA-2, SA-3, SA-4, SA-5, SA-6 |
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-9, SA-10 |
-| NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-7, SA-8, SA-16 |
+| NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-7, SA-8, SA-16, SA-19 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-16, SA-12 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14 |
+| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-17, SA-18, SA-19, SA-20 |
 
 ## 4. Requirements
 
@@ -51,6 +52,10 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-11 | functional | must | accepted | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. |
 | SA-12 | functional | must | accepted | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. |
 | SA-13 | functional | must | accepted | Every element of a specification, at every stage, may carry a rationale (why) and citations of declared sources (cites), and the validator shall check that every citation names a declared source. |
+| SA-17 | functional | must | accepted | A specification shall be able to say what it does not yet know as an open question that names what is asked, who decides, what it blocks and how urgent it is; and the validator shall accept a required key missing exactly where a must question says it is unknown, and nowhere else. |
+| SA-18 | functional | must | accepted | Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision. |
+| SA-19 | functional | must | accepted | specarch gaps shall list the open questions by stage with what each blocks and who decides, and shall say for every document and code target whether it is ready, a draft or waiting; the same text shall be the document target questions, and every other document shall mark the open questions about its elements. |
+| SA-20 | functional | must | accepted | specarch generate shall refuse to run a target while a must or should question blocks a section it reads, and shall refuse without a record that a stakeholder read the current documents and approved the specification's files as they are, unless --unapproved is given; specarch approve shall write that record only when the documents on disk are current. |
 | SA-1 | functional | must | accepted | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. |
 | SA-2 | functional | must | accepted | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. |
 | SA-3 | functional | must | accepted | Every check constraint and formula shall parse and type-check in the fixed expression language. |
@@ -161,6 +166,61 @@ Acceptance criteria:
 - An element with why and cites validates, and a citation of a source that is not declared is reported as source.
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.8: Rationale and source are attributes every requirement should carry. <https://www.iso.org/standard/72089.html>
+
+### SA-17
+
+A specification shall be able to say what it does not yet know as an open question that names what is asked, who decides, what it blocks and how urgent it is; and the validator shall accept a required key missing exactly where a must question says it is unknown, and nowhere else.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-8.
+
+Acceptance criteria:
+
+- An entity written as an empty mapping and blocked by a must question validates with no error, and its missing keys are listed under the question by specarch gaps.
+- The same entity without the question is reported with the missing keys.
+- A question whose blocks names nothing in the specification, whose decider is not a stakeholder, or which sits in another stage's folder, is reported.
+- An accepted decision that answers a question still present is reported.
+
+**Insight:** A placeholder looks like data and every tool downstream treats it as data; a question says in the specification itself that something is not known, so nothing can be built on it unseen.
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.6: A complete set of requirements holds no to-be-defined, to-be-specified or to-be-resolved clause; resolving them is iterative, within a time set by risk and dependency. <https://www.iso.org/standard/72089.html>
+
+**Note:** From IEEE Std 830-1998, IEEE Recommended Practice for Software Requirements Specifications, 1998, clause 4.3.3: A to-be-determined item is accompanied by why it is open, what must be done to close it, who is responsible and by when.
+
+### SA-18
+
+Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-8.
+
+Acceptance criteria:
+
+- An element with origin stated and no citation, one with origin inferred and no why, and one with origin decided naming no decision or a proposed one, are each reported.
+- When the root file says the specification tracks origin, every element of a section without one is reported as a warning.
+
+### SA-19
+
+specarch gaps shall list the open questions by stage with what each blocks and who decides, and shall say for every document and code target whether it is ready, a draft or waiting; the same text shall be the document target questions, and every other document shall mark the open questions about its elements.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-8, NEED-3.
+
+Acceptance criteria:
+
+- A specification with two must questions in two stages prints them under their stages, lists the missing keys of a blocked element, and exits 1.
+- A specification without open questions prints that it has none and exits 0.
+- A requirements document whose requirement a question blocks starts with a Draft notice and shows the question under the requirement.
+
+### SA-20
+
+specarch generate shall refuse to run a target while a must or should question blocks a section it reads, and shall refuse without a record that a stakeholder read the current documents and approved the specification's files as they are, unless --unapproved is given; specarch approve shall write that record only when the documents on disk are current.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-8.
+
+Acceptance criteria:
+
+- generate on a specification with an approval record whose digest matches writes its files; after one byte of one file changes it refuses, and runs with --unapproved.
+- approve refuses while a configured document differs from what the specification generates, and writes records/approvals/<version>.yaml once the documents are current.
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3.3.6: Requirements validation is subject to approval by the project authority and the key stakeholders. <https://www.iso.org/standard/72089.html>
 
 ### SA-1
 
@@ -299,6 +359,7 @@ Every source a Note in this document cites.
 | Source | Title | Edition | Author | Where to read it |
 |---|---|---|---|---|
 | go-tool | The go command, Go documentation | 1.26 | The Go project | https://go.dev/doc/ |
+| ieee-830 | IEEE Std 830-1998, IEEE Recommended Practice for Software Requirements Specifications | 1998 | IEEE |   |
 | iso-12207 | ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes | 2017 | ISO, IEC and IEEE | https://www.iso.org/standard/63712.html |
 | iso-29119-3 | ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation | 2021 | ISO, IEC and IEEE | https://www.iso.org/standard/79429.html |
 | iso-29148 | ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering | 2018 | ISO, IEC and IEEE | https://www.iso.org/standard/72089.html |

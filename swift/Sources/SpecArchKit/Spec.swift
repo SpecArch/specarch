@@ -9,6 +9,11 @@ public let testFile = "test.yaml"
 /// The life-cycle stages in order; each is a folder name.
 public let stages = ["requirements", "design", "implementation", "tests", "deployment", "commissioning", "operation"]
 
+/// The one section every stage folder may hold: a question is written with
+/// what it is about, and questions arise at every stage. The loader merges
+/// them into one section.
+public let questionsSection = "questions"
+
 /// Every section and its stage.
 public let sections: [String: String] = [
     "stakeholders": "requirements", "needs": "requirements", "requirements": "requirements",
@@ -22,7 +27,8 @@ public let sections: [String: String] = [
     "monitors": "operation",
 ]
 
-/// The order sections take in the merged document: life-cycle order.
+/// The order sections take in the merged document: life-cycle order, the
+/// questions last.
 let sectionOrder = [
     "stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
     "enums", "entities", "permissions", "roles", "paths", "commands", "channels", "pages", "algorithms",
@@ -30,6 +36,7 @@ let sectionOrder = [
     "environments", "configuration", "release", "rollback", "migrations",
     "checks", "signoff",
     "monitors",
+    questionsSection,
 ]
 
 /// Sections that hold one object, not a map of named objects, so they
@@ -108,6 +115,10 @@ final class Spec {
         // sections of stages that have no folder.
         for p in docRoot.pairs {
             let key = p.key.value
+            if key == questionsSection {
+                mergeSection(&found, key, p.value, rootPath)
+                continue
+            }
             let stage = sections[key]
             if let stage, listed.contains(stage) {
                 problem(rootPath, p.key.line, pointer(key), "layout",
@@ -169,7 +180,7 @@ final class Spec {
             let folder = joinPath(dir, stage)
             switch stage {
             case "tests": loadTests(folder, &found)
-            case "implementation": loadImplementations(folder)
+            case "implementation": loadImplementations(folder, &found)
             default: loadStage(stage, folder, &found)
             }
         }
@@ -236,7 +247,7 @@ final class Spec {
             }
             if !name.hasSuffix(".yaml") { continue }
             var only = ""
-            for part in dirPath(rel).split(separator: "/") where sections[String(part)] == stage {
+            for part in dirPath(rel).split(separator: "/") where sections[String(part)] == stage || String(part) == questionsSection {
                 only = String(part)
             }
             let data: Data
@@ -256,7 +267,9 @@ final class Spec {
                 let key = pair.key.value
                 let keyStage = sections[key] ?? ""
                 if !only.isEmpty && key != only {
-                    problem(p, pair.key.line, pointer(key), "layout", "a file under \(stage)/\(only)/ holds only \(only); move \(key) to \(stage)/\(keyStage == stage ? key : "<section>")/")
+                    problem(p, pair.key.line, pointer(key), "layout", "a file under \(stage)/\(only)/ holds only \(only); move \(key) to \(stage)/\(keyStage == stage || key == questionsSection ? key : "<section>")/")
+                } else if key == questionsSection {
+                    mergeSection(&found, key, pair.value, p)
                 } else if keyStage == stage && singleSections.contains(key) {
                     if let first = found[key] {
                         problem(p, pair.key.line, pointer(key), "duplicate_key", "\(key) is already defined in \(fileOf(first)) on line \(first.line); it is one object, written in one file")
@@ -290,8 +303,9 @@ final class Spec {
         for e in entries where !e.name.hasPrefix(".") {
             let p = joinPath(folder, e.name)
             if !e.isDir {
+                if e.name.hasSuffix(".yaml") && loadQuestionsFile(p, &found) { continue }
                 if e.name.hasSuffix(".yaml") || e.name.hasSuffix(".yml") {
-                    problem(p, 1, "/", "layout", "a file directly under tests/ is not read; each test is a folder tests/<name>/ holding \(testFile)")
+                    problem(p, 1, "/", "layout", "a file directly under tests/ holds only questions; each test is a folder tests/<name>/ holding \(testFile)")
                 }
                 continue
             }
@@ -311,8 +325,42 @@ final class Spec {
         if !tests.pairs.isEmpty { found["tests"] = tests }
     }
 
+    /// Reads a YAML file directly under tests/ or implementation/, whose
+    /// entries are otherwise folders: it holds only questions. Returns
+    /// whether the file was one.
+    private func loadQuestionsFile(_ p: String, _ found: inout [String: YNode]) -> Bool {
+        guard let data = try? readFile(p) else { return false }
+        let doc = parseYAML(String(decoding: data, as: UTF8.self))
+        guard let docRoot = doc.root, docRoot.kind == .mapping else { return false }
+        for pair in docRoot.pairs where pair.key.value != questionsSection { return false }
+        for pr in doc.problems { problem(p, pr.line, pr.path, pr.rule, pr.message) }
+        record(docRoot, p)
+        for pair in docRoot.pairs { mergeSection(&found, questionsSection, pair.value, p) }
+        return true
+    }
+
+    /// Which stage folder a file of the specification sits under, or "" for
+    /// the root file and the files beside it.
+    func stageOfFile(_ file: String) -> String {
+        let base = cleanPath(dir)
+        let clean = cleanPath(file)
+        var rel: String
+        if base == "." {
+            rel = clean.hasPrefix("./") ? String(clean.dropFirst(2)) : clean
+        } else if clean.hasPrefix(base + "/") {
+            rel = String(clean.dropFirst(base.count + 1))
+        } else {
+            return ""
+        }
+        let first = String(rel.split(separator: "/").first ?? "")
+        return stages.contains(first) ? first : ""
+    }
+
+    /// Whether the root file lists a stage, so that it has a folder.
+    func listed(_ stage: String) -> Bool { listedStages.contains(stage) }
+
     /// Finds implementation/<stack>/<name>.<stack>.specarch-implementation.yaml.
-    private func loadImplementations(_ folder: String) {
+    private func loadImplementations(_ folder: String, _ found: inout [String: YNode]) {
         let entries: [Entry]
         do {
             entries = try readDir(folder)
@@ -323,8 +371,9 @@ final class Spec {
         for e in entries where !e.name.hasPrefix(".") {
             let p = joinPath(folder, e.name)
             if !e.isDir {
+                if e.name.hasSuffix(".yaml") && loadQuestionsFile(p, &found) { continue }
                 if e.name.hasSuffix(".yaml") || e.name.hasSuffix(".yml") {
-                    problem(p, 1, "/", "layout", "an implementation file lives in implementation/<stack>/, named <name>.<stack>\(implementationSuffix); move it there")
+                    problem(p, 1, "/", "layout", "a file directly under implementation/ holds only questions; an implementation file lives in implementation/<stack>/, named <name>.<stack>\(implementationSuffix)")
                 }
                 continue
             }
@@ -491,4 +540,37 @@ func valueOf(_ n: YNode) -> JSONValue {
     case .scalar:
         return scalarValue(n)
     }
+}
+
+/// One entry of a question's blocks: a stage, a section, or a pointer to
+/// an element of the specification or to one key of it.
+struct Block {
+    var stage = ""          // the stage the block is about
+    var section = ""        // the section, for a section or a pointer
+    var tokens: [String] = [] // for a pointer: section, name, and the keys below
+
+    var isPointer: Bool { !tokens.isEmpty }
+
+    /// The pointer of the element the block is about, such as /entities/Loan,
+    /// or "" for a stage or a section.
+    var element: String { tokens.count < 2 ? "" : pointer(Array(tokens[0..<2])) }
+
+    /// The key of the element the block is about, when it names one.
+    var key: String { tokens.count < 3 ? "" : tokens[tokens.count - 1] }
+
+    /// The sections the block holds up: every section of its stage, or the
+    /// one section.
+    var sectionsHeld: [String] { section.isEmpty ? sectionsOf(stage) : [section] }
+}
+
+/// Reads one entry of a question's blocks; nil when the text is neither a
+/// stage, a section, nor a pointer whose first token is a section. Whether
+/// the pointer resolves is the validator's check.
+func parseBlock(_ s: String) -> Block? {
+    if stages.contains(s) { return Block(stage: s) }
+    if let stage = sections[s] { return Block(stage: stage, section: s) }
+    guard s.hasPrefix("#/") else { return nil }
+    let tokens = s.dropFirst(2).split(separator: "/", omittingEmptySubsequences: false).map { unescapeToken(String($0)) }
+    guard tokens.count >= 2, let stage = sections[tokens[0]] else { return nil }
+    return Block(stage: stage, section: tokens[0], tokens: tokens)
 }

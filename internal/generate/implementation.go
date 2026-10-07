@@ -59,6 +59,7 @@ func deployment(d *doc, root *yaml.Node, impls []Implementation) {
 			d.line("| %s | %s | %s |", e.Key.Value, cell(str(e.Value, "description")), cell(str(e.Value, "promotesTo")))
 		}
 		d.blank()
+		d.explainRows(rowsOf(envs))
 	}
 	if len(cfg) > 0 {
 		d.heading(3, "Configuration")
@@ -72,20 +73,24 @@ func deployment(d *doc, root *yaml.Node, impls []Implementation) {
 			d.line("| %s | %s | %s | %s |", c.Key.Value, cell(typeText(get(c.Value, "schema"))), cell(secret), cell(str(c.Value, "description")))
 		}
 		d.blank()
+		d.explainRows(rowsOf(cfg))
 	}
 	if release != nil {
 		d.heading(3, "Release")
 		d.para(str(release, "description"))
+		d.explain(release)
 		stepsTable(d, get(release, "steps"))
 	}
 	if rollback != nil {
 		d.heading(3, "Rollback")
 		d.para(str(rollback, "description"))
+		d.explain(rollback)
 		stepsTable(d, get(rollback, "steps"))
 	}
 	for _, m := range migs {
 		d.heading(3, "Migration "+m.Key.Value)
 		d.para(str(m.Value, "description"))
+		d.explain(m.Value)
 		stepsTable(d, get(m.Value, "steps"))
 		if rb := get(m.Value, "rollback"); rb != nil {
 			d.para("Reversed by:")
@@ -98,6 +103,7 @@ func deployment(d *doc, root *yaml.Node, impls []Implementation) {
 		for _, c := range checks {
 			d.heading(4, fmt.Sprintf("%s (%s, in %s)", c.Key.Value, str(c.Value, "kind"), str(c.Value, "environment")))
 			d.para(str(c.Value, "description"))
+			d.explain(c.Value)
 			stepsTable(d, get(c.Value, "steps"))
 		}
 	}
@@ -113,6 +119,7 @@ func deployment(d *doc, root *yaml.Node, impls []Implementation) {
 			signers = append(signers, str(s, "role"))
 		}
 		d.para("Signed by: " + strings.Join(signers, ", ") + ".")
+		d.explain(signoff)
 	}
 	for _, i := range impls {
 		implementation(d, i.Node)
@@ -130,6 +137,7 @@ func stepsTable(d *doc, steps *yaml.Node) {
 		d.line("| %d. %s | %s | %s |", i+1, cell(str(s, "name")), cell(str(s, "action")), cell(str(s, "check")))
 	}
 	d.blank()
+	d.explainRows(stepRows(steps))
 }
 
 // implementation is one implementation file's part of chapter 7.
@@ -164,6 +172,7 @@ func implementation(d *doc, impl *yaml.Node) {
 			d.line("| %s | %s | %s | %s |", l.Key.Value, str(l.Value, "version"), str(l.Value, "licence"), cell(purpose))
 		}
 		d.blank()
+		d.explainRows(rowsOf(libs))
 	}
 	if layout := pairs(impl, "layout"); len(layout) > 0 {
 		d.heading(4, "Layout")
@@ -188,6 +197,7 @@ func implementation(d *doc, impl *yaml.Node) {
 		for _, b := range binds {
 			d.para(fmt.Sprintf("%s: %s. %s", b.Key.Value, str(b.Value, "framework"), strings.TrimSpace(str(b.Value, "description"))))
 		}
+		d.explainRows(rowsOf(binds))
 	}
 	if gens := pairs(impl, "targets"); len(gens) > 0 {
 		d.heading(4, "Targets")
@@ -203,6 +213,7 @@ func implementation(d *doc, impl *yaml.Node) {
 			d.line("| %s | %s | %s |", g.Key.Value, str(g.Value, "output"), cell(strings.Join(set, ", ")))
 		}
 		d.blank()
+		d.explainRows(rowsOf(gens))
 	}
 	if tasks := pairs(impl, "tasks"); len(tasks) > 0 {
 		d.heading(4, "Tasks")
@@ -244,6 +255,7 @@ func implementation(d *doc, impl *yaml.Node) {
 			d.line("| %s | %s | %s | `%s` |", s.Key.Value, str(s.Value, "level"), cell(runs), cell(str(s.Value, "run")))
 		}
 		d.blank()
+		d.explainRows(pairRows(testing, "suites"))
 	}
 	if deps := pairs(impl, "deployments"); len(deps) > 0 {
 		d.heading(4, "Deployments")
@@ -269,6 +281,7 @@ func implementation(d *doc, impl *yaml.Node) {
 			}
 			d.para(line)
 		}
+		d.explainRows(rowsOf(deps))
 	}
 	decisions(d, "", impl)
 }

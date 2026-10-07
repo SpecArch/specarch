@@ -1,0 +1,8 @@
+entity: Order
+constraint: total_positive
+scenario: golden
+level: system
+given: an order with a total of 5
+when: it is saved
+then: it is saved
+why: The smallest real sale is the case a clerk meets every day.

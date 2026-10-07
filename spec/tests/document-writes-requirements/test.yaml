@@ -1,0 +1,7 @@
+command: document
+level: system
+scenario: golden
+given: "a specification whose elements have an Insight only, a Note only, both, several Notes and neither"
+when: "document requirements is run"
+then: "it writes requirements.md with an Insight for every why and a Note for every citation, after the table for a row, ends with the two sources cited, and exits 0"
+verifies: [SA-15, SA-16]

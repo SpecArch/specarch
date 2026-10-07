@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.1.0 of the specification: 14 requirements, 3 entities, 5 commands, 6 algorithms, 114 tests, 14 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 16 requirements, 3 entities, 5 commands, 6 algorithms, 120 tests, 16 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -17,11 +17,13 @@ Owners: specarch-maintainers.
 
 | Stakeholder | Who they are | Concerns |
 |---|---|---|
-| specification-author | A person or an assistant who writes a specification in SpecArch and keeps it current. | A mistake in a specification is caught before anyone builds on it.; A large specification stays navigable. |
-| implementer | A developer who builds a system from a specification, in one of possibly several stacks. | The design says enough to build from, including how values travel.; A change in the design is noticed in every implementation of it. |
-| reviewer | A person who reviews a specification or the documents made from it before work starts. | Every design element traces to a requirement, and every requirement to a test.; The reasoning behind a choice is written next to it. |
-| operator | A person who installs, releases and runs the built system. | Release, rollback and commissioning are written down and checkable. |
-| ci-job | The continuous-integration job that checks every change of a project that uses SpecArch. | Every check runs with one command and answers with an exit status. |
+| specification-author | A person or an assistant who writes a specification in SpecArch and keeps it current. | A mistake in a specification is caught before anyone builds on it; A large specification stays navigable |
+| implementer | A developer who builds a system from a specification, in one of possibly several stacks. | The design says enough to build from, including how values travel; A change in the design is noticed in every implementation of it |
+| reviewer | A person who reviews a specification or the documents made from it before work starts. | Every design element traces to a requirement, and every requirement to a test; The reasoning behind a choice is written next to it |
+| operator | A person who installs, releases and runs the built system. | Release, rollback and commissioning are written down and checkable |
+| ci-job | The continuous-integration job that checks every change of a project that uses SpecArch. | Every check runs with one command and answers with an exit status |
+
+**Note on specification-author:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.2: Stakeholders are identified at the start, and their needs are the input to every requirement. <https://www.iso.org/standard/72089.html>
 
 ## 2. Constraints
 
@@ -32,12 +34,20 @@ Owners: specarch-maintainers.
 | CON-3 | legal | Every dependency is open source under an OSI-approved licence, pinned, and scanned before it is taken. |
 | CON-4 | organisational | The repository is public and holds generic material only; no employer's, client's or product's data enters it. |
 
+**Insight on CON-1:** A reader who knows JSON Schema, OpenAPI or AsyncAPI should not learn a second name for the same thing.
+
+**Note on CON-1:** From JSON Schema, a media type for describing JSON documents, 2020-12: Field keywords such as type, properties, required, enum, format and the limits. <https://json-schema.org/specification>
+
+**Note on CON-1:** From OpenAPI Specification, 3.1.0: Endpoint keywords such as paths, parameters, requestBody and responses. <https://spec.openapis.org/oas/v3.1.0>
+
 ### Assumptions
 
 | Assumption | Statement |
 |---|---|
 | ASSUME-1 | A specification is kept in version control, so its history lives there and in history files, never inside the specification. |
 | ASSUME-2 | The people and assistants who write specifications can read YAML and a C-like expression. |
+
+**Insight on ASSUME-1:** Without this the files would need change logs, which the Low IQ Tax principle forbids.
 
 ## 3. Context
 
@@ -214,6 +224,8 @@ Primary key: path.
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; in 0.1 only missing test scenarios and change-log phrases |
 
+**Note on DocumentTarget:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 7.2 and 8.3: A test plan and test case specifications are the test documentation items of a project. <https://www.iso.org/standard/79429.html>
+
 ## 6. Runtime view
 
 ### Command document
@@ -240,6 +252,29 @@ matrix of what satisfies and what verifies each requirement. A marker
 names what goes in its region: `erDiagram`, `stateDiagram <Entity>`,
 `sequenceDiagram <operationId or command>`, `flowchart pages` or
 `permissions`.
+
+The requirements target writes `requirements.md`: the stakeholders,
+the needs with the requirements that refine them, and each
+requirement with its attributes and acceptance criteria. The
+testplan target writes `testplan.md`: the levels, how each
+implementation's suites run the tests, and every design test as a
+test case, grouped by subject. The traceability target writes
+`traceability.md`: needs to requirements, requirements to what
+satisfies and verifies them, and the gaps the validator warns about.
+The deployment target writes `deployment.md`: the environments and
+the path a release takes, the settings, each installation of each
+implementation with its servers and setting values (a secret only
+named), release, rollback and the migrations. The commissioning
+target writes `commissioning.md`: the checks by environment in the
+order a release reaches them, each step with a Result column, and
+the sign-off sheet.
+
+In every document an element's why is an Insight and each citation
+a Note (ADR-015), and a document that cites sources ends with them.
+
+**Insight:** Documents are read by more people than the YAML, so they come first among the targets and are made from the specification rather than kept beside it.
+
+**Note:** From arc42, the template for architecture documentation, 8.2: The twelve chapters of an architecture document, from introduction and goals to glossary. <https://arc42.org/overview>
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
@@ -284,6 +319,8 @@ surface is read. The result is a specification tree to be checked by
 regenerating and comparing, then reviewed by hand. This command is
 designed here and built when the first real project needs it; until
 then every build answers with status 2.
+
+**Insight:** Existing systems enter SpecArch by extraction, so the verb exists from the start; building it waits for the real projects that show which readers repeat.
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
@@ -332,6 +369,10 @@ prints the diagnostics, refuses a path outside the output folder,
 and writes or checks the files itself. A plug-in that exits with
 another status, or answers with something else, fails the run with
 status 2; its standard error is passed through.
+
+**Insight:** One program with verbs, and generators as plug-ins found on PATH, is the pattern of protoc, git and kubectl: one name to learn and install, one parser, one diagnostic format and one version shared by every target, and new targets added without changing the program. Letting the program write the files, as protoc does, keeps `--check` and the rule "only into its folder" true for every plug-in without each one having to implement them.
+
+**Note:** From Protocol buffers compiler plug-in protocol, plugin.proto, 2024: A plug-in reads a CodeGeneratorRequest from standard input and writes a CodeGeneratorResponse to standard output; the file names it answers are relative to the output directory, and protoc writes them. <https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto>
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
@@ -404,6 +445,8 @@ sequenceDiagram
 
 ### Command version
 
+**Insight:** One version answers which SpecArch made a file; every generated file's header names it.
+
 Standard output: The program version, then one line per meta-model version it supports.
 
 ```mermaid
@@ -426,6 +469,8 @@ sequenceDiagram
 ### Release
 
 A release is a tagged commit of this repository; nothing is uploaded anywhere, since every user builds the program from source.
+
+**Note:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.4.10: The transition process establishes the capability to provide the service in its operational environment. <https://www.iso.org/standard/63712.html>
 
 | Step | Action | Check |
 |---|---|---|
@@ -467,6 +512,8 @@ The installed program validates the example and this specification, and reproduc
 #### no-network (security, in ci-runner)
 
 The installed program needs no network.
+
+**Note:** From IEC 62381, Automation systems in the process industry, Factory acceptance test (FAT), site acceptance test (SAT) and site integration test (SIT), 2024: A site acceptance test is run on the installed system in its real environment before it is accepted.
 
 | Step | Action | Check |
 |---|---|---|
@@ -514,7 +561,7 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
 | internal/expr | The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals. |   |
-| internal/generate | The document targets. The techspec target writes the arc42 document and its Mermaid diagrams, and rewrites the regions between markers in hand-written Markdown. | #/algorithms/markersWellFormed |
+| internal/generate | The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents. Every one renders why as an Insight and each citation as a Note. | #/algorithms/markersWellFormed |
 | internal/validate | Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases, the life-cycle links and traceability warnings, and implementation references. | #/entities/Diagnostic, #/enums/Rule, #/enums/Severity, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
 
 #### Mappings
@@ -549,6 +596,11 @@ cli: standard library. Hand-written argument handling over `os.Args`; three comm
 | Target | Output folder | Settings |
 |---|---|---|
 | techspec | ../../../docs |   |
+| requirements | ../../../docs |   |
+| testplan | ../../../docs |   |
+| traceability | ../../../docs |   |
+| deployment | ../../../docs |   |
+| commissioning | ../../../docs |   |
 
 #### Tasks
 
@@ -559,7 +611,7 @@ cli: standard library. Hand-written argument handling over `os.Args`; three comm
 | vet | `go vet ./...` | yes |
 | vulncheck | `go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...` | yes |
 | validate-specs | `go run ./cmd/specarch validate spec examples` | yes |
-| techspec-current | `go run ./cmd/specarch document techspec --check spec examples` | yes |
+| documents-current | `for target in techspec requirements testplan traceability deployment commissioning; do go run ./cmd/specarch document $target --check spec examples \|\| exit 1; done` | yes |
 | install | `go install ./cmd/specarch` |   |
 | sbom | `syft dir:. -o syft-json=sbom.json && grype sbom:sbom.json && osv-scanner scan source -r .` |   |
 
@@ -1039,9 +1091,11 @@ schema cannot express: cross-references, expressions, worked examples,
 fail-closed access, the interface boundary and implementation
 references.
 
-Why: Two definitions of one shape, one in the schema and one in the validator, would drift; applying the published schema unchanged keeps one.
-
 Consequences: A file an editor accepts and the validator refuses is always a cross-reference or semantic problem, never a shape problem.
+
+**Insight:** Two definitions of one shape, one in the schema and one in the validator, would drift; applying the published schema unchanged keeps one.
+
+**Note:** From JSON Schema, a media type for describing JSON documents, 2020-12: A schema describes the shape of a document, and any conforming validator gives the same answer for it. <https://json-schema.org/specification>
 
 ### ADR-004: Expressions are a small subset of CEL, with CEL's strict types
 
@@ -1061,16 +1115,15 @@ decimal, and money needs one), date and enum values. It is stricter
 than CEL in one place: numbers of different types are not compared
 without a conversion, so every operator follows one rule.
 
-Why: CEL keeps int, uint and double apart and never converts between them
-by itself because an implicit conversion is where precision is lost
-without anyone noticing; a subset of a real language is one less
-grammar to learn and cannot drift from it.
-
 Consequences: A reader who knows C, Java or JavaScript reads the expressions. A
 formula's result has exactly its declared type, and a worked example
 is checked to the last digit. Generators translate a parsed
 expression, and a construct the target cannot express fails
 generation.
+
+**Insight:** CEL keeps int, uint and double apart and never converts between them by itself because an implicit conversion is where precision is lost without anyone noticing; a subset of a real language is one less grammar to learn and cannot drift from it.
+
+**Note:** From Common Expression Language, language definition, 2024: CEL has no implicit numeric conversion: int, uint and double are distinct types and arithmetic on mixed types is an error. <https://github.com/google/cel-spec/blob/master/doc/langdef.md>
 
 ### ADR-005: Report every problem, one line each, with a stable rule name
 
@@ -1084,9 +1137,9 @@ is error or warning; only errors make a file invalid. The rule is a value of
 the `Rule` enum. Status 0 means valid, 1 invalid, 2 a usage or read
 error.
 
-Why: A reader fixes a file in one pass when every problem is on the screen at once, and a stable rule name is what a test and a reader look up.
-
 Consequences: Editors and CI can parse the output. Tests assert the exact lines.
+
+**Insight:** A reader fixes a file in one pass when every problem is on the screen at once, and a stable rule name is what a test and a reader look up.
 
 ### ADR-006: Commands are part of meta-model 0.1
 
@@ -1131,9 +1184,9 @@ thing, no placeholders, ambiguity is an error, few modes, summary
 first. Validator messages say what is wrong, where, and how to fix it,
 in one plain sentence.
 
-Why: Attention is the scarce resource of every reader, tired, new or six months later; a format that spends it on itself leaves less for the system.
-
 Consequences: A keyword, option or message that needs explaining is a defect to fix, not documentation to add.
+
+**Insight:** Attention is the scarce resource of every reader, tired, new or six months later; a format that spends it on itself leaves less for the system.
 
 ### ADR-009: Types are concrete, and the design says how they travel
 
@@ -1155,6 +1208,12 @@ JSON number must be bounded inside 2^53.
 Consequences: Every implementation reads the same range and representation from the
 design. The validator refuses an unbounded int64 carried as a JSON
 number.
+
+**Note:** From ECMA-262, ECMAScript language specification, the Number type, 2025: The Number type is a double-precision 64-bit IEEE 754 value, so an integer above 2^53 cannot be held exactly. <https://tc39.es/ecma262/#sec-ecmascript-language-types-number-type>
+
+**Note:** From JSON Schema, a media type for describing JSON documents, 2020-12: type names the JSON value; format names what the value is. <https://json-schema.org/specification>
+
+**Note:** From OpenAPI Specification, 3.1.0: format int32 and int64 name the width of an integer, so a client knows the range before parsing. <https://spec.openapis.org/oas/v3.1.0>
 
 ### ADR-010: A specification is a folder tree with one root file, specarch.yaml
 
@@ -1186,19 +1245,6 @@ is the plain key it always was: `target: Loan`,
 a file. A diagnostic names the file and line of the node, and the
 YAML path in the merged document.
 
-Why: The folder names say what is inside, so a reader walks to a thing
-instead of searching a file; the root file's `stages` list is the
-specification's own claim of what it covers, and a folder that is
-not listed, or a listed stage without a folder, is caught instead of
-silently skipped. References stay plain keys because a file path in
-a reference would break every time an object moved between files,
-and the point of the tree is to let files be reorganised. Golden and
-red stay a mark inside each test rather than two folders, because a
-test moved between folders could then disagree with its content,
-and tests group by subject, not by outcome. There is one root form,
-not a separate single-file kind, because two ways to write the same
-specification would be two things to learn and to support.
-
 Consequences: `specarch validate` finds a specification by its root file and reads
 nothing under it that the layout does not name. A single-file
 specification is a root file with no `stages`. Implementation files
@@ -1206,6 +1252,10 @@ keep their suffix, because several stacks sit side by side under
 `implementation/`. The techspec and the other documents are one file
 per target, `<target>.md`, in the folder the implementation file
 names, since one specification is one document.
+
+**Insight:** The folder names say what is inside, so a reader walks to a thing instead of searching a file; the root file's `stages` list is the specification's own claim of what it covers, and a folder that is not listed, or a listed stage without a folder, is caught instead of silently skipped. References stay plain keys because a file path in a reference would break every time an object moved between files, and the point of the tree is to let files be reorganised. Golden and red stay a mark inside each test rather than two folders, because a test moved between folders could then disagree with its content, and tests group by subject, not by outcome. There is one root form, not a separate single-file kind, because two ways to write the same specification would be two things to learn and to support.
+
+**Note:** From The go command, Go documentation, 1.26: The go command finds a module by walking up to the directory that holds go.mod; one fixed file name marks the root. <https://go.dev/doc/>
 
 ### ADR-011: The specification covers the whole life cycle, one stage at a time
 
@@ -1244,24 +1294,31 @@ a later stage exists, the validator warns for every requirement
 nothing satisfies or verifies, every need nothing refines, and every
 requirement without acceptance criteria.
 
-Why: The stages are those of ISO/IEC/IEEE 12207's technical processes,
-so a reader who knows the standard knows the folders, and each
-section's fields are the attributes the standard for that stage
-asks for: 29148 for requirements, 29119 for tests, 12207's
-transition and validation processes for deployment and
-commissioning, and the site acceptance test of IEC 62381 for the
-checks. Traceability is warned, not refused, because a specification
-is written in order and the gaps are its to-do list. Records are
-kept out of the specification because a result is a fact about one
-run, not about the design, and a design file that changed on every
-run would be a change log. Stakeholders and signers are roles, not
-people, so the specification holds no personal data.
-
 Consequences: The techspec gains chapters 2, 7, 12 and 13 from the new stages,
 with the traceability matrix. The documentor makes one document per
 stage from the same tree. The validator has rules for the new links
 (need, stakeholder, environment, setting), for secrets
 (secret_value), and the four traceability warnings.
+
+**Insight:** The stages are those of ISO/IEC/IEEE 12207's technical processes, so a reader who knows the standard knows the folders, and each section's fields are the attributes the standard for that stage asks for: 29148 for requirements, 29119 for tests, 12207's transition and validation processes for deployment and commissioning, and the site acceptance test of IEC 62381 for the checks. Traceability is warned, not refused, because a specification is written in order and the gaps are its to-do list. Records are kept out of the specification because a result is a fact about one run, not about the design, and a design file that changed on every run would be a change log. Stakeholders and signers are roles, not people, so the specification holds no personal data.
+
+**Note:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.4: The technical processes, from stakeholder needs and requirements definition (6.4.2) to verification (6.4.9), transition (6.4.10) and validation (6.4.11). <https://www.iso.org/standard/63712.html>
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.8: Each requirement carries attributes such as identification, priority, source and rationale. <https://www.iso.org/standard/72089.html>
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3: Stakeholder needs are gathered and defined before they are transformed into requirements. <https://www.iso.org/standard/72089.html>
+
+**Note:** From ISO/IEC/IEEE 29119-1, Software and systems engineering, Software testing, Part 1, General concepts, 2022: Test levels are unit, integration, system and acceptance.
+
+**Note:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 8.9: Actual results and the test result are recorded per execution, apart from the test case specification. <https://www.iso.org/standard/79429.html>
+
+**Note:** From IEC 62381, Automation systems in the process industry, Factory acceptance test (FAT), site acceptance test (SAT) and site integration test (SIT), 2024: A site acceptance test is run on the installed system in its real environment, and acceptance is signed after it.
+
+**Note:** From MIL-STD-961E, Defense and program-unique specifications format and content, 2003, with change 3 of 2020: A requirement is verified by inspection, analysis, demonstration or test.
+
+**Note:** From MoSCoW prioritisation, in the DSDM Agile Project Framework handbook, 2014: Must, should and could rank what a release cannot do without, what is expected, and what is wanted when it costs little. <https://www.agilebusiness.org/dsdm-project-framework/moscow-prioritisation.html>
+
+**Note:** From arc42, the template for architecture documentation, 8.2: Section 2 of an architecture document is the constraints, section 7 the deployment view and section 12 the glossary. <https://arc42.org/overview>
 
 ### ADR-012: Every element may say why, and cite its sources
 
@@ -1287,21 +1344,17 @@ and at stake, `why` the reasoning that led from it to the decision.
 The documentor renders `why` as an Insight block and each citation
 as a Note block.
 
-Why: Two fields rather than one, because a conclusion and a quotation are
-different things and are read differently: a reader can skip every
-Insight and still read the document, or read only the Notes to see
-what the standards require. Sources are a registry rather than
-written inline in each citation, because a standard cited twenty
-times would otherwise carry its title and edition twenty times and
-drift between them, and the index of sources at the end of a
-document needs one entry per source. `says` rather than `requires`,
-because an interview or a book does not require; it says.
-
 Consequences: Design, deployment, commissioning and implementation elements all
 take `why` and `cites`; the schema allows them wherever an element
 has a description. An external requirement set is a source of kind
 requirement-set, declared with its prefix, and a link into it resolves
 through that prefix.
+
+**Insight:** Two fields rather than one, because a conclusion and a quotation are different things and are read differently: a reader can skip every Insight and still read the document, or read only the Notes to see what the standards require. Sources are a registry rather than written inline in each citation, because a standard cited twenty times would otherwise carry its title and edition twenty times and drift between them, and the index of sources at the end of a document needs one entry per source. `says` rather than `requires`, because an interview or a book does not require; it says.
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.8: Rationale and source are attributes a requirement should carry. <https://www.iso.org/standard/72089.html>
+
+**Note:** From Documenting architecture decisions, 2011: A decision record states the context, the decision and the consequences. <https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions>
 
 ### ADR-013: One binary, specarch, with verbs named by direction, and generator plug-ins on PATH
 
@@ -1327,20 +1380,16 @@ JSON, and takes the files to write back on the plug-in's standard
 output; the program writes them, compares them with `--check`, and
 refuses a path outside the target's folder.
 
-Why: One name to learn and install; `specarch help` lists everything;
-one parser, one validator, one diagnostic format and one version
-shared by every verb, so a file's header can say which SpecArch
-made it and the answer is one number. Verbs named by direction read
-as what they do. Plug-ins on PATH let anyone add a target in any
-language without changing the program, and the protoc protocol, in
-which the plug-in never touches the disk, keeps the rules that every
-target must follow (only its folder, `--check`) in one place instead
-of in every plug-in.
-
 Consequences: The techspec target moves from `generate` to `document`. `generate`
 has no built-in target until a real project needs one; every target
 is a plug-in. The implementation file names the folder of each
 document and code target under `targets`.
+
+**Insight:** One name to learn and install; `specarch help` lists everything; one parser, one validator, one diagnostic format and one version shared by every verb, so a file's header can say which SpecArch made it and the answer is one number. Verbs named by direction read as what they do. Plug-ins on PATH let anyone add a target in any language without changing the program, and the protoc protocol, in which the plug-in never touches the disk, keeps the rules that every target must follow (only its folder, `--check`) in one place instead of in every plug-in.
+
+**Note:** From Protocol buffers compiler plug-in protocol, plugin.proto, 2024: A plug-in reads a CodeGeneratorRequest from standard input and writes a CodeGeneratorResponse to standard output; protoc writes the files. <https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto>
+
+**Note:** From The go command, Go documentation, 1.26: The go command is one binary whose subcommands share one module loader and one way of printing problems. <https://go.dev/doc/>
 
 ### ADR-014: Design elements satisfy requirements, tests and checks verify them
 
@@ -1358,13 +1407,67 @@ from under `needs`. The IDs are those of the `requirements` section,
 or of an external requirement set declared under `sources` with its
 prefix.
 
-Why: Satisfy and verify are the names of these two relations in
-requirements engineering and in SysML, so a reader who knows them
-pays nothing, and the two words make the two columns of the
-traceability matrix, satisfied by and verified by, say themselves.
-
 Consequences: The validator checks both links and derives the traceability
 warnings from them. The techspec's matrix has one column for each.
+
+**Insight:** Satisfy and verify are the names of these two relations in requirements engineering and in SysML, so a reader who knows them pays nothing, and the two words make the two columns of the traceability matrix, satisfied by and verified by, say themselves.
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.5.2: Requirements activities in verification trace each requirement to the verification that shows it is met. <https://www.iso.org/standard/72089.html>
+
+### ADR-015: Insights and Notes are labelled paragraphs, after the table for an element shown as a row
+
+Status: accepted, 2026-10-07.
+
+Context: A document shows an element either under a heading of its own (an
+entity, an operation, a requirement in the requirements
+specification, a decision) or as one row of a table (a stakeholder,
+a need, a setting, a step). A table cell cannot hold a paragraph,
+and an Insight or a Note can be several sentences long.
+
+Decision: An Insight is one paragraph that starts with `Insight:` in bold; a
+Note is one paragraph that starts with `Note:` in bold and reads
+"From <title>, <edition>, clause <clause>: <what it says>", followed
+by the source's URL when it has one. Under an element's own heading
+they follow its description, the Insight first. For elements shown
+as rows, they follow the table, each labelled with the row's name
+(`Insight on LIB-5:`). Every document that cites a source ends with
+a Sources table of exactly the sources its Notes name. The
+traceability matrix names elements by ID only and carries no
+Insights; they are in the documents that describe the elements.
+
+Consequences: A decision's why is its Insight, so decisions no longer have a Why
+paragraph of their own. Documents grow where the specification
+explains itself, and stay as they were where it does not.
+
+**Insight:** A bold label and no other mark is the least a reader has to learn: plain Markdown, readable as text, with no symbol to decode, and the same in every document. Placing a row's Insight after the table keeps the table scannable and still puts the reasoning one glance away, named by the same key the row shows.
+
+### ADR-016: The first documents are the ones the specification already holds
+
+Status: accepted, 2026-10-07.
+
+Context: DocumentTarget names eight documents. The specification holds the
+whole of what five of them need: the requirements stage, the tests,
+the traceability links, the deployment stage with the
+implementation's installations, and the commissioning stage. The
+user manual and the operations guide need task-by-task instructions
+and operational procedures that no section holds yet.
+
+Decision: techspec, requirements, testplan, traceability, deployment and
+commissioning are built; manual and operations wait until the
+specification can say what they need. Each document is one file,
+<target>.md, in the folder the implementation file's targets name
+for it; SpecArch's own and the example's go into their docs/
+folder, beside the hand-written documents, whose names they do not
+share.
+
+Consequences: `specarch document manual` and `operations` answer with status 2.
+CI runs --check for every built target.
+
+**Insight:** A document made from data the specification does not have would be a template with blanks, which is a document someone writes by hand anyway. The five built now pay off at once: they are what a project hands over at each stage, and they cannot drift from the specification because CI checks them.
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018: A requirements specification presents the stakeholders, their needs and the requirements with their attributes. <https://www.iso.org/standard/72089.html>
+
+**Note:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 7.2 and 8.3: A test plan and test case specifications are the test documentation items of a project. <https://www.iso.org/standard/79429.html>
 
 ## 10. Quality requirements
 
@@ -1377,6 +1480,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-check-current | command document | system | golden | output that matches the design file | document techspec is run with --check | it writes nothing, prints nothing and exits 0 |
 | document-check-differs | command document | system | red | a generated file edited by hand | document techspec is run with --check | it names the file that differs, writes nothing and exits 1 |
 | document-check-missing | command document | system | red | no generated output yet | document techspec is run with --check | it names the missing file and exits 1 |
+| document-citation-unknown-source | command document | system | red | a stakeholder that cites a source the specification does not declare | document requirements is run | it prints the validator's source error, writes nothing and exits 1 |
 | document-entity-diagram | command document | system | golden | a hand-written document with an erDiagram marker | document techspec is run | the region holds the entity diagram, every other line is unchanged, and it exits 0 |
 | document-invalid-input | command document | system | red | a design file with a relation to an entity that does not exist | document techspec is run | it prints the diagnostic, writes nothing and exits 1 |
 | document-marker-unclosed | command document | system | red | a marker with no end marker | document techspec is run | it reports the marker's line, writes nothing and exits 1 |
@@ -1386,12 +1490,17 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-permissions-table | command document | system | golden | a hand-written document with a permissions marker | document techspec is run | the region holds the table of permissions and roles, with public granted to everyone, and it exits 0 |
 | document-sequence-diagram | command document | system | golden | a hand-written document with a sequenceDiagram payOrder marker | document techspec is run | the region holds the call, the event on order.events and the 200 answer, and it exits 0 |
 | document-state-diagram | command document | system | golden | a hand-written document with a stateDiagram Order marker | document techspec is run | the region holds the states of Order with a start and an end, and it exits 0 |
-| document-target-not-offered | command document | system | red | a document target of the design that this build does not offer | document requirements is run | it says which targets it has and exits 2 |
+| document-target-not-offered | command document | system | red | a document target of the design that this build does not offer | document manual is run | it says which targets it has and exits 2 |
 | document-techspec-without-implementation | command document | system | golden | a design file and no implementation file | document techspec is run with --out docs | it writes docs/shop.techspec.md without chapter 7 and exits 0 |
 | document-two-implementations | command document | system | golden | a specification with two implementation files, one of which names techspec's output folder | document techspec is run on it | chapter 7 has one part for each implementation, the header names both, and it exits 0 |
 | document-unknown-target | command document | system | red | a target name that does not exist | document is run with target pdf | it names the targets there are and exits 2 |
 | document-usage-error | command document | system | red | no target | document is run without arguments | it prints how to use it and exits 2 |
+| document-writes-commissioning | command document | system | golden | checks in two environments, one with a why and a citation, and a sign-off with one criterion and one signer | document commissioning is run | it writes commissioning.md with the staging checks before the production ones, a Result column for every step, the sign-off sheet, and exits 0 |
+| document-writes-deployment | command document | system | golden | two environments, a plain and a secret setting, release and rollback steps (one with a why and a citation), a migration that cannot be reversed, and an implementation file with two installations | document deployment is run | it writes deployment.md with the path a release takes, each installation's servers and setting values with the secret only named and an unset value marked, the steps, and exits 0 |
+| document-writes-requirements | command document | system | golden | a specification whose elements have an Insight only, a Note only, both, several Notes and neither | document requirements is run | it writes requirements.md with an Insight for every why and a Note for every citation, after the table for a row, ends with the two sources cited, and exits 0 |
 | document-writes-techspec | command document | system | golden | a design file and an implementation file that names techspec's output folder | document techspec is run on both | it writes techspec/shop.techspec.md with every chapter the design fills, chapter 7 from the implementation file, and exits 0 |
+| document-writes-testplan | command document | system | golden | a specification with a golden and a red test of one entity constraint, one with a why | document testplan is run | it writes testplan.md with the count of each scenario, the levels, both test cases under their subject with given, when and then, and exits 0 |
+| document-writes-traceability | command document | system | golden | needs, two requirements, an entity that satisfies one and a test that verifies it, and a rejected need | document traceability is run | it writes traceability.md with both matrices and lists as gaps the unrefined need, the requirement without acceptance criteria and the one nothing satisfies or verifies, and exits 0 |
 | extract-exit-1 | command extract | system | red | not applicable |   | Status 1, a surface that cannot be read as the source expects, can only happen once extract is built; this build answers every call with status 2. |
 | extract-not-offered | command extract | system | red | a build that does not offer extract | extract openapi is run on a file | it says extract is not built yet and exits 2 |
 | extract-usage-error | command extract | system | red | no source | extract is run without arguments | it prints how to use it and exits 2 |
@@ -1523,6 +1632,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-14 | A code target that specarch does not build in shall be produced by the plug-in specarch-gen-<target> found on PATH, which receives the validated specification on its standard input and answers with the files to write, so that specarch writes them, checks them and keeps them inside the target's folder. | interface | should | accepted | test | specarch generate <target> with no built-in generator and no plug-in on PATH says so and exits 2. A plug-in's answer that names a path outside the output folder is refused and nothing is written. | NEED-7 |
+| SA-15 | Every document specarch writes shall show an element's why as an Insight and each of its citations as a Note, next to the element, and shall end with the sources its Notes cite. | functional | must | accepted | test | An element with a why gets one paragraph labelled Insight, and each citation one paragraph labelled Note that names the source's title, edition, the clause and what it says. An element shown as a row of a table gets its Insight and Notes after the table, labelled with the row's name. A document whose Notes cite sources ends with a table of exactly those sources. | NEED-6 |
+| SA-16 | specarch document shall write, besides the technical specification, the requirements specification, the test plan, the traceability matrix, the deployment guide and the commissioning procedure with its sign-off sheet. | functional | must | accepted | test | Each of the five targets writes <target>.md into the folder it owns, with the generated-from header. The commissioning procedure has a Result column for every step and a sign-off sheet with a row for every signer. | NEED-3, NEED-5 |
 | SA-11 | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. | functional | must | accepted | test | A tree whose root lists its stages and holds each stage's files under that folder validates. A file in the wrong folder, a section in the wrong file, a listed stage without a folder, and a folder that is not a stage are each reported as layout. | NEED-4 |
 | SA-12 | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment and commissioning, each optional until the project reaches it. | functional | must | accepted | test | A specification with only a requirements stage validates with no error. A requirement no design element satisfies, a requirement no test or check verifies, and a need no requirement refines are reported as warnings once the later stage exists. | NEED-5 |
 | SA-13 | Every element of a specification, at every stage, may carry a rationale (why) and citations of declared sources (cites), and the validator shall check that every citation names a declared source. | functional | must | accepted | test | An element with why and cites validates, and a citation of a source that is not declared is reported as source. | NEED-6 |
@@ -1534,6 +1645,24 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-6 | Every problem shall be reported, one line each, with file, line, YAML path and rule; the exit status is 0 when valid, 1 when invalid, 2 on a usage or read error. | interface | must | accepted | test | A run on a folder with three problems in two files prints three lines and exits 1. A run with no arguments prints how to use the command and exits 2. | NEED-1 |
 | SA-9 | A specification and its implementations shall be separate files; a specification holds no stack-specific key and an implementation file adds no design. | constraint | must | accepted | test | A stack-specific extension key in a specification is reported as stack_key. A design keyword in an implementation file is reported as design_key. | NEED-2 |
 | SA-10 | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. | functional | must | accepted | test | An implementation written against an older version of its specification is reported as implements. A pointer to an object the specification does not have is reported as design_ref. | NEED-2 |
+
+**Note on SA-14:** From Protocol buffers compiler plug-in protocol, plugin.proto, 2024: A plug-in reads a CodeGeneratorRequest from standard input and writes a CodeGeneratorResponse to standard output; protoc writes the files, so a plug-in never touches the disk. <https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto>
+
+**Insight on SA-15:** A reader can skip every Insight and Note and still read the document, or read only them to follow the reasoning; a label on each makes both possible.
+
+**Note on SA-16:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 7.2 and 8.3: A test plan and test case specifications are the test documentation items of a project. <https://www.iso.org/standard/79429.html>
+
+**Insight on SA-11:** One file for a whole system grows past what a reader can navigate; a tree whose folder names say what is inside lets the reader walk to a thing.
+
+**Note on SA-12:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.4: The technical processes run from business or mission analysis and stakeholder needs definition (6.4.2) through requirements definition (6.4.3), design (6.4.4 and 6.4.5), implementation (6.4.7), verification (6.4.9), transition (6.4.10) and validation (6.4.11). <https://www.iso.org/standard/63712.html>
+
+**Note on SA-12:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3 and 6.4: Stakeholder needs are defined first and then transformed into system requirements; each requirement carries attributes and traces to its source. <https://www.iso.org/standard/72089.html>
+
+**Note on SA-13:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.8: Rationale and source are attributes every requirement should carry. <https://www.iso.org/standard/72089.html>
+
+**Insight on SA-1:** The schema is the one definition of a file's shape; checking it first means every later rule can assume the shape.
+
+**Note on SA-6:** From The go command, Go documentation, 1.26: The Go tools print one problem per line as file:line, which editors and CI already parse. <https://go.dev/doc/>
 
 ### Traceability
 
@@ -1553,6 +1682,30 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-10 | enums Rule; commands validate | tests validate-deployment-environment-missing; tests validate-design-ref; tests validate-implements; tests validate-setting; tests validate-tree-valid |
 | SA-11 | enums Rule; entities SpecFile; commands extract; commands validate; decisions ADR-010 | tests validate-duplicate-name-across-files; tests validate-layout-folder-missing; tests validate-layout-not-a-stage; tests validate-layout-section-folder-in-root; tests validate-layout-section-in-root; tests validate-layout-section-in-wrong-stage; tests validate-layout-stack-mismatch; tests validate-layout-stage-not-listed; tests validate-layout-subfolder-section; tests validate-layout-test-without-file; tests validate-tree-valid; checks checks-the-examples |
 | SA-12 | enums Rule; commands validate; decisions ADR-011; decisions ADR-014 | tests validate-deployment-valid; tests validate-need-rejected; tests validate-requirements-only; tests validate-secret-in-deployment; tests validate-secret-value; tests validate-traceability-warnings |
-| SA-13 | enums Rule; commands validate; decisions ADR-012 | tests validate-cites; tests validate-source |
+| SA-13 | enums Rule; commands validate; decisions ADR-012 | tests document-citation-unknown-source; tests validate-cites; tests validate-source |
 | SA-14 | enums GeneratorTarget; commands generate; decisions ADR-013 | tests generate-no-plugin; tests generate-plugin-path-outside; tests generate-with-plugin |
+| SA-15 | commands document; decisions ADR-015 | tests document-writes-requirements |
+| SA-16 | enums DocumentTarget; commands document; decisions ADR-016 | tests document-writes-commissioning; tests document-writes-deployment; tests document-writes-requirements; tests document-writes-testplan; tests document-writes-traceability |
+
+## Sources
+
+Every source a Note in this document cites.
+
+| Source | Title | Edition | Author | Where to read it |
+|---|---|---|---|---|
+| adr-nygard | Documenting architecture decisions | 2011 | Michael Nygard | https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions |
+| arc42 | arc42, the template for architecture documentation | 8.2 | Gernot Starke and Peter Hruschka | https://arc42.org/overview |
+| cel | Common Expression Language, language definition | 2024 | The CEL project | https://github.com/google/cel-spec/blob/master/doc/langdef.md |
+| ecma-262 | ECMA-262, ECMAScript language specification, the Number type | 2025 | Ecma International | https://tc39.es/ecma262/#sec-ecmascript-language-types-number-type |
+| go-tool | The go command, Go documentation | 1.26 | The Go project | https://go.dev/doc/ |
+| iec-62381 | IEC 62381, Automation systems in the process industry, Factory acceptance test (FAT), site acceptance test (SAT) and site integration test (SIT) | 2024 | IEC |   |
+| iso-12207 | ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes | 2017 | ISO, IEC and IEEE | https://www.iso.org/standard/63712.html |
+| iso-29119-1 | ISO/IEC/IEEE 29119-1, Software and systems engineering, Software testing, Part 1, General concepts | 2022 | ISO, IEC and IEEE |   |
+| iso-29119-3 | ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation | 2021 | ISO, IEC and IEEE | https://www.iso.org/standard/79429.html |
+| iso-29148 | ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering | 2018 | ISO, IEC and IEEE | https://www.iso.org/standard/72089.html |
+| json-schema | JSON Schema, a media type for describing JSON documents | 2020-12 | The JSON Schema project | https://json-schema.org/specification |
+| mil-std-961 | MIL-STD-961E, Defense and program-unique specifications format and content | 2003, with change 3 of 2020 | United States Department of Defense |   |
+| moscow | MoSCoW prioritisation, in the DSDM Agile Project Framework handbook | 2014 | Agile Business Consortium | https://www.agilebusiness.org/dsdm-project-framework/moscow-prioritisation.html |
+| openapi | OpenAPI Specification | 3.1.0 | OpenAPI Initiative | https://spec.openapis.org/oas/v3.1.0 |
+| protoc-plugins | Protocol buffers compiler plug-in protocol, plugin.proto | 2024 | The protocol buffers project | https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto |
 

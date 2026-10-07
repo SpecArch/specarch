@@ -1,0 +1,17 @@
+specarchImplementation: "0.1"
+info: { title: Shop in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+deployments:
+  staging:
+    description: The staging host.
+    environment: staging
+    servers:
+      - { url: "https://staging.shop.example", description: The till's API. }
+    configuration:
+      taxRate: "0.11"
+  production:
+    description: The shop's host.
+    environment: production
+    servers:
+      - { url: "https://shop.example", description: The till's API. }

@@ -66,6 +66,16 @@ bindings:
 targets:
   techspec:
     output: ../../../docs
+  requirements:
+    output: ../../../docs
+  testplan:
+    output: ../../../docs
+  traceability:
+    output: ../../../docs
+  deployment:
+    output: ../../../docs
+  commissioning:
+    output: ../../../docs
   openapi:
     output: api
     tool: oapi-codegen

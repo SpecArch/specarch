@@ -1,0 +1,37 @@
+specarch: "0.1"
+info: { title: Shop, version: 1.0.0 }
+sources:
+  iec-62381: { kind: standard, title: "IEC 62381, Factory, site and site integration acceptance tests", edition: "2024" }
+stakeholders:
+  owner: { description: Owns the shop. }
+requirements:
+  SHOP-1:
+    statement: A clerk shall record an order.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [An order is saved.]
+environments:
+  staging: { description: Where a release is tried first., promotesTo: production }
+  production: { description: The till in the shop. }
+checks:
+  till-opens:
+    kind: smoke
+    description: The till starts and shows the menu.
+    environment: production
+    steps:
+      - { name: Open, action: Start the till., check: The menu shows. }
+  whole-sale:
+    kind: end-to-end
+    description: One sale goes through with the real printer.
+    environment: staging
+    steps:
+      - { name: Sell, action: Ring up one item and take cash., check: The receipt prints with the right total. }
+    verifies: [SHOP-1]
+    why: The printer is the part a test bench does not have.
+    cites:
+      - { source: iec-62381, says: A site acceptance test runs on the installed system in its real environment. }
+signoff:
+  criteria: [Every check passed.]
+  signers:
+    - { role: owner, description: Accepts for the shop. }

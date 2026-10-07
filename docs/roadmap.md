@@ -50,9 +50,10 @@ lessons from an earlier in-house language made the first requirement.
 ## 2. Targets, in order of payoff
 
 Documents are `specarch document <target> <folders>`, built into the
-program, one per stage of the life cycle: techspec (built), requirements,
-test plan, traceability, deployment guide, commissioning procedure, manual
-and operations guide. Code is `specarch generate <target> <folders>`, each
+program, one per stage of the life cycle: techspec, requirements, test
+plan, traceability, deployment guide and commissioning procedure (built),
+then the manual and the operations guide, once the specification holds the
+task-by-task and operational content they need. Code is `specarch generate <target> <folders>`, each
 target a plug-in `specarch-gen-<target>` found on PATH (`docs/generators.md`
 has the protocol). Every target writes into a folder it owns. It reads the
 specification for the design and the implementation file for the target

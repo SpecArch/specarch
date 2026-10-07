@@ -1,0 +1,7 @@
+command: document
+level: system
+scenario: golden
+given: "checks in two environments, one with a why and a citation, and a sign-off with one criterion and one signer"
+when: "document commissioning is run"
+then: "it writes commissioning.md with the staging checks before the production ones, a Result column for every step, the sign-off sheet, and exits 0"
+verifies: [SA-16]

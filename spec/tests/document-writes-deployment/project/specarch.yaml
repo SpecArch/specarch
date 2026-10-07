@@ -1,0 +1,37 @@
+specarch: "0.1"
+info: { title: Shop, version: 1.0.0 }
+sources:
+  ops-manual: { kind: document, title: The shop's operations manual, edition: "3" }
+environments:
+  staging: { description: Where a release is tried first., promotesTo: production }
+  production: { description: The till in the shop. }
+configuration:
+  taxRate:
+    description: The sales tax rate.
+    secret: false
+    schema: { type: string, format: decimal, precision: 4, scale: 2 }
+  databaseUrl:
+    description: Where the database is; it comes from the host's secret store.
+    secret: true
+    schema: { type: string, format: uri }
+release:
+  description: A release goes to staging first, then to production after closing time.
+  steps:
+    - name: Install on staging
+      action: Install the build on staging.
+      check: The till opens on staging.
+    - name: Install on production
+      action: After closing time, install the build on production.
+      check: The till opens in the shop.
+      why: Installing after closing time means no sale is lost if it fails.
+      cites:
+        - { source: ops-manual, clause: "2.1", says: Changes to the till are made after closing time. }
+rollback:
+  description: The previous build stays installed beside the new one.
+  steps:
+    - { name: Switch back, action: Start the previous build., check: The till opens and shows the previous version. }
+migrations:
+  add-tax:
+    description: Every order gets a tax amount, zero for old orders.
+    steps:
+      - { name: Add the column, action: Add tax to orders with a default of zero., check: Every order has a tax amount. }

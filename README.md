@@ -117,6 +117,7 @@ a defect in the roadmap, not an accepted state.
 | `schema/specarch-implementation-0.1.schema.json` | the meta-model of implementation files |
 | `spec/` | SpecArch's own specification: every stage, the design of the `specarch` command, its Go and Swift implementation files, and in `spec/tests/` the conformance suite every implementation of `specarch` must pass |
 | `docs/techspec.md` | SpecArch's technical specification, generated from `spec/` |
+| `docs/requirements.md`, `testplan.md`, `traceability.md`, `deployment.md`, `commissioning.md` | SpecArch's other documents, generated from `spec/` |
 | `swift/` | the Swift build of `specarch` |
 | `history/` | what changed and why, one file per day |
 | `docs/principles.md` | the Low IQ Tax principle and how SpecArch applies it |
@@ -189,6 +190,14 @@ specification with errors. With `--check` it writes nothing and exits 1 when
 the committed output differs, which is how CI keeps the documents current.
 `docs/techspec.md` is SpecArch's own, made from `spec/`.
 
+The other document targets work the same way: `requirements` (the
+requirements specification), `testplan` (the test plan and test cases),
+`traceability` (the matrix and its gaps), `deployment` (the deployment
+guide) and `commissioning` (the commissioning procedure and sign-off
+sheet), each as `<target>.md`. Wherever the specification says why an
+element is so, or cites a standard for it, the document shows an Insight
+or a Note next to the element.
+
 Code targets (OpenAPI, SQL, UI, tests) are plug-ins: `specarch generate
 <target>` runs `specarch-gen-<target>` from PATH, hands it the validated
 specification on its standard input, and writes the files it answers with.
@@ -198,8 +207,8 @@ specification on its standard input, and writes the files it answers with.
 
 Version 0.1 of the meta-model, October 2026. The two schemas, the tree
 layout and the six stages, one example, SpecArch's own specification, the
-validator in Go and in Swift, and the techspec document exist; the other
-documents and the code targets are on the roadmap. The meta-model will change: the first real
+validator in Go and in Swift, and six documents exist; the manual, the
+operations guide and the code targets are on the roadmap. The meta-model will change: the first real
 projects written in SpecArch are expected to find concepts it cannot
 express, and those gaps define the next version.
 

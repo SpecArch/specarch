@@ -1,0 +1,33 @@
+decisions:
+  ADR-015:
+    title: Insights and Notes are labelled paragraphs, after the table for an element shown as a row
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      A document shows an element either under a heading of its own (an
+      entity, an operation, a requirement in the requirements
+      specification, a decision) or as one row of a table (a stakeholder,
+      a need, a setting, a step). A table cell cannot hold a paragraph,
+      and an Insight or a Note can be several sentences long.
+    decision: |
+      An Insight is one paragraph that starts with `Insight:` in bold; a
+      Note is one paragraph that starts with `Note:` in bold and reads
+      "From <title>, <edition>, clause <clause>: <what it says>", followed
+      by the source's URL when it has one. Under an element's own heading
+      they follow its description, the Insight first. For elements shown
+      as rows, they follow the table, each labelled with the row's name
+      (`Insight on LIB-5:`). Every document that cites a source ends with
+      a Sources table of exactly the sources its Notes name. The
+      traceability matrix names elements by ID only and carries no
+      Insights; they are in the documents that describe the elements.
+    why: |
+      A bold label and no other mark is the least a reader has to learn:
+      plain Markdown, readable as text, with no symbol to decode, and the
+      same in every document. Placing a row's Insight after the table keeps
+      the table scannable and still puts the reasoning one glance away,
+      named by the same key the row shows.
+    consequences: |
+      A decision's why is its Insight, so decisions no longer have a Why
+      paragraph of their own. Documents grow where the specification
+      explains itself, and stay as they were where it does not.
+    satisfies: [SA-15]

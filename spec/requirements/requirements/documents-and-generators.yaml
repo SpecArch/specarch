@@ -32,3 +32,29 @@ requirements:
     cites:
       - source: protoc-plugins
         says: "A plug-in reads a CodeGeneratorRequest from standard input and writes a CodeGeneratorResponse to standard output; protoc writes the files, so a plug-in never touches the disk."
+  SA-15:
+    statement: Every document specarch writes shall show an element's why as an Insight and each of its citations as a Note, next to the element, and shall end with the sources its Notes cite.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - An element with a why gets one paragraph labelled Insight, and each citation one paragraph labelled Note that names the source's title, edition, the clause and what it says.
+      - An element shown as a row of a table gets its Insight and Notes after the table, labelled with the row's name.
+      - A document whose Notes cite sources ends with a table of exactly those sources.
+    verification: test
+    needs: [NEED-6]
+    why: A reader can skip every Insight and Note and still read the document, or read only them to follow the reasoning; a label on each makes both possible.
+  SA-16:
+    statement: specarch document shall write, besides the technical specification, the requirements specification, the test plan, the traceability matrix, the deployment guide and the commissioning procedure with its sign-off sheet.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - Each of the five targets writes <target>.md into the folder it owns, with the generated-from header.
+      - The commissioning procedure has a Result column for every step and a sign-off sheet with a row for every signer.
+    verification: test
+    needs: [NEED-3, NEED-5]
+    cites:
+      - source: iso-29119-3
+        clause: "7.2 and 8.3"
+        says: "A test plan and test case specifications are the test documentation items of a project."

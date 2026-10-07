@@ -1,0 +1,7 @@
+command: document
+level: system
+scenario: golden
+given: "needs, two requirements, an entity that satisfies one and a test that verifies it, and a rejected need"
+when: "document traceability is run"
+then: "it writes traceability.md with both matrices and lists as gaps the unrefined need, the requirement without acceptance criteria and the one nothing satisfies or verifies, and exits 0"
+verifies: [SA-16]

@@ -1,0 +1,7 @@
+specarch: "0.1"
+info: { title: Shop, version: 1.0.0 }
+stakeholders:
+  clerk:
+    description: Staff at the till.
+    cites:
+      - { source: policy, says: The clerk takes every sale. }

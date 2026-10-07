@@ -1,0 +1,7 @@
+command: document
+level: system
+scenario: golden
+given: "a specification with a golden and a red test of one entity constraint, one with a why"
+when: "document testplan is run"
+then: "it writes testplan.md with the count of each scenario, the levels, both test cases under their subject with given, when and then, and exits 0"
+verifies: [SA-16]

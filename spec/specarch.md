@@ -225,8 +225,9 @@ implementation file.
 
 ## 11. Risks and technical debt
 
-Of the document targets, techspec is built; the others are designed by name
-and return status 2 until they are. No code target is built in; each is a
+Of the document targets, manual and operations are designed by name and
+return status 2, since the specification does not yet hold what they need;
+the other six are built. No code target is built in; each is a
 plug-in. `extract` is designed and not built, so it has no golden test and
 the validator says so on every run. Editors cannot yet validate a fragment
 file on its own, since the schema describes the merged document.
@@ -244,5 +245,6 @@ The glossary is in `requirements/glossary/`.
 
 ## 13. Requirements
 
-The stakeholders, needs and requirements are in `requirements/`, and the
-traceability matrix is chapter 13 of `docs/techspec.md`.
+The stakeholders, needs and requirements are in `requirements/`. The
+requirements specification is `docs/requirements.md`, and the traceability
+matrix is `docs/traceability.md` and chapter 13 of `docs/techspec.md`.

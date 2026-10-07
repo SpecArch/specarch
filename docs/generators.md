@@ -76,7 +76,31 @@ deployments and the implementation decisions), chapter 12 from the
 glossary, and chapter 13 from the needs and requirements with the
 traceability matrix of what satisfies and what verifies each requirement.
 
-The target also rewrites the generated diagrams and tables between the
+## The other documents
+
+`specarch document requirements` writes `requirements.md`: purpose and
+scope, the stakeholders, the needs with the requirements that refine them,
+each requirement with its attributes and acceptance criteria, then the
+constraints, assumptions and glossary. `testplan` writes `testplan.md`: the
+count of golden and red tests, the levels, how each implementation's suites
+run them, and every design test as a test case under its subject.
+`traceability` writes `traceability.md`: needs to requirements,
+requirements to what satisfies and verifies them, and the gaps.
+`deployment` writes `deployment.md`: the environments and the path a
+release takes, the settings, each installation of each implementation with
+its servers and setting values, a secret only named, then release, rollback
+and migrations. `commissioning` writes `commissioning.md`: the checks by
+environment in the order a release reaches them, a Result column for every
+step, and the sign-off sheet. `manual` and `operations` wait until the
+specification holds what they need.
+
+In every document, an element's `why` is a paragraph that starts with
+**Insight:** and each of its citations one that starts with **Note:**,
+under the element's heading, or after the table when the element is a row,
+labelled with the row's name. A document that cites sources ends with a
+table of them.
+
+The techspec target also rewrites the generated diagrams and tables between the
 markers of the hand-written `specarch.md` beside the root file and leaves
 every other line alone. A document with no markers gets nothing; a marker for an
 object that does not exist is an error, not an empty block, so a deleted

@@ -18,7 +18,7 @@ import (
 // says which this program has.
 var (
 	documentTargets = []string{"techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "manual", "operations"}
-	builtDocuments  = map[string]bool{"techspec": true}
+	builtDocuments  = map[string]bool{"techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true}
 )
 
 // planned is one file a target wants on disk.
@@ -44,7 +44,13 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	if !builtDocuments[target] {
-		fmt.Fprintf(stderr, "specarch document: this build has no %s documentor; it has techspec\n", target)
+		var built []string
+		for _, t := range documentTargets {
+			if builtDocuments[t] {
+				built = append(built, t)
+			}
+		}
+		fmt.Fprintf(stderr, "specarch document: this build has no %s documentor; it has %s\n", target, strings.Join(built, ", "))
 		return 2
 	}
 	specs, status := loadSpecs(paths, "document", stdout, stderr)
@@ -62,7 +68,11 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		for _, i := range l.impls {
 			impls = append(impls, generate.Implementation{Node: i.Node, Rel: relSlash(folder, i.Path), Path: i.Path})
 		}
-		plan = append(plan, planned{filepath.Join(folder, generate.TechspecName), generate.Techspec(l.spec.Root, relSlash(folder, l.spec.RootFile), impls)})
+		text, _ := generate.Document(target, l.spec.Root, relSlash(folder, l.spec.RootFile), impls)
+		plan = append(plan, planned{filepath.Join(folder, generate.DocumentName(target)), text})
+		if target != "techspec" {
+			continue
+		}
 
 		companion := filepath.Join(l.spec.Dir, generate.CompanionName)
 		if text, err := os.ReadFile(companion); err == nil {

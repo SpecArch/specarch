@@ -1,0 +1,55 @@
+specarch: "0.1"
+info: { title: Shop, version: 1.0.0, description: A small shop that takes orders. }
+sources:
+  iso-29148:
+    kind: standard
+    title: ISO/IEC/IEEE 29148, Requirements engineering
+    edition: "2018"
+    url: https://www.iso.org/standard/72089.html
+  policy:
+    kind: document
+    title: The shop's sales policy
+    edition: "2026"
+stakeholders:
+  clerk:
+    description: Staff at the till.
+    concerns: [Every sale is quick., A receipt is never wrong.]
+    why: The clerk uses the system all day, so their time sets the design.
+  owner: { description: Owns the shop. }
+needs:
+  NEED-1:
+    statement: Orders must be taken without paper.
+    stakeholders: [clerk]
+    status: accepted
+    cites:
+      - { source: policy, clause: "3", says: Every sale is recorded on the day it is made. }
+  NEED-2: { statement: The owner wants a daily total., stakeholders: [owner], status: accepted }
+requirements:
+  SHOP-1:
+    statement: A clerk shall record an order with at least one line.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [An order with no lines is refused.]
+    verification: test
+    needs: [NEED-1]
+    why: An empty order is a mistake at the till, never a sale.
+    cites:
+      - { source: iso-29148, clause: "5.2.5", says: A requirement is verifiable. }
+      - { source: policy, clause: "3", says: A sale has at least one item. }
+  SHOP-2:
+    statement: The system shall show the day's total to the owner.
+    kind: functional
+    priority: should
+    status: proposed
+    needs: [NEED-2]
+constraints:
+  CON-1:
+    kind: technical
+    statement: The till has no network at night.
+    cites:
+      - { source: policy, says: The shop closes its network after hours. }
+glossary:
+  order:
+    definition: What a customer buys in one visit.
+    why: Called an order, not a sale, because it can be paid later.

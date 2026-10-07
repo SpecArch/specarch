@@ -72,7 +72,7 @@ layout:
   internal/expr:
     description: The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals.
   internal/generate:
-    description: The document targets. The techspec target writes the arc42 document and its Mermaid diagrams, and rewrites the regions between markers in hand-written Markdown.
+    description: The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents. Every one renders why as an Insight and each citation as a Note.
     implements: ["#/algorithms/markersWellFormed"]
   internal/validate:
     description: Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases, the life-cycle links and traceability warnings, and implementation references.
@@ -102,6 +102,21 @@ targets:
   techspec:
     output: ../../../docs
     description: SpecArch's own technical specification, written from the specification and this file, and kept current by CI.
+  requirements:
+    output: ../../../docs
+    description: The requirements specification, kept current by CI.
+  testplan:
+    output: ../../../docs
+    description: The test plan and test cases, kept current by CI.
+  traceability:
+    output: ../../../docs
+    description: The traceability matrix, kept current by CI.
+  deployment:
+    output: ../../../docs
+    description: The deployment guide, kept current by CI.
+  commissioning:
+    output: ../../../docs
+    description: The commissioning procedure and sign-off sheet, kept current by CI.
 
 bindings:
   cli:
@@ -117,8 +132,8 @@ tasks:
     run: go run ./cmd/specarch validate spec examples
     description: The validator checks its own specification and every example.
     ci: true
-  techspec-current:
-    run: go run ./cmd/specarch document techspec --check spec examples
+  documents-current:
+    run: for target in techspec requirements testplan traceability deployment commissioning; do go run ./cmd/specarch document $target --check spec examples || exit 1; done
     description: The committed technical specifications match their specifications.
     ci: true
   install: { run: go install ./cmd/specarch }

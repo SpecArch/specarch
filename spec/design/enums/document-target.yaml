@@ -3,8 +3,8 @@ enums:
     type: string
     description: |
       The documents `specarch document` writes from a specification, one per
-      stage of the life cycle. Only techspec is built so far; the others
-      answer with status 2 until they are.
+      stage of the life cycle. manual and operations answer with status 2
+      until the specification holds what they need (ADR-016).
     enum: [techspec, requirements, testplan, traceability, deployment, commissioning, manual, operations]
     valueDescriptions:
       techspec: arc42 technical specification in Markdown with generated Mermaid diagrams
@@ -15,7 +15,7 @@ enums:
       commissioning: commissioning test procedure and sign-off sheet
       manual: user manual, from the pages and permissions
       operations: operations guide, from the endpoints, channels and deployments
-    satisfies: [SA-7]
+    satisfies: [SA-7, SA-16]
     cites:
       - source: iso-29119-3
         clause: "7.2 and 8.3"

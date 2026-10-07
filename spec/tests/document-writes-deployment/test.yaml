@@ -1,0 +1,7 @@
+command: document
+level: system
+scenario: golden
+given: "two environments, a plain and a secret setting, release and rollback steps (one with a why and a citation), a migration that cannot be reversed, and an implementation file with two installations"
+when: "document deployment is run"
+then: "it writes deployment.md with the path a release takes, each installation's servers and setting values with the secret only named and an unset value marked, the steps, and exits 0"
+verifies: [SA-16]

@@ -24,6 +24,25 @@ commands:
       names what goes in its region: `erDiagram`, `stateDiagram <Entity>`,
       `sequenceDiagram <operationId or command>`, `flowchart pages` or
       `permissions`.
+
+      The requirements target writes `requirements.md`: the stakeholders,
+      the needs with the requirements that refine them, and each
+      requirement with its attributes and acceptance criteria. The
+      testplan target writes `testplan.md`: the levels, how each
+      implementation's suites run the tests, and every design test as a
+      test case, grouped by subject. The traceability target writes
+      `traceability.md`: needs to requirements, requirements to what
+      satisfies and verifies them, and the gaps the validator warns about.
+      The deployment target writes `deployment.md`: the environments and
+      the path a release takes, the settings, each installation of each
+      implementation with its servers and setting values (a secret only
+      named), release, rollback and the migrations. The commissioning
+      target writes `commissioning.md`: the checks by environment in the
+      order a release reaches them, each step with a Result column, and
+      the sign-off sheet.
+
+      In every document an element's why is an Insight and each citation
+      a Note (ADR-015), and a document that cites sources ends with them.
     permission: public
     arguments:
       - name: target
@@ -58,7 +77,7 @@ commands:
       "1": a specification has an error, a marker is wrong, or with `--check` the output differs
       "2": usage error, a target this build does not offer, no output folder, or a file that could not be read or written
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8]
+    satisfies: [SA-7, SA-8, SA-15, SA-16]
     why: Documents are read by more people than the YAML, so they come first among the targets and are made from the specification rather than kept beside it.
     cites:
       - source: arc42

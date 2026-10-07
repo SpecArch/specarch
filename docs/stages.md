@@ -118,8 +118,10 @@ The results of a commissioning run are records, not design. A result is a
 fact about one run; a design file that changed on every run would be a
 change log, which the Low IQ Tax principle forbids. So each run is one file
 outside the specification, under `records/commissioning/` beside the
-specification's folder, as `docs/conventions.md` describes, and the
-documentor reads them when it makes the commissioning report.
+specification's folder, as `docs/conventions.md` describes. The
+commissioning procedure that `specarch document commissioning` writes is
+the form a run fills in; reading the filled-in records belongs to the
+records design in `docs/maintenance.md`.
 
 ## Traceability
 

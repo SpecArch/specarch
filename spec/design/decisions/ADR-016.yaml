@@ -1,0 +1,36 @@
+decisions:
+  ADR-016:
+    title: The first documents are the ones the specification already holds
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      DocumentTarget names eight documents. The specification holds the
+      whole of what five of them need: the requirements stage, the tests,
+      the traceability links, the deployment stage with the
+      implementation's installations, and the commissioning stage. The
+      user manual and the operations guide need task-by-task instructions
+      and operational procedures that no section holds yet.
+    decision: |
+      techspec, requirements, testplan, traceability, deployment and
+      commissioning are built; manual and operations wait until the
+      specification can say what they need. Each document is one file,
+      <target>.md, in the folder the implementation file's targets name
+      for it; SpecArch's own and the example's go into their docs/
+      folder, beside the hand-written documents, whose names they do not
+      share.
+    why: |
+      A document made from data the specification does not have would be
+      a template with blanks, which is a document someone writes by hand
+      anyway. The five built now pay off at once: they are what a project
+      hands over at each stage, and they cannot drift from the
+      specification because CI checks them.
+    consequences: |
+      `specarch document manual` and `operations` answer with status 2.
+      CI runs --check for every built target.
+    satisfies: [SA-16]
+    cites:
+      - source: iso-29148
+        says: "A requirements specification presents the stakeholders, their needs and the requirements with their attributes."
+      - source: iso-29119-3
+        clause: "7.2 and 8.3"
+        says: "A test plan and test case specifications are the test documentation items of a project."

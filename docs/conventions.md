@@ -157,11 +157,20 @@ Every element at every stage may carry two optional fields, the same
 everywhere:
 
 - `why`: the rationale in plain words, why the element is the way it is
-  and what was concluded. A document renders it as an Insight block next to
-  the element.
+  and what was concluded. A document renders it as an Insight next to the
+  element.
 - `cites`: a list of citations, each naming a `source` declared in the root
   file, the `clause` where relevant, and what the source `says` that
-  applies here. A document renders each as a Note block under the Insight.
+  applies here. A document renders each as a Note under the Insight.
+
+An Insight is one paragraph that starts with **Insight:**, a Note one that
+starts with **Note:** and reads "From <title>, <edition>, clause <clause>:
+<what it says>", with the source's URL after it when there is one. They
+follow the description of an element that has its own heading. An element
+shown as a row of a table gets them after the table, labelled with the
+row's name: **Insight on LIB-5:**. A document whose Notes cite sources ends
+with a Sources table of exactly those. The traceability matrix names
+elements by ID only, so it carries none.
 
 Sources are declared once under `sources` in the root file, keyed by
 kebab-case name, with their `kind` (standard, regulation, document,
@@ -495,9 +504,10 @@ and environment (`records/commissioning/2026-10-07-production.yaml`). Each
 holds the `environment`, the `date`, the `version` of the specification and
 the build, the `operator` as a role, `results` keyed by check name with
 `result` (pass, fail or skipped) and a `note`, and the `signoff` with who
-signed and when. The validator does not read them; the documentor's
-commissioning report does, and checking that a record names only checks
-that exist is an item in `docs/roadmap.md`.
+signed and when. The commissioning procedure (`specarch document
+commissioning`) is the form a run fills in. Neither the validator nor the
+documentor reads the records yet; `docs/maintenance.md` designs how they
+will.
 
 ### What the schema cannot check
 

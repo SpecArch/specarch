@@ -18,9 +18,9 @@ Owners: example-maintainers.
 
 | Stakeholder | Who they are | Concerns |
 |---|---|---|
-| librarian | Staff at the desk who register members, lend copies and take returns. | Every desk task fits in one screen and takes under a minute.; A fee is never wrong by a cent. |
-| member | A card holder who borrows books. | Only their own loans and fees are shown to them.; They are told when a loan is overdue. |
-| library-board | The board that sets the lending policy and answers to the regulator. | The policy sheet and the system agree.; Member data is kept as the rules allow and no longer. |
+| librarian | Staff at the desk who register members, lend copies and take returns. | Every desk task fits in one screen and takes under a minute; A fee is never wrong by a cent |
+| member | A card holder who borrows books. | Only their own loans and fees are shown to them; They are told when a loan is overdue |
+| library-board | The board that sets the lending policy and answers to the regulator. | The policy sheet and the system agree; Member data is kept as the rules allow and no longer |
 
 ## 2. Constraints
 
@@ -29,12 +29,18 @@ Owners: example-maintainers.
 | CON-1 | legal | Member data is kept only while the membership is open and for one year after, then deleted. |
 | CON-2 | technical | Dates are the library's local calendar dates; timestamps are UTC. |
 
+**Note on CON-1:** From The data-protection rules the library is bound by, 2024: Personal data is kept no longer than its purpose needs.
+
+**Insight on CON-2:** A loan due on the 21st is overdue from the start of the 22nd, library time, whatever the server's clock.
+
 ### Assumptions
 
 | Assumption | Statement |
 |---|---|
 | ASSUME-1 | One library, one branch, one currency. |
 | ASSUME-2 | The daily rate changes rarely and is a library setting, not a per-book value. |
+
+**Note on ASSUME-2:** From Lending policy of the library, 2026, clause 4: The board sets the daily rate once a year.
 
 ## 3. Context
 
@@ -450,6 +456,11 @@ storage: github.com/jackc/pgx/v5. Money columns are `numeric(10,2)`.
 | Target | Output folder | Settings |
 |---|---|---|
 | techspec | ../../../docs |   |
+| requirements | ../../../docs |   |
+| testplan | ../../../docs |   |
+| traceability | ../../../docs |   |
+| deployment | ../../../docs |   |
+| commissioning | ../../../docs |   |
 | openapi | api | tool oapi-codegen |
 | sql | migrations | dialect postgresql |
 | ui | web | platform web, framework plain-javascript |
@@ -497,6 +508,8 @@ Access is fail-closed: every operation, command and page names the one permissio
 | loans.create | yes | | |
 | loans.return | yes | | |
 | public | | | everyone |
+
+**Insight on member:** The row-level rule, a member sees only loans whose memberId is their own, is not in the meta-model yet; the service enforces it and this role is where it is written down.
 
 ### Pages
 
@@ -678,6 +691,12 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | NEED-3 | Members need to browse the catalogue without logging in, and to see only their own records when they do. | member, library-board | accepted |
 | NEED-4 | Members need to be told when a loan becomes overdue. | member | accepted |
 
+**Note on NEED-1:** From Interview with the desk staff about lending and returns: The card index is searched by hand when a member asks what they have out, and it is often out of date.
+
+**Note on NEED-2:** From Lending policy of the library, 2026, clause 4: A late return is charged a flat daily rate, capped at the book's replacement cost.
+
+**Note on NEED-3:** From The data-protection rules the library is bound by, 2024: Personal data is shown only to the person it is about and to the staff who need it.
+
 ### Requirements
 
 | Requirement | Statement | Kind | Priority | Status | Verification | Acceptance | Needs |
@@ -689,6 +708,16 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | LIB-5 | A late return shall be charged a flat daily rate, capped at the book's replacement cost. | functional | must | accepted | test | Seven days late at 0.50 a day on a 25.00 book charges 3.50. Ninety days late at 0.50 a day on a 25.00 book charges 25.00. | NEED-2 |
 | LIB-6 | A member shall see only their own loans and fees. | quality | must | accepted | test | A member listing loans gets only loans whose memberId is their own. | NEED-3 |
 | LIB-7 | A desk task shall take a librarian under a minute, in one screen. | quality | should | accepted | demonstration | Registering a member and lending a book each take one form and one submit. | NEED-1 |
+
+**Note on LIB-1:** From Lending policy of the library, 2026, clause 1: Each member holds one card, and the card number identifies them at the desk.
+
+**Note on LIB-3:** From Lending policy of the library, 2026, clause 2: Standard members may hold three loans at a time and extended members six; no loan is made while a fee is unpaid.
+
+**Insight on LIB-5:** A flat rate can be checked by hand at the desk; the cap means a long-overdue book costs the same as a lost one, which is when the member should be told to treat it as lost.
+
+**Note on LIB-5:** From Lending policy of the library, 2026, clause 4: The late fee is a daily rate set by the board, and never more than the cost of replacing the book.
+
+**Note on LIB-6:** From The data-protection rules the library is bound by, 2024: Personal data is shown only to the person it is about and to the staff who need it.
 
 ### Traceability
 
@@ -703,4 +732,14 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | LIB-5 | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; configuration dailyRate | tests return-late; checks lend-and-return |
 | LIB-6 | roles member | checks member-sees-own-loans |
 | LIB-7 | pages loan-form; pages member-form | checks lend-and-return |
+
+## Sources
+
+Every source a Note in this document cites.
+
+| Source | Title | Edition | Author | Where to read it |
+|---|---|---|---|---|
+| data-protection-rules | The data-protection rules the library is bound by | 2024 | The regulator |   |
+| desk-interview | Interview with the desk staff about lending and returns |   |   |   |
+| lending-policy | Lending policy of the library | 2026 | The library board |   |
 

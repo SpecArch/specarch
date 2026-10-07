@@ -1,0 +1,15 @@
+specarch: "0.1"
+info: { title: Shop, version: 1.0.0 }
+stages: [tests]
+entities:
+  Order:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      total: { type: integer, format: int32 }
+    primaryKey: [id]
+    constraints:
+      total_positive:
+        kind: check
+        expression: total > 0
+        message: An order has a positive total.

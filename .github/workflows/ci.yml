@@ -27,8 +27,8 @@ jobs:
         run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
       - name: Validate SpecArch's own specification and every example
         run: go run ./cmd/specarch validate spec examples
-      - name: Generated technical specifications are current
-        run: go run ./cmd/specarch document techspec --check spec examples
+      - name: Generated documents are current
+        run: for target in techspec requirements testplan traceability deployment commissioning; do go run ./cmd/specarch document $target --check spec examples || exit 1; done
 
   swift:
     runs-on: macos-latest

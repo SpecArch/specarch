@@ -28,7 +28,7 @@ These are the checks CI runs on every change:
     go test ./...
     govulncheck ./...
     go run ./cmd/specarch validate spec examples
-    go run ./cmd/specarch document techspec --check spec examples
+    for target in techspec requirements testplan traceability deployment commissioning; do go run ./cmd/specarch document $target --check spec examples || exit 1; done
     swift build --package-path swift && swift test --package-path swift
 
 `go test` runs the conformance suite, which is the tests stage of SpecArch's
@@ -49,8 +49,9 @@ wrote; read each line before it becomes the expectation.
 
 A change to the program changes its specification first, in `spec/`, and the
 validator must pass on `spec/` and `examples/` with no error. A change to a
-specification is followed by `specarch document techspec spec examples`, and
-the regenerated documents are committed with it.
+specification is followed by `specarch document <target> spec examples` for
+every built document target, and the regenerated documents are committed
+with it.
 
 Dependencies are added only when their licence is OSI-approved and their SBOM
 scan (syft, then grype and osv-scanner; govulncheck for Go) is clean, or when

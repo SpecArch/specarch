@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a fixed defect that names no test, and a fixed defect that violates a permission and names a test about a command"
+when: "validate is run"
+then: "it reports defect_test for each and exits 1"
+verifies: [SA-23]

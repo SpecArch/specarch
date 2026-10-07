@@ -27,6 +27,23 @@ requirements:
       - source: iso-29148
         clause: "6.3 and 6.4"
         says: "Stakeholder needs are defined first and then transformed into system requirements; each requirement carries attributes and traces to its source."
+  SA-23:
+    statement: The validator shall check the records kept beside a specification (change requests, defects, releases, incidents, commissioning runs and approvals) against their schema and against the specification they point into, without the specification pointing back at them.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A record whose file name is not its ID or version, or that sits in another kind's folder, is reported as record_name.
+      - A record naming a role, requirement, pointer, test, environment or monitor the specification does not have is reported as record_ref, unless the ID falls in a declared change-set or defect-set.
+      - An implemented change whose additions are not in the specification, a change approved without a decision, a fixed defect without a test that shows the fix, a duplicate of a duplicate, and a commissioning run naming a check that does not exist are each reported under their rule.
+      - A resolved incident that leads to no defect and no change, and says nothing in noChange, is reported as a warning.
+    verification: test
+    needs: [NEED-5]
+    why: A change, a defect or a release happens once and moves through statuses; kept in the specification it would turn it into a change log, and kept nowhere it could not be checked against what the specification says.
+    cites:
+      - source: iso-12207
+        clause: "6.3.5 and 6.4.13"
+        says: "Configuration management records and controls changes to the system and its baselines; maintenance handles the problems and modification requests raised after transition."
   SA-13:
     statement: Every element of a specification, at every stage, may carry a rationale (why) and citations of declared sources (cites), and the validator shall check that every citation names a declared source.
     kind: functional

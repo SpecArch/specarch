@@ -463,7 +463,7 @@
       "type": "object",
       "properties": {
         "kind": {
-          "description": "What the source is: a published standard; a law or regulation; a document (a book, a manual, a report, an internal document); an interview with a stakeholder; an existing system that was observed; or an external requirement set that requirement links point into.",
+          "description": "What the source is: a published standard; a law or regulation; a document (a book, a manual, a report, an internal document); an interview with a stakeholder; an existing system that was observed; or an external tracker that links point into: a requirement set for requirement links, a change set for the change requests and a defect set for the defects that records name.",
           "type": "string",
           "enum": [
             "standard",
@@ -471,7 +471,9 @@
             "document",
             "interview",
             "system",
-            "requirement-set"
+            "requirement-set",
+            "change-set",
+            "defect-set"
           ]
         },
         "title": {
@@ -495,12 +497,12 @@
           "format": "date"
         },
         "url": {
-          "description": "Where the source can be read. For a requirement-set, a URL template with {id} for one requirement.",
+          "description": "Where the source can be read. For a requirement-set, change-set or defect-set, a URL template with {id} for one item.",
           "type": "string",
           "minLength": 1
         },
         "prefix": {
-          "description": "For kind requirement-set: the prefix of the IDs in that set, such as JIRA, so that a link JIRA-12 resolves to it.",
+          "description": "For kind requirement-set, change-set or defect-set: the prefix of the IDs in that set, such as JIRA, so that a link JIRA-12 resolves to it. One tracker that holds several kinds is declared once per kind, and the prefixes may be the same.",
           "type": "string",
           "pattern": "^[A-Z][A-Z0-9]{1,15}$"
         },
@@ -515,7 +517,11 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "requirement-set"
+            "enum": [
+              "requirement-set",
+              "change-set",
+              "defect-set"
+            ]
           }
         }
       },

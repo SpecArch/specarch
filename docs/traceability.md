@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.1.0 of the specification: 9 needs, 22 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.1.0 of the specification: 9 needs, 23 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 ## 1. Needs to requirements
 
@@ -12,7 +12,7 @@ Version 0.1.0 of the specification: 9 needs, 22 requirements, and 0 gaps. Each r
 | NEED-2 | accepted | SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-7, SA-8, SA-16, SA-19 |
 | NEED-4 | accepted | SA-11, SA-2 |
-| NEED-5 | accepted | SA-16, SA-12 |
+| NEED-5 | accepted | SA-16, SA-12, SA-23 |
 | NEED-6 | accepted | SA-15, SA-13 |
 | NEED-7 | accepted | SA-14 |
 | NEED-8 | accepted | SA-17, SA-18, SA-19, SA-20 |
@@ -44,6 +44,7 @@ Version 0.1.0 of the specification: 9 needs, 22 requirements, and 0 gaps. Each r
 | SA-20 | NEED-8 | commands approve; commands generate; decisions ADR-019 | tests approve-refuses-open-question; tests approve-refuses-stale-document; tests approve-writes-record; tests generate-refuses-open-question; tests generate-refuses-unapproved; tests generate-unapproved |
 | SA-21 | NEED-9 | commands validate; decisions ADR-020 | tests validate-derived-cases-harm; tests validate-derived-cases-listed; tests validate-derived-cases-mistakes; tests validate-schema-harm-unknown |
 | SA-22 | NEED-9, NEED-3 | commands document; decisions ADR-020 | tests document-testplan-left-out; tests document-traceability-harm; tests document-writes-traceability |
+| SA-23 | NEED-5 | enums Rule; commands validate | tests validate-change-applied; tests validate-change-decision; tests validate-commissioning-record; tests validate-defect-duplicate; tests validate-defect-test; tests validate-incident-link; tests validate-layout-records-in-spec; tests validate-record-name; tests validate-record-ref; tests validate-record-schema; tests validate-record-tracker; tests validate-records-valid |
 
 ## 3. Gaps
 

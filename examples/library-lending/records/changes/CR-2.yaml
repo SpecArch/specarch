@@ -1,0 +1,19 @@
+specarchRecord: "0.1"
+kind: change
+id: CR-2
+title: Send a receipt by text message on every return
+raisedBy: librarian
+raised: "2026-10-10"
+phase: production
+type: additive
+urgency: normal
+reason: Members ask for proof that a book came back.
+affects:
+  changes: ["#/channels"]
+impact: minor
+decision:
+  by: library-board
+  date: "2026-10-14"
+  outcome: rejected
+  why: The email the system already sends on a return is proof enough, and text messages cost the library per message.
+status: rejected

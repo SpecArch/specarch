@@ -55,6 +55,14 @@ enums:
       - setting
       - secret_value
       - monitor
+      - record_name
+      - record_ref
+      - change_applied
+      - change_decision
+      - defect_test
+      - defect_duplicate
+      - incident_link
+      - commissioning_record
       - need_unrefined
       - acceptance_missing
       - requirement_unsatisfied
@@ -117,6 +125,14 @@ enums:
       setting: an implementation's deployment gives a value to a setting the specification does not declare
       secret_value: a setting marked secret carries a value, as a default or in a deployment
       monitor: an implementation's deployment watches a monitor the specification does not declare
+      record_name: a record's file name is not its ID, its version, or its date and environment, or it does not sit in the folder of its kind under `records/`
+      record_ref: a record names a stakeholder, requirement, `#/` pointer, test, environment or monitor the specification does not have, or a change, defect, incident, release or commissioning run that is not a record and not in a declared change-set or defect-set
+      change_applied: an implemented or released change's `adds` or `changes` do not resolve or its `removes` still do, or an open change's `changes` or `removes` do not resolve; an open change whose `adds` already resolve is a warning
+      change_decision: an approved, implemented or released change has no decision with outcome approved, or a rejected one no decision with outcome rejected
+      defect_test: a fixed or released defect names no test, or one that neither verifies a requirement the defect violates nor is about an element it violates
+      defect_duplicate: a duplicate defect names no defect, one that does not exist, or one that is itself a duplicate
+      incident_link: a resolved incident links to no defect or change and gives no `noChange` reason (a warning)
+      commissioning_record: a commissioning record's results name a check that does not exist, or its version is not a release's
       need_unrefined: no requirement refines a need whose status is not rejected (a warning)
       acceptance_missing: a requirement has no acceptance criteria (a warning)
       requirement_unsatisfied: the specification has a design and no element of it satisfies a requirement (a warning)
@@ -128,4 +144,4 @@ enums:
       origin_reason: an element whose origin is inferred has no why
       origin_decision: an element whose origin is decided names no decision, or a decision that does not exist or is not accepted, or is a decision itself; or decidedIn is set without origin decided
       origin_missing: the specification tracks origin and an element of a section carries none (a warning)
-    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18]
+    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23]

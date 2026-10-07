@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a commissioning record whose results name a check that does not exist and whose version is not a release"
+when: "validate is run"
+then: "it reports commissioning_record for each and exits 1"
+verifies: [SA-23]

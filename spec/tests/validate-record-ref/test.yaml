@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "records naming a role, requirement, pointer, test, environment and monitor the specification lacks, and a change, incident and release that are not records"
+when: "validate is run"
+then: "it reports record_ref at each and exits 1"
+verifies: [SA-23]

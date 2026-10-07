@@ -1,0 +1,20 @@
+specarchRecord: "0.1"
+kind: change
+id: CR-1
+title: Let a member renew a loan once
+raisedBy: member
+raised: "2026-10-09"
+phase: production
+type: additive
+urgency: normal
+reason: Members who cannot reach the library by the due date ask to keep the book a little longer without paying a late fee.
+affects:
+  adds: ["#/tests/renew-a-loan"]
+  changes: [LIB-4, "#/entities/Loan"]
+impact: minor
+decision:
+  by: library-board
+  date: "2026-10-14"
+  outcome: approved
+  why: A single renewal keeps books moving and saves the desk the late fees it would otherwise waive by hand.
+status: approved

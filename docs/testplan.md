@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.1.0 of the specification: 148 design tests, 42 golden and 105 red, about 8 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 160 design tests, 45 golden and 114 red, about 8 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.1.0 of the specification: 148 design tests, 42 golden and 105 red, abo
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 144 |
+| system | 156 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -447,6 +447,22 @@ Scenario: red; level: system; covers exit 1.
 - When: validate is run
 - Then: it reports algorithm and exits 1
 
+#### validate-change-applied
+
+Scenario: red; level: system; covers exit 1; verifies SA-23.
+
+- Given: an implemented change whose addition is missing and whose removal is still there, and an approved change that changes a missing requirement and adds a test that already exists
+- When: validate is run
+- Then: it reports change_applied errors for the first and the missing requirement, a change_applied warning for the test, and exits 1
+
+#### validate-change-decision
+
+Scenario: red; level: system; covers exit 1; verifies SA-23.
+
+- Given: an approved change without a decision, and a rejected change whose decision's outcome is approved
+- When: validate is run
+- Then: it reports change_decision for each and exits 1
+
 #### validate-change-log-warning
 
 Scenario: golden; level: system.
@@ -463,6 +479,14 @@ Scenario: golden; level: system; verifies SA-13.
 - When: validate is run
 - Then: it prints nothing and exits 0
 
+#### validate-commissioning-record
+
+Scenario: red; level: system; covers exit 1; verifies SA-23.
+
+- Given: a commissioning record whose results name a check that does not exist and whose version is not a release
+- When: validate is run
+- Then: it reports commissioning_record for each and exits 1
+
 #### validate-decision
 
 Scenario: red; level: system; covers exit 1.
@@ -470,6 +494,22 @@ Scenario: red; level: system; covers exit 1.
 - Given: a decision superseded by one that does not exist
 - When: validate is run
 - Then: it reports decision and exits 1
+
+#### validate-defect-duplicate
+
+Scenario: red; level: system; covers exit 1; verifies SA-23.
+
+- Given: a duplicate that names no defect, one that repeats a duplicate, and one that repeats a defect that does not exist
+- When: validate is run
+- Then: it reports defect_duplicate for each and exits 1
+
+#### validate-defect-test
+
+Scenario: red; level: system; covers exit 1; verifies SA-23.
+
+- Given: a fixed defect that names no test, and a fixed defect that violates a permission and names a test about a command
+- When: validate is run
+- Then: it reports defect_test for each and exits 1
 
 #### validate-deployment-environment-missing
 
@@ -719,6 +759,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-10.
 - When: validate is run
 - Then: it reports implements and exits 1
 
+#### validate-incident-link
+
+Scenario: golden; level: system; verifies SA-23.
+
+- Given: a resolved incident that names no defect and no change and gives no noChange reason
+- When: validate is run
+- Then: it warns with incident_link and exits 0, since the record is still valid
+
 #### validate-layout-folder-missing
 
 Scenario: red; level: system; covers exit 1; verifies SA-11.
@@ -734,6 +782,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-11.
 - Given: a docs/ folder beside specarch.yaml
 - When: validate is run
 - Then: it reports layout naming the stage folders there are and exits 1
+
+#### validate-layout-records-in-spec
+
+Scenario: red; level: system; covers exit 1; verifies SA-23.
+
+- Given: a records folder inside the specification's folder
+- When: validate is run
+- Then: it reports layout, saying the folder belongs beside the specification's folder, and exits 1
 
 #### validate-layout-section-folder-in-root
 
@@ -926,6 +982,46 @@ Scenario: red; level: system; covers exit 1; verifies SA-17.
 - Given: a question under requirements/ about an entity, one in the root file about a requirement although requirements/ exists, and one that blocks two stages
 - When: validate is run
 - Then: it reports each with question_stage, naming the folder to move to, and exits 1
+
+#### validate-record-name
+
+Scenario: red; level: system; covers exit 1; verifies SA-23.
+
+- Given: a defect whose file name is not its id, and a change in the defects folder
+- When: validate is run
+- Then: it reports record_name for each and exits 1
+
+#### validate-record-ref
+
+Scenario: red; level: system; covers exit 1; verifies SA-23.
+
+- Given: records naming a role, requirement, pointer, test, environment and monitor the specification lacks, and a change, incident and release that are not records
+- When: validate is run
+- Then: it reports record_ref at each and exits 1
+
+#### validate-record-schema
+
+Scenario: red; level: system; covers exit 1; verifies SA-23.
+
+- Given: a record of an unknown kind, and a defect without violates and with an unquoted date
+- When: validate is run
+- Then: it reports schema and unquoted_date in the record files and exits 1
+
+#### validate-record-tracker
+
+Scenario: golden; level: system; verifies SA-23.
+
+- Given: sources of kind change-set and defect-set with prefix TRK, and a release that includes TRK-4 and a defect that became TRK-9
+- When: validate is run
+- Then: both IDs resolve to the tracker, it prints nothing and exits 0
+
+#### validate-records-valid
+
+Scenario: golden; level: system; verifies SA-23.
+
+- Given: a specification with records of every kind beside its folder, each naming only what exists, and a fixed defect whose test is about the command it violates
+- When: validate is run on the specification's folder
+- Then: it prints nothing and exits 0
 
 #### validate-ref-type
 

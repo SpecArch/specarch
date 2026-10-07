@@ -1,0 +1,838 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-record-0.1.schema.json",
+  "title": "SpecArch record, 0.1",
+  "description": "A record is a fact about one event in the life of a system: a change request, a defect, a release, an incident in production, a commissioning run or an approval. Records live in records/ beside the specification's folder, one file per record, in a folder per kind; they point into the specification, and the specification never points back at them. A record names people only by role. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "type": "object",
+  "properties": {
+    "specarchRecord": {
+      "description": "Record format version this file is written against.",
+      "type": "string",
+      "const": "0.1"
+    },
+    "kind": {
+      "description": "What the record is; it decides the folder it lives in and the keys it holds.",
+      "type": "string",
+      "enum": [
+        "change",
+        "defect",
+        "release",
+        "incident",
+        "commissioning",
+        "approval"
+      ]
+    }
+  },
+  "required": [
+    "specarchRecord",
+    "kind"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "change"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/change"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "defect"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/defect"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "release"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/release"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "incident"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/incident"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "commissioning"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/commissioning"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "approval"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/approval"
+      }
+    }
+  ],
+  "$defs": {
+    "role": {
+      "description": "A role: the key of a stakeholder of the specification, never a person's name.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+    },
+    "name": {
+      "description": "The kebab-case name of an element of the specification, such as a test, an environment, a monitor or a check.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+    },
+    "date": {
+      "description": "A date, quoted, as YYYY-MM-DD.",
+      "type": "string",
+      "format": "date"
+    },
+    "version": {
+      "description": "A Semantic Versioning 2.0.0 version, such as 1.4.0.",
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+    },
+    "recordId": {
+      "description": "The ID of a change request, defect or incident: an upper-case prefix, a dash and a number or name, such as CR-12, DEF-7 or INC-3. It is the record's file name, or an ID in a tracker declared under the specification's sources.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+    },
+    "reference": {
+      "description": "A reference into the specification: a requirement ID such as LIB-5, or a #/ pointer into the merged specification such as #/entities/Loan, #/tests/borrow-limit or #/environments/production.",
+      "type": "string",
+      "pattern": "^([A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+|#/.+)$"
+    },
+    "references": {
+      "description": "References into the specification.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/reference"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "run": {
+      "description": "A commissioning run, by the name of its record: its date and environment, such as 2026-10-07-production.",
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+    },
+    "change": {
+      "description": "A change request (ISO/IEC/IEEE 12207:2017, 6.4.13; ISO/IEC/IEEE 14764:2022): a request for the system to be different. Kept in records/changes/, named by its ID.",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "id": {
+          "$ref": "#/$defs/recordId"
+        },
+        "title": {
+          "description": "One line saying what is asked for.",
+          "type": "string",
+          "minLength": 1
+        },
+        "raisedBy": {
+          "$ref": "#/$defs/role"
+        },
+        "raised": {
+          "$ref": "#/$defs/date"
+        },
+        "phase": {
+          "description": "Where it was raised: during development, or in production.",
+          "type": "string",
+          "enum": [
+            "development",
+            "production"
+          ]
+        },
+        "type": {
+          "description": "The maintenance type of ISO/IEC/IEEE 14764:2022 other than corrective, which is a defect: additive (a new capability), perfective (a better one), adaptive (a new environment) or preventive (a problem headed off).",
+          "type": "string",
+          "enum": [
+            "additive",
+            "perfective",
+            "adaptive",
+            "preventive"
+          ]
+        },
+        "urgency": {
+          "description": "The change type of ITIL 4 change enablement, which sets how much assessment it gets before approval: standard (pre-approved and low risk), normal or emergency.",
+          "type": "string",
+          "enum": [
+            "standard",
+            "normal",
+            "emergency"
+          ]
+        },
+        "reason": {
+          "description": "Why it is asked for, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "affects": {
+          "description": "What it changes in the specification, written when it is analysed.",
+          "type": "object",
+          "properties": {
+            "adds": {
+              "description": "What it adds: requirement IDs or #/ pointers that resolve once it is implemented.",
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/reference"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "changes": {
+              "description": "What it changes: requirement IDs or #/ pointers that resolve before and after.",
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/reference"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "removes": {
+              "description": "What it removes: requirement IDs or #/ pointers that no longer resolve once it is implemented; a removed requirement may instead stay with status retired.",
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/reference"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
+          "required": [],
+          "minProperties": 1,
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        },
+        "impact": {
+          "description": "The version step it needs under Semantic Versioning 2.0.0: major when a client written for the previous version breaks, minor when the public interface only grows, patch when it does not change.",
+          "type": "string",
+          "enum": [
+            "major",
+            "minor",
+            "patch"
+          ]
+        },
+        "decision": {
+          "description": "The decision on the request.",
+          "type": "object",
+          "properties": {
+            "by": {
+              "$ref": "#/$defs/role"
+            },
+            "date": {
+              "$ref": "#/$defs/date"
+            },
+            "outcome": {
+              "description": "Approved or rejected.",
+              "type": "string",
+              "enum": [
+                "approved",
+                "rejected"
+              ]
+            },
+            "why": {
+              "description": "Why it was decided so.",
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "by",
+            "date",
+            "outcome",
+            "why"
+          ],
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        },
+        "release": {
+          "$ref": "#/$defs/version"
+        },
+        "status": {
+          "description": "Where it stands: proposed, analysed (affects and impact written), approved or rejected, implemented (the specification and the code carry it), released, or withdrawn by the requester.",
+          "type": "string",
+          "enum": [
+            "proposed",
+            "analysed",
+            "approved",
+            "rejected",
+            "implemented",
+            "released",
+            "withdrawn"
+          ]
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "id",
+        "title",
+        "raisedBy",
+        "raised",
+        "phase",
+        "type",
+        "urgency",
+        "reason",
+        "status"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "analysed",
+                  "approved",
+                  "rejected",
+                  "implemented",
+                  "released"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "affects",
+              "impact"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "released"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "release"
+            ]
+          }
+        }
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "defect": {
+      "description": "A defect: the system not doing what its specification says, the corrective maintenance of ISO/IEC/IEEE 14764:2022. Kept in records/defects/, named by its ID.",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "id": {
+          "$ref": "#/$defs/recordId"
+        },
+        "title": {
+          "description": "One line saying what goes wrong.",
+          "type": "string",
+          "minLength": 1
+        },
+        "reportedBy": {
+          "$ref": "#/$defs/role"
+        },
+        "reported": {
+          "$ref": "#/$defs/date"
+        },
+        "phase": {
+          "description": "Where it was found: during development, or in production.",
+          "type": "string",
+          "enum": [
+            "development",
+            "production"
+          ]
+        },
+        "environment": {
+          "$ref": "#/$defs/name"
+        },
+        "severity": {
+          "description": "How badly it stops the system from meeting its requirements.",
+          "type": "string",
+          "enum": [
+            "critical",
+            "major",
+            "minor",
+            "cosmetic"
+          ]
+        },
+        "violates": {
+          "description": "The requirement IDs, or #/ pointers to the design elements, it breaks.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "test": {
+          "$ref": "#/$defs/name"
+        },
+        "incidents": {
+          "description": "The incidents it caused, by ID.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recordId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "duplicateOf": {
+          "$ref": "#/$defs/recordId"
+        },
+        "change": {
+          "$ref": "#/$defs/recordId"
+        },
+        "release": {
+          "$ref": "#/$defs/version"
+        },
+        "status": {
+          "description": "Where it stands: reported; confirmed, not-a-defect or duplicate after triage against the specification; fixed (the fix is merged and the test passes); released.",
+          "type": "string",
+          "enum": [
+            "reported",
+            "confirmed",
+            "not-a-defect",
+            "duplicate",
+            "fixed",
+            "released"
+          ]
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "id",
+        "title",
+        "reportedBy",
+        "reported",
+        "phase",
+        "severity",
+        "violates",
+        "status"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "released"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "release"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "phase": {
+                "const": "production"
+              }
+            },
+            "required": [
+              "phase"
+            ]
+          },
+          "then": {
+            "required": [
+              "environment"
+            ]
+          }
+        }
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "release": {
+      "description": "A release of the system: one version, what it includes and what accepted it. Kept in records/releases/, named by its version.",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "version": {
+          "$ref": "#/$defs/version"
+        },
+        "status": {
+          "description": "Planned while it is being built, released once it ships, withdrawn if it is pulled.",
+          "type": "string",
+          "enum": [
+            "planned",
+            "released",
+            "withdrawn"
+          ]
+        },
+        "date": {
+          "$ref": "#/$defs/date"
+        },
+        "includes": {
+          "description": "The change requests and defects it carries, by ID.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recordId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "specificationVersion": {
+          "$ref": "#/$defs/version"
+        },
+        "implementations": {
+          "description": "The version of each implementation file at release, keyed by stack.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/version"
+          },
+          "minProperties": 1
+        },
+        "commissioning": {
+          "description": "The commissioning runs that accepted it, by record name.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/run"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "commit": {
+          "description": "The commit the release was built from.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "version",
+        "status"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "released"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "date"
+            ]
+          }
+        }
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "incident": {
+      "description": "An incident in production (ISO/IEC/IEEE 12207:2017, 6.4.12): the live system misbehaving. Kept in records/incidents/, named by its ID.",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "id": {
+          "$ref": "#/$defs/recordId"
+        },
+        "detected": {
+          "$ref": "#/$defs/date"
+        },
+        "environment": {
+          "$ref": "#/$defs/name"
+        },
+        "monitor": {
+          "$ref": "#/$defs/name"
+        },
+        "reportedBy": {
+          "$ref": "#/$defs/role"
+        },
+        "summary": {
+          "description": "What happened, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "impact": {
+          "description": "What it did to the people who use the system.",
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "description": "Open while it lasts, resolved once the system is back to what the specification says.",
+          "type": "string",
+          "enum": [
+            "open",
+            "resolved"
+          ]
+        },
+        "defects": {
+          "description": "The defects that follow from it, by ID.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recordId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "changes": {
+          "description": "The change requests that follow from it, by ID.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recordId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "noChange": {
+          "description": "For a resolved incident that leads to no defect and no change, why.",
+          "type": "string",
+          "minLength": 1
+        },
+        "rollbackUsed": {
+          "description": "Whether the deployment stage's rollback was used.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "id",
+        "detected",
+        "environment",
+        "summary",
+        "impact",
+        "status"
+      ],
+      "if": {
+        "not": {
+          "required": [
+            "monitor"
+          ]
+        }
+      },
+      "then": {
+        "required": [
+          "reportedBy"
+        ]
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "commissioning": {
+      "description": "One commissioning run: the checks of the commissioning stage run on the installed system. Kept in records/commissioning/, named by its date and environment.",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "environment": {
+          "$ref": "#/$defs/name"
+        },
+        "date": {
+          "$ref": "#/$defs/date"
+        },
+        "version": {
+          "$ref": "#/$defs/version"
+        },
+        "build": {
+          "description": "The build that was installed, such as an image tag or a commit.",
+          "type": "string",
+          "minLength": 1
+        },
+        "operator": {
+          "$ref": "#/$defs/role"
+        },
+        "results": {
+          "description": "The result of each check, keyed by check name.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "minProperties": 1,
+          "additionalProperties": {
+            "description": "The result of one check.",
+            "type": "object",
+            "properties": {
+              "result": {
+                "description": "Whether the check passed.",
+                "type": "string",
+                "enum": [
+                  "pass",
+                  "fail",
+                  "skipped"
+                ]
+              },
+              "note": {
+                "description": "What was seen, or why it was skipped.",
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "patternProperties": {
+              "^x-": {}
+            },
+            "additionalProperties": false
+          }
+        },
+        "signoff": {
+          "description": "Who signed the run off, and when.",
+          "type": "object",
+          "properties": {
+            "by": {
+              "$ref": "#/$defs/role"
+            },
+            "date": {
+              "$ref": "#/$defs/date"
+            }
+          },
+          "required": [
+            "by",
+            "date"
+          ],
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "environment",
+        "date",
+        "version",
+        "operator",
+        "results"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "approval": {
+      "description": "An approval for code generation, written by specarch approve. Kept in records/approvals/, named by its version.",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "version": {
+          "$ref": "#/$defs/version"
+        },
+        "approvedBy": {
+          "$ref": "#/$defs/role"
+        },
+        "date": {
+          "$ref": "#/$defs/date"
+        },
+        "documents": {
+          "description": "The documents the stakeholder read, by target name.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/name"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "digest": {
+          "description": "The SHA-256 of every .yaml file of the specification when it was approved.",
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "version",
+        "approvedBy",
+        "date",
+        "documents",
+        "digest"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    }
+  }
+}

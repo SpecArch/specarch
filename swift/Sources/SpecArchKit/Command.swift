@@ -145,7 +145,7 @@ func collect(_ args: [String], _ stderr: TextSink) -> ([Input], Bool) {
             switch kindOf(a) {
             case .design: add("root:" + cleanPath(dirPath(a)), .root(dirPath(a)))
             case .implementation: add("impl:" + cleanPath(a), .implementation(a))
-            case .none: add("other:" + cleanPath(a), .other(a))
+            case .none, .record: add("other:" + cleanPath(a), .other(a))
             }
             continue
         }

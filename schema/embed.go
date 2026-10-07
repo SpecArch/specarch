@@ -13,3 +13,9 @@ var Definition []byte
 //
 //go:embed specarch-implementation-0.1.schema.json
 var Implementation []byte
+
+// Record is the schema of a SpecArch record: a change, defect, release,
+// incident, commissioning run or approval.
+//
+//go:embed specarch-record-0.1.schema.json
+var Record []byte

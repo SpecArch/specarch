@@ -1,5 +1,7 @@
 specarch: "0.1"
 info: { title: Case, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
 entities:
   Item:
     type: object

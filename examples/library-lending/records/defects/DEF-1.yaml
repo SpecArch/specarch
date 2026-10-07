@@ -1,0 +1,13 @@
+specarchRecord: "0.1"
+kind: defect
+id: DEF-1
+title: The late fee is not capped at the replacement cost
+reportedBy: librarian
+reported: "2026-10-12"
+phase: production
+environment: production
+severity: major
+violates: [LIB-5]
+test: return-late
+incidents: [INC-1]
+status: fixed

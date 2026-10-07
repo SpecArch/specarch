@@ -1,10 +1,11 @@
 import Foundation
 
-private let evaluators: (design: SchemaEvaluator?, implementation: SchemaEvaluator?, error: String?) = {
+private let evaluators: (design: SchemaEvaluator?, implementation: SchemaEvaluator?, record: SchemaEvaluator?, error: String?) = {
     do {
-        return (try SchemaEvaluator(json: designSchemaJSON), try SchemaEvaluator(json: implementationSchemaJSON), nil)
+        return (try SchemaEvaluator(json: designSchemaJSON), try SchemaEvaluator(json: implementationSchemaJSON),
+                try SchemaEvaluator(json: recordSchemaJSON), nil)
     } catch {
-        return (nil, nil, "\(error)")
+        return (nil, nil, nil, "\(error)")
     }
 }()
 
@@ -22,6 +23,9 @@ let patternNames: [String: String] = [
     "^[A-Z][A-Z0-9]{1,15}$": "an upper-case prefix of 2 to 16 letters or digits, such as LIB",
     "^ADR-[0-9]{3,}$": "ADR- and three or more digits, such as ADR-001",
     "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$": "a semantic version, such as 1.2.0",
+    "^([A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+|#/.+)$": "a requirement ID such as LIB-5, or a #/ pointer such as #/entities/Loan",
+    "^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z][a-z0-9]*(-[a-z0-9]+)*$": "a date and an environment, such as 2026-10-07-production",
+    "^sha256:[0-9a-f]{64}$": "sha256: and 64 lower-case hexadecimal digits",
     "^#/(entities|enums)/[A-Z][A-Za-z0-9]*$": "#/entities/Name or #/enums/Name",
     "^/": "a path starting with /",
     "^([1-5][0-9][0-9]|default)$": "an HTTP status code such as 200, or default",
@@ -43,7 +47,12 @@ extension Checker {
             addLine(1, "/", .schema, "the built-in schema does not compile (\(err)); this is a bug in specarch")
             return
         }
-        let evaluator = kind == .implementation ? evaluators.implementation! : evaluators.design!
+        let evaluator: SchemaEvaluator
+        switch kind {
+        case .implementation: evaluator = evaluators.implementation!
+        case .record: evaluator = evaluators.record!
+        default: evaluator = evaluators.design!
+        }
         var seen = Set<String>()
         for f in evaluator.validate(value) {
             schemaLeaf(kind, f, &seen)

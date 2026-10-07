@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an approved change without a decision, and a rejected change whose decision's outcome is approved"
+when: "validate is run"
+then: "it reports change_decision for each and exits 1"
+verifies: [SA-23]

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.1.0 of the specification: 5 stakeholders, 9 needs and 22 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.1.0 of the specification: 5 stakeholders, 9 needs and 23 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 ## 1. Purpose and scope
 
@@ -35,7 +35,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-7, SA-8, SA-16, SA-19 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
-| NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-16, SA-12 |
+| NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-16, SA-12, SA-23 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-17, SA-18, SA-19, SA-20 |
@@ -54,6 +54,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-16 | functional | must | accepted | specarch document shall write, besides the technical specification, the requirements specification, the test plan, the traceability matrix, the deployment guide and the commissioning procedure with its sign-off sheet. |
 | SA-11 | functional | must | accepted | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. |
 | SA-12 | functional | must | accepted | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. |
+| SA-23 | functional | must | accepted | The validator shall check the records kept beside a specification (change requests, defects, releases, incidents, commissioning runs and approvals) against their schema and against the specification they point into, without the specification pointing back at them. |
 | SA-13 | functional | must | accepted | Every element of a specification, at every stage, may carry a rationale (why) and citations of declared sources (cites), and the validator shall check that every citation names a declared source. |
 | SA-17 | functional | must | accepted | A specification shall be able to say what it does not yet know as an open question that names what is asked, who decides, what it blocks and how urgent it is; and the validator shall accept a required key missing exactly where a must question says it is unknown, and nowhere else. |
 | SA-18 | functional | must | accepted | Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision. |
@@ -191,6 +192,23 @@ Acceptance criteria:
 **Note:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.4: The technical processes run from business or mission analysis and stakeholder needs definition (6.4.2) through requirements definition (6.4.3), design (6.4.4 and 6.4.5), implementation (6.4.7), verification (6.4.9), transition (6.4.10) and validation (6.4.11). <https://www.iso.org/standard/63712.html>
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3 and 6.4: Stakeholder needs are defined first and then transformed into system requirements; each requirement carries attributes and traces to its source. <https://www.iso.org/standard/72089.html>
+
+### SA-23
+
+The validator shall check the records kept beside a specification (change requests, defects, releases, incidents, commissioning runs and approvals) against their schema and against the specification they point into, without the specification pointing back at them.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-5.
+
+Acceptance criteria:
+
+- A record whose file name is not its ID or version, or that sits in another kind's folder, is reported as record_name.
+- A record naming a role, requirement, pointer, test, environment or monitor the specification does not have is reported as record_ref, unless the ID falls in a declared change-set or defect-set.
+- An implemented change whose additions are not in the specification, a change approved without a decision, a fixed defect without a test that shows the fix, a duplicate of a duplicate, and a commissioning run naming a check that does not exist are each reported under their rule.
+- A resolved incident that leads to no defect and no change, and says nothing in noChange, is reported as a warning.
+
+**Insight:** A change, a defect or a release happens once and moves through statuses; kept in the specification it would turn it into a change log, and kept nowhere it could not be checked against what the specification says.
+
+**Note:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.3.5 and 6.4.13: Configuration management records and controls changes to the system and its baselines; maintenance handles the problems and modification requests raised after transition. <https://www.iso.org/standard/63712.html>
 
 ### SA-13
 

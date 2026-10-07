@@ -5,9 +5,9 @@ system keeps changing: a stakeholder asks for something new, someone finds
 a defect, a release goes out, the live system misbehaves. This document is
 the design of how SpecArch records that life, during development and in
 production, without turning the specification into a change log. The
-operation stage is built; the records, the release rules, the diff verb
-and the two documents are not yet, and the implementation items are listed
-at the end.
+operation stage and the records with their rules are built; the release
+rules, the diff verb and the two documents are not yet, and the
+implementation items are listed at the end.
 
 The processes come from ISO/IEC/IEEE 12207:2017: configuration management
 (6.3.5), operation (6.4.12) and maintenance (6.4.13). Versions follow
@@ -41,20 +41,37 @@ forward into the specification.
 ## Records
 
 Records live in `records/` beside the specification's folder, one file per
-record, in a folder per kind:
+record, in a folder per kind. A specification in `project/spec/` keeps its
+records in `project/records/`; a `records/` folder inside the
+specification's own folder is a layout error, because everything in that
+folder is specification.
 
-| Folder | One file per | Named by |
-|---|---|---|
-| `records/changes/` | change request | its ID, `CR-12.yaml` |
-| `records/defects/` | defect | its ID, `DEF-7.yaml` |
-| `records/releases/` | release | its version, `1.4.0.yaml` |
-| `records/incidents/` | incident in production | its ID, `INC-3.yaml` |
-| `records/commissioning/` | commissioning run | date and environment, `2026-10-07-production.yaml` |
+| Folder | One file per | Kind | Named by |
+|---|---|---|---|
+| `records/changes/` | change request | `change` | its ID, `CR-12.yaml` |
+| `records/defects/` | defect | `defect` | its ID, `DEF-7.yaml` |
+| `records/releases/` | release | `release` | its version, `1.4.0.yaml` |
+| `records/incidents/` | incident in production | `incident` | its ID, `INC-3.yaml` |
+| `records/commissioning/` | commissioning run | `commissioning` | its date and environment, `2026-10-07-production.yaml` |
+| `records/approvals/` | approval for code generation | `approval` | its version, `1.4.0.yaml` |
 
 A record file starts with `specarchRecord: "0.1"` and `kind`, and has its
-own schema, `schema/specarch-record-0.1.schema.json`, beside the two that
-exist. The file name repeats the ID or version, so a reader finds a record
-by walking the folders, and the validator checks the two agree.
+own schema, `schema/specarch-record-0.1.schema.json`, beside the other two.
+The file name repeats the ID or version, so a reader finds a record by
+walking the folders, and the validator checks the two agree. An approval
+is written by `specarch approve` (`docs/conventions.md`, Approval records)
+and is checked like the others.
+
+A record points into the specification in one of two ways. A requirement
+is named by its ID, `LIB-5`, as `satisfies` names it. Everything else is a
+`#/` pointer into the merged specification: `#/entities/Loan`,
+`#/tests/borrow-limit`, `#/environments/production`,
+`#/configuration/LATE_FEE`. A bare name is not allowed in a list that can
+hold several kinds of element, because `production` could be an
+environment, a test and a setting at once, and a reference that could mean
+two things is an error under `docs/principles.md`. A field that holds one
+kind of element (a defect's `test`, an incident's `monitor`) takes the bare
+name, as `environment` does in the specification.
 
 A record names people only by role: a stakeholder key of the
 specification, such as `head-librarian`, never a person's name. It holds no
@@ -123,6 +140,7 @@ during development or in production, it is the corrective maintenance of
 | `test` | the test in `tests/` that shows it is fixed: it fails before the fix and passes after |
 | `incidents` | the incidents it caused, by ID |
 | `duplicateOf` | for a duplicate, the defect it repeats |
+| `change` | for one that is not a defect, the change request it became |
 | `release` | the version the fix shipped in |
 | `status` | below |
 
@@ -134,7 +152,7 @@ during development or in production, it is the corrective maintenance of
 
 `not-a-defect` is the answer when the system does what the specification
 says and the reporter wanted something else; that is a change request, and
-the defect names it. Triage against the specification is the point of
+the defect names it under `change`. Triage against the specification is the point of
 keeping one: a defect is measured against a requirement, not against what
 someone expected.
 
@@ -199,13 +217,19 @@ goes are implementation: the implementation file's deployments name, per
 monitor, how that stack watches it.
 
 An incident record holds `id`, `detected` (date), `environment`, the
-`monitor` that caught it (or the role that reported it), a `summary`, the
-`impact`, `status` (open or resolved), and links to the defects or change
-requests that follow from it. A resolved incident that leads to neither
-says why in `noChange`.
+`monitor` that caught it or, when no monitor did, the role that reported it
+(`reportedBy`), a `summary`, the `impact`, `status` (open or resolved), and
+the `defects` and `changes` that follow from it. A resolved incident that
+leads to neither says why in `noChange`.
 
 Rollback is already the deployment stage's `rollback`; an incident record
-names whether it was used.
+says whether it was used in `rollbackUsed`, true or false.
+
+A commissioning record holds the `environment`, the `date`, the `version`
+of the specification it ran against, the `build`, the `operator` as a
+role, the `results` keyed by check name, each with `result` (pass, fail or
+skipped) and a `note`, and the `signoff` with the role that signed and the
+date.
 
 ## Stack-neutral and stack-specific
 
@@ -223,11 +247,11 @@ error unless it says warning.
 
 | Rule | Checks |
 |---|---|
-| `record_name` | a record's file name equals its `id`, or its `version` for a release, and it sits in the folder of its kind |
-| `record_ref` | every role is a stakeholder of the specification; every requirement ID, `#/` pointer, test, environment, setting, monitor and check a record names resolves, or resolves to a declared change-set or defect-set |
-| `change_applied` | for a change that is implemented or released, every `adds` and `changes` reference resolves and every `removes` reference does not (a removed requirement may instead stay with status retired); for one still open, `changes` and `removes` resolve, and an `adds` that already resolves is a warning |
+| `record_name` | a record's file name equals its `id`, its `version` for a release or an approval, or its date and environment for a commissioning run, and it sits in the folder of its kind |
+| `record_ref` | every role is a stakeholder of the specification; every requirement ID, `#/` pointer, test, environment and monitor a record names resolves; every change, defect, incident, release and commissioning run it names is a record, or a change or defect whose prefix is that of a declared change-set or defect-set. A change's `affects` belong to `change_applied`, a defect's `duplicateOf` to `defect_duplicate` and a commissioning run's checks to `commissioning_record` |
+| `change_applied` | for a change that is implemented or released, every `adds` and `changes` reference resolves and every `removes` reference does not (a removed requirement may instead stay with status retired); for one still open (proposed, analysed or approved), `changes` and `removes` resolve, and an `adds` that already resolves is a warning. A requirement of an external set is taken as resolving and never as removed, since the validator cannot read the set |
 | `change_decision` | a change that is approved, implemented or released has a `decision` with outcome approved; a rejected one has outcome rejected |
-| `defect_test` | a fixed or released defect names a `test` that exists and verifies a requirement the defect violates, or is about the element it violates |
+| `defect_test` | a fixed or released defect names a `test` that verifies a requirement the defect violates, or whose subject (its operation, command, page or entity) is the element a violated `#/` pointer points into |
 | `defect_duplicate` | a duplicate names a defect that exists and is not itself a duplicate |
 | `release_contents` | a released release includes only changes that are implemented or released and defects that are fixed or released; a change or defect with status released names a release that includes it, and the other way round |
 | `release_bump` | a released version is greater than the previous released version by at least the largest `impact` of what it includes, a defect counting as patch |

@@ -1,0 +1,5 @@
+arguments: [validate, project]
+exitStatus: 1
+standardOutput: |
+  records/defects/CR-1.yaml:2: error: /kind: record_name: a record of kind change lives in records/changes/; move it there
+  records/defects/DEF-2.yaml:3: error: /id: record_name: the file is named DEF-2 but the record's id is DEF-1; name the file DEF-1.yaml

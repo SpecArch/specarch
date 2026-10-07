@@ -25,6 +25,11 @@ const ImplementationSuffix = ".specarch-implementation.yaml"
 // TestFile is the file each test folder holds.
 const TestFile = "test.yaml"
 
+// RecordsFolder is the folder beside a specification's folder that holds
+// its records: one file per change, defect, release, incident,
+// commissioning run or approval.
+const RecordsFolder = "records"
+
 // Stages lists the life-cycle stages in order; each is a folder name.
 var Stages = []string{"requirements", "design", "implementation", "tests", "deployment", "commissioning", "operation"}
 
@@ -92,6 +97,13 @@ type Implementation struct {
 	Data  []byte
 }
 
+// Record is one record file beside the specification.
+type Record struct {
+	Path   string // the file
+	Folder string // its folder under records/, with slashes; "" directly in records/
+	Data   []byte
+}
+
 // Spec is one specification as read from disk.
 type Spec struct {
 	Dir             string                // the root folder, as given
@@ -102,6 +114,8 @@ type Spec struct {
 	Problems        []Problem
 	Stages          []string // the stages listed in the root file
 	Implementations []Implementation
+	RecordsDir      string   // the records/ folder beside Dir
+	Records         []Record // the record files under RecordsDir, in path order
 }
 
 // Load reads the specification rooted at dir.
@@ -176,6 +190,8 @@ func Load(dir string) *Spec {
 				s.problem(s.RootFile, 1, "/", "layout", "the folder %s/ is a section of the %s stage, not a stage; move it to %s/%s/", e.Name(), stage, stage, e.Name())
 			case stage != "":
 				s.problem(s.RootFile, 1, "/", "layout", "the folder %s/ is a section of the %s stage, not a stage; move it to %s/%s/ and list %s in stages", e.Name(), stage, stage, e.Name(), stage)
+			case e.Name() == RecordsFolder:
+				s.problem(s.RootFile, 1, "/", "layout", "the folder %s/ is not a stage; records live in %s/ beside the specification's folder, not inside it, so move it up one level", e.Name(), RecordsFolder)
 			default:
 				s.problem(s.RootFile, 1, "/", "layout", "the folder %s/ is not a stage; a specification's folders are %s", e.Name(), strings.Join(Stages, ", "))
 			}
@@ -228,7 +244,50 @@ func Load(dir string) *Spec {
 	}
 	s.Root = merged
 	s.Value = source.ValueOf(merged)
+	s.loadRecords()
 	return s
+}
+
+// loadRecords finds every record file under the records/ folder beside the
+// specification's folder. A missing folder means there are no records.
+func (s *Spec) loadRecords() {
+	s.RecordsDir = filepath.Join(s.Dir, "..", RecordsFolder)
+	if info, err := os.Stat(s.RecordsDir); err != nil || !info.IsDir() {
+		return
+	}
+	err := filepath.WalkDir(s.RecordsDir, func(p string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			if p != s.RecordsDir && strings.HasPrefix(d.Name(), ".") {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if strings.HasSuffix(d.Name(), ".yml") {
+			s.problem(p, 1, "/", "layout", "a SpecArch file ends in .yaml; rename it")
+			return nil
+		}
+		if !strings.HasSuffix(d.Name(), ".yaml") {
+			return nil
+		}
+		data, err := os.ReadFile(p)
+		if err != nil {
+			s.problem(p, 1, "/", "layout", "cannot read it (%s)", plainIOError(err))
+			return nil
+		}
+		rel, _ := filepath.Rel(s.RecordsDir, filepath.Dir(p))
+		folder := filepath.ToSlash(rel)
+		if folder == "." {
+			folder = ""
+		}
+		s.Records = append(s.Records, Record{Path: p, Folder: folder, Data: data})
+		return nil
+	})
+	if err != nil {
+		s.problem(s.RecordsDir, 1, "/", "layout", "cannot read the folder (%s)", plainIOError(err))
+	}
 }
 
 func isStage(name string) bool {

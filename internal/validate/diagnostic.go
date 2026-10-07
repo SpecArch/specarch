@@ -62,6 +62,14 @@ const (
 	RuleSetting                Rule = "setting"
 	RuleSecretValue            Rule = "secret_value"
 	RuleMonitor                Rule = "monitor"
+	RuleRecordName             Rule = "record_name"
+	RuleRecordRef              Rule = "record_ref"
+	RuleChangeApplied          Rule = "change_applied"
+	RuleChangeDecision         Rule = "change_decision"
+	RuleDefectTest             Rule = "defect_test"
+	RuleDefectDuplicate        Rule = "defect_duplicate"
+	RuleIncidentLink           Rule = "incident_link"
+	RuleCommissioningRecord    Rule = "commissioning_record"
 	RuleNeedUnrefined          Rule = "need_unrefined"
 	RuleAcceptanceMissing      Rule = "acceptance_missing"
 	RuleRequirementUnsatisfied Rule = "requirement_unsatisfied"
@@ -127,6 +135,14 @@ var Rules = []Rule{
 	RuleSetting,
 	RuleSecretValue,
 	RuleMonitor,
+	RuleRecordName,
+	RuleRecordRef,
+	RuleChangeApplied,
+	RuleChangeDecision,
+	RuleDefectTest,
+	RuleDefectDuplicate,
+	RuleIncidentLink,
+	RuleCommissioningRecord,
 	RuleNeedUnrefined,
 	RuleAcceptanceMissing,
 	RuleRequirementUnsatisfied,
@@ -147,7 +163,7 @@ const (
 	// Error makes the file invalid.
 	Error Severity = "error"
 	// Warning is printed but leaves the file valid: missing test scenarios,
-	// change-log phrases and traceability gaps.
+	// change-log phrases, traceability gaps and incidents left unexplained.
 	Warning Severity = "warning"
 )
 

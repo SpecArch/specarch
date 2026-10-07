@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "a specification with records of every kind beside its folder, each naming only what exists, and a fixed defect whose test is about the command it violates"
+when: "validate is run on the specification's folder"
+then: "it prints nothing and exits 0"
+verifies: [SA-23]

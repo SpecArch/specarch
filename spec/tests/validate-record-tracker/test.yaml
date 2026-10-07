@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "sources of kind change-set and defect-set with prefix TRK, and a release that includes TRK-4 and a defect that became TRK-9"
+when: "validate is run"
+then: "both IDs resolve to the tracker, it prints nothing and exits 0"
+verifies: [SA-23]

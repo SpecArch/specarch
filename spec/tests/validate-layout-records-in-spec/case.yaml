@@ -1,0 +1,4 @@
+arguments: [validate, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:1: error: /: layout: the folder records/ is not a stage; records live in records/ beside the specification's folder, not inside it, so move it up one level

@@ -2,7 +2,7 @@ import Foundation
 
 /// The kind of a SpecArch file, read from its name.
 public enum Kind {
-    case none, design, implementation
+    case none, design, implementation, record
 }
 
 public let implementationSuffix = ".specarch-implementation.yaml"
@@ -43,6 +43,7 @@ private func checkSpecAll(_ s: Spec) -> [Diagnostic] {
         c.addFile(p.file, p.line, p.path, Rule(rawValue: p.rule)!, p.message)
     }
     var out: [Diagnostic] = []
+    var design: Design?
     if let root = s.root {
         c.root = root
         if c.rootIsSpec() {
@@ -52,6 +53,7 @@ private func checkSpecAll(_ s: Spec) -> [Diagnostic] {
             let d = Design(root)
             d.spec = s
             c.checkDesign(d)
+            design = d
         }
     }
     out += withoutEchoes(c.diags)
@@ -59,6 +61,9 @@ private func checkSpecAll(_ s: Spec) -> [Diagnostic] {
         let ic = Checker(file: impl.path)
         ic.runImplementation(impl.data, s, nil)
         out += withoutEchoes(ic.diags)
+    }
+    if let design {
+        out += checkRecords(s, design)
     }
     sortDiagnostics(&out)
     return out

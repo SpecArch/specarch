@@ -14,4 +14,8 @@ out=Sources/SpecArchKit/Schemas.swift
   echo 'let implementationSchemaJSON = #"""'
   cat ../schema/specarch-implementation-0.1.schema.json
   echo '"""#'
+  echo
+  echo 'let recordSchemaJSON = #"""'
+  cat ../schema/specarch-record-0.1.schema.json
+  echo '"""#'
 } > "$out"

@@ -18,6 +18,7 @@ const (
 	KindNone Kind = iota
 	KindDesign
 	KindImplementation
+	KindRecord
 )
 
 const (
@@ -69,13 +70,14 @@ func checkSpecAll(s *spec.Spec) []Diagnostic {
 		c.addFile(p.File, p.Line, p.Path, Rule(p.Rule), "%s", p.Message)
 	}
 	var out []Diagnostic
+	var d *design
 	if s.Root != nil {
 		c.root = s.Root
 		if c.rootIsSpec() {
 			c.checkSchema(KindDesign, s.Value)
 			c.checkChangeLog()
 			c.checkBoundaryDesign()
-			d := newDesign(c.root)
+			d = newDesign(c.root)
 			d.spec = s
 			c.checkDesign(d)
 		}
@@ -85,6 +87,9 @@ func checkSpecAll(s *spec.Spec) []Diagnostic {
 		ic := &checker{file: impl.Path}
 		ic.runImplementation(impl.Data, s)
 		out = append(out, withoutEchoes(ic.diags)...)
+	}
+	if d != nil {
+		out = append(out, checkRecords(s, d)...)
 	}
 	Sort(out)
 	return out

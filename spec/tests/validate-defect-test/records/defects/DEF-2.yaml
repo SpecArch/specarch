@@ -1,0 +1,11 @@
+specarchRecord: "0.1"
+kind: defect
+id: DEF-2
+title: Anyone can print the catalogue
+reportedBy: owner
+reported: "2026-10-12"
+phase: development
+severity: major
+violates: ["#/permissions/public"]
+test: catalogue-prints
+status: fixed

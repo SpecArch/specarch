@@ -10,7 +10,8 @@ commands:
       specification is checked on its own against the specification its
       `implements` names. A file given by name must be a root file or an
       implementation file; a fragment of a tree is refused with the folder
-      to run on instead.
+      to run on instead. The records in the `records/` folder beside a
+      specification's folder are checked with it.
 
       Every specification is checked against the meta-model and against the
       rules JSON Schema cannot express. It reports every problem in every
@@ -24,6 +25,7 @@ commands:
         schema: { type: string }
     reads:
       - { path: "{paths}", description: "Root files, the files under their stage folders, and implementation files." }
+      - { path: "records/ beside each specification's folder", description: "The change, defect, release, incident, commissioning and approval records of that specification." }
       - { path: "the specification named in each standalone implementation file's `implements`", description: Read to resolve that file's references. }
     standardOutput: One line per diagnostic, sorted by file, then line, then path, then rule.
     standardError: A usage message on a usage error, the reason on an unreadable path, and a one-line count at the end, with the number of open questions when there are any.
@@ -32,4 +34,4 @@ commands:
       "1": at least one input has an error
       "2": usage error, a path could not be read, or a folder holds no specification and no implementation file
     algorithm: exitStatus
-    satisfies: [SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-21]
+    satisfies: [SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-21, SA-23]

@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a records folder inside the specification's folder"
+when: "validate is run"
+then: "it reports layout, saying the folder belongs beside the specification's folder, and exits 1"
+verifies: [SA-23]

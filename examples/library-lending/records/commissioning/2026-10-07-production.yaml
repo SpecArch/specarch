@@ -1,0 +1,11 @@
+specarchRecord: "0.1"
+kind: commissioning
+environment: production
+date: "2026-10-07"
+version: 0.1.0
+build: library-lending 0.1.0
+operator: librarian
+results:
+  service-answers: { result: pass, note: The catalogue answered with 412 books. }
+  migrated-members: { result: pass, note: "1,204 members in both the card index and the database; none without a tier." }
+signoff: { by: library-board, date: "2026-10-07" }

@@ -1,0 +1,12 @@
+arguments: [validate, project]
+exitStatus: 1
+standardOutput: |
+  records/defects/DEF-1.yaml:5: error: /reportedBy: record_ref: ownr is not a stakeholder of the specification; did you mean owner?
+  records/defects/DEF-1.yaml:8: error: /environment: record_ref: prod is not an environment of the specification; use one of production
+  records/defects/DEF-1.yaml:10: error: /violates/0: record_ref: CASE-9 is not a requirement of the specification; did you mean CASE-1?
+  records/defects/DEF-1.yaml:10: error: /violates/1: record_ref: #/commands/print does not resolve in the specification; point at an element that exists
+  records/defects/DEF-1.yaml:11: error: /test: record_ref: catalogue-print is not a test of the specification; did you mean catalogue-prints?
+  records/defects/DEF-1.yaml:12: error: /incidents/0: record_ref: INC-4 is not an incident: there is no records/incidents/INC-4.yaml
+  records/defects/DEF-1.yaml:13: error: /change: record_ref: CR-7 is not a change request: there is no records/changes/CR-7.yaml and no source of kind change-set with prefix CR
+  records/defects/DEF-1.yaml:14: error: /release: record_ref: 2.0.0 is not a release: there is no records/releases/2.0.0.yaml
+  records/incidents/INC-1.yaml:6: error: /monitor: record_ref: catalogue-run is not a monitor of the specification; did you mean catalogue-runs?

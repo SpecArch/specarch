@@ -1,0 +1,12 @@
+specarchRecord: "0.1"
+kind: defect
+id: DEF-1
+title: The catalogue skips the last book
+reportedBy: owner
+reported: "2026-10-12"
+phase: development
+severity: major
+violates: [CASE-1]
+test: catalogue-prints
+incidents: [INC-1]
+status: fixed

@@ -6,6 +6,11 @@ public let rootFile = "specarch.yaml"
 /// The file each test folder holds.
 public let testFile = "test.yaml"
 
+/// The folder beside a specification's folder that holds its records: one
+/// file per change, defect, release, incident, commissioning run or
+/// approval.
+public let recordsFolder = "records"
+
 /// The life-cycle stages in order; each is a folder name.
 public let stages = ["requirements", "design", "implementation", "tests", "deployment", "commissioning", "operation"]
 
@@ -67,6 +72,13 @@ struct SpecImplementation {
     let data: Data
 }
 
+/// One record file beside a specification.
+struct SpecRecord {
+    let path: String
+    let folder: String // its folder under records/, with slashes; "" directly in records/
+    let data: Data
+}
+
 /// One specification as read from disk: the root file and the stage folders
 /// beside it, merged into one document. Every node remembers its file.
 final class Spec {
@@ -78,6 +90,8 @@ final class Spec {
     var problems: [SpecProblem] = []
     var listedStages: [String] = []
     var implementations: [SpecImplementation] = []
+    var recordsDir = ""           // the records/ folder beside dir
+    var records: [SpecRecord] = [] // the record files under recordsDir, in path order
 
     /// Reads the specification rooted at dir.
     init(dir: String) {
@@ -151,6 +165,8 @@ final class Spec {
                 problem(rootPath, 1, "/", "layout", "the folder \(e.name)/ is a section of the \(stage) stage, not a stage; move it to \(stage)/\(e.name)/")
             } else if !stage.isEmpty {
                 problem(rootPath, 1, "/", "layout", "the folder \(e.name)/ is a section of the \(stage) stage, not a stage; move it to \(stage)/\(e.name)/ and list \(stage) in stages")
+            } else if e.name == recordsFolder {
+                problem(rootPath, 1, "/", "layout", "the folder \(e.name)/ is not a stage; records live in \(recordsFolder)/ beside the specification's folder, not inside it, so move it up one level")
             } else {
                 problem(rootPath, 1, "/", "layout", "the folder \(e.name)/ is not a stage; a specification's folders are \(stages.joined(separator: ", "))")
             }
@@ -193,6 +209,38 @@ final class Spec {
         }
         root = merged
         value = valueOf(merged)
+        loadRecords()
+    }
+
+    /// Finds every record file under the records/ folder beside the
+    /// specification's folder. A missing folder means there are no records.
+    private func loadRecords() {
+        recordsDir = joinPath(dir, "../" + recordsFolder)
+        var isDir: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: recordsDir, isDirectory: &isDir), isDir.boolValue else { return }
+        let walked: [String]
+        do {
+            walked = try walkFiles(recordsDir)
+        } catch {
+            problem(recordsDir, 1, "/", "layout", "cannot read the folder (\(plainIOError(error)))")
+            return
+        }
+        for rel in walked {
+            let p = joinPath(recordsDir, rel)
+            let name = (rel as NSString).lastPathComponent
+            if name.hasSuffix(".yml") {
+                problem(p, 1, "/", "layout", "a SpecArch file ends in .yaml; rename it")
+                continue
+            }
+            if !name.hasSuffix(".yaml") { continue }
+            let data: Data
+            do { data = try readFile(p) } catch {
+                problem(p, 1, "/", "layout", "cannot read it (\(plainIOError(error)))")
+                continue
+            }
+            let folder = dirPath(rel)
+            records.append(SpecRecord(path: p, folder: folder == "." ? "" : folder, data: data))
+        }
     }
 
     /// Adds the entries of one file's section mapping to the merged section,

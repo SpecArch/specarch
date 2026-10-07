@@ -1,0 +1,11 @@
+specarchRecord: "0.1"
+kind: defect
+id: DEF-3
+title: The catalogue prints books twice
+reportedBy: owner
+reported: "2026-10-12"
+phase: development
+severity: minor
+violates: ["#/commands/catalogue/standardOutput"]
+test: catalogue-usage-error
+status: fixed

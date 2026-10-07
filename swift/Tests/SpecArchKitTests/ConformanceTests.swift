@@ -110,10 +110,13 @@ private func ownSpecification() throws -> YNode {
     let implementation = try String(contentsOf: repository.appendingPathComponent("schema/specarch-implementation-0.1.schema.json"), encoding: .utf8)
     #expect(designSchemaJSON + "\n" == design, "run swift/embed-schemas.sh")
     #expect(implementationSchemaJSON + "\n" == implementation, "run swift/embed-schemas.sh")
+    let record = try String(contentsOf: repository.appendingPathComponent("schema/specarch-record-0.1.schema.json"), encoding: .utf8)
+    #expect(recordSchemaJSON + "\n" == record, "run swift/embed-schemas.sh")
 }
 
-/// The evaluator knows every keyword both schemas use.
+/// The evaluator knows every keyword the schemas use.
 @Test func schemasLoad() throws {
     _ = try SchemaEvaluator(json: designSchemaJSON)
     _ = try SchemaEvaluator(json: implementationSchemaJSON)
+    _ = try SchemaEvaluator(json: recordSchemaJSON)
 }

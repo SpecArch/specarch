@@ -72,7 +72,7 @@ func (d *doc) citation(c *yaml.Node) string {
 		from += ", clause " + cl
 	}
 	text := "From " + from + ": " + oneParagraph(str(c, "says"))
-	if u := str(src, "url"); u != "" && str(src, "kind") != "requirement-set" {
+	if u := str(src, "url"); u != "" && !strings.HasSuffix(str(src, "kind"), "-set") { // a tracker's url is a template
 		text += " <" + u + ">"
 	}
 	return text

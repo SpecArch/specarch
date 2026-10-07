@@ -1,0 +1,9 @@
+specarchRecord: "0.1"
+kind: incident
+id: INC-1
+detected: "2026-10-11"
+environment: production
+monitor: catalogue-run
+summary: The nightly print stopped one book short.
+impact: Readers missed one book in the printed catalogue.
+status: open

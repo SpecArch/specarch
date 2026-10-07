@@ -22,12 +22,14 @@ import (
 const (
 	designSchemaID         = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.1.schema.json"
 	implementationSchemaID = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-0.1.schema.json"
+	recordSchemaID         = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-record-0.1.schema.json"
 )
 
 var (
 	compileOnce  sync.Once
 	designSchema *jsonschema.Schema
 	implSchema   *jsonschema.Schema
+	recordSchema *jsonschema.Schema
 	compileErr   error
 	printer      = message.NewPrinter(language.English)
 )
@@ -35,7 +37,7 @@ var (
 func compileSchemas() {
 	c := jsonschema.NewCompiler()
 	c.AssertFormat()
-	for id, raw := range map[string][]byte{designSchemaID: schema.Definition, implementationSchemaID: schema.Implementation} {
+	for id, raw := range map[string][]byte{designSchemaID: schema.Definition, implementationSchemaID: schema.Implementation, recordSchemaID: schema.Record} {
 		doc, err := jsonschema.UnmarshalJSON(bytes.NewReader(raw))
 		if err != nil {
 			compileErr = err
@@ -51,6 +53,10 @@ func compileSchemas() {
 		return
 	}
 	implSchema, compileErr = c.Compile(implementationSchemaID)
+	if compileErr != nil {
+		return
+	}
+	recordSchema, compileErr = c.Compile(recordSchemaID)
 }
 
 // Plain descriptions of the naming patterns in the schemas, so a message can
@@ -66,6 +72,9 @@ var patternNames = map[string]string{
 	"^[A-Z][A-Z0-9]{1,15}$":                                        "an upper-case prefix of 2 to 16 letters or digits, such as LIB",
 	"^ADR-[0-9]{3,}$":                                              "ADR- and three or more digits, such as ADR-001",
 	"^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$":                 "a semantic version, such as 1.2.0",
+	"^([A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+|#/.+)$":                  "a requirement ID such as LIB-5, or a #/ pointer such as #/entities/Loan",
+	"^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z][a-z0-9]*(-[a-z0-9]+)*$":     "a date and an environment, such as 2026-10-07-production",
+	"^sha256:[0-9a-f]{64}$":                                        "sha256: and 64 lower-case hexadecimal digits",
 	"^#/(entities|enums)/[A-Z][A-Za-z0-9]*$":                       "#/entities/Name or #/enums/Name",
 	"^/":                                                           "a path starting with /",
 	"^([1-5][0-9][0-9]|default)$":                                  "an HTTP status code such as 200, or default",
@@ -91,8 +100,11 @@ func (c *checker) checkSchema(k Kind, value any) {
 		return
 	}
 	sch := designSchema
-	if k == KindImplementation {
+	switch k {
+	case KindImplementation:
 		sch = implSchema
+	case KindRecord:
+		sch = recordSchema
 	}
 	err := sch.Validate(value)
 	if err == nil {

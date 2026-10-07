@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "a resolved incident that names no defect and no change and gives no noChange reason"
+when: "validate is run"
+then: "it warns with incident_link and exits 0, since the record is still valid"
+verifies: [SA-23]

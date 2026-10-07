@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a record of an unknown kind, and a defect without violates and with an unquoted date"
+when: "validate is run"
+then: "it reports schema and unquoted_date in the record files and exits 1"
+verifies: [SA-23]

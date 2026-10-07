@@ -1,0 +1,8 @@
+specarchRecord: "0.1"
+kind: commissioning
+environment: production
+date: "2026-10-08"
+version: 1.0.0
+operator: owner
+results:
+  catalogue-answer: { result: pass }

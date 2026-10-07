@@ -1,0 +1,5 @@
+arguments: [validate, project]
+exitStatus: 1
+standardOutput: |
+  records/changes/CR-1.yaml:13: error: /status: change_decision: CR-1 is approved but has no decision; add decision with by, date, outcome approved and why
+  records/changes/CR-2.yaml:13: error: /decision/outcome: change_decision: CR-2 is rejected but its decision's outcome is approved; a rejected change needs outcome rejected

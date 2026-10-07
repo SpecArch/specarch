@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a duplicate that names no defect, one that repeats a duplicate, and one that repeats a defect that does not exist"
+when: "validate is run"
+then: "it reports defect_duplicate for each and exits 1"
+verifies: [SA-23]

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.1.0 of the specification: 22 requirements, 3 entities, 7 commands, 6 algorithms, 148 tests, 20 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 23 requirements, 3 entities, 7 commands, 6 algorithms, 160 tests, 20 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -221,6 +221,14 @@ Primary key: path.
 | Rule | setting | an implementation's deployment gives a value to a setting the specification does not declare |
 | Rule | secret_value | a setting marked secret carries a value, as a default or in a deployment |
 | Rule | monitor | an implementation's deployment watches a monitor the specification does not declare |
+| Rule | record_name | a record's file name is not its ID, its version, or its date and environment, or it does not sit in the folder of its kind under `records/` |
+| Rule | record_ref | a record names a stakeholder, requirement, `#/` pointer, test, environment or monitor the specification does not have, or a change, defect, incident, release or commissioning run that is not a record and not in a declared change-set or defect-set |
+| Rule | change_applied | an implemented or released change's `adds` or `changes` do not resolve or its `removes` still do, or an open change's `changes` or `removes` do not resolve; an open change whose `adds` already resolve is a warning |
+| Rule | change_decision | an approved, implemented or released change has no decision with outcome approved, or a rejected one no decision with outcome rejected |
+| Rule | defect_test | a fixed or released defect names no test, or one that neither verifies a requirement the defect violates nor is about an element it violates |
+| Rule | defect_duplicate | a duplicate defect names no defect, one that does not exist, or one that is itself a duplicate |
+| Rule | incident_link | a resolved incident links to no defect or change and gives no `noChange` reason (a warning) |
+| Rule | commissioning_record | a commissioning record's results name a check that does not exist, or its version is not a release's |
 | Rule | need_unrefined | no requirement refines a need whose status is not rejected (a warning) |
 | Rule | acceptance_missing | a requirement has no acceptance criteria (a warning) |
 | Rule | requirement_unsatisfied | the specification has a design and no element of it satisfies a requirement (a warning) |
@@ -532,7 +540,8 @@ read as specifications. An implementation file outside any
 specification is checked on its own against the specification its
 `implements` names. A file given by name must be a root file or an
 implementation file; a fragment of a tree is refused with the folder
-to run on instead.
+to run on instead. The records in the `records/` folder beside a
+specification's folder are checked with it.
 
 Every specification is checked against the meta-model and against the
 rules JSON Schema cannot express. It reports every problem in every
@@ -542,7 +551,7 @@ file, not only the first.
 |---|---|---|---|
 | `<paths>` | string, one or more | yes | Folders and files. A folder is searched for specifications and for implementation files outside one. |
 
-Reads `{paths}`: Root files, the files under their stage folders, and implementation files; `the specification named in each standalone implementation file's `implements``: Read to resolve that file's references.
+Reads `{paths}`: Root files, the files under their stage folders, and implementation files; `records/ beside each specification's folder`: The change, defect, release, incident, commissioning and approval records of that specification; `the specification named in each standalone implementation file's `implements``: Read to resolve that file's references.
 
 Standard output: One line per diagnostic, sorted by file, then line, then path, then rule.
 
@@ -555,6 +564,7 @@ sequenceDiagram
   participant F as Files
   U->>P: validate <paths>
   P->>F: read {paths}
+  P->>F: read records/ beside each specification's folder
   P->>F: read the specification named in each standalone implementation file's `implements`
   P->>P: exitStatus
   P-->>U: exit status 0, 1, 2
@@ -690,7 +700,7 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | internal/approval | The approval record beside a specification, its digest of the specification's files, and where a version's approval stands against the files now. |   |
 | internal/expr | The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals. |   |
 | internal/generate | The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents; questions writes the open questions and what they hold up, the text gaps prints. Every one renders why as an Insight, each citation as a Note, an element's origin as an Origin line and the open questions about it as Open question paragraphs. | #/algorithms/markersWellFormed |
-| internal/validate | Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases with the rank of each and the cases left out, the life-cycle links and traceability warnings, the open questions and what they cover, origin, and implementation references. | #/entities/Diagnostic, #/enums/Rule, #/enums/Severity, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
+| internal/validate | Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases with the rank of each and the cases left out, the life-cycle links and traceability warnings, the open questions and what they cover, origin, implementation references, and the records beside the specification. | #/entities/Diagnostic, #/enums/Rule, #/enums/Severity, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
 
 #### Mappings
 
@@ -840,7 +850,7 @@ Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin
 |---|---|---|
 | swift/Package.swift | The package. One library, one executable, one test target. |   |
 | swift/Sources/specarch | The executable; it passes the arguments to the library and exits with its status. |   |
-| swift/Sources/SpecArchKit | Everything else. Reading YAML, reading a specification tree into one document, the JSON Schema evaluator and its messages, the specification and implementation checks, the expression subset, tests and their derived cases with the rank of each, the life-cycle links, the open questions and origin, and the commands. | #/commands/validate, #/commands/version, #/entities/Diagnostic, #/entities/SpecFile, #/enums/Rule, #/enums/Severity, #/algorithms/exitStatus, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
+| swift/Sources/SpecArchKit | Everything else. Reading YAML, reading a specification tree into one document, the JSON Schema evaluator and its messages, the specification and implementation checks, the expression subset, tests and their derived cases with the rank of each, the life-cycle links, the open questions and origin, the records beside the specification, and the commands. | #/commands/validate, #/commands/version, #/entities/Diagnostic, #/entities/SpecFile, #/enums/Rule, #/enums/Severity, #/algorithms/exitStatus, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
 | swift/embed-schemas.sh | Writes the schemas of schema/ into the library as Swift source; a test fails when they differ. |   |
 
 #### Mappings
@@ -1785,9 +1795,14 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-usage-error | command generate | system | red | no target | generate is run without arguments | it prints how to use it and exits 2 |
 | generate-with-plugin | command generate | system | golden | an approved specification, its approval record beside it, and specarch-gen-echo on PATH, which answers two files | generate echo is run with --out out | it writes both files under out/ and exits 0 |
 | validate-algorithm | command validate | system | red | an operation that names an algorithm that does not exist | validate is run | it reports algorithm and exits 1 |
+| validate-change-applied | command validate | system | red | an implemented change whose addition is missing and whose removal is still there, and an approved change that changes a missing requirement and adds a test that already exists | validate is run | it reports change_applied errors for the first and the missing requirement, a change_applied warning for the test, and exits 1 |
+| validate-change-decision | command validate | system | red | an approved change without a decision, and a rejected change whose decision's outcome is approved | validate is run | it reports change_decision for each and exits 1 |
 | validate-change-log-warning | command validate | system | golden | a description that says how the file changed | validate is run | it warns with change_log and exits 0, since the file is still valid |
 | validate-cites | command validate | system | golden | elements that carry why and citations of declared sources | validate is run | it prints nothing and exits 0 |
+| validate-commissioning-record | command validate | system | red | a commissioning record whose results name a check that does not exist and whose version is not a release | validate is run | it reports commissioning_record for each and exits 1 |
 | validate-decision | command validate | system | red | a decision superseded by one that does not exist | validate is run | it reports decision and exits 1 |
+| validate-defect-duplicate | command validate | system | red | a duplicate that names no defect, one that repeats a duplicate, and one that repeats a defect that does not exist | validate is run | it reports defect_duplicate for each and exits 1 |
+| validate-defect-test | command validate | system | red | a fixed defect that names no test, and a fixed defect that violates a permission and names a test about a command | validate is run | it reports defect_test for each and exits 1 |
 | validate-deployment-environment-missing | command validate | system | red | an implementation deployment that names no environment while the specification declares them | validate is run | it reports environment at the deployment and exits 1 |
 | validate-deployment-valid | command validate | system | golden | a specification with environments, configuration, release, rollback, a migration, a check and a sign-off, and an implementation file whose deployment names its environment and gives the non-secret setting a value | validate is run | it prints nothing and exits 0 |
 | validate-derived-cases-covered | command validate | system | golden | an operation whose every derived case is covered by a test, one of them marked not applicable with a reason | validate is run | it prints nothing and exits 0 |
@@ -1819,8 +1834,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-formula-output-scale | command validate | system | red | a formula whose decimal result has no fixed scale and is not rounded | validate is run | it reports expression_type asking for round and exits 1 |
 | validate-fragment-given-by-name | command validate | system | red | a file of a tree given by name instead of the tree's folder | validate is run on it | it reports file_kind naming the folder to run on and exits 1 |
 | validate-implements | command validate | system | red | an implementation file written against an older version of its design | validate is run | it reports implements and exits 1 |
+| validate-incident-link | command validate | system | golden | a resolved incident that names no defect and no change and gives no noChange reason | validate is run | it warns with incident_link and exits 0, since the record is still valid |
 | validate-layout-folder-missing | command validate | system | red | stages that list deployment with no deployment/ folder | validate is run | it reports layout at stages and exits 1 |
 | validate-layout-not-a-stage | command validate | system | red | a docs/ folder beside specarch.yaml | validate is run | it reports layout naming the stage folders there are and exits 1 |
+| validate-layout-records-in-spec | command validate | system | red | a records folder inside the specification's folder | validate is run | it reports layout, saying the folder belongs beside the specification's folder, and exits 1 |
 | validate-layout-section-folder-in-root | command validate | system | red | an entities/ folder beside specarch.yaml, where entities is a section of the design stage and not a stage | validate is run | it reports layout naming design/entities/ as the folder's place and exits 1 |
 | validate-layout-section-in-root | command validate | system | red | entities written in specarch.yaml while stages lists design | validate is run | it reports layout at the section and exits 1 |
 | validate-layout-section-in-wrong-stage | command validate | system | red | a file under requirements/ that holds entities | validate is run | it reports layout naming the stage the section belongs to and exits 1 |
@@ -1845,6 +1862,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-question-covers-missing | command validate | system | golden | a requirement without priority and acceptance, an entity that is only a name, and must questions in every stage folder that block exactly those, including files directly under tests/ and implementation/ | validate is run | the missing keys and the warnings about the blocked elements are covered by the questions; it prints nothing and exits 0 |
 | validate-question-should-not-covering | command validate | system | red | a requirement without priority and a should question that blocks the key | validate is run | the missing key is still reported, because only a must question covers one, and it exits 1 |
 | validate-question-stage | command validate | system | red | a question under requirements/ about an entity, one in the root file about a requirement although requirements/ exists, and one that blocks two stages | validate is run | it reports each with question_stage, naming the folder to move to, and exits 1 |
+| validate-record-name | command validate | system | red | a defect whose file name is not its id, and a change in the defects folder | validate is run | it reports record_name for each and exits 1 |
+| validate-record-ref | command validate | system | red | records naming a role, requirement, pointer, test, environment and monitor the specification lacks, and a change, incident and release that are not records | validate is run | it reports record_ref at each and exits 1 |
+| validate-record-schema | command validate | system | red | a record of an unknown kind, and a defect without violates and with an unquoted date | validate is run | it reports schema and unquoted_date in the record files and exits 1 |
+| validate-record-tracker | command validate | system | golden | sources of kind change-set and defect-set with prefix TRK, and a release that includes TRK-4 and a defect that became TRK-9 | validate is run | both IDs resolve to the tracker, it prints nothing and exits 0 |
+| validate-records-valid | command validate | system | golden | a specification with records of every kind beside its folder, each naming only what exists, and a fixed defect whose test is about the command it violates | validate is run on the specification's folder | it prints nothing and exits 0 |
 | validate-ref-type | command validate | system | red | a field whose $ref names an enum that does not exist | validate is run | it reports ref_type and exits 1 |
 | validate-relation-target | command validate | system | red | a relation whose target is misspelt | validate is run | it reports relation_target and exits 1 |
 | validate-relation-via | command validate | system | red | a many-to-one relation whose via field does not exist | validate is run | it reports relation_via and exits 1 |
@@ -1928,6 +1950,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-16 | specarch document shall write, besides the technical specification, the requirements specification, the test plan, the traceability matrix, the deployment guide and the commissioning procedure with its sign-off sheet. | functional | must | accepted | test | Each of the five targets writes <target>.md into the folder it owns, with the generated-from header. The commissioning procedure has a Result column for every step and a sign-off sheet with a row for every signer. | NEED-3, NEED-5 |
 | SA-11 | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. | functional | must | accepted | test | A tree whose root lists its stages and holds each stage's files under that folder validates. A file in the wrong folder, a section in the wrong file, a listed stage without a folder, and a folder that is not a stage are each reported as layout. | NEED-4 |
 | SA-12 | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. | functional | must | accepted | test | A specification with only a requirements stage validates with no error. A requirement no design element satisfies, a requirement no test, check or monitor verifies, and a need no requirement refines are reported as warnings once the later stage exists. | NEED-5 |
+| SA-23 | The validator shall check the records kept beside a specification (change requests, defects, releases, incidents, commissioning runs and approvals) against their schema and against the specification they point into, without the specification pointing back at them. | functional | must | accepted | test | A record whose file name is not its ID or version, or that sits in another kind's folder, is reported as record_name. A record naming a role, requirement, pointer, test, environment or monitor the specification does not have is reported as record_ref, unless the ID falls in a declared change-set or defect-set. An implemented change whose additions are not in the specification, a change approved without a decision, a fixed defect without a test that shows the fix, a duplicate of a duplicate, and a commissioning run naming a check that does not exist are each reported under their rule. A resolved incident that leads to no defect and no change, and says nothing in noChange, is reported as a warning. | NEED-5 |
 | SA-13 | Every element of a specification, at every stage, may carry a rationale (why) and citations of declared sources (cites), and the validator shall check that every citation names a declared source. | functional | must | accepted | test | An element with why and cites validates, and a citation of a source that is not declared is reported as source. | NEED-6 |
 | SA-17 | A specification shall be able to say what it does not yet know as an open question that names what is asked, who decides, what it blocks and how urgent it is; and the validator shall accept a required key missing exactly where a must question says it is unknown, and nowhere else. | functional | must | accepted | test | An entity written as an empty mapping and blocked by a must question validates with no error, and its missing keys are listed under the question by specarch gaps. The same entity without the question is reported with the missing keys. A question whose blocks names nothing in the specification, whose decider is not a stakeholder, or which sits in another stage's folder, is reported. An accepted decision that answers a question still present is reported. | NEED-8 |
 | SA-18 | Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision. | functional | must | accepted | test | An element with origin stated and no citation, one with origin inferred and no why, and one with origin decided naming no decision or a proposed one, are each reported. When the root file says the specification tracks origin, every element of a section without one is reported as a warning. | NEED-8 |
@@ -1963,6 +1986,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Note on SA-12:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.4: The technical processes run from business or mission analysis and stakeholder needs definition (6.4.2) through requirements definition (6.4.3), design (6.4.4 and 6.4.5), implementation (6.4.7), verification (6.4.9), transition (6.4.10) and validation (6.4.11). <https://www.iso.org/standard/63712.html>
 
 **Note on SA-12:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3 and 6.4: Stakeholder needs are defined first and then transformed into system requirements; each requirement carries attributes and traces to its source. <https://www.iso.org/standard/72089.html>
+
+**Insight on SA-23:** A change, a defect or a release happens once and moves through statuses; kept in the specification it would turn it into a change log, and kept nowhere it could not be checked against what the specification says.
+
+**Note on SA-23:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.3.5 and 6.4.13: Configuration management records and controls changes to the system and its baselines; maintenance handles the problems and modification requests raised after transition. <https://www.iso.org/standard/63712.html>
 
 **Note on SA-13:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.8: Rationale and source are attributes every requirement should carry. <https://www.iso.org/standard/72089.html>
 
@@ -2006,6 +2033,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-20 | commands approve; commands generate; decisions ADR-019 | tests approve-refuses-open-question; tests approve-refuses-stale-document; tests approve-writes-record; tests generate-refuses-open-question; tests generate-refuses-unapproved; tests generate-unapproved |
 | SA-21 | commands validate; decisions ADR-020 | tests validate-derived-cases-harm; tests validate-derived-cases-listed; tests validate-derived-cases-mistakes; tests validate-schema-harm-unknown |
 | SA-22 | commands document; decisions ADR-020 | tests document-testplan-left-out; tests document-traceability-harm; tests document-writes-traceability |
+| SA-23 | enums Rule; commands validate | tests validate-change-applied; tests validate-change-decision; tests validate-commissioning-record; tests validate-defect-duplicate; tests validate-defect-test; tests validate-incident-link; tests validate-layout-records-in-spec; tests validate-record-name; tests validate-record-ref; tests validate-record-schema; tests validate-record-tracker; tests validate-records-valid |
 
 ## Sources
 

@@ -120,8 +120,8 @@ change log, which the Low IQ Tax principle forbids. So each run is one file
 outside the specification, under `records/commissioning/` beside the
 specification's folder, as `docs/conventions.md` describes. The
 commissioning procedure that `specarch document commissioning` writes is
-the form a run fills in; reading the filled-in records belongs to the
-records design in `docs/maintenance.md`.
+the form a run fills in, and the validator checks the filled-in records
+as `docs/maintenance.md` describes.
 
 ## Operation
 

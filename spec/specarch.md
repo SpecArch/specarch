@@ -155,6 +155,7 @@ sequenceDiagram
   participant F as Files
   U->>P: validate <paths>
   P->>F: read {paths}
+  P->>F: read records/ beside each specification's folder
   P->>F: read the specification named in each standalone implementation file's `implements`
   P->>P: exitStatus
   P-->>U: exit status 0, 1, 2

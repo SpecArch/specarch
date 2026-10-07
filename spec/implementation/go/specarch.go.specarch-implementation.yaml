@@ -77,7 +77,7 @@ layout:
     description: The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents; questions writes the open questions and what they hold up, the text gaps prints. Every one renders why as an Insight, each citation as a Note, an element's origin as an Origin line and the open questions about it as Open question paragraphs.
     implements: ["#/algorithms/markersWellFormed"]
   internal/validate:
-    description: Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases with the rank of each and the cases left out, the life-cycle links and traceability warnings, the open questions and what they cover, origin, and implementation references.
+    description: Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases with the rank of each and the cases left out, the life-cycle links and traceability warnings, the open questions and what they cover, origin, implementation references, and the records beside the specification.
     implements: ["#/entities/Diagnostic", "#/enums/Rule", "#/enums/Severity", "#/algorithms/referenceResolves", "#/algorithms/permissionGranted", "#/algorithms/workedExampleHolds"]
 
 mappings:

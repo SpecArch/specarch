@@ -1,0 +1,5 @@
+arguments: [validate, project]
+exitStatus: 1
+standardOutput: |
+  records/commissioning/2026-10-08-production.yaml:5: error: /version: commissioning_record: 1.0.0 is not a release: there is no records/releases/1.0.0.yaml; a commissioning run accepts a release
+  records/commissioning/2026-10-08-production.yaml:8: error: /results/catalogue-answer: commissioning_record: catalogue-answer is not a check of the specification; did you mean catalogue-answers?

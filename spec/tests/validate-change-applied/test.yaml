@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an implemented change whose addition is missing and whose removal is still there, and an approved change that changes a missing requirement and adds a test that already exists"
+when: "validate is run"
+then: "it reports change_applied errors for the first and the missing requirement, a change_applied warning for the test, and exits 1"
+verifies: [SA-23]

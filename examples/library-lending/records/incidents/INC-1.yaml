@@ -1,0 +1,11 @@
+specarchRecord: "0.1"
+kind: incident
+id: INC-1
+detected: "2026-10-12"
+environment: production
+reportedBy: librarian
+summary: A member returning a book three weeks late was charged more than the book's replacement cost.
+impact: One member was overcharged at the desk; the librarian refunded the difference by hand.
+status: resolved
+defects: [DEF-1]
+rollbackUsed: false

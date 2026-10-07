@@ -1,0 +1,9 @@
+specarchRecord: "0.1"
+kind: commissioning
+environment: production
+date: "2026-10-08"
+version: 1.0.0
+operator: owner
+results:
+  catalogue-answers: { result: pass, note: It printed two books. }
+signoff: { by: owner, date: "2026-10-08" }

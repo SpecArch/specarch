@@ -188,8 +188,9 @@ elements by ID only, so it carries none.
 
 Sources are declared once under `sources` in the root file, keyed by
 kebab-case name, with their `kind` (standard, regulation, document,
-interview, system, or requirement-set for an external tracker), `title`,
-`edition`, `author`, `date` and `url`. A citation of a source that is not
+interview, system, or requirement-set, change-set or defect-set for an
+external tracker, each with its `prefix`), `title`, `edition`, `author`,
+`date` and `url`. A citation of a source that is not
 declared is refused (`source`). Decisions keep their context, decision and
 consequences: the context is what was true and at stake, `why` the
 reasoning that led from it to the decision. A decision that answers open
@@ -596,9 +597,9 @@ holds the `environment`, the `date`, the `version` of the specification and
 the build, the `operator` as a role, `results` keyed by check name with
 `result` (pass, fail or skipped) and a `note`, and the `signoff` with who
 signed and when. The commissioning procedure (`specarch document
-commissioning`) is the form a run fills in. Neither the validator nor the
-documentor reads the records yet; `docs/maintenance.md` designs how they
-will.
+commissioning`) is the form a run fills in. A commissioning record is one
+kind of record; `docs/maintenance.md` describes them all and the rules the
+validator checks them against.
 
 ### Approval records
 

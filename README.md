@@ -77,9 +77,11 @@ sequences) are generated from the YAML, so they cannot drift from it; only
 explanatory pictures are drawn by hand.
 
 SpecArch has no grammar and no parser of its own, apart from the small
-expression language of checks and formulas. The language is defined by two
+expression language of checks and formulas. The language is defined by three
 JSON Schema 2020-12 documents, the meta-model, in `schema/`: one for the
-specification and one for implementation files. The same schema gives editors
+specification, one for implementation files and one for the records kept
+beside a specification (change requests, defects, releases, incidents,
+commissioning runs and approvals). The same schema gives editors
 validation and completion through `yaml-language-server`: put this on the
 first line of a root file and most editors pick it up.
 
@@ -115,6 +117,7 @@ a defect in the roadmap, not an accepted state.
 |---|---|
 | `schema/specarch-design-0.1.schema.json` | the meta-model of a specification, JSON Schema 2020-12 |
 | `schema/specarch-implementation-0.1.schema.json` | the meta-model of implementation files |
+| `schema/specarch-record-0.1.schema.json` | the records beside a specification |
 | `spec/` | SpecArch's own specification: every stage, the design of the `specarch` command, its Go and Swift implementation files, and in `spec/tests/` the conformance suite every implementation of `specarch` must pass |
 | `docs/techspec.md` | SpecArch's technical specification, generated from `spec/` |
 | `docs/requirements.md`, `testplan.md`, `traceability.md`, `deployment.md`, `commissioning.md`, `questions.md` | SpecArch's other documents, generated from `spec/` |
@@ -123,7 +126,7 @@ a defect in the roadmap, not an accepted state.
 | `docs/principles.md` | the Low IQ Tax principle and how SpecArch applies it |
 | `docs/conventions.md` | the tree layout, YAML layout, Markdown sections, generated and hand-drawn diagrams |
 | `docs/stages.md` | the seven life-cycle stages: what each holds, which standard says so, and why |
-| `docs/maintenance.md` | after commissioning: change requests, defects, releases and operation, as designed |
+| `docs/maintenance.md` | after commissioning: change requests, defects, releases, incidents and operation, and the records that hold them; the release rules, the diff verb and their documents as designed |
 | `docs/refinement.md` | from an old document to code: partial specifications, open questions, origin, approval and the gate on generation |
 | `docs/test-generation.md` | tests from the specification: the golden paths, which red paths are written and why, structured test data, the derive verb and the tests target, as designed |
 | `docs/dxlib-lessons.md` | what SpecArch takes from dxlib, the owner's Go library: one type rendered to many targets, the design keywords it proves are needed, a Go implementation on dxlib, and what is left behind |

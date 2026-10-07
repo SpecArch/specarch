@@ -93,6 +93,8 @@ a defect in the roadmap, not an accepted state.
 | `schema/specarch-design-0.1.schema.json` | the meta-model for design files, JSON Schema 2020-12 |
 | `schema/specarch-implementation-0.1.schema.json` | the meta-model for implementation files |
 | `spec/` | SpecArch's own specification: the design of the `specarch` command and its Go implementation |
+| `docs/techspec/` | SpecArch's technical specification, generated from `spec/` |
+| `conformance/` | the cases every implementation of `specarch` must pass |
 | `history/` | what changed and why, one file per day |
 | `docs/principles.md` | the Low IQ Tax principle and how SpecArch applies it |
 | `docs/conventions.md` | YAML layout, Markdown sections, generated and hand-drawn diagrams |
@@ -138,11 +140,25 @@ rule; the rule names are the `Rule` enum in `spec/specarch.specarch-design.yaml`
 The schemas also work alone, in an editor through `yaml-language-server`,
 or with any JSON Schema 2020-12 validator that reads YAML.
 
+## Generating the technical specification
+
+    specarch generate techspec examples/library-lending/
+
+writes `library-lending.techspec.md`, an arc42 technical specification with
+Mermaid diagrams of the entities, states, operations, commands, pages and
+permissions, into the folder the implementation file names (or `--out`). It
+also refreshes the diagrams between `specarch:generate` markers in the
+hand-written `library-lending.specarch-design.md`. It generates nothing from
+a file with errors. With `--check` it writes nothing and exits 1 when the
+committed output differs, which is how CI keeps the documents current.
+`docs/techspec/specarch.techspec.md` is SpecArch's own, generated from
+`spec/`.
+
 ## Status
 
 Version 0.1 of the meta-model, October 2026. The two schemas, the
-conventions, one example, SpecArch's own specification and the validator
-exist; no generator exists yet. The meta-model will change: the first real
+conventions, one example, SpecArch's own specification, the validator and
+the techspec generator exist; the other generators are on the roadmap. The meta-model will change: the first real
 projects written in SpecArch are expected to find concepts it cannot
 express, and those gaps define v0.2.
 

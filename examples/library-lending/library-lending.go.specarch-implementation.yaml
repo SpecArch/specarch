@@ -64,6 +64,8 @@ bindings:
     description: Money columns are `numeric(10,2)`.
 
 generators:
+  techspec:
+    output: techspec
   openapi:
     output: api
     tool: oapi-codegen

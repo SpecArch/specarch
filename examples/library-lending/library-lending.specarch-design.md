@@ -1,9 +1,10 @@
 # Library Lending
 
 Explanation for `library-lending.specarch-design.yaml`. The sections follow
-`docs/conventions.md`; diagrams between `specarch:generate` markers are
-derived from the YAML and will be rewritten by the generator once it exists.
-Until then they are kept in step by hand.
+`docs/conventions.md`. The regions between `specarch:generate` markers are
+written by `specarch generate techspec` from the YAML: edit the YAML, not the
+regions. The full technical specification is in
+`techspec/library-lending.techspec.md`.
 
 ## 1. Introduction and goals
 
@@ -61,17 +62,17 @@ erDiagram
     string isbn
     string title
     string author
-    integer copiesOwned
-    integer copiesAvailable
+    int32 copiesOwned
+    int32 copiesAvailable
     decimal replacementCost
   }
   Loan {
     uuid id PK
     uuid memberId FK
     uuid bookId FK
-    datetime loanedAt
+    timestamp loanedAt
     date dueOn
-    datetime returnedAt
+    timestamp returnedAt
     LoanStatus status
     decimal lateFee
   }
@@ -87,7 +88,7 @@ maintained by the service on every loan and return.
 <!-- specarch:generate stateDiagram Loan -->
 ```mermaid
 stateDiagram-v2
-  [*] --> open : createLoan
+  [*] --> open
   open --> overdue : loan.overdue/LoanOverdue
   open --> returned : returnLoan
   overdue --> returned : returnLoan
@@ -102,14 +103,11 @@ stateDiagram-v2
 ```mermaid
 sequenceDiagram
   participant C as Client
-  participant S as Lending service
-  participant D as Store
-  participant Q as loan.lifecycle
+  participant S as Library Lending
+  participant Q1 as loan.lifecycle
   C->>S: POST /loans/{loanId}/return
-  S->>D: load Loan, Book
   S->>S: lateFee(daysLate, dailyRate, replacementCost)
-  S->>D: update Loan (status, returnedAt, lateFee), Book.copiesAvailable, Member.outstandingFees
-  S-->>Q: LoanReturned
+  S-->>Q1: LoanReturned
   S-->>C: 200 Loan
 ```
 <!-- specarch:end -->

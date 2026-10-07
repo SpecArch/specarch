@@ -220,42 +220,59 @@ commands:
   generate:
     summary: Generate one target from design files
     description: |
-      Validates its input first and refuses an invalid file. Then writes the
-      target into the folder it owns, and nothing outside it. Every generated
-      file starts with a header naming the design file, its
-      `info.version` and the meta-model version. A hand-written Markdown
-      document is changed only between its `specarch:generate` markers. With
-      `--check` nothing is written: the output is generated in memory and
-      compared with what is on disk. The targets themselves are roadmap
-      step 2; this command is their shared frame.
+      Validates its input first and generates nothing from an invalid file.
+      Then writes the target into the folder it owns, and nothing outside it,
+      except the regions between `specarch:generate` markers in the
+      hand-written `<name>.specarch-design.md` beside each design file. Every
+      generated file starts with a header naming the design file, its
+      `info.version`, the implementation file when one was given, and the
+      meta-model version. With `--check` nothing is written: the output is
+      generated in memory and compared with what is on disk.
+
+      The techspec target writes `<name>.techspec.md`: an arc42 technical
+      specification of the design file, with chapters only for what the
+      design holds. Diagrams are Mermaid: an entity diagram, a state diagram
+      for each entity with a state field, a sequence diagram for each
+      operation and command, a flowchart of the pages, and a permissions
+      table. Chapter 7, deployment and implementation, comes from the
+      implementation file and is left out without one. A marker names what
+      goes in its region: `erDiagram`, `stateDiagram <Entity>`,
+      `sequenceDiagram <operationId or command>`, `flowchart pages` or
+      `permissions`.
     permission: public
     arguments:
       - name: target
         required: true
         schema: { $ref: "#/enums/GeneratorTarget" }
       - name: paths
-        description: Design files, and the implementation file for the stack when the target needs one.
+        description: Design files, and for each the implementation file that names it, when the target needs one. A folder is searched as validate searches it.
         required: true
         repeatable: true
         schema: { type: string }
     options:
       out:
-        description: The folder the target owns. Defaults to the one the implementation file names for this target.
+        description: The folder the target owns. Without it, the folder the implementation file's generators name for the target, relative to that file.
         schema: { type: string }
       check:
         description: Generate in memory and fail when the files on disk differ. Writes nothing.
         schema: { type: boolean, default: false }
     reads:
-      - { path: "{paths}", description: The input files. }
-      - { path: "{out}", description: "The current output, with `--check`, and Markdown documents with markers." }
+      - { path: "{paths}", description: The design and implementation files. }
+      - { path: "<name>.specarch-design.md", description: "The hand-written document beside each design file, when there is one." }
+      - { path: "{out}", description: "The current output, with `--check`." }
     writes:
-      - { path: "{out}", description: "The generated files, each with its header. Nothing is written with `--check`." }
-    standardOutput: With `--check`, one line per file that differs.
-    standardError: Diagnostics when the input is invalid, and errors.
+      - { path: "{out}/<name>.techspec.md", description: "The technical specification of each design file. Nothing is written with `--check`." }
+      - { path: "<name>.specarch-design.md", description: "Only the regions between markers. Nothing is written with `--check`." }
+    standardOutput: |
+      The diagnostics of an invalid input file and the errors of a marker,
+      one line each. With `--check`, one line per file that differs or is
+      missing, and per techspec file in the folder that no given design file
+      produces.
+    standardError: A usage message on a usage error, the reason a file cannot be read or written, and a one-line count at the end.
     exitCodes:
       "0": generated, or with `--check` the output is current
-      "1": the input is invalid, the target cannot express something in it, or with `--check` the output differs
-      "2": usage error, or a file could not be read or written
+      "1": an input file has an error, a marker is wrong, or with `--check` the output differs
+      "2": usage error, a target the program does not offer, no output folder, or a file that could not be read or written
     algorithm: checkStatus
     requirements: [SA-7, SA-8]
 
@@ -858,39 +875,117 @@ tests:
     given: "the program"
     when: "version is run with an argument"
     then: "it prints how to use it and exits 2"
-  generate-writes-target:
+  generate-writes-techspec:
     command: generate
     scenario: golden
-    given: a valid design file and an implementation file that names the target's folder
-    when: generate is run for that target
-    then: it writes the target's files, each with a header naming the design file, its version and the meta-model, and exits 0
+    given: "a design file and an implementation file that names techspec's output folder"
+    when: "generate techspec is run on both"
+    then: "it writes techspec/shop.techspec.md with every chapter the design fills, chapter 7 from the implementation file, and exits 0"
+  generate-techspec-without-implementation:
+    command: generate
+    scenario: golden
+    given: "a design file and no implementation file"
+    when: "generate techspec is run with --out docs"
+    then: "it writes docs/shop.techspec.md without chapter 7 and exits 0"
+  generate-entity-diagram:
+    command: generate
+    scenario: golden
+    given: "a hand-written document with an erDiagram marker"
+    when: "generate techspec is run"
+    then: "the region holds the entity diagram, every other line is unchanged, and it exits 0"
+  generate-state-diagram:
+    command: generate
+    scenario: golden
+    given: "a hand-written document with a stateDiagram Order marker"
+    when: "generate techspec is run"
+    then: "the region holds the states of Order with a start and an end, and it exits 0"
+  generate-sequence-diagram:
+    command: generate
+    scenario: golden
+    given: "a hand-written document with a sequenceDiagram payOrder marker"
+    when: "generate techspec is run"
+    then: "the region holds the call, the event on order.events and the 200 answer, and it exits 0"
+  generate-pages-flowchart:
+    command: generate
+    scenario: golden
+    given: "a hand-written document with a flowchart pages marker"
+    when: "generate techspec is run"
+    then: "the region holds the pages and the operation the Pay action runs, and it exits 0"
+  generate-permissions-table:
+    command: generate
+    scenario: golden
+    given: "a hand-written document with a permissions marker"
+    when: "generate techspec is run"
+    then: "the region holds the table of permissions and roles, with public granted to everyone, and it exits 0"
   generate-check-current:
     command: generate
     scenario: golden
-    given: committed output that matches the design file
-    when: generate is run with --check
-    then: it writes nothing, prints nothing and exits 0
+    given: "output that matches the design file"
+    when: "generate techspec is run with --check"
+    then: "it writes nothing, prints nothing and exits 0"
   generate-usage-error:
     command: generate
     scenario: red
     covers: [usage error, exit 2]
-    given: no target
-    when: generate is run without arguments
-    then: it prints how to use it and exits 2
-  generate-check-differs:
+    given: "no target"
+    when: "generate is run without arguments"
+    then: "it prints how to use it and exits 2"
+  generate-unknown-target:
     command: generate
     scenario: red
-    covers: [exit 1]
-    given: a generated diagram edited by hand
-    when: generate is run with --check
-    then: it prints the path of the file that differs, writes nothing, and exits 1
+    covers: [exit 2]
+    given: "a target name that does not exist"
+    when: "generate is run with target pdf"
+    then: "it names the targets there are and exits 2"
+  generate-target-not-offered:
+    command: generate
+    scenario: red
+    covers: [exit 2]
+    given: "a target of the design that this program does not generate"
+    when: "generate openapi is run"
+    then: "it says which targets it has and exits 2"
+  generate-no-output-folder:
+    command: generate
+    scenario: red
+    covers: [exit 2]
+    given: "a design file, no implementation file and no --out"
+    when: "generate techspec is run"
+    then: "it asks for --out or an implementation file and exits 2"
   generate-invalid-input:
     command: generate
     scenario: red
     covers: [exit 1]
-    given: a design file with a relation to an entity that does not exist
-    when: generate is run
-    then: it prints the diagnostics, writes nothing, and exits 1
+    given: "a design file with a relation to an entity that does not exist"
+    when: "generate techspec is run"
+    then: "it prints the diagnostic, writes nothing and exits 1"
+  generate-check-differs:
+    command: generate
+    scenario: red
+    covers: [exit 1]
+    given: "a generated file edited by hand"
+    when: "generate techspec is run with --check"
+    then: "it names the file that differs, writes nothing and exits 1"
+  generate-check-missing:
+    command: generate
+    scenario: red
+    covers: [exit 1]
+    given: "no generated output yet"
+    when: "generate techspec is run with --check"
+    then: "it names the missing file and exits 1"
+  generate-marker-unknown-object:
+    command: generate
+    scenario: red
+    covers: [exit 1]
+    given: "a marker for the states of an entity that has none"
+    when: "generate techspec is run"
+    then: "it reports the marker's line, writes nothing and exits 1"
+  generate-marker-unclosed:
+    command: generate
+    scenario: red
+    covers: [exit 1]
+    given: "a marker with no end marker"
+    when: "generate techspec is run"
+    then: "it reports the marker's line, writes nothing and exits 1"
   diagnostic-line-from-one:
     entity: Diagnostic
     constraint: diagnostic_line_positive

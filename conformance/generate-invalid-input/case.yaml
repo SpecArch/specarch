@@ -1,0 +1,4 @@
+arguments: [generate, techspec, --out, docs, shop.specarch-design.yaml]
+exitStatus: 1
+standardOutput: |
+  shop.specarch-design.yaml:22: error: /entities/Customer/relations/orders/target: relation_target: Ordr is not an entity of this file; did you mean Order?

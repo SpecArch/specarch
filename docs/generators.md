@@ -33,11 +33,21 @@ a step, the emitter stops at that tool's input and lets it do the rest.
 
 ## Markdown technical specification
 
-The arc42 document in `docs/conventions.md`. The emitter rewrites the
-generated diagrams and tables between the markers and leaves every other
-line alone. A document with no markers gets nothing; a marker for an object
-that no longer exists is an error, not an empty block, so a deleted entity
-cannot leave a stale diagram behind.
+`specarch generate techspec` writes `<name>.techspec.md` for each design
+file: the arc42 chapters of `docs/conventions.md`, each only when the design
+has something for it, with the generated Mermaid diagrams and tables. The
+design file gives every chapter but one; chapter 7, deployment and
+implementation, comes from the implementation file (stack, libraries,
+layout, mappings, bindings, generators, tasks, testing, deployments and the
+implementation decisions) and is left out when none is given. The output
+folder is `--out`, or the implementation file's `generators.techspec.output`,
+read relative to that file.
+
+The emitter also rewrites the generated diagrams and tables between the
+markers of the hand-written `<name>.specarch-design.md` and leaves every
+other line alone. A document with no markers gets nothing; a marker for an
+object that does not exist is an error, not an empty block, so a deleted
+entity cannot leave a stale diagram behind.
 
 ## OpenAPI document and the server interface
 

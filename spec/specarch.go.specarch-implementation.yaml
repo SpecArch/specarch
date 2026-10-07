@@ -62,13 +62,16 @@ libraries:
 layout:
   cmd/specarch:
     description: The command line. Argument handling, finding the files under folders, printing the diagnostics and the exit status.
-    implements: ["#/commands/validate", "#/commands/version", "#/entities/SpecFile", "#/algorithms/exitStatus"]
+    implements: ["#/commands/validate", "#/commands/generate", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
   schema:
     description: The JSON Schemas, embedded into the binary from the files editors use.
   internal/source:
     description: Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys.
   internal/expr:
     description: The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals.
+  internal/generate:
+    description: The generators. The techspec target writes the arc42 document and its Mermaid diagrams, and rewrites the regions between markers in hand-written Markdown.
+    implements: ["#/algorithms/markersWellFormed"]
   internal/validate:
     description: Schema validation with plain messages, the interface boundary, cross-references, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases, and implementation references.
     implements: ["#/entities/Diagnostic", "#/enums/Rule", "#/enums/Severity", "#/algorithms/referenceResolves", "#/algorithms/permissionGranted", "#/algorithms/workedExampleHolds"]
@@ -80,10 +83,19 @@ mappings:
   "#/enums/Severity": { target: validate.Severity }
   "#/commands/validate": { target: main.runValidate }
   "#/commands/version": { target: main.runVersion }
+  "#/commands/generate": { target: main.runGenerate }
+  "#/entities/GeneratedFile": { target: main.planned, description: "A path and the content generate wants there; --check compares it with the disk." }
+  "#/algorithms/checkStatus": { target: main.runGenerate and main.checkPlan }
+  "#/algorithms/markersWellFormed": { target: generate.RewriteMarkers }
   "#/algorithms/exitStatus": { target: the end of main.runValidate }
   "#/algorithms/workedExampleHolds": { target: validate.checker.checkExample }
   "#/algorithms/permissionGranted": { target: validate.checker.checkAccess }
   "#/algorithms/referenceResolves": { target: the validate.checker.check... methods for each kind of reference }
+
+generators:
+  techspec:
+    output: ../docs/techspec
+    description: SpecArch's own technical specification, generated from the design file and this file, and kept current by CI.
 
 bindings:
   cli:
@@ -98,6 +110,10 @@ tasks:
   validate-specs:
     run: go run ./cmd/specarch validate spec examples
     description: The validator checks its own specification and every example.
+    ci: true
+  techspec-current:
+    run: go run ./cmd/specarch generate techspec --check spec examples
+    description: The committed technical specifications match their design files.
     ci: true
   install: { run: go install ./cmd/specarch }
   sbom:
@@ -114,13 +130,15 @@ testing:
     conformance:
       description: |
         Runs every folder of `conformance/` through the program's own entry
-        point, in that folder, and compares the exit status and standard
-        output exactly. It also checks that the folders and the design
-        file's tests of validate and version name the same cases, and that
-        the validator's rules are exactly the design's Rule enum.
+        point, in a copy of that folder, and compares the exit status, the
+        standard output and every file written with the case's expected/
+        folder. It also checks that the folders and the design file's tests
+        of the commands name the same cases, and that the validator's rules
+        are exactly the design's Rule enum.
       run: go test ./cmd/specarch
       designTestsOf:
         - { command: validate }
+        - { command: generate }
         - { command: version }
       ci: true
     expressions:

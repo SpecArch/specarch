@@ -436,20 +436,24 @@ edit inside the markers; edit the YAML.
     ```
     <!-- specarch:end -->
 
-| Diagram | Source | Who draws it |
-|---|---|---|
-| `erDiagram` of entities, fields, relations | `entities`, `relations` | generated |
-| `stateDiagram-v2` per entity with a `stateField` | `transitions` | generated |
-| `sequenceDiagram` per operation: client, service, store, channel | `paths`, `emits`, `algorithm` | generated |
-| `flowchart` of pages and their `actions` | `pages` | generated |
-| permissions matrix (a Markdown table, not a diagram) | `roles`, `permissions` | generated |
-| context picture | prose | hand-drawn |
-| deployment picture | prose | hand-drawn |
-| any explanatory sketch of an algorithm or a flow | prose | hand-drawn |
+| Diagram | Marker | Source | Who draws it |
+|---|---|---|---|
+| `erDiagram` of entities, fields, keys, relations | `erDiagram` | `entities`, `relations` | generated |
+| `stateDiagram-v2` of one entity with a `stateField` | `stateDiagram <Entity>` | `transitions` | generated |
+| `sequenceDiagram` of one operation: client, service, algorithm, channels, answer | `sequenceDiagram <operationId>` | `paths`, `emits`, `algorithm` | generated |
+| `sequenceDiagram` of one command: user, program, files read and written, exit statuses | `sequenceDiagram <command>` | `commands` | generated |
+| `flowchart` of pages and their `actions` | `flowchart pages` | `pages` | generated |
+| permissions matrix (a Markdown table, not a diagram) | `permissions` | `roles`, `permissions` | generated |
+| context picture | | prose | hand-drawn |
+| deployment picture | | prose | hand-drawn |
+| any explanatory sketch of an algorithm or a flow | | prose | hand-drawn |
 
-Until a generator writes them, generated diagrams are written by
-hand inside the markers and checked against the YAML in review. The example in
-`examples/library-lending/` shows the markers in use.
+`specarch generate techspec` fills every marked region of the
+`<name>.specarch-design.md` beside a design file, and writes the whole
+technical specification, every generated diagram included, to
+`<name>.techspec.md` in the folder it owns. A marker for something the
+design does not have is an error. The example in `examples/library-lending/`
+shows both.
 
 ## The rule for new keywords
 

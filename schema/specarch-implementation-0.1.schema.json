@@ -333,7 +333,7 @@
       "type": "object",
       "properties": {
         "output": {
-          "description": "The folder this generator owns, relative to the repository root.",
+          "description": "The folder this generator owns, relative to this implementation file.",
           "type": "string",
           "minLength": 1
         },

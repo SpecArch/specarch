@@ -23,7 +23,9 @@ type conformanceCase struct {
 const conformanceDir = "../../conformance"
 
 // TestConformance runs every case of the language-neutral conformance suite:
-// the design tests of the validate and version commands.
+// the design tests of the validate, generate and version commands. A case
+// runs in a copy of its folder; afterwards every file must equal the one in
+// expected/ when there is one there, and be unchanged otherwise.
 func TestConformance(t *testing.T) {
 	entries, err := os.ReadDir(conformanceDir)
 	if err != nil {
@@ -33,12 +35,9 @@ func TestConformance(t *testing.T) {
 		if !e.IsDir() {
 			continue
 		}
-		dir, err := filepath.Abs(filepath.Join(conformanceDir, e.Name()))
-		if err != nil {
-			t.Fatal(err)
-		}
+		src := filepath.Join(conformanceDir, e.Name())
 		t.Run(e.Name(), func(t *testing.T) {
-			raw, err := os.ReadFile(filepath.Join(dir, "case.yaml"))
+			raw, err := os.ReadFile(filepath.Join(src, "case.yaml"))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -46,7 +45,19 @@ func TestConformance(t *testing.T) {
 			if err := yaml.Unmarshal(raw, &c); err != nil {
 				t.Fatal(err)
 			}
-			t.Chdir(dir)
+			inputs := readTree(t, src, "case.yaml", "expected")
+			expected := readTree(t, filepath.Join(src, "expected"))
+			work := t.TempDir()
+			for name, content := range inputs {
+				p := filepath.Join(work, name)
+				if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(p, content, 0o644); err != nil {
+					t.Fatal(err)
+				}
+			}
+			t.Chdir(work)
 			var stdout, stderr bytes.Buffer
 			status := run(c.Arguments, &stdout, &stderr)
 			if status != c.ExitStatus {
@@ -55,8 +66,67 @@ func TestConformance(t *testing.T) {
 			if got := stdout.String(); got != c.StandardOutput {
 				t.Errorf("standard output differs\ngot:\n%s\nwant:\n%s", got, c.StandardOutput)
 			}
+			after := readTree(t, work)
+			want := map[string][]byte{}
+			for k, v := range inputs {
+				want[k] = v
+			}
+			for k, v := range expected {
+				want[k] = v
+			}
+			for name, content := range after {
+				w, ok := want[name]
+				switch {
+				case !ok:
+					t.Errorf("%s was written, and expected/ does not hold it", name)
+				case !bytes.Equal(content, w):
+					t.Errorf("%s differs from what the case expects\ngot:\n%s", name, content)
+				}
+			}
+			for name := range want {
+				if _, ok := after[name]; !ok {
+					t.Errorf("%s is missing after the run", name)
+				}
+			}
 		})
 	}
+}
+
+// readTree reads every file under dir, keyed by its slash path, leaving out
+// the top-level names given.
+func readTree(t *testing.T, dir string, skip ...string) map[string][]byte {
+	t.Helper()
+	out := map[string][]byte{}
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		return out
+	}
+	err := filepath.WalkDir(dir, func(p string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, _ := filepath.Rel(dir, p)
+		for _, s := range skip {
+			if rel == s {
+				if d.IsDir() {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+		}
+		if d.IsDir() {
+			return nil
+		}
+		content, err := os.ReadFile(p)
+		if err != nil {
+			return err
+		}
+		out[filepath.ToSlash(rel)] = content
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return out
 }
 
 // designFile reads SpecArch's own design file.
@@ -86,13 +156,13 @@ func child(n *yaml.Node, key string) *yaml.Node {
 }
 
 // TestConformanceMatchesDesignTests checks that the suite and the design's
-// tests of validate and version name the same cases.
+// tests of the commands name the same cases.
 func TestConformanceMatchesDesignTests(t *testing.T) {
 	design := map[string]bool{}
 	tests := child(designFile(t), "tests")
 	for i := 0; tests != nil && i+1 < len(tests.Content); i += 2 {
 		cmd := child(tests.Content[i+1], "command")
-		if cmd != nil && (cmd.Value == "validate" || cmd.Value == "version") {
+		if cmd != nil && (cmd.Value == "validate" || cmd.Value == "generate" || cmd.Value == "version") {
 			design[tests.Content[i].Value] = true
 		}
 	}
@@ -113,7 +183,7 @@ func TestConformanceMatchesDesignTests(t *testing.T) {
 	}
 	for name := range folders {
 		if !design[name] {
-			t.Errorf("conformance/%s is not a test of command validate or version in the design file", name)
+			t.Errorf("conformance/%s is not a test of a command in the design file", name)
 		}
 	}
 }

@@ -20,6 +20,8 @@ const version = "0.1.0"
 
 const usage = `usage:
   specarch validate <file or folder>...   check SpecArch files
+  specarch generate <target> [--out <folder>] [--check] <file or folder>...
+                                           generate a target from design files
   specarch version                         print the program version
 
 A folder is searched for *.specarch-design.yaml and
@@ -38,6 +40,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 	switch args[0] {
 	case "validate":
 		return runValidate(args[1:], stdout, stderr)
+	case "generate":
+		return runGenerate(args[1:], stdout, stderr)
 	case "version":
 		if len(args) > 1 {
 			fmt.Fprintf(stderr, "specarch version takes no arguments\n\n%s", usage)

@@ -3,8 +3,9 @@
 Explanation for `specarch.specarch-design.yaml`, the design of the `specarch`
 command. The Go implementation is described in
 `specarch.go.specarch-implementation.yaml`. The sections follow `docs/conventions.md`;
-diagrams between `specarch:generate` markers are derived from the YAML and
-are kept in step by hand until the techspec generator exists.
+the regions between `specarch:generate` markers are written by
+`specarch generate techspec` from the YAML: edit the YAML, not the regions.
+The full technical specification is `docs/techspec/specarch.techspec.md`.
 
 This is SpecArch's own specification, written before the code as the first
 rule asks. It lives in `spec/` because that is where `docs/conventions.md`
@@ -59,8 +60,8 @@ line is described with `commands`, added to 0.1 for this file (ADR-006).
 <!-- specarch:generate erDiagram -->
 ```mermaid
 erDiagram
-  SpecFile ||--o{ Diagnostic : specFile
-  SpecFile ||--o{ GeneratedFile : source
+  Diagnostic }o--|| SpecFile : specFile
+  GeneratedFile }o--|| SpecFile : source
   SpecFile {
     string path PK
     DocumentKind kind
@@ -68,8 +69,9 @@ erDiagram
     string version
   }
   Diagnostic {
-    string file PK
-    integer line PK
+    string file PK, FK
+    Severity severity
+    int32 line PK
     string path PK
     Rule rule PK
     string message
@@ -77,10 +79,10 @@ erDiagram
   GeneratedFile {
     string path PK
     GeneratorTarget target
-    string sourceFile
+    string sourceFile FK
     string sourceVersion
     string metaModel
-    boolean markersOnly
+    bool markersOnly
   }
 ```
 <!-- specarch:end -->
@@ -121,21 +123,14 @@ every test suite names design tests that exist.
 <!-- specarch:generate sequenceDiagram validate -->
 ```mermaid
 sequenceDiagram
-  participant U as User or CI
-  participant V as specarch validate
+  participant U as User
+  participant P as SpecArch toolchain
   participant F as Files
-  U->>V: validate spec examples
-  V->>F: find *.specarch-design.yaml, *.specarch-implementation.yaml
-  loop each file
-    V->>F: read
-    V->>V: YAML, schema, boundary, references, access, expressions, examples
-    opt implementation file
-      V->>F: read the design file it implements
-      V->>V: version and pointers
-    end
-  end
-  V-->>U: diagnostics, sorted
-  V-->>U: exitStatus(usageError, ioError, diagnostics)
+  U->>P: validate <paths>
+  P->>F: read {paths}
+  P->>F: read the design file named in each implementation file's `implements`
+  P->>P: exitStatus
+  P-->>U: exit status 0, 1, 2
 ```
 <!-- specarch:end -->
 
@@ -192,8 +187,8 @@ implementation file.
 
 ## 11. Risks and technical debt
 
-The `generate` command and its tests are designed here but not built; the
-implementation file runs only the tests of `validate` and `version`.
+Of the generator targets, techspec is built; the others are designed by
+name only and return status 2 until they are.
 
 The entities here are values, not stored records; a value-object concept is a
 0.2 candidate. The formulas of `referenceResolves` and `permissionGranted`

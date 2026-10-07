@@ -1,0 +1,4 @@
+arguments: [generate, techspec, --check, shop.specarch-design.yaml, shop.go.specarch-implementation.yaml]
+exitStatus: 1
+standardOutput: |
+  techspec/shop.techspec.md: differs from what generate writes; run specarch generate without --check

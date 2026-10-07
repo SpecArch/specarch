@@ -36,8 +36,9 @@ decisions:
     consequences: |
       Design, deployment, commissioning and implementation elements all
       take `why` and `cites`; the schema allows them wherever an element
-      has a description. External requirement sets are a kind of source,
-      so `requirementSources` is no longer a section of its own.
+      has a description. An external requirement set is a source of kind
+      requirement-set, declared with its prefix, and a link into it resolves
+      through that prefix.
     satisfies: [SA-13]
     cites:
       - source: iso-29148

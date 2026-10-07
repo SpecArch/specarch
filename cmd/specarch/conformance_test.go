@@ -168,15 +168,15 @@ func child(n *yaml.Node, key string) *yaml.Node {
 }
 
 // TestCommandTestsHaveCases checks that every design test of a command has
-// a case.yaml to run it with, and every case.yaml belongs to a test of a
-// command.
+// a case.yaml to run it with (a test marked not applicable needs none), and
+// every case.yaml belongs to a test of a command.
 func TestCommandTestsHaveCases(t *testing.T) {
 	tests := child(designFile(t), "tests")
 	for i := 0; tests != nil && i+1 < len(tests.Content); i += 2 {
 		name := tests.Content[i].Value
 		_, err := os.Stat(filepath.Join(conformanceDir, name, "case.yaml"))
 		hasCase := err == nil
-		isCommand := child(tests.Content[i+1], "command") != nil
+		isCommand := child(tests.Content[i+1], "command") != nil && child(tests.Content[i+1], "notApplicable") == nil
 		switch {
 		case isCommand && !hasCase:
 			t.Errorf("spec/tests/%s is a test of a command but has no case.yaml", name)

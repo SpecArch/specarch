@@ -1,3 +1,3 @@
-arguments: [document, techspec, --check, specarch.yaml, shop.go.specarch-implementation.yaml]
+arguments: [document, techspec, --check, project]
 exitStatus: 0
 standardOutput: ""

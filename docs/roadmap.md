@@ -6,18 +6,18 @@ the validator, and the real projects check all of it.
 
 ## 1. Validator CLI
 
-Specified first, in SpecArch: `spec/specarch.specarch-design.yaml` is the design of
-the `specarch` command and `spec/specarch.go.specarch-implementation.yaml` the Go
-implementation of it. The validator checks both files, which is the first
+Specified first, in SpecArch: `spec/` is the specification of the `specarch`
+command, every stage of it, and `spec/implementation/go/` the Go
+implementation of it. The validator checks the tree, which is the first
 self-hosting check.
 
-The validator has two implementations of the one design file: Go, for
+The validator has two implementations of the one specification: Go, for
 macOS, Linux, Windows and Android, and Swift, for macOS, each with its own
 implementation file. They prove the split: one design, two languages, and
 nothing in the design changed for the second. Both pass the same
-conformance suite in `conformance/`, which holds only inputs and the
-expected exit status, output and files, with no code from either language.
-The generators are built in Go.
+conformance suite, the tests stage `spec/tests/`, which holds only inputs
+and the expected exit status, output and files, with no code from either
+language. The documents and generators are built in Go.
 
 A single binary, `specarch validate <files>`, written in Go in this
 repository. It checks design and implementation files and does what
@@ -33,9 +33,13 @@ JSON Schema cannot:
   becoming a wrong test;
 - fail-closed access: every operation and page has a permission that exists,
   every permission is granted by at least one role or is `public`;
-- the interface boundary: no stack-specific key in a design file, no
+- the interface boundary: no stack-specific key in a specification, no
   design in an implementation file, and an implementation file's
-  `implements` and pointers resolve in its design file.
+  `implements` and pointers resolve in its specification;
+- the tree: the root file's `stages` and the folders agree, every file
+  holds only its stage's sections, and every name is defined once;
+- the life cycle: every link between stages resolves, no secret carries a
+  value, and the traceability gaps are reported.
 
 It uses the same JSON Schema library the repository validates with today, so
 the schema stays the single definition. It ships with a test suite of valid and
@@ -43,16 +47,21 @@ invalid files, and the repository's CI runs it on every example. The validator
 is the first thing to be in version control and runnable by anyone, which the
 lessons from an earlier in-house language made the first requirement.
 
-## 2. Generators, in order of payoff
+## 2. Targets, in order of payoff
 
-Each generator is one command, `specarch generate <target> <files>`, and
-writes into a folder it owns. It reads the design file for the design
-and the implementation file for the target choices: the folder, the
-downstream code generator and its settings, the type each field maps to.
+Documents are `specarch document <target> <folders>`, built into the
+program, one per stage of the life cycle: techspec (built), requirements,
+test plan, traceability, deployment guide, commissioning procedure, manual
+and operations guide. Code is `specarch generate <target> <folders>`, each
+target a plug-in `specarch-gen-<target>` found on PATH (`docs/generators.md`
+has the protocol). Every target writes into a folder it owns. It reads the
+specification for the design and the implementation file for the target
+choices: the folder, the downstream code generator and its settings, the
+type each field maps to.
 The defaults (PostgreSQL for SQL, plain JavaScript for the web UI, SwiftUI
 for the iPhone UI) are recorded in the implementation schema, never in a
-design file. Generated files carry a header naming the spec
-file and version they came from. A generator never edits a hand-written file;
+specification. Generated files carry a header naming the root file and
+version they came from. A generator never edits a hand-written file;
 Markdown documents are updated only between the `specarch:generate` markers.
 Every emitter has a `--check` form that regenerates and fails on a
 difference. The rules and the pattern each target follows are in
@@ -84,11 +93,11 @@ difference. The rules and the pattern each target follows are in
    once, in one file, as an UPPERCASE constant with its payload shape; every
    subscription registered where its component is created; no wildcard or
    computed event names; and an optional debug log of every event, so the
-   flow can be followed. The design file's events stay neutral; the bus is
+   flow can be followed. The specification's events stay neutral; the bus is
    how the web implementation carries them.
 5. Other DSL formats on request, limited to what that DSL can execute:
    a concept the target cannot represent is reported, not silently omitted.
-6. Tests from the specification. The design file gives the business cases:
+6. Tests from the specification. The specification gives the business cases:
    every design test (golden and red, given, when and then) and every worked
    example. The implementation file gives the target: the test framework,
    the suites, fixtures and how each suite runs. One generated test per
@@ -129,8 +138,9 @@ personal projects, the resulting specifications can be published here as
 examples.
 
 Extraction stays a manual method with scripts kept in each project until
-these first projects show which readers repeat; those become
-`specarch extract <surface>` afterwards.
+these first projects show which readers repeat; those become the readers of
+`specarch extract <source>`, the verb that is designed in `spec/` and built
+then.
 
 Candidates, in rough order of size: a menu-bar agent manager (macOS), a home
 solar monitoring system (Go services on a small board plus an iPhone app), a
@@ -159,7 +169,12 @@ for 0.2 rather than being written into 0.1 unchecked:
 Other known candidates:
 
 - row-level permissions (a member sees only their own loans);
-- cross-file references between bounded contexts;
+- a schema per fragment file, so an editor can validate one file of a tree
+  on its own;
+- commissioning records checked by the validator, so a record names only
+  checks that exist;
+- missing golden tests of a designed but unbuilt command, so the validator
+  stops warning about `extract` without a test that cannot run;
 - a fixed expression grammar;
 - interfaces beyond HTTP, messaging and the command line, which 0.1 has:
   gRPC, file exchange, a Bluetooth or serial protocol, a menu-bar UI;

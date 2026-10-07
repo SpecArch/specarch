@@ -24,6 +24,7 @@ paths:
 tests:
   create-item-succeeds:
     operation: createItem
+    level: system
     scenario: golden
     covers: [name of 1 character, name of 40 characters]
     given: a clerk
@@ -31,6 +32,7 @@ tests:
     then: both items are added
   create-item-missing-name:
     operation: createItem
+    level: system
     scenario: red
     covers: [missing name]
     given: a clerk
@@ -38,6 +40,7 @@ tests:
     then: it is refused
   create-item-name-length:
     operation: createItem
+    level: system
     scenario: red
     covers: [name shorter than 1 character, name longer than 40 characters]
     given: a clerk
@@ -45,6 +48,7 @@ tests:
     then: both are refused
   create-item-denied:
     operation: createItem
+    level: system
     scenario: red
     covers: [denied without items.create]
     given: a caller without items.create
@@ -52,6 +56,7 @@ tests:
     then: it is refused as not allowed
   create-item-duplicate:
     operation: createItem
+    level: system
     scenario: red
     covers: [response 409]
     notApplicable: Covered by the store's own unique index test; the design keeps no unique constraint on items.

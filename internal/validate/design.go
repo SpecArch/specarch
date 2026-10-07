@@ -131,7 +131,7 @@ func suggest(name string, valid map[string]*yaml.Node) string {
 	case best != "":
 		return "; did you mean " + best + "?"
 	case len(names) == 0:
-		return "; there are none in this file"
+		return "; there are none in the specification"
 	case len(names) <= 8:
 		return "; use one of " + strings.Join(names, ", ")
 	}
@@ -191,12 +191,12 @@ func (c *checker) checkRefs(d *design) {
 			case strings.HasPrefix(ref, "#/entities/"):
 				name := strings.TrimPrefix(ref, "#/entities/")
 				if d.entities[name] == nil {
-					c.add(p.Value, ptr, RuleRefType, "%s is not an entity of this file%s", name, suggest(name, d.entities))
+					c.add(p.Value, ptr, RuleRefType, "%s is not an entity of the specification%s", name, suggest(name, d.entities))
 				}
 			case strings.HasPrefix(ref, "#/enums/"):
 				name := strings.TrimPrefix(ref, "#/enums/")
 				if d.enums[name] == nil {
-					c.add(p.Value, ptr, RuleRefType, "%s is not an enum of this file%s", name, suggest(name, d.enums))
+					c.add(p.Value, ptr, RuleRefType, "%s is not an enum of the specification%s", name, suggest(name, d.enums))
 				}
 			}
 		}
@@ -335,7 +335,7 @@ func (c *checker) checkRelation(d *design, entity string, fields map[string]*yam
 	target := source.Str(targetNode)
 	if target != "" && d.entities[target] == nil {
 		c.add(targetNode, source.Pointer(append(base, "target")...), RuleRelationTarget,
-			"%s is not an entity of this file%s", target, suggest(target, d.entities))
+			"%s is not an entity of the specification%s", target, suggest(target, d.entities))
 		return
 	}
 	viaNode := source.Child(p.Value, "via")
@@ -356,7 +356,7 @@ func (c *checker) checkRelation(d *design, entity string, fields map[string]*yam
 		}
 	case "many-to-many":
 		if d.entities[via] == nil {
-			c.add(viaNode, ptr, RuleRelationVia, "%s is not an entity of this file; for many-to-many, via names the join entity%s", via, suggest(via, d.entities))
+			c.add(viaNode, ptr, RuleRelationVia, "%s is not an entity of the specification; for many-to-many, via names the join entity%s", via, suggest(via, d.entities))
 		}
 	}
 }
@@ -418,7 +418,7 @@ func (c *checker) checkStates(d *design, name string, e *yaml.Node, fields map[s
 		trig := source.Child(t, "trigger")
 		if tr := source.Str(trig); tr != "" && !d.isTrigger(tr) {
 			c.add(trig, source.Pointer(append(tp, "trigger")...), RuleTrigger,
-				"%s is not an operationId, a command, a channel/Message or an algorithm of this file; name the one that causes this move", tr)
+				"%s is not an operationId, a command, a channel/Message or an algorithm of the specification; name the one that causes this move", tr)
 		}
 	}
 }
@@ -444,7 +444,7 @@ func (c *checker) checkOperations(d *design) {
 			seen[o.id] = true
 		}
 		if alg := source.Child(o.node, "algorithm"); alg != nil && d.algorithms[alg.Value] == nil {
-			c.add(alg, o.pointer("algorithm"), RuleAlgorithm, "%s is not an algorithm of this file%s", alg.Value, suggest(alg.Value, d.algorithms))
+			c.add(alg, o.pointer("algorithm"), RuleAlgorithm, "%s is not an algorithm of the specification%s", alg.Value, suggest(alg.Value, d.algorithms))
 		}
 		for i, e := range source.Items(source.Child(o.node, "emits")) {
 			if d.message(e.Value) == nil {
@@ -491,7 +491,7 @@ func (c *checker) checkPathParameters(o operation) {
 func (c *checker) checkCommands(d *design) {
 	for name, cmd := range d.commands {
 		if alg := source.Child(cmd, "algorithm"); alg != nil && d.algorithms[alg.Value] == nil {
-			c.add(alg, source.Pointer("commands", name, "algorithm"), RuleAlgorithm, "%s is not an algorithm of this file%s", alg.Value, suggest(alg.Value, d.algorithms))
+			c.add(alg, source.Pointer("commands", name, "algorithm"), RuleAlgorithm, "%s is not an algorithm of the specification%s", alg.Value, suggest(alg.Value, d.algorithms))
 		}
 		args := source.Items(source.Child(cmd, "arguments"))
 		for i, a := range args {
@@ -513,7 +513,7 @@ func (c *checker) checkPages(d *design) {
 		entNode := source.Child(pg, "entity")
 		ent := source.Str(entNode)
 		if ent != "" && d.entities[ent] == nil {
-			c.add(entNode, source.Pointer(append(base, "entity")...), RuleRefType, "%s is not an entity of this file%s", ent, suggest(ent, d.entities))
+			c.add(entNode, source.Pointer(append(base, "entity")...), RuleRefType, "%s is not an entity of the specification%s", ent, suggest(ent, d.entities))
 		} else if ent != "" {
 			fields := fieldsOf(d.entities[ent])
 			c.checkFieldList(source.Child(pg, "columns"), append(base, "columns"), fields, ent, "a column")
@@ -523,7 +523,7 @@ func (c *checker) checkPages(d *design) {
 		for _, key := range []string{"source", "submit"} {
 			n := source.Child(pg, key)
 			if id := source.Str(n); id != "" && d.operations[id].node == nil {
-				c.add(n, source.Pointer(append(base, key)...), RuleOperation, "%s is not an operationId of this file%s", id, suggest(id, opNames))
+				c.add(n, source.Pointer(append(base, key)...), RuleOperation, "%s is not an operationId of the specification%s", id, suggest(id, opNames))
 			}
 		}
 		for i, a := range source.Items(source.Child(pg, "actions")) {
@@ -533,11 +533,11 @@ func (c *checker) checkPages(d *design) {
 			switch source.Str(source.Child(a, "kind")) {
 			case "navigate":
 				if t != "" && d.pages[t] == nil {
-					c.add(tn, ptr, RulePage, "%s is not a page of this file%s", t, suggest(t, d.pages))
+					c.add(tn, ptr, RulePage, "%s is not a page of the specification%s", t, suggest(t, d.pages))
 				}
 			case "operation":
 				if t != "" && d.operations[t].node == nil {
-					c.add(tn, ptr, RuleOperation, "%s is not an operationId of this file%s", t, suggest(t, opNames))
+					c.add(tn, ptr, RuleOperation, "%s is not an operationId of the specification%s", t, suggest(t, opNames))
 				}
 			}
 		}
@@ -547,7 +547,7 @@ func (c *checker) checkPages(d *design) {
 func (c *checker) checkDecisions(d *design) {
 	for id, dec := range d.decisions {
 		if s := source.Child(dec, "supersededBy"); s != nil && d.decisions[s.Value] == nil {
-			c.add(s, source.Pointer("decisions", id, "supersededBy"), RuleDecision, "%s is not a decision of this file%s", s.Value, suggest(s.Value, d.decisions))
+			c.add(s, source.Pointer("decisions", id, "supersededBy"), RuleDecision, "%s is not a decision of the specification%s", s.Value, suggest(s.Value, d.decisions))
 		}
 	}
 }
@@ -558,7 +558,7 @@ func (c *checker) checkAccess(d *design) {
 	use := func(n *yaml.Node, ptr string, who string) {
 		p := source.Str(n)
 		if p != "" && d.permissions[p] == nil {
-			c.add(n, ptr, RulePermissionUndeclared, "%s needs permission %s, which is not declared; add it under permissions%s", who, p, strings.Replace(suggest(p, d.permissions), "; there are none in this file", "", 1))
+			c.add(n, ptr, RulePermissionUndeclared, "%s needs permission %s, which is not declared; add it under permissions%s", who, p, strings.Replace(suggest(p, d.permissions), "; there are none in the specification", "", 1))
 		}
 	}
 	for _, o := range d.opList {

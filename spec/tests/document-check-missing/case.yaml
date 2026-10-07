@@ -1,4 +1,4 @@
-arguments: [document, techspec, --check, specarch.yaml, shop.go.specarch-implementation.yaml]
+arguments: [document, techspec, --check, project]
 exitStatus: 1
 standardOutput: |
-  techspec/techspec.md: missing; run specarch generate without --check
+  docs/techspec.md: missing; run specarch document without --check

@@ -1,6 +1,8 @@
-# Generators
+# Targets
 
-What every SpecArch emitter must do, and the pattern each target follows.
+What every SpecArch target must do, document or code, and the pattern each
+one follows. `specarch document <target>` writes a document; `specarch
+generate <target>` writes code or data, through a plug-in.
 None of the patterns is new. Each was found running in production, in a tool
 that already does one piece of the job well: sqlc for queries, protoc for
 service contracts, the OpenAPI code generators that offer a strict server
@@ -10,14 +12,16 @@ a step, the emitter stops at that tool's input and lets it do the rest.
 
 ## Rules for every emitter
 
-1. One command, one folder. `specarch generate <target> <files>` writes
-   into a folder the target owns and nothing outside it. Every generated
-   file starts with a header naming the spec file, its `info.version` and
-   the meta-model version it came from.
+1. One command, one folder. `specarch document <target> <folders>` and
+   `specarch generate <target> <folders>` write into a folder the target
+   owns and nothing outside it: the folder the implementation file names
+   under `targets`, or `--out`. Every generated file starts with a header
+   naming the root file, its `info.version` and the meta-model version it
+   came from.
 2. Generated output is never edited by hand. A change goes into the spec and
-   the output is regenerated. `specarch generate <target> --check` regenerates
-   into a temporary location and fails when the committed output differs.
-   In CI that is the third gate in `docs/sync-gates.md`.
+   the output is regenerated. With `--check` the output is made in memory
+   and compared with the disk, and the run fails when it differs. In CI
+   that is the third gate in `docs/sync-gates.md`.
 3. Hand-written files are never touched. The one exception is a Markdown
    document, which is rewritten only between its `specarch:generate`
    markers.
@@ -31,21 +35,50 @@ a step, the emitter stops at that tool's input and lets it do the rest.
    is derived, and nobody reviews the function. For SpecArch the YAML is the
    input and the review happens there.
 
+## Plug-ins
+
+A code target that `specarch` does not build in is produced by the
+executable `specarch-gen-<target>` found on PATH, the pattern of
+`protoc-gen-*`, `git-*` and `kubectl-*`, with protoc's protocol: the plug-in
+never touches the disk. `specarch` validates the specification, runs the
+plug-in once per specification, and writes on its standard input one JSON
+object:
+
+| Key | Holds |
+|---|---|
+| `specarch` | the meta-model version |
+| `target` | the target name |
+| `root` | the root file's path |
+| `specification` | the merged, validated specification as plain values |
+| `implementations` | one object per implementation file: `file`, `content` (the file as plain values) and `settings` (the target's settings from it, when any) |
+| `output` | the folder the files are for |
+
+The plug-in answers on its standard output with one JSON object: `files`,
+each a `path` relative to the output folder and its `content`, and
+`diagnostics`, each with the validator's fields (`file`, `line`,
+`severity`, `path`, `rule`, `message`), and exits 0. `specarch` prints the
+diagnostics, refuses a path outside the output folder, and writes or
+compares the files itself, so `--check` and rule 1 hold for every plug-in
+without each one implementing them. A plug-in that exits with another
+status, or answers with anything else, fails the run with status 2; its
+standard error is passed through. The request and answer structs are in
+`cmd/specarch/generate.go`.
+
 ## Markdown technical specification
 
-`specarch generate techspec` writes `<name>.techspec.md` for each design
-file: the arc42 chapters of `docs/conventions.md`, each only when the design
-has something for it, with the generated Mermaid diagrams and tables. The
-design file gives every chapter but one; chapter 7, deployment and
-implementation, comes from the implementation file (stack, libraries,
-layout, mappings, bindings, generators, tasks, testing, deployments and the
-implementation decisions) and is left out when none is given. The output
-folder is `--out`, or the implementation file's `generators.techspec.output`,
-read relative to that file.
+`specarch document techspec` writes `techspec.md` for a specification: the
+arc42 chapters of `docs/conventions.md`, each only when the specification
+has something for it, with the generated Mermaid diagrams and tables.
+Chapter 2 comes from the constraints and assumptions, chapter 7 from the
+deployment and commissioning stages and then from each implementation file
+(stack, libraries, layout, mappings, bindings, targets, tasks, testing,
+deployments and the implementation decisions), chapter 12 from the
+glossary, and chapter 13 from the needs and requirements with the
+traceability matrix of what satisfies and what verifies each requirement.
 
-The emitter also rewrites the generated diagrams and tables between the
-markers of the hand-written `<name>.specarch-design.md` and leaves every
-other line alone. A document with no markers gets nothing; a marker for an
+The target also rewrites the generated diagrams and tables between the
+markers of the hand-written `specarch.md` beside the root file and leaves
+every other line alone. A document with no markers gets nothing; a marker for an
 object that does not exist is an error, not an empty block, so a deleted
 entity cannot leave a stale diagram behind.
 
@@ -112,7 +145,7 @@ screen in a real project and has to reproduce it before it is accepted.
 
 ## Tests from the specification
 
-The design file says what is tested; the implementation file says with
+The specification says what is tested; the implementation file says with
 what. One test per worked example and one per design test, in the
 framework the implementation file's `testing` names, each named after its
 example or test.
@@ -148,10 +181,11 @@ that format can execute. A concept it cannot represent is reported by name
 (rule 4). A format that can only hold part of the spec gets a partial
 document that says so in its header.
 
-## Adding a generator
+## Adding a target
 
-A new emitter is written against a real project, not against the example.
+A new target is written against a real project, not against the example.
 It is accepted when its output is what that project would have written by
 hand, its `--check` form runs in that project's CI, and the matching gate in
-`docs/sync-gates.md` is on. Generators are added one stack at a time, in the
-order the real projects on the roadmap need them.
+`docs/sync-gates.md` is on. Code targets are plug-ins, added one stack at a
+time, in the order the real projects on the roadmap need them; document
+targets are built into `specarch`, one per stage of the life cycle.

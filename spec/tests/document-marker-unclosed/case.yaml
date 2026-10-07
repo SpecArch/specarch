@@ -1,4 +1,4 @@
-arguments: [document, techspec, --out, docs, specarch.yaml]
+arguments: [document, techspec, --out, docs, project]
 exitStatus: 1
 standardOutput: |
-  shop.specarch-design.md:3: error: this specarch:generate marker has no <!-- specarch:end --> after it; add one
+  project/specarch.md:3: error: this specarch:generate marker has no <!-- specarch:end --> after it; add one

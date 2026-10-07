@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  case.go.specarch-implementation.yaml:3: error: /implements/version: implements: this file implements version 0.9.0 of specarch.yaml, but that file is now version 1.0.0; review the design change, then update this version
+  case.go.specarch-implementation.yaml:3: error: /implements/version: implements: this file implements version 0.9.0 of specarch.yaml, but that specification is now version 1.0.0; review the design change, then update this version

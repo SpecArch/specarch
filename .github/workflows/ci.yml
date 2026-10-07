@@ -28,7 +28,7 @@ jobs:
       - name: Validate SpecArch's own specification and every example
         run: go run ./cmd/specarch validate spec examples
       - name: Generated technical specifications are current
-        run: go run ./cmd/specarch generate techspec --check spec examples
+        run: go run ./cmd/specarch document techspec --check spec examples
 
   swift:
     runs-on: macos-latest

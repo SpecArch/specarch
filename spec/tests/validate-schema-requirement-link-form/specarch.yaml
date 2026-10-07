@@ -5,4 +5,4 @@ requirements:
 permissions:
   items.read: { description: See items. }
 roles:
-  clerk: { description: Staff., permissions: [items.read], satisfies: [lib-1] }
+  clerk: { description: Staff., permissions: [items.read], satisfies: [LIB-1, lib-1] }

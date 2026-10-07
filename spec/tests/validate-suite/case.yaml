@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  case.go.specarch-implementation.yaml:9: error: /testing/suites/design/designTests/0: suite: create-item-succeeds is not a test of the design file specarch.yaml; there are none in this file
+  case.go.specarch-implementation.yaml:9: error: /testing/suites/design/designTests/0: suite: create-item-succeeds is not a test of the specification; there are none in the specification

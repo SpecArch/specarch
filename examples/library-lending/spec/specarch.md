@@ -1,10 +1,9 @@
 # Library Lending
 
-Explanation for `library-lending.specarch-design.yaml`. The sections follow
+Explanation for the specification in this folder. The sections follow
 `docs/conventions.md`. The regions between `specarch:generate` markers are
-written by `specarch generate techspec` from the YAML: edit the YAML, not the
-regions. The full technical specification is in
-`techspec/library-lending.techspec.md`.
+written by `specarch document techspec` from the YAML: edit the YAML, not
+the regions. The full technical specification is in `../docs/techspec.md`.
 
 ## 1. Introduction and goals
 
@@ -18,8 +17,9 @@ money is never wrong by a cent; a member can only ever see their own records.
 
 ## 2. Constraints
 
-Single currency. Dates are the library's local calendar dates; timestamps are
-UTC. One library, one branch.
+The constraints and assumptions are in `requirements/`: one library, one
+branch, one currency; local calendar dates and UTC timestamps; member data
+kept only as long as the rules allow.
 
 ## 3. Context
 
@@ -46,17 +46,8 @@ permission it needs.
 <!-- specarch:generate erDiagram -->
 ```mermaid
 erDiagram
-  Member ||--o{ Loan : loans
   Book ||--o{ Loan : loans
-  Member {
-    uuid id PK
-    string cardNumber
-    string fullName
-    string email
-    MembershipTier tier
-    date joinedOn
-    decimal outstandingFees
-  }
+  Member ||--o{ Loan : loans
   Book {
     uuid id PK
     string isbn
@@ -75,6 +66,15 @@ erDiagram
     timestamp returnedAt
     LoanStatus status
     decimal lateFee
+  }
+  Member {
+    uuid id PK
+    string cardNumber
+    string fullName
+    string email
+    MembershipTier tier
+    date joinedOn
+    decimal outstandingFees
   }
 ```
 <!-- specarch:end -->
@@ -111,6 +111,13 @@ sequenceDiagram
   S-->>C: 200 Loan
 ```
 <!-- specarch:end -->
+
+## 7. Deployment
+
+A single service over one database. The three environments, the release and
+rollback steps, the tier migration and the commissioning checks are in
+`deployment/` and `commissioning/`; the hosts are in the implementation
+file.
 
 ## 8. Cross-cutting concepts
 
@@ -153,15 +160,6 @@ loan. Acceptable for the example; a real library would add a `Copy` entity.
 
 ## 12. Glossary
 
-- **Copy**: one physical book. The example counts them per title.
-- **Tier**: a membership level that sets the loan limit and loan period.
-
-## 13. Requirements
-
-| ID | Requirement |
-|---|---|
-| LIB-1 | A member is identified by a unique card number and a unique email address. |
-| LIB-2 | Anyone can browse the catalogue without a card. |
-| LIB-3 | A member may hold at most the number of open loans their tier allows and may not borrow while fees are outstanding. |
-| LIB-4 | A loan not returned by its due date becomes overdue the next day and the member is told. |
-| LIB-5 | A late return is charged a flat daily rate, capped at the book's replacement cost. |
+The glossary is in `requirements/glossary/`; the stakeholders, needs,
+requirements and traceability matrix are in `requirements/` and in chapter
+13 of `../docs/techspec.md`.

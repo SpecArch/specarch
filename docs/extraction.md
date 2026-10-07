@@ -36,8 +36,10 @@ spec first.
 
 Extraction is a manual method with this checklist for the first projects.
 Each surface's reader is a small script kept in that project's repository.
-The readers that prove general become `specarch extract <surface>` later;
-the roadmap says when.
+The readers that prove general become `specarch extract <source>`, the verb
+that goes from existing code or documents to a specification; it is
+designed in `spec/design/commands/extract.yaml` and built when the first
+real project needs it. Until then every build answers it with status 2.
 
 ## What goes wrong
 
@@ -89,9 +91,9 @@ Extracting real systems asks for four concepts. Meta-model 0.1 has one of
 them; the other three are 0.2 items, because a keyword that no tool checks is
 a defect, and only the validator or an emitter can check them.
 
-- Trace, in 0.1: every named object carries `requirements`, the
-  requirements it serves. Fields, parameters, responses, actions and worked
-  examples trace through the object that holds them.
+- Trace, in 0.1: every named object carries `satisfies`, the requirements
+  it meets, and every test `verifies`. Fields, parameters, responses,
+  actions and worked examples trace through the object that holds them.
 - Guard, 0.2: preconditions and postconditions on a data change, with exact
   expected counts. A new top-level object; its emitter is the guarded script
   above.

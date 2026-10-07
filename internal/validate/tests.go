@@ -63,7 +63,7 @@ func (c *checker) checkTests(d *design) {
 		}
 		s := byKey[key]
 		if s == nil {
-			c.add(p.Key, source.Pointer(base...), RuleTestSubject, "test %s is about %s, which is not in this file; name an operationId, command, page, or an entity's constraint or transition that exists", name, strings.ReplaceAll(key, ": ", " "))
+			c.add(p.Key, source.Pointer(base...), RuleTestSubject, "test %s is about %s, which is not in the specification; name an operationId, command, page, or an entity's constraint or transition that exists", name, strings.ReplaceAll(key, ": ", " "))
 			continue
 		}
 		scenario := source.Str(source.Child(t, "scenario"))

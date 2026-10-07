@@ -46,7 +46,7 @@ understood in about five seconds.
 
 ### The two kinds of file
 
-They are the needle box and the barn. A design file
+They are the needle box and the barn. The specification
 says what the system is and does. An implementation file says how one stack
 builds it. Generators and runtimes hold the logic. A change to the design
 never touches a generator, and a library upgrade never touches the design.
@@ -58,7 +58,8 @@ The meta-model uses full English words for its own keys
 Keywords borrowed from JSON Schema, OpenAPI and AsyncAPI keep their standard
 spelling, because a reader who knows the standard already knows them. Every
 object is closed: an unknown key is an error, not something ignored. The
-smallest valid design file is two keys and reads top to bottom.
+smallest valid specification is a root file of two keys that reads top to
+bottom.
 
 ### Types
 

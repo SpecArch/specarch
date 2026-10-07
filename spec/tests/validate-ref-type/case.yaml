@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:8: error: /entities/Item/properties/kind/$ref: ref_type: ItemKind is not an enum of this file; there are none in this file
+  specarch.yaml:8: error: /entities/Item/properties/kind/$ref: ref_type: ItemKind is not an enum of the specification; there are none in the specification

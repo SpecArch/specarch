@@ -1,4 +1,4 @@
 specarch: "0.1"
 info: { title: Case, version: 1.0.0 }
 tests:
-  publish-works: { operation: publishItem, scenario: golden, given: an item, when: it is published, then: it is live }
+  publish-works: { level: system, operation: publishItem, scenario: golden, given: an item, when: it is published, then: it is live }

@@ -1,24 +1,29 @@
 # SpecArch toolchain
 
-Explanation for `specarch.specarch-design.yaml`, the design of the `specarch`
-command. It has two implementations, each described in its own file:
-`specarch.go.specarch-implementation.yaml` and
-`specarch.swift.specarch-implementation.yaml`. The sections follow `docs/conventions.md`;
-the regions between `specarch:generate` markers are written by
-`specarch generate techspec` from the YAML: edit the YAML, not the regions.
-The full technical specification is `docs/techspec/specarch.techspec.md`.
+Explanation for the specification in this folder: the design of the
+`specarch` command, from its stakeholders and requirements to its
+commissioning checks. It has two implementations, each described in its
+own file: `implementation/go/specarch.go.specarch-implementation.yaml` and
+`implementation/swift/specarch.swift.specarch-implementation.yaml`. The
+sections follow `docs/conventions.md`; the regions between
+`specarch:generate` markers are written by `specarch document techspec` from
+the YAML: edit the YAML, not the regions. The full technical specification
+is `docs/techspec.md`.
 
 This is SpecArch's own specification, written before the code as the first
 rule asks. It lives in `spec/` because that is where `docs/conventions.md`
 puts a project's specification: it describes this repository's real program,
-not an example.
+not an example. Its tests stage, `tests/`, is the conformance suite: each
+test folder holds the design test, the arguments and expected output in
+`case.yaml`, and the files the case runs on.
 
 ## 1. Introduction and goals
 
-`specarch` checks SpecArch files and, from roadmap step 2 on, generates
-documents and code from them. Its users are the people and assistants who
-write specifications, and the CI jobs that keep a specification and its code
-equal.
+`specarch` checks SpecArch specifications and makes documents and code from
+them. Its users are the people and assistants who write specifications, the
+reviewers who read the documents, the operators who release the built
+system, and the CI jobs that keep a specification and its code equal; the
+`stakeholders` and `needs` of the requirements stage say what each wants.
 
 Quality goals, in order: no file with a known problem passes; every problem
 names the file, the line, the YAML path and the rule; one run reports every
@@ -27,34 +32,44 @@ problem; the program installs with one command and needs no network.
 ## 2. Constraints
 
 The JSON Schemas in `schema/` are the definition of each file's shape and are
-applied unchanged (ADR-003). Meta-model 0.1 has no references between
-design files, so each design file is checked on its own; an
-implementation file is checked together with the one design file it
-names.
+applied unchanged (ADR-003). A specification is read as a whole: its files
+are merged into one document, so a reference resolves wherever its target's
+file is (ADR-010). An implementation file is checked together with the
+specification it names. The constraints and assumptions of the requirements
+stage are in `requirements/`.
 
 ## 3. Context
 
 ```mermaid
 flowchart LR
-  A[Author or assistant] -->|writes| F[Design and implementation files]
+  A[Author or assistant] -->|writes| F[Specification tree and implementation files]
   E[Editor with yaml-language-server] -->|schema only| F
   V[specarch validate] -->|reads| F
   V -->|diagnostics| A
   CI[CI job] -->|runs| V
+  D[specarch document] -->|reads| F
+  D -->|writes| O[Document folders and marked Markdown]
   G[specarch generate] -->|reads| F
-  G -->|writes| O[Generated folders and marked Markdown]
+  G -->|runs| P[specarch-gen-target plug-in]
+  P -->|files| G
+  G -->|writes| C[Code folders]
 ```
 
 Hand-drawn.
 
 ## 4. Solution strategy
 
-Two kinds of file: the design file holds the design, an implementation file
-holds one stack's choices (ADR-001), split at the interface boundary of
-ADR-002. The validator applies the schema first, then the checks a schema
-cannot make (ADR-003). Expressions are a small subset of CEL and numbers are exact
-(ADR-004). Every problem is reported, one line each (ADR-005). The command
-line is described with `commands`, added to 0.1 for this file (ADR-006).
+A specification is a folder tree with one root file and a folder per
+life-cycle stage (ADR-010), and it covers the whole life cycle, each stage
+optional until the project reaches it (ADR-011). The specification holds the
+design, an implementation file holds one stack's choices (ADR-001), split at
+the interface boundary of ADR-002. The validator applies the schema first,
+then the checks a schema cannot make (ADR-003). Expressions are a small
+subset of CEL and numbers are exact (ADR-004). Every problem is reported, one
+line each (ADR-005). The command line is described with `commands`
+(ADR-006). Every element may say why and cite its sources (ADR-012); one
+binary carries every verb, and code targets are plug-ins (ADR-013); design
+elements satisfy requirements, tests verify them (ADR-014).
 
 ## 5. Building blocks
 
@@ -63,12 +78,6 @@ line is described with `commands`, added to 0.1 for this file (ADR-006).
 erDiagram
   Diagnostic }o--|| SpecFile : specFile
   GeneratedFile }o--|| SpecFile : source
-  SpecFile {
-    string path PK
-    DocumentKind kind
-    string metaModel
-    string version
-  }
   Diagnostic {
     string file PK, FK
     Severity severity
@@ -79,11 +88,17 @@ erDiagram
   }
   GeneratedFile {
     string path PK
-    GeneratorTarget target
+    string target
     string sourceFile FK
     string sourceVersion
     string metaModel
     bool markersOnly
+  }
+  SpecFile {
+    string path PK
+    DocumentKind kind
+    string metaModel
+    string version
   }
 ```
 <!-- specarch:end -->
@@ -92,32 +107,43 @@ None of the three is stored. They are the values the commands pass around and
 print; the meta-model has no word yet for a value without storage, so they
 are written as entities with the key that makes each one unique.
 
-The validator runs these checks on a design file, in this order, and
+The validator runs these checks on a specification, in this order, and
 reports all of them:
 
-1. YAML: well-formed, no repeated key, no unquoted date.
-2. Schema: the JSON Schema of the meta-model version the file declares.
-3. Interface boundary: no stack-specific extension key. No change-log
+1. Layout: the root file's `stages` and the folders agree, every file holds
+   only sections of its stage, every test folder has its `test.yaml`, and a
+   name is defined once across the tree.
+2. YAML: well-formed, no repeated key, no unquoted date.
+3. Schema: the JSON Schema of the meta-model version the root declares,
+   applied to the merged document.
+4. Interface boundary: no stack-specific extension key. No change-log
    wording in descriptions (a warning).
-4. Cross-references: `$ref`, relation targets and `via`, primary keys,
+5. Cross-references: `$ref`, relation targets and `via`, primary keys,
    required fields, unique fields, `stateField` and transition states and
    triggers, page entities, columns, fields, filters, sources, submits and
    actions, `emits`, `algorithm`, `supersededBy`, `valueDescriptions`, path
-   parameters, duplicate operationIds, requirement prefixes.
-5. Concrete integers: an int64 or uint64 sent as a JSON number stays
-   inside 2^53.
-6. Fail-closed access (`permissionGranted`).
-7. Expressions: every check and formula parsed as CEL, held to the subset,
+   parameters, duplicate operationIds, `satisfies` and `verifies` links,
+   `needs`, `stakeholders`, citations, environments and settings.
+6. Concrete integers: an int64 or uint64 sent as a JSON number stays
+   inside 2^53. Secrets: a setting marked secret carries no value.
+7. Fail-closed access (`permissionGranted`).
+8. Expressions: every check and formula parsed as CEL, held to the subset,
    and type-checked with CEL's strict rules.
-8. Worked examples: inputs and expected values typed, formula evaluated
+9. Worked examples: inputs and expected values typed, formula evaluated
    with exact decimals (`workedExampleHolds`).
-9. Tests: every test's subject and cases exist; every case the design
-   implies has a test (warnings in 0.1).
+10. Tests: every test's subject and cases exist; every case the design
+    implies has a test (warnings in 0.1).
+11. Traceability: every need is refined, every requirement has acceptance
+    criteria, and once the later stage exists, every requirement is
+    satisfied by a design element and verified by a test or check
+    (warnings).
 
 On an implementation file: YAML, schema, no design keyword, `implements`
-names a readable design file of the same `info.version`, every pointer in
-`layout` and `mappings` resolves in it, no decision ID is used in both, and
-every test suite names design tests that exist.
+names the root file of its specification at the same `info.version`, every
+pointer in `layout` and `mappings` resolves in it, no decision ID is used in
+both, every deployment names an environment of the specification and gives
+values only to settings it declares and that are not secret, and every test
+suite names design tests that exist.
 
 ## 6. Runtime view
 
@@ -129,7 +155,7 @@ sequenceDiagram
   participant F as Files
   U->>P: validate <paths>
   P->>F: read {paths}
-  P->>F: read the design file named in each implementation file's `implements`
+  P->>F: read the specification named in each standalone implementation file's `implements`
   P->>P: exitStatus
   P-->>U: exit status 0, 1, 2
 ```
@@ -137,8 +163,10 @@ sequenceDiagram
 
 ## 7. Deployment
 
-A single program on the user's machine or a CI runner. Each implementation
-file says how its build is made.
+A single program on the user's machine or a CI runner; the `deployment/`
+stage names the two environments and the release and rollback steps, and
+`commissioning/` the checks run on a release before it is signed off. Each
+implementation file says how its build is made.
 
 ## 8. Cross-cutting concepts
 
@@ -149,11 +177,11 @@ file says how its build is made.
 <!-- specarch:end -->
 
 The program has no roles: anyone who has it may run it, and it touches only
-the files it is given and the folder a generator owns.
+the files it is given and the folder a target owns.
 
 Diagnostics: `file:line: severity: /yaml/path: rule: message`, for example
 
-    examples/x.specarch-design.yaml:58: error: /entities/Member/relations/loans/target: relation_target: Lone is not an entity of this file; did you mean Loan?
+    spec/design/entities/member.yaml:12: error: /entities/Member/relations/loans/target: relation_target: Lone is not an entity of the specification; did you mean Loan?
 
 Numbers in expressions have CEL's types plus decimal. Int, uint and decimal
 arithmetic is exact; a formula's decimal result may not have more places
@@ -175,6 +203,15 @@ than its output's scale, so any rounding is written in the formula.
   tools.
 - ADR-009, accepted: types are concrete, and the design says how they
   travel.
+- ADR-010, accepted: a specification is a folder tree with one root file,
+  `specarch.yaml`; it supersedes ADR-007.
+- ADR-011, accepted: the specification covers the whole life cycle, one
+  stage at a time.
+- ADR-012, accepted: every element may say why, and cite its sources.
+- ADR-013, accepted: one binary with verbs named by direction, and
+  generator plug-ins on PATH.
+- ADR-014, accepted: design elements satisfy requirements, tests and checks
+  verify them.
 
 The implementation's own decisions (language, libraries, parser) are in the
 implementation file.
@@ -188,8 +225,11 @@ implementation file.
 
 ## 11. Risks and technical debt
 
-Of the generator targets, techspec is built; the others are designed by
-name only and return status 2 until they are.
+Of the document targets, techspec is built; the others are designed by name
+and return status 2 until they are. No code target is built in; each is a
+plug-in. `extract` is designed and not built, so it has no golden test and
+the validator says so on every run. Editors cannot yet validate a fragment
+file on its own, since the schema describes the merged document.
 
 The entities here are values, not stored records; a value-object concept is a
 0.2 candidate. The formulas of `referenceResolves` and `permissionGranted`
@@ -200,22 +240,6 @@ pseudocode and the generator's own tests.
 
 ## 12. Glossary
 
-- **SDF**: SpecArch Definition File, the design.
-- **SIF**: SpecArch Implementation File, one stack's implementation of an SDF.
-- **Diagnostic**: one problem in one file, printed as one line.
-- **Target**: what a generator produces, such as `techspec` or `openapi`.
-
-## 13. Requirements
-
-| ID | Requirement |
-|---|---|
-| SA-1 | `specarch validate` checks every given file against the JSON Schema of its kind and meta-model version. |
-| SA-2 | Every reference inside a design file resolves to an object of the right kind in the same file. |
-| SA-3 | Every check constraint and formula parses and type-checks in the fixed expression language. |
-| SA-4 | Every worked example's formula, evaluated on its inputs, gives its expected value. |
-| SA-5 | Access is fail-closed: every permission used is declared, and every declared permission is granted by a role or is `public`. |
-| SA-6 | Every problem is reported, one line each, with file, line, YAML path and rule; status 0 valid, 1 invalid, 2 usage or read error. |
-| SA-7 | `specarch generate <target>` writes only into the target's folder, and `--check` fails when the committed output differs. |
-| SA-8 | Every generated file names its source file, version and meta-model; a hand-written Markdown document changes only between markers. |
-| SA-9 | Design and implementation are separate files; a design file holds no stack-specific key and an implementation adds no design. |
-| SA-10 | An implementation file's `implements` and pointers resolve in its design file of the same version. |
+The glossary is in `requirements/glossary/`; the requirements, their needs
+and the traceability matrix are in `requirements/` and in chapter 13 of
+`docs/techspec.md`.

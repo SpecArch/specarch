@@ -1,10 +1,11 @@
 # SpecArch
 
-SpecArch is a specification language for whole systems. One set of files
-describes the data model, the API, the events, the screens, the permissions,
-the algorithms, the requirements they trace to and the decisions behind them.
-People read the files, and so do AI assistants. Code, documents and diagrams
-are generated from them.
+SpecArch is a specification language for whole systems through their whole
+life cycle. One folder tree describes the stakeholders and requirements, the
+data model, the API, the events, the screens, the permissions, the
+algorithms, the tests, the deployment and the commissioning checks, and the
+decisions behind them, each traced to the others. People read the files, and
+so do AI assistants. Documents, diagrams and code are made from them.
 
 SpecArch is personally owned and published under Apache-2.0. Anyone may use it
 under that licence, including for commercial work. See `NOTICE` for the name
@@ -16,37 +17,59 @@ in `docs/principles.md`, and the rest of SpecArch follows from it.
 
 ## The format
 
-A specification has two kinds of file:
+A specification is a folder. Its root file is `specarch.yaml`, which names
+the system, its version, the stages it keeps and the sources it cites. Each
+stage is a folder of its name beside the root, in life-cycle order:
 
-- **SDF**, SpecArch Definition File: the design, with no language,
-  framework or build tool in it. On disk `*.specarch-design.yaml` for structure and
-  `*.specarch-design.md` for explanation.
-- **SIF**, SpecArch Implementation File: how one stack builds that design.
-  On disk `<name>.<stack>.specarch-implementation.yaml`. It names the design file
-  and version it implements and holds the language, toolchain, libraries
-  with their licences, package layout, mappings, generator settings, build
-  and test commands, deployments and implementation decisions. One design
-  can have several.
+| Folder | Holds |
+|---|---|
+| `requirements/` | stakeholders, needs, requirements with acceptance criteria, glossary, assumptions, constraints |
+| `design/` | enums, entities, permissions, roles, endpoints, commands, channels, pages, algorithms, decisions |
+| `implementation/<stack>/` | one implementation file per stack: how that stack builds the design |
+| `tests/<name>/` | one folder per test: `test.yaml` with given, when and then, beside the scenario's own input and expected-output files |
+| `deployment/` | environments, configuration, release and rollback steps, data migrations |
+| `commissioning/` | the checks run on the installed system before handover, and the sign-off |
 
-The split follows one rule: what a client of an interface must know is
-design; what only the builders or operators of one implementation need is
-implementation. `docs/conventions.md` has the details, and both schemas
-enforce them. There is no bare `.sdf` extension: that one already means
-chemistry structure files and SQL Server Compact databases.
+A file under a stage folder holds one or a few objects of one section, and
+the folder names say what is inside, so a reader walks to a thing. A stage a
+project has not reached yet has no folder; a tiny specification is the root
+file alone with its sections inside. The validator reads the tree as one
+document, so a reference is the plain name it always was, wherever the
+target's file is. `docs/conventions.md` has the layout, `docs/stages.md`
+what each stage holds and why.
+
+The design side, everything but `implementation/`, is the SpecArch
+Definition (SDF): neutral about language, framework and build tool. An
+implementation file (SIF), `<name>.<stack>.specarch-implementation.yaml`,
+names the specification and version it implements and holds the language,
+toolchain, libraries with their licences, package layout, mappings, document
+and code targets, build and test tasks, deployments and implementation
+decisions. One specification can have several. The split follows one rule:
+what a client of an interface must know is design; what only the builders or
+operators of one implementation need is implementation.
+
+Every element, at every stage, may say `why` it is the way it is, and
+`cites` the standards, regulations, documents and interviews it rests on,
+declared once under `sources` in the root file. Design elements name the
+requirements they `satisfies`; tests and commissioning checks name the ones
+they `verifies`; the validator reports every gap.
 
 The YAML uses the keywords of existing standards wherever one exists:
 
 - JSON Schema for fields: `type`, `properties`, `required`, `enum`, `format`,
   `minimum`, `maxLength`, `pattern`.
 - OpenAPI for endpoints: `paths`, `parameters`, `requestBody`, `responses`.
-  A standalone OpenAPI document is generated from the design file, not
-  kept beside it.
+  A standalone OpenAPI document is made from the specification, not kept
+  beside it.
 - AsyncAPI for events: `channels`, `messages`, `payload`.
+- ISO/IEC/IEEE 29148 for requirements and their attributes, ISO/IEC/IEEE
+  29119 for test levels, ISO/IEC/IEEE 12207 for the stages.
 
 SpecArch adds keywords only where no standard has one: relations between
 entities, permissions on operations, command-line commands, pages,
-algorithms with worked examples, requirement links and decision records. `docs/conventions.md` lists every
-keyword with its origin.
+algorithms with worked examples, decision records, environments, release
+steps and commissioning checks. `docs/conventions.md` lists every keyword
+with its origin.
 
 Markdown carries the explanation and rationale. Mermaid carries the diagrams.
 Diagrams that show structure (entity relations, state machines, request
@@ -55,10 +78,10 @@ explanatory pictures are drawn by hand.
 
 SpecArch has no grammar and no parser of its own, apart from the small
 expression language of checks and formulas. The language is defined by two
-JSON Schema 2020-12 documents, the meta-model, in `schema/`: one for
-design files and one for implementation files. The same schema
-gives editors validation and completion through `yaml-language-server`: put
-this on the first line of a file and most editors pick it up.
+JSON Schema 2020-12 documents, the meta-model, in `schema/`: one for the
+specification and one for implementation files. The same schema gives editors
+validation and completion through `yaml-language-server`: put this on the
+first line of a root file and most editors pick it up.
 
     # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.1.schema.json
 
@@ -67,8 +90,8 @@ this on the first line of a file and most editors pick it up.
 1. Spec first. The specification is written and reviewed before code. Code
    is generated from it. Only algorithm bodies are written by hand, and only
    after the algorithm is specified.
-2. One specification covers data, API, events, UI, permissions,
-   algorithms, requirements and decisions.
+2. One specification covers requirements, data, API, events, UI,
+   permissions, algorithms, tests, deployment, commissioning and decisions.
 3. Spec and code stay in sync, enforced in CI (`docs/sync-gates.md`). If
    code is ever written first, its spec is added in the same change and the
    merge waits until they match.
@@ -90,26 +113,29 @@ a defect in the roadmap, not an accepted state.
 
 | Path | Holds |
 |---|---|
-| `schema/specarch-design-0.1.schema.json` | the meta-model for design files, JSON Schema 2020-12 |
-| `schema/specarch-implementation-0.1.schema.json` | the meta-model for implementation files |
-| `spec/` | SpecArch's own specification: the design of the `specarch` command and its Go implementation |
-| `docs/techspec/` | SpecArch's technical specification, generated from `spec/` |
-| `conformance/` | the cases every implementation of `specarch` must pass |
+| `schema/specarch-design-0.1.schema.json` | the meta-model of a specification, JSON Schema 2020-12 |
+| `schema/specarch-implementation-0.1.schema.json` | the meta-model of implementation files |
+| `spec/` | SpecArch's own specification: every stage, the design of the `specarch` command, its Go and Swift implementation files, and in `spec/tests/` the conformance suite every implementation of `specarch` must pass |
+| `docs/techspec.md` | SpecArch's technical specification, generated from `spec/` |
 | `swift/` | the Swift build of `specarch` |
 | `history/` | what changed and why, one file per day |
 | `docs/principles.md` | the Low IQ Tax principle and how SpecArch applies it |
-| `docs/conventions.md` | YAML layout, Markdown sections, generated and hand-drawn diagrams |
+| `docs/conventions.md` | the tree layout, YAML layout, Markdown sections, generated and hand-drawn diagrams |
+| `docs/stages.md` | the six life-cycle stages: what each holds, which standard says so, and why |
 | `docs/authoring-layer-evaluation.md` | TypeSpec, CUE and Pkl as an optional authoring layer |
-| `docs/generators.md` | the rules every emitter follows and the pattern each target copies |
+| `docs/generators.md` | the rules every document and code target follows, and the plug-in protocol |
 | `docs/sync-gates.md` | the CI checks that keep a spec and its code equal |
 | `docs/extraction.md` | how an existing system gets its as-built spec, and what goes wrong |
-| `docs/roadmap.md` | validator, generators, sync gates, first real projects, meta-model 0.2 |
-| `examples/library-lending/` | a small complete example, with a design file and a Go implementation file |
+| `docs/roadmap.md` | document targets, code targets, sync gates, first real projects, the next meta-model |
+| `examples/library-lending/` | a small complete example: a specification with every stage in `spec/`, its document in `docs/` |
 
-## Installing and running the validator
+## Installing and running
 
-`specarch` is one program with two builds from the same design. The Go
-build has every command. With Go 1.26 or later:
+`specarch` is one program with verbs named by direction: `validate`
+checks, `document` goes from the specification to a document, `generate`
+from the specification to code, `extract` (designed, built later) from
+existing code to a specification. It has two builds from the same design.
+The Go build has every verb. With Go 1.26 or later:
 
     go install github.com/SpecArch/specarch/cmd/specarch@latest
 
@@ -117,58 +143,64 @@ or, from a clone of this repository:
 
     go install ./cmd/specarch
 
-The Swift build, for macOS, has the validate and version commands and gives
+The Swift build, for macOS, has the validate and version verbs and gives
 the same output. With Swift 6:
 
     swift build -c release --package-path swift
     swift/.build/release/specarch validate spec examples
 
-Check files, or folders of them:
+Check specifications; a folder is searched for them, and a folder holding
+`specarch.yaml` is read as one specification:
 
-    specarch validate spec/ examples/library-lending/
+    specarch validate spec/ examples/
 
 Every problem is one line: the file, the line, `error` or `warning`, the
-YAML path, the rule, and one sentence saying what is wrong and how to fix
-it.
+YAML path in the specification, the rule, and one sentence saying what is
+wrong and how to fix it.
 
-    shop.specarch-design.yaml:58: error: /entities/Order/relations/customer/target: relation_target: Custmer is not an entity of this file; did you mean Customer?
+    design/entities/order.yaml:12: error: /entities/Order/relations/customer/target: relation_target: Custmer is not an entity of the specification; did you mean Customer?
 
-The exit status is 0 when every file is valid (warnings may be printed), 1
-when any file has an error, and 2 for a usage error, a path that cannot be
-read, or a folder with no SpecArch file in it. `specarch version` prints the
+The exit status is 0 when every input is valid (warnings may be printed), 1
+when any has an error, and 2 for a usage error, a path that cannot be
+read, or a folder with no specification in it. `specarch version` prints the
 program version and the meta-model versions it reads.
 
-The validator applies the JSON Schema of each file's kind first, then what a
-schema cannot express: references between objects, fail-closed access, the
-boundary between design and implementation, expressions and their types,
-worked examples evaluated to the last digit, concrete integer types, and the
-test scenarios each subject needs. `docs/conventions.md` describes every
-rule; the rule names are the `Rule` enum in `spec/specarch.specarch-design.yaml`.
+The validator checks the layout of the tree, applies the JSON Schema to the
+merged specification, then checks what a schema cannot express: references
+across the tree, fail-closed access, the boundary between design and
+implementation, expressions and their types, worked examples evaluated to
+the last digit, concrete integer types, the test scenarios each subject
+needs, citations, environments and secrets, and traceability from needs
+through requirements to design and tests. `docs/conventions.md` describes
+every rule; the rule names are the `Rule` enum in `spec/design/enums/`.
 
-The schemas also work alone, in an editor through `yaml-language-server`,
-or with any JSON Schema 2020-12 validator that reads YAML.
+## Making the documents
 
-## Generating the technical specification
+    specarch document techspec examples/library-lending/
 
-    specarch generate techspec examples/library-lending/
+writes `techspec.md`, an arc42 technical specification with Mermaid diagrams
+of the entities, states, operations, commands, pages and permissions, the
+deployment and commissioning stages, the requirements and the traceability
+matrix, into the folder the implementation file names (or `--out`). It also
+refreshes the diagrams between `specarch:generate` markers in the
+hand-written `specarch.md` beside the root file. It makes nothing from a
+specification with errors. With `--check` it writes nothing and exits 1 when
+the committed output differs, which is how CI keeps the documents current.
+`docs/techspec.md` is SpecArch's own, made from `spec/`.
 
-writes `library-lending.techspec.md`, an arc42 technical specification with
-Mermaid diagrams of the entities, states, operations, commands, pages and
-permissions, into the folder the implementation file names (or `--out`). It
-also refreshes the diagrams between `specarch:generate` markers in the
-hand-written `library-lending.specarch-design.md`. It generates nothing from
-a file with errors. With `--check` it writes nothing and exits 1 when the
-committed output differs, which is how CI keeps the documents current.
-`docs/techspec/specarch.techspec.md` is SpecArch's own, generated from
-`spec/`.
+Code targets (OpenAPI, SQL, UI, tests) are plug-ins: `specarch generate
+<target>` runs `specarch-gen-<target>` from PATH, hands it the validated
+specification on its standard input, and writes the files it answers with.
+`docs/generators.md` has the protocol.
 
 ## Status
 
-Version 0.1 of the meta-model, October 2026. The two schemas, the
-conventions, one example, SpecArch's own specification, the validator in Go
-and in Swift, and the techspec generator exist; the other generators are on the roadmap. The meta-model will change: the first real
+Version 0.1 of the meta-model, October 2026. The two schemas, the tree
+layout and the six stages, one example, SpecArch's own specification, the
+validator in Go and in Swift, and the techspec document exist; the other
+documents and the code targets are on the roadmap. The meta-model will change: the first real
 projects written in SpecArch are expected to find concepts it cannot
-express, and those gaps define v0.2.
+express, and those gaps define the next version.
 
 ## Licence
 

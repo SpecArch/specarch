@@ -1,3 +1,3 @@
-arguments: [document, techspec, --out, docs, specarch.yaml]
+arguments: [document, techspec, --out, docs, project]
 exitStatus: 0
 standardOutput: ""

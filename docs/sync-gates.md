@@ -7,8 +7,8 @@ most of it.
 
 ## 0. The spec validates
 
-Every `*.specarch-design.yaml` and `*.specarch-implementation.yaml` file
-passes `specarch validate` with no error. The other gates assume a valid
+Every specification and every implementation file passes
+`specarch validate` with no error. The other gates assume a valid
 spec.
 
 ## 1. Spec against the route table

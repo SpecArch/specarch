@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.1.0 of the specification: 14 requirements, 3 entities, 5 commands, 6 algorithms, 113 tests, 14 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 14 requirements, 3 entities, 5 commands, 6 algorithms, 114 tests, 14 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -1421,6 +1421,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-example-expected | command validate | system | red | a worked example whose expected value has more places than the output's scale | validate is run | it reports example_expected and exits 1 |
 | validate-example-input | command validate | system | red | a worked example whose decimal input is not quoted | validate is run | it reports example_input and exits 1 |
 | validate-example-mismatch | command validate | system | red | a worked example whose expected value is wrong | validate is run | it reports example_mismatch with the computed value and exits 1 |
+| validate-expression-in-stage-file | command validate | system | red | a specification tree whose design stage holds a formula naming an input that does not exist and a check that gives a number | validate is run | it reports expression_name and expression_type, each at the file and line of its expression, and exits 1 |
 | validate-expression-name | command validate | system | red | a formula that names an input that does not exist | validate is run | it reports expression_name and exits 1 |
 | validate-expression-not-in-subset | command validate | system | red | a formula that uses %, which the subset leaves out | validate is run | it reports expression_syntax naming % and exits 1 |
 | validate-expression-syntax | command validate | system | red | a formula that ends after an operator | validate is run | it reports expression_syntax with the column and exits 1 |
@@ -1542,7 +1543,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 |---|---|---|
 | SA-1 | enums DocumentKind; entities SpecFile; commands validate; decisions ADR-003; decisions ADR-006; decisions ADR-007; decisions ADR-009 | tests validate-schema-name-form; tests validate-schema-untyped-integer; tests validate-valid-design; checks checks-the-examples |
 | SA-2 | enums Rule; commands validate; algorithms referenceResolves | tests validate-duplicate-name-across-files; tests validate-environment; tests validate-need; tests validate-ref-type; tests validate-relation-target; tests validate-requirement-set; tests validate-stakeholder |
-| SA-3 | enums Rule; commands validate; decisions ADR-004 | tests validate-expression-syntax; tests validate-expression-type |
+| SA-3 | enums Rule; commands validate; decisions ADR-004 | tests validate-expression-in-stage-file; tests validate-expression-syntax; tests validate-expression-type |
 | SA-4 | enums Rule; commands validate; algorithms workedExampleHolds; decisions ADR-004 | tests validate-example-mismatch |
 | SA-5 | enums Rule; commands validate; algorithms permissionGranted; decisions ADR-006 | tests validate-permission-undeclared; tests validate-permission-ungranted; tests validate-schema-operation-without-permission |
 | SA-6 | enums Rule; enums Severity; entities Diagnostic; commands validate; algorithms exitStatus; decisions ADR-005; decisions ADR-008 | tests validate-usage-error; tests validate-yaml-syntax; tests version-prints-versions; checks installs-and-answers |

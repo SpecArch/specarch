@@ -1,0 +1,12 @@
+entities:
+  Item:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      stock: { type: integer, format: int32 }
+    primaryKey: [id]
+    constraints:
+      stock_counted:
+        kind: check
+        expression: stock + 1
+        message: Stock is counted.

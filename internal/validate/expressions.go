@@ -108,7 +108,7 @@ func (c *checker) exprErrors(n *yaml.Node, ptr, what string, errs []expr.Error) 
 		case expr.TypeMismatch:
 			rule = RuleExpressionType
 		}
-		c.addLine(exprLine(n, e.Line), ptr, rule, "%s, column %d: %s", what, e.Column, e.Message)
+		c.addFile(c.fileOf(n), exprLine(n, e.Line), ptr, rule, "%s, column %d: %s", what, e.Column, e.Message)
 	}
 }
 
@@ -132,7 +132,7 @@ func (c *checker) checkExpressions(d *design) {
 			t, errs := expr.Check(tree, env)
 			c.exprErrors(n, ptr, "the check", errs)
 			if len(errs) == 0 && (t.Kind != expr.Bool || t.Nullable) {
-				c.addLine(exprLine(n, 1), ptr, RuleExpressionType, "the check gives %s, but a check must give true or false; compare the values with ==, <, > or similar", t)
+				c.addFile(c.fileOf(n), exprLine(n, 1), ptr, RuleExpressionType, "the check gives %s, but a check must give true or false; compare the values with ==, <, > or similar", t)
 			}
 		}
 	}
@@ -169,7 +169,7 @@ func (c *checker) checkAlgorithm(d *design, name string, alg *yaml.Node) {
 	}
 	want := d.fieldType(output)
 	if ok, why := expr.Fits(t, want); !ok {
-		c.addLine(exprLine(n, 1), ptr, RuleExpressionType, "%s", why)
+		c.addFile(c.fileOf(n), exprLine(n, 1), ptr, RuleExpressionType, "%s", why)
 		return
 	}
 	for i, ex := range source.Items(source.Child(alg, "examples")) {

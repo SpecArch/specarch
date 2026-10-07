@@ -200,7 +200,7 @@ extension Checker {
             case .typeMismatch: rule = .expressionType
             case .syntax: rule = .expressionSyntax
             }
-            addLine(exprLine(n, e.line), ptr, rule, "\(what), column \(e.column): \(e.message)")
+            addFile(fileOf(n), exprLine(n, e.line), ptr, rule, "\(what), column \(e.column): \(e.message)")
         }
     }
 
@@ -219,7 +219,7 @@ extension Checker {
                 let (t, errs) = checkExpr(tree, env)
                 exprErrors(n, ptr, "the check", errs)
                 if errs.isEmpty && (t.kind != .bool || t.nullable) {
-                    addLine(exprLine(n, 1), ptr, .expressionType, "the check gives \(t), but a check must give true or false; compare the values with ==, <, > or similar")
+                    addFile(fileOf(n), exprLine(n, 1), ptr, .expressionType, "the check gives \(t), but a check must give true or false; compare the values with ==, <, > or similar")
                 }
             }
         }
@@ -251,7 +251,7 @@ extension Checker {
         let want = d.fieldType(output)
         let (ok, why) = fits(t, want)
         if !ok {
-            addLine(exprLine(n, 1), ptr, .expressionType, why)
+            addFile(fileOf(n), exprLine(n, 1), ptr, .expressionType, why)
             return
         }
         for (i, ex) in items(alg.child("examples")).enumerated() {

@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification tree whose design stage holds a formula naming an input that does not exist and a check that gives a number"
+when: "validate is run"
+then: "it reports expression_name and expression_type, each at the file and line of its expression, and exits 1"
+verifies: [SA-3]

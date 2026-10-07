@@ -2,7 +2,6 @@ package validate
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"go.yaml.in/yaml/v3"
@@ -267,14 +266,4 @@ func Questions(root *yaml.Node) (must, should, could int) {
 		}
 	}
 	return
-}
-
-// sortedKeys of a map of nodes.
-func sortedNodeKeys(m map[string]*yaml.Node) []string {
-	out := make([]string, 0, len(m))
-	for k := range m {
-		out = append(out, k)
-	}
-	sort.Strings(out)
-	return out
 }

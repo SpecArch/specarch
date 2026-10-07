@@ -16,5 +16,5 @@ What can be made from the specification now. A document is a draft while a must 
 | traceability document | ready | |
 | deployment document | ready | |
 | commissioning document | ready | |
-| code generation | waits | not approved: there is no records/approvals/0.1.0.yaml |
+| code generation | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 

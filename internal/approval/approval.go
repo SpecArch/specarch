@@ -52,16 +52,11 @@ func Path(specDir, version string) string {
 	return filepath.Join(Folder(specDir), version+".yaml")
 }
 
-// RelPath is the record file as it is shown to the reader: relative to the
-// working directory when that is possible.
-func RelPath(specDir, version string) string {
-	p := Path(specDir, version)
-	if wd, err := os.Getwd(); err == nil {
-		if rel, err := filepath.Rel(wd, p); err == nil && !strings.HasPrefix(rel, "..") {
-			return filepath.ToSlash(rel)
-		}
-	}
-	return filepath.ToSlash(p)
+// Name is the record file as it is named to the reader: its path beside the
+// specification's folder, the same wherever the program runs, so that a
+// generated document that names it is the same wherever it is made.
+func Name(version string) string {
+	return "records/approvals/" + version + ".yaml"
 }
 
 // Digest is the SHA-256 of every .yaml file under the specification's
@@ -125,15 +120,15 @@ func Read(specDir, version string) (*Record, error) {
 	}
 	var f file
 	if err := yaml.Unmarshal(data, &f); err != nil {
-		return nil, fmt.Errorf("%s is not a record file (%v)", RelPath(specDir, version), err)
+		return nil, fmt.Errorf("%s is not a record file (%v)", Name(version), err)
 	}
 	switch {
 	case f.Kind != "approval":
-		return nil, fmt.Errorf("%s is a record of kind %q, not an approval", RelPath(specDir, version), f.Kind)
+		return nil, fmt.Errorf("%s is a record of kind %q, not an approval", Name(version), f.Kind)
 	case f.Version != version:
-		return nil, fmt.Errorf("%s says version %s, but its name says %s", RelPath(specDir, version), f.Version, version)
+		return nil, fmt.Errorf("%s says version %s, but its name says %s", Name(version), f.Version, version)
 	case f.Digest == "" || f.ApprovedBy == "" || f.Date == "":
-		return nil, fmt.Errorf("%s is missing digest, approvedBy or date", RelPath(specDir, version))
+		return nil, fmt.Errorf("%s is missing digest, approvedBy or date", Name(version))
 	}
 	return &Record{Version: f.Version, ApprovedBy: f.ApprovedBy, Date: f.Date, Documents: f.Documents, Digest: f.Digest}, nil
 }
@@ -165,7 +160,7 @@ func State(specDir, version string) (approved bool, text string) {
 	case err != nil:
 		return false, err.Error()
 	case rec == nil:
-		return false, fmt.Sprintf("not approved: there is no %s", RelPath(specDir, version))
+		return false, fmt.Sprintf("not approved: there is no %s beside the specification", Name(version))
 	}
 	digest, err := Digest(specDir)
 	if err != nil {

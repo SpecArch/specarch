@@ -141,7 +141,7 @@ func approve(l loaded, by, date string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "specarch approve: cannot write the record: %v\n", err)
 		return 2
 	}
-	fmt.Fprintf(stderr, "specarch approve: version %s of %s approved by %s; %s written\n", version, l.spec.Dir, by, approval.RelPath(l.spec.Dir, version))
+	fmt.Fprintf(stderr, "specarch approve: version %s of %s approved by %s; %s written beside it\n", version, l.spec.Dir, by, approval.Name(version))
 	return 0
 }
 

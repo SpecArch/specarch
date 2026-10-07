@@ -1,0 +1,441 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-0.1.schema.json
+specarch: "0.1"
+
+info:
+  title: Library Lending
+  version: 0.1.0
+  description: |
+    A small public library lends books to its members. Members borrow a copy,
+    keep it for a fixed loan period, and pay a late fee when they return it
+    after the due date. This example exists to exercise every concept of
+    meta-model 0.1 in one place; it is not a real library's system.
+  owners: [example-maintainers]
+
+requirementSources:
+  LIB:
+    description: Requirement list for the lending example, kept in `library-lending.specarch.md` under "Requirements".
+
+enums:
+  LoanStatus:
+    type: string
+    enum: [open, overdue, returned, lost]
+    valueDescriptions:
+      open: the copy is with the member and the due date has not passed
+      overdue: the due date has passed and the copy is still out
+      returned: the copy is back on the shelf
+      lost: the member reported the copy lost; the replacement cost was charged
+  MembershipTier:
+    type: string
+    enum: [standard, extended]
+    valueDescriptions:
+      standard: up to 3 open loans, 21-day loan period
+      extended: up to 6 open loans, 28-day loan period
+
+entities:
+  Member:
+    description: A person with a library card.
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      cardNumber:
+        type: string
+        pattern: "^[0-9]{8}$"
+        description: Printed on the card; assigned when the member joins.
+      fullName: { type: string, minLength: 1, maxLength: 200 }
+      email: { type: string, format: email, maxLength: 320 }
+      tier: { $ref: "#/enums/MembershipTier" }
+      joinedOn: { type: string, format: date, readOnly: true }
+      outstandingFees:
+        type: string
+        format: decimal
+        precision: 10
+        scale: 2
+        description: Sum of unpaid late fees and replacement charges, in the library's currency.
+        readOnly: true
+    required: [id, cardNumber, fullName, email, tier, joinedOn, outstandingFees]
+    primaryKey: [id]
+    relations:
+      loans: { target: Loan, kind: one-to-many, via: memberId }
+    constraints:
+      member_card_number_unique:
+        kind: unique
+        fields: [cardNumber]
+        message: A member with this card number already exists.
+      member_email_unique:
+        kind: unique
+        fields: [email]
+        message: A member with this email address already exists.
+    requirements: [LIB-1]
+
+  Book:
+    description: A title the library owns, with the number of physical copies.
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      isbn: { type: string, pattern: "^[0-9]{13}$" }
+      title: { type: string, minLength: 1, maxLength: 500 }
+      author: { type: string, minLength: 1, maxLength: 200 }
+      copiesOwned: { type: integer, minimum: 0 }
+      copiesAvailable: { type: integer, minimum: 0, readOnly: true }
+      replacementCost: { type: string, format: decimal, precision: 10, scale: 2 }
+    required: [id, isbn, title, author, copiesOwned, copiesAvailable, replacementCost]
+    primaryKey: [id]
+    relations:
+      loans: { target: Loan, kind: one-to-many, via: bookId }
+    constraints:
+      book_isbn_unique:
+        kind: unique
+        fields: [isbn]
+        message: This ISBN is already in the catalogue.
+      book_available_within_owned:
+        kind: check
+        expression: copiesAvailable <= copiesOwned
+        message: Available copies cannot exceed the copies owned.
+    requirements: [LIB-2]
+
+  Loan:
+    description: One copy of one book lent to one member for a period.
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      memberId: { type: string, format: uuid }
+      bookId: { type: string, format: uuid }
+      loanedAt: { type: string, format: date-time, readOnly: true }
+      dueOn: { type: string, format: date, readOnly: true }
+      returnedAt: { type: [string, "null"], format: date-time, readOnly: true }
+      status: { $ref: "#/enums/LoanStatus" }
+      lateFee:
+        type: string
+        format: decimal
+        precision: 10
+        scale: 2
+        readOnly: true
+        description: Computed by the lateFee algorithm when the copy is returned; zero until then.
+    required: [id, memberId, bookId, loanedAt, dueOn, status, lateFee]
+    primaryKey: [id]
+    relations:
+      member: { target: Member, kind: many-to-one, via: memberId, onDelete: restrict }
+      book: { target: Book, kind: many-to-one, via: bookId, onDelete: restrict }
+    constraints:
+      loan_due_after_loaned:
+        kind: check
+        expression: dueOn > date(loanedAt)
+        message: The due date must be after the loan date.
+      loan_returned_after_loaned:
+        kind: check
+        expression: returnedAt == null or returnedAt >= loanedAt
+        message: A copy cannot be returned before it was lent.
+    stateField: status
+    transitions:
+      - { from: open, to: overdue, trigger: loan.overdue/LoanOverdue, description: Nightly job finds the due date has passed. }
+      - { from: open, to: returned, trigger: returnLoan }
+      - { from: overdue, to: returned, trigger: returnLoan }
+      - { from: open, to: lost, trigger: reportLost }
+      - { from: overdue, to: lost, trigger: reportLost }
+    requirements: [LIB-3, LIB-4]
+
+permissions:
+  members.read: { description: See member records. }
+  members.write: { description: Create and change member records. }
+  catalogue.read: { description: Browse the catalogue. }
+  loans.read: { description: See loans. }
+  loans.create: { description: Lend a copy to a member. }
+  loans.return: { description: Record a return or a lost copy. }
+  public: { description: "Open to everyone, including visitors without a card." }
+
+roles:
+  librarian:
+    description: Staff at the desk.
+    permissions: [members.read, members.write, catalogue.read, loans.read, loans.create, loans.return]
+  member:
+    description: A card holder, limited to their own records by the service.
+    permissions: [catalogue.read, loans.read]
+
+paths:
+  /books:
+    get:
+      operationId: listBooks
+      summary: Browse the catalogue
+      permission: public
+      parameters:
+        - name: q
+          in: query
+          description: Free-text search over title and author.
+          schema: { type: string, maxLength: 200 }
+      responses:
+        "200":
+          description: Matching books.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Book" } }
+      requirements: [LIB-2]
+
+  /members:
+    get:
+      operationId: listMembers
+      summary: List members
+      permission: members.read
+      responses:
+        "200":
+          description: All members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+    post:
+      operationId: createMember
+      summary: Register a new member
+      permission: members.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName: { type: string, minLength: 1, maxLength: 200 }
+                email: { type: string, format: email }
+                tier: { $ref: "#/enums/MembershipTier" }
+              required: [fullName, email, tier]
+      responses:
+        "201":
+          description: The member, with card number assigned.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+        "409": { description: Email address already registered. }
+      requirements: [LIB-1]
+
+  /members/{memberId}:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getMember
+      summary: One member with their loans
+      permission: members.read
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+        "404": { description: No such member. }
+
+  /loans:
+    get:
+      operationId: listLoans
+      summary: List loans
+      permission: loans.read
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/enums/LoanStatus" } }
+        - { name: memberId, in: query, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Matching loans.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Loan" } }
+    post:
+      operationId: createLoan
+      summary: Lend a copy to a member
+      description: |
+        Refused when the member already holds the maximum open loans for their
+        tier, has outstanding fees, or the book has no copy available.
+      permission: loans.create
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                memberId: { type: string, format: uuid }
+                bookId: { type: string, format: uuid }
+              required: [memberId, bookId]
+      responses:
+        "201":
+          description: The new loan, with the due date set from the member's tier.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Loan" }
+        "409": { description: "Loan limit reached, fees outstanding, or no copy available." }
+      emits: [loan.lifecycle/LoanCreated]
+      requirements: [LIB-3]
+
+  /loans/{loanId}/return:
+    parameters:
+      - { name: loanId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: returnLoan
+      summary: Record the return of a copy
+      permission: loans.return
+      algorithm: lateFee
+      responses:
+        "200":
+          description: The closed loan, with the late fee computed.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Loan" }
+        "409": { description: The loan is already closed. }
+      emits: [loan.lifecycle/LoanReturned]
+      requirements: [LIB-4, LIB-5]
+
+  /loans/{loanId}/lost:
+    parameters:
+      - { name: loanId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: reportLost
+      summary: Record a lost copy and charge its replacement cost
+      permission: loans.return
+      responses:
+        "200":
+          description: The closed loan.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Loan" }
+        "409": { description: The loan is already closed. }
+      emits: [loan.lifecycle/LoanLost]
+
+channels:
+  loan.lifecycle:
+    description: Every change in a loan's state, for the notification service and the audit log.
+    messages:
+      LoanCreated:
+        summary: A copy was lent.
+        payload: { $ref: "#/entities/Loan" }
+      LoanReturned:
+        summary: A copy came back; the payload carries the fee charged.
+        payload: { $ref: "#/entities/Loan" }
+      LoanLost:
+        summary: A copy was reported lost.
+        payload: { $ref: "#/entities/Loan" }
+  loan.overdue:
+    description: Published by the nightly job for each loan whose due date passed.
+    messages:
+      LoanOverdue:
+        summary: A loan became overdue.
+        payload:
+          type: object
+          properties:
+            loanId: { type: string, format: uuid }
+            memberId: { type: string, format: uuid }
+            daysLate: { type: integer, minimum: 1 }
+          required: [loanId, memberId, daysLate]
+        requirements: [LIB-4]
+
+pages:
+  members-list:
+    kind: list
+    title: Members
+    route: /members
+    entity: Member
+    permission: members.read
+    source: listMembers
+    columns: [cardNumber, fullName, email, tier, outstandingFees]
+    filters: [tier]
+    actions:
+      - { label: New member, kind: navigate, target: member-form, permission: members.write }
+  member-form:
+    kind: form
+    title: Register member
+    route: /members/new
+    entity: Member
+    permission: members.write
+    submit: createMember
+    fields: [fullName, email, tier]
+  member-view:
+    kind: view
+    title: Member
+    route: /members/{memberId}
+    entity: Member
+    permission: members.read
+    source: getMember
+    fields: [cardNumber, fullName, email, tier, joinedOn, outstandingFees]
+    actions:
+      - { label: Lend a book, kind: navigate, target: loan-form, permission: loans.create }
+  loan-form:
+    kind: form
+    title: Lend a copy
+    route: /loans/new
+    entity: Loan
+    permission: loans.create
+    submit: createLoan
+    fields: [memberId, bookId]
+  loans-list:
+    kind: list
+    title: Loans
+    route: /loans
+    entity: Loan
+    permission: loans.read
+    source: listLoans
+    columns: [memberId, bookId, loanedAt, dueOn, status, lateFee]
+    filters: [status, memberId]
+    actions:
+      - { label: Return, kind: operation, target: returnLoan, permission: loans.return, confirm: "Record this copy as returned?" }
+      - { label: Lost, kind: operation, target: reportLost, permission: loans.return, confirm: "Charge the replacement cost and close this loan?" }
+
+algorithms:
+  lateFee:
+    description: |
+      Fee charged when a copy comes back after its due date. A flat daily rate,
+      capped so that a long-overdue book never costs more than replacing it.
+    inputs:
+      daysLate: { type: integer, minimum: 0, description: Whole days after dueOn; 0 when returned on time. }
+      dailyRate: { type: string, format: decimal, precision: 10, scale: 2, description: "Library setting, currently 0.50." }
+      replacementCost: { type: string, format: decimal, precision: 10, scale: 2, description: The book's replacementCost. }
+    output: { type: string, format: decimal, precision: 10, scale: 2 }
+    formula: "fee = min(daysLate × dailyRate, replacementCost)"
+    examples:
+      - name: returned on time
+        inputs: { daysLate: 0, dailyRate: "0.50", replacementCost: "25.00" }
+        expected: "0.00"
+      - name: one week late
+        inputs: { daysLate: 7, dailyRate: "0.50", replacementCost: "25.00" }
+        expected: "3.50"
+        note: 7 × 0.50 = 3.50, below the cap.
+      - name: capped at replacement cost
+        inputs: { daysLate: 90, dailyRate: "0.50", replacementCost: "25.00" }
+        expected: "25.00"
+        note: 90 × 0.50 = 45.00 exceeds the 25.00 replacement cost, so the cap applies.
+      - name: cheap book, cap reached early
+        inputs: { daysLate: 10, dailyRate: "0.50", replacementCost: "4.00" }
+        expected: "4.00"
+    pseudocode: |
+      function lateFee(daysLate, dailyRate, replacementCost):
+          if daysLate <= 0:
+              return 0.00
+          fee = daysLate * dailyRate          # decimal arithmetic, 2 places
+          if fee > replacementCost:
+              fee = replacementCost
+          return fee
+    requirements: [LIB-5]
+
+decisions:
+  ADR-001:
+    title: Late fees are a flat daily rate capped at the replacement cost
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      Tiered rates (cheaper for the first week, dearer after) were considered.
+      They are harder to explain at the desk and the difference in revenue is
+      small for a library of this size.
+    decision: |
+      One daily rate for every book, capped at that book's replacement cost.
+      The rate is a library setting, not a per-book value.
+    consequences: |
+      The fee can be computed from three numbers and checked by hand. A very
+      long-overdue book costs the same as a lost one, which is what we want:
+      at that point the member should be told to treat it as lost.
+    requirements: [LIB-5]
+  ADR-002:
+    title: Money is carried as decimal strings, never floats
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      JSON has no decimal type. Fees and costs must round the way a cashier
+      expects.
+    decision: |
+      Every money field is `type: string, format: decimal` with `precision`
+      and `scale`. Generators map it to the target's decimal type and the API
+      transports it as a string.
+    consequences: |
+      Clients must parse the string; in return no sum ever drifts by a cent.

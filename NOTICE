@@ -1,0 +1,15 @@
+SpecArch
+Copyright 2026 Donny Hardyanto
+
+"SpecArch" is the name and mark of Donny Hardyanto. The licence below covers
+the contents of this repository; it does not grant a right to use the SpecArch
+name or mark for a derived specification language or tool. Say that your work
+is "compatible with SpecArch" or "based on SpecArch" if that is true, but do not
+call it SpecArch.
+
+The output you generate from your own specification files (code, documents,
+diagrams, migrations, tests and anything else a SpecArch generator writes) is
+yours. You may license it under any terms you choose. Nothing in this
+repository's licence attaches to it.
+
+This repository is licensed under the Apache License, Version 2.0. See LICENSE.

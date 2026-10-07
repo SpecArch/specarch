@@ -1,0 +1,1339 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-0.1.schema.json",
+  "title": "SpecArch Definition File, meta-model 0.1",
+  "description": "A SpecArch Definition File (*.specarch.yaml) describes one system: its entities, enums, relations, constraints, endpoints, events, roles and permissions, pages, algorithms, requirement links and decisions. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "type": "object",
+  "properties": {
+    "specarch": {
+      "description": "Meta-model version this file is written against.",
+      "type": "string",
+      "const": "0.1"
+    },
+    "info": {
+      "$ref": "#/$defs/info"
+    },
+    "requirementSources": {
+      "description": "SpecArch keyword. External requirement sets that requirement links point into, keyed by the prefix used in link IDs.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Z][A-Z0-9]{1,15}$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/requirementSource"
+      }
+    },
+    "enums": {
+      "description": "Named value sets, keyed by PascalCase name.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/typeName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/enum"
+      }
+    },
+    "entities": {
+      "description": "Persistent things with identity, keyed by PascalCase name. Each entity becomes a table (or collection) and a schema component.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/typeName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/entity"
+      }
+    },
+    "permissions": {
+      "description": "SpecArch keyword. Named rights, keyed by dotted lower-case name such as 'loans.create'. The name 'public' is reserved: an operation or page that grants it is open to everyone, including unauthenticated callers.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/permissionName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/permission"
+      }
+    },
+    "roles": {
+      "description": "SpecArch keyword. Roles a caller can hold, each listing the permissions it grants. A role grants nothing it does not list.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/roleName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/role"
+      }
+    },
+    "paths": {
+      "description": "OpenAPI keyword. HTTP endpoints keyed by path template.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^/"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/pathItem"
+      }
+    },
+    "channels": {
+      "description": "AsyncAPI keyword. Event channels keyed by channel name (dotted lower-case). Each channel carries one or more messages; a message is an event.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/channel"
+      }
+    },
+    "pages": {
+      "description": "SpecArch keyword. Screens, keyed by kebab-case name.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/page"
+      }
+    },
+    "algorithms": {
+      "description": "SpecArch keyword. Computations that must be specified before they are written by hand, keyed by camelCase name.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/memberName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/algorithm"
+      }
+    },
+    "decisions": {
+      "description": "SpecArch keyword. Architecture decision records, keyed by ID such as 'ADR-001'.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^ADR-[0-9]{3,}$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/decision"
+      }
+    }
+  },
+  "required": [
+    "specarch",
+    "info"
+  ],
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "typeName": {
+      "description": "PascalCase identifier for an entity or enum.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Za-z0-9]*$"
+    },
+    "memberName": {
+      "description": "camelCase identifier for a field, relation, algorithm or input.",
+      "type": "string",
+      "pattern": "^[a-z][A-Za-z0-9]*$"
+    },
+    "permissionName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$"
+    },
+    "roleName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+    },
+    "requirementLink": {
+      "description": "SpecArch keyword. An ID in an external requirement set: the prefix names a requirementSources entry, the rest is the ID inside that set.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+    },
+    "requirementLinks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/requirementLink"
+      },
+      "uniqueItems": true
+    },
+    "markdown": {
+      "description": "Prose in Markdown.",
+      "type": "string"
+    },
+    "schemaRef": {
+      "description": "A JSON pointer into this document, such as '#/entities/Member' or '#/enums/LoanStatus'.",
+      "type": "string",
+      "pattern": "^#/(entities|enums)/[A-Z][A-Za-z0-9]*$"
+    },
+    "info": {
+      "description": "OpenAPI keyword. What the system is.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "description": "Version of the specification, semantic versioning.",
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "owners": {
+          "description": "SpecArch keyword. Teams or components accountable for the system, not people.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "title",
+        "version"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "requirementSource": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "url": {
+          "description": "Where the requirement set lives; may be a URL template with {id}.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "enum": {
+      "description": "JSON Schema keywords. A closed set of string values.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "type": {
+          "type": "string",
+          "const": "string"
+        },
+        "enum": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "valueDescriptions": {
+          "description": "SpecArch keyword. Meaning of each value, keyed by value; JSON Schema has no per-value description.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirementLinks"
+        }
+      },
+      "required": [
+        "type",
+        "enum"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "field": {
+      "description": "JSON Schema keywords, a bounded subset. A field is either a scalar with a type, an array, a nested object, or a reference to an enum or entity.",
+      "type": "object",
+      "properties": {
+        "$ref": {
+          "$ref": "#/$defs/schemaRef"
+        },
+        "type": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "string",
+                "integer",
+                "number",
+                "boolean",
+                "array",
+                "object"
+              ]
+            },
+            {
+              "description": "A type that also allows null, written as JSON Schema does: [string, 'null'].",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "string",
+                  "integer",
+                  "number",
+                  "boolean",
+                  "array",
+                  "object",
+                  "null"
+                ]
+              },
+              "minItems": 2,
+              "maxItems": 2,
+              "uniqueItems": true,
+              "contains": {
+                "const": "null"
+              }
+            }
+          ]
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "format": {
+          "description": "JSON Schema and OpenAPI formats. Generators map each to the target's type.",
+          "type": "string",
+          "enum": [
+            "date",
+            "date-time",
+            "time",
+            "duration",
+            "email",
+            "uuid",
+            "uri",
+            "hostname",
+            "ipv4",
+            "ipv6",
+            "int32",
+            "int64",
+            "float",
+            "double",
+            "decimal",
+            "byte",
+            "binary",
+            "password"
+          ]
+        },
+        "enum": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "integer",
+              "number",
+              "boolean"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "const": {
+          "type": [
+            "string",
+            "integer",
+            "number",
+            "boolean"
+          ]
+        },
+        "default": {},
+        "examples": {
+          "type": "array",
+          "minItems": 1
+        },
+        "minimum": {
+          "type": "number"
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "exclusiveMinimum": {
+          "type": "number"
+        },
+        "exclusiveMaximum": {
+          "type": "number"
+        },
+        "multipleOf": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "minLength": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxLength": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pattern": {
+          "type": "string",
+          "format": "regex"
+        },
+        "items": {
+          "$ref": "#/$defs/field"
+        },
+        "minItems": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxItems": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "uniqueItems": {
+          "type": "boolean"
+        },
+        "properties": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/field"
+          }
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "uniqueItems": true
+        },
+        "readOnly": {
+          "description": "Set by the system, never by a client (an ID, a timestamp).",
+          "type": "boolean"
+        },
+        "writeOnly": {
+          "type": "boolean"
+        },
+        "deprecated": {
+          "type": "boolean"
+        },
+        "precision": {
+          "description": "SpecArch keyword. Total digits of a decimal field; JSON Schema has no equivalent. Used only with format: decimal.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "scale": {
+          "description": "SpecArch keyword. Digits after the decimal point; used only with format: decimal.",
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "$ref"
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ]
+        }
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "entity": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "type": {
+          "type": "string",
+          "const": "object"
+        },
+        "properties": {
+          "description": "JSON Schema keyword. The entity's fields.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/field"
+          },
+          "minProperties": 1
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "uniqueItems": true
+        },
+        "primaryKey": {
+          "description": "SpecArch keyword. Field or fields that identify a row.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "relations": {
+          "description": "SpecArch keyword. Links to other entities, keyed by camelCase name.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/relation"
+          }
+        },
+        "constraints": {
+          "description": "SpecArch keyword. Rules the data must satisfy beyond a single field's own keywords, keyed by snake_case name (it becomes the database constraint name).",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/constraint"
+          }
+        },
+        "stateField": {
+          "description": "SpecArch keyword. The field whose enum values form this entity's state machine; transitions lists the allowed moves. Generators draw the state diagram from it.",
+          "$ref": "#/$defs/memberName"
+        },
+        "transitions": {
+          "description": "SpecArch keyword. Allowed state changes of stateField.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/transition"
+          },
+          "minItems": 1
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirementLinks"
+        }
+      },
+      "required": [
+        "type",
+        "properties",
+        "primaryKey"
+      ],
+      "dependentRequired": {
+        "transitions": [
+          "stateField"
+        ],
+        "stateField": [
+          "transitions"
+        ]
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "relation": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "target": {
+          "description": "The entity this relation points at.",
+          "$ref": "#/$defs/typeName"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "one-to-one",
+            "one-to-many",
+            "many-to-one",
+            "many-to-many"
+          ]
+        },
+        "via": {
+          "description": "For many-to-one and one-to-one: the field on this entity that holds the foreign key. For one-to-many: the field on the target that points back. For many-to-many: the join entity.",
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9]*$"
+        },
+        "onDelete": {
+          "description": "What happens to this side when the target row is deleted. Default restrict.",
+          "type": "string",
+          "enum": [
+            "restrict",
+            "cascade",
+            "set_null"
+          ],
+          "default": "restrict"
+        }
+      },
+      "required": [
+        "target",
+        "kind",
+        "via"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "constraint": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "unique",
+            "check"
+          ]
+        },
+        "fields": {
+          "description": "For unique: the fields that together must be unique.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "expression": {
+          "description": "For check: a boolean expression over the entity's fields, in the expression language of docs/conventions.md.",
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "description": "What a user is told when the constraint fails.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "message"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "unique"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "fields"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "check"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "expression"
+            ]
+          }
+        }
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "transition": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        },
+        "trigger": {
+          "description": "The operationId, channel message or algorithm that causes the move.",
+          "type": "string"
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "permission": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "role": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "permissions": {
+          "description": "Permissions this role grants. Fail-closed: an empty list is not allowed; a role that grants nothing is left out.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/permissionName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "description",
+        "permissions"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "pathItem": {
+      "description": "OpenAPI keyword. The operations on one path.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "parameters": {
+          "$ref": "#/$defs/parameters"
+        },
+        "get": {
+          "$ref": "#/$defs/operation"
+        },
+        "post": {
+          "$ref": "#/$defs/operation"
+        },
+        "put": {
+          "$ref": "#/$defs/operation"
+        },
+        "patch": {
+          "$ref": "#/$defs/operation"
+        },
+        "delete": {
+          "$ref": "#/$defs/operation"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "get"
+          ]
+        },
+        {
+          "required": [
+            "post"
+          ]
+        },
+        {
+          "required": [
+            "put"
+          ]
+        },
+        {
+          "required": [
+            "patch"
+          ]
+        },
+        {
+          "required": [
+            "delete"
+          ]
+        }
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "parameters": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/parameter"
+      }
+    },
+    "parameter": {
+      "description": "OpenAPI keyword.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "in": {
+          "type": "string",
+          "enum": [
+            "path",
+            "query",
+            "header"
+          ]
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "schema": {
+          "$ref": "#/$defs/field"
+        }
+      },
+      "required": [
+        "name",
+        "in",
+        "schema"
+      ],
+      "if": {
+        "properties": {
+          "in": {
+            "const": "path"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "required": {
+            "const": true
+          }
+        },
+        "required": [
+          "required"
+        ]
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "operation": {
+      "description": "OpenAPI keywords plus the SpecArch 'permission'. An operation without a permission is invalid: access is fail-closed.",
+      "type": "object",
+      "properties": {
+        "operationId": {
+          "$ref": "#/$defs/memberName"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "permission": {
+          "description": "SpecArch keyword. The one permission a caller must hold. Use 'public' for an endpoint open to everyone.",
+          "$ref": "#/$defs/permissionName"
+        },
+        "parameters": {
+          "$ref": "#/$defs/parameters"
+        },
+        "requestBody": {
+          "$ref": "#/$defs/requestBody"
+        },
+        "responses": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^([1-5][0-9][0-9]|default)$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/response"
+          },
+          "minProperties": 1
+        },
+        "emits": {
+          "description": "SpecArch keyword. Channel messages this operation publishes, as 'channel/Message'.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*/[A-Z][A-Za-z0-9]*$"
+          },
+          "uniqueItems": true
+        },
+        "algorithm": {
+          "description": "SpecArch keyword. The algorithm this operation runs, if any.",
+          "$ref": "#/$defs/memberName"
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirementLinks"
+        },
+        "deprecated": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "operationId",
+        "summary",
+        "permission",
+        "responses"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "requestBody": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "content": {
+          "$ref": "#/$defs/content"
+        }
+      },
+      "required": [
+        "content"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "content": {
+          "$ref": "#/$defs/content"
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "content": {
+      "description": "OpenAPI keyword. Media type to schema.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z]+/[a-z0-9.+-]+$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "schema": {
+            "$ref": "#/$defs/field"
+          }
+        },
+        "required": [
+          "schema"
+        ],
+        "patternProperties": {
+          "^x-": {}
+        },
+        "additionalProperties": false
+      },
+      "minProperties": 1
+    },
+    "channel": {
+      "description": "AsyncAPI keywords.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "messages": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/typeName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/message"
+          },
+          "minProperties": 1
+        }
+      },
+      "required": [
+        "messages"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "message": {
+      "description": "AsyncAPI keywords. One event.",
+      "type": "object",
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "payload": {
+          "$ref": "#/$defs/field"
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirementLinks"
+        }
+      },
+      "required": [
+        "summary",
+        "payload"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "page": {
+      "description": "SpecArch keyword. A screen of one of three kinds. Generators map it onto the target project's component library.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "list",
+            "form",
+            "view"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "route": {
+          "description": "Client-side route; {param} marks a path parameter.",
+          "type": "string",
+          "pattern": "^/"
+        },
+        "entity": {
+          "$ref": "#/$defs/typeName"
+        },
+        "permission": {
+          "description": "Fail-closed, like an operation.",
+          "$ref": "#/$defs/permissionName"
+        },
+        "source": {
+          "description": "operationId that loads the page's data. Required for list and view; a form that creates a new row has nothing to load and leaves it out, a form that edits an existing row names the operation that loads it.",
+          "$ref": "#/$defs/memberName"
+        },
+        "submit": {
+          "description": "For a form: operationId that receives it.",
+          "$ref": "#/$defs/memberName"
+        },
+        "columns": {
+          "description": "For a list: fields shown, in order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "fields": {
+          "description": "For a form or view: fields shown, in order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "filters": {
+          "description": "For a list: fields the user can filter on.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "uniqueItems": true
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/action"
+          }
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirementLinks"
+        }
+      },
+      "required": [
+        "kind",
+        "title",
+        "route",
+        "entity",
+        "permission"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "list"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "columns",
+              "source"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "form"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "fields",
+              "submit"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "view"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "fields",
+              "source"
+            ]
+          }
+        }
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "action": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "navigate",
+            "operation"
+          ]
+        },
+        "target": {
+          "description": "A page name for navigate, an operationId for operation.",
+          "type": "string",
+          "minLength": 1
+        },
+        "permission": {
+          "description": "Shown only to callers holding it; defaults to the page's permission.",
+          "$ref": "#/$defs/permissionName"
+        },
+        "confirm": {
+          "description": "Question asked before an operation runs.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "kind",
+        "target"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "algorithm": {
+      "description": "SpecArch keyword. All three of formula, examples and pseudocode are required; the examples become test cases.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "inputs": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/field"
+          },
+          "minProperties": 1
+        },
+        "output": {
+          "$ref": "#/$defs/field"
+        },
+        "formula": {
+          "description": "The computation in one expression or a short list of them, plain text or LaTeX.",
+          "type": "string",
+          "minLength": 1
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/workedExample"
+          },
+          "minItems": 1
+        },
+        "pseudocode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirementLinks"
+        }
+      },
+      "required": [
+        "inputs",
+        "output",
+        "formula",
+        "examples",
+        "pseudocode"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "workedExample": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputs": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minProperties": 1
+        },
+        "expected": {},
+        "note": {
+          "description": "Why this case matters or how the number was reached.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "inputs",
+        "expected"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "decision": {
+      "description": "SpecArch keyword. A short architecture decision record.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "proposed",
+            "accepted",
+            "deprecated",
+            "superseded"
+          ]
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "context": {
+          "$ref": "#/$defs/markdown"
+        },
+        "decision": {
+          "$ref": "#/$defs/markdown"
+        },
+        "consequences": {
+          "$ref": "#/$defs/markdown"
+        },
+        "supersededBy": {
+          "type": "string",
+          "pattern": "^ADR-[0-9]{3,}$"
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirementLinks"
+        }
+      },
+      "required": [
+        "title",
+        "status",
+        "date",
+        "context",
+        "decision",
+        "consequences"
+      ],
+      "if": {
+        "properties": {
+          "status": {
+            "const": "superseded"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "supersededBy"
+        ]
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    }
+  }
+}

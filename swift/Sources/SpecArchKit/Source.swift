@@ -134,24 +134,35 @@ public func parseYAML(_ text: String) -> Doc {
 }
 
 private func syntaxProblem(_ error: YamlError) -> Problem {
-    // The line rule other SpecArch implementations follow, from yaml.v3: a
-    // scanner error is reported on the line where its context starts, or
-    // where the problem is; a parser error on the line before that, which
-    // the unclosed-block messages below correct.
+    // The line rule other SpecArch implementations follow, from yaml.v3. It
+    // counts lines from 0 and takes the line where the error's context
+    // starts, or, when that is the first line or there is none, the line of
+    // the problem; a scanner error adds 1. A line of 0 is not given, and
+    // reads as line 1. For the unclosed-block messages below the line given
+    // is where the block starts, counted from 0, so 1 is added.
+    let context: Mark?, mark: Mark, problem: String, scanner: Bool
     switch error {
-    case let .scanner(context, problem, mark, _):
-        return Problem(line: max(context?.mark.line ?? mark.line, 1), path: "/", rule: "yaml_syntax", message: unclosed[problem] ?? problem)
-    case let .parser(context, problem, mark, _):
-        var line = (context?.mark.line ?? mark.line) - 1
-        var message = problem
-        if let plain = unclosed[problem] {
-            line += 1
-            message = plain
-        }
-        return Problem(line: max(line, 1), path: "/", rule: "yaml_syntax", message: message)
+    case let .scanner(c, p, m, _):
+        (context, problem, mark, scanner) = (c?.mark, p, m, true)
+    case let .parser(c, p, m, _):
+        (context, problem, mark, scanner) = (c?.mark, p, m, false)
     default:
         return Problem(line: 1, path: "/", rule: "yaml_syntax", message: "\(error)")
     }
+    let contextLine = (context?.line ?? 1) - 1, problemLine = mark.line - 1
+    var line = 0
+    if contextLine != 0 {
+        line = contextLine + (scanner ? 1 : 0)
+    } else if problemLine != 0 {
+        line = problemLine + (scanner ? 1 : 0)
+    }
+    if line == 0 { line = 1 }
+    var message = problem
+    if let plain = unclosed[problem] {
+        line += 1
+        message = plain
+    }
+    return Problem(line: line, path: "/", rule: "yaml_syntax", message: message)
 }
 
 /// Renames every key of the block mapping at (line, column) that repeats an
@@ -253,44 +264,62 @@ private func resolveTag(_ v: String, explicit: String, style: YNode.Style) -> St
 private func jsonValue(_ n: YNode, path: String, duplicates: [(key: String, first: Int, again: Int)], problems: inout [Problem]) -> JSONValue {
     switch n.kind {
     case .mapping:
+        // A repeated key stays in the node tree under its own name, as
+        // yaml.v3 keeps it, and is left out of the plain value.
         var out: [(String, JSONValue)] = []
-        var kept: [YNode] = []
-        for (k, v) in n.pairs {
-            if k.value.hasPrefix(duplicateMarker), let i = Int(k.value.dropFirst(duplicateMarker.count)), i < duplicates.count {
-                let d = duplicates[i]
+        for (i, (k, v)) in n.pairs.enumerated() {
+            if k.value.hasPrefix(duplicateMarker), let j = Int(k.value.dropFirst(duplicateMarker.count)), j < duplicates.count {
+                let d = duplicates[j]
                 problems.append(Problem(line: d.again, path: path + "/" + escapeToken(d.key), rule: "duplicate_key",
                                         message: "key \(quote(d.key)) is already defined on line \(d.first)"))
+                n.pairs[i].key = YNode(kind: .scalar, value: d.key, tag: "!!str", style: k.style, line: k.line)
+                restoreKeys(v, duplicates)
                 continue
             }
-            kept.append(k)
             out.append((k.value, jsonValue(v, path: path + "/" + escapeToken(k.value), duplicates: duplicates, problems: &problems)))
         }
-        n.pairs = n.pairs.filter { !$0.key.value.hasPrefix(duplicateMarker) }
         return .object(out)
     case .sequence:
         return .array(n.items.enumerated().map { jsonValue($1, path: path + "/\($0)", duplicates: duplicates, problems: &problems) })
     case .scalar:
-        switch n.tag {
-        case "!!null": return .null
-        case "!!bool": return .bool(n.value.lowercased() == "true")
-        case "!!int":
-            let clean = n.value.replacingOccurrences(of: "_", with: "")
-            if let i = Int64(clean) { return .number(Decimal(i), String(i)) }
-            if let u = UInt64(clean) { return .number(Decimal(string: String(u))!, String(u)) }
-            return .string(n.value)
-        case "!!float":
-            if let d = Double(n.value), d.isFinite {
-                let text = "\(d)".replacingOccurrences(of: ".0e", with: "e")
-                return .number(Decimal(string: n.value) ?? Decimal(d), text)
-            }
-            return .string(n.value)
-        case "!!timestamp":
+        if n.tag == "!!timestamp" {
             problems.append(Problem(line: n.line, path: path.isEmpty ? "/" : path, rule: "unquoted_date",
                                     message: "\(n.value) is read by YAML as a timestamp; quote it: \"\(n.value)\""))
-            return .string(n.value)
-        default:
-            return .string(n.value)
         }
+        return scalarValue(n)
+    }
+}
+
+/// Gives a repeated key inside a value left out of the plain value its own
+/// name back, reporting nothing, as yaml.v3 reports nothing there.
+private func restoreKeys(_ n: YNode, _ duplicates: [(key: String, first: Int, again: Int)]) {
+    for (i, (k, v)) in n.pairs.enumerated() {
+        if k.value.hasPrefix(duplicateMarker), let j = Int(k.value.dropFirst(duplicateMarker.count)), j < duplicates.count {
+            n.pairs[i].key = YNode(kind: .scalar, value: duplicates[j].key, tag: "!!str", style: k.style, line: k.line)
+        }
+        restoreKeys(v, duplicates)
+    }
+    for item in n.items { restoreKeys(item, duplicates) }
+}
+
+/// A scalar as a plain JSON value; a timestamp is its text.
+func scalarValue(_ n: YNode) -> JSONValue {
+    switch n.tag {
+    case "!!null": return .null
+    case "!!bool": return .bool(n.value.lowercased() == "true")
+    case "!!int":
+        let clean = n.value.replacingOccurrences(of: "_", with: "")
+        if let i = Int64(clean) { return .number(Decimal(i), String(i)) }
+        if let u = UInt64(clean) { return .number(Decimal(string: String(u))!, String(u)) }
+        return .string(n.value)
+    case "!!float":
+        if let d = Double(n.value), d.isFinite {
+            let text = "\(d)".replacingOccurrences(of: ".0e", with: "e")
+            return .number(Decimal(string: n.value) ?? Decimal(d), text)
+        }
+        return .string(n.value)
+    default:
+        return .string(n.value)
     }
 }
 

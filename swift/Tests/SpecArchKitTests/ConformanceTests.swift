@@ -6,9 +6,10 @@ import Yams
 /// The repository root, found from this file's place in it.
 private let repository = URL(fileURLWithPath: #filePath)
     .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-private let conformance = repository.appendingPathComponent("conformance")
+/// The conformance suite is the tests stage of SpecArch's own specification.
+private let conformance = repository.appendingPathComponent("spec/tests")
 
-/// The commands this implementation offers. Generators are built in Go only.
+/// The commands this implementation offers. Documents and generators are built in Go only.
 private let offered: Set<String> = ["validate", "version"]
 
 /// Every file under dir, keyed by its slash path, leaving out the top-level
@@ -55,7 +56,7 @@ private func cases() throws -> [Case] {
     #expect(!all.isEmpty)
     for c in all where offered.contains(c.arguments.first ?? "") {
         let src = conformance.appendingPathComponent(c.name)
-        let inputs = readTree(src, skipping: ["case.yaml", "expected"])
+        let inputs = readTree(src, skipping: ["case.yaml", "test.yaml", "expected"])
         let expected = readTree(src.appendingPathComponent("expected"))
         let work = FileManager.default.temporaryDirectory.appendingPathComponent("specarch-\(UUID().uuidString)")
         for (name, data) in inputs {
@@ -79,23 +80,27 @@ private func cases() throws -> [Case] {
     }
 }
 
-/// Every design test of an offered command has a case folder.
+/// SpecArch's own specification, merged.
+private func ownSpecification() throws -> YNode {
+    let s = Spec(dir: repository.appendingPathComponent("spec").path)
+    return try #require(s.root, "spec/ does not load")
+}
+
+/// Every test of an offered command has a case.yaml, unless it is marked
+/// not applicable.
 @Test func everyDesignTestHasACase() throws {
-    let text = try String(contentsOf: repository.appendingPathComponent("spec/specarch.specarch-design.yaml"), encoding: .utf8)
-    let doc = try Yams.load(yaml: text) as? [String: Any] ?? [:]
-    let tests = doc["tests"] as? [String: Any] ?? [:]
-    let folders = Set(try FileManager.default.contentsOfDirectory(atPath: conformance.path))
-    for (name, t) in tests {
-        guard let command = (t as? [String: Any])?["command"] as? String, offered.contains(command) else { continue }
-        #expect(folders.contains(name), "design test \(name) has no folder in conformance/")
+    let tests = try ownSpecification().child("tests")
+    for p in tests?.pairs ?? [] {
+        guard let command = p.value.child("command")?.str, offered.contains(command), p.value.child("notApplicable") == nil else { continue }
+        let file = conformance.appendingPathComponent(p.key.value).appendingPathComponent("case.yaml")
+        #expect(FileManager.default.fileExists(atPath: file.path), "spec/tests/\(p.key.value) is a test of \(command) but has no case.yaml")
     }
 }
 
-/// The rules are exactly the values of the design's Rule enum.
+/// The rules are exactly the values of the specification's Rule enum.
 @Test func rulesMatchDesign() throws {
-    let text = try String(contentsOf: repository.appendingPathComponent("spec/specarch.specarch-design.yaml"), encoding: .utf8)
-    let doc = try Yams.load(yaml: text) as? [String: Any] ?? [:]
-    let rule = ((doc["enums"] as? [String: Any])?["Rule"] as? [String: Any])?["enum"] as? [String] ?? []
+    let rule = try ownSpecification().child("enums")?.child("Rule")?.child("enum")?.items.map(\.value) ?? []
+    #expect(!rule.isEmpty)
     #expect(rule.sorted() == Rule.allCases.map(\.rawValue).sorted())
 }
 

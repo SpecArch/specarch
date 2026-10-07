@@ -7,7 +7,7 @@ func items(_ n: YNode?) -> [YNode] { n?.kind == .sequence ? n!.items : [] }
 func child(_ n: YNode?, _ key: String) -> YNode? { n?.child(key) }
 func str(_ n: YNode?) -> String { n?.str ?? "" }
 
-/// One HTTP operation of a design file.
+/// One HTTP operation of a specification.
 struct Operation {
     let id: String
     let node: YNode
@@ -22,10 +22,12 @@ struct Operation {
 
 let methods = ["get", "post", "put", "patch", "delete"]
 
-/// Indexes the named objects of a design file.
+/// Indexes the named objects of a specification.
 final class Design {
     let root: YNode
+    var spec: Spec? // the specification on disk, when known
     let entities, enums, permissions, roles, commands, channels, pages, algorithms, decisions, sources: [String: YNode]
+    let stakeholders, needs, requirements, environments, settings, checks: [String: YNode]
     var operations: [String: Operation] = [:] // by operationId, the first definition
     var opList: [Operation] = []              // every operation in document order
 
@@ -45,7 +47,13 @@ final class Design {
         pages = topMap("pages")
         algorithms = topMap("algorithms")
         decisions = topMap("decisions")
-        sources = topMap("requirementSources")
+        sources = topMap("sources")
+        stakeholders = topMap("stakeholders")
+        needs = topMap("needs")
+        requirements = topMap("requirements")
+        environments = topMap("environments")
+        settings = topMap("configuration")
+        checks = topMap("checks")
         for p in pairs(root.child("paths")) {
             for m in methods {
                 guard let op = p.value.child(m) else { continue }
@@ -85,6 +93,22 @@ final class Design {
     func isTrigger(_ t: String) -> Bool {
         operations[t] != nil || commands[t] != nil || algorithms[t] != nil || message(t) != nil
     }
+
+    /// The prefixes of the external requirement sets declared under sources.
+    func requirementSetPrefixes() -> [String: YNode] {
+        var out: [String: YNode] = [:]
+        for (_, src) in sources where str(src.child("kind")) == "requirement-set" {
+            let prefix = str(src.child("prefix"))
+            if !prefix.isEmpty { out[prefix] = src }
+        }
+        return out
+    }
+
+    /// Whether the specification has any section of a stage.
+    func covers(_ stage: String) -> Bool {
+        if let spec { return spec.covers(stage) }
+        return sectionsOf(stage).contains { root.child($0) != nil }
+    }
 }
 
 /// An entity's fields by name.
@@ -104,7 +128,7 @@ func suggest(_ name: String, _ valid: [String: YNode]) -> String {
         if dist < bestDist { best = n; bestDist = dist }
     }
     if !best.isEmpty { return "; did you mean \(best)?" }
-    if names.isEmpty { return "; there are none in this file" }
+    if names.isEmpty { return "; there are none in the specification" }
     if names.count <= 8 { return "; use one of " + names.joined(separator: ", ") }
     return ""
 }
@@ -153,7 +177,9 @@ extension Checker {
     func checkDesign(_ d: Design) {
         checkRefs(d)
         checkIntegers()
-        checkRequirementLinks(d.root, [], d.sources)
+        checkRequirementLinks(d.root, [], d)
+        checkCitations(d.root, [], d)
+        checkRequirementsStage(d)
         checkEnums(d)
         checkEntities(d)
         checkOperations(d)
@@ -163,6 +189,8 @@ extension Checker {
         checkAccess(d)
         checkExpressions(d)
         checkTests(d)
+        checkDeploymentStage(d)
+        checkTraceability(d)
     }
 
     /// Finds every $ref in the file and checks its target exists.
@@ -174,32 +202,147 @@ extension Checker {
                 if ref.hasPrefix("#/entities/") {
                     let name = String(ref.dropFirst("#/entities/".count))
                     if d.entities[name] == nil {
-                        add(p.value, ptr, .refType, "\(name) is not an entity of this file\(suggest(name, d.entities))")
+                        add(p.value, ptr, .refType, "\(name) is not an entity of the specification\(suggest(name, d.entities))")
                     }
                 } else if ref.hasPrefix("#/enums/") {
                     let name = String(ref.dropFirst("#/enums/".count))
                     if d.enums[name] == nil {
-                        add(p.value, ptr, .refType, "\(name) is not an enum of this file\(suggest(name, d.enums))")
+                        add(p.value, ptr, .refType, "\(name) is not an enum of the specification\(suggest(name, d.enums))")
                     }
                 }
             }
         }
     }
 
-    /// Checks every "requirements" list names a known source prefix.
-    func checkRequirementLinks(_ root: YNode?, _ base: [String], _ sources: [String: YNode]) {
+    /// Checks every satisfies and verifies list names a requirement of the
+    /// specification, or one of an external set declared under sources.
+    func checkRequirementLinks(_ root: YNode?, _ base: [String], _ d: Design) {
+        let prefixes = d.requirementSetPrefixes()
         walk(root, base) { n, path in
-            for (i, item) in items(n.child("requirements")).enumerated() {
-                let link = str(item)
-                guard let dash = link.firstIndex(of: "-") else { continue }
-                let prefix = String(link[..<dash])
-                if sources[prefix] != nil { continue }
-                let ptr = pointer(path + ["requirements", "\(i)"])
-                if sources.isEmpty {
-                    add(item, ptr, .requirement, "\(link) links to requirement source \(prefix), but the file declares no requirementSources; add \(prefix) under requirementSources")
+            for key in ["satisfies", "verifies"] {
+                for (i, item) in items(n.child(key)).enumerated() {
+                    let link = str(item)
+                    if d.requirements[link] != nil { continue }
+                    let dash = link.firstIndex(of: "-")
+                    let prefix = dash.map { String(link[..<$0]) } ?? link
+                    if dash != nil && prefixes[prefix] != nil { continue }
+                    let ptr = pointer(path + [key, "\(i)"])
+                    if d.requirements.isEmpty && prefixes.isEmpty {
+                        add(item, ptr, .requirement, "\(link) is not a requirement: the specification has none under requirements and no source of kind requirement-set; add the requirement, or declare the set under sources with prefix \(prefix)")
+                    } else if !d.requirements.isEmpty {
+                        add(item, ptr, .requirement, "\(link) is not a requirement of the specification\(suggest(link, d.requirements))")
+                    } else {
+                        add(item, ptr, .requirement, "\(link) is not in a declared requirement set; the sets under sources have the prefixes \(prefixes.keys.sorted(by: byteLess).joined(separator: ", "))")
+                    }
+                }
+            }
+        }
+    }
+
+    /// Checks every citation names a declared source.
+    func checkCitations(_ root: YNode?, _ base: [String], _ d: Design) {
+        walk(root, base) { n, path in
+            for (i, item) in items(n.child("cites")).enumerated() {
+                let srcNode = item.child("source")
+                let name = str(srcNode)
+                if name.isEmpty || d.sources[name] != nil { continue }
+                let ptr = pointer(path + ["cites", "\(i)", "source"])
+                if d.sources.isEmpty {
+                    add(srcNode, ptr, .source, "\(name) is not a declared source: the specification declares none; add it under sources in \(rootFile)")
                     continue
                 }
-                add(item, ptr, .requirement, "\(link) links to requirement source \(prefix), which is not under requirementSources\(suggest(prefix, sources))")
+                add(srcNode, ptr, .source, "\(name) is not a source declared under sources\(suggest(name, d.sources))")
+            }
+        }
+    }
+
+    /// Checks the links inside the requirements stage: a requirement's
+    /// needs exist, a need's stakeholders exist.
+    func checkRequirementsStage(_ d: Design) {
+        for (name, need) in d.needs {
+            for (i, sh) in items(need.child("stakeholders")).enumerated() where !sh.value.isEmpty && d.stakeholders[sh.value] == nil {
+                add(sh, pointer("needs", name, "stakeholders", "\(i)"), .stakeholder,
+                    "\(sh.value) is not a stakeholder of the specification\(suggest(sh.value, d.stakeholders))")
+            }
+        }
+        for (name, req) in d.requirements {
+            for (i, n) in items(req.child("needs")).enumerated() where !n.value.isEmpty && d.needs[n.value] == nil {
+                add(n, pointer("requirements", name, "needs", "\(i)"), .need,
+                    "\(n.value) is not a need of the specification\(suggest(n.value, d.needs))")
+            }
+        }
+    }
+
+    /// Checks the links inside the deployment and commissioning stages, and
+    /// that no secret carries a value.
+    func checkDeploymentStage(_ d: Design) {
+        for (name, env) in d.environments {
+            let next = env.child("promotesTo")
+            let v = str(next)
+            if !v.isEmpty && d.environments[v] == nil {
+                add(next, pointer("environments", name, "promotesTo"), .environment,
+                    "\(v) is not an environment of the specification\(suggest(v, d.environments))")
+            }
+        }
+        for (name, chk) in d.checks {
+            let env = chk.child("environment")
+            let v = str(env)
+            if !v.isEmpty && d.environments[v] == nil {
+                add(env, pointer("checks", name, "environment"), .environment,
+                    "\(v) is not an environment of the specification\(suggest(v, d.environments))")
+            }
+        }
+        for (name, setting) in d.settings where str(setting.child("secret")) == "true" {
+            if let def = child(setting.child("schema"), "default") {
+                add(def, pointer("configuration", name, "schema", "default"), .secretValue,
+                    "\(name) is a secret, and a secret's value is never written in a specification; remove the default and say in the description where the value comes from")
+            }
+        }
+    }
+
+    /// Reports what the stages a specification covers leave open: a need no
+    /// requirement refines, a requirement without acceptance criteria, a
+    /// requirement nothing satisfies once there is a design, and a
+    /// requirement nothing verifies once there are tests or checks. All are
+    /// warnings.
+    func checkTraceability(_ d: Design) {
+        var satisfied = Set<String>(), verified = Set<String>()
+        walk(d.root, []) { n, _ in
+            for item in items(n.child("satisfies")) { satisfied.insert(item.value) }
+            for item in items(n.child("verifies")) { verified.insert(item.value) }
+        }
+        for impl in d.spec?.implementations ?? [] {
+            let doc = parseYAML(String(decoding: impl.data, as: UTF8.self))
+            walk(doc.root, []) { n, _ in
+                for item in items(n.child("satisfies")) { satisfied.insert(item.value) }
+            }
+        }
+        var refined = Set<String>()
+        for (_, req) in d.requirements {
+            for n in items(req.child("needs")) { refined.insert(n.value) }
+        }
+        let hasDesign = d.covers("design")
+        let hasTests = !pairs(d.root.child("tests")).isEmpty || !d.checks.isEmpty
+        for p in pairs(d.root.child("needs")) {
+            if str(p.value.child("status")) == "rejected" { continue } // a rejected need will not be met, so no requirement refines it
+            if !refined.contains(p.key.value) {
+                warn(p.key, pointer("needs", p.key.value), .needUnrefined,
+                     "no requirement refines need \(p.key.value); add a requirement with needs: [\(p.key.value)], or set the need's status to rejected")
+            }
+        }
+        for p in pairs(d.root.child("requirements")) {
+            let id = p.key.value
+            let ptr = pointer("requirements", id)
+            let status = str(p.value.child("status"))
+            if status == "rejected" || status == "retired" { continue }
+            if p.value.child("acceptance") == nil {
+                warn(p.key, ptr, .acceptanceMissing, "requirement \(id) has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion")
+            }
+            if hasDesign && !satisfied.contains(id) {
+                warn(p.key, ptr, .requirementUnsatisfied, "no design element satisfies requirement \(id); add satisfies: [\(id)] to the entity, operation, command, page, algorithm or decision that meets it")
+            }
+            if hasTests && !verified.contains(id) {
+                warn(p.key, ptr, .requirementUnverified, "no test or commissioning check verifies requirement \(id); add verifies: [\(id)] to the test that shows it is met")
             }
         }
     }
@@ -245,7 +388,7 @@ extension Checker {
         let targetNode = p.value.child("target")
         let target = str(targetNode)
         if !target.isEmpty && d.entities[target] == nil {
-            add(targetNode, pointer(base + ["target"]), .relationTarget, "\(target) is not an entity of this file\(suggest(target, d.entities))")
+            add(targetNode, pointer(base + ["target"]), .relationTarget, "\(target) is not an entity of the specification\(suggest(target, d.entities))")
             return
         }
         let viaNode = p.value.child("via")
@@ -264,7 +407,7 @@ extension Checker {
             }
         case "many-to-many":
             if d.entities[via] == nil {
-                add(viaNode, ptr, .relationVia, "\(via) is not an entity of this file; for many-to-many, via names the join entity\(suggest(via, d.entities))")
+                add(viaNode, ptr, .relationVia, "\(via) is not an entity of the specification; for many-to-many, via names the join entity\(suggest(via, d.entities))")
             }
         default:
             break
@@ -298,7 +441,7 @@ extension Checker {
             let trig = t.child("trigger")
             let tr = str(trig)
             if !tr.isEmpty && !d.isTrigger(tr) {
-                add(trig, pointer(tp + ["trigger"]), .trigger, "\(tr) is not an operationId, a command, a channel/Message or an algorithm of this file; name the one that causes this move")
+                add(trig, pointer(tp + ["trigger"]), .trigger, "\(tr) is not an operationId, a command, a channel/Message or an algorithm of the specification; name the one that causes this move")
             }
         }
     }
@@ -314,7 +457,7 @@ extension Checker {
                 seen.insert(o.id)
             }
             if let alg = o.node.child("algorithm"), d.algorithms[alg.value] == nil {
-                add(alg, o.pointer("algorithm"), .algorithm, "\(alg.value) is not an algorithm of this file\(suggest(alg.value, d.algorithms))")
+                add(alg, o.pointer("algorithm"), .algorithm, "\(alg.value) is not an algorithm of the specification\(suggest(alg.value, d.algorithms))")
             }
             for (i, e) in items(o.node.child("emits")).enumerated() where d.message(e.value) == nil {
                 add(e, o.pointer("emits", "\(i)"), .emits, "\(e.value) does not name a channel and one of its messages; write channel/Message for a message declared under channels")
@@ -346,7 +489,7 @@ extension Checker {
     func checkCommands(_ d: Design) {
         for (name, cmd) in d.commands {
             if let alg = cmd.child("algorithm"), d.algorithms[alg.value] == nil {
-                add(alg, pointer("commands", name, "algorithm"), .algorithm, "\(alg.value) is not an algorithm of this file\(suggest(alg.value, d.algorithms))")
+                add(alg, pointer("commands", name, "algorithm"), .algorithm, "\(alg.value) is not an algorithm of the specification\(suggest(alg.value, d.algorithms))")
             }
             let args = items(cmd.child("arguments"))
             for (i, a) in args.enumerated() where str(a.child("repeatable")) == "true" && i != args.count - 1 {
@@ -364,7 +507,7 @@ extension Checker {
             let entNode = pg.child("entity")
             let ent = str(entNode)
             if !ent.isEmpty && d.entities[ent] == nil {
-                add(entNode, pointer(base + ["entity"]), .refType, "\(ent) is not an entity of this file\(suggest(ent, d.entities))")
+                add(entNode, pointer(base + ["entity"]), .refType, "\(ent) is not an entity of the specification\(suggest(ent, d.entities))")
             } else if !ent.isEmpty {
                 let fields = fieldsOf(d.entities[ent])
                 checkFieldList(pg.child("columns"), base + ["columns"], fields, ent, "a column")
@@ -375,7 +518,7 @@ extension Checker {
                 let n = pg.child(key)
                 let id = str(n)
                 if !id.isEmpty && d.operations[id] == nil {
-                    add(n, pointer(base + [key]), .operation, "\(id) is not an operationId of this file\(suggest(id, opNames))")
+                    add(n, pointer(base + [key]), .operation, "\(id) is not an operationId of the specification\(suggest(id, opNames))")
                 }
             }
             for (i, a) in items(pg.child("actions")).enumerated() {
@@ -385,11 +528,11 @@ extension Checker {
                 switch str(a.child("kind")) {
                 case "navigate":
                     if !t.isEmpty && d.pages[t] == nil {
-                        add(tn, ptr, .page, "\(t) is not a page of this file\(suggest(t, d.pages))")
+                        add(tn, ptr, .page, "\(t) is not a page of the specification\(suggest(t, d.pages))")
                     }
                 case "operation":
                     if !t.isEmpty && d.operations[t] == nil {
-                        add(tn, ptr, .operation, "\(t) is not an operationId of this file\(suggest(t, opNames))")
+                        add(tn, ptr, .operation, "\(t) is not an operationId of the specification\(suggest(t, opNames))")
                     }
                 default:
                     break
@@ -401,7 +544,7 @@ extension Checker {
     func checkDecisions(_ d: Design) {
         for (id, dec) in d.decisions {
             if let s = dec.child("supersededBy"), d.decisions[s.value] == nil {
-                add(s, pointer("decisions", id, "supersededBy"), .decision, "\(s.value) is not a decision of this file\(suggest(s.value, d.decisions))")
+                add(s, pointer("decisions", id, "supersededBy"), .decision, "\(s.value) is not a decision of the specification\(suggest(s.value, d.decisions))")
             }
         }
     }
@@ -412,7 +555,7 @@ extension Checker {
         func use(_ n: YNode?, _ ptr: String, _ who: String) {
             let p = str(n)
             if !p.isEmpty && d.permissions[p] == nil {
-                let hint = suggest(p, d.permissions).replacingOccurrences(of: "; there are none in this file", with: "")
+                let hint = suggest(p, d.permissions).replacingOccurrences(of: "; there are none in the specification", with: "")
                 add(n, ptr, .permissionUndeclared, "\(who) needs permission \(p), which is not declared; add it under permissions\(hint)")
             }
         }

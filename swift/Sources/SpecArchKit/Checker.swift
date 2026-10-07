@@ -5,28 +5,69 @@ public enum Kind {
     case none, design, implementation
 }
 
-public let designSuffix = ".specarch-design.yaml"
 public let implementationSuffix = ".specarch-implementation.yaml"
 
-/// Tells the kind of a file from its name.
+/// Tells the kind of a file from its name: the root file of a
+/// specification, an implementation file, or neither.
 public func kindOf(_ name: String) -> Kind {
-    if name.hasSuffix(designSuffix) { return .design }
+    if name == rootFile || name.hasSuffix("/" + rootFile) { return .design }
     if name.hasSuffix(implementationSuffix) { return .implementation }
     return .none
 }
 
-/// Reads a file the caller did not pass in: the design file an
-/// implementation file names.
-public typealias ReadFile = (String) throws -> Data
+/// Reads the specification rooted at a folder: the one an implementation
+/// file names under implements.
+typealias Loader = (String) -> Spec
 
-/// Runs every check on one file and returns its diagnostics, sorted. The
-/// path is used as given in every diagnostic.
-public func check(path: String, data: Data, read: ReadFile) -> [Diagnostic] {
+/// Runs every check on a specification and on the implementation files
+/// inside it, and returns the diagnostics, sorted.
+func checkSpec(_ s: Spec) -> [Diagnostic] {
+    let c = Checker(file: s.rootPath, files: s.files)
+    for p in s.problems {
+        c.addFile(p.file, p.line, p.path, Rule(rawValue: p.rule)!, p.message)
+    }
+    var out: [Diagnostic] = []
+    if let root = s.root {
+        c.root = root
+        if c.rootIsSpec() {
+            c.checkSchema(.design, s.value)
+            c.checkChangeLog()
+            c.checkBoundaryDesign()
+            let d = Design(root)
+            d.spec = s
+            c.checkDesign(d)
+        }
+    }
+    out += withoutEchoes(c.diags)
+    for impl in s.implementations {
+        let ic = Checker(file: impl.path)
+        ic.runImplementation(impl.data, s, nil)
+        out += withoutEchoes(ic.diags)
+    }
+    sortDiagnostics(&out)
+    return out
+}
+
+/// Checks one implementation file given on its own. The specification it
+/// implements is loaded through load.
+func checkImplementationFile(path: String, data: Data, load: @escaping Loader) -> [Diagnostic] {
     let c = Checker(file: path)
-    c.run(data, read)
+    c.runImplementation(data, nil, load)
     var ds = withoutEchoes(c.diags)
     sortDiagnostics(&ds)
     return ds
+}
+
+/// Reports a file given by name that is neither a root file nor an
+/// implementation file.
+func checkNamed(_ path: String) -> [Diagnostic] {
+    let c = Checker(file: path)
+    if let root = rootOf(path) {
+        c.addLine(1, "/", .fileKind, "this file is part of the specification whose root file is \(joinPath(root, rootFile)); run specarch validate on that specification's folder")
+    } else {
+        c.addLine(1, "/", .fileKind, "the file is neither \(rootFile) nor an implementation file (*\(implementationSuffix)); name a specification's folder or root file")
+    }
+    return c.diags
 }
 
 /// Drops a diagnostic that only repeats a schema error: one at the same
@@ -48,17 +89,30 @@ func withoutEchoes(_ ds: [Diagnostic]) -> [Diagnostic] {
 }
 
 final class Checker {
-    let file: String
+    let file: String                       // the file diagnostics name when a node is not known
+    let files: [ObjectIdentifier: String]  // the file of each node of a merged specification
     var root: YNode!
     var diags: [Diagnostic] = []
 
-    init(file: String) { self.file = file }
+    init(file: String, files: [ObjectIdentifier: String] = [:]) {
+        self.file = file
+        self.files = files
+    }
+
+    func fileOf(_ n: YNode?) -> String {
+        guard let n else { return file }
+        return files[ObjectIdentifier(n)] ?? file
+    }
 
     func add(_ n: YNode?, _ path: String, _ rule: Rule, _ message: String) {
-        addLine(n?.line ?? 1, path, rule, message)
+        addFile(fileOf(n), n?.line ?? 1, path, rule, message)
     }
 
     func addLine(_ line: Int, _ path: String, _ rule: Rule, _ message: String) {
+        addFile(file, line, path, rule, message)
+    }
+
+    func addFile(_ file: String, _ line: Int, _ path: String, _ rule: Rule, _ message: String) {
         diags.append(Diagnostic(file: file, line: max(line, 1), severity: .error, path: path.isEmpty ? "/" : path, rule: rule, message: message))
     }
 
@@ -67,49 +121,35 @@ final class Checker {
         diags[diags.count - 1].severity = .warning
     }
 
-    func run(_ data: Data, _ read: ReadFile) {
-        let kind = kindOf(file)
-        if kind == .none {
-            addLine(1, "/", .fileKind, "the file name ends in neither \(designSuffix) nor \(implementationSuffix); rename the file so its kind is clear")
-            return
+    /// Refuses a root file that starts with specarchImplementation, since
+    /// every later check would only repeat that one mistake.
+    func rootIsSpec() -> Bool {
+        guard root.kind == .mapping else { return true } // the schema reports it
+        if root.key("specarchImplementation") != nil && root.key("specarch") == nil {
+            add(root.key("specarchImplementation"), "/specarchImplementation", .fileKind,
+                "\(rootFile) is a specification's root file but starts with specarchImplementation; an implementation file is named <name>.<stack>\(implementationSuffix)")
+            return false
         }
+        return true
+    }
+
+    /// Checks an implementation file. With s given, the file is part of that
+    /// specification; otherwise load reads the one it names.
+    func runImplementation(_ data: Data, _ s: Spec?, _ load: Loader?) {
         let doc = parseYAML(String(decoding: data, as: UTF8.self))
         for p in doc.problems {
             addLine(p.line, p.path, Rule(rawValue: p.rule)!, p.message)
         }
         guard let root = doc.root else { return }
         self.root = root
-        if !kindMatchesRoot(kind) { return }
-        checkSchema(kind, doc.value)
-        checkChangeLog()
-        switch kind {
-        case .design:
-            checkBoundaryDesign()
-            checkDesign(Design(root))
-        case .implementation:
-            checkBoundaryImplementation()
-            checkImplementation(read)
-        case .none:
-            break
-        }
-    }
-
-    /// Refuses a file whose name and root key disagree, since every later
-    /// check would only repeat that one mistake.
-    func kindMatchesRoot(_ kind: Kind) -> Bool {
-        guard root.kind == .mapping else { return true }
-        let hasDesign = root.key("specarch") != nil
-        let hasImpl = root.key("specarchImplementation") != nil
-        if kind == .design && hasImpl && !hasDesign {
-            add(root.key("specarchImplementation"), "/specarchImplementation", .fileKind,
-                "the file is named as a design file but starts with specarchImplementation; rename it to end in \(implementationSuffix), or start it with specarch")
-            return false
-        }
-        if kind == .implementation && hasDesign && !hasImpl {
+        if root.kind == .mapping && root.key("specarch") != nil && root.key("specarchImplementation") == nil {
             add(root.key("specarch"), "/specarch", .fileKind,
-                "the file is named as an implementation file but starts with specarch; rename it to end in \(designSuffix), or start it with specarchImplementation")
-            return false
+                "the file is named as an implementation file but starts with specarch; a specification's root file is named \(rootFile)")
+            return
         }
-        return true
+        checkSchema(.implementation, doc.value)
+        checkChangeLog()
+        checkBoundaryImplementation()
+        checkImplementation(s, load)
     }
 }

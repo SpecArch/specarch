@@ -17,7 +17,7 @@ let patternNames: [String: String] = [
     "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$": "dotted lower case, such as loans.create",
     "^[a-z][a-z0-9]*(-[a-z0-9]+)*$": "kebab-case, such as members-list",
     "^[a-z][a-z0-9]*(_[a-z0-9]+)*$": "snake_case, such as loan_due_after_loaned",
-    "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$": "a requirement link: a source prefix, a dash and an ID, such as LIB-5",
+    "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$": "an ID: an upper-case prefix, a dash and a number or name, such as LIB-5 or NEED-1",
     "^[A-Z][A-Z0-9]{1,15}$": "an upper-case prefix of 2 to 16 letters or digits, such as LIB",
     "^ADR-[0-9]{3,}$": "ADR- and three or more digits, such as ADR-001",
     "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$": "a semantic version, such as 1.2.0",
@@ -28,7 +28,8 @@ let patternNames: [String: String] = [
     "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*/[A-Z][A-Za-z0-9]*$": "channel/Message, such as loan.lifecycle/LoanCreated",
     "^[a-z][a-z0-9]*(-[a-z0-9]+)*( [a-z][a-z0-9]*(-[a-z0-9]+)*)*$": "kebab-case words separated by single spaces, such as generate techspec",
     "^(0|[1-9][0-9]?|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$": "an exit status from 0 to 255",
-    "\\.specarch-design\\.yaml$": "a path ending in .specarch-design.yaml",
+    "(^|/)specarch\\.yaml$": "a path ending in specarch.yaml, the specification's root file",
+    "^[A-Za-z][A-Za-z0-9 ./'-]*$": "a term: letters, digits, spaces, dots, slashes, apostrophes and dashes, such as late fee",
 ]
 
 func describePattern(_ p: String) -> String {

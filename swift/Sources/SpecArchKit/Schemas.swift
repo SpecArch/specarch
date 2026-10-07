@@ -4,8 +4,8 @@ let designSchemaJSON = #"""
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.1.schema.json",
-  "title": "SpecArch Definition File, meta-model 0.1",
-  "description": "A SpecArch Definition File (*.specarch-design.yaml) describes one system: its entities, enums, relations, constraints, endpoints, commands, events, roles and permissions, pages, algorithms, requirement links and decisions. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "title": "SpecArch specification, meta-model 0.1",
+  "description": "A SpecArch specification describes one system through its whole life cycle: the sources it rests on, the requirements (stakeholders, needs, requirements, glossary, assumptions, constraints), the design (enums, entities, permissions, roles, endpoints, commands, channels, pages, algorithms, decisions), the tests, the deployment (environments, configuration, release, rollback, migrations) and the commissioning (checks, sign-off). On disk it is a folder whose root file is specarch.yaml; each stage listed under 'stages' lives in a folder of that name, and a stage not listed may be written inside specarch.yaml itself. The validator merges the tree into one document that this schema describes. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
     "specarch": {
@@ -16,14 +16,90 @@ let designSchemaJSON = #"""
     "info": {
       "$ref": "#/$defs/info"
     },
-    "requirementSources": {
-      "description": "SpecArch keyword. External requirement sets that requirement links point into, keyed by the prefix used in link IDs.",
+    "stages": {
+      "description": "SpecArch keyword. The life-cycle stages this specification keeps in folders of their own, in life-cycle order. A listed stage has a folder of that name beside specarch.yaml and its sections live there; a stage that is not listed has no folder, and its sections, if any, are written in specarch.yaml. Only in specarch.yaml.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "requirements",
+          "design",
+          "implementation",
+          "tests",
+          "deployment",
+          "commissioning"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "sources": {
+      "description": "SpecArch keyword. The external sources this specification rests on and cites: standards, regulations, documents, interviews, existing systems and external requirement sets, keyed by kebab-case name. A citation anywhere in the specification ('cites') names one of these, so a source's title, edition and URL are written once. Only in specarch.yaml.",
       "type": "object",
       "propertyNames": {
-        "pattern": "^[A-Z][A-Z0-9]{1,15}$"
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
       },
       "additionalProperties": {
-        "$ref": "#/$defs/requirementSource"
+        "$ref": "#/$defs/source"
+      }
+    },
+    "stakeholders": {
+      "description": "SpecArch keyword. Who has an interest in the system (ISO/IEC/IEEE 29148:2018, 5.2.2), keyed by kebab-case role name, never a person's name.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/stakeholder"
+      }
+    },
+    "needs": {
+      "description": "SpecArch keyword. Raw stakeholder needs as gathered, before they are turned into requirements (ISO/IEC/IEEE 29148:2018, 5.2.3 and 6.3), keyed by ID such as NEED-1.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/need"
+      }
+    },
+    "requirements": {
+      "description": "SpecArch keyword. The requirements of the system (ISO/IEC/IEEE 29148:2018, 6.4), keyed by ID such as SA-1. Design elements name the requirements they satisfy under 'satisfies'; tests and commissioning checks name the ones they verify under 'verifies'.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/requirement"
+      }
+    },
+    "glossary": {
+      "description": "SpecArch keyword. Terms of the domain and their meaning (ISO/IEC/IEEE 29148:2018, 9.2.3), keyed by the term as written.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Za-z][A-Za-z0-9 ./'-]*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/term"
+      }
+    },
+    "assumptions": {
+      "description": "SpecArch keyword. What is taken to be true without proof, and would change the design if it turned out false (ISO/IEC/IEEE 29148:2018, 9.5.19), keyed by ID such as ASSUME-1.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/assumption"
+      }
+    },
+    "constraints": {
+      "description": "SpecArch keyword. Limits on the solution that are not negotiable: technical, organisational, legal (ISO/IEC/IEEE 29148:2018, 9.6.16; arc42 section 2), keyed by ID such as CON-1. Not to be confused with an entity's data constraints.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/projectConstraint"
       }
     },
     "enums": {
@@ -117,7 +193,7 @@ let designSchemaJSON = #"""
       }
     },
     "tests": {
-      "description": "SpecArch keyword. Design tests: what must hold whatever the stack, in plain given, when and then sentences. Each test is about one subject (an operation, a command, a page, or an entity's constraint or transition) and is marked golden (the path that succeeds) or red (a path that fails). The validator derives the cases each subject needs from the rest of the file and reports every one no test covers; see 'Tests' in docs/conventions.md.",
+      "description": "SpecArch keyword. Design tests: what must hold whatever the stack, in plain given, when and then sentences. Each test is about one subject (an operation, a command, a page, or an entity's constraint or transition), has a level (system or acceptance) and is marked golden (the path that succeeds) or red (a path that fails). In a folder tree each test is a folder tests/<name>/ holding test.yaml and the scenario's own input and expected-output files. The validator derives the cases each subject needs from the rest of the specification and reports every one no test covers; see 'Tests' in docs/conventions.md.",
       "type": "object",
       "propertyNames": {
         "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
@@ -135,6 +211,58 @@ let designSchemaJSON = #"""
       "additionalProperties": {
         "$ref": "#/$defs/decision"
       }
+    },
+    "environments": {
+      "description": "SpecArch keyword. Where the system is installed, keyed by kebab-case name such as development, staging, production: what each is for and which one a release goes to next. Hosts, URLs and ports belong to an implementation file's deployments.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/environment"
+      }
+    },
+    "configuration": {
+      "description": "SpecArch keyword. The settings the system reads at run time, keyed by camelCase name: what each is, its type, and whether it is a secret. A secret's value is never written in a specification; the implementation file says where it comes from.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/memberName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/setting"
+      }
+    },
+    "release": {
+      "$ref": "#/$defs/procedure",
+      "description": "SpecArch keyword. How a new version is put into an environment, as ordered steps with a check for each (ISO/IEC/IEEE 12207:2017, 6.4.10 Transition process)."
+    },
+    "rollback": {
+      "$ref": "#/$defs/procedure",
+      "description": "SpecArch keyword. How the previous version is restored when a release fails, as ordered steps with a check for each."
+    },
+    "migrations": {
+      "description": "SpecArch keyword. Changes to stored data that a release carries, keyed by kebab-case name, each with its steps and how it is reversed. A migration that cannot be reversed says so in its description.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/migration"
+      }
+    },
+    "checks": {
+      "description": "SpecArch keyword. The checks run on the real installed system before it is handed over (the site acceptance test of IEC 62381:2024; ISO/IEC/IEEE 12207:2017, 6.4.11 Validation process), keyed by kebab-case name. Each names its kind, the environment it runs in and its steps. The results of each run are records, kept outside the specification; see 'Commissioning records' in docs/conventions.md.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/check"
+      }
+    },
+    "signoff": {
+      "$ref": "#/$defs/signoff",
+      "description": "SpecArch keyword. What must be true for the installed system to be accepted, and which roles sign."
     }
   },
   "required": [
@@ -169,29 +297,90 @@ let designSchemaJSON = #"""
       "type": "string",
       "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
     },
-    "requirementLink": {
-      "description": "SpecArch keyword. An ID in an external requirement set: the prefix names a requirementSources entry, the rest is the ID inside that set. Every named object carries a 'requirements' list of these (entity, enum, relation, constraint, transition, permission, role, operation, command, channel, message, page, algorithm, decision); fields, parameters, responses, actions and worked examples trace through the object that holds them.",
+    "idKey": {
+      "description": "SpecArch keyword. The ID of a requirement, need, assumption or constraint: an upper-case prefix of 2 to 16 letters or digits, a dash, and an ID, such as SA-1 or NEED-12.",
       "type": "string",
       "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
     },
-    "requirementLinks": {
+    "requirementLink": {
+      "description": "SpecArch keyword. The ID of a requirement: one defined under 'requirements' in this specification, or one in an external requirement set declared under 'sources' with kind requirement-set, whose prefix is the set's prefix.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+    },
+    "satisfies": {
+      "description": "SpecArch keyword. The requirements this element satisfies, by ID (the satisfy relation of ISO/IEC/IEEE 29148:2018, 6.5.1, and SysML). Every named design and deployment element carries it; fields, parameters, responses, actions and worked examples trace through the object that holds them. A requirement no element satisfies is reported by the validator.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/requirementLink"
       },
       "uniqueItems": true
     },
+    "verifies": {
+      "description": "SpecArch keyword. The requirements this test or commissioning check verifies, by ID (the verify relation of ISO/IEC/IEEE 29148:2018, 6.5.2). A requirement no test verifies is reported by the validator.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/requirementLink"
+      },
+      "uniqueItems": true
+    },
+    "why": {
+      "description": "SpecArch keyword. The rationale in plain words: why this element is the way it is, what was concluded. Optional on every element; a document renders it as an Insight next to the element.",
+      "type": "string",
+      "minLength": 1
+    },
+    "citation": {
+      "description": "SpecArch keyword. One citation: which source, where in it, and what it says here. A document renders it as a Note under the element's Insight.",
+      "type": "object",
+      "properties": {
+        "source": {
+          "description": "The key of a source declared under 'sources' in specarch.yaml.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "clause": {
+          "description": "The clause, section, page or question cited, as the source numbers it, such as '5.2.5' or 'Annex A'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "says": {
+          "description": "What the source says that applies here, in plain words: what it requires, recommends or reports.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "source",
+        "says"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "citations": {
+      "description": "SpecArch keyword. The sources this element rests on, one citation each. Optional on every element.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/citation"
+      },
+      "minItems": 1
+    },
     "markdown": {
       "description": "Prose in Markdown.",
       "type": "string"
     },
     "schemaRef": {
-      "description": "A JSON pointer into this document, such as '#/entities/Member' or '#/enums/LoanStatus'.",
+      "description": "A JSON pointer into the specification, such as '#/entities/Member' or '#/enums/LoanStatus'. The pointer names the object wherever its file is in the tree.",
       "type": "string",
       "pattern": "^#/(entities|enums)/[A-Z][A-Za-z0-9]*$"
     },
     "info": {
-      "description": "OpenAPI keyword. What the system is.",
+      "description": "OpenAPI keyword. What the system is. Only in specarch.yaml.",
       "type": "object",
       "properties": {
         "title": {
@@ -228,19 +417,342 @@ let designSchemaJSON = #"""
       },
       "additionalProperties": false
     },
-    "requirementSource": {
+    "source": {
+      "description": "SpecArch keyword. One external source: where a requirement, a decision or any other element comes from, or what it cites.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "description": "What the source is: a published standard; a law or regulation; a document (a book, a manual, a report, an internal document); an interview with a stakeholder; an existing system that was observed; or an external requirement set that requirement links point into.",
+          "type": "string",
+          "enum": [
+            "standard",
+            "regulation",
+            "document",
+            "interview",
+            "system",
+            "requirement-set"
+          ]
+        },
+        "title": {
+          "description": "The title as the source itself gives it, such as 'ISO/IEC/IEEE 29148:2018 Systems and software engineering, Life cycle processes, Requirements engineering'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "edition": {
+          "description": "The edition, version or year, as the source gives it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "author": {
+          "description": "Who wrote or published it: a body, an organisation or a role, not a private person's name.",
+          "type": "string",
+          "minLength": 1
+        },
+        "date": {
+          "description": "When an interview was held or a document was issued, as a quoted date.",
+          "type": "string",
+          "format": "date"
+        },
+        "url": {
+          "description": "Where the source can be read. For a requirement-set, a URL template with {id} for one requirement.",
+          "type": "string",
+          "minLength": 1
+        },
+        "prefix": {
+          "description": "For kind requirement-set: the prefix of the IDs in that set, such as JIRA, so that a link JIRA-12 resolves to it.",
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9]{1,15}$"
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        }
+      },
+      "required": [
+        "kind",
+        "title"
+      ],
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "requirement-set"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "prefix"
+        ]
+      },
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "stakeholder": {
+      "description": "SpecArch keyword. One role with an interest in the system (ISO/IEC/IEEE 29148:2018, 5.2.2).",
       "type": "object",
       "properties": {
         "description": {
-          "$ref": "#/$defs/markdown"
+          "description": "Who they are and what they do with the system.",
+          "type": "string",
+          "minLength": 1
         },
-        "url": {
-          "description": "Where the requirement set lives; may be a URL template with {id}.",
-          "type": "string"
+        "concerns": {
+          "description": "What they need from the system or fear about it, one plain sentence each.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
         "description"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "need": {
+      "description": "SpecArch keyword. One raw stakeholder need (ISO/IEC/IEEE 29148:2018, 6.3). A need is refined into one or more requirements, which name it under 'needs'.",
+      "type": "object",
+      "properties": {
+        "statement": {
+          "description": "The need as the stakeholder would say it, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "stakeholders": {
+          "description": "The stakeholders who have this need, by key.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "status": {
+          "description": "Where the need stands: proposed until the stakeholders confirm it, accepted when they do, rejected when it will not be met.",
+          "type": "string",
+          "enum": [
+            "proposed",
+            "accepted",
+            "rejected"
+          ]
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "statement",
+        "stakeholders"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "requirement": {
+      "description": "SpecArch keyword. One requirement with its attributes (ISO/IEC/IEEE 29148:2018, 5.2.8): what it asks, what kind it is, how important, where it stands, how it is accepted and verified, and which needs it comes from.",
+      "type": "object",
+      "properties": {
+        "statement": {
+          "description": "The requirement as one verifiable sentence: who or what shall do what, under which condition (ISO/IEC/IEEE 29148:2018, 5.2.4 and 5.2.5).",
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "description": "functional: what the system does; quality: how well (performance, usability, security, reliability); interface: how it connects to people and other systems; constraint: a limit on how it is built.",
+          "type": "string",
+          "enum": [
+            "functional",
+            "quality",
+            "interface",
+            "constraint"
+          ]
+        },
+        "priority": {
+          "description": "must: the system is not acceptable without it; should: expected, but a release without it can be accepted; could: wanted when it costs little (MoSCoW, as used in DSDM).",
+          "type": "string",
+          "enum": [
+            "must",
+            "should",
+            "could"
+          ]
+        },
+        "status": {
+          "description": "proposed until the stakeholders agree to it, accepted when they do, rejected when it will not be met, retired when it no longer applies.",
+          "type": "string",
+          "enum": [
+            "proposed",
+            "accepted",
+            "rejected",
+            "retired"
+          ]
+        },
+        "acceptance": {
+          "description": "The conditions under which the requirement counts as met, one verifiable sentence each; they are what the tests and commissioning checks show.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "verification": {
+          "description": "How the requirement is shown to be met: inspection (looking at the item), analysis (calculation or model), demonstration (operating it), test (measuring it against defined criteria); the four methods of MIL-STD-961E and the INCOSE handbook.",
+          "type": "string",
+          "enum": [
+            "inspection",
+            "analysis",
+            "demonstration",
+            "test"
+          ]
+        },
+        "needs": {
+          "description": "The needs this requirement refines, by ID.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/idKey"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "statement",
+        "kind",
+        "priority",
+        "status"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "term": {
+      "description": "SpecArch keyword. One glossary term.",
+      "type": "object",
+      "properties": {
+        "definition": {
+          "description": "What the term means in this system, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "definition"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "assumption": {
+      "description": "SpecArch keyword. One assumption.",
+      "type": "object",
+      "properties": {
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "statement"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "projectConstraint": {
+      "description": "SpecArch keyword. One constraint on the solution.",
+      "type": "object",
+      "properties": {
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "description": "technical: a platform, language or interface that is given; organisational: a team, process, budget or deadline; legal: a law, regulation or licence.",
+          "type": "string",
+          "enum": [
+            "technical",
+            "organisational",
+            "legal"
+          ]
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "statement",
+        "kind"
       ],
       "propertyNames": {
         "not": {
@@ -279,8 +791,14 @@ let designSchemaJSON = #"""
             "type": "string"
           }
         },
-        "requirements": {
-          "$ref": "#/$defs/requirementLinks"
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -709,8 +1227,14 @@ let designSchemaJSON = #"""
           },
           "minItems": 1
         },
-        "requirements": {
-          "$ref": "#/$defs/requirementLinks"
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -770,8 +1294,14 @@ let designSchemaJSON = #"""
           ],
           "default": "restrict"
         },
-        "requirements": {
-          "$ref": "#/$defs/requirementLinks"
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -820,8 +1350,14 @@ let designSchemaJSON = #"""
           "description": "What a user is told when the constraint fails.",
           "type": "string"
         },
-        "requirements": {
-          "$ref": "#/$defs/requirementLinks"
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -884,8 +1420,14 @@ let designSchemaJSON = #"""
         "description": {
           "$ref": "#/$defs/markdown"
         },
-        "requirements": {
-          "$ref": "#/$defs/requirementLinks"
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -908,8 +1450,14 @@ let designSchemaJSON = #"""
         "description": {
           "$ref": "#/$defs/markdown"
         },
-        "requirements": {
-          "$ref": "#/$defs/requirementLinks"
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -940,8 +1488,14 @@ let designSchemaJSON = #"""
           "minItems": 1,
           "uniqueItems": true
         },
-        "requirements": {
-          "$ref": "#/$defs/requirementLinks"
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -1132,11 +1686,17 @@ let designSchemaJSON = #"""
           "description": "SpecArch keyword. The algorithm this operation runs, if any.",
           "$ref": "#/$defs/memberName"
         },
-        "requirements": {
-          "$ref": "#/$defs/requirementLinks"
-        },
         "deprecated": {
           "type": "boolean"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -1250,8 +1810,14 @@ let designSchemaJSON = #"""
           },
           "minProperties": 1
         },
-        "requirements": {
-          "$ref": "#/$defs/requirementLinks"
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -1281,8 +1847,14 @@ let designSchemaJSON = #"""
         "payload": {
           "$ref": "#/$defs/field"
         },
-        "requirements": {
-          "$ref": "#/$defs/requirementLinks"
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -1370,8 +1942,14 @@ let designSchemaJSON = #"""
             "$ref": "#/$defs/action"
           }
         },
-        "requirements": {
-          "$ref": "#/$defs/requirementLinks"
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -1517,8 +2095,14 @@ let designSchemaJSON = #"""
           "type": "string",
           "minLength": 1
         },
-        "requirements": {
-          "$ref": "#/$defs/requirementLinks"
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -1574,7 +2158,7 @@ let designSchemaJSON = #"""
       "additionalProperties": false
     },
     "decision": {
-      "description": "SpecArch keyword. A short architecture decision record.",
+      "description": "SpecArch keyword. A short architecture decision record: the context (what was true and at stake), the decision, its consequences, and under 'why' the reasoning that led from the one to the other.",
       "type": "object",
       "properties": {
         "title": {
@@ -1607,8 +2191,14 @@ let designSchemaJSON = #"""
           "type": "string",
           "pattern": "^ADR-[0-9]{3,}$"
         },
-        "requirements": {
-          "$ref": "#/$defs/requirementLinks"
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -1718,11 +2308,17 @@ let designSchemaJSON = #"""
           "description": "SpecArch keyword. The algorithm this command runs, if any.",
           "$ref": "#/$defs/memberName"
         },
-        "requirements": {
-          "$ref": "#/$defs/requirementLinks"
-        },
         "deprecated": {
           "type": "boolean"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -1834,7 +2430,7 @@ let designSchemaJSON = #"""
       "pattern": "^x-(oapi-codegen|ogen|openapi-generator|codegen|protoc|grpc|go|java|kotlin|python|typescript|javascript|rust|swift|dotnet|csharp|php|ruby|framework|router|middleware|cli-library|server|servers|host|port|deploy|deployment|environment)(-|$)"
     },
     "test": {
-      "description": "SpecArch keyword. One test scenario. Exactly one subject: operation, command, page, or entity with constraint or transition.",
+      "description": "SpecArch keyword. One test scenario. Exactly one subject: operation, command, page, or entity with constraint or transition. In a folder tree it is the content of tests/<name>/test.yaml.",
       "type": "object",
       "properties": {
         "operation": {
@@ -1886,6 +2482,14 @@ let designSchemaJSON = #"""
             "red"
           ]
         },
+        "level": {
+          "description": "system: the test exercises the system through its interfaces as a client would; acceptance: it shows a stakeholder that a requirement is met, so it names one under 'verifies'. Unit and integration tests belong to an implementation file's suites. The levels are those of ISO/IEC/IEEE 29119-1.",
+          "type": "string",
+          "enum": [
+            "system",
+            "acceptance"
+          ]
+        },
         "given": {
           "description": "The state before, in plain words.",
           "type": "string",
@@ -1916,12 +2520,19 @@ let designSchemaJSON = #"""
           "type": "string",
           "minLength": 1
         },
-        "requirements": {
-          "$ref": "#/$defs/requirementLinks"
+        "verifies": {
+          "$ref": "#/$defs/verifies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
-        "scenario"
+        "scenario",
+        "level"
       ],
       "oneOf": [
         {
@@ -2025,6 +2636,319 @@ let designSchemaJSON = #"""
         "^x-": {}
       },
       "additionalProperties": false
+    },
+    "step": {
+      "description": "SpecArch keyword. One step of a procedure or a check.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "A short name for the step, such as 'Tag the release'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "description": "What is done, in plain words. The exact command belongs to the implementation file.",
+          "type": "string",
+          "minLength": 1
+        },
+        "check": {
+          "description": "How the person running it knows the step worked.",
+          "type": "string",
+          "minLength": 1
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "name",
+        "action"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/step"
+      },
+      "minItems": 1
+    },
+    "procedure": {
+      "description": "SpecArch keyword. An ordered procedure: a release or a rollback.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "steps": {
+          "$ref": "#/$defs/steps"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "steps"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "environment": {
+      "description": "SpecArch keyword. One environment the system is installed in.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "description": "What the environment is for and who uses it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "promotesTo": {
+          "description": "The environment a release goes to after it has passed here, by key. The last environment leaves it out.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "setting": {
+      "description": "SpecArch keyword. One run-time setting.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "description": "What the setting controls and where its value comes from.",
+          "type": "string",
+          "minLength": 1
+        },
+        "secret": {
+          "description": "True when the value must never be written in a specification or a document: a password, a key, a token. The validator refuses a default or a deployment value for a secret.",
+          "type": "boolean"
+        },
+        "schema": {
+          "$ref": "#/$defs/field"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "description",
+        "secret",
+        "schema"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "migration": {
+      "description": "SpecArch keyword. One data migration a release carries.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "steps": {
+          "$ref": "#/$defs/steps"
+        },
+        "rollback": {
+          "description": "How the data change is reversed. Left out only when the description says why it cannot be.",
+          "$ref": "#/$defs/steps"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "description",
+        "steps"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "check": {
+      "description": "SpecArch keyword. One commissioning check on the installed system.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "description": "smoke: the installed system starts and answers; end-to-end: a whole use goes through on the real infrastructure; performance: it meets its load and time targets; security: access and exposure are as designed; data: the data it holds or migrated is right.",
+          "type": "string",
+          "enum": [
+            "smoke",
+            "end-to-end",
+            "performance",
+            "security",
+            "data"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "environment": {
+          "description": "The environment the check runs in, by key.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "steps": {
+          "$ref": "#/$defs/steps"
+        },
+        "verifies": {
+          "$ref": "#/$defs/verifies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "kind",
+        "description",
+        "environment",
+        "steps"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "signoff": {
+      "description": "SpecArch keyword. The acceptance of the installed system.",
+      "type": "object",
+      "properties": {
+        "criteria": {
+          "description": "What must be true for the system to be accepted, one plain sentence each.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "signers": {
+          "description": "The roles that sign the acceptance, never people's names.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": {
+                "$ref": "#/$defs/markdown"
+              }
+            },
+            "required": [
+              "role"
+            ],
+            "propertyNames": {
+              "not": {
+                "$ref": "#/$defs/stackSpecificKey"
+              }
+            },
+            "patternProperties": {
+              "^x-": {}
+            },
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "criteria",
+        "signers"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
     }
   }
 }
@@ -2035,7 +2959,7 @@ let implementationSchemaJSON = #"""
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-0.1.schema.json",
   "title": "SpecArch Implementation File, meta-model 0.1",
-  "description": "A SpecArch Implementation File (*.specarch-implementation.yaml) says how one stack implements one SpecArch Definition File: the language and toolchain, the libraries and their licences, the package layout, how each design object maps onto the stack, the generator settings, the build and test tasks, the deployments, and the implementation decisions. It points at the design file it implements and cannot add or change design: entities, operations, commands, events, permissions, pages and algorithms exist only in the design file, and this schema has no keyword for them. One design file can have several implementation files, one per stack. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "description": "A SpecArch Implementation File (<name>.<stack>.specarch-implementation.yaml) says how one stack implements one SpecArch specification: the language and toolchain, the libraries and their licences, the package layout, how each design object maps onto the stack, the document and code targets with their settings, the build and test tasks, the deployments, and the implementation decisions. It points at the specification's root file (specarch.yaml) and cannot add or change design: entities, operations, commands, events, permissions, pages and algorithms exist only in the specification, and this schema has no keyword for them. One specification can have several implementation files, one per stack, each in implementation/<stack>/ of the tree. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
     "specarchImplementation": {
@@ -2070,16 +2994,16 @@ let implementationSchemaJSON = #"""
       "additionalProperties": false
     },
     "implements": {
-      "description": "The design file this file implements.",
+      "description": "The specification this file implements.",
       "type": "object",
       "properties": {
         "file": {
-          "description": "Path of the design file, relative to this file. Must end in .specarch-design.yaml.",
+          "description": "Path of the specification's root file, specarch.yaml, relative to this file.",
           "type": "string",
-          "pattern": "\\.specarch-design\\.yaml$"
+          "pattern": "(^|/)specarch\\.yaml$"
         },
         "version": {
-          "description": "The design file's info.version this implementation was written against. The validator fails when they differ, so a design change is noticed by every implementation of it.",
+          "description": "The specification's info.version this implementation was written against. The validator fails when they differ, so a design change is noticed by every implementation of it.",
           "type": "string",
           "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
         }
@@ -2093,8 +3017,8 @@ let implementationSchemaJSON = #"""
       },
       "additionalProperties": false
     },
-    "target": {
-      "description": "The language and toolchain.",
+    "stack": {
+      "description": "The stack: the language and toolchain with their versions, and the platforms the build targets.",
       "type": "object",
       "properties": {
         "language": {
@@ -2180,14 +3104,14 @@ let implementationSchemaJSON = #"""
         "$ref": "#/$defs/binding"
       }
     },
-    "generators": {
-      "description": "Generator targets this implementation uses, keyed by target name, with their settings. Defaults: the sql target writes PostgreSQL; the ui target writes plain JavaScript for the web and SwiftUI for the iPhone.",
+    "targets": {
+      "description": "The document and code targets this implementation produces, keyed by target name as given to specarch document or specarch generate, each with the folder it owns and its settings. Defaults: the sql target writes PostgreSQL; the ui target writes plain JavaScript for the web and SwiftUI for the iPhone.",
       "type": "object",
       "propertyNames": {
         "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
       },
       "additionalProperties": {
-        "$ref": "#/$defs/generator"
+        "$ref": "#/$defs/target"
       }
     },
     "tasks": {
@@ -2204,7 +3128,7 @@ let implementationSchemaJSON = #"""
       "$ref": "#/$defs/testing"
     },
     "deployments": {
-      "description": "Real deployments, keyed by environment name: servers, hosts and ports.",
+      "description": "Real deployments, keyed by environment name: the environment of the specification each one installs, its servers, hosts and ports, and the values of the non-secret settings.",
       "type": "object",
       "propertyNames": {
         "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
@@ -2228,7 +3152,7 @@ let implementationSchemaJSON = #"""
     "specarchImplementation",
     "info",
     "implements",
-    "target"
+    "stack"
   ],
   "patternProperties": {
     "^x-": {}
@@ -2240,17 +3164,57 @@ let implementationSchemaJSON = #"""
       "type": "string"
     },
     "designRef": {
-      "description": "A JSON pointer into the design file, naming one of its objects: '#/entities/Loan', '#/commands/validate', '#/paths/~1loans/post'. The validator checks it resolves.",
+      "description": "A JSON pointer into the specification, naming one of its objects: '#/entities/Loan', '#/commands/validate', '#/paths/~1loans/post'. The validator checks it resolves.",
       "type": "string",
       "pattern": "^#/(entities|enums|permissions|roles|paths|commands|channels|pages|algorithms|decisions)/[^/]+(/.+)?$"
     },
-    "requirementLinks": {
+    "satisfies": {
+      "description": "SpecArch keyword. The requirements this element satisfies, by ID, as in the specification.",
       "type": "array",
       "items": {
         "type": "string",
         "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
       },
       "uniqueItems": true
+    },
+    "why": {
+      "description": "SpecArch keyword. The rationale in plain words, as in the specification.",
+      "type": "string",
+      "minLength": 1
+    },
+    "citation": {
+      "description": "SpecArch keyword. One citation, as in the specification.",
+      "type": "object",
+      "properties": {
+        "source": {
+          "description": "The key of a source declared under 'sources' in the specification's specarch.yaml.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "clause": {
+          "type": "string",
+          "minLength": 1
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "source",
+        "says"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "citations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/citation"
+      },
+      "minItems": 1
     },
     "tool": {
       "type": "object",
@@ -2303,6 +3267,12 @@ let implementationSchemaJSON = #"""
             "tool"
           ],
           "default": "runtime"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -2352,6 +3322,12 @@ let implementationSchemaJSON = #"""
         },
         "settings": {
           "type": "object"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -2362,11 +3338,11 @@ let implementationSchemaJSON = #"""
       },
       "additionalProperties": false
     },
-    "generator": {
+    "target": {
       "type": "object",
       "properties": {
         "output": {
-          "description": "The folder this generator owns, relative to this implementation file.",
+          "description": "The folder this target owns, relative to this implementation file. A document target writes <target>.md there.",
           "type": "string",
           "minLength": 1
         },
@@ -2400,6 +3376,12 @@ let implementationSchemaJSON = #"""
         },
         "settings": {
           "type": "object"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -2479,6 +3461,11 @@ let implementationSchemaJSON = #"""
         "description": {
           "$ref": "#/$defs/markdown"
         },
+        "environment": {
+          "description": "The environment of the specification this deployment installs, by key. Required when the specification declares environments.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
         "servers": {
           "type": "array",
           "items": {
@@ -2501,6 +3488,27 @@ let implementationSchemaJSON = #"""
             "additionalProperties": false
           },
           "minItems": 1
+        },
+        "configuration": {
+          "description": "The value of each non-secret setting of the specification's configuration in this deployment, keyed by setting name. A secret's value is never written here; say in the setting's description where it comes from.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][A-Za-z0-9]*$"
+          },
+          "additionalProperties": {
+            "type": [
+              "string",
+              "integer",
+              "number",
+              "boolean"
+            ]
+          }
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -2544,8 +3552,14 @@ let implementationSchemaJSON = #"""
           "type": "string",
           "pattern": "^ADR-[0-9]{3,}$"
         },
-        "requirements": {
-          "$ref": "#/$defs/requirementLinks"
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -2638,6 +3652,16 @@ let implementationSchemaJSON = #"""
           "type": "string",
           "minLength": 1
         },
+        "level": {
+          "description": "unit: one piece of this implementation's code alone; integration: several pieces, or the code with a real database or service; system: the design's system tests run through this implementation; acceptance: the design's acceptance tests. The levels are those of ISO/IEC/IEEE 29119-1. A suite that runs design tests is system or acceptance; an implementation-only suite is unit or integration.",
+          "type": "string",
+          "enum": [
+            "unit",
+            "integration",
+            "system",
+            "acceptance"
+          ]
+        },
         "designTests": {
           "description": "Names of design tests this suite runs.",
           "type": "array",
@@ -2678,11 +3702,18 @@ let implementationSchemaJSON = #"""
         "ci": {
           "description": "The suite runs in CI on every change.",
           "type": "boolean"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
         "description",
-        "run"
+        "run",
+        "level"
       ],
       "oneOf": [
         {
@@ -2704,7 +3735,36 @@ let implementationSchemaJSON = #"""
       "patternProperties": {
         "^x-": {}
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "implementationOnly"
+            ]
+          },
+          "then": {
+            "properties": {
+              "level": {
+                "enum": [
+                  "unit",
+                  "integration"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "level": {
+                "enum": [
+                  "system",
+                  "acceptance"
+                ]
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

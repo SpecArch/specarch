@@ -321,7 +321,7 @@ extension Checker {
             if key.isEmpty { continue } // the schema reports a test without a subject
             guard let s = byKey[key] else {
                 add(p.key, pointer(base), .testSubject,
-                    "test \(name) is about \(key.replacingOccurrences(of: ": ", with: " ")), which is not in this file; name an operationId, command, page, or an entity's constraint or transition that exists")
+                    "test \(name) is about \(key.replacingOccurrences(of: ": ", with: " ")), which is not in the specification; name an operationId, command, page, or an entity's constraint or transition that exists")
                 continue
             }
             let id = ObjectIdentifier(s)

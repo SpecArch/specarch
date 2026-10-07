@@ -1,7 +1,7 @@
 import Foundation
 
 /// Every check the validator makes: the Rule enum of
-/// spec/specarch.specarch-design.yaml.
+/// the specification in spec/.
 public enum Rule: String, CaseIterable, Sendable {
     case fileKind = "file_kind"
     case yamlSyntax = "yaml_syntax"
@@ -45,6 +45,17 @@ public enum Rule: String, CaseIterable, Sendable {
     case testRedMissing = "test_red_missing"
     case testCaseMissing = "test_case_missing"
     case suite = "suite"
+    case layout = "layout"
+    case need = "need"
+    case stakeholder = "stakeholder"
+    case source = "source"
+    case environment = "environment"
+    case setting = "setting"
+    case secretValue = "secret_value"
+    case needUnrefined = "need_unrefined"
+    case acceptanceMissing = "acceptance_missing"
+    case requirementUnsatisfied = "requirement_unsatisfied"
+    case requirementUnverified = "requirement_unverified"
 }
 
 /// Whether a diagnostic makes the file invalid.

@@ -665,7 +665,7 @@ Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin
 | Design object | Implemented by | Notes |
 |---|---|---|
 | #/entities/Diagnostic | SpecArchKit.Diagnostic | A struct; its description is the one-line form. |
-| #/entities/SpecFile | a path string in SpecArchKit.collect |   |
+| #/entities/SpecFile | SpecArchKit.Input | A root folder, an implementation file or a file given by name; SpecArchKit.Spec reads a root folder into one merged document. |
 | #/enums/Rule | SpecArchKit.Rule | A String enum with one case per value; a test checks they equal the design's enum. |
 | #/enums/Severity | SpecArchKit.Severity |   |
 | #/commands/validate | SpecArchKit.runValidate |   |
@@ -729,9 +729,13 @@ Decision: Parse with Yams and resolve plain scalars by YAML 1.2's core schema
 (null, bool, int, float, timestamp), as yaml.v3 does. When Yams refuses
 a repeated key, rename every later repeat in the text, keeping all
 lines in place, and parse again, so each repeat is reported on its own
-line with its path. Report a YAML error's line by the rule yaml.v3
-uses: a scanner error on the line its context starts, a parser error
-on the line before, corrected for the unclosed-block messages.
+line with its path. The repeat keeps its own name in the node tree and
+is left out of the plain value, as yaml.v3 does, so merging the files
+of a specification sees what the Go build sees. Report a YAML error's
+line by the rule yaml.v3 uses: the line its context starts, or the
+problem's line when the context is on the first line; a scanner error
+on that line, a parser error on the line before, corrected for the
+unclosed-block messages.
 
 Consequences: Diagnostics agree line for line with the Go build. For a few broken
 files libyaml's newer version inside Yams explains the error

@@ -1,13 +1,24 @@
 import Foundation
 
-/// Keys that only a design file has. In an implementation file each is
+/// Keys that only a specification has. In an implementation file each is
 /// reported as design_key instead of an unknown key.
 let designKeys: Set<String> = [
-    "specarch", "requirementSources", "enums", "entities", "permissions",
-    "roles", "paths", "commands", "channels", "pages", "algorithms",
+    "specarch", "stages", "sources",
+    "stakeholders", "needs", "requirements", "glossary", "assumptions",
+    "enums", "entities", "permissions", "roles", "paths", "commands",
+    "channels", "pages", "algorithms", "tests",
+    "environments", "release", "rollback", "migrations", "checks", "signoff",
     "relations", "constraints", "transitions", "operationId", "responses",
     "requestBody", "parameters", "permission", "formula", "examples",
     "properties", "primaryKey", "stateField", "messages", "payload",
+]
+
+/// The implementation file's maps whose keys the author chooses (a folder,
+/// a target, a library), so a key there is never a design keyword by
+/// mistake.
+let namedMaps: Set<String> = [
+    "layout", "mappings", "targets", "tasks", "libraries",
+    "deployments", "decisions", "suites", "configuration", "bindings",
 ]
 
 /// Cleans a slash path the way Go's filepath.Clean does: no ".", no
@@ -57,83 +68,123 @@ public func plainIOError(_ error: Error) -> String {
 extension Checker {
     func checkBoundaryImplementation() {
         walk(root, []) { n, path in
-            if path.contains("settings") { return } // free-form generator and framework settings
+            if path.contains("settings") { return } // free-form target and framework settings
+            if let last = path.last, namedMaps.contains(last) { return }
             for p in n.pairs where designKeys.contains(p.key.value) {
                 add(p.key, pointer(path + [p.key.value]), .designKey,
-                    "\(p.key.value) belongs to the design, not to one implementation; move it to the design file (*\(designSuffix))")
+                    "\(p.key.value) belongs to the specification, not to one implementation; move it to the specification's files")
             }
         }
     }
 
-    func checkImplementation(_ read: ReadFile) {
+    /// Checks the file against the specification it implements: s when the
+    /// file is part of it, otherwise the one its implements.file names, read
+    /// through load.
+    func checkImplementation(_ given: Spec?, _ load: Loader?) {
         let impl = root.child("implements")
         let fileNode = child(impl, "file")
         let rel = str(fileNode)
-        if rel.isEmpty || !rel.hasSuffix(designSuffix) { return } // the schema reports it
-        let designPath = joinPath(dirPath(file), rel)
-        let data: Data
-        do {
-            data = try read(designPath)
-        } catch {
-            add(fileNode, "/implements/file", .implements, "the design file \(rel) cannot be read (\(plainIOError(error))); correct the path, which is relative to this file")
-            return
+        if rel.isEmpty || kindOf(rel) != .design { return } // the schema reports it
+        let s: Spec
+        if let given {
+            if cleanPath(joinPath(dirPath(file), rel)) != cleanPath(given.rootPath) {
+                add(fileNode, "/implements/file", .implements, "this file is under \(given.dir) but implements names \(rel); point it at the root file of the specification it is part of")
+                return
+            }
+            s = given
+        } else {
+            let dir = dirPath(joinPath(dirPath(file), rel))
+            guard let load else { return }
+            s = load(dir)
+            if s.root == nil {
+                add(fileNode, "/implements/file", .implements, "the specification's root file \(rel) cannot be read as YAML; run specarch validate on \(dir) first")
+                return
+            }
         }
-        let doc = parseYAML(String(decoding: data, as: UTF8.self))
-        guard let designRoot = doc.root, designRoot.child("specarch") != nil else {
-            add(fileNode, "/implements/file", .implements, "\(rel) is not a valid design file; run specarch validate on it first")
+        guard let specRoot = s.root, specRoot.child("specarch") != nil else {
+            add(fileNode, "/implements/file", .implements, "\(rel) is not a specification's root file; run specarch validate on it first")
             return
         }
         let verNode = child(impl, "version")
-        let want = str(child(designRoot.child("info"), "version"))
+        let want = str(child(specRoot.child("info"), "version"))
         let got = str(verNode)
         if !got.isEmpty && got != want {
             add(verNode, "/implements/version", .implements,
-                "this file implements version \(got) of \(rel), but that file is now version \(want); review the design change, then update this version")
+                "this file implements version \(got) of \(rel), but that specification is now version \(want); review the design change, then update this version")
         }
-        let d = Design(designRoot)
+        let d = Design(specRoot)
+        d.spec = s
         for p in pairs(root.child("layout")) {
             for (i, ref) in items(p.value.child("implements")).enumerated() {
-                checkDesignRef(designRoot, ref, ref.value, pointer("layout", p.key.value, "implements", "\(i)"), rel)
+                checkDesignRef(specRoot, ref, ref.value, pointer("layout", p.key.value, "implements", "\(i)"))
             }
         }
         for p in pairs(root.child("mappings")) {
-            checkDesignRef(designRoot, p.key, p.key.value, pointer("mappings", p.key.value), rel)
+            checkDesignRef(specRoot, p.key, p.key.value, pointer("mappings", p.key.value))
         }
         for p in pairs(root.child("decisions")) where d.decisions[p.key.value] != nil {
             add(p.key, pointer("decisions", p.key.value), .decision,
-                "\(p.key.value) is already a decision of the design file \(rel); give this implementation decision its own number")
+                "\(p.key.value) is already a decision of the specification; give this implementation decision its own number")
         }
-        checkRequirementLinks(root.child("decisions"), ["decisions"], d.sources)
-        checkSuites(d, rel)
+        checkRequirementLinks(root, [], d)
+        checkCitations(root, [], d)
+        checkDeployments(d)
+        checkSuites(d)
+    }
+
+    /// Checks each deployment names an environment of the specification
+    /// when it declares any, and gives values only to settings the
+    /// specification declares and that are not secret.
+    func checkDeployments(_ d: Design) {
+        for p in pairs(root.child("deployments")) {
+            let base = ["deployments", p.key.value]
+            let envNode = p.value.child("environment")
+            let env = str(envNode)
+            if !env.isEmpty && d.environments[env] == nil {
+                add(envNode, pointer(base + ["environment"]), .environment, "\(env) is not an environment of the specification\(suggest(env, d.environments))")
+            } else if env.isEmpty && !d.environments.isEmpty {
+                add(p.key, pointer(base), .environment, "the specification declares environments, so this deployment must say which one it installs; add environment with one of \(d.environments.keys.sorted(by: byteLess).joined(separator: ", "))")
+            }
+            for cfg in pairs(p.value.child("configuration")) {
+                let ptr = pointer(base + ["configuration", cfg.key.value])
+                guard let setting = d.settings[cfg.key.value] else {
+                    add(cfg.key, ptr, .setting, "\(cfg.key.value) is not a setting of the specification's configuration\(suggest(cfg.key.value, d.settings))")
+                    continue
+                }
+                if str(setting.child("secret")) == "true" {
+                    add(cfg.value, ptr, .secretValue, "\(cfg.key.value) is a secret, and a secret's value is never written in a specification; remove it and say in the setting's description where the value comes from")
+                }
+            }
+        }
     }
 
     /// Checks every suite runs design tests that exist, or says it is
     /// implementation-only.
-    func checkSuites(_ d: Design, _ rel: String) {
+    func checkSuites(_ d: Design) {
         var tests: [String: YNode] = [:]
         for p in pairs(d.root.child("tests")) { tests[p.key.value] = p.value }
         for s in pairs(child(root.child("testing"), "suites")) {
             let base = ["testing", "suites", s.key.value]
             for (i, n) in items(s.value.child("designTests")).enumerated() where tests[n.value] == nil {
-                add(n, pointer(base + ["designTests", "\(i)"]), .suite, "\(n.value) is not a test of the design file \(rel)\(suggest(n.value, tests))")
+                add(n, pointer(base + ["designTests", "\(i)"]), .suite, "\(n.value) is not a test of the specification\(suggest(n.value, tests))")
             }
             for (i, subject) in items(s.value.child("designTestsOf")).enumerated() {
                 for p in pairs(subject) {
                     let key = p.key.value + ": " + p.value.value
                     if !tests.values.contains(where: { testSubjectKey($0) == key }) {
                         add(p.value, pointer(base + ["designTestsOf", "\(i)", p.key.value]), .suite,
-                            "the design file \(rel) has no test about \(p.key.value) \(p.value.value); name a subject that has tests")
+                            "the specification has no test about \(p.key.value) \(p.value.value); name a subject that has tests")
                     }
                 }
             }
         }
     }
 
-    func checkDesignRef(_ designRoot: YNode, _ at: YNode, _ ref: String, _ ptr: String, _ rel: String) {
+    func checkDesignRef(_ designRoot: YNode, _ at: YNode, _ ref: String, _ ptr: String) {
         guard ref.hasPrefix("#/") else { return } // the schema reports it
         let tokens = ref.dropFirst(2).split(separator: "/", omittingEmptySubsequences: false).map { unescapeToken(String($0)) }
         if !resolve(designRoot, tokens).1 {
-            add(at, ptr, .designRef, "\(ref) does not point at anything in \(rel); correct the pointer (a / inside a name is written ~1)")
+            add(at, ptr, .designRef, "\(ref) does not point at anything in the specification; correct the pointer (a / inside a name is written ~1)")
         }
     }
 
@@ -177,7 +228,10 @@ extension Checker {
 /// the design itself.
 let changeLogPhrase = try! NSRegularExpression(pattern: "\\b(previously|formerly|changed from|was changed|updated on|new in (version|v?[0-9]))\\b", options: [.caseInsensitive])
 
-let proseKeys: Set<String> = ["description", "summary", "title", "context", "decision", "consequences", "note", "message"]
+let proseKeys: Set<String> = [
+    "description", "summary", "title", "context", "decision", "consequences", "note", "message",
+    "statement", "definition", "why", "says", "action", "check",
+]
 
 /// 2^53 - 1, the largest integer a JavaScript number holds exactly.
 let maxSafe = Decimal(9007199254740991)

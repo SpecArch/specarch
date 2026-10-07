@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-0.1.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.1.schema.json
 specarch: "0.1"
 
 info:
@@ -8,20 +8,20 @@ info:
     The `specarch` command: it validates SpecArch files and generates
     documents and code from them. This file is the design, with no language,
     library or build tool in it. How one stack implements it is in
-    `specarch.go.specarch-impl.yaml` beside it.
+    `specarch.go.specarch-implementation.yaml` beside it.
   owners: [specarch-maintainers]
 
 requirementSources:
   SA:
-    description: Requirement list of the SpecArch toolchain, kept in `specarch.specarch.md` under "Requirements".
+    description: Requirement list of the SpecArch toolchain, kept in `specarch.specarch-design.md` under "Requirements".
 
 enums:
   DocumentKind:
     type: string
-    enum: [definition, implementation]
+    enum: [design, implementation]
     valueDescriptions:
-      definition: a SpecArch Definition File (SDF), `*.specarch.yaml`, the design
-      implementation: a SpecArch Implementation File (SIF), `*.specarch-impl.yaml`, one stack's implementation of a definition file
+      design: a SpecArch Definition File (SDF), `*.specarch-design.yaml`, the design
+      implementation: a SpecArch Implementation File (SIF), `*.specarch-implementation.yaml`, one stack's implementation of a design file
     requirements: [SA-1, SA-9]
   Rule:
     type: string
@@ -64,12 +64,12 @@ enums:
       - implements
       - design_ref
     valueDescriptions:
-      file_kind: the file name ends in neither `.specarch.yaml` nor `.specarch-impl.yaml`, or its root key does not match its name
+      file_kind: the file name ends in neither `.specarch-design.yaml` nor `.specarch-implementation.yaml`, or its root key does not match its name
       yaml_syntax: the file is not well-formed YAML
       unquoted_date: a date written without quotes, which YAML reads as a timestamp
       duplicate_key: a mapping repeats a key
       schema: the file breaks the meta-model's JSON Schema
-      stack_key: a definition file carries a key that belongs to one implementation
+      stack_key: a design file carries a key that belongs to one implementation
       design_key: an implementation file carries a key that belongs to the design
       ref_type: a `$ref` names an entity or enum the file does not have
       relation_target: a relation's target is not an entity of the file
@@ -83,7 +83,7 @@ enums:
       operation: a `source`, `submit` or operation action names an operationId that does not exist
       page: a navigate action names a page that does not exist
       algorithm: an `algorithm` reference names an algorithm that does not exist
-      decision: a `supersededBy` names a decision that does not exist, or an implementation decision reuses a definition decision's ID
+      decision: a `supersededBy` names a decision that does not exist, or an implementation decision reuses a design decision's ID
       enum_value: a `valueDescriptions` key is not a value of its enum
       path_parameter: a `{name}` in a path has no path parameter, or a path parameter is not in the path
       duplicate_operation: two operations share an operationId
@@ -96,8 +96,8 @@ enums:
       example_expected: a worked example's expected value does not have the output's type
       example_mismatch: the formula evaluated on a worked example's inputs does not give the expected value
       example_error: the formula cannot be evaluated on a worked example's inputs (division by zero, null in arithmetic)
-      implements: an implementation file's `implements` does not name a readable definition file of the same version
-      design_ref: a pointer into the definition file does not resolve
+      implements: an implementation file's `implements` does not name a readable design file of the same version
+      design_ref: a pointer into the design file does not resolve
     requirements: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10]
   GeneratorTarget:
     type: string
@@ -119,7 +119,7 @@ entities:
     properties:
       path: { type: string, description: The path as given on the command line or found under a given folder. }
       kind: { $ref: "#/enums/DocumentKind" }
-      metaModel: { type: string, description: "The meta-model version the file declares: `specarch` for a definition file, `specarchImpl` for an implementation file." }
+      metaModel: { type: string, description: "The meta-model version the file declares: `specarch` for a design file, `specarchImplementation` for an implementation file." }
       version: { type: string, description: The file's own `info.version`. }
     required: [path, kind, metaModel, version]
     primaryKey: [path]
@@ -135,7 +135,7 @@ entities:
       line: { type: integer, minimum: 1, description: "Line of the YAML node the problem is at; for an expression, the line inside the expression." }
       path: { type: string, description: "JSON pointer to the node, such as `/entities/Loan/relations/member/target`; `/` for the whole file." }
       rule: { $ref: "#/enums/Rule" }
-      message: { type: string, minLength: 1, description: "What is wrong and, where it helps, what was expected." }
+      message: { type: string, minLength: 1, description: "What is wrong and how to fix it, in one plain sentence." }
     required: [file, line, path, rule, message]
     primaryKey: [file, line, path, rule]
     relations:
@@ -153,7 +153,7 @@ entities:
     properties:
       path: { type: string, description: Path inside the generator's own folder. }
       target: { $ref: "#/enums/GeneratorTarget" }
-      sourceFile: { type: string, description: The definition file it was generated from. }
+      sourceFile: { type: string, description: The design file it was generated from. }
       sourceVersion: { type: string, description: That file's `info.version`. }
       metaModel: { type: string, description: The meta-model version of that file. }
       markersOnly: { type: boolean, description: "True for a hand-written Markdown document, where only the text between `specarch:generate` markers is rewritten." }
@@ -170,8 +170,8 @@ commands:
   validate:
     summary: Check SpecArch files
     description: |
-      Checks every file given, and every `*.specarch.yaml` and
-      `*.specarch-impl.yaml` under every folder given, against the meta-model
+      Checks every file given, and every `*.specarch-design.yaml` and
+      `*.specarch-implementation.yaml` under every folder given, against the meta-model
       and against the rules JSON Schema cannot express. It reports every
       problem in every file, not only the first.
     permission: public
@@ -179,13 +179,13 @@ commands:
       - name: paths
         description: Files and folders. A folder is searched recursively.
         required: true
-        variadic: true
+        repeatable: true
         schema: { type: string }
     reads:
       - { path: "{paths}", description: Definition and implementation files. }
-      - { path: "the definition file named in each implementation file's `implements`", description: Read to resolve the implementation file's references. }
-    stdout: One line per diagnostic, sorted by file, then line, then path, then rule.
-    stderr: A usage message on a usage error, the reason on an unreadable file, and a one-line count at the end.
+      - { path: "the design file named in each implementation file's `implements`", description: Read to resolve the implementation file's references. }
+    standardOutput: One line per diagnostic, sorted by file, then line, then path, then rule.
+    standardError: A usage message on a usage error, the reason on an unreadable file, and a one-line count at the end.
     exitCodes:
       "0": every file is valid
       "1": at least one file has a diagnostic
@@ -194,11 +194,11 @@ commands:
     requirements: [SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10]
 
   generate:
-    summary: Generate one target from definition files
+    summary: Generate one target from design files
     description: |
       Validates its input first and refuses an invalid file. Then writes the
       target into the folder it owns, and nothing outside it. Every generated
-      file starts with a header naming the definition file, its
+      file starts with a header naming the design file, its
       `info.version` and the meta-model version. A hand-written Markdown
       document is changed only between its `specarch:generate` markers. With
       `--check` nothing is written: the output is generated in memory and
@@ -210,9 +210,9 @@ commands:
         required: true
         schema: { $ref: "#/enums/GeneratorTarget" }
       - name: paths
-        description: Definition files, and the implementation file for the stack when the target needs one.
+        description: Design files, and the implementation file for the stack when the target needs one.
         required: true
-        variadic: true
+        repeatable: true
         schema: { type: string }
     options:
       out:
@@ -226,8 +226,8 @@ commands:
       - { path: "{out}", description: "The current output, with `--check`, and Markdown documents with markers." }
     writes:
       - { path: "{out}", description: "The generated files, each with its header. Nothing is written with `--check`." }
-    stdout: With `--check`, one line per file that differs.
-    stderr: Diagnostics when the input is invalid, and errors.
+    standardOutput: With `--check`, one line per file that differs.
+    standardError: Diagnostics when the input is invalid, and errors.
     exitCodes:
       "0": generated, or with `--check` the output is current
       "1": the input is invalid, the target cannot express something in it, or with `--check` the output differs
@@ -238,7 +238,7 @@ commands:
   version:
     summary: Print the program version and the meta-model versions it reads
     permission: public
-    stdout: The program version, then one line per meta-model version it supports.
+    standardOutput: The program version, then one line per meta-model version it supports.
     exitCodes:
       "0": printed
 
@@ -253,7 +253,7 @@ algorithms:
       ioError: { type: boolean }
       diagnostics: { type: integer, minimum: 0 }
     output: { type: integer }
-    formula: "status = if(usageError or ioError, 2, if(diagnostics > 0, 1, 0))"
+    formula: "usageError || ioError ? 2 : (diagnostics > 0 ? 1 : 0)"
     examples:
       - name: every file valid
         inputs: { usageError: false, ioError: false, diagnostics: 0 }
@@ -286,7 +286,7 @@ algorithms:
     inputs:
       definitions: { type: integer, minimum: 0, description: "Objects of the referenced kind with that name, in the same file." }
     output: { type: boolean }
-    formula: resolves = definitions == 1
+    formula: definitions == 1
     examples:
       - name: relation target exists
         inputs: { definitions: 1 }
@@ -319,7 +319,7 @@ algorithms:
       name: { type: string }
       grantingRoles: { type: integer, minimum: 0 }
     output: { type: boolean }
-    formula: ok = declared and (name == "public" or grantingRoles >= 1)
+    formula: declared && (name == "public" || grantingRoles >= 1)
     examples:
       - name: granted by the librarian role
         inputs: { declared: true, name: loans.create, grantingRoles: 1 }
@@ -355,7 +355,7 @@ algorithms:
       scale: { type: integer, minimum: 0, description: The output's scale. }
       expected: { type: string, format: decimal }
     output: { type: boolean }
-    formula: holds = round(computed, scale) == expected
+    formula: round(computed, scale) == expected
     examples:
       - name: exact result, written with trailing zero
         inputs: { computed: "3.5", scale: 2, expected: "3.50" }
@@ -389,7 +389,7 @@ algorithms:
       invalidInput: { type: boolean }
       differingFiles: { type: integer, minimum: 0 }
     output: { type: integer }
-    formula: "status = if(invalidInput or differingFiles > 0, 1, 0)"
+    formula: "invalidInput || differingFiles > 0 ? 1 : 0"
     examples:
       - name: output is current
         inputs: { invalidInput: false, differingFiles: 0 }
@@ -420,7 +420,7 @@ algorithms:
       ends: { type: integer, minimum: 0 }
       nested: { type: integer, minimum: 0, description: Begins found inside an open region. }
     output: { type: boolean }
-    formula: wellFormed = begins == ends and nested == 0
+    formula: begins == ends && nested == 0
     examples:
       - name: two diagrams
         inputs: { begins: 2, ends: 2, nested: 0 }
@@ -453,12 +453,12 @@ decisions:
       cannot reuse it. Stack details in the design also make every library
       upgrade look like a design change.
     decision: |
-      A SpecArch Definition File (`*.specarch.yaml`) holds the design: what
+      A SpecArch Definition File (`*.specarch-design.yaml`) holds the design: what
       the system is and does, including its interfaces as a client sees them.
-      A SpecArch Implementation File (`<name>.<stack>.specarch-impl.yaml`)
+      A SpecArch Implementation File (`<name>.<stack>.specarch-implementation.yaml`)
       holds one stack's implementation: language, toolchain, libraries,
       layout, mappings, generator settings, tasks, deployments and the
-      decisions that depend on the stack. It names the definition file and
+      decisions that depend on the stack. It names the design file and
       version it implements and has no keyword that adds design.
     consequences: |
       One design can have several implementations. Generators read the
@@ -500,20 +500,25 @@ decisions:
     consequences: A file an editor accepts and the validator refuses is always a cross-reference or semantic problem, never a shape problem.
     requirements: [SA-1]
   ADR-004:
-    title: A fixed expression language with exact decimal arithmetic
+    title: Expressions are a small subset of CEL, with exact decimal arithmetic
     status: accepted
     date: "2026-10-07"
     context: |
       Checks and formulas were free text in the first meta-model, so nothing
-      could tell a typo from an operator. Money must not round like a binary
-      float.
+      could tell a typo from an operator. A grammar of SpecArch's own would be
+      one more thing for a reader to learn. Money must not round like a
+      binary float.
     decision: |
-      The grammar in `docs/conventions.md` is fixed: literals, field and
-      input names, comparison, arithmetic, `and`, `or`, `not`, and the
-      functions `date`, `min`, `max`, `len`, `round` and `if`. Expressions
-      are parsed and type-checked. Formulas are evaluated with exact
-      rationals.
-    consequences: A generator can translate an expression it has parsed, and a worked example is checked to the last digit.
+      Checks and formulas are written in a small subset of CEL, the Common
+      Expression Language: its C-like operators, the conditional `? :`, and
+      a closed list of functions, listed in `docs/conventions.md`. A formula
+      is one expression. Every expression is parsed and type-checked, and
+      every formula is evaluated with exact decimal numbers.
+    consequences: |
+      A reader who knows C, Java or JavaScript reads the expressions without
+      learning anything. A generator translates an expression it has parsed,
+      and a construct the target cannot express fails generation. A worked
+      example is checked to the last digit.
     requirements: [SA-3, SA-4]
   ADR-005:
     title: Report every problem, one line each, with a stable rule name
@@ -542,3 +547,33 @@ decisions:
       items.
     consequences: Existing files stay valid. The validator checks a command's permission and algorithm like an operation's.
     requirements: [SA-1, SA-5]
+  ADR-007:
+    title: File names say which kind of file they are
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      Two kinds of file sit side by side in one folder. A name that hides
+      the kind makes every reader open the file to find out.
+    decision: |
+      A design file is `<name>.specarch-design.yaml`, explained by
+      `<name>.specarch-design.md`. An implementation file is
+      `<name>.<stack>.specarch-implementation.yaml`, explained, when it needs
+      it, by `<name>.<stack>.specarch-implementation.md`. The root key matches
+      the kind: `specarch` in a design file, `specarchImplementation` in an
+      implementation file.
+    consequences: |
+      The validator picks the schema from the name and refuses a file whose
+      name and root key disagree, or whose name is neither.
+    requirements: [SA-1, SA-9]
+  ADR-008:
+    title: The Low IQ Tax principle governs the language and its tools
+    status: accepted
+    date: "2026-10-07"
+    context: Every reader of a specification has finite attention, and a tool that makes them think about it spends that attention on the wrong thing.
+    decision: |
+      `docs/principles.md` is binding: full-word keys, one way to say one
+      thing, no placeholders, ambiguity is an error, few modes, summary
+      first. Validator messages say what is wrong, where, and how to fix it,
+      in one plain sentence.
+    consequences: A keyword, option or message that needs explaining is a defect to fix, not documentation to add.
+    requirements: [SA-6]

@@ -7,7 +7,7 @@ most of it.
 
 ## 0. The spec validates
 
-Every `*.specarch.yaml` file passes `specarch validate`, or the pinned
+Every `*.specarch-design.yaml` file passes `specarch validate`, or the pinned
 schema validator in `CONTRIBUTING.md` until the CLI exists. The other gates
 assume a valid spec.
 

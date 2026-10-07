@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-0.1.schema.json",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.1.schema.json",
   "title": "SpecArch Definition File, meta-model 0.1",
-  "description": "A SpecArch Definition File (*.specarch.yaml) describes one system: its entities, enums, relations, constraints, endpoints, commands, events, roles and permissions, pages, algorithms, requirement links and decisions. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "description": "A SpecArch Definition File (*.specarch-design.yaml) describes one system: its entities, enums, relations, constraints, endpoints, commands, events, roles and permissions, pages, algorithms, requirement links and decisions. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
     "specarch": {
@@ -1534,11 +1534,11 @@
             "$ref": "#/$defs/fileUse"
           }
         },
-        "stdout": {
+        "standardOutput": {
           "description": "What the command prints on standard output.",
           "$ref": "#/$defs/markdown"
         },
-        "stderr": {
+        "standardError": {
           "description": "What the command prints on standard error.",
           "$ref": "#/$defs/markdown"
         },
@@ -1595,7 +1595,7 @@
         "required": {
           "type": "boolean"
         },
-        "variadic": {
+        "repeatable": {
           "description": "The argument takes one or more values; only the last argument may.",
           "type": "boolean"
         },
@@ -1671,7 +1671,7 @@
       "additionalProperties": false
     },
     "stackSpecificKey": {
-      "description": "Extension keys that belong to one implementation, not to the design: code-generator settings, a language or framework binding, servers, hosts, ports and deployments. They go in a SpecArch Implementation File (*.specarch-impl.yaml), never in a definition file. See 'Definition and implementation' in docs/conventions.md.",
+      "description": "Extension keys that belong to one implementation, not to the design: code-generator settings, a language or framework binding, servers, hosts, ports and deployments. They go in a SpecArch Implementation File (*.specarch-implementation.yaml), never in a design file. See 'Design and implementation' in docs/conventions.md.",
       "type": "string",
       "pattern": "^x-(oapi-codegen|ogen|openapi-generator|codegen|protoc|grpc|go|java|kotlin|python|typescript|javascript|rust|swift|dotnet|csharp|php|ruby|framework|router|middleware|cli-library|server|servers|host|port|deploy|deployment|environment)(-|$)"
     }

@@ -1,6 +1,6 @@
 # Library Lending
 
-Explanation for `library-lending.specarch.yaml`. The sections follow
+Explanation for `library-lending.specarch-design.yaml`. The sections follow
 `docs/conventions.md`; diagrams between `specarch:generate` markers are
 derived from the YAML and will be rewritten by the generator once it exists.
 Until then they are kept in step by hand.

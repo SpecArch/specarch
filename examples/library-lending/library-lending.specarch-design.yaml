@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-0.1.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.1.schema.json
 specarch: "0.1"
 
 info:
@@ -13,7 +13,7 @@ info:
 
 requirementSources:
   LIB:
-    description: Requirement list for the lending example, kept in `library-lending.specarch.md` under "Requirements".
+    description: Requirement list for the lending example, kept in `library-lending.specarch-design.md` under "Requirements".
 
 enums:
   LoanStatus:
@@ -385,7 +385,7 @@ algorithms:
       dailyRate: { type: string, format: decimal, precision: 10, scale: 2, description: "Library setting, currently 0.50." }
       replacementCost: { type: string, format: decimal, precision: 10, scale: 2, description: The book's replacementCost. }
     output: { type: string, format: decimal, precision: 10, scale: 2 }
-    formula: "fee = min(daysLate × dailyRate, replacementCost)"
+    formula: min(daysLate * dailyRate, replacementCost)
     examples:
       - name: returned on time
         inputs: { daysLate: 0, dailyRate: "0.50", replacementCost: "25.00" }

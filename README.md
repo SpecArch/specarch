@@ -10,15 +10,19 @@ SpecArch is personally owned and published under Apache-2.0. Anyone may use it
 under that licence, including for commercial work. See `NOTICE` for the name
 and for what you own in generated output.
 
+SpecArch is built on one principle, the Low IQ Tax: every file, key and
+message should cost its reader as little thinking as possible. It is set out
+in `docs/principles.md`, and the rest of SpecArch follows from it.
+
 ## The format
 
 A specification has two kinds of file:
 
 - **SDF**, SpecArch Definition File: the design, with no language,
-  framework or build tool in it. On disk `*.specarch.yaml` for structure and
-  `*.specarch.md` for explanation.
+  framework or build tool in it. On disk `*.specarch-design.yaml` for structure and
+  `*.specarch-design.md` for explanation.
 - **SIF**, SpecArch Implementation File: how one stack builds that design.
-  On disk `<name>.<stack>.specarch-impl.yaml`. It names the definition file
+  On disk `<name>.<stack>.specarch-implementation.yaml`. It names the design file
   and version it implements and holds the language, toolchain, libraries
   with their licences, package layout, mappings, generator settings, build
   and test commands, deployments and implementation decisions. One design
@@ -35,7 +39,7 @@ The YAML uses the keywords of existing standards wherever one exists:
 - JSON Schema for fields: `type`, `properties`, `required`, `enum`, `format`,
   `minimum`, `maxLength`, `pattern`.
 - OpenAPI for endpoints: `paths`, `parameters`, `requestBody`, `responses`.
-  A standalone OpenAPI document is generated from the definition file, not
+  A standalone OpenAPI document is generated from the design file, not
   kept beside it.
 - AsyncAPI for events: `channels`, `messages`, `payload`.
 
@@ -52,11 +56,11 @@ explanatory pictures are drawn by hand.
 SpecArch has no grammar and no parser of its own, apart from the small
 expression language of checks and formulas. The language is defined by two
 JSON Schema 2020-12 documents, the meta-model, in `schema/`: one for
-definition files and one for implementation files. The same schema
+design files and one for implementation files. The same schema
 gives editors validation and completion through `yaml-language-server`: put
 this on the first line of a file and most editors pick it up.
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-0.1.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.1.schema.json
 
 ## The rules SpecArch serves
 
@@ -86,16 +90,17 @@ a defect in the roadmap, not an accepted state.
 
 | Path | Holds |
 |---|---|
-| `schema/specarch-0.1.schema.json` | the meta-model for definition files, JSON Schema 2020-12 |
-| `schema/specarch-impl-0.1.schema.json` | the meta-model for implementation files |
+| `schema/specarch-design-0.1.schema.json` | the meta-model for design files, JSON Schema 2020-12 |
+| `schema/specarch-implementation-0.1.schema.json` | the meta-model for implementation files |
 | `spec/` | SpecArch's own specification: the design of the `specarch` command and its Go implementation |
+| `docs/principles.md` | the Low IQ Tax principle and how SpecArch applies it |
 | `docs/conventions.md` | YAML layout, Markdown sections, generated and hand-drawn diagrams |
 | `docs/authoring-layer-evaluation.md` | TypeSpec, CUE and Pkl as an optional authoring layer |
 | `docs/generators.md` | the rules every emitter follows and the pattern each target copies |
 | `docs/sync-gates.md` | the CI checks that keep a spec and its code equal |
 | `docs/extraction.md` | how an existing system gets its as-built spec, and what goes wrong |
 | `docs/roadmap.md` | validator, generators, sync gates, first real projects, meta-model 0.2 |
-| `examples/library-lending/` | a small complete example, with a definition file and a Go implementation file |
+| `examples/library-lending/` | a small complete example, with a design file and a Go implementation file |
 
 ## Validating a specification
 
@@ -104,10 +109,10 @@ reads YAML will do. The repository uses `jv`, pinned by version and run with a
 Go toolchain:
 
     go run github.com/santhosh-tekuri/jsonschema/cmd/jv@v0.7.0 -f \
-      schema/specarch-0.1.schema.json examples/library-lending/library-lending.specarch.yaml
+      schema/specarch-design-0.1.schema.json examples/library-lending/library-lending.specarch-design.yaml
 
 An implementation file is checked the same way against
-`schema/specarch-impl-0.1.schema.json`.
+`schema/specarch-implementation-0.1.schema.json`.
 
 JSON Schema checks shape, types, required keys and identifier patterns. It
 cannot check that a relation points at an entity that exists or that a page

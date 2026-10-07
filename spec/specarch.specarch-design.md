@@ -1,8 +1,8 @@
 # SpecArch toolchain
 
-Explanation for `specarch.specarch.yaml`, the design of the `specarch`
+Explanation for `specarch.specarch-design.yaml`, the design of the `specarch`
 command. The Go implementation is described in
-`specarch.go.specarch-impl.yaml`. The sections follow `docs/conventions.md`;
+`specarch.go.specarch-implementation.yaml`. The sections follow `docs/conventions.md`;
 diagrams between `specarch:generate` markers are derived from the YAML and
 are kept in step by hand until the techspec generator exists.
 
@@ -26,15 +26,15 @@ problem; the program installs with one command and needs no network.
 
 The JSON Schemas in `schema/` are the definition of each file's shape and are
 applied unchanged (ADR-003). Meta-model 0.1 has no references between
-definition files, so each definition file is checked on its own; an
-implementation file is checked together with the one definition file it
+design files, so each design file is checked on its own; an
+implementation file is checked together with the one design file it
 names.
 
 ## 3. Context
 
 ```mermaid
 flowchart LR
-  A[Author or assistant] -->|writes| F[Definition and implementation files]
+  A[Author or assistant] -->|writes| F[Design and implementation files]
   E[Editor with yaml-language-server] -->|schema only| F
   V[specarch validate] -->|reads| F
   V -->|diagnostics| A
@@ -47,10 +47,10 @@ Hand-drawn.
 
 ## 4. Solution strategy
 
-Two kinds of file: the definition holds the design, an implementation file
+Two kinds of file: the design file holds the design, an implementation file
 holds one stack's choices (ADR-001), split at the interface boundary of
 ADR-002. The validator applies the schema first, then the checks a schema
-cannot make (ADR-003). Expressions have a fixed grammar and numbers are exact
+cannot make (ADR-003). Expressions are a small subset of CEL and numbers are exact
 (ADR-004). Every problem is reported, one line each (ADR-005). The command
 line is described with `commands`, added to 0.1 for this file (ADR-006).
 
@@ -89,7 +89,7 @@ None of the three is stored. They are the values the commands pass around and
 print; the meta-model has no word yet for a value without storage, so they
 are written as entities with the key that makes each one unique.
 
-The validator runs these checks on a definition file, in this order, and
+The validator runs these checks on a design file, in this order, and
 reports all of them:
 
 1. YAML: well-formed, no repeated key, no unquoted date.
@@ -106,7 +106,7 @@ reports all of them:
    (`workedExampleHolds`).
 
 On an implementation file: YAML, schema, no design keyword, `implements`
-names a readable definition file of the same `info.version`, every pointer in
+names a readable design file of the same `info.version`, every pointer in
 `layout` and `mappings` resolves in it, and no decision ID is used in both.
 
 ## 6. Runtime view
@@ -118,12 +118,12 @@ sequenceDiagram
   participant V as specarch validate
   participant F as Files
   U->>V: validate spec examples
-  V->>F: find *.specarch.yaml, *.specarch-impl.yaml
+  V->>F: find *.specarch-design.yaml, *.specarch-implementation.yaml
   loop each file
     V->>F: read
     V->>V: YAML, schema, boundary, references, access, expressions, examples
     opt implementation file
-      V->>F: read the definition file it implements
+      V->>F: read the design file it implements
       V->>V: version and pointers
     end
   end
@@ -150,7 +150,7 @@ the files it is given and the folder a generator owns.
 
 Diagnostics: `file:line: /yaml/path: rule: message`, for example
 
-    examples/x.specarch.yaml:58: /entities/Member/relations/loans/target: relation_target: Lone is not an entity of this file
+    examples/x.specarch-design.yaml:58: /entities/Member/relations/loans/target: relation_target: Lone is not an entity of this file
 
 Numbers in expressions are exact rationals. A decimal result is rounded to
 the output's scale, half away from zero, before it is compared with a worked
@@ -162,11 +162,14 @@ example.
 - ADR-002, accepted: the interface boundary between the two kinds.
 - ADR-003, accepted: the validator applies the published JSON Schema first,
   then its own rules.
-- ADR-004, accepted: a fixed expression language with exact decimal
-  arithmetic.
+- ADR-004, accepted: expressions are a small subset of CEL, with exact
+  decimal arithmetic.
 - ADR-005, accepted: report every problem, one line each, with a stable rule
   name.
 - ADR-006, accepted: commands are part of meta-model 0.1.
+- ADR-007, accepted: file names say which kind of file they are.
+- ADR-008, accepted: the Low IQ Tax principle governs the language and its
+  tools.
 
 The implementation's own decisions (language, libraries, parser) are in the
 implementation file.
@@ -199,12 +202,12 @@ pseudocode and the generator's own tests.
 | ID | Requirement |
 |---|---|
 | SA-1 | `specarch validate` checks every given file against the JSON Schema of its kind and meta-model version. |
-| SA-2 | Every reference inside a definition file resolves to an object of the right kind in the same file. |
+| SA-2 | Every reference inside a design file resolves to an object of the right kind in the same file. |
 | SA-3 | Every check constraint and formula parses and type-checks in the fixed expression language. |
 | SA-4 | Every worked example's formula, evaluated on its inputs, gives its expected value. |
 | SA-5 | Access is fail-closed: every permission used is declared, and every declared permission is granted by a role or is `public`. |
 | SA-6 | Every problem is reported, one line each, with file, line, YAML path and rule; status 0 valid, 1 invalid, 2 usage or read error. |
 | SA-7 | `specarch generate <target>` writes only into the target's folder, and `--check` fails when the committed output differs. |
 | SA-8 | Every generated file names its source file, version and meta-model; a hand-written Markdown document changes only between markers. |
-| SA-9 | Design and implementation are separate files; a definition holds no stack-specific key and an implementation adds no design. |
-| SA-10 | An implementation file's `implements` and pointers resolve in its definition file of the same version. |
+| SA-9 | Design and implementation are separate files; a design file holds no stack-specific key and an implementation adds no design. |
+| SA-10 | An implementation file's `implements` and pointers resolve in its design file of the same version. |

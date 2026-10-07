@@ -10,10 +10,10 @@ A project keeps its specification in a `spec/` folder at the repository root
 
 | File | Holds |
 |---|---|
-| `<name>.specarch.yaml` | the definition (SDF): the design, everything a generator reads about what the system is and does |
-| `<name>.specarch.md` | the explanation: everything written for a person |
-| `<name>.<stack>.specarch-impl.yaml` | an implementation (SIF): how one stack builds the definition |
-| `<name>.<stack>.specarch-impl.md` | optional explanation of that implementation |
+| `<name>.specarch-design.yaml` | the design (SDF): everything a generator reads about what the system is and does |
+| `<name>.specarch-design.md` | the explanation: everything written for a person |
+| `<name>.<stack>.specarch-implementation.yaml` | an implementation (SIF): how one stack builds the design |
+| `<name>.<stack>.specarch-implementation.md` | optional explanation of that implementation |
 
 A small system fits in one YAML file. A larger one will split by bounded
 context, one pair of files per context, each a complete document with its own
@@ -22,31 +22,31 @@ context, one pair of files per context, each a complete document with its own
 rejects anything else. References between contexts are a v0.2 item in
 `docs/roadmap.md`.
 
-The first line of every YAML file is the editor hint. For a definition file:
+The first line of every YAML file is the editor hint. For a design file:
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-0.1.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.1.schema.json
 
 For an implementation file:
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-impl-0.1.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-0.1.schema.json
 
 Pin the schema version a project is written against. A project moves to a new
 meta-model version on purpose, in its own change.
 
-## Definition and implementation
+## Design and implementation
 
 SpecArch has two kinds of file, and every fact belongs in exactly one of
 them.
 
-A **SpecArch Definition File** (SDF, `*.specarch.yaml`, root key
+A **SpecArch Definition File** (SDF, `*.specarch-design.yaml`, root key
 `specarch`) is the design. It is neutral about language, compiler and
 framework: entities, enums, operations, commands, events, pages,
 permissions and roles, algorithms with formula, worked examples and
 pseudocode, requirement links, and the decisions that hold whatever the
 stack.
 
-A **SpecArch Implementation File** (SIF, `*.specarch-impl.yaml`, root key
-`specarchImpl`) is one stack's implementation of one definition file. It
+A **SpecArch Implementation File** (SIF, `*.specarch-implementation.yaml`, root key
+`specarchImplementation`) is one stack's implementation of one design file. It
 names that file and the `info.version` it was written against under
 `implements`, and holds everything that depends on the stack and nothing
 else: the language and toolchain with versions (`target`), every library
@@ -56,31 +56,31 @@ maps onto the stack (`mappings`), the framework per interface kind
 (`bindings`), generator targets and their settings (`generators`), build,
 test and CI commands (`tasks`), real servers, hosts and ports
 (`deployments`), and implementation decisions (`decisions`). Its schema,
-`schema/specarch-impl-0.1.schema.json`, has no keyword for an entity, an
+`schema/specarch-implementation-0.1.schema.json`, has no keyword for an entity, an
 operation or any other design object, so an implementation file cannot add
-or change design. One definition file can have several implementation
+or change design. One design file can have several implementation
 files, one per stack; the `<stack>` part of the name tells them apart
-(`library-lending.go.specarch-impl.yaml`).
+(`library-lending.go.specarch-implementation.yaml`).
 
-Pointers from an implementation file into its definition are JSON pointers
-written from the definition's root: `#/entities/Loan`,
+Pointers from an implementation file into its design file are JSON pointers
+written from the design file's root: `#/entities/Loan`,
 `#/commands/validate`, `#/paths/~1loans/post` (a `/` inside a key is
-written `~1`). The validator checks that `implements` names a definition
+written `~1`). The validator checks that `implements` names a design
 file with the same `info.version` and that every pointer resolves, so a
 design change is noticed by every implementation of it.
 
-Generators read the definition for the design and the implementation for
+Generators read the design file for the design and the implementation for
 the target choices: which folder a target owns, the settings of the code
 generator that follows it, the type a decimal maps to.
 
 ### The interface boundary
 
 The rule of thumb: if a client of the interface needs to know it, it is
-design and goes in the definition file. If only the people building or
+design and goes in the design file. If only the people building or
 running one particular implementation need it, it goes in the
 implementation file.
 
-| Definition file (design) | Implementation file (one stack) |
+| Design file (design) | Implementation file (one stack) |
 |---|---|
 | the kind of interface: HTTP (`paths`), messaging (`channels`), command line (`commands`) | the framework binding: router, middleware, how handlers implement the generated interface; the CLI library |
 | operations with operationId, method and path; parameters, request bodies, responses with schemas, status codes and error shapes | code-generator configuration: package names, strict-server mode, `x-oapi-codegen-*` extensions, protoc plugins |
@@ -89,9 +89,9 @@ implementation file.
 | the permission each operation, command and page needs; roles | servers, hosts, ports and environments of real deployments |
 
 A standalone `openapi.yaml` or `asyncapi.yaml` is generated from the
-definition file. It is never a third source kept by hand.
+design file. It is never a third source kept by hand.
 
-Both schemas enforce the boundary. The definition schema refuses extension
+Both schemas enforce the boundary. The design schema refuses extension
 keys that name one implementation: `x-oapi-codegen-*`, `x-go-*` and the
 other language prefixes, `x-server`, `x-host`, `x-port`, `x-deploy`,
 `x-router`, `x-framework` and the rest of the `stackSpecificKey` pattern in
@@ -169,7 +169,7 @@ redefined.
 | `primaryKey`, `relations`, `constraints`, `stateField`, `transitions` | SpecArch | data-model concepts JSON Schema has no words for |
 | `precision`, `scale` | SpecArch | decimal size; JSON Schema has no decimal type, so `format: decimal` on a string carries them |
 | `valueDescriptions` | SpecArch | per-value meaning of an enum |
-| `commands`, `arguments`, `options`, `reads`, `writes`, `stdout`, `stderr`, `exitCodes`, `variadic` | SpecArch | command-line interfaces; no standard describes one |
+| `commands`, `arguments`, `options`, `reads`, `writes`, `standardOutput`, `standardError`, `exitCodes`, `repeatable` | SpecArch | command-line interfaces; no standard describes one |
 | `permissions`, `roles`, `permission` | SpecArch | OpenAPI's `security` names a scheme, not a right; SpecArch needs the right |
 | `emits`, `algorithm` | SpecArch | links from an operation to its events and its computation |
 | `pages`, `kind`, `route`, `entity`, `source`, `submit`, `columns`, `fields`, `filters`, `actions` | SpecArch | UI page definitions |
@@ -197,48 +197,52 @@ enforced by the service, and are on the list for v0.2.
 
 ### Expressions
 
-`check` constraints and `formula` strings are written in one small, fixed
-language. The validator parses every one of them, checks the names and the
-types, and evaluates every formula on its worked examples.
+`check` constraints and `formula` strings are written in a small subset of
+CEL, the Common Expression Language (cel.dev). Its syntax is the one C,
+Java and JavaScript use, so most readers already know it. A check is one
+expression that gives true or false. A formula is one expression that gives
+the algorithm's output; it has no `name =` in front. The validator parses
+every expression, refuses anything outside the subset by name, checks the
+names and the types, and evaluates every formula on its worked examples.
 
-    formula     = statement { (newline | ";") statement }
-    statement   = [ name "=" ] expression
-    expression  = or
-    or          = and { "or" and }
-    and         = not { "and" not }
-    not         = "not" not | comparison
-    comparison  = sum [ ("==" | "!=" | "<" | "<=" | ">" | ">=") sum ]
-    sum         = product { ("+" | "-") product }
-    product     = unary { ("*" | "/") unary }
-    unary       = "-" unary | primary
-    primary     = number | string | "true" | "false" | "null"
-                | name | name "(" [ expression { "," expression } ] ")"
-                | "(" expression ")"
+| Part | Example | Meaning |
+|---|---|---|
+| number | `21`, `0.50` | an exact number; there is no binary floating point |
+| text | `"open"`, `'open'` | a string, in double or single quotes |
+| `true`, `false` | `active == true` | the two booleans |
+| `null` | `returnedAt == null` | no value; only for a field that allows null |
+| name | `dueOn` | a field of the entity (in a check) or an input of the algorithm (in a formula) |
+| `( )` | `(a + b) * c` | grouping |
+| `-x` | `-discount` | negation |
+| `!x` | `!active` | not |
+| `*` | `daysLate * dailyRate` | multiplication |
+| `/` | `total / count` | division, exact |
+| `+` | `subtotal + tax` | addition |
+| `-` | `price - discount` | subtraction of numbers |
+| `==`, `!=` | `status == "open"` | equal, not equal |
+| `<`, `<=`, `>`, `>=` | `copiesAvailable <= copiesOwned` | order of numbers, dates and date-times |
+| `&&` | `a > 0 && b > 0` | and |
+| `\|\|` | `returnedAt == null \|\| returnedAt >= loanedAt` | or |
+| `c ? a : b` | `daysLate > 0 ? daysLate * dailyRate : 0` | `a` when `c` holds, otherwise `b` |
+| `size(x)` | `size(fullName) <= 200` | length of a text (CEL's own function) |
+| `date(x)` | `dueOn > date(loanedAt)` | the date of a date-time, or a quoted date such as `date("2026-10-07")` |
+| `min(a, b, ...)` | `min(daysLate * dailyRate, replacementCost)` | the smallest of two or more numbers, dates or date-times |
+| `max(a, b, ...)` | `max(balance, 0)` | the largest of two or more |
+| `round(x, places)` | `round(total, 2)` | rounds half away from zero to that many decimal places |
 
-- A name is a field of the entity (in a check) or an input of the
-  algorithm (in a formula), or a name an earlier formula line assigned.
-- A number is written with digits and an optional decimal point
-  (`0.50`). Every number is exact: there is no binary floating point.
-- A string is in single or double quotes.
-- `×`, `÷`, `≤`, `≥` and `≠` may be written for `*`, `/`, `<=`, `>=` and
-  `!=`.
-- Comparisons do not chain: `a < b < c` is an error.
-- The functions: `date(x)` takes the date of a date-time or turns a quoted
-  date into a date; `min(a, b, ...)` and `max(a, b, ...)` take two or more
-  numbers, dates or date-times; `len(x)` is the length of a string or an
-  array; `round(x, places)` rounds half away from zero; `if(condition, a, b)`
-  is `a` when the condition holds and `b` otherwise.
-
-A check is one expression without a name in front, and it must be a
-boolean. A formula is one line or several; the last line is the result, and
-a `name =` in front of it only names the result for the reader.
+Nothing else is in the subset: no `%`, no `in`, no lists or maps, no field
+access with `.`, no macros (`has`, `all`, `exists`, `map`, `filter`), and no
+other function. Each of these is refused with a message naming it. A
+comparison does not chain: `a < b < c` is a type error, written
+`a < b && b < c`. Anything a real specification needs beyond this list is
+added on purpose, in its own change, with an example here.
 
 Types come from the fields. `integer`, `number` and a string with
 `format: decimal` are numbers; `format: date` and `format: date-time` are
-dates and date-times, which do not mix (use `date(x)`); a `$ref` to an enum is
-compared with a string of one of its values; a field that allows null may be
-compared with `null`, and one that does not may not. `and`, `or`, `not` and a
-check's result need booleans.
+dates and date-times, which do not mix (use `date(x)`); a `$ref` to an enum
+is compared with a string of one of its values; a field that allows null may
+be compared with `null`, and one that does not may not. `&&`, `||`, `!`, the
+condition of `? :` and a check's result need booleans.
 
 A worked example's inputs and expected value are typed by the algorithm's
 `inputs` and `output`: an integer is a YAML integer, a decimal a quoted
@@ -259,7 +263,7 @@ passes the schema can still fail the validator.
 
 ## Markdown sections
 
-The `.specarch.md` file beside the YAML explains it. The sections follow
+The `.specarch-design.md` file beside the YAML explains it. The sections follow
 arc42, trimmed to what a small system needs. Each heading is fixed so a
 generator can find it and so readers of different specifications know where
 to look.

@@ -1,5 +1,5 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-impl-0.1.schema.json
-specarchImpl: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-0.1.schema.json
+specarchImplementation: "0.1"
 
 info:
   title: Library Lending in Go and PostgreSQL
@@ -10,7 +10,7 @@ info:
     and what stays in the definition beside it.
 
 implements:
-  file: library-lending.specarch.yaml
+  file: library-lending.specarch-design.yaml
   version: 0.1.0
 
 target:
@@ -70,6 +70,11 @@ generators:
     settings: { package: api, generate: { chi-server: true, strict-server: true, models: true } }
   sql:
     output: migrations
+    dialect: postgresql
+  ui:
+    output: web
+    platform: web
+    framework: plain-javascript
   tests:
     output: internal/lending
 

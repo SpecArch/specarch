@@ -1,15 +1,15 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-impl-0.1.schema.json
-specarchImpl: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-0.1.schema.json
+specarchImplementation: "0.1"
 
 info:
   title: SpecArch toolchain in Go
   version: 0.1.0
   description: |
-    The Go implementation of `specarch.specarch.yaml`: one static binary,
+    The Go implementation of `specarch.specarch-design.yaml`: one static binary,
     `specarch`, installed with `go install ./cmd/specarch`.
 
 implements:
-  file: specarch.specarch.yaml
+  file: specarch.specarch-design.yaml
   version: 0.1.0
 
 target:
@@ -30,6 +30,34 @@ libraries:
     version: v3.0.5
     licence: MIT AND Apache-2.0
     purpose: YAML parsing into a node tree, which keeps the line of every value for diagnostics.
+  cel.dev/cel-go:
+    version: v0.32.0
+    licence: Apache-2.0
+    purpose: The CEL parser; only its parser is used.
+  cel.dev/expr:
+    version: v0.25.1
+    licence: Apache-2.0
+    purpose: CEL's expression tree types, needed by the parser.
+  github.com/antlr4-go/antlr/v4:
+    version: v4.13.1
+    licence: BSD-3-Clause
+    purpose: The parser runtime the CEL grammar is generated for.
+  google.golang.org/protobuf:
+    version: v1.36.10
+    licence: BSD-3-Clause
+    purpose: Needed by the CEL parser's tree types.
+  google.golang.org/genproto/googleapis/api:
+    version: v0.0.0-20240826202546-f6391c0de4c7
+    licence: Apache-2.0
+    purpose: Needed by the CEL parser's tree types.
+  google.golang.org/genproto/googleapis/rpc:
+    version: v0.0.0-20240826202546-f6391c0de4c7
+    licence: Apache-2.0
+    purpose: Needed by the CEL parser's tree types.
+  golang.org/x/exp:
+    version: v0.0.0-20240823005443-9b4947da3948
+    licence: BSD-3-Clause
+    purpose: Needed by the CEL parser.
 
 layout:
   cmd/specarch:
@@ -40,7 +68,7 @@ layout:
   internal/source:
     description: Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys.
   internal/expr:
-    description: The expression language. Lexer, recursive-descent parser, type checker and evaluator over exact rationals.
+    description: The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks and evaluates over exact rationals.
     implements: ["#/algorithms/workedExampleHolds"]
   internal/validate:
     description: Schema validation, cross-references, fail-closed access, the interface boundary, worked examples and implementation references.
@@ -57,11 +85,6 @@ bindings:
   cli:
     framework: standard library
     description: "Hand-written argument handling over `os.Args`; three commands do not justify a CLI library."
-
-generators:
-  techspec:
-    output: docs/spec
-    description: Roadmap step 2.1; the generate command is not built yet.
 
 tasks:
   build: { run: go build ./..., ci: true }
@@ -99,12 +122,25 @@ decisions:
       0.39.0) is not in the build.
     consequences: The same files pass as with `jv`. The schemas are embedded and registered under their `$id`, so validation needs no network.
   ADR-103:
-    title: A hand-written parser for the expression language
+    title: The CEL parser from cel-go, with SpecArch's own checker and evaluator
     status: accepted
     date: "2026-10-07"
-    context: The grammar is a dozen rules. A parser generator would add a build step and a dependency for less code than it generates.
-    decision: A recursive-descent parser with precedence climbing, and `math/big.Rat` for every number.
-    consequences: Errors name the column and the token expected. No dependency beyond the standard library.
+    context: |
+      The design fixes expressions as a subset of CEL with exact numbers.
+      A parser of SpecArch's own could drift from CEL's syntax without
+      anyone noticing. CEL's own evaluator works in binary floating point
+      and would get money wrong.
+    decision: |
+      Parse with the parser of `cel.dev/cel-go`, so every accepted
+      expression is real CEL syntax. Walk the tree it returns and refuse
+      every node outside the subset. Type-check and evaluate with code of
+      our own, using `math/big.Rat` for every number; a number literal's
+      exact text is read back from the source, not from the parser's
+      float.
+    consequences: |
+      The parser brings ANTLR, protobuf and their support modules into the
+      build; each is listed under libraries with its licence and scanned.
+      Parser errors are rewritten into one plain sentence.
   ADR-104:
     title: The YAML node tree, not decoding into structs
     status: accepted

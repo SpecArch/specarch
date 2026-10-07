@@ -6,13 +6,20 @@ the validator, and the real projects check all of it.
 
 ## 1. Validator CLI
 
-Specified first, in SpecArch: `spec/specarch.specarch.yaml` is the design of
-the `specarch` command and `spec/specarch.go.specarch-impl.yaml` the Go
+Specified first, in SpecArch: `spec/specarch.specarch-design.yaml` is the design of
+the `specarch` command and `spec/specarch.go.specarch-implementation.yaml` the Go
 implementation of it. The validator checks both files, which is the first
 self-hosting check.
 
+The first implementation is in Go, for macOS, Linux, Windows and Android. A
+second one in Swift for macOS follows, built from the same design file with
+its own implementation file, to prove the split: one design, two languages.
+Both must pass the same conformance suite in `conformance/`, which holds
+only inputs and the expected exit status and output, with no code from
+either language.
+
 A single binary, `specarch validate <files>`, written in Go in this
-repository. It checks definition and implementation files and does what
+repository. It checks design and implementation files and does what
 JSON Schema cannot:
 
 - cross-references: relation targets, primary-key fields, page columns and
@@ -25,9 +32,9 @@ JSON Schema cannot:
   becoming a wrong test;
 - fail-closed access: every operation and page has a permission that exists,
   every permission is granted by at least one role or is `public`;
-- the interface boundary: no stack-specific key in a definition file, no
+- the interface boundary: no stack-specific key in a design file, no
   design in an implementation file, and an implementation file's
-  `implements` and pointers resolve in its definition file.
+  `implements` and pointers resolve in its design file.
 
 It uses the same JSON Schema library the repository validates with today, so
 the schema stays the single definition. It ships with a test suite of valid and
@@ -38,9 +45,12 @@ lessons from an earlier in-house language made the first requirement.
 ## 2. Generators, in order of payoff
 
 Each generator is one command, `specarch generate <target> <files>`, and
-writes into a folder it owns. It reads the definition file for the design
+writes into a folder it owns. It reads the design file for the design
 and the implementation file for the target choices: the folder, the
-downstream code generator and its settings, the type each field maps to. Generated files carry a header naming the spec
+downstream code generator and its settings, the type each field maps to.
+The defaults (PostgreSQL for SQL, plain JavaScript for the web UI, SwiftUI
+for the iPhone UI) are recorded in the implementation schema, never in a
+design file. Generated files carry a header naming the spec
 file and version they came from. A generator never edits a hand-written file;
 Markdown documents are updated only between the `specarch:generate` markers.
 Every emitter has a `--check` form that regenerates and fails on a
@@ -54,7 +64,7 @@ difference. The rules and the pattern each target follows are in
    OpenAPI's. Permissions become a security scheme plus a `x-specarch-permission`
    extension per operation. Server interfaces and types then come from a
    standard OpenAPI code generator per stack, not from SpecArch.
-3. SQL migrations, new files only. The generator diffs the spec against
+3. SQL migrations, new files only, in PostgreSQL by default. The generator diffs the spec against
    the last generated snapshot and writes a forward migration. A deployed
    migration is never regenerated or edited, and a destructive step is its
    own file, so a live column changes by expand and contract across
@@ -63,7 +73,18 @@ difference. The rules and the pattern each target follows are in
    fails generation rather than being dropped.
 4. UI page definitions for the target component library: one generator
    per library, emitting the project's own component usage so generated
-   screens look like the hand-built ones.
+   screens look like the hand-built ones. The default for the iPhone is
+   SwiftUI. The default for the web is plain JavaScript: native ES modules
+   in the browser, no package install, no bundler and no build step, and any
+   third-party library a pinned file (OSI licence, SBOM recorded) committed
+   next to the generated code. Generated web pages and components talk
+   through one small event bus instead of calling each other: a hand-readable
+   module of a few lines with no library behind it; every event name declared
+   once, in one file, as an UPPERCASE constant with its payload shape; every
+   subscription registered where its component is created; no wildcard or
+   computed event names; and an optional debug log of every event, so the
+   flow can be followed. The design file's events stay neutral; the bus is
+   how the web implementation carries them.
 5. Other DSL formats on request, limited to what that DSL can execute:
    a concept the target cannot represent is reported, not silently omitted.
 6. Test cases from worked examples, one test per example, in the target

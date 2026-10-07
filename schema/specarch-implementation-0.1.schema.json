@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-impl-0.1.schema.json",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-0.1.schema.json",
   "title": "SpecArch Implementation File, meta-model 0.1",
-  "description": "A SpecArch Implementation File (*.specarch-impl.yaml) says how one stack implements one SpecArch Definition File: the language and toolchain, the libraries and their licences, the package layout, how each design object maps onto the stack, the generator settings, the build and test tasks, the deployments, and the implementation decisions. It points at the definition file it implements and cannot add or change design: entities, operations, commands, events, permissions, pages and algorithms exist only in the definition file, and this schema has no keyword for them. One definition file can have several implementation files, one per stack. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "description": "A SpecArch Implementation File (*.specarch-implementation.yaml) says how one stack implements one SpecArch Definition File: the language and toolchain, the libraries and their licences, the package layout, how each design object maps onto the stack, the generator settings, the build and test tasks, the deployments, and the implementation decisions. It points at the design file it implements and cannot add or change design: entities, operations, commands, events, permissions, pages and algorithms exist only in the design file, and this schema has no keyword for them. One design file can have several implementation files, one per stack. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
-    "specarchImpl": {
+    "specarchImplementation": {
       "description": "Meta-model version this file is written against.",
       "type": "string",
       "const": "0.1"
@@ -37,16 +37,16 @@
       "additionalProperties": false
     },
     "implements": {
-      "description": "The definition file this file implements.",
+      "description": "The design file this file implements.",
       "type": "object",
       "properties": {
         "file": {
-          "description": "Path of the definition file, relative to this file. Must end in .specarch.yaml.",
+          "description": "Path of the design file, relative to this file. Must end in .specarch-design.yaml.",
           "type": "string",
-          "pattern": "\\.specarch\\.yaml$"
+          "pattern": "\\.specarch-design\\.yaml$"
         },
         "version": {
-          "description": "The definition file's info.version this implementation was written against. The validator fails when they differ, so a design change is noticed by every implementation of it.",
+          "description": "The design file's info.version this implementation was written against. The validator fails when they differ, so a design change is noticed by every implementation of it.",
           "type": "string",
           "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
         }
@@ -122,7 +122,7 @@
       }
     },
     "mappings": {
-      "description": "How design objects map onto the stack, keyed by a pointer into the definition file such as '#/entities/Loan' or '#/paths/~1loans/post'.",
+      "description": "How design objects map onto the stack, keyed by a pointer into the design file such as '#/entities/Loan' or '#/paths/~1loans/post'.",
       "type": "object",
       "propertyNames": {
         "$ref": "#/$defs/designRef"
@@ -132,7 +132,7 @@
       }
     },
     "bindings": {
-      "description": "Framework binding per interface kind of the definition file: the router and middleware for HTTP, the CLI library for commands, the client for messaging.",
+      "description": "Framework binding per interface kind of the design file: the router and middleware for HTTP, the CLI library for commands, the client for messaging.",
       "type": "object",
       "propertyNames": {
         "enum": [
@@ -148,7 +148,7 @@
       }
     },
     "generators": {
-      "description": "Generator targets this implementation uses, keyed by target name, with their settings.",
+      "description": "Generator targets this implementation uses, keyed by target name, with their settings. Defaults: the sql target writes PostgreSQL; the ui target writes plain JavaScript for the web and SwiftUI for the iPhone.",
       "type": "object",
       "propertyNames": {
         "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
@@ -178,7 +178,7 @@
       }
     },
     "decisions": {
-      "description": "Implementation decision records, keyed by ID. An ID must not also be used by a decision in the definition file.",
+      "description": "Implementation decision records, keyed by ID. An ID must not also be used by a decision in the design file.",
       "type": "object",
       "propertyNames": {
         "pattern": "^ADR-[0-9]{3,}$"
@@ -189,7 +189,7 @@
     }
   },
   "required": [
-    "specarchImpl",
+    "specarchImplementation",
     "info",
     "implements",
     "target"
@@ -204,7 +204,7 @@
       "type": "string"
     },
     "designRef": {
-      "description": "A JSON pointer into the definition file, naming one of its objects: '#/entities/Loan', '#/commands/validate', '#/paths/~1loans/post'. The validator checks it resolves.",
+      "description": "A JSON pointer into the design file, naming one of its objects: '#/entities/Loan', '#/commands/validate', '#/paths/~1loans/post'. The validator checks it resolves.",
       "type": "string",
       "pattern": "^#/(entities|enums|permissions|roles|paths|commands|channels|pages|algorithms|decisions)/[^/]+(/.+)?$"
     },
@@ -338,6 +338,27 @@
           "description": "The downstream tool that takes the generator's output, if any, such as an OpenAPI code generator.",
           "type": "string"
         },
+        "dialect": {
+          "description": "For the sql target: the database dialect. The default is postgresql, the only dialect so far.",
+          "type": "string",
+          "enum": [
+            "postgresql"
+          ],
+          "default": "postgresql"
+        },
+        "platform": {
+          "description": "For the ui target: where the screens run.",
+          "type": "string",
+          "enum": [
+            "web",
+            "iphone"
+          ]
+        },
+        "framework": {
+          "description": "For the ui target: the component library or UI framework. The default for platform web is plain-javascript: native ES modules in the browser, no package install, no bundler or build step, every third-party library a pinned file committed beside the generated code, and pages and components that talk through one small generated event bus (event names declared once as UPPERCASE constants with their payload shape, subscriptions registered where a component is created, no wildcard or computed names, an optional debug log of every event). For platform iphone the default is swiftui.",
+          "type": "string",
+          "minLength": 1
+        },
         "description": {
           "$ref": "#/$defs/markdown"
         },
@@ -351,7 +372,47 @@
       "patternProperties": {
         "^x-": {}
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "platform": {
+                "const": "web"
+              }
+            },
+            "required": [
+              "platform"
+            ]
+          },
+          "then": {
+            "properties": {
+              "framework": {
+                "default": "plain-javascript"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "platform": {
+                "const": "iphone"
+              }
+            },
+            "required": [
+              "platform"
+            ]
+          },
+          "then": {
+            "properties": {
+              "framework": {
+                "default": "swiftui"
+              }
+            }
+          }
+        }
+      ]
     },
     "task": {
       "type": "object",

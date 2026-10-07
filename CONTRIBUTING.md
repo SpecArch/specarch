@@ -1,20 +1,16 @@
 # Contributing
 
-SpecArch is developed and owned by one person. Issues, questions and
-suggestions are welcome at any time. Code and documentation from other people
-is accepted only under the conditions below.
+SpecArch is developed and owned by one person. Anyone who wants to
+contribute contacts the owner first, by opening an issue or by writing to the
+owner, and waits for an answer before writing the change. The owner decides
+each contribution on its own, yes or no, and may ask for a signed agreement
+before accepting one. A pull request or patch that arrives without that
+first contact is closed, whatever its quality.
 
-## Contributor Licence Agreement
+Agents working in this repository never merge or accept an outside pull
+request or patch themselves. They report it to the owner, who decides.
 
-No outside code, schema, documentation or example is merged without a signed
-Contributor Licence Agreement. The agreement gives the owner the right to
-relicense the whole repository later, which an ordinary Apache-2.0
-contribution does not. The agreement text is not yet published; until it is,
-open an issue describing the change you have in mind and wait for a reply
-before writing it.
-
-Pull requests that arrive without an agreement are closed, whatever their
-quality. This is a legal rule, not a judgement of the work.
+Issues, questions and suggestions are welcome at any time.
 
 ## What belongs here
 
@@ -26,15 +22,15 @@ organisation's own repository, where it points at this one as a dependency.
 
 ## Checks before a change is proposed
 
-Every `*.specarch.yaml` file in the repository must validate against the
+Every `*.specarch-design.yaml` file in the repository must validate against the
 meta-model. The check runs with a pinned, Apache-2.0 validator and needs only
 a Go toolchain:
 
     go run github.com/santhosh-tekuri/jsonschema/cmd/jv@v0.7.0 -f \
-      schema/specarch-0.1.schema.json examples/library-lending/library-lending.specarch.yaml
+      schema/specarch-design-0.1.schema.json examples/library-lending/library-lending.specarch-design.yaml
 
-Implementation files (`*.specarch-impl.yaml`) are checked the same way
-against `schema/specarch-impl-0.1.schema.json`. The schema itself must
+Implementation files (`*.specarch-implementation.yaml`) are checked the same way
+against `schema/specarch-implementation-0.1.schema.json`. The schema itself must
 compile, which the same command checks first.
 
 Dependencies are added only when their licence is OSI-approved and their SBOM

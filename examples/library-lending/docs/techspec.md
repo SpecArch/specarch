@@ -740,15 +740,15 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 What satisfies and what verifies each requirement. An empty cell is a gap.
 
-| Requirement | Satisfied by | Verified by |
-|---|---|---|
-| LIB-1 | entities Member constraints member_card_number_unique; entities Member; paths /members post | tests register-member; tests register-member-email-taken; checks lend-and-return; checks migrated-members |
-| LIB-2 | entities Book; permissions public; paths /books get | tests browse-catalogue; checks service-answers |
-| LIB-3 | entities Loan; paths /loans post; migrations add-membership-tier | tests lend-a-copy; tests lend-limit-reached; checks lend-and-return |
-| LIB-4 | entities Loan transitions 1; entities Loan; paths /loans/{loanId}/return post; channels loan.overdue; channels loan.overdue messages LoanOverdue; configuration notificationChannelUrl | tests loan-becomes-overdue; monitors overdue-notices-sent |
-| LIB-5 | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; configuration dailyRate | tests return-late; checks lend-and-return |
-| LIB-6 | roles member | checks member-sees-own-loans |
-| LIB-7 | pages loan-form; pages member-form | checks lend-and-return; monitors catalogue-latency |
+| Requirement | Harm | Satisfied by | Verified by |
+|---|---|---|---|
+| LIB-1 |   | entities Member constraints member_card_number_unique; entities Member; paths /members post | tests register-member; tests register-member-email-taken; checks lend-and-return; checks migrated-members |
+| LIB-2 |   | entities Book; permissions public; paths /books get | tests browse-catalogue; checks service-answers |
+| LIB-3 | money | entities Loan; paths /loans post; migrations add-membership-tier | tests lend-a-copy; tests lend-limit-reached; checks lend-and-return |
+| LIB-4 |   | entities Loan transitions 1; entities Loan; paths /loans/{loanId}/return post; channels loan.overdue; channels loan.overdue messages LoanOverdue; configuration notificationChannelUrl | tests loan-becomes-overdue; monitors overdue-notices-sent |
+| LIB-5 |   | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; configuration dailyRate | tests return-late; checks lend-and-return |
+| LIB-6 |   | roles member | checks member-sees-own-loans |
+| LIB-7 |   | pages loan-form; pages member-form | checks lend-and-return; monitors catalogue-latency |
 
 ## Sources
 

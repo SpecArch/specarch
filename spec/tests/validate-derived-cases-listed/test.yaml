@@ -3,4 +3,5 @@ level: system
 scenario: golden
 given: "an operation with a required field, length limits, a permission and a 409 response, and no tests"
 when: validate is run
-then: "it warns once for every derived case no test covers, each with a test to copy, and exits 0"
+then: "it warns once for the missing field and for the caller without the permission, each with a test to copy, not for the boundary cases or the 409 response, which users seldom meet on an operation that satisfies no requirement with a harm, and exits 0"
+verifies: [SA-21]

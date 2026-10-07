@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.1.0 of the specification: 143 design tests, 38 golden and 104 red, about 8 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 148 design tests, 42 golden and 105 red, about 8 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -10,7 +10,8 @@ Version 0.1.0 of the specification: 143 design tests, 38 golden and 104 red, abo
 
 | Level | Design tests |
 |---|---|
-| system | 143 |
+| acceptance | 4 |
+| system | 144 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -216,6 +217,22 @@ Scenario: golden; level: system.
 - When: document techspec is run with --out docs
 - Then: it writes docs/shop.techspec.md without chapter 7 and exits 0
 
+#### document-testplan-left-out
+
+Scenario: golden; level: acceptance; verifies SA-22.
+
+- Given: an operation that satisfies no requirement with a harm, with a length limit, a field marked mistakes rare and a 409 response, and one test that covers the case of a name that is too long
+- When: document testplan is run
+- Then: it writes testplan.md with a section Derived cases left out that lists the uncovered cases of rank other with the reason for each, leaves out the covered one, and exits 0
+
+#### document-traceability-harm
+
+Scenario: golden; level: acceptance; verifies SA-22.
+
+- Given: a specification with two requirements, one of which names two harms
+- When: document traceability is run
+- Then: it writes traceability.md with a Harm column that holds the two harms of the one requirement and is empty for the other, and exits 0
+
 #### document-two-implementations
 
 Scenario: golden; level: system; verifies SA-7, SA-8.
@@ -290,11 +307,11 @@ Scenario: golden; level: system; verifies SA-16.
 
 #### document-writes-traceability
 
-Scenario: golden; level: system; verifies SA-16.
+Scenario: golden; level: system; verifies SA-16, SA-22.
 
 - Given: needs, two requirements, an entity that satisfies one and a test that verifies it, and a rejected need
 - When: document traceability is run
-- Then: it writes traceability.md with both matrices and lists as gaps the unrefined need, the requirement without acceptance criteria and the one nothing satisfies or verifies, and exits 0
+- Then: it writes traceability.md with both matrices and lists as gaps the unrefined need, the requirement without acceptance criteria and the one nothing satisfies or verifies, with no Harm column since no requirement names a harm, and exits 0
 
 ### Command extract
 
@@ -478,13 +495,29 @@ Scenario: golden; level: system.
 - When: validate is run
 - Then: it prints nothing and exits 0
 
+#### validate-derived-cases-harm
+
+Scenario: golden; level: acceptance; verifies SA-21.
+
+- Given: an operation with a required field, length limits, a permission and a 409 response, which satisfies a could requirement that names a harm, and no tests
+- When: validate is run
+- Then: it warns for every derived case, the boundary cases and the 409 too, since a case of a subject that satisfies a requirement with a harm is critical whatever the priority, and exits 0
+
 #### validate-derived-cases-listed
 
-Scenario: golden; level: system.
+Scenario: golden; level: system; verifies SA-21.
 
 - Given: an operation with a required field, length limits, a permission and a 409 response, and no tests
 - When: validate is run
-- Then: it warns once for every derived case no test covers, each with a test to copy, and exits 0
+- Then: it warns once for the missing field and for the caller without the permission, each with a test to copy, not for the boundary cases or the 409 response, which users seldom meet on an operation that satisfies no requirement with a harm, and exits 0
+
+#### validate-derived-cases-mistakes
+
+Scenario: golden; level: acceptance; verifies SA-21.
+
+- Given: an operation that satisfies no requirement with a harm, with a required field marked mistakes rare, a field with a maximum marked mistakes frequent, a message it emits, and no tests
+- When: validate is run
+- Then: it warns for both boundary cases of the frequent field, for the failing channel and for the caller without the permission, not for the cases of the rare field, and exits 0
 
 #### validate-design-key
 
@@ -957,6 +990,14 @@ Scenario: red; level: system; covers exit 1.
 - Given: a role that grants an empty list of permissions
 - When: validate is run
 - Then: it reports the empty list with rule schema and exits 1
+
+#### validate-schema-harm-unknown
+
+Scenario: red; level: system; verifies SA-21.
+
+- Given: a requirement whose harm names a value outside the fixed set
+- When: validate is run
+- Then: it reports the value with rule schema and exits 1
 
 #### validate-schema-list-page-without-source
 

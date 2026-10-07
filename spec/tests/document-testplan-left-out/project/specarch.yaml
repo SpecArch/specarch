@@ -1,0 +1,25 @@
+specarch: "0.1"
+info: { title: Shop, version: 1.0.0 }
+stages: [tests]
+permissions:
+  items.create: { description: Add items. }
+roles:
+  clerk: { description: Staff., permissions: [items.create] }
+paths:
+  /items:
+    post:
+      operationId: createItem
+      summary: Add an item
+      permission: items.create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, maxLength: 40 }
+                note: { type: string, format: email, mistakes: rare }
+              required: [name]
+      responses:
+        "201": { description: Added. }
+        "409": { description: An item with that name exists. }

@@ -8,8 +8,10 @@ responses the design declares. This document is the design of the step
 after that: writing those derived cases as tests, choosing which red paths
 to write when there are too many, saying in the specification why each
 was chosen and what was left out, and turning the tests into runnable code
-on each stack. Nothing of it is built yet; the implementation items are
-listed at the end.
+on each stack. The first implementation item is built: harm, mistakes,
+the rank of each derived case, the narrowed warning, the left-out section
+of the test plan and the Harm column. The other items are listed at the
+end.
 
 The standards are ISO/IEC/IEEE 29119-4:2021 for the techniques and their
 coverage measures, and ISO/IEC/IEEE 29119-1:2022 for why a test set is a
@@ -106,9 +108,11 @@ beyond the ones the requirement asked for, privacy and availability, are
 there because a regulation and an operations team ask about them in the
 same breath as the others; they are a decision made here, for review.
 
-A subject inherits the harm of the requirements it `satisfies`, and a
-derived red case of a critical subject is critical. The traceability
-matrix gains a column for it.
+A subject inherits the harm of the requirements its own `satisfies`
+names (a constraint or a transition does not take its entity's), and
+every derived case of a critical subject, golden or red, is critical. The
+traceability matrices show the harm in a Harm column once a requirement
+names one.
 
 ### How often users get a field wrong
 
@@ -158,9 +162,10 @@ Every derived case has a rank:
 The cases written by default are the critical and the frequent ones. The
 others are left out and listed, not forgotten: the test plan gains a
 section "Derived cases left out", one row per case with its subject, its
-rank and the reason in words ("occasional user mistake on a subject with
-no harm"), computed from the specification, so that writing a test for
-one removes its row. The validator's `test_case_missing` warning then
+scenario and the reason in words ("occasional case, and operation
+createItem satisfies no requirement with a harm"), computed from the
+specification, so that writing a test for one removes its row. Every row
+has rank other, so the table names the scenario in its place. The validator's `test_case_missing` warning then
 names only the chosen cases that no test covers; the left-out ones are
 the test plan's to show. The owner adds a left-out case by writing its
 test, as today.
@@ -320,7 +325,7 @@ inference to the reviewer, which is one reason to write them early.
 In order; each changes the specification of `specarch` first, both
 validator builds where it adds a rule, and the conformance cases.
 
-1. `harm` on requirements, `mistakes` on fields, the rank of each derived
+1. Built. `harm` on requirements, `mistakes` on fields, the rank of each derived
    case and the "chosen" rule: `test_case_missing` warns for chosen cases
    only, the test plan gains "Derived cases left out", the traceability
    matrix gains the harm column. Both builds; the conformance case

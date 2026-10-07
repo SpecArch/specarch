@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+given: "a requirement whose harm names a value outside the fixed set"
+when: validate is run
+then: "it reports the value with rule schema and exits 1"
+verifies: [SA-21]

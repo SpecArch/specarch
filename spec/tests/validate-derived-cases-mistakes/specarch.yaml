@@ -1,0 +1,34 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+entities:
+  Item:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+    primaryKey: [id]
+permissions:
+  items.create: { description: Add items. }
+roles:
+  clerk: { description: Staff., permissions: [items.create] }
+channels:
+  item.events:
+    messages:
+      ItemAdded: { summary: An item was added., payload: { $ref: "#/entities/Item" } }
+paths:
+  /items:
+    post:
+      operationId: createItem
+      summary: Add an item
+      permission: items.create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, maxLength: 40, mistakes: rare }
+                shelf: { type: integer, format: int32, maximum: 9, mistakes: frequent }
+              required: [name]
+      emits: [item.events/ItemAdded]
+      responses:
+        "201": { description: Added. }

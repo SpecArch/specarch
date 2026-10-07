@@ -137,6 +137,9 @@ func limits(f *yaml.Node) string {
 	if str(f, "readOnly") == "true" {
 		out = append(out, "set by the system")
 	}
+	if v := str(f, "mistakes"); v != "" {
+		out = append(out, "users get it wrong "+map[string]string{"frequent": "often", "rare": "rarely"}[v])
+	}
 	return strings.Join(out, ", ")
 }
 

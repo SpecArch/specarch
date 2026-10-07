@@ -1,0 +1,7 @@
+command: document
+level: acceptance
+scenario: golden
+given: "an operation that satisfies no requirement with a harm, with a length limit, a field marked mistakes rare and a 409 response, and one test that covers the case of a name that is too long"
+when: "document testplan is run"
+then: "it writes testplan.md with a section Derived cases left out that lists the uncovered cases of rank other with the reason for each, leaves out the covered one, and exits 0"
+verifies: [SA-22]

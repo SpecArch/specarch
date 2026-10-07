@@ -22,23 +22,89 @@ type subject struct {
 	name    string // for the suggested test name
 	raw     string // the subject's own name inside its case names, if any
 	cases   []derivedCase
+	// critical is true when a requirement the subject satisfies names a
+	// harm.
+	critical bool
 }
 
 // A derived case is a scenario the rest of the file says a subject needs.
 type derivedCase struct {
-	name     string // as written in a test's covers: "missing memberId"
-	scenario string // golden or red
-	given    string
-	when     string
-	then     string
+	name      string // as written in a test's covers: "missing memberId"
+	scenario  string // golden or red
+	given     string
+	when      string
+	then      string
+	frequency string // how often users make the mistake: frequent, occasional or rare
+	field     *yaml.Node // the field or parameter schema the case is about, or nil
+	fieldName string
 }
 
-func (s *subject) red(name, given, when, then string) {
-	s.cases = append(s.cases, derivedCase{name, "red", given, when, then})
+// The frequencies of the case kinds, from the table in docs/conventions.md.
+const (
+	frequent   = "frequent"
+	occasional = "occasional"
+	rare       = "rare"
+)
+
+// The ranks of a derived case. Critical and frequent cases are chosen: the
+// validator warns when no test covers one. The others are left out and
+// listed in the test plan.
+const (
+	rankCritical = "critical"
+	rankFrequent = "frequent"
+	rankOther    = "other"
+)
+
+func (s *subject) red(name, frequency, given, when, then string) {
+	s.cases = append(s.cases, derivedCase{name: name, scenario: "red", given: given, when: when, then: then, frequency: frequency})
 }
 
-func (s *subject) golden(name, given, when, then string) {
-	s.cases = append(s.cases, derivedCase{name, "golden", given, when, then})
+// fieldCase adds a case about one field, whose mistakes key may replace
+// the frequency.
+func (s *subject) fieldCase(scenario, name, frequency, fieldName string, field *yaml.Node, given, when, then string) {
+	s.cases = append(s.cases, derivedCase{name: name, scenario: scenario, given: given, when: when, then: then,
+		frequency: frequency, field: field, fieldName: fieldName})
+}
+
+// mistakes is the field's own frequency, or "".
+func (dc derivedCase) mistakes() string {
+	return source.Str(source.Child(dc.field, "mistakes"))
+}
+
+// rank is critical for a case of a critical subject or a failing
+// dependency, frequent for a case users get wrong often, other otherwise.
+func (s *subject) rank(dc derivedCase) string {
+	if s.critical || strings.HasPrefix(dc.name, "dependency fails ") {
+		return rankCritical
+	}
+	freq := dc.frequency
+	if m := dc.mistakes(); m != "" {
+		freq = m
+	}
+	if freq == frequent {
+		return rankFrequent
+	}
+	return rankOther
+}
+
+// leftOutReason says why a case of rank other is left out.
+func (s *subject) leftOutReason(dc derivedCase) string {
+	if m := dc.mistakes(); m != "" {
+		return fmt.Sprintf("%s is marked mistakes: %s, and %s satisfies no requirement with a harm", dc.fieldName, m, s.label)
+	}
+	return fmt.Sprintf("%s case, and %s satisfies no requirement with a harm", dc.frequency, s.label)
+}
+
+// chosen says whether a case of the subject is written by default: a case
+// whose name the subject derives more than once is chosen when any of
+// them is.
+func (s *subject) chosen(name string) bool {
+	for _, dc := range s.cases {
+		if dc.name == name && s.rank(dc) != rankOther {
+			return true
+		}
+	}
+	return false
 }
 
 // subjects lists every subject of the file with its derived cases, in
@@ -50,30 +116,41 @@ func (d *design) subjects() []*subject {
 		if o.id == "" {
 			continue
 		}
-		out = append(out, d.operationSubject(o))
+		out = append(out, d.withHarm(d.operationSubject(o), o.node))
 	}
 	for _, p := range source.Pairs(source.Child(d.root, "commands")) {
-		out = append(out, commandSubject(p))
+		out = append(out, d.withHarm(commandSubject(p), p.Value))
 	}
 	for _, p := range source.Pairs(source.Child(d.root, "pages")) {
-		out = append(out, pageSubject(p))
+		out = append(out, d.withHarm(pageSubject(p), p.Value))
 	}
 	for _, e := range source.Pairs(source.Child(d.root, "entities")) {
 		for _, c := range source.Pairs(source.Child(e.Value, "constraints")) {
-			out = append(out, constraintSubject(e.Key.Value, c))
+			out = append(out, d.withHarm(constraintSubject(e.Key.Value, c), c.Value))
 		}
 		for i, t := range source.Items(source.Child(e.Value, "transitions")) {
-			out = append(out, transitionSubject(e.Key.Value, i, t))
+			out = append(out, d.withHarm(transitionSubject(e.Key.Value, i, t), t))
 		}
 	}
 	return out
+}
+
+// withHarm marks the subject critical when a requirement its own
+// satisfies names, the node holding that list, has a harm.
+func (d *design) withHarm(s *subject, n *yaml.Node) *subject {
+	for _, id := range source.Items(source.Child(n, "satisfies")) {
+		if len(source.Items(source.Child(d.requirements[id.Value], "harm"))) > 0 {
+			s.critical = true
+		}
+	}
+	return s
 }
 
 func denied(s *subject, perm, what string) {
 	if perm == "" || perm == "public" {
 		return
 	}
-	s.red("denied without "+perm, "a caller without "+perm, what, "it is refused as not allowed")
+	s.red("denied without "+perm, frequent, "a caller without "+perm, what, "it is refused as not allowed")
 }
 
 func (d *design) operationSubject(o operation) *subject {
@@ -84,7 +161,7 @@ func (d *design) operationSubject(o operation) *subject {
 	// client may set.
 	body, bodyRequired := d.requestFields(o.node)
 	for _, f := range bodyRequired {
-		s.red("missing "+f, "...", o.id+" is called without "+f, "it is refused")
+		s.fieldCase("red", "missing "+f, frequent, f, body[f], "...", o.id+" is called without "+f, "it is refused")
 	}
 	names := make([]string, 0, len(body))
 	for n := range body {
@@ -98,7 +175,7 @@ func (d *design) operationSubject(o operation) *subject {
 		name := source.Str(source.Child(p, "name"))
 		d.limitCases(s, name, source.Child(p, "schema"), call)
 		if source.Str(source.Child(p, "in")) == "path" {
-			s.red("not found "+name, "no record has that "+name, o.id+" is called with that "+name, "it is refused as not found")
+			s.fieldCase("red", "not found "+name, frequent, name, source.Child(p, "schema"), "no record has that "+name, o.id+" is called with that "+name, "it is refused as not found")
 		}
 	}
 	// Body fields that point at another entity through the response
@@ -108,13 +185,13 @@ func (d *design) operationSubject(o operation) *subject {
 			kind := source.Str(source.Child(r.Value, "kind"))
 			via := source.Str(source.Child(r.Value, "via"))
 			if (kind == "many-to-one" || kind == "one-to-one") && body[via] != nil {
-				s.red("not found "+via, "no "+source.Str(source.Child(r.Value, "target"))+" has that "+via, o.id+" is called with that "+via, "it is refused as not found")
+				s.fieldCase("red", "not found "+via, frequent, via, body[via], "no "+source.Str(source.Child(r.Value, "target"))+" has that "+via, o.id+" is called with that "+via, "it is refused as not found")
 			}
 		}
 		if o.method == "post" && source.Child(source.Child(o.node, "responses"), "201") != nil {
 			for _, c := range source.Pairs(source.Child(d.entities[ent], "constraints")) {
 				if source.Str(source.Child(c.Value, "kind")) == "unique" {
-					s.red("duplicate "+c.Key.Value, "a "+ent+" that "+c.Key.Value+" would clash with exists", call, "it is refused as a duplicate")
+					s.red("duplicate "+c.Key.Value, occasional, "a "+ent+" that "+c.Key.Value+" would clash with exists", call, "it is refused as a duplicate")
 				}
 			}
 		}
@@ -125,12 +202,12 @@ func (d *design) operationSubject(o operation) *subject {
 		ch, _, _ := strings.Cut(e.Value, "/")
 		if !seenChannel[ch] {
 			seenChannel[ch] = true
-			s.red("dependency fails "+ch, ch+" cannot take the message", call, "...")
+			s.red("dependency fails "+ch, rare, ch+" cannot take the message", call, "...")
 		}
 	}
 	for _, r := range source.Pairs(source.Child(o.node, "responses")) {
 		if code := r.Key.Value; len(code) == 3 && (code[0] == '4' || code[0] == '5') {
-			s.red("response "+code, "...", call, "it answers "+code+": "+source.Str(source.Child(r.Value, "description")))
+			s.red("response "+code, occasional, "...", call, "it answers "+code+": "+source.Str(source.Child(r.Value, "description")))
 		}
 	}
 	return s
@@ -199,50 +276,56 @@ func (d *design) limitCases(s *subject, name string, field *yaml.Node, call stri
 		return
 	}
 	with := call + " with " + name
+	red := func(caseName, frequency, when string) {
+		s.fieldCase("red", caseName, frequency, name, field, "...", when, "it is refused")
+	}
+	golden := func(caseName, when string) {
+		s.fieldCase("golden", caseName, occasional, name, field, "...", when, "it succeeds")
+	}
 	num := func(key string) (string, bool) {
 		n := source.Child(field, key)
 		return source.Str(n), n != nil
 	}
 	if v, ok := num("minimum"); ok {
-		s.red(name+" below minimum "+v, "...", with+" just below "+v, "it is refused")
-		s.golden(name+" at minimum "+v, "...", with+" equal to "+v, "it succeeds")
+		red(name+" below minimum "+v, occasional, with+" just below "+v)
+		golden(name+" at minimum "+v, with+" equal to "+v)
 	}
 	if v, ok := num("maximum"); ok {
-		s.red(name+" above maximum "+v, "...", with+" just above "+v, "it is refused")
-		s.golden(name+" at maximum "+v, "...", with+" equal to "+v, "it succeeds")
+		red(name+" above maximum "+v, occasional, with+" just above "+v)
+		golden(name+" at maximum "+v, with+" equal to "+v)
 	}
 	if v, ok := num("exclusiveMinimum"); ok {
-		s.red(name+" at exclusive minimum "+v, "...", with+" equal to "+v, "it is refused")
+		red(name+" at exclusive minimum "+v, occasional, with+" equal to "+v)
 	}
 	if v, ok := num("exclusiveMaximum"); ok {
-		s.red(name+" at exclusive maximum "+v, "...", with+" equal to "+v, "it is refused")
+		red(name+" at exclusive maximum "+v, occasional, with+" equal to "+v)
 	}
 	minLen, hasMin := num("minLength")
 	maxLen, hasMax := num("maxLength")
 	if hasMin && minLen != "0" {
-		s.red(name+" shorter than "+chars(minLen), "...", with+" "+characters(minLen, -1), "it is refused")
-		s.golden(name+" of "+chars(minLen), "...", with+" "+characters(minLen, 0), "it succeeds")
+		red(name+" shorter than "+chars(minLen), occasional, with+" "+characters(minLen, -1))
+		golden(name+" of "+chars(minLen), with+" "+characters(minLen, 0))
 	}
 	if hasMax {
-		s.red(name+" longer than "+chars(maxLen), "...", with+" "+characters(maxLen, 1), "it is refused")
+		red(name+" longer than "+chars(maxLen), occasional, with+" "+characters(maxLen, 1))
 		if !hasMin || minLen != maxLen {
-			s.golden(name+" of "+chars(maxLen), "...", with+" "+characters(maxLen, 0), "it succeeds")
+			golden(name+" of "+chars(maxLen), with+" "+characters(maxLen, 0))
 		}
 	}
 	if v, ok := num("minItems"); ok && v != "0" {
-		s.red(name+" with fewer than "+v+" items", "...", with+" holding fewer than "+v+" items", "it is refused")
+		red(name+" with fewer than "+v+" items", occasional, with+" holding fewer than "+v+" items")
 	}
 	if v, ok := num("maxItems"); ok {
-		s.red(name+" with more than "+v+" items", "...", with+" holding more than "+v+" items", "it is refused")
+		red(name+" with more than "+v+" items", occasional, with+" holding more than "+v+" items")
 	}
 	if _, ok := num("pattern"); ok {
-		s.red(name+" not matching its pattern", "...", with+" in the wrong form", "it is refused")
+		red(name+" not matching its pattern", frequent, with+" in the wrong form")
 	}
 	if _, _, isEnum := d.enumValues(field); isEnum {
-		s.red(name+" not one of its values", "...", with+" set to a value it does not allow", "it is refused")
+		red(name+" not one of its values", frequent, with+" set to a value it does not allow")
 	}
 	if f, _ := num("format"); validatingFormats[f] {
-		s.red(name+" not a valid "+f, "...", with+" that is not a valid "+f, "it is refused")
+		red(name+" not a valid "+f, frequent, with+" that is not a valid "+f)
 	}
 }
 
@@ -261,10 +344,10 @@ func commandSubject(p source.Pair) *subject {
 	s := &subject{kind: "command", label: "command " + name, node: p.Key, path: source.Pointer("commands", name),
 		yamlKey: "command: " + name, name: kebab(strings.ReplaceAll(name, " ", "-"))}
 	run := name + " is run"
-	s.red("usage error", "...", name+" is run with arguments it does not accept", "it prints how to use it and exits with the usage status")
+	s.red("usage error", frequent, "...", name+" is run with arguments it does not accept", "it prints how to use it and exits with the usage status")
 	for _, c := range source.Pairs(source.Child(p.Value, "exitCodes")) {
 		if c.Key.Value != "0" {
-			s.red("exit "+c.Key.Value, "...", run, "it exits "+c.Key.Value+": "+source.Str(c.Value))
+			s.red("exit "+c.Key.Value, frequent, "...", run, "it exits "+c.Key.Value+": "+source.Str(c.Value))
 		}
 	}
 	denied(s, source.Str(source.Child(p.Value, "permission")), run)
@@ -278,7 +361,7 @@ func pageSubject(p source.Pair) *subject {
 	open := "the page " + name + " is opened"
 	denied(s, source.Str(source.Child(p.Value, "permission")), open)
 	for _, m := range pathParam.FindAllStringSubmatch(source.Str(source.Child(p.Value, "route")), -1) {
-		s.red("not found "+m[1], "no record has that "+m[1], open+" for that "+m[1], "it says the record was not found")
+		s.red("not found "+m[1], frequent, "no record has that "+m[1], open+" for that "+m[1], "it says the record was not found")
 	}
 	return s
 }
@@ -291,9 +374,9 @@ func constraintSubject(entity string, c source.Pair) *subject {
 	msg := source.Str(source.Child(c.Value, "message"))
 	switch source.Str(source.Child(c.Value, "kind")) {
 	case "unique":
-		s.red("duplicate "+name, "a "+entity+" exists", "another "+entity+" with the same values is saved", "it is refused: "+msg)
+		s.red("duplicate "+name, occasional, "a "+entity+" exists", "another "+entity+" with the same values is saved", "it is refused: "+msg)
 	case "check":
-		s.red("violates "+name, "...", "a "+entity+" breaking it is saved", "it is refused: "+msg)
+		s.red("violates "+name, occasional, "...", "a "+entity+" breaking it is saved", "it is refused: "+msg)
 	}
 	return s
 }
@@ -308,7 +391,7 @@ func transitionSubject(entity string, i int, t *yaml.Node) *subject {
 	if trigger == "" {
 		trigger = "the move"
 	}
-	s.red("from wrong state", "the "+entity+" is not "+from, trigger+" happens", "it is refused and the state stays as it was")
+	s.red("from wrong state", frequent, "the "+entity+" is not "+from, trigger+" happens", "it is refused and the state stays as it was")
 	return s
 }
 

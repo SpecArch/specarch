@@ -31,3 +31,7 @@ needs:
     statement: I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made.
     stakeholders: [specification-author, reviewer]
     status: accepted
+  NEED-9:
+    statement: I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out.
+    stakeholders: [specification-author, implementer]
+    status: accepted

@@ -20,7 +20,8 @@ commands:
       assumptions, chapter 7 from the deployment and commissioning stages
       and from each implementation file, chapter 12 from the glossary, and
       chapter 13 from the needs and requirements, with the traceability
-      matrix of what satisfies and what verifies each requirement. A marker
+      matrix of what satisfies and what verifies each requirement, and its
+      harm once a requirement names one. A marker
       names what goes in its region: `erDiagram`, `stateDiagram <Entity>`,
       `sequenceDiagram <operationId or command>`, `flowchart pages` or
       `permissions`.
@@ -30,9 +31,12 @@ commands:
       requirement with its attributes and acceptance criteria. The
       testplan target writes `testplan.md`: the levels, how each
       implementation's suites run the tests, and every design test as a
-      test case, grouped by subject. The traceability target writes
-      `traceability.md`: needs to requirements, requirements to what
-      satisfies and verifies them, and the gaps the validator warns about.
+      test case, grouped by subject, then the derived cases left out: each
+      case of rank other that no test covers, with its subject and the
+      reason. The traceability target writes `traceability.md`: needs to
+      requirements, requirements to what satisfies and verifies them, with
+      their harm once a requirement names one, and the gaps the validator
+      warns about.
       The deployment target writes `deployment.md`: the environments and
       the path a release takes, the settings, each installation of each
       implementation with its servers and setting values (a secret only
@@ -84,7 +88,7 @@ commands:
       "1": a specification has an error, a marker is wrong, or with `--check` the output differs
       "2": usage error, a target this build does not offer, no output folder, or a file that could not be read or written
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19]
+    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22]
     why: Documents are read by more people than the YAML, so they come first among the targets and are made from the specification rather than kept beside it.
     cites:
       - source: arc42

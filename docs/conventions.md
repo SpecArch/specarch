@@ -522,30 +522,56 @@ and `then`. There is no test language beyond that. In a tree, each test is
 
 Every subject needs at least one golden scenario and its red ones. The
 validator derives the cases a subject needs from the rest of the
-specification, and warns once for every case no test lists under `covers`,
-with a test to copy:
+specification. Each case has a frequency, how often users make that
+mistake:
 
-| Found in the design | Case | Scenario |
-|---|---|---|
-| a required field of a request body | `missing <field>` | red |
-| `minimum` / `maximum` of a field or parameter | `<field> below minimum N` / `<field> above maximum N` | red |
-| | `<field> at minimum N` / `<field> at maximum N` | golden |
-| `exclusiveMinimum` / `exclusiveMaximum` | `<field> at exclusive minimum N` / `... maximum N` | red |
-| `minLength` / `maxLength` | `<field> shorter than N characters` / `<field> longer than N characters` | red |
-| | `<field> of N characters` | golden |
-| `minItems` / `maxItems` | `<field> with fewer than N items` / `<field> with more than N items` | red |
-| `pattern` | `<field> not matching its pattern` | red |
-| an enum | `<field> not one of its values` | red |
-| a format that values can break (email, uuid, date, decimal...) | `<field> not a valid <format>` | red |
-| a permission other than `public` on an operation, command or page | `denied without <permission>` | red |
-| a path parameter, or a route parameter of a page | `not found <parameter>` | red |
-| a body field that is the `via` of a relation of the entity the operation returns | `not found <field>` | red |
-| a unique constraint of the entity a POST with a 201 response creates | `duplicate <constraint>` | red |
-| a channel the operation `emits` on | `dependency fails <channel>` | red |
-| a 4xx or 5xx response | `response <status>` | red |
-| a command | `usage error`, and `exit <status>` for each non-zero exit code | red |
-| a check constraint / a unique constraint | `violates <constraint>` / `duplicate <constraint>` | red |
-| a transition | `from wrong state` | red |
+| Found in the design | Case | Scenario | Frequency |
+|---|---|---|---|
+| a required field of a request body | `missing <field>` | red | frequent |
+| `minimum` / `maximum` of a field or parameter | `<field> below minimum N` / `<field> above maximum N` | red | occasional |
+| | `<field> at minimum N` / `<field> at maximum N` | golden | occasional |
+| `exclusiveMinimum` / `exclusiveMaximum` | `<field> at exclusive minimum N` / `... maximum N` | red | occasional |
+| `minLength` / `maxLength` | `<field> shorter than N characters` / `<field> longer than N characters` | red | occasional |
+| | `<field> of N characters` | golden | occasional |
+| `minItems` / `maxItems` | `<field> with fewer than N items` / `<field> with more than N items` | red | occasional |
+| `pattern` | `<field> not matching its pattern` | red | frequent |
+| an enum | `<field> not one of its values` | red | frequent |
+| a format that values can break (email, uuid, date, decimal...) | `<field> not a valid <format>` | red | frequent |
+| a permission other than `public` on an operation, command or page | `denied without <permission>` | red | frequent |
+| a path parameter, or a route parameter of a page | `not found <parameter>` | red | frequent |
+| a body field that is the `via` of a relation of the entity the operation returns | `not found <field>` | red | frequent |
+| a unique constraint of the entity a POST with a 201 response creates | `duplicate <constraint>` | red | occasional |
+| a channel the operation `emits` on | `dependency fails <channel>` | red | rare |
+| a 4xx or 5xx response | `response <status>` | red | occasional |
+| a command | `usage error`, and `exit <status>` for each non-zero exit code | red | frequent |
+| a check constraint / a unique constraint | `violates <constraint>` / `duplicate <constraint>` | red | occasional |
+| a transition | `from wrong state` | red | frequent |
+
+A field or a parameter's schema may replace the frequency of every case
+derived from it (its limits, pattern, enum and format, and `missing` or
+`not found` for it) with `mistakes`:
+
+    fullName: { type: string, maxLength: 200, mistakes: rare }
+    email: { type: string, format: email, mistakes: frequent }
+
+A requirement may name what is at stake when it is not met, under `harm`:
+`data-loss`, `money`, `security`, `safety`, `privacy` or `availability`.
+`priority` does not do this: it says whether a release may go without the
+requirement, not what its failure costs.
+
+    LIB-3:
+      statement: A member shall have at most three open loans.
+      harm: [money]
+
+Each derived case then has a rank. It is `critical` when its subject
+satisfies, under its own `satisfies`, a requirement with a harm, or when
+it is a failing dependency; `frequent` when its frequency is frequent; and
+`other` otherwise. The validator warns once for every critical or frequent
+case no test lists under `covers` (`test_case_missing`), with a test to
+copy. The cases of rank `other` that no test covers are left out: the test
+plan lists them under "Derived cases left out", each with the reason, and
+writing a test for one removes it from the list. Once a requirement names
+a harm, the traceability matrices have a Harm column.
 
 One test may cover several cases when they are one scenario (a lookup that
 answers 404 covers `not found memberId` and `response 404`). A case that

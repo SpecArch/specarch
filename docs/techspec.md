@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.1.0 of the specification: 20 requirements, 3 entities, 7 commands, 6 algorithms, 143 tests, 19 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 22 requirements, 3 entities, 7 commands, 6 algorithms, 148 tests, 20 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -211,7 +211,7 @@ Primary key: path.
 | Rule | test_case | a test covers a case its subject does not have, or a red case in a golden test |
 | Rule | test_golden_missing | a subject has no golden scenario (a warning in 0.1) |
 | Rule | test_red_missing | a subject has no red scenario and no derived red case (a warning in 0.1) |
-| Rule | test_case_missing | a case derived from the design has no test (a warning in 0.1) |
+| Rule | test_case_missing | a chosen case derived from the design has no test; a case is chosen when its subject satisfies a requirement with `harm`, when it is a failing dependency, or when users get it wrong often (a warning in 0.1) |
 | Rule | suite | an implementation's test suite names a design test or subject that does not exist |
 | Rule | layout | a file or a section is not where the tree layout puts it; the root file's `stages` and the folders disagree, a test folder has no `test.yaml`, or a folder is not a stage |
 | Rule | need | a requirement's `needs` names a need that does not exist |
@@ -306,7 +306,8 @@ permissions table. Chapter 2 comes from the constraints and
 assumptions, chapter 7 from the deployment and commissioning stages
 and from each implementation file, chapter 12 from the glossary, and
 chapter 13 from the needs and requirements, with the traceability
-matrix of what satisfies and what verifies each requirement. A marker
+matrix of what satisfies and what verifies each requirement, and its
+harm once a requirement names one. A marker
 names what goes in its region: `erDiagram`, `stateDiagram <Entity>`,
 `sequenceDiagram <operationId or command>`, `flowchart pages` or
 `permissions`.
@@ -316,9 +317,12 @@ the needs with the requirements that refine them, and each
 requirement with its attributes and acceptance criteria. The
 testplan target writes `testplan.md`: the levels, how each
 implementation's suites run the tests, and every design test as a
-test case, grouped by subject. The traceability target writes
-`traceability.md`: needs to requirements, requirements to what
-satisfies and verifies them, and the gaps the validator warns about.
+test case, grouped by subject, then the derived cases left out: each
+case of rank other that no test covers, with its subject and the
+reason. The traceability target writes `traceability.md`: needs to
+requirements, requirements to what satisfies and verifies them, with
+their harm once a requirement names one, and the gaps the validator
+warns about.
 The deployment target writes `deployment.md`: the environments and
 the path a release takes, the settings, each installation of each
 implementation with its servers and setting values (a secret only
@@ -686,7 +690,7 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | internal/approval | The approval record beside a specification, its digest of the specification's files, and where a version's approval stands against the files now. |   |
 | internal/expr | The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals. |   |
 | internal/generate | The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents; questions writes the open questions and what they hold up, the text gaps prints. Every one renders why as an Insight, each citation as a Note, an element's origin as an Origin line and the open questions about it as Open question paragraphs. | #/algorithms/markersWellFormed |
-| internal/validate | Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases, the life-cycle links and traceability warnings, the open questions and what they cover, origin, and implementation references. | #/entities/Diagnostic, #/enums/Rule, #/enums/Severity, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
+| internal/validate | Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases with the rank of each and the cases left out, the life-cycle links and traceability warnings, the open questions and what they cover, origin, and implementation references. | #/entities/Diagnostic, #/enums/Rule, #/enums/Severity, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
 
 #### Mappings
 
@@ -836,7 +840,7 @@ Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin
 |---|---|---|
 | swift/Package.swift | The package. One library, one executable, one test target. |   |
 | swift/Sources/specarch | The executable; it passes the arguments to the library and exits with its status. |   |
-| swift/Sources/SpecArchKit | Everything else. Reading YAML, reading a specification tree into one document, the JSON Schema evaluator and its messages, the specification and implementation checks, the expression subset, tests and their derived cases, the life-cycle links, the open questions and origin, and the commands. | #/commands/validate, #/commands/version, #/entities/Diagnostic, #/entities/SpecFile, #/enums/Rule, #/enums/Severity, #/algorithms/exitStatus, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
+| swift/Sources/SpecArchKit | Everything else. Reading YAML, reading a specification tree into one document, the JSON Schema evaluator and its messages, the specification and implementation checks, the expression subset, tests and their derived cases with the rank of each, the life-cycle links, the open questions and origin, and the commands. | #/commands/validate, #/commands/version, #/entities/Diagnostic, #/entities/SpecFile, #/enums/Rule, #/enums/Severity, #/algorithms/exitStatus, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
 | swift/embed-schemas.sh | Writes the schemas of schema/ into the library as Swift source; a test fails when they differ. |   |
 
 #### Mappings
@@ -1691,6 +1695,40 @@ the maintenance design when that is built.
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 3: A baseline is a formally approved version of a configuration item, fixed at a point in time. <https://www.iso.org/standard/72089.html>
 
+### ADR-020: Derived test cases are chosen by the harm of a requirement and by how often users make the mistake
+
+Status: accepted, 2026-10-08.
+
+Context: The validator derives a red case from every limit, format,
+permission, relation, state and response of a design, and a golden
+case from every boundary. On a real design that is far more cases
+than a project writes tests for, and a warning for each one buries
+the few that matter.
+
+Decision: A requirement may name its `harm`: data-loss, money, security,
+safety, privacy or availability. A subject (an operation, command,
+page, constraint or transition) is critical when a requirement it
+satisfies, through its own `satisfies`, names a harm. Every derived
+case has a kind with a default frequency (frequent, occasional or
+rare) from a fixed table, and a field may replace the frequency of
+every case about it with `mistakes: frequent` or `mistakes: rare`.
+A case is critical when its subject is critical or it is a failing
+dependency, frequent when its frequency is frequent, and other
+otherwise. The validator warns about the critical and frequent cases
+no test covers; the test plan lists the others, uncovered, as left
+out, with the reason.
+
+Consequences: A design gets fewer warnings, each about a case worth writing, and
+the left-out cases stay in sight in the test plan. Marking one
+requirement with a harm brings back every case of the elements that
+satisfy it. The rank says nothing of a case a test already covers.
+
+**Insight:** `priority: must` says whether a release may go without a requirement, not what its failure costs: a must requirement on the colour of a button has no harm, and a could requirement on a backup can lose data, so harm is a separate attribute. Privacy and availability stand beside the four harms first asked for because a regulator and an operations team ask about them in the same breath. The frequency override sits on a field only, because a mistake is made in a field; a subject's frequency would not be about users. A failing dependency is critical whatever the subject, because it is the case nobody exercises by hand. A subject takes the harm of what it satisfies itself, not of the entity that holds it, so marking one constraint does not mark every transition of the entity.
+
+**Note:** From ISO/IEC/IEEE 29119-1, Software and systems engineering, Software testing, Part 1, General concepts, 2022, clause 4.2.3: The requirements and the risks of the item under test are the basis of the test strategy.
+
+**Note:** From ISO/IEC/IEEE 29119-4, Software and systems engineering, Software testing, Part 4, Test techniques, 2021, clause 5.4.1: Error guessing designs test cases from knowledge of the mistakes that are commonly made.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -1719,6 +1757,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-state-diagram | command document | system | golden | a hand-written document with a stateDiagram Order marker | document techspec is run | the region holds the states of Order with a start and an end, and it exits 0 |
 | document-target-not-offered | command document | system | red | a document target of the design that this build does not offer | document manual is run | it says which targets it has and exits 2 |
 | document-techspec-without-implementation | command document | system | golden | a design file and no implementation file | document techspec is run with --out docs | it writes docs/shop.techspec.md without chapter 7 and exits 0 |
+| document-testplan-left-out | command document | acceptance | golden | an operation that satisfies no requirement with a harm, with a length limit, a field marked mistakes rare and a 409 response, and one test that covers the case of a name that is too long | document testplan is run | it writes testplan.md with a section Derived cases left out that lists the uncovered cases of rank other with the reason for each, leaves out the covered one, and exits 0 |
+| document-traceability-harm | command document | acceptance | golden | a specification with two requirements, one of which names two harms | document traceability is run | it writes traceability.md with a Harm column that holds the two harms of the one requirement and is empty for the other, and exits 0 |
 | document-two-implementations | command document | system | golden | a specification with two implementation files, one of which names techspec's output folder | document techspec is run on it | chapter 7 has one part for each implementation, the header names both, and it exits 0 |
 | document-unknown-target | command document | system | red | a target name that does not exist | document is run with target pdf | it names the targets there are and exits 2 |
 | document-usage-error | command document | system | red | no target | document is run without arguments | it prints how to use it and exits 2 |
@@ -1728,7 +1768,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-writes-requirements | command document | system | golden | a specification whose elements have an Insight only, a Note only, both, several Notes and neither | document requirements is run | it writes requirements.md with an Insight for every why and a Note for every citation, after the table for a row, ends with the two sources cited, and exits 0 |
 | document-writes-techspec | command document | system | golden | a design file and an implementation file that names techspec's output folder | document techspec is run on both | it writes techspec/shop.techspec.md with every chapter the design fills, chapter 7 from the implementation file, and exits 0 |
 | document-writes-testplan | command document | system | golden | a specification with a golden and a red test of one entity constraint, one with a why | document testplan is run | it writes testplan.md with the count of each scenario, the levels, both test cases under their subject with given, when and then, and exits 0 |
-| document-writes-traceability | command document | system | golden | needs, two requirements, an entity that satisfies one and a test that verifies it, and a rejected need | document traceability is run | it writes traceability.md with both matrices and lists as gaps the unrefined need, the requirement without acceptance criteria and the one nothing satisfies or verifies, and exits 0 |
+| document-writes-traceability | command document | system | golden | needs, two requirements, an entity that satisfies one and a test that verifies it, and a rejected need | document traceability is run | it writes traceability.md with both matrices and lists as gaps the unrefined need, the requirement without acceptance criteria and the one nothing satisfies or verifies, with no Harm column since no requirement names a harm, and exits 0 |
 | extract-exit-1 | command extract | system | red | not applicable |   | Status 1, a surface that cannot be read as the source expects, can only happen once extract is built; this build answers every call with status 2. |
 | extract-not-offered | command extract | system | red | a build that does not offer extract | extract openapi is run on a file | it says extract is not built yet and exits 2 |
 | extract-usage-error | command extract | system | red | no source | extract is run without arguments | it prints how to use it and exits 2 |
@@ -1751,7 +1791,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-deployment-environment-missing | command validate | system | red | an implementation deployment that names no environment while the specification declares them | validate is run | it reports environment at the deployment and exits 1 |
 | validate-deployment-valid | command validate | system | golden | a specification with environments, configuration, release, rollback, a migration, a check and a sign-off, and an implementation file whose deployment names its environment and gives the non-secret setting a value | validate is run | it prints nothing and exits 0 |
 | validate-derived-cases-covered | command validate | system | golden | an operation whose every derived case is covered by a test, one of them marked not applicable with a reason | validate is run | it prints nothing and exits 0 |
-| validate-derived-cases-listed | command validate | system | golden | an operation with a required field, length limits, a permission and a 409 response, and no tests | validate is run | it warns once for every derived case no test covers, each with a test to copy, and exits 0 |
+| validate-derived-cases-harm | command validate | acceptance | golden | an operation with a required field, length limits, a permission and a 409 response, which satisfies a could requirement that names a harm, and no tests | validate is run | it warns for every derived case, the boundary cases and the 409 too, since a case of a subject that satisfies a requirement with a harm is critical whatever the priority, and exits 0 |
+| validate-derived-cases-listed | command validate | system | golden | an operation with a required field, length limits, a permission and a 409 response, and no tests | validate is run | it warns once for the missing field and for the caller without the permission, each with a test to copy, not for the boundary cases or the 409 response, which users seldom meet on an operation that satisfies no requirement with a harm, and exits 0 |
+| validate-derived-cases-mistakes | command validate | acceptance | golden | an operation that satisfies no requirement with a harm, with a required field marked mistakes rare, a field with a maximum marked mistakes frequent, a message it emits, and no tests | validate is run | it warns for both boundary cases of the frequent field, for the failing channel and for the caller without the permission, not for the cases of the rare field, and exits 0 |
 | validate-design-key | command validate | system | red | an implementation file with an entities key | validate is run | it reports design_key and exits 1 |
 | validate-design-ref | command validate | system | red | an implementation mapping that points at an entity the design does not have | validate is run | it reports design_ref and exits 1 |
 | validate-duplicate-key | command validate | system | red | a file with info twice | validate is run | it reports duplicate_key at the second info and exits 1 |
@@ -1811,6 +1853,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-requirements-only | command validate | system | golden | a specification with stakeholders, a need and a requirement that refines it, and no other stage | validate is run | it prints nothing and exits 0 |
 | validate-schema-algorithm-without-pseudocode | command validate | system | red | an algorithm without pseudocode | validate is run | it reports the missing pseudocode with rule schema and exits 1 |
 | validate-schema-empty-role | command validate | system | red | a role that grants an empty list of permissions | validate is run | it reports the empty list with rule schema and exits 1 |
+| validate-schema-harm-unknown | command validate | system | red | a requirement whose harm names a value outside the fixed set | validate is run | it reports the value with rule schema and exits 1 |
 | validate-schema-list-page-without-source | command validate | system | red | a list page without a source operation | validate is run | it reports the missing source with rule schema and exits 1 |
 | validate-schema-name-form | command validate | system | red | a source whose name is not kebab-case, next to one that is | validate is run | it reports the name with rule schema at its own line and path, and exits 1 |
 | validate-schema-operation-without-permission | command validate | system | red | an operation with no permission | validate is run | it reports the missing permission with rule schema and exits 1 |
@@ -1870,11 +1913,14 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted |
+| NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted |
 
 ### Requirements
 
 | Requirement | Statement | Kind | Priority | Status | Verification | Acceptance | Needs |
 |---|---|---|---|---|---|---|---|
+| SA-21 | specarch validate shall rank every test case it derives as critical, frequent or other, from the harm of the requirements its subject satisfies and from how often users get its field wrong, and shall warn only for the critical and frequent cases no test covers. | functional | must | accepted | test | An operation that satisfies no requirement with harm gets no warning for the boundary cases of its fields, and still gets one for a missing required field and for a caller without the permission. The same operation, once it satisfies a requirement with harm, gets a warning for every derived case no test covers. A field with mistakes rare loses the warnings for its cases, and a field with mistakes frequent gains them. A failing channel is warned about whatever the harm of the operation. | NEED-9 |
+| SA-22 | specarch document shall list in the test plan, under Derived cases left out, every derived case of rank other that no test covers, with its subject and the reason it was left out, and shall show each requirement's harm in the traceability matrix once a requirement names one. | functional | must | accepted | test | The test plan of a specification with an uncovered boundary case on a subject with no harm has a row for that case, and the row is gone once a test covers it. The traceability matrix of a specification with a requirement that names a harm has a Harm column, and one without has none. | NEED-9, NEED-3 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-14 | A code target that specarch does not build in shall be produced by the plug-in specarch-gen-<target> found on PATH, which receives the validated specification on its standard input and answers with the files to write, so that specarch writes them, checks them and keeps them inside the target's folder. | interface | should | accepted | test | specarch generate <target> with no built-in generator and no plug-in on PATH says so and exits 2. A plug-in's answer that names a path outside the output folder is refused and nothing is written. | NEED-7 |
@@ -1895,6 +1941,16 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-6 | Every problem shall be reported, one line each, with file, line, YAML path and rule; the exit status is 0 when valid, 1 when invalid, 2 on a usage or read error. | interface | must | accepted | test | A run on a folder with three problems in two files prints three lines and exits 1. A run with no arguments prints how to use the command and exits 2. | NEED-1 |
 | SA-9 | A specification and its implementations shall be separate files; a specification holds no stack-specific key and an implementation file adds no design. | constraint | must | accepted | test | A stack-specific extension key in a specification is reported as stack_key. A design keyword in an implementation file is reported as design_key. | NEED-2 |
 | SA-10 | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. | functional | must | accepted | test | An implementation written against an older version of its specification is reported as implements. A pointer to an object the specification does not have is reported as design_ref. | NEED-2 |
+
+**Insight on SA-21:** Every case a design implies cannot be tested on every project, so the sample is chosen by risk, and the risk is read from the specification rather than from a tester's memory.
+
+**Note on SA-21:** From ISO/IEC/IEEE 29119-1, Software and systems engineering, Software testing, Part 1, General concepts, 2022, clause 4.1.6: Exhaustive testing is not possible in practice, so the tests run are a sample of all the tests that could be run.
+
+**Note on SA-21:** From ISO/IEC/IEEE 29119-1, Software and systems engineering, Software testing, Part 1, General concepts, 2022, clause 4.2.2: Risk-based testing uses the risks of the item under test to decide what to test and how much.
+
+**Note on SA-21:** From ISO/IEC/IEEE 29119-4, Software and systems engineering, Software testing, Part 4, Test techniques, 2021, clause 5.4.1: Error guessing designs test cases from knowledge of the mistakes that are commonly made.
+
+**Insight on SA-22:** A case left out is a decision, and a decision the reader cannot see is one nobody can question.
 
 **Note on SA-14:** From Protocol buffers compiler plug-in protocol, plugin.proto, 2024: A plug-in reads a CodeGeneratorRequest from standard input and writes a CodeGeneratorResponse to standard output; protoc writes the files, so a plug-in never touches the disk. <https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto>
 
@@ -1948,6 +2004,8 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-18 | enums Rule; commands validate; decisions ADR-018 | tests document-draft-notice; tests validate-origin; tests validate-origin-tracked |
 | SA-19 | enums DocumentTarget; commands document; commands gaps | tests document-draft-notice; tests document-writes-questions; tests gaps-lists-questions; tests gaps-none |
 | SA-20 | commands approve; commands generate; decisions ADR-019 | tests approve-refuses-open-question; tests approve-refuses-stale-document; tests approve-writes-record; tests generate-refuses-open-question; tests generate-refuses-unapproved; tests generate-unapproved |
+| SA-21 | commands validate; decisions ADR-020 | tests validate-derived-cases-harm; tests validate-derived-cases-listed; tests validate-derived-cases-mistakes; tests validate-schema-harm-unknown |
+| SA-22 | commands document; decisions ADR-020 | tests document-testplan-left-out; tests document-traceability-harm; tests document-writes-traceability |
 
 ## Sources
 
@@ -1965,6 +2023,7 @@ Every source a Note in this document cites.
 | iso-12207 | ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes | 2017 | ISO, IEC and IEEE | https://www.iso.org/standard/63712.html |
 | iso-29119-1 | ISO/IEC/IEEE 29119-1, Software and systems engineering, Software testing, Part 1, General concepts | 2022 | ISO, IEC and IEEE |   |
 | iso-29119-3 | ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation | 2021 | ISO, IEC and IEEE | https://www.iso.org/standard/79429.html |
+| iso-29119-4 | ISO/IEC/IEEE 29119-4, Software and systems engineering, Software testing, Part 4, Test techniques | 2021 | ISO, IEC and IEEE |   |
 | iso-29148 | ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering | 2018 | ISO, IEC and IEEE | https://www.iso.org/standard/72089.html |
 | json-schema | JSON Schema, a media type for describing JSON documents | 2020-12 | The JSON Schema project | https://json-schema.org/specification |
 | mil-std-961 | MIL-STD-961E, Defense and program-unique specifications format and content | 2003, with change 3 of 2020 | United States Department of Defense |   |

@@ -37,6 +37,11 @@ sources:
     edition: "2021"
     author: ISO, IEC and IEEE
     url: https://www.iso.org/standard/79429.html
+  iso-29119-4:
+    kind: standard
+    title: ISO/IEC/IEEE 29119-4, Software and systems engineering, Software testing, Part 4, Test techniques
+    edition: "2021"
+    author: ISO, IEC and IEEE
   iso-12207:
     kind: standard
     title: ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes

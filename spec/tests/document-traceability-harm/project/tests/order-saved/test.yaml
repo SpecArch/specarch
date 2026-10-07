@@ -1,0 +1,8 @@
+entity: Order
+constraint: total_positive
+scenario: golden
+level: system
+given: an order with a total of 5
+when: it is recorded
+then: it is saved
+verifies: [SHOP-1]

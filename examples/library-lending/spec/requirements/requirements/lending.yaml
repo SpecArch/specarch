@@ -32,6 +32,7 @@ requirements:
       - A member with outstanding fees is refused a loan with 409.
     verification: test
     needs: [NEED-1]
+    harm: [money]
     cites:
       - source: lending-policy
         clause: "2"

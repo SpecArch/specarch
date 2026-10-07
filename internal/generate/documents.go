@@ -21,7 +21,7 @@ func Document(target string, root *yaml.Node, relRoot string, impls []Implementa
 	case "requirements":
 		return Requirements(root, relRoot, impls), true
 	case "testplan":
-		return Testplan(root, relRoot, impls), true
+		return Testplan(root, relRoot, impls, state), true
 	case "traceability":
 		return Traceability(root, relRoot, impls), true
 	case "deployment":
@@ -120,6 +120,9 @@ func Requirements(root *yaml.Node, relRoot string, impls []Implementation) strin
 			if n := strs(r.Value, "needs"); len(n) > 0 {
 				attrs = append(attrs, "refines "+strings.Join(n, ", "))
 			}
+			if h := strs(r.Value, "harm"); len(h) > 0 {
+				attrs = append(attrs, "harm if not met: "+strings.Join(h, ", "))
+			}
 			if len(attrs) > 0 {
 				d.para(strings.Join(attrs, "; ") + ".")
 			}
@@ -183,8 +186,8 @@ func Requirements(root *yaml.Node, relRoot string, impls []Implementation) strin
 
 // Testplan writes the test plan and the test case specifications: the
 // levels, how each implementation runs the tests, then every design test
-// grouped by its subject.
-func Testplan(root *yaml.Node, relRoot string, impls []Implementation) string {
+// grouped by its subject, then the derived cases left out.
+func Testplan(root *yaml.Node, relRoot string, impls []Implementation, state *State) string {
 	d := newDoc("testplan", root, relRoot, impls)
 	info := get(root, "info")
 	tests := pairs(root, "tests")
@@ -272,11 +275,49 @@ func Testplan(root *yaml.Node, relRoot string, impls []Implementation) string {
 			}
 		}
 	}
+	if state != nil && len(state.LeftOut) > 0 {
+		d.section("Derived cases left out")
+		d.para(fmt.Sprintf("%s the design implies %s no test and %s not written by default: none is about a subject that satisfies a requirement with a harm, none is a failing dependency, and none is a mistake users make often. Writing a test that covers one removes it from this list.",
+			countText(len(state.LeftOut), "case", "cases"), map[bool]string{true: "has", false: "have"}[len(state.LeftOut) == 1], map[bool]string{true: "is", false: "are"}[len(state.LeftOut) == 1]))
+		d.line("| Subject | Case | Scenario | Why it is left out |")
+		d.line("|---|---|---|---|")
+		for _, c := range state.LeftOut {
+			d.line("| %s | %s | %s | %s |", cell(c.Subject), cell(c.Case), c.Scenario, cell(c.Reason))
+		}
+		d.blank()
+	}
 	if len(pairs(root, "checks")) > 0 {
 		d.para("The checks run on the installed system before it is handed over are in the commissioning procedure.")
 	}
 	d.sourcesIndex("Sources")
 	return d.String()
+}
+
+// harmCol is the Harm column of a traceability matrix, there only when a
+// requirement names a harm.
+type harmCol struct {
+	header, rule string
+	harm         map[string][]string
+}
+
+func harmColumn(reqs []sourcePair) harmCol {
+	h := harmCol{harm: map[string][]string{}}
+	for _, r := range reqs {
+		if v := strs(r.Value, "harm"); len(v) > 0 {
+			h.harm[r.Key.Value] = v
+			h.header, h.rule = " Harm |", "---|"
+		}
+	}
+	return h
+}
+
+// cell is the requirement's cell with its separator, or "" without the
+// column.
+func (h harmCol) cell(id string) string {
+	if h.header == "" {
+		return ""
+	}
+	return " " + cell(strings.Join(h.harm[id], ", ")) + " |"
 }
 
 // suiteRuns says which tests a suite runs.
@@ -361,8 +402,9 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation) strin
 	}
 
 	d.section("Requirements to design and verification")
-	d.line("| Requirement | Needs | Satisfied by | Verified by |")
-	d.line("|---|---|---|---|")
+	harm := harmColumn(reqs)
+	d.line("| Requirement |%s Needs | Satisfied by | Verified by |", harm.header)
+	d.line("|---|%s---|---|---|", harm.rule)
 	ids := map[string]bool{}
 	reqNode := map[string]*yaml.Node{}
 	for _, r := range reqs {
@@ -376,7 +418,7 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation) strin
 		ids[k] = true
 	}
 	for _, k := range sortedLinks(ids) {
-		d.line("| %s | %s | %s | %s |", k, cell(strings.Join(strs(reqNode[k], "needs"), ", ")), cell(strings.Join(unique(satisfied[k]), "; ")), cell(strings.Join(unique(verified[k]), "; ")))
+		d.line("| %s |%s %s | %s | %s |", k, harm.cell(k), cell(strings.Join(strs(reqNode[k], "needs"), ", ")), cell(strings.Join(unique(satisfied[k]), "; ")), cell(strings.Join(unique(verified[k]), "; ")))
 	}
 	d.blank()
 

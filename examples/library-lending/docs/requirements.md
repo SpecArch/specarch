@@ -78,7 +78,7 @@ Acceptance criteria:
 
 A member shall hold at most the number of open loans their tier allows, and shall not borrow while fees are outstanding.
 
-Kind: functional; priority: must; status: accepted; verified by test; refines NEED-1.
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-1; harm if not met: money.
 
 Acceptance criteria:
 

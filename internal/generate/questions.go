@@ -46,6 +46,12 @@ type State struct {
 	Missing  map[string][]string // element pointer -> the keys missing there, as the validator found them
 	Approval string              // one sentence: approved on, not approved because
 	Approved bool
+	LeftOut  []LeftOut // the derived cases of rank other no test covers, for the test plan
+}
+
+// LeftOut is one derived case the test plan lists as left out.
+type LeftOut struct {
+	Subject, Case, Scenario, Reason string
 }
 
 // question is one open question, parsed.

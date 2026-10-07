@@ -1,0 +1,35 @@
+requirements:
+  SA-21:
+    statement: specarch validate shall rank every test case it derives as critical, frequent or other, from the harm of the requirements its subject satisfies and from how often users get its field wrong, and shall warn only for the critical and frequent cases no test covers.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - An operation that satisfies no requirement with harm gets no warning for the boundary cases of its fields, and still gets one for a missing required field and for a caller without the permission.
+      - The same operation, once it satisfies a requirement with harm, gets a warning for every derived case no test covers.
+      - A field with mistakes rare loses the warnings for its cases, and a field with mistakes frequent gains them.
+      - A failing channel is warned about whatever the harm of the operation.
+    verification: test
+    needs: [NEED-9]
+    why: Every case a design implies cannot be tested on every project, so the sample is chosen by risk, and the risk is read from the specification rather than from a tester's memory.
+    cites:
+      - source: iso-29119-1
+        clause: "4.1.6"
+        says: "Exhaustive testing is not possible in practice, so the tests run are a sample of all the tests that could be run."
+      - source: iso-29119-1
+        clause: "4.2.2"
+        says: "Risk-based testing uses the risks of the item under test to decide what to test and how much."
+      - source: iso-29119-4
+        clause: "5.4.1"
+        says: "Error guessing designs test cases from knowledge of the mistakes that are commonly made."
+  SA-22:
+    statement: specarch document shall list in the test plan, under Derived cases left out, every derived case of rank other that no test covers, with its subject and the reason it was left out, and shall show each requirement's harm in the traceability matrix once a requirement names one.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - The test plan of a specification with an uncovered boundary case on a subject with no harm has a row for that case, and the row is gone once a test covers it.
+      - The traceability matrix of a specification with a requirement that names a harm has a Harm column, and one without has none.
+    verification: test
+    needs: [NEED-9, NEED-3]
+    why: A case left out is a decision, and a decision the reader cannot see is one nobody can question.

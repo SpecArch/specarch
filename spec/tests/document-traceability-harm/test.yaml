@@ -1,0 +1,7 @@
+command: document
+level: acceptance
+scenario: golden
+given: "a specification with two requirements, one of which names two harms"
+when: "document traceability is run"
+then: "it writes traceability.md with a Harm column that holds the two harms of the one requirement and is empty for the other, and exits 0"
+verifies: [SA-22]

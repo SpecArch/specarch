@@ -36,9 +36,10 @@ type loaded struct {
 	covered []validate.Diagnostic
 }
 
-// state gathers what the questions document needs beyond the
-// specification: the keys the open questions cover, and where the approval
-// of this version stands.
+// state gathers what the documents need beyond the
+// specification: the keys the open questions cover, where the approval
+// of this version stands, and the derived cases the test plan lists as
+// left out.
 func (l loaded) state() *generate.State {
 	st := &generate.State{Missing: map[string][]string{}}
 	for _, d := range l.covered {
@@ -48,6 +49,9 @@ func (l loaded) state() *generate.State {
 	}
 	version := source.Str(source.Child(source.Child(l.spec.Root, "info"), "version"))
 	st.Approved, st.Approval = approval.State(l.spec.Dir, version)
+	for _, c := range validate.LeftOutCases(l.spec.Root) {
+		st.LeftOut = append(st.LeftOut, generate.LeftOut{Subject: c.Subject, Case: c.Case, Scenario: c.Scenario, Reason: c.Reason})
+	}
 	return st
 }
 

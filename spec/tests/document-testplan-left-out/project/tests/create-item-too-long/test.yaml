@@ -1,0 +1,7 @@
+operation: createItem
+level: system
+scenario: red
+covers: [name longer than 40 characters]
+given: a clerk
+when: createItem is called with a name of 41 characters
+then: it is refused

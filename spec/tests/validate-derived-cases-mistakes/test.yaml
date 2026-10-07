@@ -1,0 +1,7 @@
+command: validate
+level: acceptance
+scenario: golden
+given: "an operation that satisfies no requirement with a harm, with a required field marked mistakes rare, a field with a maximum marked mistakes frequent, a message it emits, and no tests"
+when: validate is run
+then: "it warns for both boundary cases of the frequent field, for the failing channel and for the caller without the permission, not for the cases of the rare field, and exits 0"
+verifies: [SA-21]

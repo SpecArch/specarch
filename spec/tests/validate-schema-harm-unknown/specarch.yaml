@@ -1,0 +1,10 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  ITEM-1:
+    statement: A clerk shall add an item.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [An added item is in the stock.]
+    harm: [reputation]

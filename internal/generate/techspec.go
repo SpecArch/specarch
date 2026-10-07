@@ -562,8 +562,9 @@ func requirements(d *doc, root *yaml.Node, impls []Implementation) {
 	}
 	d.heading(3, "Traceability")
 	d.para("What satisfies and what verifies each requirement. An empty cell is a gap.")
-	d.line("| Requirement | Satisfied by | Verified by |")
-	d.line("|---|---|---|")
+	harm := harmColumn(reqs)
+	d.line("| Requirement |%s Satisfied by | Verified by |", harm.header)
+	d.line("|---|%s---|---|", harm.rule)
 	ids := map[string]bool{}
 	for _, r := range reqs {
 		ids[r.Key.Value] = true
@@ -575,7 +576,7 @@ func requirements(d *doc, root *yaml.Node, impls []Implementation) {
 		ids[k] = true
 	}
 	for _, k := range sortedLinks(ids) {
-		d.line("| %s | %s | %s |", k, cell(strings.Join(unique(satisfied[k]), "; ")), cell(strings.Join(unique(verified[k]), "; ")))
+		d.line("| %s |%s %s | %s |", k, harm.cell(k), cell(strings.Join(unique(satisfied[k]), "; ")), cell(strings.Join(unique(verified[k]), "; ")))
 	}
 	d.blank()
 }

@@ -702,6 +702,23 @@ let designSchemaJSON = #"""
           "minItems": 1,
           "uniqueItems": true
         },
+        "harm": {
+          "description": "SpecArch keyword. What is at stake when the requirement is not met. A requirement with any harm is critical, and so is every derived test case of the elements that satisfy it; priority says whether a release may go without the requirement, not what a failure costs.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "data-loss",
+              "money",
+              "security",
+              "safety",
+              "privacy",
+              "availability"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
         "why": {
           "$ref": "#/$defs/why"
         },
@@ -1075,6 +1092,14 @@ let designSchemaJSON = #"""
           "description": "SpecArch keyword. Digits after the decimal point; required with format: decimal.",
           "type": "integer",
           "minimum": 0
+        },
+        "mistakes": {
+          "description": "SpecArch keyword. How often users get this field wrong: frequent or rare. It replaces the default frequency of every derived test case about the field, which decides with the harm of the subject whether the case is written or left out.",
+          "type": "string",
+          "enum": [
+            "frequent",
+            "rare"
+          ]
         }
       },
       "oneOf": [

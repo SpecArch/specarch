@@ -107,7 +107,7 @@ enums:
       test_case: a test covers a case its subject does not have, or a red case in a golden test
       test_golden_missing: a subject has no golden scenario (a warning in 0.1)
       test_red_missing: a subject has no red scenario and no derived red case (a warning in 0.1)
-      test_case_missing: a case derived from the design has no test (a warning in 0.1)
+      test_case_missing: a chosen case derived from the design has no test; a case is chosen when its subject satisfies a requirement with `harm`, when it is a failing dependency, or when users get it wrong often (a warning in 0.1)
       suite: an implementation's test suite names a design test or subject that does not exist
       layout: a file or a section is not where the tree layout puts it; the root file's `stages` and the folders disagree, a test folder has no `test.yaml`, or a folder is not a stage
       need: a requirement's `needs` names a need that does not exist

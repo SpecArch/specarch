@@ -1,0 +1,34 @@
+specarch: "0.1"
+info: { title: Shop, version: 1.0.0 }
+stages: [tests]
+stakeholders:
+  clerk: { description: Staff at the till. }
+needs:
+  NEED-1: { statement: Orders must be taken without paper., stakeholders: [clerk], status: accepted }
+  NEED-2: { statement: Receipts by email., stakeholders: [clerk], status: accepted }
+  NEED-3: { statement: Payment by cheque., stakeholders: [clerk], status: rejected }
+requirements:
+  SHOP-1:
+    statement: A clerk shall record an order.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [An order is saved.]
+    needs: [NEED-1]
+    harm: [money, data-loss]
+  SHOP-2:
+    statement: The system shall keep each order for a year.
+    kind: constraint
+    priority: should
+    status: accepted
+    needs: [NEED-1]
+entities:
+  Order:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      total: { type: integer, format: int32 }
+    primaryKey: [id]
+    constraints:
+      total_positive: { kind: check, expression: total > 0, message: An order has a positive total. }
+    satisfies: [SHOP-1]

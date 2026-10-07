@@ -1,0 +1,7 @@
+command: validate
+level: acceptance
+scenario: golden
+given: "an operation with a required field, length limits, a permission and a 409 response, which satisfies a could requirement that names a harm, and no tests"
+when: validate is run
+then: "it warns for every derived case, the boundary cases and the 409 too, since a case of a subject that satisfies a requirement with a harm is critical whatever the priority, and exits 0"
+verifies: [SA-21]

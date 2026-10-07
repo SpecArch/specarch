@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:10: error: /requirements/ITEM-1/harm/0: schema: reputation is not allowed here; use one of availability, data-loss, money, privacy, safety, security

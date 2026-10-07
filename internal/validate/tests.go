@@ -104,7 +104,7 @@ func (c *checker) checkTests(d *design) {
 			if dc.scenario == "red" {
 				hasRedCase = true
 			}
-			if cv.covered[dc.name] || seen[dc.name] {
+			if cv.covered[dc.name] || seen[dc.name] || !s.chosen(dc.name) {
 				continue
 			}
 			seen[dc.name] = true
@@ -154,4 +154,42 @@ func testName(s *subject, dc derivedCase) string {
 		c = strings.ReplaceAll(c, "--", "-")
 	}
 	return s.name + "-" + strings.Trim(c, "-")
+}
+
+// LeftOut is a derived case of rank other that no test covers: the test
+// plan lists it with the reason it was left out.
+type LeftOut struct {
+	Subject  string // "operation createItem"
+	Case     string // "name longer than 40 characters"
+	Scenario string // golden or red
+	Reason   string
+}
+
+// LeftOutCases lists the derived cases of a valid specification that are
+// not chosen and that no test covers, by subject in document order.
+func LeftOutCases(root *yaml.Node) []LeftOut {
+	d := newDesign(root)
+	subjects := d.subjects()
+	covered := map[string]map[string]bool{}
+	for _, p := range source.Pairs(source.Child(d.root, "tests")) {
+		key := testSubjectKey(p.Value)
+		if covered[key] == nil {
+			covered[key] = map[string]bool{}
+		}
+		for _, item := range source.Items(source.Child(p.Value, "covers")) {
+			covered[key][item.Value] = true
+		}
+	}
+	var out []LeftOut
+	for _, s := range subjects {
+		seen := map[string]bool{}
+		for _, dc := range s.cases {
+			if covered[s.yamlKey][dc.name] || seen[dc.name] || s.chosen(dc.name) {
+				continue
+			}
+			seen[dc.name] = true
+			out = append(out, LeftOut{Subject: s.label, Case: dc.name, Scenario: dc.scenario, Reason: s.leftOutReason(dc)})
+		}
+	}
+	return out
 }

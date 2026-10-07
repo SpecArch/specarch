@@ -1,0 +1,50 @@
+decisions:
+  ADR-020:
+    title: Derived test cases are chosen by the harm of a requirement and by how often users make the mistake
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      The validator derives a red case from every limit, format,
+      permission, relation, state and response of a design, and a golden
+      case from every boundary. On a real design that is far more cases
+      than a project writes tests for, and a warning for each one buries
+      the few that matter.
+    decision: |
+      A requirement may name its `harm`: data-loss, money, security,
+      safety, privacy or availability. A subject (an operation, command,
+      page, constraint or transition) is critical when a requirement it
+      satisfies, through its own `satisfies`, names a harm. Every derived
+      case has a kind with a default frequency (frequent, occasional or
+      rare) from a fixed table, and a field may replace the frequency of
+      every case about it with `mistakes: frequent` or `mistakes: rare`.
+      A case is critical when its subject is critical or it is a failing
+      dependency, frequent when its frequency is frequent, and other
+      otherwise. The validator warns about the critical and frequent cases
+      no test covers; the test plan lists the others, uncovered, as left
+      out, with the reason.
+    consequences: |
+      A design gets fewer warnings, each about a case worth writing, and
+      the left-out cases stay in sight in the test plan. Marking one
+      requirement with a harm brings back every case of the elements that
+      satisfy it. The rank says nothing of a case a test already covers.
+    why: |
+      `priority: must` says whether a release may go without a
+      requirement, not what its failure costs: a must requirement on the
+      colour of a button has no harm, and a could requirement on a backup
+      can lose data, so harm is a separate attribute. Privacy and
+      availability stand beside the four harms first asked for because a
+      regulator and an operations team ask about them in the same breath.
+      The frequency override sits on a field only, because a mistake is
+      made in a field; a subject's frequency would not be about users. A
+      failing dependency is critical whatever the subject, because it is
+      the case nobody exercises by hand. A subject takes the harm of what
+      it satisfies itself, not of the entity that holds it, so marking one
+      constraint does not mark every transition of the entity.
+    satisfies: [SA-21, SA-22]
+    cites:
+      - source: iso-29119-1
+        clause: "4.2.3"
+        says: "The requirements and the risks of the item under test are the basis of the test strategy."
+      - source: iso-29119-4
+        clause: "5.4.1"
+        says: "Error guessing designs test cases from knowledge of the mistakes that are commonly made."

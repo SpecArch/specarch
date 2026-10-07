@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a source whose name is not kebab-case, next to one that is"
+when: "validate is run"
+then: "it reports the name with rule schema at its own line and path, and exits 1"
+verifies: [SA-1]

@@ -1,0 +1,7 @@
+command: document
+level: system
+scenario: golden
+given: "a specification with two implementation files, one of which names techspec's output folder"
+when: "document techspec is run on it"
+then: "chapter 7 has one part for each implementation, the header names both, and it exits 0"
+verifies: [SA-7, SA-8]

@@ -3,8 +3,13 @@ info:
   title: Shop
   version: 1.0.0
   description: A small shop that takes orders and payments.
-requirementSources:
-  SHOP: { description: The shop's requirement list. }
+requirements:
+  SHOP-1:
+    statement: A clerk shall be able to take payment for an open order, after which the order is paid.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [Paying an open order makes it paid and publishes OrderPaid.]
 enums:
   OrderState:
     type: string
@@ -34,7 +39,7 @@ entities:
     stateField: state
     transitions:
       - { from: open, to: paid, trigger: payOrder }
-    requirements: [SHOP-1]
+    satisfies: [SHOP-1]
 permissions:
   orders.pay: { description: Take payment for an order. }
   public: { description: Everyone. }

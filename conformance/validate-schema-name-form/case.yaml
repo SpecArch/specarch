@@ -1,4 +1,0 @@
-arguments: [validate, .]
-exitStatus: 1
-standardOutput: |
-  case.specarch-design.yaml:5: error: /requirementSources/lib: schema: the name lib is not valid: it must be an upper-case prefix of 2 to 16 letters or digits, such as LIB; rename it

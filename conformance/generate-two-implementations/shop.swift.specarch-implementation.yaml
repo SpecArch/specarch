@@ -1,4 +1,0 @@
-specarchImplementation: "0.1"
-info: { title: Shop in Swift, version: 1.0.0 }
-implements: { file: shop.specarch-design.yaml, version: 1.0.0 }
-target: { language: { name: Swift, version: "6.0" } }

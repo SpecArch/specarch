@@ -1,0 +1,5 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+sources:
+  main-list: { kind: requirement-set, title: The main list, prefix: LIB }
+  second_list: { kind: requirement-set, title: A second list, prefix: SEC }

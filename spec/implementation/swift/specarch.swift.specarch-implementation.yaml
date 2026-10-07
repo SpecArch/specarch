@@ -5,16 +5,16 @@ info:
   title: SpecArch toolchain in Swift
   version: 0.1.0
   description: |
-    A second implementation of `specarch.specarch-design.yaml`, for macOS,
-    built from the same design file as the Go one. It offers the validate and
-    version commands and passes the same conformance cases; the generators
-    are built in Go only.
+    A second implementation of the specification in `spec/`, for macOS,
+    built from the same specification as the Go one. It offers the validate
+    and version commands and passes the same conformance cases; the
+    documents and generators are built in Go only.
 
 implements:
-  file: specarch.specarch-design.yaml
+  file: ../../specarch.yaml
   version: 0.1.0
 
-target:
+stack:
   language: { name: Swift, version: "6.0", description: Swift 6 language mode with strict concurrency checking. }
   toolchain: { name: Swift Package Manager, version: "6.0", description: The swift-tools-version in Package.swift; the minimum toolchain. }
   platforms: [darwin/arm64, darwin/amd64]
@@ -31,7 +31,7 @@ layout:
   swift/Sources/specarch:
     description: The executable; it passes the arguments to the library and exits with its status.
   swift/Sources/SpecArchKit:
-    description: Everything else. Reading YAML, the JSON Schema evaluator and its messages, the design and implementation checks, the expression subset, tests and their derived cases, and the commands.
+    description: Everything else. Reading YAML, reading a specification tree into one document, the JSON Schema evaluator and its messages, the specification and implementation checks, the expression subset, tests and their derived cases, the life-cycle links, and the commands.
     implements: ["#/commands/validate", "#/commands/version", "#/entities/Diagnostic", "#/entities/SpecFile", "#/enums/Rule", "#/enums/Severity", "#/algorithms/exitStatus", "#/algorithms/referenceResolves", "#/algorithms/permissionGranted", "#/algorithms/workedExampleHolds"]
   swift/embed-schemas.sh:
     description: Writes the schemas of schema/ into the library as Swift source; a test fails when they differ.
@@ -43,7 +43,9 @@ mappings:
   "#/enums/Severity": { target: SpecArchKit.Severity }
   "#/commands/validate": { target: SpecArchKit.runValidate }
   "#/commands/version": { target: SpecArchKit.run }
-  "#/commands/generate": { target: SpecArchKit.run, description: "Exits 2: this build offers no generator target." }
+  "#/commands/document": { target: SpecArchKit.run, description: "Exits 2: this build offers no document target." }
+  "#/commands/generate": { target: SpecArchKit.run, description: "Exits 2: this build runs no generator." }
+  "#/commands/extract": { target: SpecArchKit.run, description: "Exits 2, as the Go build does until it is built." }
   "#/algorithms/exitStatus": { target: the end of SpecArchKit.runValidate }
   "#/algorithms/workedExampleHolds": { target: SpecArchKit.Checker.checkExample }
   "#/algorithms/permissionGranted": { target: SpecArchKit.Checker.checkAccess }
@@ -58,7 +60,7 @@ tasks:
   test: { run: swift test --package-path swift, ci: true }
   validate-specs:
     run: swift/.build/release/specarch validate spec examples
-    description: The Swift build checks the design file it was built from, and every example.
+    description: The Swift build checks the specification it was built from, and every example.
     ci: true
   embed-schemas: { run: swift/embed-schemas.sh, description: Run after a change to schema/. }
   sbom:
@@ -69,18 +71,19 @@ testing:
   framework: Swift Testing
   run: swift test --package-path swift
   platforms: [darwin/arm64]
-  fixtures: The conformance suite in `conformance/`; the Swift tests read it and add none of their own.
+  fixtures: The conformance suite, the tests stage of the specification, `spec/tests/`; the Swift tests read it and add none of their own.
   mocks: None. Every test runs the real program on real files.
   suites:
     conformance:
       description: |
-        Runs every conformance case of the validate and version commands
+        Runs every test folder of `spec/tests/` for the validate and version commands
         through the library's own entry point, in a copy of the case's
         folder, and compares the exit status, the standard output and the
-        files after the run. It also checks that every design test of those
-        commands has a folder, that the rules equal the design's Rule enum,
+        files after the run. It also checks that every test of those
+        commands has a `case.yaml`, that the rules equal the specification's Rule enum,
         and that the embedded schemas equal the files in schema/.
       run: swift test --package-path swift --filter ConformanceTests
+      level: system
       designTestsOf:
         - { command: validate }
         - { command: version }
@@ -88,6 +91,7 @@ testing:
     expressions:
       description: Unit tests of the expression subset, including the column CEL gives each kind of node.
       run: swift test --package-path swift --filter ExprTests
+      level: unit
       implementationOnly: true
       ci: true
 

@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "a need with status rejected that no requirement refines, beside a need a requirement refines"
+when: "validate is run"
+then: "it does not warn need_unrefined for the rejected need, prints nothing and exits 0"
+verifies: [SA-12]

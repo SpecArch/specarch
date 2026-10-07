@@ -313,8 +313,8 @@ under `sources` with kind `requirement-set` and its prefix (`requirement`).
 
 The lists are optional, because a specification is written in order and a
 project may not have written its requirements down. Once they are written,
-the validator warns for every gap: a need no requirement refines
-(`need_unrefined`), a requirement without acceptance criteria
+the validator warns for every gap: a need no requirement refines, unless
+its status is rejected (`need_unrefined`), a requirement without acceptance criteria
 (`acceptance_missing`), a requirement nothing satisfies once the
 specification has a design (`requirement_unsatisfied`), and a requirement
 nothing verifies once it has tests or checks (`requirement_unverified`).

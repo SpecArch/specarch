@@ -16,7 +16,8 @@ Sections: `stakeholders`, `needs`, `requirements`, `glossary`,
 - A need is what a stakeholder says before anyone has shaped it into a
   requirement (29148, 5.2.3 and 6.3). It names its stakeholders and its
   sources, usually an interview or a document. A need that no requirement
-  refines is reported, because that is the stage's unfinished work.
+  refines is reported, because that is the stage's unfinished work; a need
+  with status rejected is not, since it will not be met.
 - A requirement is one verifiable sentence: who or what shall do what,
   under which condition (29148, 5.2.4 and 5.2.5), with the attributes the
   standard asks for (5.2.8): its kind (functional, quality, interface or

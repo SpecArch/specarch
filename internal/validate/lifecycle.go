@@ -93,6 +93,9 @@ func (c *checker) checkTraceability(d *design) {
 	hasDesign := d.covers("design")
 	hasTests := len(source.Pairs(source.Child(d.root, "tests"))) > 0 || len(d.checks) > 0
 	for _, p := range source.Pairs(source.Child(d.root, "needs")) {
+		if source.Str(source.Child(p.Value, "status")) == "rejected" {
+			continue // a rejected need will not be met, so no requirement refines it
+		}
 		if !refined[p.Key.Value] {
 			c.warn(p.Key, source.Pointer("needs", p.Key.Value), RuleNeedUnrefined,
 				"no requirement refines need %s; add a requirement with needs: [%s], or set the need's status to rejected", p.Key.Value, p.Key.Value)

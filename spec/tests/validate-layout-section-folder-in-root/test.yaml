@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an entities/ folder beside specarch.yaml, where entities is a section of the design stage and not a stage"
+when: "validate is run"
+then: "it reports layout naming design/entities/ as the folder's place and exits 1"
+verifies: [SA-11]

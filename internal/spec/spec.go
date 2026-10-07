@@ -157,9 +157,12 @@ func Load(dir string) *Spec {
 		}
 		present[e.Name()] = true
 		if !listed[e.Name()] {
-			if Sections[e.Name()] != "" || isStage(e.Name()) {
+			switch stage := Sections[e.Name()]; {
+			case isStage(e.Name()):
 				s.problem(s.RootFile, 1, "/stages", "layout", "the folder %s/ exists but stages in %s does not list %s; add it to stages, or move its files into %s", e.Name(), RootFile, e.Name(), RootFile)
-			} else {
+			case stage != "":
+				s.problem(s.RootFile, 1, "/", "layout", "the folder %s/ is a section of the %s stage, not a stage; move it to %s/%s/ and list %s in stages", e.Name(), stage, stage, e.Name(), stage)
+			default:
 				s.problem(s.RootFile, 1, "/", "layout", "the folder %s/ is not a stage; a specification's folders are %s", e.Name(), strings.Join(Stages, ", "))
 			}
 		}

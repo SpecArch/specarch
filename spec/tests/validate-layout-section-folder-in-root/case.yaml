@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:1: error: /: layout: the folder entities/ is a section of the design stage, not a stage; move it to design/entities/ and list design in stages

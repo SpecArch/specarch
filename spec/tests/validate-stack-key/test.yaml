@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a design file with an x-oapi-codegen key on an operation
+when: validate is run
+then: it reports stack_key and exits 1
+verifies: [SA-9]

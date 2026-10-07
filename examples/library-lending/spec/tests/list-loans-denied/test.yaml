@@ -1,0 +1,7 @@
+operation: listLoans
+level: system
+scenario: red
+covers: [denied without loans.read]
+given: a caller holding no role
+when: listLoans is called
+then: it is refused as not allowed

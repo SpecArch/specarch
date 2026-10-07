@@ -1,0 +1,8 @@
+entity: Item
+constraint: item_name_present
+level: acceptance
+scenario: golden
+given: an item with a name
+when: it is saved
+then: it is saved
+verifies: [CASE-1]

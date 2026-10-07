@@ -1,0 +1,13 @@
+entities:
+  Item:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      name: { type: string, minLength: 1 }
+    primaryKey: [id]
+    constraints:
+      item_name_present:
+        kind: check
+        expression: size(name) >= 1
+        message: An item needs a name.
+    satisfies: [CASE-1]

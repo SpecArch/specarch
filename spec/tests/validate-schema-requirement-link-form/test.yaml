@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a role whose satisfies link is in lower case
+when: validate is run
+then: "it reports the link's form with rule schema and exits 1"

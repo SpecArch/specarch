@@ -1,0 +1,7 @@
+entity: Book
+constraint: book_available_within_owned
+level: system
+scenario: golden
+given: a book with 2 copies owned
+when: it is saved with 2 available
+then: it is saved

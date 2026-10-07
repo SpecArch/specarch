@@ -1,0 +1,6 @@
+page: member-form
+level: system
+scenario: golden
+given: a librarian
+when: the page member-form is filled in and sent
+then: the member is registered

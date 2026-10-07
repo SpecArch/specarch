@@ -1,0 +1,27 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  clerk: { description: Staff at the till. }
+needs:
+  NEED-1: { statement: Items must be findable by name., stakeholders: [clerk], status: accepted }
+  NEED-2: { statement: Items must have a picture., stakeholders: [clerk], status: proposed }
+requirements:
+  CASE-1:
+    statement: An item shall have a non-empty name.
+    kind: functional
+    priority: must
+    status: accepted
+    verification: test
+    needs: [NEED-1]
+entities:
+  Item:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      name: { type: string, minLength: 1 }
+    primaryKey: [id]
+    constraints:
+      item_name_present: { kind: check, expression: size(name) >= 1, message: An item needs a name. }
+tests:
+  item-saved: { entity: Item, constraint: item_name_present, level: system, scenario: golden, given: an item with a name, when: it is saved, then: it is saved }
+  item-name-empty: { entity: Item, constraint: item_name_present, level: system, scenario: red, covers: [violates item_name_present], given: an item with an empty name, when: it is saved, then: it is refused }

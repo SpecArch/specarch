@@ -1,0 +1,11 @@
+constraints:
+  CON-1:
+    statement: Member data is kept only while the membership is open and for one year after, then deleted.
+    kind: legal
+    cites:
+      - source: data-protection-rules
+        says: "Personal data is kept no longer than its purpose needs."
+  CON-2:
+    statement: Dates are the library's local calendar dates; timestamps are UTC.
+    kind: technical
+    why: A loan due on the 21st is overdue from the start of the 22nd, library time, whatever the server's clock.

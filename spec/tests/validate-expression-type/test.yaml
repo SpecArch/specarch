@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a formula that multiplies an int by a decimal without a conversion
+when: validate is run
+then: it reports expression_type with the conversion to write and exits 1
+verifies: [SA-3]

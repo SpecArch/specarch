@@ -1,0 +1,7 @@
+entity: Diagnostic
+constraint: diagnostic_line_positive
+level: system
+scenario: golden
+given: a problem on the first line of a file
+when: the diagnostic is made
+then: its line is 1

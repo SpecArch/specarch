@@ -1,0 +1,7 @@
+operation: listLoans
+level: system
+scenario: red
+covers: [status not one of its values, memberId not a valid uuid]
+given: a librarian
+when: listLoans is called with status lent and again with memberId abc
+then: both are refused as invalid input

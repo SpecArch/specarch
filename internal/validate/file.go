@@ -2,11 +2,13 @@ package validate
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/source"
+	"github.com/SpecArch/specarch/internal/spec"
 )
 
 // Kind is the kind of a SpecArch file, read from its name.
@@ -19,14 +21,15 @@ const (
 )
 
 const (
-	DesignSuffix         = ".specarch-design.yaml"
-	ImplementationSuffix = ".specarch-implementation.yaml"
+	RootFile             = spec.RootFile
+	ImplementationSuffix = spec.ImplementationSuffix
 )
 
-// KindOf tells the kind of a file from its name.
+// KindOf tells the kind of a file from its name: the root file of a
+// specification, an implementation file, or neither.
 func KindOf(name string) Kind {
 	switch {
-	case strings.HasSuffix(name, DesignSuffix):
+	case name == RootFile || strings.HasSuffix(name, "/"+RootFile):
 		return KindDesign
 	case strings.HasSuffix(name, ImplementationSuffix):
 		return KindImplementation
@@ -34,18 +37,59 @@ func KindOf(name string) Kind {
 	return KindNone
 }
 
-// ReadFile reads a file the caller did not pass in: the design file an
-// implementation file names.
-type ReadFile func(path string) ([]byte, error)
+// Loader reads the specification rooted at a folder: the implementation
+// file names it under implements.
+type Loader func(dir string) *spec.Spec
 
-// Check runs every check on one file and returns its diagnostics, sorted.
-// The path is used as given in every diagnostic.
-func Check(path string, data []byte, read ReadFile) []Diagnostic {
+// CheckSpec runs every check on a specification and on the implementation
+// files inside it, and returns the diagnostics, sorted.
+func CheckSpec(s *spec.Spec) []Diagnostic {
+	c := &checker{file: s.RootFile, files: s.Files}
+	for _, p := range s.Problems {
+		c.addFile(p.File, p.Line, p.Path, Rule(p.Rule), "%s", p.Message)
+	}
+	var out []Diagnostic
+	if s.Root != nil {
+		c.root = s.Root
+		if c.rootIsSpec() {
+			c.checkSchema(KindDesign, s.Value)
+			c.checkChangeLog()
+			c.checkBoundaryDesign()
+			d := newDesign(c.root)
+			d.spec = s
+			c.checkDesign(d)
+		}
+	}
+	out = append(out, withoutEchoes(c.diags)...)
+	for _, impl := range s.Implementations {
+		ic := &checker{file: impl.Path}
+		ic.runImplementation(impl.Data, s)
+		out = append(out, withoutEchoes(ic.diags)...)
+	}
+	Sort(out)
+	return out
+}
+
+// CheckImplementation checks one implementation file given on its own. The
+// specification it implements is loaded through load.
+func CheckImplementation(path string, data []byte, load Loader) []Diagnostic {
 	c := &checker{file: path}
-	c.run(data, read)
+	c.runImplementation(data, nil, load)
 	ds := withoutEchoes(c.diags)
 	Sort(ds)
 	return ds
+}
+
+// CheckNamed reports a file given by name that is neither a root file nor
+// an implementation file.
+func CheckNamed(path string) []Diagnostic {
+	c := &checker{file: path}
+	if root := spec.RootOf(path); root != "" {
+		c.addLine(1, "/", RuleFileKind, "this file is part of the specification whose root file is %s; run specarch validate on that specification's folder", filepath.Join(root, RootFile))
+	} else {
+		c.addLine(1, "/", RuleFileKind, "the file is neither %s nor an implementation file (*%s); name a specification's folder or root file", RootFile, ImplementationSuffix)
+	}
+	return c.diags
 }
 
 // withoutEchoes drops a diagnostic that only repeats a schema error: one at
@@ -84,9 +128,19 @@ func withoutEchoes(ds []Diagnostic) []Diagnostic {
 }
 
 type checker struct {
-	file  string
+	file  string                // the file diagnostics name when a node is not known
+	files map[*yaml.Node]string // the file of each node of a merged specification
 	root  *yaml.Node
 	diags []Diagnostic
+}
+
+func (c *checker) fileOf(n *yaml.Node) string {
+	if n != nil && c.files != nil {
+		if f, ok := c.files[n]; ok {
+			return f
+		}
+	}
+	return c.file
 }
 
 func (c *checker) add(n *yaml.Node, path string, rule Rule, format string, args ...any) {
@@ -94,14 +148,21 @@ func (c *checker) add(n *yaml.Node, path string, rule Rule, format string, args 
 	if n != nil && n.Line > 0 {
 		line = n.Line
 	}
-	c.addLine(line, path, rule, format, args...)
+	c.addFile(c.fileOf(n), line, path, rule, format, args...)
 }
 
 func (c *checker) addLine(line int, path string, rule Rule, format string, args ...any) {
+	c.addFile(c.file, line, path, rule, format, args...)
+}
+
+func (c *checker) addFile(file string, line int, path string, rule Rule, format string, args ...any) {
 	if path == "" {
 		path = "/"
 	}
-	c.diags = append(c.diags, Diagnostic{File: c.file, Line: line, Severity: Error, Path: path, Rule: rule, Message: fmt.Sprintf(format, args...)})
+	if line < 1 {
+		line = 1
+	}
+	c.diags = append(c.diags, Diagnostic{File: file, Line: line, Severity: Error, Path: path, Rule: rule, Message: fmt.Sprintf(format, args...)})
 }
 
 func (c *checker) warn(n *yaml.Node, path string, rule Rule, format string, args ...any) {
@@ -109,12 +170,25 @@ func (c *checker) warn(n *yaml.Node, path string, rule Rule, format string, args
 	c.diags[len(c.diags)-1].Severity = Warning
 }
 
-func (c *checker) run(data []byte, read ReadFile) {
-	kind := KindOf(c.file)
-	if kind == KindNone {
-		c.addLine(1, "/", RuleFileKind, "the file name ends in neither %s nor %s; rename the file so its kind is clear", DesignSuffix, ImplementationSuffix)
-		return
+// rootIsSpec refuses a root file that starts with specarchImplementation,
+// since every later check would only repeat that one mistake.
+func (c *checker) rootIsSpec() bool {
+	if c.root.Kind != yaml.MappingNode {
+		return true // the schema reports it
 	}
+	hasDesign := source.Key(c.root, "specarch") != nil
+	hasImpl := source.Key(c.root, "specarchImplementation") != nil
+	if hasImpl && !hasDesign {
+		c.add(source.Key(c.root, "specarchImplementation"), "/specarchImplementation", RuleFileKind,
+			"%s is a specification's root file but starts with specarchImplementation; an implementation file is named <name>.<stack>%s", RootFile, ImplementationSuffix)
+		return false
+	}
+	return true
+}
+
+// runImplementation checks an implementation file. With s given, the file
+// is part of that specification; otherwise load reads the one it names.
+func (c *checker) runImplementation(data []byte, s *spec.Spec, load ...Loader) {
 	doc := source.Parse(data)
 	for _, p := range doc.Problems {
 		c.addLine(p.Line, p.Path, Rule(p.Rule), "%s", p.Message)
@@ -123,39 +197,17 @@ func (c *checker) run(data []byte, read ReadFile) {
 		return
 	}
 	c.root = doc.Root
-	if !c.kindMatchesRoot(kind) {
+	if c.root.Kind == yaml.MappingNode && source.Key(c.root, "specarch") != nil && source.Key(c.root, "specarchImplementation") == nil {
+		c.add(source.Key(c.root, "specarch"), "/specarch", RuleFileKind,
+			"the file is named as an implementation file but starts with specarch; a specification's root file is named %s", RootFile)
 		return
 	}
-	c.checkSchema(kind, doc.Value)
+	c.checkSchema(KindImplementation, doc.Value)
 	c.checkChangeLog()
-	switch kind {
-	case KindDesign:
-		c.checkBoundaryDesign()
-		d := newDesign(c.root)
-		c.checkDesign(d)
-	case KindImplementation:
-		c.checkBoundaryImplementation()
-		c.checkImplementation(read)
+	c.checkBoundaryImplementation()
+	var l Loader
+	if len(load) > 0 {
+		l = load[0]
 	}
-}
-
-// kindMatchesRoot refuses a file whose name and root key disagree, since
-// every later check would only repeat that one mistake.
-func (c *checker) kindMatchesRoot(kind Kind) bool {
-	if c.root.Kind != yaml.MappingNode {
-		return true // the schema reports it
-	}
-	hasDesign := source.Key(c.root, "specarch") != nil
-	hasImpl := source.Key(c.root, "specarchImplementation") != nil
-	switch {
-	case kind == KindDesign && hasImpl && !hasDesign:
-		c.add(source.Key(c.root, "specarchImplementation"), "/specarchImplementation", RuleFileKind,
-			"the file is named as a design file but starts with specarchImplementation; rename it to end in %s, or start it with specarch", ImplementationSuffix)
-		return false
-	case kind == KindImplementation && hasDesign && !hasImpl:
-		c.add(source.Key(c.root, "specarch"), "/specarch", RuleFileKind,
-			"the file is named as an implementation file but starts with specarch; rename it to end in %s, or start it with specarchImplementation", DesignSuffix)
-		return false
-	}
-	return true
+	c.checkImplementation(s, l)
 }

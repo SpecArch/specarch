@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a relation whose target is misspelt
+when: validate is run
+then: it reports relation_target and exits 1
+verifies: [SA-2]

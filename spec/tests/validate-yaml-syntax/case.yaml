@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:2: error: /: yaml_syntax: the { that starts on this line is not closed; close it with }, and separate its entries with commas

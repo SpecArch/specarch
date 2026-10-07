@@ -1,0 +1,10 @@
+pages:
+  loan-form:
+    kind: form
+    title: Lend a copy
+    route: /loans/new
+    entity: Loan
+    permission: loans.create
+    submit: createLoan
+    fields: [memberId, bookId]
+    satisfies: [LIB-7]

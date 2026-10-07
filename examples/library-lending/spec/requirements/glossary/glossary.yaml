@@ -1,0 +1,9 @@
+glossary:
+  copy:
+    definition: One physical book. The example counts copies per title and does not identify them.
+  tier:
+    definition: A membership level that sets the loan limit and the loan period.
+  loan period:
+    definition: The number of days a copy may be kept; 21 for the standard tier, 28 for the extended tier.
+  late fee:
+    definition: The amount charged when a copy comes back after its due date.

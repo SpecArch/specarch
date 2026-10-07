@@ -1,0 +1,7 @@
+operation: listBooks
+level: system
+scenario: red
+covers: [q longer than 200 characters]
+given: a visitor
+when: listBooks is called with a 201-character q
+then: it is refused as invalid input

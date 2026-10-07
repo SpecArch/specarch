@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a docs/ folder beside specarch.yaml"
+when: "validate is run"
+then: "it reports layout naming the stage folders there are and exits 1"
+verifies: [SA-11]

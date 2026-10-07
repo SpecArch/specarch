@@ -1,6 +1,0 @@
-arguments: [validate, .]
-exitStatus: 1
-standardOutput: |
-  case.specarch-design.yaml:14: warning: /entities/Item/transitions/0: test_case_missing: Item transition draft to published has no red scenario for "from wrong state"; add under tests item-draft-to-published-from-wrong-state: { entity: Item, transition: { from: draft, to: published }, scenario: red, covers: [from wrong state], given: "the Item is not draft", when: "total happens", then: "it is refused and the state stays as it was" }
-  case.specarch-design.yaml:14: warning: /entities/Item/transitions/0: test_golden_missing: Item transition draft to published has no golden scenario; add one under tests, for example item-draft-to-published-succeeds: { entity: Item, transition: { from: draft, to: published }, scenario: golden, given: "...", when: "...", then: "it succeeds" }
-  case.specarch-design.yaml:14: error: /entities/Item/transitions/0/to: state_value: published is not a value of state; use one of draft, live

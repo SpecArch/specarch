@@ -1,4 +1,0 @@
-arguments: [validate, .]
-exitStatus: 1
-standardOutput: |
-  case.specarch-design.yaml:3: error: /info: duplicate_key: key "info" is already defined on line 2

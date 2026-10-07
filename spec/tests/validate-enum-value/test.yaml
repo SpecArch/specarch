@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a value description for a value the enum does not have
+when: validate is run
+then: it reports enum_value and exits 1

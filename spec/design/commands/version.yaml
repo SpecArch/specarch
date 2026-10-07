@@ -1,0 +1,8 @@
+commands:
+  version:
+    summary: Print the program version and the meta-model versions it reads
+    permission: public
+    standardOutput: The program version, then one line per meta-model version it supports.
+    exitCodes:
+      "0": printed
+    why: One version answers which SpecArch made a file; every generated file's header names it.

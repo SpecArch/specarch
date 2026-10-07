@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:4: error: /entities: layout: entities belongs to the design stage, which stages lists, so it lives under design/ and not in specarch.yaml; move it there
+

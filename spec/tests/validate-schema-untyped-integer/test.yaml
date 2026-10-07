@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: an integer field without a format
+when: validate is run
+then: it reports the missing format with rule schema and exits 1
+verifies: [SA-1]

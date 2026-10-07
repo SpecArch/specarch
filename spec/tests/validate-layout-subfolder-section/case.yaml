@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  design/entities/item.yaml:8: error: /enums: layout: a file under design/entities/ holds only entities; move enums to design/enums/
+

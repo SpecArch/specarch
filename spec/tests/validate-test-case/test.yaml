@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a test that covers a case its operation does not have
+when: validate is run
+then: "it reports test_case with the cases it has, warns for the case now uncovered, and exits 1"

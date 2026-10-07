@@ -1,0 +1,7 @@
+entity: Member
+constraint: member_card_number_unique
+level: system
+scenario: golden
+given: no member with card number 00000001
+when: a member with that card number is saved
+then: it is saved

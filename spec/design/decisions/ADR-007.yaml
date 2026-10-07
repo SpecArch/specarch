@@ -1,0 +1,20 @@
+decisions:
+  ADR-007:
+    title: File names say which kind of file they are
+    status: superseded
+    date: "2026-10-07"
+    context: |
+      Two kinds of file sit side by side in one folder. A name that hides
+      the kind makes every reader open the file to find out.
+    decision: |
+      A design file is `<name>.specarch-design.yaml`, explained by
+      `<name>.specarch-design.md`. An implementation file is
+      `<name>.<stack>.specarch-implementation.yaml`, explained, when it needs
+      it, by `<name>.<stack>.specarch-implementation.md`. The root key matches
+      the kind: `specarch` in a design file, `specarchImplementation` in an
+      implementation file.
+    consequences: |
+      The validator picks the schema from the name and refuses a file whose
+      name and root key disagree, or whose name is neither.
+    supersededBy: ADR-010
+    satisfies: [SA-1, SA-9]

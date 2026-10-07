@@ -1,0 +1,8 @@
+signoff:
+  criteria:
+    - Every check passed on staging and the smoke and data checks passed on production.
+    - A librarian has done each desk task once on production.
+    - The record of the run is filed under records/commissioning/.
+  signers:
+    - { role: head-librarian, description: Accepts for the desk. }
+    - { role: library-board, description: Accepts for the board. }

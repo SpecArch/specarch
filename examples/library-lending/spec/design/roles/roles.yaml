@@ -1,0 +1,9 @@
+roles:
+  librarian:
+    description: Staff at the desk.
+    permissions: [members.read, members.write, catalogue.read, loans.read, loans.create, loans.return]
+  member:
+    description: A card holder, limited to their own records by the service.
+    permissions: [catalogue.read, loans.read]
+    satisfies: [LIB-6]
+    why: The row-level rule, a member sees only loans whose memberId is their own, is not in the meta-model yet; the service enforces it and this role is where it is written down.

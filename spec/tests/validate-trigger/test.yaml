@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a transition whose trigger names nothing in the file
+when: validate is run
+then: it reports trigger and exits 1

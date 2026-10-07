@@ -1,0 +1,34 @@
+decisions:
+  ADR-004:
+    title: Expressions are a small subset of CEL, with CEL's strict types
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      A check or a formula kept as free text cannot be told apart from a
+      typo. A grammar of SpecArch's own would be one more thing to learn.
+      CEL keeps int, uint and double apart and never converts between them
+      by itself; its authors did that because an implicit conversion is
+      where precision is lost without anyone noticing.
+    decision: |
+      Checks and formulas are written in a small subset of CEL with CEL's
+      type rules: no implicit conversion, every conversion written, and a
+      lossy one only after the rounding is written. SpecArch adds three
+      types CEL lacks: decimal (CEL serves protocol buffers, which have no
+      decimal, and money needs one), date and enum values. It is stricter
+      than CEL in one place: numbers of different types are not compared
+      without a conversion, so every operator follows one rule.
+    why: |
+      CEL keeps int, uint and double apart and never converts between them
+      by itself because an implicit conversion is where precision is lost
+      without anyone noticing; a subset of a real language is one less
+      grammar to learn and cannot drift from it.
+    consequences: |
+      A reader who knows C, Java or JavaScript reads the expressions. A
+      formula's result has exactly its declared type, and a worked example
+      is checked to the last digit. Generators translate a parsed
+      expression, and a construct the target cannot express fails
+      generation.
+    satisfies: [SA-3, SA-4]
+    cites:
+      - source: cel
+        says: "CEL has no implicit numeric conversion: int, uint and double are distinct types and arithmetic on mixed types is an error."

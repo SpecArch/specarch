@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a declared permission that no role grants
+when: validate is run
+then: it reports permission_ungranted and exits 1
+verifies: [SA-5]

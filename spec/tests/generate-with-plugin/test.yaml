@@ -1,0 +1,7 @@
+command: generate
+level: system
+scenario: golden
+given: "a specification and specarch-gen-echo on PATH, which answers two files"
+when: "generate echo is run with --out out"
+then: "it writes both files under out/ and exits 0"
+verifies: [SA-7, SA-14]

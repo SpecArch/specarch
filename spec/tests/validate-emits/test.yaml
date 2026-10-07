@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: an operation that emits on a channel that does not exist
+when: validate is run
+then: it reports emits and exits 1

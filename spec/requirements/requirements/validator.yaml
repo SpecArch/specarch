@@ -1,0 +1,84 @@
+requirements:
+  SA-1:
+    statement: specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A file that breaks the schema is reported with rule schema, its file, line and YAML path.
+      - A file that passes the schema and every other rule produces no output and status 0.
+    verification: test
+    needs: [NEED-1]
+    why: The schema is the one definition of a file's shape; checking it first means every later rule can assume the shape.
+  SA-2:
+    statement: Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A misspelt relation target, enum, operation, page, algorithm, decision, requirement, need, stakeholder, source or environment is reported with its own rule, naming the file and line of the reference.
+      - A name defined in two files of the specification is reported with both files.
+    verification: test
+    needs: [NEED-1, NEED-4]
+  SA-3:
+    statement: Every check constraint and formula shall parse and type-check in the fixed expression language.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - An expression outside the subset is refused with a message naming the construct.
+      - An expression that mixes types without a written conversion is refused with the conversion to write.
+    verification: test
+    needs: [NEED-1]
+  SA-4:
+    statement: Every worked example's formula, evaluated on its inputs with exact arithmetic, shall give its expected value.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - An example whose expected value is off by one cent is reported with the computed value.
+    verification: test
+    needs: [NEED-1]
+  SA-5:
+    statement: Access shall be fail-closed; every permission used is declared, and every declared permission is granted by a role or is public.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - An operation, command or page without a permission is a schema error.
+      - A permission no role grants is reported.
+    verification: test
+    needs: [NEED-1]
+  SA-6:
+    statement: Every problem shall be reported, one line each, with file, line, YAML path and rule; the exit status is 0 when valid, 1 when invalid, 2 on a usage or read error.
+    kind: interface
+    priority: must
+    status: accepted
+    acceptance:
+      - A run on a folder with three problems in two files prints three lines and exits 1.
+      - A run with no arguments prints how to use the command and exits 2.
+    verification: test
+    needs: [NEED-1]
+    cites:
+      - source: go-tool
+        says: "The Go tools print one problem per line as file:line, which editors and CI already parse."
+  SA-9:
+    statement: A specification and its implementations shall be separate files; a specification holds no stack-specific key and an implementation file adds no design.
+    kind: constraint
+    priority: must
+    status: accepted
+    acceptance:
+      - A stack-specific extension key in a specification is reported as stack_key.
+      - A design keyword in an implementation file is reported as design_key.
+    verification: test
+    needs: [NEED-2]
+  SA-10:
+    statement: An implementation file's implements and pointers shall resolve in the specification it names, at the same version.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - An implementation written against an older version of its specification is reported as implements.
+      - A pointer to an object the specification does not have is reported as design_ref.
+    verification: test
+    needs: [NEED-2]

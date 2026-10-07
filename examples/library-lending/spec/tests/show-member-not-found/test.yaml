@@ -1,0 +1,7 @@
+operation: getMember
+level: system
+scenario: red
+covers: [not found memberId, response 404]
+given: a librarian and no member with a given id
+when: getMember is called with that id
+then: it answers 404

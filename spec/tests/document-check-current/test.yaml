@@ -1,0 +1,6 @@
+command: document
+level: system
+scenario: golden
+given: output that matches the design file
+when: document techspec is run with --check
+then: "it writes nothing, prints nothing and exits 0"

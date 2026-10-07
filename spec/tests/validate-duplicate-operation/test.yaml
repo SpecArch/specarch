@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: two operations with the same operationId
+when: validate is run
+then: it reports duplicate_operation at the second and exits 1

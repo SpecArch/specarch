@@ -1,0 +1,9 @@
+entity: Loan
+transition:
+  from: open
+  to: lost
+level: system
+scenario: golden
+given: an open loan
+when: reportLost is called
+then: the loan is lost and the replacement cost is charged

@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a citation of a source that is not declared"
+when: "validate is run"
+then: "it reports source and exits 1"
+verifies: [SA-13]

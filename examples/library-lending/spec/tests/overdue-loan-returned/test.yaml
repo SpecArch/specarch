@@ -1,0 +1,9 @@
+entity: Loan
+transition:
+  from: overdue
+  to: returned
+level: system
+scenario: golden
+given: an overdue loan
+when: returnLoan is called
+then: the loan is returned with its late fee

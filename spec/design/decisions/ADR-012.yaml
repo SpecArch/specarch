@@ -1,0 +1,47 @@
+decisions:
+  ADR-012:
+    title: Every element may say why, and cite its sources
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      A reader of a specification, and the documents made from it, wants
+      to know why an element is the way it is and which standard,
+      regulation, document or interview asked for it. Decision records
+      carry a context and consequences but no named rationale, and
+      nothing else carried one at all.
+    decision: |
+      Two optional fields on every element at every stage, the same
+      everywhere: `why`, the rationale in plain words, and `cites`, a list
+      of citations. A citation names a source by key, the clause where
+      relevant, and what the source says that applies here (`says`). The
+      sources themselves are declared once, under `sources` in the root
+      file, with their kind (standard, regulation, document, interview,
+      system or an external requirement set), title, edition, author and
+      URL. The validator refuses a citation of a source that is not
+      declared. A decision keeps its context, decision and consequences
+      and gains `why` like everything else: the context is what was true
+      and at stake, `why` the reasoning that led from it to the decision.
+      The documentor renders `why` as an Insight block and each citation
+      as a Note block.
+    why: |
+      Two fields rather than one, because a conclusion and a quotation are
+      different things and are read differently: a reader can skip every
+      Insight and still read the document, or read only the Notes to see
+      what the standards require. Sources are a registry rather than
+      written inline in each citation, because a standard cited twenty
+      times would otherwise carry its title and edition twenty times and
+      drift between them, and the index of sources at the end of a
+      document needs one entry per source. `says` rather than `requires`,
+      because an interview or a book does not require; it says.
+    consequences: |
+      Design, deployment, commissioning and implementation elements all
+      take `why` and `cites`; the schema allows them wherever an element
+      has a description. External requirement sets are a kind of source,
+      so `requirementSources` is no longer a section of its own.
+    satisfies: [SA-13]
+    cites:
+      - source: iso-29148
+        clause: "5.2.8"
+        says: "Rationale and source are attributes a requirement should carry."
+      - source: adr-nygard
+        says: "A decision record states the context, the decision and the consequences."

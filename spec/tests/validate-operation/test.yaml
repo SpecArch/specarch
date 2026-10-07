@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a list page whose source operation does not exist
+when: validate is run
+then: it reports operation and exits 1

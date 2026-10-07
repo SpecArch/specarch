@@ -1,0 +1,28 @@
+stakeholders:
+  specification-author:
+    description: A person or an assistant who writes a specification in SpecArch and keeps it current.
+    concerns:
+      - A mistake in a specification is caught before anyone builds on it.
+      - A large specification stays navigable.
+    cites:
+      - source: iso-29148
+        clause: "5.2.2"
+        says: "Stakeholders are identified at the start, and their needs are the input to every requirement."
+  implementer:
+    description: A developer who builds a system from a specification, in one of possibly several stacks.
+    concerns:
+      - The design says enough to build from, including how values travel.
+      - A change in the design is noticed in every implementation of it.
+  reviewer:
+    description: A person who reviews a specification or the documents made from it before work starts.
+    concerns:
+      - Every design element traces to a requirement, and every requirement to a test.
+      - The reasoning behind a choice is written next to it.
+  operator:
+    description: A person who installs, releases and runs the built system.
+    concerns:
+      - Release, rollback and commissioning are written down and checkable.
+  ci-job:
+    description: The continuous-integration job that checks every change of a project that uses SpecArch.
+    concerns:
+      - Every check runs with one command and answers with an exit status.

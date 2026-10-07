@@ -1,4 +1,0 @@
-arguments: [validate, .]
-exitStatus: 1
-standardOutput: |
-  case.specarch-design.yaml:11: error: /algorithms/total/examples/0/inputs/price: example_input: input price of "three items" must be a decimal in quotes, such as "10.00", and is 2.5; quote it

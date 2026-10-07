@@ -1,0 +1,120 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-0.1.schema.json
+specarchImplementation: "0.1"
+
+info:
+  title: Library Lending in Go and PostgreSQL
+  version: 0.1.0
+  description: |
+    How one stack would build the lending example. No code for it exists in
+    this repository; the file shows what belongs in an implementation file
+    and what stays in the specification.
+
+implements:
+  file: ../../specarch.yaml
+  version: 0.1.0
+
+stack:
+  language: { name: Go, version: "1.26" }
+  toolchain: { name: go, version: "1.26.0" }
+
+libraries:
+  github.com/oapi-codegen/oapi-codegen/v2:
+    version: v2.8.0
+    licence: Apache-2.0
+    purpose: Turns the generated OpenAPI document into a strict server interface and request and response types.
+    scope: tool
+  github.com/oapi-codegen/runtime:
+    version: v1.7.0
+    licence: Apache-2.0
+    purpose: Runtime helpers the generated server code calls.
+  github.com/go-chi/chi/v5:
+    version: v5.3.2
+    licence: MIT
+    purpose: HTTP router.
+  github.com/jackc/pgx/v5:
+    version: v5.11.0
+    licence: MIT
+    purpose: PostgreSQL driver.
+
+layout:
+  internal/api:
+    description: Generated server interface and types. Never edited by hand.
+    implements: ["#/paths/~1books/get", "#/paths/~1loans/post", "#/paths/~1loans~1{loanId}~1return/post"]
+  internal/lending:
+    description: Hand-written handlers that implement the generated interface, and the late-fee algorithm.
+    implements: ["#/algorithms/lateFee", "#/entities/Loan"]
+  migrations:
+    description: Generated forward migrations, new files only.
+
+mappings:
+  "#/entities/Loan": { target: table loans }
+  "#/entities/Member": { target: table members }
+  "#/entities/Book": { target: table books }
+  "#/algorithms/lateFee": { target: lending.LateFee, description: "Takes and returns `decimal.Decimal` values with scale 2." }
+  "#/paths/~1loans/post":
+    target: lending.Server.CreateLoan
+    settings: { x-oapi-codegen-middlewares: [requirePermission] }
+
+bindings:
+  http:
+    framework: github.com/go-chi/chi/v5
+    description: The generated strict handler is mounted on a chi router; a middleware checks the operation's permission before the handler runs.
+  storage:
+    framework: github.com/jackc/pgx/v5
+    description: Money columns are `numeric(10,2)`.
+
+targets:
+  techspec:
+    output: ../../../docs
+  openapi:
+    output: api
+    tool: oapi-codegen
+    settings: { package: api, generate: { chi-server: true, strict-server: true, models: true } }
+  sql:
+    output: migrations
+    dialect: postgresql
+  ui:
+    output: web
+    platform: web
+    framework: plain-javascript
+  tests:
+    output: internal/lending
+
+tasks:
+  generate: { run: go generate ./... }
+  test: { run: go test ./..., ci: true }
+
+deployments:
+  local:
+    description: A developer's machine.
+    environment: development
+    servers:
+      - { url: "http://localhost:8080", description: The API. }
+    configuration:
+      dailyRate: "0.50"
+      notificationChannelUrl: "http://localhost:8081/events"
+  staging:
+    description: The staging host the librarians try a release on.
+    environment: staging
+    servers:
+      - { url: "https://staging.library.example", description: The API behind the staging screens. }
+    configuration:
+      dailyRate: "0.50"
+      notificationChannelUrl: "https://notify-staging.library.example/events"
+  production:
+    description: The live host.
+    environment: production
+    servers:
+      - { url: "https://library.example", description: The API behind the desk screens. }
+    configuration:
+      dailyRate: "0.50"
+      notificationChannelUrl: "https://notify.library.example/events"
+
+decisions:
+  ADR-101:
+    title: PostgreSQL numeric for money
+    status: accepted
+    date: "2026-10-07"
+    context: The specification carries money as decimal strings with a precision and scale (ADR-002 there).
+    decision: Every decimal field becomes `numeric(precision, scale)` in PostgreSQL and a decimal type in Go, never a float.
+    consequences: Sums in SQL and in Go agree to the cent.

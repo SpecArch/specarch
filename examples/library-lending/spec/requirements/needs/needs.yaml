@@ -1,0 +1,27 @@
+needs:
+  NEED-1:
+    statement: We need to know who has which copy and when it is due, without a card index.
+    stakeholders: [librarian]
+    status: accepted
+    cites:
+      - source: desk-interview
+        says: "The card index is searched by hand when a member asks what they have out, and it is often out of date."
+  NEED-2:
+    statement: We need late fees to be charged the same way for every member, as the policy says.
+    stakeholders: [librarian, library-board]
+    status: accepted
+    cites:
+      - source: lending-policy
+        clause: "4"
+        says: "A late return is charged a flat daily rate, capped at the book's replacement cost."
+  NEED-3:
+    statement: Members need to browse the catalogue without logging in, and to see only their own records when they do.
+    stakeholders: [member, library-board]
+    status: accepted
+    cites:
+      - source: data-protection-rules
+        says: "Personal data is shown only to the person it is about and to the staff who need it."
+  NEED-4:
+    statement: Members need to be told when a loan becomes overdue.
+    stakeholders: [member]
+    status: accepted

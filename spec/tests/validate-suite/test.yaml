@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: an implementation suite that names a design test that does not exist
+when: validate is run
+then: it reports suite and exits 1

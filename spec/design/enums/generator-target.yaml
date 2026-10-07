@@ -1,0 +1,16 @@
+enums:
+  GeneratorTarget:
+    type: string
+    description: |
+      The code and data targets `specarch generate` is designed for. None is
+      built into the program yet: each is produced by the plug-in
+      `specarch-gen-<target>` when one is on PATH, and a plug-in may offer a
+      target this list does not name.
+    enum: [openapi, sql, ui, tests, scripts]
+    valueDescriptions:
+      openapi: OpenAPI 3.1 document
+      sql: forward SQL migrations, new files only
+      ui: page definitions for the target component library
+      tests: one test per design test and per worked example, in the implementation's framework
+      scripts: guarded operational scripts for data changes
+    satisfies: [SA-7, SA-14]

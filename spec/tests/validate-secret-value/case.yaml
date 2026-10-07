@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:8: error: /configuration/databaseUrl/schema/default: secret_value: databaseUrl is a secret, and a secret's value is never written in a specification; remove the default and say in the description where the value comes from
+

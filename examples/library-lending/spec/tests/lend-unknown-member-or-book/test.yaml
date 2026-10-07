@@ -1,0 +1,7 @@
+operation: createLoan
+level: system
+scenario: red
+covers: [not found memberId, not found bookId]
+given: a librarian
+when: createLoan is called with a memberId and then a bookId that no record has
+then: both are refused as not found

@@ -1,0 +1,65 @@
+commands:
+  document:
+    summary: Write a document from a specification
+    description: |
+      Validates its input first and writes nothing from an invalid
+      specification. Then writes the document into the folder the target
+      owns, and nothing outside it, except the regions between
+      `specarch:generate` markers in the hand-written `specarch.md` beside
+      the root file. Every generated file starts with a header naming the
+      root file, its `info.version`, each implementation file, and the
+      meta-model version. With `--check` nothing is written: the output is
+      made in memory and compared with what is on disk.
+
+      The techspec target writes `techspec.md`: an arc42 technical
+      specification of the whole specification, with chapters only for
+      what it holds. Diagrams are Mermaid: an entity diagram, a state
+      diagram for each entity with a state field, a sequence diagram for
+      each operation and command, a flowchart of the pages, and a
+      permissions table. Chapter 2 comes from the constraints and
+      assumptions, chapter 7 from the deployment and commissioning stages
+      and from each implementation file, chapter 12 from the glossary, and
+      chapter 13 from the needs and requirements, with the traceability
+      matrix of what satisfies and what verifies each requirement. A marker
+      names what goes in its region: `erDiagram`, `stateDiagram <Entity>`,
+      `sequenceDiagram <operationId or command>`, `flowchart pages` or
+      `permissions`.
+    permission: public
+    arguments:
+      - name: target
+        required: true
+        schema: { $ref: "#/enums/DocumentTarget" }
+      - name: paths
+        description: Folders holding specifications, searched as validate searches them.
+        required: true
+        repeatable: true
+        schema: { type: string }
+    options:
+      out:
+        description: The folder the target owns. Without it, the folder the implementation files' `targets` name for the target, relative to each implementation file; they must agree.
+        schema: { type: string }
+      check:
+        description: Make the output in memory and fail when the files on disk differ. Writes nothing.
+        schema: { type: boolean, default: false }
+    reads:
+      - { path: "{paths}", description: The specifications and their implementation files. }
+      - { path: "specarch.md", description: "The hand-written document beside each root file, when there is one." }
+      - { path: "{out}", description: "The current output, with `--check`." }
+    writes:
+      - { path: "{out}/<target>.md", description: "The document. Nothing is written with `--check`." }
+      - { path: "specarch.md", description: "Only the regions between markers. Nothing is written with `--check`." }
+    standardOutput: |
+      The diagnostics of an invalid specification and the errors of a
+      marker, one line each. With `--check`, one line per file that differs
+      or is missing.
+    standardError: A usage message on a usage error, the reason a file cannot be read or written, and a one-line count at the end.
+    exitCodes:
+      "0": written, or with `--check` the output is current
+      "1": a specification has an error, a marker is wrong, or with `--check` the output differs
+      "2": usage error, a target this build does not offer, no output folder, or a file that could not be read or written
+    algorithm: checkStatus
+    satisfies: [SA-7, SA-8]
+    why: Documents are read by more people than the YAML, so they come first among the targets and are made from the specification rather than kept beside it.
+    cites:
+      - source: arc42
+        says: "The twelve chapters of an architecture document, from introduction and goals to glossary."

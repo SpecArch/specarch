@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a path with {itemId} and no path parameter for it"
+when: validate is run
+then: it reports path_parameter and exits 1

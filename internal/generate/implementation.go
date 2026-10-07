@@ -34,15 +34,112 @@ func sortedLinks[V any](m map[string]V) []string {
 	return keys
 }
 
-// implementation is chapter 7, from the implementation file: how one stack
-// builds the design, where it runs, and the decisions that depend on it.
+// deployment is chapter 7: the deployment stage of the specification
+// (environments, configuration, release, rollback, migrations), the
+// commissioning stage (checks and sign-off), then each implementation
+// file: how one stack builds the design, where it runs, and the decisions
+// that depend on it.
+func deployment(d *doc, root *yaml.Node, impls []Implementation) {
+	envs := pairs(root, "environments")
+	cfg := pairs(root, "configuration")
+	release := get(root, "release")
+	rollback := get(root, "rollback")
+	migs := pairs(root, "migrations")
+	checks := pairs(root, "checks")
+	signoff := get(root, "signoff")
+	if len(envs)+len(cfg)+len(migs)+len(checks)+len(impls) == 0 && release == nil && rollback == nil && signoff == nil {
+		return
+	}
+	d.heading(2, "7. Deployment and implementation")
+	if len(envs) > 0 {
+		d.heading(3, "Environments")
+		d.line("| Environment | Purpose | Promotes to |")
+		d.line("|---|---|---|")
+		for _, e := range envs {
+			d.line("| %s | %s | %s |", e.Key.Value, cell(str(e.Value, "description")), cell(str(e.Value, "promotesTo")))
+		}
+		d.blank()
+	}
+	if len(cfg) > 0 {
+		d.heading(3, "Configuration")
+		d.line("| Setting | Type | Secret | Description |")
+		d.line("|---|---|---|---|")
+		for _, c := range cfg {
+			secret := ""
+			if str(c.Value, "secret") == "true" {
+				secret = "yes"
+			}
+			d.line("| %s | %s | %s | %s |", c.Key.Value, cell(typeText(get(c.Value, "schema"))), cell(secret), cell(str(c.Value, "description")))
+		}
+		d.blank()
+	}
+	if release != nil {
+		d.heading(3, "Release")
+		d.para(str(release, "description"))
+		stepsTable(d, get(release, "steps"))
+	}
+	if rollback != nil {
+		d.heading(3, "Rollback")
+		d.para(str(rollback, "description"))
+		stepsTable(d, get(rollback, "steps"))
+	}
+	for _, m := range migs {
+		d.heading(3, "Migration "+m.Key.Value)
+		d.para(str(m.Value, "description"))
+		stepsTable(d, get(m.Value, "steps"))
+		if rb := get(m.Value, "rollback"); rb != nil {
+			d.para("Reversed by:")
+			stepsTable(d, rb)
+		}
+	}
+	if len(checks) > 0 {
+		d.heading(3, "Commissioning checks")
+		d.para("Run on the installed system before it is handed over. The results of each run are records kept outside the specification.")
+		for _, c := range checks {
+			d.heading(4, fmt.Sprintf("%s (%s, in %s)", c.Key.Value, str(c.Value, "kind"), str(c.Value, "environment")))
+			d.para(str(c.Value, "description"))
+			stepsTable(d, get(c.Value, "steps"))
+		}
+	}
+	if signoff != nil {
+		d.heading(3, "Sign-off")
+		d.para("The system is accepted when:")
+		for _, c := range strs(signoff, "criteria") {
+			d.line("- %s", c)
+		}
+		d.blank()
+		var signers []string
+		for _, s := range items(signoff, "signers") {
+			signers = append(signers, str(s, "role"))
+		}
+		d.para("Signed by: " + strings.Join(signers, ", ") + ".")
+	}
+	for _, i := range impls {
+		implementation(d, i.Node)
+	}
+}
+
+func stepsTable(d *doc, steps *yaml.Node) {
+	list := itemsOf(steps)
+	if len(list) == 0 {
+		return
+	}
+	d.line("| Step | Action | Check |")
+	d.line("|---|---|---|")
+	for i, s := range list {
+		d.line("| %d. %s | %s | %s |", i+1, cell(str(s, "name")), cell(str(s, "action")), cell(str(s, "check")))
+	}
+	d.blank()
+}
+
+// implementation is one implementation file's part of chapter 7.
 func implementation(d *doc, impl *yaml.Node) {
 	info := get(impl, "info")
-	d.heading(3, str(info, "title"))
-	d.para(fmt.Sprintf("From the implementation file %s, version %s.", str(info, "title"), str(info, "version")))
+	d.heading(3, "Implementation: "+str(info, "title"))
+	d.para(fmt.Sprintf("From the implementation file version %s.", str(info, "version")))
 	d.para(str(info, "description"))
 
-	target := get(impl, "target")
+	target := get(impl, "stack")
 	stack := []string{}
 	if l := get(target, "language"); l != nil {
 		stack = append(stack, fmt.Sprintf("language %s %s", str(l, "name"), str(l, "version")))
@@ -92,8 +189,8 @@ func implementation(d *doc, impl *yaml.Node) {
 			d.para(fmt.Sprintf("%s: %s. %s", b.Key.Value, str(b.Value, "framework"), strings.TrimSpace(str(b.Value, "description"))))
 		}
 	}
-	if gens := pairs(impl, "generators"); len(gens) > 0 {
-		d.heading(4, "Generators")
+	if gens := pairs(impl, "targets"); len(gens) > 0 {
+		d.heading(4, "Targets")
 		d.line("| Target | Output folder | Settings |")
 		d.line("|---|---|---|")
 		for _, g := range gens {
@@ -128,8 +225,8 @@ func implementation(d *doc, impl *yaml.Node) {
 				d.para(k[1] + ": " + strings.TrimSpace(s))
 			}
 		}
-		d.line("| Suite | Runs | Command |")
-		d.line("|---|---|---|")
+		d.line("| Suite | Level | Runs | Command |")
+		d.line("|---|---|---|---|")
 		for _, s := range pairs(testing, "suites") {
 			runs := "tests of this implementation only"
 			if names := strs(s.Value, "designTests"); len(names) > 0 {
@@ -144,7 +241,7 @@ func implementation(d *doc, impl *yaml.Node) {
 			if len(of) > 0 {
 				runs = "every design test of " + strings.Join(of, ", ")
 			}
-			d.line("| %s | %s | `%s` |", s.Key.Value, cell(runs), cell(str(s.Value, "run")))
+			d.line("| %s | %s | %s | `%s` |", s.Key.Value, str(s.Value, "level"), cell(runs), cell(str(s.Value, "run")))
 		}
 		d.blank()
 	}
@@ -155,7 +252,22 @@ func implementation(d *doc, impl *yaml.Node) {
 			for _, s := range items(dep.Value, "servers") {
 				urls = append(urls, str(s, "url"))
 			}
-			d.para(fmt.Sprintf("%s: %s Servers: %s.", dep.Key.Value, strings.TrimSpace(str(dep.Value, "description")), strings.Join(urls, ", ")))
+			env := ""
+			if e := str(dep.Value, "environment"); e != "" {
+				env = " Environment: " + e + "."
+			}
+			var settings []string
+			for _, c := range pairs(dep.Value, "configuration") {
+				settings = append(settings, c.Key.Value+" "+c.Value.Value)
+			}
+			line := fmt.Sprintf("%s: %s%s", dep.Key.Value, strings.TrimSpace(str(dep.Value, "description")), env)
+			if len(urls) > 0 {
+				line += " Servers: " + strings.Join(urls, ", ") + "."
+			}
+			if len(settings) > 0 {
+				line += " Settings: " + strings.Join(settings, ", ") + "."
+			}
+			d.para(line)
 		}
 	}
 	decisions(d, "", impl)

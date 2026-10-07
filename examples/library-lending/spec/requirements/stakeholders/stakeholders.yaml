@@ -1,0 +1,16 @@
+stakeholders:
+  librarian:
+    description: Staff at the desk who register members, lend copies and take returns.
+    concerns:
+      - Every desk task fits in one screen and takes under a minute.
+      - A fee is never wrong by a cent.
+  member:
+    description: A card holder who borrows books.
+    concerns:
+      - Only their own loans and fees are shown to them.
+      - They are told when a loan is overdue.
+  library-board:
+    description: The board that sets the lending policy and answers to the regulator.
+    concerns:
+      - The policy sheet and the system agree.
+      - Member data is kept as the rules allow and no longer.

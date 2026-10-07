@@ -1,0 +1,6 @@
+command: validate
+level: system
+scenario: golden
+given: "an operation with a required field, length limits, a permission and a 409 response, and no tests"
+when: validate is run
+then: "it warns once for every derived case no test covers, each with a test to copy, and exits 0"

@@ -1,0 +1,10 @@
+entity: Loan
+transition:
+  from: overdue
+  to: lost
+level: system
+scenario: red
+covers: [from wrong state]
+given: a loan already lost
+when: reportLost is called again
+then: it is refused and nothing is charged twice

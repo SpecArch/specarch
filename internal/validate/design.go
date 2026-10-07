@@ -9,23 +9,31 @@ import (
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/source"
+	"github.com/SpecArch/specarch/internal/spec"
 )
 
-// design indexes the named objects of a design file.
+// design indexes the named objects of a specification.
 type design struct {
-	root        *yaml.Node
-	entities    map[string]*yaml.Node
-	enums       map[string]*yaml.Node
-	permissions map[string]*yaml.Node
-	roles       map[string]*yaml.Node
-	commands    map[string]*yaml.Node
-	channels    map[string]*yaml.Node
-	pages       map[string]*yaml.Node
-	algorithms  map[string]*yaml.Node
-	decisions   map[string]*yaml.Node
-	sources     map[string]*yaml.Node
-	operations  map[string]operation // by operationId, the first definition
-	opList      []operation          // every operation in document order
+	root         *yaml.Node
+	spec         *spec.Spec // the specification on disk, when known
+	entities     map[string]*yaml.Node
+	enums        map[string]*yaml.Node
+	permissions  map[string]*yaml.Node
+	roles        map[string]*yaml.Node
+	commands     map[string]*yaml.Node
+	channels     map[string]*yaml.Node
+	pages        map[string]*yaml.Node
+	algorithms   map[string]*yaml.Node
+	decisions    map[string]*yaml.Node
+	sources      map[string]*yaml.Node
+	stakeholders map[string]*yaml.Node
+	needs        map[string]*yaml.Node
+	requirements map[string]*yaml.Node
+	environments map[string]*yaml.Node
+	settings     map[string]*yaml.Node
+	checks       map[string]*yaml.Node
+	operations   map[string]operation // by operationId, the first definition
+	opList       []operation          // every operation in document order
 }
 
 type operation struct {
@@ -48,18 +56,24 @@ func topMap(root *yaml.Node, key string) map[string]*yaml.Node {
 
 func newDesign(root *yaml.Node) *design {
 	d := &design{
-		root:        root,
-		entities:    topMap(root, "entities"),
-		enums:       topMap(root, "enums"),
-		permissions: topMap(root, "permissions"),
-		roles:       topMap(root, "roles"),
-		commands:    topMap(root, "commands"),
-		channels:    topMap(root, "channels"),
-		pages:       topMap(root, "pages"),
-		algorithms:  topMap(root, "algorithms"),
-		decisions:   topMap(root, "decisions"),
-		sources:     topMap(root, "requirementSources"),
-		operations:  map[string]operation{},
+		root:         root,
+		entities:     topMap(root, "entities"),
+		enums:        topMap(root, "enums"),
+		permissions:  topMap(root, "permissions"),
+		roles:        topMap(root, "roles"),
+		commands:     topMap(root, "commands"),
+		channels:     topMap(root, "channels"),
+		pages:        topMap(root, "pages"),
+		algorithms:   topMap(root, "algorithms"),
+		decisions:    topMap(root, "decisions"),
+		sources:      topMap(root, "sources"),
+		stakeholders: topMap(root, "stakeholders"),
+		needs:        topMap(root, "needs"),
+		requirements: topMap(root, "requirements"),
+		environments: topMap(root, "environments"),
+		settings:     topMap(root, "configuration"),
+		checks:       topMap(root, "checks"),
+		operations:   map[string]operation{},
 	}
 	for _, p := range source.Pairs(source.Child(root, "paths")) {
 		for _, m := range methods {
@@ -148,7 +162,9 @@ func distance(a, b string) int {
 func (c *checker) checkDesign(d *design) {
 	c.checkRefs(d)
 	c.checkIntegers()
-	c.checkRequirementLinks(d.root, nil, d.sources)
+	c.checkRequirementLinks(d.root, nil, d)
+	c.checkCitations(d.root, nil, d)
+	c.checkRequirementsStage(d)
 	c.checkEnums(d)
 	c.checkEntities(d)
 	c.checkOperations(d)
@@ -158,6 +174,8 @@ func (c *checker) checkDesign(d *design) {
 	c.checkAccess(d)
 	c.checkExpressions(d)
 	c.checkTests(d)
+	c.checkDeploymentStage(d)
+	c.checkTraceability(d)
 }
 
 // checkRefs finds every $ref in the file and checks its target exists.
@@ -204,23 +222,66 @@ func walk(n *yaml.Node, path []string, fn func(*yaml.Node, []string)) {
 	}
 }
 
-// checkRequirementLinks checks every "requirements" list names a known
-// source prefix.
-func (c *checker) checkRequirementLinks(root *yaml.Node, base []string, sources map[string]*yaml.Node) {
+// requirementSetPrefixes lists the prefixes of the external requirement
+// sets declared under sources.
+func (d *design) requirementSetPrefixes() map[string]*yaml.Node {
+	out := map[string]*yaml.Node{}
+	for name, src := range d.sources {
+		if source.Str(source.Child(src, "kind")) == "requirement-set" {
+			if prefix := source.Str(source.Child(src, "prefix")); prefix != "" {
+				out[prefix] = d.sources[name]
+			}
+		}
+	}
+	return out
+}
+
+// checkRequirementLinks checks every satisfies and verifies list names a
+// requirement of the specification, or one of an external set declared
+// under sources.
+func (c *checker) checkRequirementLinks(root *yaml.Node, base []string, d *design) {
+	prefixes := d.requirementSetPrefixes()
 	walk(root, base, func(n *yaml.Node, path []string) {
-		list := source.Child(n, "requirements")
-		for i, item := range source.Items(list) {
-			link := source.Str(item)
-			prefix, _, ok := strings.Cut(link, "-")
-			if !ok || sources[prefix] != nil {
+		for _, key := range []string{"satisfies", "verifies"} {
+			list := source.Child(n, key)
+			for i, item := range source.Items(list) {
+				link := source.Str(item)
+				if d.requirements[link] != nil {
+					continue
+				}
+				prefix, _, ok := strings.Cut(link, "-")
+				if ok && prefixes[prefix] != nil {
+					continue
+				}
+				ptr := source.Pointer(append(path, key, fmt.Sprint(i))...)
+				switch {
+				case len(d.requirements) == 0 && len(prefixes) == 0:
+					c.add(item, ptr, RuleRequirement, "%s is not a requirement: the specification has none under requirements and no source of kind requirement-set; add the requirement, or declare the set under sources with prefix %s", link, prefix)
+				case len(d.requirements) > 0:
+					c.add(item, ptr, RuleRequirement, "%s is not a requirement of the specification%s", link, suggest(link, d.requirements))
+				default:
+					c.add(item, ptr, RuleRequirement, "%s is not in a declared requirement set; the sets under sources have the prefixes %s", link, strings.Join(sortedKeys(prefixes), ", "))
+				}
+			}
+		}
+	})
+}
+
+// checkCitations checks every citation names a declared source.
+func (c *checker) checkCitations(root *yaml.Node, base []string, d *design) {
+	walk(root, base, func(n *yaml.Node, path []string) {
+		for i, item := range source.Items(source.Child(n, "cites")) {
+			srcNode := source.Child(item, "source")
+			name := source.Str(srcNode)
+			if name == "" || d.sources[name] != nil {
 				continue
 			}
-			ptr := source.Pointer(append(path, "requirements", fmt.Sprint(i))...)
-			if len(sources) == 0 {
-				c.add(item, ptr, RuleRequirement, "%s links to requirement source %s, but the file declares no requirementSources; add %s under requirementSources", link, prefix, prefix)
+			ptr := source.Pointer(append(path, "cites", fmt.Sprint(i), "source")...)
+			if len(d.sources) == 0 {
+				c.add(srcNode, ptr, RuleSource, "%s is not a declared source: the specification declares none; add it under sources in %s", name, spec.RootFile)
 				continue
 			}
-			c.add(item, ptr, RuleRequirement, "%s links to requirement source %s, which is not under requirementSources%s", link, prefix, suggest(prefix, sources))
+			c.add(srcNode, ptr, RuleSource, "%s is not a source declared under sources%s", name, suggest(name, d.sources))
 		}
 	})
 }

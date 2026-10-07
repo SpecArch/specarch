@@ -1,0 +1,6 @@
+command: document
+level: system
+scenario: golden
+given: a design file and no implementation file
+when: document techspec is run with --out docs
+then: it writes docs/shop.techspec.md without chapter 7 and exits 0

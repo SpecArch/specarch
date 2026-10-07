@@ -1,0 +1,16 @@
+release:
+  description: A release is a tagged commit of this repository; nothing is uploaded anywhere, since every user builds the program from source.
+  steps:
+    - name: Check the tree
+      action: Run the implementation's build, test, validate and document --check tasks on the commit to release.
+      check: Every task exits 0.
+    - name: Tag the commit
+      action: Tag the commit with the program version, as the version command prints it.
+      check: The tag's name equals the output of specarch version.
+    - name: Announce
+      action: Write the release in the history file of the day, with the tag.
+      check: The history file names the tag.
+  cites:
+    - source: iso-12207
+      clause: "6.4.10"
+      says: "The transition process establishes the capability to provide the service in its operational environment."

@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a setting marked secret with a default value"
+when: "validate is run"
+then: "it reports secret_value and exits 1"
+verifies: [SA-12]

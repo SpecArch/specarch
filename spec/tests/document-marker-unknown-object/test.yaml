@@ -1,0 +1,7 @@
+command: document
+level: system
+scenario: red
+covers: [exit 1]
+given: a marker for the states of an entity that has none
+when: document techspec is run
+then: "it reports the marker's line, writes nothing and exits 1"

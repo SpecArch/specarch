@@ -1,0 +1,33 @@
+algorithms:
+  exitStatus:
+    description: |
+      The status of a whole `validate` run. A usage or read error outranks
+      diagnostics, because a run that could not read its input has not
+      checked it.
+    inputs:
+      usageError: { type: boolean }
+      ioError: { type: boolean }
+      errors: { type: integer, format: int32, minimum: 0, description: Diagnostics with severity error. }
+    output: { type: integer, format: int32 }
+    formula: "usageError || ioError ? 2 : (errors > 0 ? 1 : 0)"
+    examples:
+      - name: every file valid
+        inputs: { usageError: false, ioError: false, errors: 0 }
+        expected: 0
+      - name: three problems
+        inputs: { usageError: false, ioError: false, errors: 3 }
+        expected: 1
+      - name: no arguments
+        inputs: { usageError: true, ioError: false, errors: 0 }
+        expected: 2
+      - name: one file unreadable, another invalid
+        inputs: { usageError: false, ioError: true, errors: 2 }
+        expected: 2
+    pseudocode: |
+      function exitStatus(usageError, ioError, errors):
+          if usageError or ioError:
+              return 2
+          if errors > 0:
+              return 1
+          return 0
+    satisfies: [SA-6]

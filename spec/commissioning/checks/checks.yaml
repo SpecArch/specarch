@@ -1,0 +1,37 @@
+checks:
+  installs-and-answers:
+    kind: smoke
+    description: The program installs from the release tag on a clean machine and answers.
+    environment: developer-machine
+    steps:
+      - name: Install
+        action: Install the program from the release tag with one command, on a machine that has never had it.
+        check: The command exits 0.
+      - name: Run version
+        action: Run specarch version.
+        check: It prints the program version and the meta-model versions it reads, and exits 0.
+    verifies: [SA-6]
+  checks-the-examples:
+    kind: end-to-end
+    description: The installed program validates the example and this specification, and reproduces their committed documents.
+    environment: developer-machine
+    steps:
+      - name: Validate
+        action: Run specarch validate on spec and examples of the release tag.
+        check: It exits 0 with no error.
+      - name: Compare the documents
+        action: Run specarch document techspec --check on spec and examples.
+        check: It exits 0 and names no file.
+    verifies: [SA-1, SA-7, SA-11]
+  no-network:
+    kind: security
+    description: The installed program needs no network.
+    environment: ci-runner
+    steps:
+      - name: Run offline
+        action: Run specarch validate on the example with the network switched off.
+        check: It exits 0; nothing waits on a connection.
+    cites:
+      - source: iec-62381
+        says: "A site acceptance test is run on the installed system in its real environment before it is accepted."
+

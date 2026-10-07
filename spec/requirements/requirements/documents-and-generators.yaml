@@ -1,0 +1,34 @@
+requirements:
+  SA-7:
+    statement: specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A run writes the target's files into its folder and nothing elsewhere.
+      - A run with --check on output edited by hand names the file and exits 1, writing nothing.
+    verification: test
+    needs: [NEED-3]
+  SA-8:
+    statement: Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - The first line of a generated document names the root file, its version and the meta-model.
+      - A marked region is rewritten and every other line of the document is unchanged.
+    verification: test
+    needs: [NEED-3]
+  SA-14:
+    statement: A code target that specarch does not build in shall be produced by the plug-in specarch-gen-<target> found on PATH, which receives the validated specification on its standard input and answers with the files to write, so that specarch writes them, checks them and keeps them inside the target's folder.
+    kind: interface
+    priority: should
+    status: accepted
+    acceptance:
+      - specarch generate <target> with no built-in generator and no plug-in on PATH says so and exits 2.
+      - A plug-in's answer that names a path outside the output folder is refused and nothing is written.
+    verification: test
+    needs: [NEED-7]
+    cites:
+      - source: protoc-plugins
+        says: "A plug-in reads a CodeGeneratorRequest from standard input and writes a CodeGeneratorResponse to standard output; protoc writes the files, so a plug-in never touches the disk."

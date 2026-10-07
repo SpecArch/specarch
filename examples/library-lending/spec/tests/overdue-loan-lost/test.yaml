@@ -1,0 +1,9 @@
+entity: Loan
+transition:
+  from: overdue
+  to: lost
+level: system
+scenario: golden
+given: an overdue loan
+when: reportLost is called
+then: the loan is lost and the replacement cost is charged

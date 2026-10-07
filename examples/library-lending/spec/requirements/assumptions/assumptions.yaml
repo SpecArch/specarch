@@ -1,0 +1,9 @@
+assumptions:
+  ASSUME-1:
+    statement: One library, one branch, one currency.
+  ASSUME-2:
+    statement: The daily rate changes rarely and is a library setting, not a per-book value.
+    cites:
+      - source: lending-policy
+        clause: "4"
+        says: "The board sets the daily rate once a year."

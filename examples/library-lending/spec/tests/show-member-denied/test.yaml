@@ -1,0 +1,7 @@
+operation: getMember
+level: system
+scenario: red
+covers: [denied without members.read]
+given: a caller holding only the member role
+when: getMember is called
+then: it is refused as not allowed

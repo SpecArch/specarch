@@ -1,0 +1,32 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+sources:
+  till-interview:
+    kind: interview
+    title: Interview with the till staff
+    date: "2026-09-15"
+  iso-29148:
+    kind: standard
+    title: ISO/IEC/IEEE 29148, Requirements engineering
+    edition: "2018"
+stakeholders:
+  clerk: { description: Staff at the till. }
+needs:
+  NEED-1:
+    statement: Items must be findable by name.
+    stakeholders: [clerk]
+    status: accepted
+    cites:
+      - { source: till-interview, says: "Clerks look items up by name, never by number." }
+requirements:
+  CASE-1:
+    statement: An item shall have a non-empty name.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [Saving an item with an empty name is refused.]
+    verification: test
+    needs: [NEED-1]
+    why: A nameless item cannot be found at the till.
+    cites:
+      - { source: iso-29184, clause: "5.2.5", says: "A requirement is verifiable: a test can show it is met." }

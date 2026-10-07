@@ -1,0 +1,6 @@
+command: document
+level: system
+scenario: golden
+given: a hand-written document with a sequenceDiagram payOrder marker
+when: document techspec is run
+then: "the region holds the call, the event on order.events and the 200 answer, and it exits 0"

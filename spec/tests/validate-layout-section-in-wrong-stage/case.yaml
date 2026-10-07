@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  requirements/items.yaml:1: error: /entities: layout: entities belongs to the design stage, not to requirements; move it under design/
+

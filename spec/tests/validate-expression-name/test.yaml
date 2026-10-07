@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a formula that names an input that does not exist
+when: validate is run
+then: it reports expression_name and exits 1

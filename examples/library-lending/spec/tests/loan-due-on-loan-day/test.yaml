@@ -1,0 +1,8 @@
+entity: Loan
+constraint: loan_due_after_loaned
+level: system
+scenario: red
+covers: [violates loan_due_after_loaned]
+given: a loan made on 2026-10-07
+when: it is saved due on 2026-10-07
+then: it is refused

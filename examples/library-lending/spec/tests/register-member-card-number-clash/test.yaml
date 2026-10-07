@@ -1,0 +1,5 @@
+operation: createMember
+level: system
+scenario: red
+covers: [duplicate member_card_number_unique]
+notApplicable: "The card number is assigned by the system, never sent by a client, so a request cannot clash on it. The constraint itself is tested under member-card-number-twice."

@@ -1,0 +1,51 @@
+checks:
+  service-answers:
+    kind: smoke
+    description: The installed service starts and answers the catalogue.
+    environment: production
+    steps:
+      - name: Open the catalogue
+        action: Call listBooks on the installed service without a card.
+        check: It answers 200 with the catalogue.
+    verifies: [LIB-2]
+  lend-and-return:
+    kind: end-to-end
+    description: A whole loan goes through on the real installation, with the real notification service.
+    environment: staging
+    steps:
+      - name: Register
+        action: A librarian registers a test member through member-form.
+        check: The member appears in members-list with a card number.
+      - name: Lend
+        action: The librarian lends a copy through loan-form.
+        check: The loan is open, due in 21 days, and the notification service received LoanCreated.
+      - name: Return late
+        action: Move the loan's due date back eight days in the staging database and record the return.
+        check: The late fee is 4.00 and the notification service received LoanReturned.
+    verifies: [LIB-1, LIB-3, LIB-5, LIB-7]
+  member-sees-own-loans:
+    kind: security
+    description: A member cannot see another member's loans.
+    environment: staging
+    steps:
+      - name: List as a member
+        action: Call listLoans with a member's card, in a database with two members' loans.
+        check: Only that member's loans are answered.
+    verifies: [LIB-6]
+  catalogue-under-load:
+    kind: performance
+    description: The catalogue answers fast enough at the desk's busiest hour.
+    environment: staging
+    steps:
+      - name: Load the catalogue
+        action: Call listBooks fifty times a second for five minutes.
+        check: Nine calls in ten answer within 200 milliseconds and none fails.
+  migrated-members:
+    kind: data
+    description: Every member migrated from the card index is present and has a tier.
+    environment: production
+    steps:
+      - name: Count
+        action: Compare the member count with the card index count.
+        check: The counts are equal and no member has a null tier.
+    verifies: [LIB-1]

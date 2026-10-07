@@ -1,0 +1,32 @@
+algorithms:
+  workedExampleHolds:
+    description: |
+      A worked example holds when the formula, evaluated on the example's
+      inputs with exact decimal arithmetic, gives the expected value. The
+      type checker has already made sure a decimal result has no more places
+      than the output's scale, so the comparison is exact and by value:
+      "3.50" equals "3.5". Where the design wants rounding, the formula says
+      so with round(x, places), which rounds half away from zero.
+    inputs:
+      computed: { type: string, format: decimal, precision: 38, scale: 6, description: The formula's result. }
+      expected: { type: string, format: decimal, precision: 38, scale: 6 }
+    output: { type: boolean }
+    formula: computed == expected
+    examples:
+      - name: same value, written with a trailing zero
+        inputs: { computed: "3.5", expected: "3.50" }
+        expected: true
+      - name: the example forgot the cap
+        inputs: { computed: "25.00", expected: "45.00" }
+        expected: false
+        note: "A wrong example fails validation instead of becoming a wrong test."
+    pseudocode: |
+      for each algorithm a, for each example e in a.examples:
+          check e.inputs has exactly the names of a.inputs, each of its type
+          check e.expected has the type of a.output
+          values = e.inputs read by their declared types: int, uint and
+                   decimal as exact numbers, dates and timestamps as instants
+          result = evaluate(a.formula, values)     # error -> example_error
+          if result != e.expected:                  # by value: 3.5 == 3.50
+              report example_mismatch: "gives <result>, expected <expected>"
+    satisfies: [SA-4]

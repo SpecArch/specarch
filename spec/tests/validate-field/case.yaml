@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:9: error: /entities/Item/primaryKey/0: field: itemId is not a field of Item, so it cannot be part of the primary key; use one of id, name

@@ -1,0 +1,7 @@
+operation: returnLoan
+level: system
+scenario: golden
+given: "an overdue loan returned 7 days late, a daily rate of 0.50 and a replacement cost of 25.00"
+when: returnLoan is called
+then: "the loan is returned with a late fee of 3.50, the copy is available again, and LoanReturned is published"
+verifies: [LIB-5]

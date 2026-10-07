@@ -1,4 +1,0 @@
-arguments: [validate, .]
-exitStatus: 1
-standardOutput: |
-  case.specarch-design.yaml:5: error: /algorithms/total: schema: pseudocode is missing; add it here

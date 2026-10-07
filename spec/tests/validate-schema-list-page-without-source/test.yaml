@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a list page without a source operation
+when: validate is run
+then: it reports the missing source with rule schema and exits 1

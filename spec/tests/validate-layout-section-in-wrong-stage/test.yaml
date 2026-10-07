@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a file under requirements/ that holds entities"
+when: "validate is run"
+then: "it reports layout naming the stage the section belongs to and exits 1"
+verifies: [SA-11]

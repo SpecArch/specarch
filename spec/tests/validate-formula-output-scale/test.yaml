@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a formula whose decimal result has no fixed scale and is not rounded
+when: validate is run
+then: it reports expression_type asking for round and exits 1

@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a field that carries its own satisfies list
+when: validate is run
+then: it reports satisfies as a key a field cannot have and exits 1

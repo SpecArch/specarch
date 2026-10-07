@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a test folder that holds data but no test.yaml"
+when: "validate is run"
+then: "it reports layout at the folder and exits 1"
+verifies: [SA-11]

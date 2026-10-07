@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a formula that divides by zero on a worked example
+when: validate is run
+then: it reports example_error and exits 1

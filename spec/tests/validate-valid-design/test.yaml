@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: a design file with only specarch and info
+when: validate is run on its folder
+then: it prints nothing and exits 0
+verifies: [SA-1]

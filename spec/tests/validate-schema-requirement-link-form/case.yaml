@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:8: error: /roles/clerk/requirements/0: schema: "lib-1" does not have the right form; it must be a requirement link: a source prefix, a dash and an ID, such as LIB-5

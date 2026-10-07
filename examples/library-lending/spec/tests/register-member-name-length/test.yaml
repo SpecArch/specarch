@@ -1,0 +1,7 @@
+operation: createMember
+level: system
+scenario: red
+covers: [fullName shorter than 1 character, fullName longer than 200 characters]
+given: a librarian
+when: createMember is called with an empty fullName and with a 201-character one
+then: both are refused as invalid input

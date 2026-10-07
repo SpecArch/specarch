@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "elements that carry why and citations of declared sources"
+when: "validate is run"
+then: "it prints nothing and exits 0"
+verifies: [SA-13]

@@ -1,0 +1,17 @@
+decisions:
+  ADR-001:
+    title: Late fees are a flat daily rate capped at the replacement cost
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      Tiered rates (cheaper for the first week, dearer after) were considered.
+      They are harder to explain at the desk and the difference in revenue is
+      small for a library of this size.
+    decision: |
+      One daily rate for every book, capped at that book's replacement cost.
+      The rate is a library setting, not a per-book value.
+    consequences: |
+      The fee can be computed from three numbers and checked by hand. A very
+      long-overdue book costs the same as a lost one, which is what we want:
+      at that point the member should be told to treat it as lost.
+    satisfies: [LIB-5]

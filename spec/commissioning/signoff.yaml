@@ -1,0 +1,6 @@
+signoff:
+  criteria:
+    - Every check above passed on the release tag, and the record of the run is committed.
+    - The history file of the day names the tag.
+  signers:
+    - { role: specarch-maintainers, description: The owner of the project. }

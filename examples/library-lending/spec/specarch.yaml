@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+
+info:
+  title: Library Lending
+  version: 0.1.0
+  description: |
+    A small public library lends books to its members. Members borrow a copy,
+    keep it for a fixed loan period, and pay a late fee when they return it
+    after the due date. This example exists to exercise every concept of the
+    meta-model in one place, across every stage of the life cycle; it is not
+    a real library's system.
+  owners: [example-maintainers]
+
+stages: [requirements, design, implementation, tests, deployment, commissioning]
+
+sources:
+  desk-interview:
+    kind: interview
+    title: Interview with the desk staff about lending and returns
+    date: "2026-09-15"
+    description: Two librarians who work the desk, on how a loan is made, returned and chased.
+  lending-policy:
+    kind: document
+    title: Lending policy of the library
+    edition: "2026"
+    author: The library board
+    description: The policy sheet members sign when they join; it sets the loan periods, the limits and the late fee.
+  data-protection-rules:
+    kind: regulation
+    title: The data-protection rules the library is bound by
+    edition: "2024"
+    author: The regulator
+    description: What may be kept about a member and for how long.
+  iso-29148:
+    kind: standard
+    title: ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering
+    edition: "2018"
+    author: ISO, IEC and IEEE

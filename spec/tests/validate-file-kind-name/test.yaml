@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a file whose name ends in neither SpecArch suffix, given by name"
+when: validate is run
+then: it reports file_kind and exits 1

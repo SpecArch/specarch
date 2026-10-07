@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: an algorithm without pseudocode
+when: validate is run
+then: it reports the missing pseudocode with rule schema and exits 1

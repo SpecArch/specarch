@@ -1,4 +1,0 @@
-arguments: [generate, techspec, --out, docs, shop.specarch-design.yaml]
-exitStatus: 1
-standardOutput: |
-  shop.specarch-design.md:5: error: entity Customer has no transitions to draw; correct the marker or the design file

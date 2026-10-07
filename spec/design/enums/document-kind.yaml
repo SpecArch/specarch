@@ -1,0 +1,8 @@
+enums:
+  DocumentKind:
+    type: string
+    enum: [specification, implementation]
+    valueDescriptions:
+      specification: a specification, the tree rooted at `specarch.yaml`; its design side is the SpecArch Definition (SDF)
+      implementation: a SpecArch Implementation File (SIF), `<name>.<stack>.specarch-implementation.yaml`, one stack's implementation of a specification
+    satisfies: [SA-1, SA-9]

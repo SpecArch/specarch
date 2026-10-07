@@ -1,0 +1,5 @@
+arguments: [validate, design/entities/item.yaml]
+exitStatus: 1
+standardOutput: |
+  design/entities/item.yaml:1: error: /: file_kind: this file is part of the specification whose root file is specarch.yaml; run specarch validate on that specification's folder
+

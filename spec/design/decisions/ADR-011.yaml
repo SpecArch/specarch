@@ -1,0 +1,81 @@
+decisions:
+  ADR-011:
+    title: The specification covers the whole life cycle, one stage at a time
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      Meta-model 0.1 described a design and its tests, and pointed at
+      requirements kept somewhere else. A system also has stakeholders
+      and needs before its requirements, and a release, a rollback and an
+      acceptance on the real installation after its tests. Each of those
+      has an established standard that says what to write down, and
+      projects that skip them find out at handover.
+    decision: |
+      Six stages, in life-cycle order, each a folder and a set of
+      sections. Requirements: `stakeholders`, `needs`, `requirements`
+      (statement, kind, priority, status, acceptance criteria,
+      verification method, the needs it refines), `glossary`,
+      `assumptions`, `constraints`. Design: the sections 0.1 had. Tests:
+      the design tests, each with a level, system or acceptance; unit and
+      integration suites stay in the implementation file. Deployment:
+      `environments` (what each is for and which one a release goes to
+      next), `configuration` (each setting with its type and whether it is
+      a secret; a secret's value is never in a specification), `release`
+      and `rollback` as steps with a check each, and `migrations`.
+      Commissioning: `checks` on the installed system (smoke, end-to-end,
+      performance, security, data), each in a named environment with its
+      steps, and `signoff` with the acceptance criteria and the roles that
+      sign. The results of a commissioning run are records, not design:
+      they live outside the specification, one file per run under
+      `records/commissioning/` beside the specification's folder, as
+      `docs/conventions.md` describes. Nothing is mandatory except what a
+      stage the specification keeps needs: a project starts with
+      requirements alone and adds stages as it reaches them. Design
+      elements name the requirements they satisfy; tests and checks name
+      the ones they verify; a requirement names the needs it refines. Once
+      a later stage exists, the validator warns for every requirement
+      nothing satisfies or verifies, every need nothing refines, and every
+      requirement without acceptance criteria.
+    why: |
+      The stages are those of ISO/IEC/IEEE 12207's technical processes,
+      so a reader who knows the standard knows the folders, and each
+      section's fields are the attributes the standard for that stage
+      asks for: 29148 for requirements, 29119 for tests, 12207's
+      transition and validation processes for deployment and
+      commissioning, and the site acceptance test of IEC 62381 for the
+      checks. Traceability is warned, not refused, because a specification
+      is written in order and the gaps are its to-do list. Records are
+      kept out of the specification because a result is a fact about one
+      run, not about the design, and a design file that changed on every
+      run would be a change log. Stakeholders and signers are roles, not
+      people, so the specification holds no personal data.
+    consequences: |
+      The techspec gains chapters 2, 7, 12 and 13 from the new stages,
+      with the traceability matrix. The documentor makes one document per
+      stage from the same tree. The validator has rules for the new links
+      (need, stakeholder, environment, setting), for secrets
+      (secret_value), and the four traceability warnings.
+    satisfies: [SA-12]
+    cites:
+      - source: iso-12207
+        clause: "6.4"
+        says: "The technical processes, from stakeholder needs and requirements definition (6.4.2) to verification (6.4.9), transition (6.4.10) and validation (6.4.11)."
+      - source: iso-29148
+        clause: "5.2.8"
+        says: "Each requirement carries attributes such as identification, priority, source and rationale."
+      - source: iso-29148
+        clause: "6.3"
+        says: "Stakeholder needs are gathered and defined before they are transformed into requirements."
+      - source: iso-29119-1
+        says: "Test levels are unit, integration, system and acceptance."
+      - source: iso-29119-3
+        clause: "8.9"
+        says: "Actual results and the test result are recorded per execution, apart from the test case specification."
+      - source: iec-62381
+        says: "A site acceptance test is run on the installed system in its real environment, and acceptance is signed after it."
+      - source: mil-std-961
+        says: "A requirement is verified by inspection, analysis, demonstration or test."
+      - source: moscow
+        says: "Must, should and could rank what a release cannot do without, what is expected, and what is wanted when it costs little."
+      - source: arc42
+        says: "Section 2 of an architecture document is the constraints, section 7 the deployment view and section 12 the glossary."

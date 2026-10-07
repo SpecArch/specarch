@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a field whose $ref names an enum that does not exist
+when: validate is run
+then: it reports ref_type and exits 1
+verifies: [SA-2]

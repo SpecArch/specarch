@@ -1,0 +1,70 @@
+commands:
+  generate:
+    summary: Write code or data from a specification
+    description: |
+      Validates its input first and writes nothing from an invalid
+      specification. Then writes the target into the folder it owns, and
+      nothing outside it. With `--check` nothing is written: the output is
+      made in memory and compared with what is on disk.
+
+      A target this program does not build in is produced by a plug-in: the
+      executable `specarch-gen-<target>` found on PATH. The program runs it
+      once per specification with a request on its standard input, as JSON:
+      `specarch` (the meta-model version), `target`, `root` (the root file's
+      path), `specification` (the merged, validated specification as plain
+      values), `implementations` (each implementation file as `file`,
+      `content` and the target's `settings` from it) and `output` (the
+      folder the files are for). The plug-in answers on its standard output,
+      as JSON, with `files` (each a `path` relative to the output folder and
+      its `content`) and `diagnostics` (each with the validator's fields:
+      file, line, severity, path, rule, message), and exits 0. The program
+      prints the diagnostics, refuses a path outside the output folder,
+      and writes or checks the files itself. A plug-in that exits with
+      another status, or answers with something else, fails the run with
+      status 2; its standard error is passed through.
+    permission: public
+    arguments:
+      - name: target
+        description: A code or data target, built in or offered by a plug-in; kebab-case.
+        required: true
+        schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
+      - name: paths
+        description: Folders holding specifications, searched as validate searches them.
+        required: true
+        repeatable: true
+        schema: { type: string }
+    options:
+      out:
+        description: The folder the target owns. Without it, the folder the implementation files' `targets` name for the target, relative to each implementation file; they must agree.
+        schema: { type: string }
+      check:
+        description: Make the output in memory and fail when the files on disk differ. Writes nothing.
+        schema: { type: boolean, default: false }
+    reads:
+      - { path: "{paths}", description: The specifications and their implementation files. }
+      - { path: "{out}", description: "The current output, with `--check`." }
+      - { path: "specarch-gen-{target} on PATH", description: The plug-in for a target that is not built in. }
+    writes:
+      - { path: "{out}/", description: "The files the target produces, as the plug-in answers them. Nothing is written with `--check`." }
+    standardOutput: |
+      The diagnostics of an invalid specification and the diagnostics the
+      plug-in answers with, one line each. With `--check`, one line per
+      file that differs or is missing.
+    standardError: A usage message on a usage error, the reason a plug-in was not found or failed, the plug-in's own standard error, and a one-line count at the end.
+    exitCodes:
+      "0": written, or with `--check` the output is current
+      "1": a specification has an error, the plug-in reported an error, or with `--check` the output differs
+      "2": usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written
+    algorithm: checkStatus
+    satisfies: [SA-7, SA-8, SA-14]
+    why: |
+      One program with verbs, and generators as plug-ins found on PATH, is
+      the pattern of protoc, git and kubectl: one name to learn and install,
+      one parser, one diagnostic format and one version shared by every
+      target, and new targets added without changing the program. Letting
+      the program write the files, as protoc does, keeps `--check` and the
+      rule "only into its folder" true for every plug-in without each one
+      having to implement them.
+    cites:
+      - source: protoc-plugins
+        says: "A plug-in reads a CodeGeneratorRequest from standard input and writes a CodeGeneratorResponse to standard output; the file names it answers are relative to the output directory, and protoc writes them."

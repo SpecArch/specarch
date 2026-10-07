@@ -1,0 +1,10 @@
+entity: Loan
+transition:
+  from: open
+  to: overdue
+level: system
+scenario: golden
+given: an open loan due yesterday
+when: the nightly job runs
+then: the loan is overdue and LoanOverdue is published
+verifies: [LIB-4]

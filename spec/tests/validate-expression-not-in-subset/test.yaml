@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a formula that uses %, which the subset leaves out"
+when: validate is run
+then: "it reports expression_syntax naming % and exits 1"

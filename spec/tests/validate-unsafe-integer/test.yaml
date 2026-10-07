@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: an int64 field carried as a JSON number with no maximum
+when: validate is run
+then: it reports unsafe_integer and exits 1

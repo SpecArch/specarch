@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a navigate action to a page that does not exist
+when: validate is run
+then: it reports page and exits 1

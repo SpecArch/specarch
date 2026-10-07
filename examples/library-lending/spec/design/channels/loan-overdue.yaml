@@ -1,0 +1,15 @@
+channels:
+  loan.overdue:
+    description: Published by the nightly job for each loan whose due date passed.
+    satisfies: [LIB-4]
+    messages:
+      LoanOverdue:
+        summary: A loan became overdue.
+        payload:
+          type: object
+          properties:
+            loanId: { type: string, format: uuid }
+            memberId: { type: string, format: uuid }
+            daysLate: { type: integer, format: int32, minimum: 1 }
+          required: [loanId, memberId, daysLate]
+        satisfies: [LIB-4]

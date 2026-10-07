@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an entity defined in two files of the design stage"
+when: "validate is run"
+then: "it reports duplicate_key at the second definition, naming the first file, and exits 1"
+verifies: [SA-2, SA-11]

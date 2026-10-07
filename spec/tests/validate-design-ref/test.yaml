@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: an implementation mapping that points at an entity the design does not have
+when: validate is run
+then: it reports design_ref and exits 1
+verifies: [SA-10]

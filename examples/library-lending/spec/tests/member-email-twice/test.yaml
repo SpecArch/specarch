@@ -1,0 +1,8 @@
+entity: Member
+constraint: member_email_unique
+level: system
+scenario: red
+covers: [duplicate member_email_unique]
+given: "a member with ana@example.org"
+when: another member with that address is saved
+then: it is refused

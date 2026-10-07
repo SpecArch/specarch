@@ -1,0 +1,8 @@
+enums:
+  Severity:
+    type: string
+    enum: [error, warning]
+    valueDescriptions:
+      error: the file is invalid
+      warning: printed, but the file stays valid; in 0.1 only missing test scenarios and change-log phrases
+    satisfies: [SA-6]

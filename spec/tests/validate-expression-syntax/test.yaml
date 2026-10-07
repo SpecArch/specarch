@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a formula that ends after an operator
+when: validate is run
+then: it reports expression_syntax with the column and exits 1
+verifies: [SA-3]

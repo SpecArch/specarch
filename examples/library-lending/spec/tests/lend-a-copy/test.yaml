@@ -1,0 +1,7 @@
+operation: createLoan
+level: system
+scenario: golden
+given: "a standard-tier member with no loans and no fees, and a book with one copy available"
+when: createLoan is called for them
+then: "an open loan due in 21 days is created, the book has no copy available, and LoanCreated is published"
+verifies: [LIB-3]

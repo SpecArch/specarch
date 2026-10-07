@@ -1,0 +1,7 @@
+command: document
+level: system
+scenario: red
+covers: [exit 1]
+given: no generated output yet
+when: document techspec is run with --check
+then: it names the missing file and exits 1

@@ -1,0 +1,6 @@
+command: validate
+level: system
+scenario: golden
+given: a description that says how the file changed
+when: validate is run
+then: "it warns with change_log and exits 0, since the file is still valid"

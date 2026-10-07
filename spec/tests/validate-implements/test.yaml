@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: an implementation file written against an older version of its design
+when: validate is run
+then: it reports implements and exits 1
+verifies: [SA-10]

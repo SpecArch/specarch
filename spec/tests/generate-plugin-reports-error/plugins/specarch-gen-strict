@@ -1,0 +1,3 @@
+#!/bin/sh
+while IFS= read -r line; do :; done
+printf '%s' '{"files":[],"diagnostics":[{"file":"project/specarch.yaml","line":3,"severity":"error","path":"/entities/Item","rule":"plugin","message":"the target cannot express an entity without a description; add one"}]}'

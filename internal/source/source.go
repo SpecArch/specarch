@@ -67,6 +67,13 @@ func Parse(data []byte) *Doc {
 	return d
 }
 
+// ValueOf converts a node tree into plain JSON values, reporting nothing:
+// a repeated key keeps its first value, and a date is its text.
+func ValueOf(n *yaml.Node) any {
+	d := &Doc{}
+	return d.convert(n, "")
+}
+
 func syntaxProblem(err error) Problem {
 	msg := err.Error()
 	line := 1

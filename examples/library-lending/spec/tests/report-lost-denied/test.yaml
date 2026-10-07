@@ -1,0 +1,7 @@
+operation: reportLost
+level: system
+scenario: red
+covers: [denied without loans.return]
+given: a caller holding only the member role
+when: reportLost is called
+then: it is refused as not allowed

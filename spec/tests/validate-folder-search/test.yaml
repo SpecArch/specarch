@@ -1,0 +1,6 @@
+command: validate
+level: system
+scenario: golden
+given: a folder holding a design file two levels down and a text file
+when: validate is run on the folder
+then: "it finds and checks the design file, ignores the text file, and exits 0"

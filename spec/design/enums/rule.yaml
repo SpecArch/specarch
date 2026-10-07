@@ -1,0 +1,115 @@
+enums:
+  Rule:
+    type: string
+    description: |
+      Every check the validator makes. A diagnostic names one of these, so a
+      test can assert the exact rule and a reader can look it up here.
+    enum:
+      - file_kind
+      - yaml_syntax
+      - unquoted_date
+      - duplicate_key
+      - schema
+      - stack_key
+      - design_key
+      - ref_type
+      - relation_target
+      - relation_via
+      - field
+      - state_field
+      - state_value
+      - trigger
+      - requirement
+      - emits
+      - operation
+      - page
+      - algorithm
+      - decision
+      - enum_value
+      - path_parameter
+      - duplicate_operation
+      - permission_undeclared
+      - permission_ungranted
+      - expression_syntax
+      - expression_name
+      - expression_type
+      - example_input
+      - example_expected
+      - example_mismatch
+      - example_error
+      - implements
+      - design_ref
+      - unsafe_integer
+      - change_log
+      - test_subject
+      - test_case
+      - test_golden_missing
+      - test_red_missing
+      - test_case_missing
+      - suite
+      - layout
+      - need
+      - stakeholder
+      - source
+      - environment
+      - setting
+      - secret_value
+      - need_unrefined
+      - acceptance_missing
+      - requirement_unsatisfied
+      - requirement_unverified
+    valueDescriptions:
+      file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
+      yaml_syntax: the file is not well-formed YAML
+      unquoted_date: a date written without quotes, which YAML reads as a timestamp
+      duplicate_key: a mapping repeats a key, or two files of one specification define the same name
+      schema: the file breaks the meta-model's JSON Schema
+      stack_key: a specification carries a key that belongs to one implementation
+      design_key: an implementation file carries a key that belongs to the specification
+      ref_type: a `$ref` names an entity or enum the specification does not have
+      relation_target: a relation's target is not an entity of the specification
+      relation_via: a relation's `via` is not the field or join entity its kind needs
+      field: a name that must be a field of an entity is not one (required, primaryKey, unique fields, page columns, fields and filters)
+      state_field: the `stateField` is not a field whose type is an enum
+      state_value: a transition's `from` or `to` is not a value of the state field's enum
+      trigger: a transition's trigger is not an operation, command, channel message or algorithm
+      requirement: a `satisfies` or `verifies` link names a requirement that is neither in the specification nor in a declared requirement set
+      emits: an `emits` entry names a channel or message that does not exist
+      operation: a `source`, `submit` or operation action names an operationId that does not exist
+      page: a navigate action names a page that does not exist
+      algorithm: an `algorithm` reference names an algorithm that does not exist
+      decision: a `supersededBy` names a decision that does not exist, or an implementation decision reuses a design decision's ID
+      enum_value: a `valueDescriptions` key is not a value of its enum
+      path_parameter: a `{name}` in a path has no path parameter, or a path parameter is not in the path
+      duplicate_operation: two operations share an operationId
+      permission_undeclared: an operation, command, page, action or role names a permission that is not declared
+      permission_ungranted: a declared permission is granted by no role and is not `public`
+      expression_syntax: a check or formula does not parse
+      expression_name: an expression names a field, input or function that does not exist
+      expression_type: an expression combines values of types that do not fit
+      example_input: a worked example's inputs are missing one, name an unknown one, or have the wrong type
+      example_expected: a worked example's expected value does not have the output's type
+      example_mismatch: the formula evaluated on a worked example's inputs does not give the expected value
+      example_error: the formula cannot be evaluated on a worked example's inputs (division by zero, null in arithmetic)
+      implements: an implementation file's `implements` does not name the root file of its specification at the same version
+      design_ref: a pointer into the specification does not resolve
+      unsafe_integer: an int64 or uint64 is carried as a JSON number without bounds inside 2^53
+      change_log: a description reads as a change log instead of the current truth (a warning)
+      test_subject: a test is about an operation, command, page, constraint or transition that does not exist
+      test_case: a test covers a case its subject does not have, or a red case in a golden test
+      test_golden_missing: a subject has no golden scenario (a warning in 0.1)
+      test_red_missing: a subject has no red scenario and no derived red case (a warning in 0.1)
+      test_case_missing: a case derived from the design has no test (a warning in 0.1)
+      suite: an implementation's test suite names a design test or subject that does not exist
+      layout: a file or a section is not where the tree layout puts it; the root file's `stages` and the folders disagree, a test folder has no `test.yaml`, or a folder is not a stage
+      need: a requirement's `needs` names a need that does not exist
+      stakeholder: a need's `stakeholders` names a stakeholder that does not exist
+      source: a citation names a source that is not declared under `sources`
+      environment: a check, an environment's `promotesTo` or an implementation's deployment names an environment that does not exist, or a deployment names none when the specification declares them
+      setting: an implementation's deployment gives a value to a setting the specification does not declare
+      secret_value: a setting marked secret carries a value, as a default or in a deployment
+      need_unrefined: no requirement refines a need (a warning)
+      acceptance_missing: a requirement has no acceptance criteria (a warning)
+      requirement_unsatisfied: the specification has a design and no element of it satisfies a requirement (a warning)
+      requirement_unverified: the specification has tests or checks and none verifies a requirement (a warning)
+    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13]

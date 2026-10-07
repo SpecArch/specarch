@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a worked example whose expected value has more places than the output's scale"
+when: validate is run
+then: it reports example_expected and exits 1

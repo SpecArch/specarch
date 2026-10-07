@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a test about an operation that does not exist
+when: validate is run
+then: it reports test_subject and exits 1

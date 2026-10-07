@@ -1,0 +1,8 @@
+specarchImplementation: "0.1"
+info: { title: Shop in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+libraries:
+  github.com/go-chi/chi/v5: { version: v5.3.2, licence: MIT, purpose: HTTP router. }
+targets:
+  techspec: { output: techspec }

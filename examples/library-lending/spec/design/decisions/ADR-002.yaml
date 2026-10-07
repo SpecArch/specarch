@@ -1,0 +1,14 @@
+decisions:
+  ADR-002:
+    title: Money is carried as decimal strings, never floats
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      JSON has no decimal type. Fees and costs must round the way a cashier
+      expects.
+    decision: |
+      Every money field is `type: string, format: decimal` with `precision`
+      and `scale`. Generators map it to the target's decimal type and the API
+      transports it as a string.
+    consequences: |
+      Clients must parse the string; in return no sum ever drifts by a cent.

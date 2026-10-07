@@ -1,0 +1,2 @@
+enums:
+  State: { type: string, enum: [open, closed] }

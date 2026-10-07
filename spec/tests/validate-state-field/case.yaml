@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:13: error: /entities/Item/stateField: state_field: id is not an enum field, so its values cannot be states; give it a $ref to an enum
+  specarch.yaml:15: warning: /entities/Item/transitions/0: test_case_missing: Item transition draft to live has no red scenario for "from wrong state"; add under tests item-draft-to-live-from-wrong-state: { entity: Item, transition: { from: draft, to: live }, scenario: red, covers: [from wrong state], given: "the Item is not draft", when: "total happens", then: "it is refused and the state stays as it was" }
+  specarch.yaml:15: warning: /entities/Item/transitions/0: test_golden_missing: Item transition draft to live has no golden scenario; add one under tests, for example item-draft-to-live-succeeds: { entity: Item, transition: { from: draft, to: live }, scenario: golden, given: "...", when: "...", then: "it succeeds" }

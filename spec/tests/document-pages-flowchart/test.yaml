@@ -1,0 +1,6 @@
+command: document
+level: system
+scenario: golden
+given: a hand-written document with a flowchart pages marker
+when: document techspec is run
+then: "the region holds the pages and the operation the Pay action runs, and it exits 0"

@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a satisfies link to a requirement the specification does not have
+when: validate is run
+then: it reports requirement and exits 1

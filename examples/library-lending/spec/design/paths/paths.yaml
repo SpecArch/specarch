@@ -1,0 +1,143 @@
+paths:
+  /books:
+    get:
+      operationId: listBooks
+      summary: Browse the catalogue
+      permission: public
+      parameters:
+        - name: q
+          in: query
+          description: Free-text search over title and author.
+          schema: { type: string, maxLength: 200 }
+      responses:
+        "200":
+          description: Matching books.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Book" } }
+      satisfies: [LIB-2]
+
+  /members:
+    get:
+      operationId: listMembers
+      summary: List members
+      permission: members.read
+      responses:
+        "200":
+          description: All members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+    post:
+      operationId: createMember
+      summary: Register a new member
+      permission: members.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName: { type: string, minLength: 1, maxLength: 200 }
+                email: { type: string, format: email }
+                tier: { $ref: "#/enums/MembershipTier" }
+              required: [fullName, email, tier]
+      responses:
+        "201":
+          description: The member, with card number assigned.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+        "409": { description: Email address already registered. }
+      satisfies: [LIB-1]
+
+  /members/{memberId}:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getMember
+      summary: One member with their loans
+      permission: members.read
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+        "404": { description: No such member. }
+
+  /loans:
+    get:
+      operationId: listLoans
+      summary: List loans
+      permission: loans.read
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/enums/LoanStatus" } }
+        - { name: memberId, in: query, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Matching loans.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Loan" } }
+    post:
+      operationId: createLoan
+      summary: Lend a copy to a member
+      description: |
+        Refused when the member already holds the maximum open loans for their
+        tier, has outstanding fees, or the book has no copy available.
+      permission: loans.create
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                memberId: { type: string, format: uuid }
+                bookId: { type: string, format: uuid }
+              required: [memberId, bookId]
+      responses:
+        "201":
+          description: The new loan, with the due date set from the member's tier.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Loan" }
+        "409": { description: "Loan limit reached, fees outstanding, or no copy available." }
+      emits: [loan.lifecycle/LoanCreated]
+      satisfies: [LIB-3]
+
+  /loans/{loanId}/return:
+    parameters:
+      - { name: loanId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: returnLoan
+      summary: Record the return of a copy
+      permission: loans.return
+      algorithm: lateFee
+      responses:
+        "200":
+          description: The closed loan, with the late fee computed.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Loan" }
+        "409": { description: The loan is already closed. }
+      emits: [loan.lifecycle/LoanReturned]
+      satisfies: [LIB-4, LIB-5]
+
+  /loans/{loanId}/lost:
+    parameters:
+      - { name: loanId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: reportLost
+      summary: Record a lost copy and charge its replacement cost
+      permission: loans.return
+      responses:
+        "200":
+          description: The closed loan.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Loan" }
+        "409": { description: The loan is already closed. }
+      emits: [loan.lifecycle/LoanLost]

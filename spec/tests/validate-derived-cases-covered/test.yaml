@@ -1,0 +1,6 @@
+command: validate
+level: system
+scenario: golden
+given: "an operation whose every derived case is covered by a test, one of them marked not applicable with a reason"
+when: validate is run
+then: it prints nothing and exits 0

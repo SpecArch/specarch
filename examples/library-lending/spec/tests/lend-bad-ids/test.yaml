@@ -1,0 +1,7 @@
+operation: createLoan
+level: system
+scenario: red
+covers: [memberId not a valid uuid, bookId not a valid uuid]
+given: a librarian
+when: createLoan is called with memberId abc and again with bookId abc
+then: both are refused as invalid input

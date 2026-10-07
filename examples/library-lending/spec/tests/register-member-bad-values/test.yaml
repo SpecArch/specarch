@@ -1,0 +1,7 @@
+operation: createMember
+level: system
+scenario: red
+covers: [email not a valid email, tier not one of its values]
+given: a librarian
+when: "createMember is called with email set to 'not-an-address', and with tier set to gold"
+then: both are refused as invalid input

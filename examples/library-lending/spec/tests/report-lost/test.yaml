@@ -1,0 +1,6 @@
+operation: reportLost
+level: system
+scenario: golden
+given: an open loan of a book whose replacement cost is 25.00
+when: reportLost is called
+then: "the loan is lost and 25.00 is added to the member's outstanding fees"

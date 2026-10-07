@@ -1,0 +1,7 @@
+command: document
+level: system
+scenario: red
+covers: [exit 2]
+given: a target name that does not exist
+when: document is run with target pdf
+then: it names the targets there are and exits 2

@@ -1,0 +1,2 @@
+permissions:
+  public: { description: "Anyone who has the program may run it. It reads and writes local files only." }

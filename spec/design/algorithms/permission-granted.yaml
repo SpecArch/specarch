@@ -1,0 +1,35 @@
+algorithms:
+  permissionGranted:
+    description: |
+      Fail-closed access. A permission an operation, command, page, action or
+      role names must be declared. A declared permission must be granted by
+      at least one role, unless it is `public`. An operation with no
+      permission at all is already a schema error.
+    inputs:
+      declared: { type: boolean }
+      name: { type: string }
+      grantingRoles: { type: integer, format: int32, minimum: 0 }
+    output: { type: boolean }
+    formula: declared && (name == "public" || grantingRoles >= 1)
+    examples:
+      - name: granted by the librarian role
+        inputs: { declared: true, name: loans.create, grantingRoles: 1 }
+        expected: true
+      - name: public needs no role
+        inputs: { declared: true, name: public, grantingRoles: 0 }
+        expected: true
+      - name: declared but nobody holds it
+        inputs: { declared: true, name: loans.export, grantingRoles: 0 }
+        expected: false
+        note: Nobody could ever call an operation guarded by it.
+      - name: used but never declared
+        inputs: { declared: false, name: loans.delete, grantingRoles: 0 }
+        expected: false
+    pseudocode: |
+      for each use u of a permission (operation, command, page, action, role):
+          if u.name not in permissions:
+              report permission_undeclared at u
+      for each declared permission p other than "public":
+          if no role lists p:
+              report permission_ungranted at p
+    satisfies: [SA-5]

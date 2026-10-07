@@ -1,0 +1,7 @@
+command: document
+level: system
+scenario: red
+covers: [exit 2]
+given: "a design file, no implementation file and no --out"
+when: document techspec is run
+then: it asks for --out or an implementation file and exits 2

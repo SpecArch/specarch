@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a decision superseded by one that does not exist
+when: validate is run
+then: it reports decision and exits 1

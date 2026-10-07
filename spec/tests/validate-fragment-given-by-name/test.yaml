@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a file of a tree given by name instead of the tree's folder"
+when: "validate is run on it"
+then: "it reports file_kind naming the folder to run on and exits 1"

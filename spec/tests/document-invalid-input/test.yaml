@@ -1,0 +1,7 @@
+command: document
+level: system
+scenario: red
+covers: [exit 1]
+given: a design file with a relation to an entity that does not exist
+when: document techspec is run
+then: "it prints the diagnostic, writes nothing and exits 1"

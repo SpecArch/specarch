@@ -1,0 +1,8 @@
+permissions:
+  members.read: { description: See member records. }
+  members.write: { description: Create and change member records. }
+  catalogue.read: { description: Browse the catalogue. }
+  loans.read: { description: See loans. }
+  loans.create: { description: Lend a copy to a member. }
+  loans.return: { description: Record a return or a lost copy. }
+  public: { description: "Open to everyone, including visitors without a card.", satisfies: [LIB-2] }

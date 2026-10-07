@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  design/entities/item.yaml:2: error: /entities/Item: duplicate_key: Item is already defined in design/entities/item-again.yaml on line 2; a name is defined once in the whole specification
+

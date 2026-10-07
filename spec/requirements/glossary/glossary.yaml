@@ -1,0 +1,21 @@
+glossary:
+  specification:
+    definition: One folder tree rooted at specarch.yaml that describes one system through its life cycle. Its design side, everything but implementation/, is the SpecArch Definition (SDF).
+  implementation file:
+    definition: A file named <name>.<stack>.specarch-implementation.yaml (SIF) that says how one stack builds the specification.
+  stage:
+    definition: One of the six life-cycle parts a specification may keep, each in a folder of its name; requirements, design, implementation, tests, deployment, commissioning.
+  section:
+    definition: One top-level key of the merged specification, such as entities or checks; each belongs to one stage.
+  diagnostic:
+    definition: One problem in one file, printed as one line with the file, the line, the severity, the YAML path, the rule and a sentence.
+  rule:
+    definition: The name of one check the validator makes, as the Rule enum lists them.
+  target:
+    definition: What a document or code command produces, such as techspec or openapi, written into the folder the implementation file names for it.
+  plug-in:
+    definition: An executable named specarch-gen-<target> on PATH that produces a code target specarch does not build in.
+  golden scenario:
+    definition: A test of the path that succeeds.
+  red scenario:
+    definition: A test of a path that is refused.

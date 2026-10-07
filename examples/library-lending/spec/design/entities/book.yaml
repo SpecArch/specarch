@@ -1,0 +1,26 @@
+entities:
+  Book:
+    description: A title the library owns, with the number of physical copies.
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      isbn: { type: string, pattern: "^[0-9]{13}$" }
+      title: { type: string, minLength: 1, maxLength: 500 }
+      author: { type: string, minLength: 1, maxLength: 200 }
+      copiesOwned: { type: integer, format: int32, minimum: 0 }
+      copiesAvailable: { type: integer, format: int32, minimum: 0, readOnly: true }
+      replacementCost: { type: string, format: decimal, precision: 10, scale: 2 }
+    required: [id, isbn, title, author, copiesOwned, copiesAvailable, replacementCost]
+    primaryKey: [id]
+    relations:
+      loans: { target: Loan, kind: one-to-many, via: bookId }
+    constraints:
+      book_isbn_unique:
+        kind: unique
+        fields: [isbn]
+        message: This ISBN is already in the catalogue.
+      book_available_within_owned:
+        kind: check
+        expression: copiesAvailable <= copiesOwned
+        message: Available copies cannot exceed the copies owned.
+    satisfies: [LIB-2]

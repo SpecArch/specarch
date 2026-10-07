@@ -1,0 +1,83 @@
+requirements:
+  LIB-1:
+    statement: A member shall be identified by a unique card number and a unique email address.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - Registering a member with an email address already registered is refused with 409.
+      - Two members never share a card number.
+    verification: test
+    needs: [NEED-1]
+    cites:
+      - source: lending-policy
+        clause: "1"
+        says: "Each member holds one card, and the card number identifies them at the desk."
+  LIB-2:
+    statement: Anyone shall be able to browse the catalogue without a card.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A visitor with no account lists books by title or author and gets the matching books.
+    verification: test
+    needs: [NEED-3]
+  LIB-3:
+    statement: A member shall hold at most the number of open loans their tier allows, and shall not borrow while fees are outstanding.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A standard-tier member with three open loans is refused a fourth with 409.
+      - A member with outstanding fees is refused a loan with 409.
+    verification: test
+    needs: [NEED-1]
+    cites:
+      - source: lending-policy
+        clause: "2"
+        says: "Standard members may hold three loans at a time and extended members six; no loan is made while a fee is unpaid."
+  LIB-4:
+    statement: A loan not returned by its due date shall become overdue the next day, and the member shall be told.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - The nightly job marks a loan due yesterday as overdue and publishes LoanOverdue.
+    verification: test
+    needs: [NEED-4]
+  LIB-5:
+    statement: A late return shall be charged a flat daily rate, capped at the book's replacement cost.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - Seven days late at 0.50 a day on a 25.00 book charges 3.50.
+      - Ninety days late at 0.50 a day on a 25.00 book charges 25.00.
+    verification: test
+    needs: [NEED-2]
+    why: A flat rate can be checked by hand at the desk; the cap means a long-overdue book costs the same as a lost one, which is when the member should be told to treat it as lost.
+    cites:
+      - source: lending-policy
+        clause: "4"
+        says: "The late fee is a daily rate set by the board, and never more than the cost of replacing the book."
+  LIB-6:
+    statement: A member shall see only their own loans and fees.
+    kind: quality
+    priority: must
+    status: accepted
+    acceptance:
+      - A member listing loans gets only loans whose memberId is their own.
+    verification: test
+    needs: [NEED-3]
+    cites:
+      - source: data-protection-rules
+        says: "Personal data is shown only to the person it is about and to the staff who need it."
+  LIB-7:
+    statement: A desk task shall take a librarian under a minute, in one screen.
+    kind: quality
+    priority: should
+    status: accepted
+    acceptance:
+      - Registering a member and lending a book each take one form and one submit.
+    verification: demonstration
+    needs: [NEED-1]

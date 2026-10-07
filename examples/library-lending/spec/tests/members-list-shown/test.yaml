@@ -1,0 +1,6 @@
+page: members-list
+level: system
+scenario: golden
+given: a librarian
+when: the page members-list is opened
+then: "it lists members with card number, name, email, tier and fees"

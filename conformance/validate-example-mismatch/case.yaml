@@ -1,4 +1,0 @@
-arguments: [validate, .]
-exitStatus: 1
-standardOutput: |
-  case.specarch-design.yaml:11: error: /algorithms/total/examples/0/expected: example_mismatch: the formula gives "7.50" for "three items", but the example expects "7.00"; correct the example or the formula

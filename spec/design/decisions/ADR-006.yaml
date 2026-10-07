@@ -1,0 +1,16 @@
+decisions:
+  ADR-006:
+    title: Commands are part of meta-model 0.1
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      SpecArch's own specification is a command-line tool, and the
+      meta-model could describe HTTP and events but not a command line.
+    decision: |
+      `commands` is added to 0.1 as an additive keyword: summary, permission,
+      arguments, options, files read and written, standard output and error,
+      exit codes and the algorithm a command runs. Other non-HTTP interfaces
+      (gRPC, file exchange, Bluetooth or serial, a menu-bar UI) stay 0.2
+      items.
+    consequences: Existing files stay valid. The validator checks a command's permission and algorithm like an operation's.
+    satisfies: [SA-1, SA-5]

@@ -1,0 +1,41 @@
+entities:
+  Loan:
+    description: One copy of one book lent to one member for a period.
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      memberId: { type: string, format: uuid }
+      bookId: { type: string, format: uuid }
+      loanedAt: { type: string, format: date-time, readOnly: true }
+      dueOn: { type: string, format: date, readOnly: true }
+      returnedAt: { type: [string, "null"], format: date-time, readOnly: true }
+      status: { $ref: "#/enums/LoanStatus" }
+      lateFee:
+        type: string
+        format: decimal
+        precision: 10
+        scale: 2
+        readOnly: true
+        description: Computed by the lateFee algorithm when the copy is returned; zero until then.
+    required: [id, memberId, bookId, loanedAt, dueOn, status, lateFee]
+    primaryKey: [id]
+    relations:
+      member: { target: Member, kind: many-to-one, via: memberId, onDelete: restrict }
+      book: { target: Book, kind: many-to-one, via: bookId, onDelete: restrict }
+    constraints:
+      loan_due_after_loaned:
+        kind: check
+        expression: dueOn > date(loanedAt)
+        message: The due date must be after the loan date.
+      loan_returned_after_loaned:
+        kind: check
+        expression: returnedAt == null || returnedAt >= loanedAt
+        message: A copy cannot be returned before it was lent.
+    stateField: status
+    transitions:
+      - { from: open, to: overdue, trigger: loan.overdue/LoanOverdue, description: "Nightly job finds the due date has passed.", satisfies: [LIB-4] }
+      - { from: open, to: returned, trigger: returnLoan }
+      - { from: overdue, to: returned, trigger: returnLoan }
+      - { from: open, to: lost, trigger: reportLost }
+      - { from: overdue, to: lost, trigger: reportLost }
+    satisfies: [LIB-3, LIB-4]

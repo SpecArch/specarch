@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a check that runs in an environment the specification does not declare"
+when: "validate is run"
+then: "it reports environment and exits 1"
+verifies: [SA-2]

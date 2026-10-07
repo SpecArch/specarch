@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:1: error: /stages: layout: stages lists deployment but there is no deployment/ folder beside specarch.yaml; create it, or remove deployment from stages
+

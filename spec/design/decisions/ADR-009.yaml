@@ -1,0 +1,30 @@
+decisions:
+  ADR-009:
+    title: Types are concrete, and the design says how they travel
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      Implementations differ in exactly the places an abstract type hides:
+      a JavaScript number is a 64-bit float, so an int64 above 2^53 loses
+      digits, and a string of digits is easily read as a number. JSON Schema
+      separates `type` (the JSON value) from `format` (what it means), and
+      OpenAPI uses `format` for widths such as int32 and int64, so a client
+      knows the range before it parses a value.
+    decision: |
+      Every field has a concrete type: an integer names int32, int64 or
+      uint64, a number names double, a decimal names precision and scale.
+      `type` is how the value travels in JSON and `format` what it is. An
+      int64 or uint64 that can pass 2^53 travels as a string; one sent as a
+      JSON number must be bounded inside 2^53.
+    consequences: |
+      Every implementation reads the same range and representation from the
+      design. The validator refuses an unbounded int64 carried as a JSON
+      number.
+    satisfies: [SA-1]
+    cites:
+      - source: ecma-262
+        says: "The Number type is a double-precision 64-bit IEEE 754 value, so an integer above 2^53 cannot be held exactly."
+      - source: json-schema
+        says: "type names the JSON value; format names what the value is."
+      - source: openapi
+        says: "format int32 and int64 name the width of an integer, so a client knows the range before parsing."

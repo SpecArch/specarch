@@ -1,4 +1,0 @@
-arguments: [validate, .]
-exitStatus: 1
-standardOutput: |
-  case.specarch-design.yaml:4: error: /tests/publish-works: test_subject: test publish-works is about operation publishItem, which is not in this file; name an operationId, command, page, or an entity's constraint or transition that exists

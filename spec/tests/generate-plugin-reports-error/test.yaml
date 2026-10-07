@@ -1,0 +1,7 @@
+command: generate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a plug-in that answers an error diagnostic"
+when: "generate strict is run"
+then: "it prints the diagnostic, writes nothing and exits 1"

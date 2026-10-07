@@ -1,0 +1,27 @@
+algorithms:
+  checkStatus:
+    description: The status of `generate --check`.
+    inputs:
+      invalidInput: { type: boolean }
+      differingFiles: { type: integer, format: int32, minimum: 0 }
+    output: { type: integer, format: int32 }
+    formula: "invalidInput || differingFiles > 0 ? 1 : 0"
+    examples:
+      - name: output is current
+        inputs: { invalidInput: false, differingFiles: 0 }
+        expected: 0
+      - name: a diagram was edited by hand
+        inputs: { invalidInput: false, differingFiles: 1 }
+        expected: 1
+      - name: the spec does not validate
+        inputs: { invalidInput: true, differingFiles: 0 }
+        expected: 1
+    pseudocode: |
+      if validate(paths) has diagnostics:
+          return 1
+      wanted = generate(target, paths) in memory
+      differing = files in wanted whose bytes differ from disk,
+                  plus files on disk in the target's folder not in wanted
+      print each differing path
+      return 1 if differing else 0
+    satisfies: [SA-7]

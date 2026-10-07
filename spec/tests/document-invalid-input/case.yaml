@@ -1,0 +1,4 @@
+arguments: [document, techspec, --out, docs, specarch.yaml]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:22: error: /entities/Customer/relations/orders/target: relation_target: Ordr is not an entity of this file; did you mean Order?

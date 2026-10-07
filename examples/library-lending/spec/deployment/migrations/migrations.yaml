@@ -1,0 +1,18 @@
+migrations:
+  add-membership-tier:
+    description: Every member gets a tier; existing members are standard.
+    steps:
+      - name: Add the column
+        action: Add the tier column to members, allowing null.
+        check: The column exists.
+      - name: Fill it
+        action: Set tier to standard for every member whose tier is null.
+        check: No member has a null tier; the count equals the member count.
+      - name: Make it required
+        action: Make the tier column not null.
+        check: The schema gate against Member passes.
+    rollback:
+      - name: Drop the column
+        action: Drop the tier column from members.
+        check: The schema gate against the previous Member passes.
+    satisfies: [LIB-3]

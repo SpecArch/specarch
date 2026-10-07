@@ -1,6 +1,0 @@
-arguments: [validate, .]
-exitStatus: 1
-standardOutput: |
-  case.specarch-design.yaml:13: error: /pages/items-list: schema: source is missing; add it here
-  case.specarch-design.yaml:13: warning: /pages/items-list: test_golden_missing: page items-list has no golden scenario; add one under tests, for example items-list-succeeds: { page: items-list, scenario: golden, given: "...", when: "...", then: "it succeeds" }
-  case.specarch-design.yaml:13: warning: /pages/items-list: test_red_missing: page items-list has no red scenario; add one under tests, for example items-list-refused: { page: items-list, scenario: red, given: "...", when: "...", then: "it is refused" }

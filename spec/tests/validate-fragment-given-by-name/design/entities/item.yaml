@@ -1,0 +1,7 @@
+entities:
+  Item:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      name: { type: string, minLength: 1 }
+    primaryKey: [id]

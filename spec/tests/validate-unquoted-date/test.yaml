@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a decision date written without quotes
+when: validate is run
+then: it reports unquoted_date and exits 1

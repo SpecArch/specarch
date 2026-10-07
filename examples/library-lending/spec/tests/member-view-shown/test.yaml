@@ -1,0 +1,6 @@
+page: member-view
+level: system
+scenario: golden
+given: a librarian and a member
+when: the page member-view is opened for that member
+then: it shows the member and offers Lend a book

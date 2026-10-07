@@ -1,0 +1,7 @@
+entity: Book
+constraint: book_isbn_unique
+level: system
+scenario: golden
+given: no book with ISBN 9780000000001
+when: a book with that ISBN is saved
+then: it is saved

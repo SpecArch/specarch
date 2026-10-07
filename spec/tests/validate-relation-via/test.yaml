@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a many-to-one relation whose via field does not exist
+when: validate is run
+then: it reports relation_via and exits 1

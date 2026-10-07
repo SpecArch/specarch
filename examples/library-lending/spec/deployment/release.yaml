@@ -1,0 +1,15 @@
+release:
+  description: A release goes to staging first, where a librarian tries the desk tasks, then to production outside opening hours.
+  steps:
+    - name: Build and test
+      action: Build the service from the tagged commit and run every suite.
+      check: The build and every suite pass.
+    - name: Apply migrations on staging
+      action: Apply the new migrations to the staging database.
+      check: Every migration applied, and the schema gate against the entities passes.
+    - name: Install on staging
+      action: Install the build on staging and run the commissioning checks there.
+      check: Every check passed.
+    - name: Install on production
+      action: Outside opening hours, apply the migrations to production and install the build.
+      check: The smoke check passes on production before the desk opens.

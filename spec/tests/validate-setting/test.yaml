@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an implementation deployment that gives a value to a setting the specification does not declare"
+when: "validate is run"
+then: "it reports setting and exits 1"
+verifies: [SA-10]

@@ -1,0 +1,41 @@
+commands:
+  extract:
+    summary: Write a specification from existing code or documents
+    description: |
+      Reads a surface of an existing system and writes the as-built
+      specification of it into a folder, following the method in
+      `docs/extraction.md`: the built router for endpoints, the database
+      catalogue for entities, an OpenAPI document for operations, the
+      running authorisation rules for permissions. The source names which
+      surface is read. The result is a specification tree to be checked by
+      regenerating and comparing, then reviewed by hand. This command is
+      designed here and built when the first real project needs it; until
+      then every build answers with status 2.
+    permission: public
+    arguments:
+      - name: source
+        description: The surface to read, such as `openapi`, `database` or `router`.
+        required: true
+        schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
+      - name: paths
+        description: What to read it from, as the source needs it.
+        required: true
+        repeatable: true
+        schema: { type: string }
+    options:
+      out:
+        description: The folder the specification is written into; it becomes the specification's root folder.
+        schema: { type: string }
+        required: true
+    reads:
+      - { path: "{paths}", description: The surface being read. }
+    writes:
+      - { path: "{out}/", description: The as-built specification tree. }
+    standardOutput: One line per object the specification could not hold, naming it, so the gap is recorded.
+    standardError: A usage message on a usage error, and the reason a source could not be read.
+    exitCodes:
+      "0": the specification was written
+      "1": the surface could not be read as the source expects
+      "2": usage error, a source this build does not offer, or a path that could not be read or written
+    satisfies: [SA-11]
+    why: Existing systems enter SpecArch by extraction, so the verb exists from the start; building it waits for the real projects that show which readers repeat.

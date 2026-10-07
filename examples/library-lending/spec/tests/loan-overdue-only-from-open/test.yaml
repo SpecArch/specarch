@@ -1,0 +1,10 @@
+entity: Loan
+transition:
+  from: open
+  to: overdue
+level: system
+scenario: red
+covers: [from wrong state]
+given: a returned loan due last week
+when: the nightly job runs
+then: the loan stays returned

@@ -1,0 +1,7 @@
+enums:
+  MembershipTier:
+    type: string
+    enum: [standard, extended]
+    valueDescriptions:
+      standard: up to 3 open loans, 21-day loan period
+      extended: up to 6 open loans, 28-day loan period

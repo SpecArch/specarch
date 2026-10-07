@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a worked example whose expected value is wrong
+when: validate is run
+then: it reports example_mismatch with the computed value and exits 1
+verifies: [SA-4]

@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "a need no requirement refines, a requirement without acceptance criteria, an entity that satisfies nothing and a test that verifies nothing"
+when: "validate is run"
+then: "it warns once for each gap and exits 0, since the file stays valid"
+verifies: [SA-12]

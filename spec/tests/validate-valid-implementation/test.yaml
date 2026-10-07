@@ -1,0 +1,6 @@
+command: validate
+level: system
+scenario: golden
+given: a design file and an implementation file that names it at the same version
+when: validate is run on their folder
+then: it prints nothing and exits 0

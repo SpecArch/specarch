@@ -1,0 +1,10 @@
+entity: Loan
+transition:
+  from: open
+  to: returned
+level: system
+scenario: red
+covers: [from wrong state]
+given: a lost loan
+when: returnLoan is called
+then: it is refused and the loan stays lost

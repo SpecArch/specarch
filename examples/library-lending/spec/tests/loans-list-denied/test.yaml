@@ -1,0 +1,7 @@
+page: loans-list
+level: system
+scenario: red
+covers: [denied without loans.read]
+given: a caller holding no role
+when: the page loans-list is opened
+then: it is not shown

@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  specarch.yaml:5: warning: /info/description: change_log: "Previously" reads as a change log; say what is true now, and record the change in the project's history instead

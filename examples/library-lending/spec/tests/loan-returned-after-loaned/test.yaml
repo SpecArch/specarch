@@ -1,0 +1,7 @@
+entity: Loan
+constraint: loan_returned_after_loaned
+level: system
+scenario: golden
+given: "a loan made at 2026-10-07T10:00:00Z"
+when: "it is saved returned at 2026-10-08T10:00:00Z"
+then: it is saved

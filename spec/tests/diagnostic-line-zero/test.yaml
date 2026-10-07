@@ -1,0 +1,8 @@
+entity: Diagnostic
+constraint: diagnostic_line_positive
+level: system
+scenario: red
+covers: [violates diagnostic_line_positive]
+given: a problem found before any line was read
+when: a diagnostic with line 0 is made
+then: it is refused; a problem about the whole file is reported on line 1

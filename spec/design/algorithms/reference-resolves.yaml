@@ -1,0 +1,32 @@
+algorithms:
+  referenceResolves:
+    description: |
+      Every cross-reference check is the same question: of the objects of the
+      kind the reference names, in the same file, how many carry that name?
+      Exactly one resolves. None is a dangling reference. Two can only
+      happen for operationIds, which are not map keys, and is reported as a
+      duplicate.
+    inputs:
+      definitions: { type: integer, format: int32, minimum: 0, description: "Objects of the referenced kind with that name, in the same file." }
+    output: { type: boolean }
+    formula: definitions == 1
+    examples:
+      - name: relation target exists
+        inputs: { definitions: 1 }
+        expected: true
+      - name: relation target misspelt
+        inputs: { definitions: 0 }
+        expected: false
+        note: "`target: Lone` in a file with an entity `Loan`."
+      - name: operationId used twice
+        inputs: { definitions: 2 }
+        expected: false
+    pseudocode: |
+      for each reference r in the file, in document order:
+          candidates = objects of kind(r) in the file whose name is r.name
+          if count(candidates) == 0:
+              report r.rule at r: "<name> is not a <kind> of this file"
+          # duplicates are reported once, at the second definition
+      for each operationId seen more than once:
+          report duplicate_operation at the second and later uses
+    satisfies: [SA-2]

@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an implementation file under implementation/go/ whose name says swift"
+when: "validate is run"
+then: "it reports layout and exits 1"
+verifies: [SA-11]

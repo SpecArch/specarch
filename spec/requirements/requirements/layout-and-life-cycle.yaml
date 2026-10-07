@@ -1,0 +1,42 @@
+requirements:
+  SA-11:
+    statement: A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A tree whose root lists its stages and holds each stage's files under that folder validates.
+      - A file in the wrong folder, a section in the wrong file, a listed stage without a folder, and a folder that is not a stage are each reported as layout.
+    verification: test
+    needs: [NEED-4]
+    why: One file for a whole system grows past what a reader can navigate; a tree whose folder names say what is inside lets the reader walk to a thing.
+  SA-12:
+    statement: A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment and commissioning, each optional until the project reaches it.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A specification with only a requirements stage validates with no error.
+      - A requirement no design element satisfies, a requirement no test or check verifies, and a need no requirement refines are reported as warnings once the later stage exists.
+    verification: test
+    needs: [NEED-5]
+    cites:
+      - source: iso-12207
+        clause: "6.4"
+        says: "The technical processes run from business or mission analysis and stakeholder needs definition (6.4.2) through requirements definition (6.4.3), design (6.4.4 and 6.4.5), implementation (6.4.7), verification (6.4.9), transition (6.4.10) and validation (6.4.11)."
+      - source: iso-29148
+        clause: "6.3 and 6.4"
+        says: "Stakeholder needs are defined first and then transformed into system requirements; each requirement carries attributes and traces to its source."
+  SA-13:
+    statement: Every element of a specification, at every stage, may carry a rationale (why) and citations of declared sources (cites), and the validator shall check that every citation names a declared source.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - An element with why and cites validates, and a citation of a source that is not declared is reported as source.
+    verification: test
+    needs: [NEED-6]
+    cites:
+      - source: iso-29148
+        clause: "5.2.8"
+        says: "Rationale and source are attributes every requirement should carry."

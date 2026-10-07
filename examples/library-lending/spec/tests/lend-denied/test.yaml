@@ -1,0 +1,7 @@
+operation: createLoan
+level: system
+scenario: red
+covers: [denied without loans.create]
+given: a caller holding only the member role
+when: createLoan is called
+then: it is refused as not allowed

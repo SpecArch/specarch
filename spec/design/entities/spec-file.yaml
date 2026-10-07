@@ -1,0 +1,12 @@
+entities:
+  SpecFile:
+    description: One input given to a command, as the command read it; a specification is one input, whatever the number of files in its tree.
+    type: object
+    properties:
+      path: { type: string, description: "The path as given on the command line or found under a given folder: a specification's root folder, or an implementation file." }
+      kind: { $ref: "#/enums/DocumentKind" }
+      metaModel: { type: string, description: "The meta-model version the input declares: `specarch` in a root file, `specarchImplementation` in an implementation file." }
+      version: { type: string, description: The input's own `info.version`. }
+    required: [path, kind, metaModel, version]
+    primaryKey: [path]
+    satisfies: [SA-1, SA-11]

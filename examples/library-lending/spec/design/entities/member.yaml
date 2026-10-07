@@ -1,0 +1,36 @@
+entities:
+  Member:
+    description: A person with a library card.
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      cardNumber:
+        type: string
+        pattern: "^[0-9]{8}$"
+        description: Printed on the card; assigned when the member joins.
+      fullName: { type: string, minLength: 1, maxLength: 200 }
+      email: { type: string, format: email, maxLength: 320 }
+      tier: { $ref: "#/enums/MembershipTier" }
+      joinedOn: { type: string, format: date, readOnly: true }
+      outstandingFees:
+        type: string
+        format: decimal
+        precision: 10
+        scale: 2
+        description: Sum of unpaid late fees and replacement charges, in the library's currency.
+        readOnly: true
+    required: [id, cardNumber, fullName, email, tier, joinedOn, outstandingFees]
+    primaryKey: [id]
+    relations:
+      loans: { target: Loan, kind: one-to-many, via: memberId }
+    constraints:
+      member_card_number_unique:
+        kind: unique
+        fields: [cardNumber]
+        message: A member with this card number already exists.
+        satisfies: [LIB-1]
+      member_email_unique:
+        kind: unique
+        fields: [email]
+        message: A member with this email address already exists.
+    satisfies: [LIB-1]

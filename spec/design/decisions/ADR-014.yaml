@@ -1,0 +1,30 @@
+decisions:
+  ADR-014:
+    title: Design elements satisfy requirements, tests and checks verify them
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      With requirements inside the specification, `requirements` is the
+      section that holds them. The same word on every element, as the list
+      of requirements it serves, would mean two things at two levels, and
+      a reader would have to look at the indentation to tell which.
+    decision: |
+      A design or deployment element names the requirements it meets under
+      `satisfies`; a test or a commissioning check names the ones it shows
+      to be met under `verifies`; a requirement names the needs it comes
+      from under `needs`. The IDs are those of the `requirements` section,
+      or of an external requirement set declared under `sources` with its
+      prefix.
+    why: |
+      Satisfy and verify are the names of these two relations in
+      requirements engineering and in SysML, so a reader who knows them
+      pays nothing, and the two words make the two columns of the
+      traceability matrix, satisfied by and verified by, say themselves.
+    consequences: |
+      The validator checks both links and derives the traceability
+      warnings from them. The techspec's matrix has one column for each.
+    satisfies: [SA-12]
+    cites:
+      - source: iso-29148
+        clause: "6.5.2"
+        says: "Requirements activities in verification trace each requirement to the verification that shows it is met."

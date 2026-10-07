@@ -1,0 +1,7 @@
+page: member-view
+level: system
+scenario: red
+covers: [not found memberId]
+given: a librarian
+when: the page member-view is opened for an id no member has
+then: it says the member was not found

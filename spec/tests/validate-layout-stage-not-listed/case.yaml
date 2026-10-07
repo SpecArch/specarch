@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:1: error: /stages: layout: the folder design/ exists but stages in specarch.yaml does not list design; add it to stages, or move its files into specarch.yaml
+

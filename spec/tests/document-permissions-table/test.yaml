@@ -1,0 +1,6 @@
+command: document
+level: system
+scenario: golden
+given: a hand-written document with a permissions marker
+when: document techspec is run
+then: "the region holds the table of permissions and roles, with public granted to everyone, and it exits 0"

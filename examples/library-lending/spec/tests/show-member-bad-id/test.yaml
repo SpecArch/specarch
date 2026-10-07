@@ -1,0 +1,7 @@
+operation: getMember
+level: system
+scenario: red
+covers: [memberId not a valid uuid]
+given: a librarian
+when: getMember is called with memberId abc
+then: it is refused as invalid input

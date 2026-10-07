@@ -1,0 +1,8 @@
+entity: Book
+constraint: book_isbn_unique
+level: system
+scenario: red
+covers: [duplicate book_isbn_unique]
+given: a book with ISBN 9780000000001
+when: another book with that ISBN is saved
+then: it is refused

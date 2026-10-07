@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a file under design/entities/ that holds enums"
+when: "validate is run"
+then: "it reports layout naming the folder the enums belong in and exits 1"
+verifies: [SA-11]

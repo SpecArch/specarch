@@ -1,0 +1,5 @@
+command: extract
+level: system
+scenario: red
+covers: [exit 1]
+notApplicable: "Status 1, a surface that cannot be read as the source expects, can only happen once extract is built; this build answers every call with status 2."

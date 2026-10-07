@@ -1,0 +1,23 @@
+entities:
+  Diagnostic:
+    description: |
+      One problem found in one file. Printed as one line:
+      `file:line: severity: /yaml/path: rule: message`.
+    type: object
+    properties:
+      file: { type: string, description: The file's path as given. }
+      severity: { $ref: "#/enums/Severity" }
+      line: { type: integer, format: int32, minimum: 1, description: "Line of the YAML node the problem is at; for an expression, the line inside the expression." }
+      path: { type: string, description: "JSON pointer to the node, such as `/entities/Loan/relations/member/target`; `/` for the whole file." }
+      rule: { $ref: "#/enums/Rule" }
+      message: { type: string, minLength: 1, description: "What is wrong and how to fix it, in one plain sentence." }
+    required: [file, line, severity, path, rule, message]
+    primaryKey: [file, line, path, rule]
+    relations:
+      specFile: { target: SpecFile, kind: many-to-one, via: file }
+    constraints:
+      diagnostic_line_positive:
+        kind: check
+        expression: line >= 1
+        message: Every diagnostic points at a line.
+    satisfies: [SA-6]

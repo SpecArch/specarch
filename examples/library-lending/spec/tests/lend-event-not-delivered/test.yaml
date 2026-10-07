@@ -1,0 +1,7 @@
+operation: createLoan
+level: system
+scenario: red
+covers: [dependency fails loan.lifecycle]
+given: the loan.lifecycle channel is unavailable
+when: createLoan is called
+then: "no loan is created and the call fails, so a loan never exists without its event"

@@ -1,0 +1,10 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [design]
+entities:
+  Item:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      name: { type: string, minLength: 1 }
+    primaryKey: [id]

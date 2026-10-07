@@ -1,0 +1,21 @@
+decisions:
+  ADR-002:
+    title: The interface boundary between the two kinds
+    status: accepted
+    date: "2026-10-07"
+    context: The same interface has a contract and a build, and they change for different reasons.
+    decision: |
+      Whatever a client of an interface must know is design: the kind of
+      interface (HTTP, messaging, command line), operations, paths,
+      parameters, bodies, responses and status codes, channels and messages,
+      commands, arguments, options and exit codes, and the permission each
+      needs. Whatever only the builders or operators of one implementation
+      need is implementation: code-generator settings, framework binding,
+      the CLI library, servers, hosts, ports and environments. A standalone
+      OpenAPI or AsyncAPI document is generated from the definition, never
+      kept by hand beside it.
+    consequences: |
+      The definition schema refuses stack-specific extension keys and the
+      implementation schema has no design keywords; the validator reports
+      both with their own rule.
+    satisfies: [SA-9]

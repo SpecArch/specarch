@@ -1,0 +1,8 @@
+entity: Loan
+constraint: loan_returned_after_loaned
+level: system
+scenario: red
+covers: [violates loan_returned_after_loaned]
+given: "a loan made at 2026-10-07T10:00:00Z"
+when: "it is saved returned at 2026-10-06T10:00:00Z"
+then: it is refused

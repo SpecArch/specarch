@@ -1,0 +1,6 @@
+operation: listMembers
+level: system
+scenario: golden
+given: two members and a librarian
+when: listMembers is called
+then: both members are answered

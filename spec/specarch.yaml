@@ -1,0 +1,103 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+
+info:
+  title: SpecArch toolchain
+  version: 0.1.0
+  description: |
+    The `specarch` command: it validates SpecArch specifications and makes
+    documents and code from them. This folder is the specification, with no
+    language, library or build tool in it; how one stack implements it is in
+    `implementation/<stack>/`.
+  owners: [specarch-maintainers]
+
+stages: [requirements, design, implementation, tests, deployment, commissioning]
+
+sources:
+  iso-29148:
+    kind: standard
+    title: ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering
+    edition: "2018"
+    author: ISO, IEC and IEEE
+    url: https://www.iso.org/standard/72089.html
+  iso-29119-1:
+    kind: standard
+    title: ISO/IEC/IEEE 29119-1, Software and systems engineering, Software testing, Part 1, General concepts
+    edition: "2022"
+    author: ISO, IEC and IEEE
+  iso-29119-3:
+    kind: standard
+    title: ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation
+    edition: "2021"
+    author: ISO, IEC and IEEE
+    url: https://www.iso.org/standard/79429.html
+  iso-12207:
+    kind: standard
+    title: ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes
+    edition: "2017"
+    author: ISO, IEC and IEEE
+    url: https://www.iso.org/standard/63712.html
+  iec-62381:
+    kind: standard
+    title: IEC 62381, Automation systems in the process industry, Factory acceptance test (FAT), site acceptance test (SAT) and site integration test (SIT)
+    edition: "2024"
+    author: IEC
+  arc42:
+    kind: document
+    title: arc42, the template for architecture documentation
+    edition: "8.2"
+    author: Gernot Starke and Peter Hruschka
+    url: https://arc42.org/overview
+  adr-nygard:
+    kind: document
+    title: Documenting architecture decisions
+    edition: "2011"
+    author: Michael Nygard
+    url: https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions
+  mil-std-961:
+    kind: standard
+    title: MIL-STD-961E, Defense and program-unique specifications format and content
+    edition: "2003, with change 3 of 2020"
+    author: United States Department of Defense
+  moscow:
+    kind: document
+    title: MoSCoW prioritisation, in the DSDM Agile Project Framework handbook
+    edition: "2014"
+    author: Agile Business Consortium
+    url: https://www.agilebusiness.org/dsdm-project-framework/moscow-prioritisation.html
+  cel:
+    kind: document
+    title: Common Expression Language, language definition
+    edition: "2024"
+    author: The CEL project
+    url: https://github.com/google/cel-spec/blob/master/doc/langdef.md
+  json-schema:
+    kind: standard
+    title: JSON Schema, a media type for describing JSON documents
+    edition: "2020-12"
+    author: The JSON Schema project
+    url: https://json-schema.org/specification
+  openapi:
+    kind: standard
+    title: OpenAPI Specification
+    edition: "3.1.0"
+    author: OpenAPI Initiative
+    url: https://spec.openapis.org/oas/v3.1.0
+  protoc-plugins:
+    kind: document
+    title: Protocol buffers compiler plug-in protocol, plugin.proto
+    edition: "2024"
+    author: The protocol buffers project
+    url: https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto
+  go-tool:
+    kind: document
+    title: The go command, Go documentation
+    edition: "1.26"
+    author: The Go project
+    url: https://go.dev/doc/
+  ecma-262:
+    kind: standard
+    title: ECMA-262, ECMAScript language specification, the Number type
+    edition: "2025"
+    author: Ecma International
+    url: https://tc39.es/ecma262/#sec-ecmascript-language-types-number-type

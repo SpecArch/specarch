@@ -1,0 +1,6 @@
+page: loan-form
+level: system
+scenario: golden
+given: a librarian
+when: the page loan-form is filled in and sent
+then: the copy is lent

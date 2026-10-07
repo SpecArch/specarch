@@ -1,0 +1,19 @@
+constraints:
+  CON-1:
+    statement: Every keyword that a standard already has is taken from that standard with its meaning; SpecArch adds a keyword only where none exists.
+    kind: technical
+    why: A reader who knows JSON Schema, OpenAPI or AsyncAPI should not learn a second name for the same thing.
+    cites:
+      - source: json-schema
+        says: "Field keywords such as type, properties, required, enum, format and the limits."
+      - source: openapi
+        says: "Endpoint keywords such as paths, parameters, requestBody and responses."
+  CON-2:
+    statement: The program installs with one command and runs in CI without a network.
+    kind: technical
+  CON-3:
+    statement: Every dependency is open source under an OSI-approved licence, pinned, and scanned before it is taken.
+    kind: legal
+  CON-4:
+    statement: The repository is public and holds generic material only; no employer's, client's or product's data enters it.
+    kind: organisational

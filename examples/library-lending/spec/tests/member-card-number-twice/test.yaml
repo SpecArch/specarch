@@ -1,0 +1,8 @@
+entity: Member
+constraint: member_card_number_unique
+level: system
+scenario: red
+covers: [duplicate member_card_number_unique]
+given: a member with card number 00000001
+when: another member with that card number is saved
+then: it is refused

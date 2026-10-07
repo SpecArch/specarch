@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a worked example whose decimal input is not quoted
+when: validate is run
+then: it reports example_input and exits 1

@@ -1,0 +1,13 @@
+pages:
+  loans-list:
+    kind: list
+    title: Loans
+    route: /loans
+    entity: Loan
+    permission: loans.read
+    source: listLoans
+    columns: [memberId, bookId, loanedAt, dueOn, status, lateFee]
+    filters: [status, memberId]
+    actions:
+      - { label: Return, kind: operation, target: returnLoan, permission: loans.return, confirm: "Record this copy as returned?" }
+      - { label: Lost, kind: operation, target: reportLost, permission: loans.return, confirm: "Charge the replacement cost and close this loan?" }

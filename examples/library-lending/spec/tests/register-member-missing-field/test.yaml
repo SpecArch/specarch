@@ -1,0 +1,7 @@
+operation: createMember
+level: system
+scenario: red
+covers: [missing fullName, missing email, missing tier]
+given: a librarian
+when: createMember is called three times each time without one of fullName and email and tier
+then: each call is refused as invalid input

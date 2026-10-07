@@ -1,0 +1,8 @@
+command: generate
+level: system
+scenario: red
+covers: [exit 2]
+given: "a target this build does not have and no specarch-gen-openapi on PATH"
+when: "generate openapi is run"
+then: "it says there is no generator for the target and exits 2"
+verifies: [SA-14]

@@ -1,0 +1,10 @@
+pages:
+  member-form:
+    kind: form
+    title: Register member
+    route: /members/new
+    entity: Member
+    permission: members.write
+    submit: createMember
+    fields: [fullName, email, tier]
+    satisfies: [LIB-7]

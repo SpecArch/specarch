@@ -1,0 +1,7 @@
+operation: createMember
+level: system
+scenario: red
+covers: [denied without members.write]
+given: a caller holding only the member role
+when: createMember is called
+then: it is refused as not allowed

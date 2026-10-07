@@ -1,0 +1,6 @@
+environments:
+  developer-machine:
+    description: The machine of a person who writes specifications; the program is installed from source with one command.
+    promotesTo: ci-runner
+  ci-runner:
+    description: The continuous-integration runner of a project that uses SpecArch; it builds the program from the pinned version in that project's workflow.

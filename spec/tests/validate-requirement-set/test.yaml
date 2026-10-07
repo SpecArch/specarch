@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "a source of kind requirement-set with prefix JIRA, and an entity that satisfies JIRA-12"
+when: "validate is run"
+then: "the link resolves to the set, it prints nothing and exits 0"
+verifies: [SA-2]

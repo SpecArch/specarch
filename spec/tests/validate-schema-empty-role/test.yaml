@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a role that grants an empty list of permissions
+when: validate is run
+then: it reports the empty list with rule schema and exits 1

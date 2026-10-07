@@ -1,0 +1,7 @@
+page: members-list
+level: system
+scenario: red
+covers: [denied without members.read]
+given: a caller holding only the member role
+when: the page members-list is opened
+then: it is not shown

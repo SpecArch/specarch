@@ -1,0 +1,15 @@
+decisions:
+  ADR-005:
+    title: Report every problem, one line each, with a stable rule name
+    status: accepted
+    date: "2026-10-07"
+    context: A validator that stops at the first error makes a large file take as many runs as it has errors.
+    decision: |
+      All problems in all files are reported, one per line, in the form
+      `file:line: severity: /yaml/path: rule: message`, sorted. The severity
+      is error or warning; only errors make a file invalid. The rule is a value of
+      the `Rule` enum. Status 0 means valid, 1 invalid, 2 a usage or read
+      error.
+    why: A reader fixes a file in one pass when every problem is on the screen at once, and a stable rule name is what a test and a reader look up.
+    consequences: Editors and CI can parse the output. Tests assert the exact lines.
+    satisfies: [SA-6]

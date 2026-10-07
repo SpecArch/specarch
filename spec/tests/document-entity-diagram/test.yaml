@@ -1,0 +1,7 @@
+command: document
+level: system
+scenario: golden
+given: a hand-written document with an erDiagram marker
+when: document techspec is run
+then: "the region holds the entity diagram, every other line is unchanged, and it exits 0"
+verifies: [SA-8]

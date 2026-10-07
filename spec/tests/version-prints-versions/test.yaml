@@ -1,0 +1,7 @@
+command: version
+level: system
+scenario: golden
+given: the program
+when: version is run
+then: "it prints the program version and the meta-model versions it reads, and exits 0"
+verifies: [SA-6]

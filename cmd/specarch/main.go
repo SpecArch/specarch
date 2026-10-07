@@ -1,17 +1,20 @@
-// Command specarch checks SpecArch design and implementation files.
+// Command specarch checks SpecArch specifications and makes documents and
+// code from them.
 //
-//	specarch validate <file or folder>...
+//	specarch validate <folder or file>...
+//	specarch document <target> [--out <folder>] [--check] <folder>...
+//	specarch generate <target> [--out <folder>] [--check] <folder>...
+//	specarch extract <source> ...
 //	specarch version
 package main
 
 import (
 	"fmt"
 	"io"
-	"io/fs"
 	"os"
 	"path/filepath"
-	"sort"
 
+	"github.com/SpecArch/specarch/internal/spec"
 	"github.com/SpecArch/specarch/internal/validate"
 )
 
@@ -19,13 +22,17 @@ import (
 const version = "0.1.0"
 
 const usage = `usage:
-  specarch validate <file or folder>...   check SpecArch files
-  specarch generate <target> [--out <folder>] [--check] <file or folder>...
-                                           generate a target from design files
-  specarch version                         print the program version
+  specarch validate <folder or file>...    check specifications and implementation files
+  specarch document <target> [--out <folder>] [--check] <folder>...
+                                            write a document from a specification
+  specarch generate <target> [--out <folder>] [--check] <folder>...
+                                            write code or data from a specification
+  specarch extract <source> ...             write a specification from existing code or documents
+  specarch version                          print the program version
 
-A folder is searched for *.specarch-design.yaml and
-*.specarch-implementation.yaml files.
+A specification is a folder holding specarch.yaml. A folder given here is
+searched for specifications and for *.specarch-implementation.yaml files
+outside one.
 `
 
 func main() {
@@ -40,8 +47,12 @@ func run(args []string, stdout, stderr io.Writer) int {
 	switch args[0] {
 	case "validate":
 		return runValidate(args[1:], stdout, stderr)
+	case "document":
+		return runDocument(args[1:], stdout, stderr)
 	case "generate":
 		return runGenerate(args[1:], stdout, stderr)
+	case "extract":
+		return runExtract(args[1:], stdout, stderr)
 	case "version":
 		if len(args) > 1 {
 			fmt.Fprintf(stderr, "specarch version takes no arguments\n\n%s", usage)
@@ -58,7 +69,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 
 func runVersion(stdout io.Writer) int {
 	fmt.Fprintf(stdout, "specarch %s\n", version)
-	fmt.Fprintln(stdout, "design files: meta-model 0.1")
+	fmt.Fprintln(stdout, "specifications: meta-model 0.1")
 	fmt.Fprintln(stdout, "implementation files: meta-model 0.1")
 	return 0
 }
@@ -70,32 +81,39 @@ func runValidate(args []string, stdout, stderr io.Writer) int {
 		args = args[1:]
 	}
 	if len(args) == 0 {
-		fmt.Fprintf(stderr, "specarch validate needs at least one file or folder\n\n%s", usage)
+		fmt.Fprintf(stderr, "specarch validate needs at least one folder or file\n\n%s", usage)
 		return 2
 	}
 	for _, a := range args {
 		if len(a) > 1 && a[0] == '-' {
-			fmt.Fprintf(stderr, "specarch validate has no option %s; to check a file whose name starts with -, write -- before it\n\n%s", a, usage)
+			fmt.Fprintf(stderr, "specarch validate has no option %s; to check a path whose name starts with -, write -- before it\n\n%s", a, usage)
 			return 2
 		}
 	}
-	files, ioError := collect(args, stderr)
+	inputs, ioError := collect(args, stderr)
 	var all []validate.Diagnostic
-	for _, f := range files {
-		data, err := os.ReadFile(f)
-		if err != nil {
-			fmt.Fprintf(stderr, "specarch: cannot read %s: %v\n", f, err)
-			ioError = true
-			continue
+	for _, in := range inputs {
+		switch {
+		case in.root != "":
+			all = append(all, validate.CheckSpec(spec.Load(in.root))...)
+		case in.implementation != "":
+			data, err := os.ReadFile(in.implementation)
+			if err != nil {
+				fmt.Fprintf(stderr, "specarch: cannot read %s: %v\n", in.implementation, err)
+				ioError = true
+				continue
+			}
+			all = append(all, validate.CheckImplementation(in.implementation, data, spec.Load)...)
+		default:
+			all = append(all, validate.CheckNamed(in.other)...)
 		}
-		all = append(all, validate.Check(f, data, os.ReadFile)...)
 	}
 	validate.Sort(all)
 	for _, d := range all {
 		fmt.Fprintln(stdout, d.String())
 	}
 	errors := validate.Errors(all)
-	fmt.Fprintf(stderr, "specarch: %s checked: %s, %s\n", plural(len(files), "file"), plural(errors, "error"), plural(len(all)-errors, "warning"))
+	fmt.Fprintf(stderr, "specarch: %s checked: %s, %s\n", plural(len(inputs), "input"), plural(errors, "error"), plural(len(all)-errors, "warning"))
 	switch {
 	case ioError:
 		return 2
@@ -105,16 +123,26 @@ func runValidate(args []string, stdout, stderr io.Writer) int {
 	return 0
 }
 
-// collect expands folders into the SpecArch files under them, sorted, and
-// keeps files as given.
-func collect(args []string, stderr io.Writer) ([]string, bool) {
-	var files []string
+// An input is one thing to check: a specification (its root folder), an
+// implementation file outside any specification, or a file given by name
+// that is neither.
+type input struct {
+	root           string
+	implementation string
+	other          string
+}
+
+// collect turns the arguments into inputs: a folder is searched for
+// specifications and standalone implementation files; a file is taken as
+// given.
+func collect(args []string, stderr io.Writer) ([]input, bool) {
+	var inputs []input
 	ioError := false
 	seen := map[string]bool{}
-	addFile := func(p string) {
-		if !seen[p] {
-			seen[p] = true
-			files = append(files, p)
+	add := func(key string, in input) {
+		if !seen[key] {
+			seen[key] = true
+			inputs = append(inputs, in)
 		}
 	}
 	for _, a := range args {
@@ -125,33 +153,34 @@ func collect(args []string, stderr io.Writer) ([]string, bool) {
 			continue
 		}
 		if !info.IsDir() {
-			addFile(a)
+			switch validate.KindOf(filepath.ToSlash(a)) {
+			case validate.KindDesign:
+				add("root:"+filepath.Clean(filepath.Dir(a)), input{root: filepath.Dir(a)})
+			case validate.KindImplementation:
+				add("impl:"+filepath.Clean(a), input{implementation: a})
+			default:
+				add("other:"+filepath.Clean(a), input{other: a})
+			}
 			continue
 		}
-		var found []string
-		err = filepath.WalkDir(a, func(p string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
-			if !d.IsDir() && validate.KindOf(d.Name()) != validate.KindNone {
-				found = append(found, p)
-			}
-			return nil
-		})
+		roots, impls, err := spec.Find(a)
 		if err != nil {
 			fmt.Fprintf(stderr, "specarch: cannot read %s: %v\n", a, err)
 			ioError = true
+			continue
 		}
-		if err == nil && len(found) == 0 {
-			fmt.Fprintf(stderr, "specarch: %s holds no %s or %s file; name a folder that does\n", a, "*"+validate.DesignSuffix, "*"+validate.ImplementationSuffix)
+		if len(roots)+len(impls) == 0 {
+			fmt.Fprintf(stderr, "specarch: %s holds no %s and no *%s file; name a folder that does\n", a, spec.RootFile, spec.ImplementationSuffix)
 			ioError = true
 		}
-		sort.Strings(found)
-		for _, f := range found {
-			addFile(f)
+		for _, r := range roots {
+			add("root:"+filepath.Clean(r), input{root: r})
+		}
+		for _, i := range impls {
+			add("impl:"+filepath.Clean(i), input{implementation: i})
 		}
 	}
-	return files, ioError
+	return inputs, ioError
 }
 
 func plural(n int, word string) string {

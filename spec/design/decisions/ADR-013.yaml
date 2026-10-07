@@ -1,0 +1,46 @@
+decisions:
+  ADR-013:
+    title: One binary, specarch, with verbs named by direction, and generator plug-ins on PATH
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      The toolchain grows: a validator, a document writer with many
+      targets, code generators, and an extractor that works the other way.
+      Separate programs (a spec2doc, a doc2spec, a spec2code) would each
+      carry a parser, a diagnostic format and a version of their own, and
+      drift apart.
+    decision: |
+      One program, `specarch`, with verbs named by direction: `validate`
+      checks; `document <target>` goes from the specification to a
+      document; `generate <target>` goes from the specification to code,
+      SQL, OpenAPI, UI or tests; `extract <source>` goes from existing
+      code or documents to a specification (designed now, built when the
+      first real project needs it); `version` says which SpecArch this is.
+      A code target the program does not build in is produced by the
+      executable `specarch-gen-<target>` found on PATH, the pattern of
+      `protoc-gen-*`, `git-*` and `kubectl-*`. The program validates the
+      specification, passes it to the plug-in on its standard input as
+      JSON, and takes the files to write back on the plug-in's standard
+      output; the program writes them, compares them with `--check`, and
+      refuses a path outside the target's folder.
+    why: |
+      One name to learn and install; `specarch help` lists everything;
+      one parser, one validator, one diagnostic format and one version
+      shared by every verb, so a file's header can say which SpecArch
+      made it and the answer is one number. Verbs named by direction read
+      as what they do. Plug-ins on PATH let anyone add a target in any
+      language without changing the program, and the protoc protocol, in
+      which the plug-in never touches the disk, keeps the rules that every
+      target must follow (only its folder, `--check`) in one place instead
+      of in every plug-in.
+    consequences: |
+      The techspec target moves from `generate` to `document`. `generate`
+      has no built-in target until a real project needs one; every target
+      is a plug-in. The implementation file names the folder of each
+      document and code target under `targets`.
+    satisfies: [SA-7, SA-14]
+    cites:
+      - source: protoc-plugins
+        says: "A plug-in reads a CodeGeneratorRequest from standard input and writes a CodeGeneratorResponse to standard output; protoc writes the files."
+      - source: go-tool
+        says: "The go command is one binary whose subcommands share one module loader and one way of printing problems."

@@ -1,0 +1,14 @@
+decisions:
+  ADR-008:
+    title: The Low IQ Tax principle governs the language and its tools
+    status: accepted
+    date: "2026-10-07"
+    context: Every reader of a specification has finite attention, and a tool that makes them think about it spends that attention on the wrong thing.
+    decision: |
+      `docs/principles.md` is binding: full-word keys, one way to say one
+      thing, no placeholders, ambiguity is an error, few modes, summary
+      first. Validator messages say what is wrong, where, and how to fix it,
+      in one plain sentence.
+    why: Attention is the scarce resource of every reader, tired, new or six months later; a format that spends it on itself leaves less for the system.
+    consequences: A keyword, option or message that needs explaining is a defect to fix, not documentation to add.
+    satisfies: [SA-6]

@@ -1,0 +1,7 @@
+operation: returnLoan
+level: system
+scenario: red
+covers: [dependency fails loan.lifecycle]
+given: the loan.lifecycle channel is unavailable
+when: returnLoan is called
+then: the loan stays open and the call fails

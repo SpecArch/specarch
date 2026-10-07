@@ -1,0 +1,11 @@
+pages:
+  member-view:
+    kind: view
+    title: Member
+    route: /members/{memberId}
+    entity: Member
+    permission: members.read
+    source: getMember
+    fields: [cardNumber, fullName, email, tier, joinedOn, outstandingFees]
+    actions:
+      - { label: Lend a book, kind: navigate, target: loan-form, permission: loans.create }

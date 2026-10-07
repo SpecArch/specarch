@@ -1,0 +1,7 @@
+command: document
+level: system
+scenario: golden
+given: "a design file and an implementation file that names techspec's output folder"
+when: document techspec is run on both
+then: "it writes techspec/shop.techspec.md with every chapter the design fills, chapter 7 from the implementation file, and exits 0"
+verifies: [SA-7, SA-8]

@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:11: error: /entities/Item/relations/parent/via: relation_via: parentId is not a field of Item; for this kind of relation, via names the field on Item that holds the key; use one of id, name

@@ -1,0 +1,8 @@
+command: document
+level: system
+scenario: red
+covers: [exit 1]
+given: a generated file edited by hand
+when: document techspec is run with --check
+then: "it names the file that differs, writes nothing and exits 1"
+verifies: [SA-7]

@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a file with info twice
+when: validate is run
+then: it reports duplicate_key at the second info and exits 1

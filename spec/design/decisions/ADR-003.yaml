@@ -1,0 +1,18 @@
+decisions:
+  ADR-003:
+    title: The validator applies the published JSON Schema first, then its own rules
+    status: accepted
+    date: "2026-10-07"
+    context: A second definition of the language inside the validator would drift from the schema editors use.
+    decision: |
+      The JSON Schema in `schema/` is the one definition of each file's
+      shape. The validator applies it unchanged, then runs the checks a
+      schema cannot express: cross-references, expressions, worked examples,
+      fail-closed access, the interface boundary and implementation
+      references.
+    consequences: A file an editor accepts and the validator refuses is always a cross-reference or semantic problem, never a shape problem.
+    why: Two definitions of one shape, one in the schema and one in the validator, would drift; applying the published schema unchanged keeps one.
+    cites:
+      - source: json-schema
+        says: "A schema describes the shape of a document, and any conforming validator gives the same answer for it."
+    satisfies: [SA-1]

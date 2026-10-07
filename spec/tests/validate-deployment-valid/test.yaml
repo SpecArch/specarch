@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "a specification with environments, configuration, release, rollback, a migration, a check and a sign-off, and an implementation file whose deployment names its environment and gives the non-secret setting a value"
+when: "validate is run"
+then: "it prints nothing and exits 0"
+verifies: [SA-12]

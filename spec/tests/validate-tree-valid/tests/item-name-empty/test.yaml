@@ -1,0 +1,8 @@
+entity: Item
+constraint: item_name_present
+level: system
+scenario: red
+covers: [violates item_name_present]
+given: an item with an empty name
+when: it is saved
+then: it is refused

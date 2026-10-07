@@ -1,0 +1,9 @@
+specarchImplementation: "0.1"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+testing:
+  framework: go test
+  run: go test ./...
+  suites:
+    design: { description: Design tests., run: go test ./..., level: system, designTests: [create-item-succeeds] }

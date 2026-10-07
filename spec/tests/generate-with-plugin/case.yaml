@@ -1,0 +1,3 @@
+arguments: [generate, echo, --out, out, project]
+exitStatus: 0
+standardOutput: ""

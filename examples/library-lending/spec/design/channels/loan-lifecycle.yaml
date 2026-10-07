@@ -1,0 +1,13 @@
+channels:
+  loan.lifecycle:
+    description: Every change in a loan's state, for the notification service and the audit log.
+    messages:
+      LoanCreated:
+        summary: A copy was lent.
+        payload: { $ref: "#/entities/Loan" }
+      LoanReturned:
+        summary: A copy came back; the payload carries the fee charged.
+        payload: { $ref: "#/entities/Loan" }
+      LoanLost:
+        summary: A copy was reported lost.
+        payload: { $ref: "#/entities/Loan" }

@@ -1,0 +1,9 @@
+entity: Loan
+transition:
+  from: open
+  to: returned
+level: system
+scenario: golden
+given: an open loan
+when: returnLoan is called
+then: the loan is returned with no fee

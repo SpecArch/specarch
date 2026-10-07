@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  tests/item-saved:1: error: /: layout: the test folder tests/item-saved has no test.yaml; add one with the test's subject, scenario, level, given, when and then
+

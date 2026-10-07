@@ -1,0 +1,7 @@
+command: version
+level: system
+scenario: red
+covers: [usage error]
+given: the program
+when: version is run with an argument
+then: it prints how to use it and exits 2

@@ -1,0 +1,2 @@
+requirements:
+  CASE-1: { statement: An item shall have a non-empty name., kind: functional, priority: must, status: accepted, acceptance: [Saving an item with an empty name is refused.], verification: test, needs: [NEED-1] }

@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:32: error: /requirements/CASE-1/cites/0/source: source: iso-29184 is not a source declared under sources; did you mean iso-29148?
+

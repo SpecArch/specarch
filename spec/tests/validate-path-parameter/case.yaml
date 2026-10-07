@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:7: error: /paths/~1items~1{itemId}/get: path_parameter: {itemId} in /items/{itemId} has no path parameter; declare it with in: path and required: true
+  specarch.yaml:7: warning: /paths/~1items~1{itemId}/get: test_golden_missing: operation getItem has no golden scenario; add one under tests, for example get-item-succeeds: { operation: getItem, scenario: golden, given: "...", when: "...", then: "it succeeds" }
+  specarch.yaml:7: warning: /paths/~1items~1{itemId}/get: test_red_missing: operation getItem has no red scenario; add one under tests, for example get-item-refused: { operation: getItem, scenario: red, given: "...", when: "...", then: "it is refused" }

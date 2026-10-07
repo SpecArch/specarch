@@ -1,0 +1,6 @@
+assumptions:
+  ASSUME-1:
+    statement: A specification is kept in version control, so its history lives there and in history files, never inside the specification.
+    why: Without this the files would need change logs, which the Low IQ Tax principle forbids.
+  ASSUME-2:
+    statement: The people and assistants who write specifications can read YAML and a C-like expression.

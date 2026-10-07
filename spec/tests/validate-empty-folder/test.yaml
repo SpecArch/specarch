@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 2]
+given: a folder that holds no SpecArch file
+when: validate is run on it
+then: it says so and exits 2 rather than passing silently

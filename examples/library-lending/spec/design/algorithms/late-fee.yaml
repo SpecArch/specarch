@@ -1,0 +1,35 @@
+algorithms:
+  lateFee:
+    description: |
+      Fee charged when a copy comes back after its due date. A flat daily rate,
+      capped so that a long-overdue book never costs more than replacing it.
+    inputs:
+      daysLate: { type: integer, format: int32, minimum: 0, description: Whole days after dueOn; 0 when returned on time. }
+      dailyRate: { type: string, format: decimal, precision: 10, scale: 2, description: "Library setting, currently 0.50." }
+      replacementCost: { type: string, format: decimal, precision: 10, scale: 2, description: The book's replacementCost. }
+    output: { type: string, format: decimal, precision: 10, scale: 2 }
+    formula: min(decimal(daysLate, 0) * dailyRate, replacementCost)
+    examples:
+      - name: returned on time
+        inputs: { daysLate: 0, dailyRate: "0.50", replacementCost: "25.00" }
+        expected: "0.00"
+      - name: one week late
+        inputs: { daysLate: 7, dailyRate: "0.50", replacementCost: "25.00" }
+        expected: "3.50"
+        note: 7 × 0.50 = 3.50, below the cap.
+      - name: capped at replacement cost
+        inputs: { daysLate: 90, dailyRate: "0.50", replacementCost: "25.00" }
+        expected: "25.00"
+        note: 90 × 0.50 = 45.00 exceeds the 25.00 replacement cost, so the cap applies.
+      - name: cheap book, cap reached early
+        inputs: { daysLate: 10, dailyRate: "0.50", replacementCost: "4.00" }
+        expected: "4.00"
+    pseudocode: |
+      function lateFee(daysLate, dailyRate, replacementCost):
+          if daysLate <= 0:
+              return 0.00
+          fee = daysLate * dailyRate          # decimal arithmetic, 2 places
+          if fee > replacementCost:
+              fee = replacementCost
+          return fee
+    satisfies: [LIB-5]

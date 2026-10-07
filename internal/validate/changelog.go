@@ -16,6 +16,7 @@ var changeLogPhrase = regexp.MustCompile(`(?i)\b(previously|formerly|changed fro
 var proseKeys = map[string]bool{
 	"description": true, "summary": true, "title": true, "context": true,
 	"decision": true, "consequences": true, "note": true, "message": true,
+	"statement": true, "definition": true, "why": true, "says": true, "action": true, "check": true,
 }
 
 // checkChangeLog warns when prose in the file tells how it changed instead

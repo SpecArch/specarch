@@ -1,0 +1,8 @@
+operation: createLoan
+level: system
+scenario: red
+covers: [response 409]
+given: a standard-tier member with three open loans
+when: createLoan is called for a fourth book
+then: it answers 409 and no loan is created
+verifies: [LIB-3]

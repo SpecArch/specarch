@@ -1,0 +1,32 @@
+algorithms:
+  markersWellFormed:
+    description: |
+      A hand-written Markdown document is rewritten only between its markers:
+      `<!-- specarch:generate <what> -->` and `<!-- specarch:end -->`. Every
+      begin has its end before the next begin, so regions never nest.
+    inputs:
+      begins: { type: integer, format: int32, minimum: 0 }
+      ends: { type: integer, format: int32, minimum: 0 }
+      nested: { type: integer, format: int32, minimum: 0, description: Begins found inside an open region. }
+    output: { type: boolean }
+    formula: begins == ends && nested == 0
+    examples:
+      - name: two diagrams
+        inputs: { begins: 2, ends: 2, nested: 0 }
+        expected: true
+      - name: an end deleted by hand
+        inputs: { begins: 2, ends: 1, nested: 1 }
+        expected: false
+    pseudocode: |
+      open = none
+      for each line l of the document:
+          if l is a begin marker:
+              if open: error "marker inside an open region"
+              open = l
+          else if l is an end marker:
+              if not open: error "end without begin"
+              replace the lines between open and l with generate(open.what)
+              open = none
+      if open: error "begin without end"
+      if open.what names an object that no longer exists: error, never an empty block
+    satisfies: [SA-8]

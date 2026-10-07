@@ -1,0 +1,9 @@
+rollback:
+  description: The previous build is kept installed beside the new one, so a rollback is a switch, and migrations are written to be reversible.
+  steps:
+    - name: Switch back
+      action: Point the service at the previous build and restart it.
+      check: The smoke check passes and the version shown is the previous one.
+    - name: Reverse the migrations
+      action: Run the rollback steps of every migration the release carried, newest first.
+      check: The schema gate against the previous entities passes.

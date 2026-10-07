@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:8: error: /entities/Item/properties/count: schema: format is missing; add it here

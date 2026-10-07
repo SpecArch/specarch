@@ -1,0 +1,6 @@
+command: document
+level: system
+scenario: golden
+given: a hand-written document with a stateDiagram Order marker
+when: document techspec is run
+then: "the region holds the states of Order with a start and an end, and it exits 0"

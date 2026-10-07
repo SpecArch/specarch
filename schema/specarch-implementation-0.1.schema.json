@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-0.1.schema.json",
   "title": "SpecArch Implementation File, meta-model 0.1",
-  "description": "A SpecArch Implementation File (*.specarch-implementation.yaml) says how one stack implements one SpecArch Definition File: the language and toolchain, the libraries and their licences, the package layout, how each design object maps onto the stack, the generator settings, the build and test tasks, the deployments, and the implementation decisions. It points at the design file it implements and cannot add or change design: entities, operations, commands, events, permissions, pages and algorithms exist only in the design file, and this schema has no keyword for them. One design file can have several implementation files, one per stack. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "description": "A SpecArch Implementation File (<name>.<stack>.specarch-implementation.yaml) says how one stack implements one SpecArch specification: the language and toolchain, the libraries and their licences, the package layout, how each design object maps onto the stack, the document and code targets with their settings, the build and test tasks, the deployments, and the implementation decisions. It points at the specification's root file (specarch.yaml) and cannot add or change design: entities, operations, commands, events, permissions, pages and algorithms exist only in the specification, and this schema has no keyword for them. One specification can have several implementation files, one per stack, each in implementation/<stack>/ of the tree. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
     "specarchImplementation": {
@@ -37,16 +37,16 @@
       "additionalProperties": false
     },
     "implements": {
-      "description": "The design file this file implements.",
+      "description": "The specification this file implements.",
       "type": "object",
       "properties": {
         "file": {
-          "description": "Path of the design file, relative to this file. Must end in .specarch-design.yaml.",
+          "description": "Path of the specification's root file, specarch.yaml, relative to this file.",
           "type": "string",
-          "pattern": "\\.specarch-design\\.yaml$"
+          "pattern": "(^|/)specarch\\.yaml$"
         },
         "version": {
-          "description": "The design file's info.version this implementation was written against. The validator fails when they differ, so a design change is noticed by every implementation of it.",
+          "description": "The specification's info.version this implementation was written against. The validator fails when they differ, so a design change is noticed by every implementation of it.",
           "type": "string",
           "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
         }
@@ -60,8 +60,8 @@
       },
       "additionalProperties": false
     },
-    "target": {
-      "description": "The language and toolchain.",
+    "stack": {
+      "description": "The stack: the language and toolchain with their versions, and the platforms the build targets.",
       "type": "object",
       "properties": {
         "language": {
@@ -147,14 +147,14 @@
         "$ref": "#/$defs/binding"
       }
     },
-    "generators": {
-      "description": "Generator targets this implementation uses, keyed by target name, with their settings. Defaults: the sql target writes PostgreSQL; the ui target writes plain JavaScript for the web and SwiftUI for the iPhone.",
+    "targets": {
+      "description": "The document and code targets this implementation produces, keyed by target name as given to specarch document or specarch generate, each with the folder it owns and its settings. Defaults: the sql target writes PostgreSQL; the ui target writes plain JavaScript for the web and SwiftUI for the iPhone.",
       "type": "object",
       "propertyNames": {
         "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
       },
       "additionalProperties": {
-        "$ref": "#/$defs/generator"
+        "$ref": "#/$defs/target"
       }
     },
     "tasks": {
@@ -171,7 +171,7 @@
       "$ref": "#/$defs/testing"
     },
     "deployments": {
-      "description": "Real deployments, keyed by environment name: servers, hosts and ports.",
+      "description": "Real deployments, keyed by environment name: the environment of the specification each one installs, its servers, hosts and ports, and the values of the non-secret settings.",
       "type": "object",
       "propertyNames": {
         "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
@@ -195,7 +195,7 @@
     "specarchImplementation",
     "info",
     "implements",
-    "target"
+    "stack"
   ],
   "patternProperties": {
     "^x-": {}
@@ -207,17 +207,57 @@
       "type": "string"
     },
     "designRef": {
-      "description": "A JSON pointer into the design file, naming one of its objects: '#/entities/Loan', '#/commands/validate', '#/paths/~1loans/post'. The validator checks it resolves.",
+      "description": "A JSON pointer into the specification, naming one of its objects: '#/entities/Loan', '#/commands/validate', '#/paths/~1loans/post'. The validator checks it resolves.",
       "type": "string",
       "pattern": "^#/(entities|enums|permissions|roles|paths|commands|channels|pages|algorithms|decisions)/[^/]+(/.+)?$"
     },
-    "requirementLinks": {
+    "satisfies": {
+      "description": "SpecArch keyword. The requirements this element satisfies, by ID, as in the specification.",
       "type": "array",
       "items": {
         "type": "string",
         "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
       },
       "uniqueItems": true
+    },
+    "why": {
+      "description": "SpecArch keyword. The rationale in plain words, as in the specification.",
+      "type": "string",
+      "minLength": 1
+    },
+    "citation": {
+      "description": "SpecArch keyword. One citation, as in the specification.",
+      "type": "object",
+      "properties": {
+        "source": {
+          "description": "The key of a source declared under 'sources' in the specification's specarch.yaml.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "clause": {
+          "type": "string",
+          "minLength": 1
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "source",
+        "says"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "citations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/citation"
+      },
+      "minItems": 1
     },
     "tool": {
       "type": "object",
@@ -270,6 +310,12 @@
             "tool"
           ],
           "default": "runtime"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -319,6 +365,12 @@
         },
         "settings": {
           "type": "object"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -329,11 +381,11 @@
       },
       "additionalProperties": false
     },
-    "generator": {
+    "target": {
       "type": "object",
       "properties": {
         "output": {
-          "description": "The folder this generator owns, relative to this implementation file.",
+          "description": "The folder this target owns, relative to this implementation file. A document target writes <target>.md there.",
           "type": "string",
           "minLength": 1
         },
@@ -367,6 +419,12 @@
         },
         "settings": {
           "type": "object"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -446,6 +504,11 @@
         "description": {
           "$ref": "#/$defs/markdown"
         },
+        "environment": {
+          "description": "The environment of the specification this deployment installs, by key. Required when the specification declares environments.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
         "servers": {
           "type": "array",
           "items": {
@@ -468,6 +531,27 @@
             "additionalProperties": false
           },
           "minItems": 1
+        },
+        "configuration": {
+          "description": "The value of each non-secret setting of the specification's configuration in this deployment, keyed by setting name. A secret's value is never written here; say in the setting's description where it comes from.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][A-Za-z0-9]*$"
+          },
+          "additionalProperties": {
+            "type": [
+              "string",
+              "integer",
+              "number",
+              "boolean"
+            ]
+          }
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -511,8 +595,14 @@
           "type": "string",
           "pattern": "^ADR-[0-9]{3,}$"
         },
-        "requirements": {
-          "$ref": "#/$defs/requirementLinks"
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
@@ -605,6 +695,16 @@
           "type": "string",
           "minLength": 1
         },
+        "level": {
+          "description": "unit: one piece of this implementation's code alone; integration: several pieces, or the code with a real database or service; system: the design's system tests run through this implementation; acceptance: the design's acceptance tests. The levels are those of ISO/IEC/IEEE 29119-1. A suite that runs design tests is system or acceptance; an implementation-only suite is unit or integration.",
+          "type": "string",
+          "enum": [
+            "unit",
+            "integration",
+            "system",
+            "acceptance"
+          ]
+        },
         "designTests": {
           "description": "Names of design tests this suite runs.",
           "type": "array",
@@ -645,11 +745,18 @@
         "ci": {
           "description": "The suite runs in CI on every change.",
           "type": "boolean"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
         }
       },
       "required": [
         "description",
-        "run"
+        "run",
+        "level"
       ],
       "oneOf": [
         {
@@ -671,7 +778,36 @@
       "patternProperties": {
         "^x-": {}
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "implementationOnly"
+            ]
+          },
+          "then": {
+            "properties": {
+              "level": {
+                "enum": [
+                  "unit",
+                  "integration"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "level": {
+                "enum": [
+                  "system",
+                  "acceptance"
+                ]
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

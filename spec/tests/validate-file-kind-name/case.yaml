@@ -1,0 +1,4 @@
+arguments: [validate, wrong-name.yaml]
+exitStatus: 1
+standardOutput: |
+  wrong-name.yaml:1: error: /: file_kind: the file name ends in neither specarch.yaml nor .specarch-implementation.yaml; rename the file so its kind is clear

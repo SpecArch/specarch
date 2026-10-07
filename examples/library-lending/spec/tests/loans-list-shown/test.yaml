@@ -1,0 +1,6 @@
+page: loans-list
+level: system
+scenario: golden
+given: a librarian and some loans
+when: the page loans-list is opened
+then: "it lists the loans with their due dates, states and fees"

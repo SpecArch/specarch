@@ -1,0 +1,7 @@
+operation: createLoan
+level: system
+scenario: red
+covers: [missing memberId, missing bookId]
+given: a librarian
+when: createLoan is called without memberId and again without bookId
+then: both are refused as invalid input

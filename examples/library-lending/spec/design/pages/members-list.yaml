@@ -1,0 +1,12 @@
+pages:
+  members-list:
+    kind: list
+    title: Members
+    route: /members
+    entity: Member
+    permission: members.read
+    source: listMembers
+    columns: [cardNumber, fullName, email, tier, outstandingFees]
+    filters: [tier]
+    actions:
+      - { label: New member, kind: navigate, target: member-form, permission: members.write }

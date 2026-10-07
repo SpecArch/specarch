@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a transition to a value the enum does not have
+when: validate is run
+then: it reports state_value and exits 1

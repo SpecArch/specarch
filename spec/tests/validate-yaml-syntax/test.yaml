@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a flow mapping that is never closed
+when: validate is run
+then: it reports yaml_syntax with the line and exits 1
+verifies: [SA-6]

@@ -1,0 +1,7 @@
+operation: reportLost
+level: system
+scenario: red
+covers: [not found loanId, loanId not a valid uuid]
+given: a librarian
+when: reportLost is called with an id no loan has and again with abc
+then: the first is refused as not found and the second as invalid input

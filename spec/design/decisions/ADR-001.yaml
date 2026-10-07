@@ -1,0 +1,25 @@
+decisions:
+  ADR-001:
+    title: Two kinds of file, design and implementation
+    status: accepted
+    date: "2026-10-07"
+    context: |
+      A design written next to its language, libraries and build commands
+      turns into a description of one implementation, and a second stack
+      cannot reuse it. Stack details in the design also make every library
+      upgrade look like a design change.
+    decision: |
+      A specification (the SpecArch Definition, SDF: `specarch.yaml` and its
+      stage folders) holds the design: what the system is and does,
+      including its interfaces as a client sees them.
+      A SpecArch Implementation File (`<name>.<stack>.specarch-implementation.yaml`)
+      holds one stack's implementation: language, toolchain, libraries,
+      layout, mappings, generator settings, tasks, deployments and the
+      decisions that depend on the stack. It names the specification and
+      version it implements and has no keyword that adds design.
+    consequences: |
+      One design can have several implementations. Generators read the
+      definition for design and the implementation for target choices. The
+      validator checks both kinds and that an implementation's references
+      resolve in its definition.
+    satisfies: [SA-9]

@@ -1,0 +1,9 @@
+enums:
+  LoanStatus:
+    type: string
+    enum: [open, overdue, returned, lost]
+    valueDescriptions:
+      open: the copy is with the member and the due date has not passed
+      overdue: the due date has passed and the copy is still out
+      returned: the copy is back on the shelf
+      lost: the member reported the copy lost; the replacement cost was charged

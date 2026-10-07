@@ -1,0 +1,7 @@
+page: member-form
+level: system
+scenario: red
+covers: [denied without members.write]
+given: a caller holding only the member role
+when: the page member-form is opened
+then: it is not shown

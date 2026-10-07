@@ -1,0 +1,8 @@
+operation: createMember
+level: system
+scenario: golden
+covers: [fullName of 1 character, fullName of 200 characters]
+given: a librarian
+when: "createMember is called for a standard-tier member with a one-letter name, and again with a 200-character name"
+then: "both members are created, each with a new eight-digit card number and no fees"
+verifies: [LIB-1]

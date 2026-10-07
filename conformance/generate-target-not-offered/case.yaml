@@ -1,3 +1,0 @@
-arguments: [generate, openapi, shop.specarch-design.yaml]
-exitStatus: 2
-standardOutput: ""

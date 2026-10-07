@@ -1,3 +1,0 @@
-arguments: [generate, techspec, --out, docs, shop.specarch-design.yaml]
-exitStatus: 0
-standardOutput: ""

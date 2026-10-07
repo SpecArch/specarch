@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: an implementation file with an entities key
+when: validate is run
+then: it reports design_key and exits 1
+verifies: [SA-9]

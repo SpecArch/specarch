@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a state field that is not an enum
+when: validate is run
+then: it reports state_field and exits 1

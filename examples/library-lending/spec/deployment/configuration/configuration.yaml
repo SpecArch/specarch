@@ -1,0 +1,15 @@
+configuration:
+  dailyRate:
+    description: The late fee per day, set by the board; read by the lateFee algorithm.
+    secret: false
+    schema: { type: string, format: decimal, precision: 10, scale: 2 }
+    satisfies: [LIB-5]
+  databaseUrl:
+    description: Where the database is; it carries the password, so it comes from the host's secret store and is never written here.
+    secret: true
+    schema: { type: string, format: uri }
+  notificationChannelUrl:
+    description: Where the notification service listens for loan events.
+    secret: false
+    schema: { type: string, format: uri }
+    satisfies: [LIB-4]

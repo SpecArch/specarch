@@ -1,0 +1,16 @@
+entities:
+  GeneratedFile:
+    description: A file a document or code target wrote. Its header names where it came from.
+    type: object
+    properties:
+      path: { type: string, description: Path inside the target's own folder. }
+      target: { type: string, minLength: 1, description: "The document or code target that wrote it, such as `techspec` or `openapi`." }
+      sourceFile: { type: string, description: The root file of the specification it was made from. }
+      sourceVersion: { type: string, description: That specification's `info.version`. }
+      metaModel: { type: string, description: The meta-model version of that specification. }
+      markersOnly: { type: boolean, description: "True for a hand-written Markdown document, where only the text between `specarch:generate` markers is rewritten." }
+    required: [path, target, sourceFile, sourceVersion, metaModel, markersOnly]
+    primaryKey: [path]
+    relations:
+      source: { target: SpecFile, kind: many-to-one, via: sourceFile }
+    satisfies: [SA-7, SA-8]

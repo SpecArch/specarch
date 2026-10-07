@@ -1,0 +1,9 @@
+environments:
+  development:
+    description: A developer's machine, with a throwaway database.
+    promotesTo: staging
+  staging:
+    description: A copy of production the librarians try a release on before it goes live.
+    promotesTo: production
+  production:
+    description: The live system at the desk.

@@ -1,0 +1,6 @@
+operation: getMember
+level: system
+scenario: golden
+given: a member and a librarian
+when: "getMember is called with the member's id"
+then: the member is answered

@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:1: error: /specarchImplementation: file_kind: the file is named as a design file but starts with specarchImplementation; rename it to end in .specarch-implementation.yaml, or start it with specarch

@@ -1,0 +1,8 @@
+operation: createMember
+level: system
+scenario: red
+covers: [duplicate member_email_unique, response 409]
+given: "a member registered with ana@example.org"
+when: createMember is called with the same email address
+then: it answers 409 and no member is created
+verifies: [LIB-1]

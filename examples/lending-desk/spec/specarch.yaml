@@ -24,6 +24,7 @@ sources:
     url: ../sources/manual.md
     clauses:
       - { clause: "1", title: Purpose }
+      - { clause: "2", title: Members }
       - { clause: "2.1", title: Who may borrow }
       - { clause: "2.2", title: Registering members }
       - { clause: "3.1", title: Lending a book }
@@ -36,7 +37,7 @@ sources:
   desk-code:
     kind: code
     title: The lending desk service
-    edition: 1334b2b8b7306a6539c9ec22abf4403ba28517af
+    edition: 85f752f8ddf25f3f53c9196d923c07ac54521429
     author: The desk team
     url: ../sources/code
     clauses:

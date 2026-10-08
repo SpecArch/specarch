@@ -3,14 +3,16 @@ entities:
     description: A card holder.
     type: object
     properties:
-      cardNumber: { type: string, maxLength: 10, pattern: "^[0-9]{10}$", description: The number printed on the card. }
-      fullName: { type: string, minLength: 1, maxLength: 200 }
+      cardNumber: { type: string, maxLength: 10, pattern: "^[0-9]{10}$", sensitivity: internal, description: The number printed on the card. }
+      fullName: { type: string, minLength: 1, maxLength: 200, sensitivity: personal }
+      phoneNumber: { type: string, sensitivity: personal, description: "In the manual and not in the database; Q-6 asks whether to build it." }
     required: [cardNumber, fullName]
     primaryKey: [cardNumber]
     satisfies: [LEND-1]
     origin: stated
     cites:
       - { source: desk-manual, clause: "2.1", says: "A member is known by the card number printed on the card, and the desk records the member's full name." }
+      - { source: desk-manual, clause: "2", says: "The desk keeps a member's card number (internal), full name (personal) and phone number (personal)." }
       - { source: desk-code, clause: "lending/model.go:14", says: "Member has CardNumber, 10 digits, and FullName." }
       - { source: desk-code, clause: "migrations/001_init.sql:1", says: "card_number CHAR(10) is the key; full_name VARCHAR(200) NOT NULL." }
   Book:
@@ -95,7 +97,7 @@ paths:
       origin: stated
       cites:
         - { source: desk-manual, clause: "2.2", says: "Desk staff register new members." }
-        - { source: desk-code, clause: "lending/routes.go:29", says: "RegisterMember answers 201." }
+        - { source: desk-code, clause: "lending/routes.go:30", says: "RegisterMember answers 201." }
   /loans:
     post:
       operationId: lendBook
@@ -122,7 +124,7 @@ paths:
       origin: stated
       cites:
         - { source: desk-manual, clause: "3.1", says: "Desk staff lend a book by scanning the member's card and the book's barcode." }
-        - { source: desk-code, clause: "lending/routes.go:35", says: "LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise." }
+        - { source: desk-code, clause: "lending/routes.go:36", says: "LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise." }
   /loans/{loanId}/return:
     parameters:
       - { name: loanId, in: path, required: true, schema: { type: integer, format: int64, minimum: 1, maximum: 9007199254740991 } }
@@ -136,7 +138,7 @@ paths:
       origin: stated
       cites:
         - { source: desk-manual, clause: "5.1", says: "Checking a book in closes the loan." }
-        - { source: desk-code, clause: "lending/routes.go:44", says: "ReturnBook closes the loan and answers 200." }
+        - { source: desk-code, clause: "lending/routes.go:45", says: "ReturnBook closes the loan and answers 200." }
   /loans/{loanId}/renew:
     parameters:
       - { name: loanId, in: path, required: true, schema: { type: integer, format: int64, minimum: 1, maximum: 9007199254740991 } }
@@ -168,4 +170,4 @@ paths:
       origin: inferred
       why: Undocumented, from code; Q-2 asks whether it is wanted.
       cites:
-        - { source: desk-code, clause: "lending/routes.go:49", says: "ListMemberLoans answers 200 with the member's loans." }
+        - { source: desk-code, clause: "lending/routes.go:50", says: "ListMemberLoans answers 200 with the member's loans." }

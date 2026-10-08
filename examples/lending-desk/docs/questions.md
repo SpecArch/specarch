@@ -2,7 +2,7 @@
 
 # Lending Desk: open questions
 
-Version 0.1.0 of the specification: 5 open questions (2 must, 3 should, 0 could). A must question holds up everything that reads what it blocks; a should question holds up code generation and approval until the stakeholder confirms what was inferred; a could question holds up nothing. Each is answered by the stakeholder named, with a decision record that names the question under answers; the question is then removed.
+Version 0.1.0 of the specification: 7 open questions (4 must, 3 should, 0 could). A must question holds up everything that reads what it blocks; a should question holds up code generation and approval until the stakeholder confirms what was inferred; a could question holds up nothing. Each is answered by the stakeholder named, with a decision record that names the question under answers; the question is then removed.
 
 Elements by origin: 19 stated, 4 inferred, 0 decided, 0 without origin.
 
@@ -22,9 +22,9 @@ Is the loan period 21 days, as the manual says, or 14 days, as the service does?
 
 **Note:** From Lending desk manual, 2025, clause 3.3: The loan period is 21 days. <../sources/manual.md>
 
-**Note:** From The lending desk service, 1334b2b8b7306a6539c9ec22abf4403ba28517af, clause lending/model.go:8: LoanPeriod is 14 days. <../sources/code>
+**Note:** From The lending desk service, 85f752f8ddf25f3f53c9196d923c07ac54521429, clause lending/model.go:8: LoanPeriod is 14 days. <../sources/code>
 
-**Note:** From The lending desk service, 1334b2b8b7306a6539c9ec22abf4403ba28517af, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14. <../sources/code>
+**Note:** From The lending desk service, 85f752f8ddf25f3f53c9196d923c07ac54521429, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14. <../sources/code>
 
 ### Q-3 (must, decision)
 
@@ -49,6 +49,39 @@ The service lists a member's loans, which the manual never mentions. Is that wan
 
 ## 2. Implementation
 
+### Q-6 (must, decision)
+
+The manual has a phone number for each member, which is personal, and the database has no column for it. Build it as the manual describes, or take it out of the manual?
+
+- Decided by: desk-manager
+- Blocks: implementation
+- Options:
+  1. Build it
+  2. Take it out of the manual and the specification
+
+**Insight:** Not built yet, and the field is personal, so it is not left at should.
+
+**Note:** From Lending desk manual, 2025, clause 2: The desk keeps a member's phone number, which is personal. <../sources/manual.md>
+
+**Note:** From The lending desk service, 85f752f8ddf25f3f53c9196d923c07ac54521429, clause migrations/001_init.sql:1: members has card_number and full_name only. <../sources/code>
+
+### Q-7 (must, decision)
+
+The service serves GET /members/{cardNumber}, which answers a member's card number and full name to anyone, checking no permission, and neither the manual nor the API document mentions it. Is it to stay, and behind which permission? It is left out of this specification until this is answered.
+
+- Decided by: desk-manager
+- Blocks: implementation
+- Options:
+  1. Keep it, behind a permission desk staff hold
+  2. Take it out of the service
+  3. Keep it open to everyone
+
+**Insight:** Undocumented, from code, and it answers a personal field to a caller who shows no permission, which is how an open endpoint is usually found. An operation's permission cannot be left out of the design, so the route waits here rather than as a guess.
+
+**Note:** From The lending desk service, 85f752f8ddf25f3f53c9196d923c07ac54521429, clause lending/routes.go:20: GET /members/{cardNumber} checks no permission. <../sources/code>
+
+**Note:** From The lending desk service, 85f752f8ddf25f3f53c9196d923c07ac54521429, clause lending/routes.go:55: ShowMember answers one member's card number and full name. <../sources/code>
+
 ### Q-4 (should, decision)
 
 Renewing a loan is in the manual but not in the service. Build it as the manual describes, or take it out of the manual?
@@ -63,7 +96,7 @@ Renewing a loan is in the manual but not in the service. Build it as the manual 
 
 **Note:** From Lending desk manual, 2025, clause 4.1: A member may renew a loan once. <../sources/manual.md>
 
-**Note:** From The lending desk service, 1334b2b8b7306a6539c9ec22abf4403ba28517af, clause lending/routes.go:14: Routes serves no renew route. <../sources/code>
+**Note:** From The lending desk service, 85f752f8ddf25f3f53c9196d923c07ac54521429, clause lending/routes.go:14: Routes serves no renew route. <../sources/code>
 
 ## 3. Tests
 
@@ -82,11 +115,12 @@ What each source's sections produced: the elements that cite a clause, or the cl
 
 ### Lending desk manual (desk-manual)
 
-2 clauses of 10 produced nothing.
+2 clauses of 11 produced nothing.
 
 | Clause | Title | Produced |
 |---|---|---|
 | 1 | Purpose | nothing |
+| 2 | Members | #/entities/Member, #/questions/Q-6 |
 | 2.1 | Who may borrow | #/entities/Member, #/requirements/LEND-1, #/stakeholders/member |
 | 2.2 | Registering members | #/paths/~1members/post, #/requirements/LEND-1, #/roles/desk-staff, #/stakeholders/desk-staff |
 | 3.1 | Lending a book | #/entities/Book, #/paths/~1loans/post, #/requirements/LEND-2 |
@@ -104,9 +138,9 @@ What each source's sections produced: the elements that cite a clause, or the cl
 | Clause | Title | Produced |
 |---|---|---|
 | lending/model.go | The records and the lending limits | #/entities/Loan, #/entities/Member, #/questions/Q-1, #/requirements/LEND-3, #/requirements/LEND-4, mapping of #/entities/Book, mapping of #/entities/Loan, mapping of #/entities/Member |
-| lending/routes.go | The served routes and their handlers | #/paths/~1loans/post, #/paths/~1loans~1{loanId}~1return/post, #/paths/~1members/post, #/paths/~1members~1{cardNumber}~1loans/get, #/permissions/loans.read, #/permissions/loans.write, #/permissions/members.write, #/questions/Q-4, #/requirements/LEND-1, #/requirements/LEND-2, #/requirements/LEND-6, #/requirements/LEND-7, mapping of #/paths/~1loans/post, mapping of #/paths/~1loans~1{loanId}~1return/post, mapping of #/paths/~1members/post, mapping of #/paths/~1members~1{cardNumber}~1loans/get |
+| lending/routes.go | The served routes and their handlers | #/paths/~1loans/post, #/paths/~1loans~1{loanId}~1return/post, #/paths/~1members/post, #/paths/~1members~1{cardNumber}~1loans/get, #/permissions/loans.read, #/permissions/loans.write, #/permissions/members.write, #/questions/Q-4, #/questions/Q-7, #/requirements/LEND-1, #/requirements/LEND-2, #/requirements/LEND-6, #/requirements/LEND-7, mapping of #/paths/~1loans/post, mapping of #/paths/~1loans~1{loanId}~1return/post, mapping of #/paths/~1members/post, mapping of #/paths/~1members~1{cardNumber}~1loans/get |
 | lending/access.go | The permission check | nothing |
-| migrations/001_init.sql | The tables | #/entities/Book, #/entities/Loan, #/entities/Member, #/questions/Q-1, #/requirements/LEND-4, mapping of #/entities/Book, mapping of #/entities/Loan, mapping of #/entities/Member |
+| migrations/001_init.sql | The tables | #/entities/Book, #/entities/Loan, #/entities/Member, #/questions/Q-1, #/questions/Q-6, #/requirements/LEND-4, mapping of #/entities/Book, mapping of #/entities/Loan, mapping of #/entities/Member |
 | migrations/002_roles.sql | The roles tables | nothing |
 | seeds/001_roles.sql | The seed of the roles tables | #/roles/desk-staff, mapping of #/roles/desk-staff |
 
@@ -116,7 +150,7 @@ What can be made from the specification now. A document is a draft while a must 
 
 | Output | State | Waits on |
 |---|---|---|
-| techspec document | draft | Q-5, Q-1, Q-2, Q-3, Q-4 |
+| techspec document | draft | Q-5, Q-1, Q-2, Q-3, Q-4, Q-6, Q-7 |
 | requirements document | draft | Q-1, Q-2, Q-3 |
 | testplan document | draft | Q-5, Q-1, Q-2, Q-3 |
 | traceability document | draft | Q-5, Q-1, Q-2, Q-3 |
@@ -131,6 +165,6 @@ Every source a Note in this document cites.
 
 | Source | Title | Edition | Author | Where to read it |
 |---|---|---|---|---|
-| desk-code | The lending desk service | 1334b2b8b7306a6539c9ec22abf4403ba28517af | The desk team | ../sources/code |
+| desk-code | The lending desk service | 85f752f8ddf25f3f53c9196d923c07ac54521429 | The desk team | ../sources/code |
 | desk-manual | Lending desk manual | 2025 | The desk team | ../sources/manual.md |
 

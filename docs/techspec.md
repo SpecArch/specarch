@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.4.0-dev of the specification: 30 requirements, 3 entities, 9 commands, 6 algorithms, 196 tests, 22 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.4.0-dev of the specification: 31 requirements, 3 entities, 9 commands, 6 algorithms, 198 tests, 22 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -597,9 +597,16 @@ given. Then writes the target into the folder it owns, and nothing
 outside it. With `--check` nothing is written: the output is made in
 memory and compared with what is on disk.
 
-A target this program does not build in is produced by a plug-in: the
-executable `specarch-gen-<target>` found on PATH. The program runs it
-once per specification with a request on its standard input, as JSON:
+A target this program does not build in is produced by a plug-in found
+on PATH. For each implementation file that names the target under
+`targets` (every implementation file when none does), the plug-in is
+`specarch-gen-<target>-<stack>` when there is one, where the stack is
+the file's `stack.language.name` in lower case with a dash for a space,
+and `specarch-gen-<target>` otherwise; neither found is status 2. Files
+that find the same plug-in run it together, and each plug-in writes
+into the folder its files name, so `--out` is refused when the files
+reach more than one plug-in. The program runs each plug-in once per
+specification with a request on its standard input, as JSON:
 `specarch` (the meta-model version), `target`, `root` (the root file's
 path), `specification` (the merged, validated specification as plain
 values), `implementations` (each implementation file as `file`,
@@ -817,6 +824,8 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
+| cmd/specarch-gen-tests-go | The plug-in behind generate tests for a Go implementation file. Reads the request on standard input, answers the Go test file on standard output, and never touches the disk. | #/commands/generate |
+| internal/gentests | The Go tests a specification implies, as the plug-in writes them. One file per specification, with the Harness interface the project implements beside it; design tests become tests through it, worked examples unit tests of the algorithm's mapping. |   |
 | internal/semver | Semantic Versioning 2.0.0 versions, their precedence, and the step one needs from another, with the step before 1.0.0; the release rules and diff measure a release with it. |   |
 | internal/diff | Compares two merged specifications element by element, finds the public interface, and classifies each difference by the version step it needs. |   |
 | internal/approval | The approval record beside a specification, its digest of the specification's files, and where a version's approval stands against the files now. |   |
@@ -893,6 +902,7 @@ Stand-ins: None. Every test runs the real program on real files.
 | Suite | Level | Runs | Command |
 |---|---|---|---|
 | conformance | system | every design test of command validate, command gaps, command document, command approve, command generate, command extract, command version | `go test ./cmd/specarch` |
+| generated-tests | unit | tests of this implementation only | `go test ./internal/gentests` |
 | expressions | unit | tests of this implementation only | `go test ./internal/expr` |
 
 #### Implementation decisions
@@ -2016,6 +2026,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-plugin-reports-error | command generate | system | red | a plug-in that answers an error diagnostic | generate strict is run | it prints the diagnostic, writes nothing and exits 1 |
 | generate-refuses-open-question | command generate | system | red | a specification with a must question that blocks an entity, and specarch-gen-echo on PATH | generate echo is run | it refuses because the question blocks what the target reads, writes nothing and exits 1 |
 | generate-refuses-unapproved | command generate | system | red | a specification without open questions and without an approval record, and specarch-gen-echo on PATH | generate echo is run | it refuses because the specification is not approved, writes nothing and exits 1 |
+| generate-stack-fallback | command generate | system | golden | a specification whose implementation file is in Go, with only specarch-gen-echo on PATH | generate echo is run with --unapproved | it runs specarch-gen-echo, writes its file into the output the implementation file names, and exits 0 |
+| generate-stack-plugin | command generate | system | golden | a specification whose implementation file is in Go, with specarch-gen-echo-go and specarch-gen-echo both on PATH | generate echo is run with --unapproved | it runs specarch-gen-echo-go, the plug-in for the file's stack, writes its file into the output the implementation file names, and exits 0 |
 | generate-unapproved | command generate | system | golden | a specification without an approval record, and specarch-gen-echo on PATH | generate echo is run with --unapproved | it writes the files under out/ and exits 0 |
 | generate-usage-error | command generate | system | red | no target | generate is run without arguments | it prints how to use it and exits 2 |
 | generate-with-plugin | command generate | system | golden | an approved specification, its approval record beside it, and specarch-gen-echo on PATH, which answers two files | generate echo is run with --out out | it writes both files under out/ and exits 0 |
@@ -2184,6 +2196,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 | Requirement | Statement | Kind | Priority | Status | Verification | Acceptance | Needs |
 |---|---|---|---|---|---|---|---|
+| SA-31 | specarch generate tests shall write, through the plug-in for an implementation file's stack, one Go test per design test and one per worked example, setting up the fixture, making the call and checking the expected outcome through a harness the project writes, so that the generated file is the same on every Go stack. | functional | should | accepted | test | generate looks up specarch-gen-<target>-<stack> for an implementation file in Go before specarch-gen-<target>, and falls back to the second when the first is not on PATH. The tests generated from the library lending example compile beside a harness that does nothing and an empty body for each test the design gives no call for, and a worked example's expected decimal is compared as a decimal. | NEED-9 |
 | SA-29 | A specification shall be able to declare the dependencies an operation calls with a time limit per call, an idempotency key on an operation, the validity of an entity's records, how a session ends, and a guard on a data change, and specarch validate shall check each against the design and derive the red cases each implies. | functional | must | accepted | test | A calls entry naming no declared dependency, an idempotency key naming no header parameter or sitting on a GET, a validity naming a field that is not a date, a timeout of zero, and a guard naming no entity are each reported under their rule. An operation that calls a dependency gets the cases dependency fails and dependency times out, one with an idempotency key the repeated and reused cases, one taking a record of an entity with validity the expired case, one with a guard the concurrent write case, and every non-public subject the expired session case once a session is declared. | NEED-9 |
 | SA-28 | specarch derive shall write a draft test for every derived case that no test covers, and shall never overwrite a test or write one for a subject an open must or should question holds up. | functional | should | accepted | test | A specification with uncovered chosen cases gets one test folder per case, each marked origin inferred, and validates afterwards. A test folder that exists is kept as it is. A subject a must question blocks gets no test, and derive names it. | NEED-9 |
 | SA-27 | A design test may carry its fixture, input and expected outcome as structured data in the design's own vocabulary, and the validator shall check that data against the design. | functional | should | accepted | test | A fixture naming a field the entity does not have, a value of the wrong type, or a record a check constraint refuses is reported as test_data. An input naming a parameter the operation does not have, or an expected status that is not one of its responses, is reported as test_data. A test with input and an input/ folder beside it is reported as test_data. | NEED-9 |
@@ -2214,6 +2227,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-6 | Every problem shall be reported, one line each, with file, line, YAML path and rule; the exit status is 0 when valid, 1 when invalid, 2 on a usage or read error. | interface | must | accepted | test | A run on a folder with three problems in two files prints three lines and exits 1. A run with no arguments prints how to use the command and exits 2. | NEED-1 |
 | SA-9 | A specification and its implementations shall be separate files; a specification holds no stack-specific key and an implementation file adds no design. | constraint | must | accepted | test | A stack-specific extension key in a specification is reported as stack_key. A design keyword in an implementation file is reported as design_key. | NEED-2 |
 | SA-10 | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. | functional | must | accepted | test | An implementation written against an older version of its specification is reported as implements. A pointer to an object the specification does not have is reported as design_ref. | NEED-2 |
+
+**Insight on SA-31:** A test the specification implies is worth most when it runs; what differs between two Go projects (how a caller signs in, how a record is stored, how a request is sent) is the harness, so the generated file needs nothing but it.
 
 **Insight on SA-29:** The red paths a specification could not express, a dependency down or slow, a retry, expired data, an expired session, two writers on one record, are the ones a tester forgets and a live system meets; once the design says them, the tests follow from it like every other case.
 
@@ -2311,6 +2326,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-28 | commands derive | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-root-tests; tests derive-skips-blocked; tests derive-usage-error; tests derive-writes-drafts |
 | SA-29 | enums Rule; commands validate; decisions ADR-021 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
 | SA-30 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests validate-mapping-origin |
+| SA-31 | commands generate | tests generate-stack-fallback; tests generate-stack-plugin |
 
 ## Sources
 

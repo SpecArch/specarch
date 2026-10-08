@@ -1,0 +1,3 @@
+#!/bin/sh
+while IFS= read -r line; do :; done
+printf %s '{"files":[{"path":"made-by.txt","content":"specarch-gen-echo\n"}],"diagnostics":[]}'

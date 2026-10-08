@@ -69,6 +69,11 @@ layout:
     description: Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys.
   internal/spec:
     description: Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems.
+  cmd/specarch-gen-tests-go:
+    description: The plug-in behind generate tests for a Go implementation file. Reads the request on standard input, answers the Go test file on standard output, and never touches the disk.
+    implements: ["#/commands/generate"]
+  internal/gentests:
+    description: The Go tests a specification implies, as the plug-in writes them. One file per specification, with the Harness interface the project implements beside it; design tests become tests through it, worked examples unit tests of the algorithm's mapping.
   internal/semver:
     description: Semantic Versioning 2.0.0 versions, their precedence, and the step one needs from another, with the step before 1.0.0; the release rules and diff measure a release with it.
   internal/diff:
@@ -185,6 +190,12 @@ testing:
         - { command: generate }
         - { command: extract }
         - { command: version }
+      ci: true
+    generated-tests:
+      description: Generates the tests of the library lending example and compiles them with go vet beside a harness that does nothing, so a generated file that would not compile in a project fails here.
+      run: go test ./internal/gentests
+      level: unit
+      implementationOnly: true
       ci: true
     expressions:
       description: Unit tests of the expression package, for cases the conformance suite reaches only indirectly (rounding, floor and ceil of negative decimals, integer overflow).

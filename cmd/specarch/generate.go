@@ -10,6 +10,8 @@ import (
 	"sort"
 	"strings"
 
+	"go.yaml.in/yaml/v3"
+
 	"github.com/SpecArch/specarch/internal/approval"
 	"github.com/SpecArch/specarch/internal/generate"
 	"github.com/SpecArch/specarch/internal/source"
@@ -64,32 +66,36 @@ type pluginDiagnostic struct {
 }
 
 // runGenerate implements the generate command: a target built into this
-// program, or the plug-in specarch-gen-<target> found on PATH, which gets
-// the specification on its standard input and answers with the files to
-// write. specarch writes them, so --check and the output folder are the
-// same for every target.
+// program, or a plug-in found on PATH, which gets the specification on its
+// standard input and answers with the files to write. specarch writes
+// them, so --check and the output folder are the same for every target.
+// The plug-in is looked up per implementation file, by its stack first
+// (pluginGroups).
 func runGenerate(args []string, stdout, stderr io.Writer) int {
 	target, out, check, paths, set, msg := parseTargetArgs("generate", nil, []string{"unapproved"}, args)
 	if msg != "" {
 		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
 		return 2
 	}
-	plugin := ""
-	if !builtGenerators[target] {
-		if !validTarget(target) {
-			fmt.Fprintf(stderr, "specarch generate: %q is not a target name; a target is kebab-case, such as openapi or sql\n", target)
-			return 2
-		}
-		exe, err := exec.LookPath(pluginPrefix + target)
-		if err != nil {
-			fmt.Fprintf(stderr, "specarch generate: no generator for %s: this build has none built in, and no %s%s was found on PATH; install the plug-in or check its name\n", target, pluginPrefix, target)
-			return 2
-		}
-		plugin = exe
+	if !builtGenerators[target] && !validTarget(target) {
+		fmt.Fprintf(stderr, "specarch generate: %q is not a target name; a target is kebab-case, such as openapi or sql\n", target)
+		return 2
 	}
 	specs, status := loadSpecs(paths, "generate", stdout, stderr)
 	if status != 0 {
 		return status
+	}
+	groups := make([][]pluginGroup, len(specs))
+	for i, l := range specs {
+		g, status := pluginGroups(l, target, stderr)
+		if status != 0 {
+			return status
+		}
+		if len(g) > 1 && out != "" {
+			fmt.Fprintf(stderr, "specarch generate: the implementation files of %s take %s to %d plug-ins, so one --out cannot hold them; name an output for %s in each implementation file instead\n", l.spec.Dir, target, len(g), target)
+			return 2
+		}
+		groups[i] = g
 	}
 	for _, l := range specs {
 		if status := gate(l, target, set["unapproved"], stderr); status != 0 {
@@ -98,41 +104,44 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 	}
 	var plan []planned
 	failed := false
-	for _, l := range specs {
-		folder, status := outputFolder(l, target, out, stderr)
-		if status != 0 {
-			return status
-		}
-		req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: l.spec.Value, Output: filepath.ToSlash(folder)}
-		for _, i := range l.impls {
-			settings := source.Child(source.Child(source.Child(i.Node, "targets"), target), "settings")
-			pi := pluginImplementation{File: filepath.ToSlash(i.Path), Content: source.ValueOf(i.Node)}
-			if settings != nil {
-				pi.Settings = source.ValueOf(settings)
+	for i, l := range specs {
+		for _, g := range groups[i] {
+			part := loaded{spec: l.spec, impls: g.impls, covered: l.covered}
+			folder, status := outputFolder(part, target, out, stderr)
+			if status != 0 {
+				return status
 			}
-			req.Implementations = append(req.Implementations, pi)
-		}
-		resp, status := runPlugin(plugin, target, req, stderr)
-		if status != 0 {
-			return status
-		}
-		for _, d := range resp.Diagnostics {
-			fmt.Fprintf(stdout, "%s:%d: %s: %s: %s: %s\n", d.File, d.Line, d.Severity, d.Path, d.Rule, d.Message)
-			if d.Severity == "error" {
-				failed = true
+			req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: l.spec.Value, Output: filepath.ToSlash(folder)}
+			for _, i := range g.impls {
+				settings := source.Child(source.Child(source.Child(i.Node, "targets"), target), "settings")
+				pi := pluginImplementation{File: filepath.ToSlash(i.Path), Content: source.ValueOf(i.Node)}
+				if settings != nil {
+					pi.Settings = source.ValueOf(settings)
+				}
+				req.Implementations = append(req.Implementations, pi)
 			}
-		}
-		for _, f := range resp.Files {
-			clean := filepath.ToSlash(filepath.Clean(filepath.FromSlash(f.Path)))
-			if f.Path == "" || filepath.IsAbs(f.Path) || clean == ".." || strings.HasPrefix(clean, "../") {
-				fmt.Fprintf(stderr, "specarch generate: %s%s answered with the path %q, which is not inside the output folder; a plug-in writes only there\n", pluginPrefix, target, f.Path)
-				return 2
+			resp, status := runPlugin(g.exe, g.name, req, stderr)
+			if status != 0 {
+				return status
 			}
-			plan = append(plan, planned{filepath.Join(folder, filepath.FromSlash(clean)), f.Content})
+			for _, d := range resp.Diagnostics {
+				fmt.Fprintf(stdout, "%s:%d: %s: %s: %s: %s\n", d.File, d.Line, d.Severity, d.Path, d.Rule, d.Message)
+				if d.Severity == "error" {
+					failed = true
+				}
+			}
+			for _, f := range resp.Files {
+				clean := filepath.ToSlash(filepath.Clean(filepath.FromSlash(f.Path)))
+				if f.Path == "" || filepath.IsAbs(f.Path) || clean == ".." || strings.HasPrefix(clean, "../") {
+					fmt.Fprintf(stderr, "specarch generate: %s answered with the path %q, which is not inside the output folder; a plug-in writes only there\n", g.name, f.Path)
+					return 2
+				}
+				plan = append(plan, planned{filepath.Join(folder, filepath.FromSlash(clean)), f.Content})
+			}
 		}
 	}
 	if failed {
-		fmt.Fprintf(stderr, "specarch generate: %s%s reported errors, so nothing was written\n", pluginPrefix, target)
+		fmt.Fprintf(stderr, "specarch generate: the plug-in for %s reported errors, so nothing was written\n", target)
 		return 1
 	}
 	sort.SliceStable(plan, func(i, j int) bool { return plan[i].path < plan[j].path })
@@ -140,6 +149,83 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 		return checkPlan("generate", plan, stdout, stderr)
 	}
 	return writePlan("generate", plan, stderr)
+}
+
+// pluginGroup is one plug-in and the implementation files it is run with.
+type pluginGroup struct {
+	name, exe string
+	impls     []generate.Implementation
+}
+
+// pluginGroups finds the plug-in for each implementation file that names
+// the target (every implementation file when none does):
+// specarch-gen-<target>-<stack> when it is on PATH, where the stack is the
+// file's language in lower case, and specarch-gen-<target> otherwise. Files
+// that find the same plug-in run it together, once.
+func pluginGroups(l loaded, target string, stderr io.Writer) ([]pluginGroup, int) {
+	var impls []generate.Implementation
+	for _, i := range l.impls {
+		if source.Child(source.Child(i.Node, "targets"), target) != nil {
+			impls = append(impls, i)
+		}
+	}
+	if len(impls) == 0 {
+		impls = l.impls
+	}
+	generic := pluginPrefix + target
+	var groups []pluginGroup
+	add := func(name, exe string, i *generate.Implementation) {
+		for k := range groups {
+			if groups[k].exe == exe {
+				if i != nil {
+					groups[k].impls = append(groups[k].impls, *i)
+				}
+				return
+			}
+		}
+		g := pluginGroup{name: name, exe: exe}
+		if i != nil {
+			g.impls = []generate.Implementation{*i}
+		}
+		groups = append(groups, g)
+	}
+	if len(impls) == 0 {
+		exe, err := exec.LookPath(generic)
+		if err != nil {
+			fmt.Fprintf(stderr, "specarch generate: no generator for %s: this build has none built in, and no %s was found on PATH; install the plug-in or check its name\n", target, generic)
+			return nil, 2
+		}
+		add(generic, exe, nil)
+		return groups, 0
+	}
+	for k := range impls {
+		stack := stackName(impls[k].Node)
+		tried := []string{}
+		if stack != "" {
+			name := generic + "-" + stack
+			tried = append(tried, name)
+			if exe, err := exec.LookPath(name); err == nil {
+				add(name, exe, &impls[k])
+				continue
+			}
+		}
+		tried = append(tried, generic)
+		exe, err := exec.LookPath(generic)
+		if err != nil {
+			fmt.Fprintf(stderr, "specarch generate: no generator for %s: this build has none built in, and neither %s was found on PATH; install the plug-in or check its name\n", target, strings.Join(tried, " nor "))
+			return nil, 2
+		}
+		add(generic, exe, &impls[k])
+	}
+	return groups, 0
+}
+
+// stackName is an implementation file's language as a plug-in name ends
+// with it: lower case, a space as a dash, so Go is go and Objective C is
+// objective-c.
+func stackName(impl *yaml.Node) string {
+	name := source.Str(source.Child(source.Child(source.Child(impl, "stack"), "language"), "name"))
+	return strings.ReplaceAll(strings.ToLower(strings.TrimSpace(name)), " ", "-")
 }
 
 // gate refuses to generate a target while a must or should question blocks
@@ -181,10 +267,10 @@ func validTarget(t string) bool {
 }
 
 // runPlugin runs one plug-in on one specification.
-func runPlugin(exe, target string, req pluginRequest, stderr io.Writer) (*pluginResponse, int) {
+func runPlugin(exe, name string, req pluginRequest, stderr io.Writer) (*pluginResponse, int) {
 	in, err := json.Marshal(req)
 	if err != nil {
-		fmt.Fprintf(stderr, "specarch generate: cannot encode the request for %s%s: %v\n", pluginPrefix, target, err)
+		fmt.Fprintf(stderr, "specarch generate: cannot encode the request for %s: %v\n", name, err)
 		return nil, 2
 	}
 	cmd := exec.Command(exe)
@@ -193,12 +279,12 @@ func runPlugin(exe, target string, req pluginRequest, stderr io.Writer) (*plugin
 	cmd.Stdout = &out
 	cmd.Stderr = stderr
 	if err := cmd.Run(); err != nil {
-		fmt.Fprintf(stderr, "specarch generate: %s%s failed (%v); nothing was written\n", pluginPrefix, target, err)
+		fmt.Fprintf(stderr, "specarch generate: %s failed (%v); nothing was written\n", name, err)
 		return nil, 2
 	}
 	var resp pluginResponse
 	if err := json.Unmarshal(out.Bytes(), &resp); err != nil {
-		fmt.Fprintf(stderr, "specarch generate: %s%s did not answer with JSON holding files and diagnostics (%v); nothing was written\n", pluginPrefix, target, err)
+		fmt.Fprintf(stderr, "specarch generate: %s did not answer with JSON holding files and diagnostics (%v); nothing was written\n", name, err)
 		return nil, 2
 	}
 	return &resp, 0

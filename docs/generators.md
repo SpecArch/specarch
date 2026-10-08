@@ -37,10 +37,15 @@ a step, the emitter stops at that tool's input and lets it do the rest.
 
 ## Plug-ins
 
-A code target that `specarch` does not build in is produced by the
-executable `specarch-gen-<target>` found on PATH, the pattern of
-`protoc-gen-*`, `git-*` and `kubectl-*`, with protoc's protocol: the plug-in
-never touches the disk. `specarch` validates the specification, refuses
+A code target that `specarch` does not build in is produced by an
+executable found on PATH, the pattern of `protoc-gen-*`, `git-*` and
+`kubectl-*`, with protoc's protocol: the plug-in never touches the disk.
+For each implementation file that names the target, the executable is
+`specarch-gen-<target>-<stack>` when there is one, the stack being the
+file's language in lower case (`specarch-gen-tests-go`), and
+`specarch-gen-<target>` otherwise. One target can then have a plug-in per
+stack and one that serves every stack; files that find the same plug-in
+run it together, each plug-in writing into the folder its files name. `specarch` validates the specification, refuses
 while a must or should question blocks a section the target reads (the
 sections the implementation file names under `targets.<target>.reads`, or
 every section when it names none) and refuses without an approval record
@@ -193,7 +198,22 @@ generated test that fails points at the body, not at the spec.
 
 A design test becomes a test with three marked steps, its `given`, `when`
 and `then`, and a body the implementation fills in where the sentences
-cannot be turned into code. Its subject and scenario go into the test's
+cannot be turned into code.
+
+For Go, `specarch-gen-tests-go` writes one file, `specarch_design_test.go`,
+into the folder of the `tests` target. The file declares a `Harness`
+interface and calls `newHarness(t)`, which the project writes in a file of
+its own beside it: how a caller signs in, how a record is inserted and read
+back through an entity's mapping, how an operation is called (the path as
+the specification writes it, with its parameters filled from the input),
+a command run, a page opened, and an algorithm's mapped function computed.
+A test whose design gives a fixture, an input and an expected outcome is
+complete; one without a call calls `body<TestName>(t, h)`, which the
+project writes too, so the package does not compile until every such body
+exists. Values carry their type in the expression language, and decimals
+are compared as decimals. The package name is `specarchtests`, or the
+`package` the target's `settings` give, which must be the package of the
+other files in that folder. Its subject and scenario go into the test's
 name, so a failing red test says which refusal broke. A design test marked
 `notApplicable` becomes no test; its reason is printed in the generated
 file's header.

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.4.0-dev of the specification: 5 stakeholders, 9 needs and 30 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.4.0-dev of the specification: 5 stakeholders, 9 needs and 31 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 ## 1. Purpose and scope
 
@@ -39,12 +39,13 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-17, SA-18, SA-19, SA-20, SA-30 |
-| NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-29, SA-28, SA-27, SA-21, SA-22 |
+| NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22 |
 
 ## 4. Requirements
 
 | Requirement | Kind | Priority | Status | Statement |
 |---|---|---|---|---|
+| SA-31 | functional | should | accepted | specarch generate tests shall write, through the plug-in for an implementation file's stack, one Go test per design test and one per worked example, setting up the fixture, making the call and checking the expected outcome through a harness the project writes, so that the generated file is the same on every Go stack. |
 | SA-29 | functional | must | accepted | A specification shall be able to declare the dependencies an operation calls with a time limit per call, an idempotency key on an operation, the validity of an entity's records, how a session ends, and a guard on a data change, and specarch validate shall check each against the design and derive the red cases each implies. |
 | SA-28 | functional | should | accepted | specarch derive shall write a draft test for every derived case that no test covers, and shall never overwrite a test or write one for a subject an open must or should question holds up. |
 | SA-27 | functional | should | accepted | A design test may carry its fixture, input and expected outcome as structured data in the design's own vocabulary, and the validator shall check that data against the design. |
@@ -75,6 +76,19 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-6 | interface | must | accepted | Every problem shall be reported, one line each, with file, line, YAML path and rule; the exit status is 0 when valid, 1 when invalid, 2 on a usage or read error. |
 | SA-9 | constraint | must | accepted | A specification and its implementations shall be separate files; a specification holds no stack-specific key and an implementation file adds no design. |
 | SA-10 | functional | must | accepted | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. |
+
+### SA-31
+
+specarch generate tests shall write, through the plug-in for an implementation file's stack, one Go test per design test and one per worked example, setting up the fixture, making the call and checking the expected outcome through a harness the project writes, so that the generated file is the same on every Go stack.
+
+Kind: functional; priority: should; status: accepted; verified by test; refines NEED-9.
+
+Acceptance criteria:
+
+- generate looks up specarch-gen-<target>-<stack> for an implementation file in Go before specarch-gen-<target>, and falls back to the second when the first is not on PATH.
+- The tests generated from the library lending example compile beside a harness that does nothing and an empty body for each test the design gives no call for, and a worked example's expected decimal is compared as a decimal.
+
+**Insight:** A test the specification implies is worth most when it runs; what differs between two Go projects (how a caller signs in, how a record is stored, how a request is sent) is the harness, so the generated file needs nothing but it.
 
 ### SA-29
 

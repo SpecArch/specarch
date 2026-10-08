@@ -1,4 +1,15 @@
 requirements:
+  SA-31:
+    statement: specarch generate tests shall write, through the plug-in for an implementation file's stack, one Go test per design test and one per worked example, setting up the fixture, making the call and checking the expected outcome through a harness the project writes, so that the generated file is the same on every Go stack.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - generate looks up specarch-gen-<target>-<stack> for an implementation file in Go before specarch-gen-<target>, and falls back to the second when the first is not on PATH.
+      - The tests generated from the library lending example compile beside a harness that does nothing and an empty body for each test the design gives no call for, and a worked example's expected decimal is compared as a decimal.
+    verification: test
+    needs: [NEED-9]
+    why: A test the specification implies is worth most when it runs; what differs between two Go projects (how a caller signs in, how a record is stored, how a request is sent) is the harness, so the generated file needs nothing but it.
   SA-29:
     statement: A specification shall be able to declare the dependencies an operation calls with a time limit per call, an idempotency key on an operation, the validity of an entity's records, how a session ends, and a guard on a data change, and specarch validate shall check each against the design and derive the red cases each implies.
     kind: functional

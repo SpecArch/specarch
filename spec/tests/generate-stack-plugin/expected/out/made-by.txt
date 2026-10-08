@@ -1,0 +1,1 @@
+specarch-gen-echo-go

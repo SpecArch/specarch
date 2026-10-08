@@ -325,9 +325,10 @@ permission.
 ## From the tests to code
 
 The code is a generator target, `tests`, a plug-in per stack as
-`docs/generators.md` describes, Go first (`specarch-gen-tests-go`, found
-on PATH as `specarch-gen-tests` through the implementation file's
-`targets.tests.tool`). It reads the tests and the worked examples, the
+`docs/generators.md` describes, Go first: `specarch generate tests` runs
+`specarch-gen-tests-go` for an implementation file whose language is Go,
+since a plug-in named for the file's stack is looked up before the
+generic one. It reads the tests and the worked examples, the
 implementation file's `testing` (framework, how the suites run) and
 `mappings` (which type, table, handler or function each design element is
 on this stack), and writes one test per design test and one per worked
@@ -402,10 +403,12 @@ validator builds where it adds a rule, and the conformance cases.
    `test_data`, and their checks against the design, including a fixture
    evaluated against the entity's constraints. Both builds.
 4. Built. `specarch derive`. Go only, like the other verbs that write.
-5. The `tests` target for Go: `specarch-gen-tests-go`, mapping fixture,
-   input and expect through the implementation file; worked examples as
-   unit tests. One real project's hand-written test is the acceptance
-   test of the generator, as `docs/generators.md` asks of every emitter.
+5. Built. The `tests` target for Go: `specarch-gen-tests-go`, mapping
+   fixture, input and expect through the implementation file and a harness
+   the project writes; worked examples as unit tests. Until a real
+   project's hand-written test can serve as the acceptance test
+   `docs/generators.md` asks of every emitter, the tests of the library
+   lending example are compiled beside a harness that does nothing.
 6. Built. The concepts the waiting red paths needed: `dependencies` with
    a `timeout` and `calls` on an operation, `idempotencyKey` on an
    operation, `validity` on an entity, `session`, and `guard` on an

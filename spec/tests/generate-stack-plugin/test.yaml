@@ -1,0 +1,7 @@
+command: generate
+level: system
+scenario: golden
+given: "a specification whose implementation file is in Go, with specarch-gen-echo-go and specarch-gen-echo both on PATH"
+when: "generate echo is run with --unapproved"
+then: "it runs specarch-gen-echo-go, the plug-in for the file's stack, writes its file into the output the implementation file names, and exits 0"
+verifies: [SA-31]

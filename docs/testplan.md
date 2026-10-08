@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.4.0-dev of the specification: 196 design tests, 61 golden and 134 red, about 10 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.4.0-dev of the specification: 198 design tests, 63 golden and 134 red, about 10 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.4.0-dev of the specification: 196 design tests, 61 golden and 134 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 192 |
+| system | 194 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -22,6 +22,7 @@ Framework: go test. Run: `go test ./...`.
 | Suite | Level | Runs | Command |
 |---|---|---|---|
 | conformance | system | every design test of command validate, command gaps, command document, command approve, command generate, command extract, command version | `go test ./cmd/specarch` |
+| generated-tests | unit | tests of this implementation only | `go test ./internal/gentests` |
 | expressions | unit | tests of this implementation only | `go test ./internal/expr` |
 
 ### Implementation: SpecArch toolchain in Swift
@@ -560,6 +561,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-20.
 - Given: a specification without open questions and without an approval record, and specarch-gen-echo on PATH
 - When: generate echo is run
 - Then: it refuses because the specification is not approved, writes nothing and exits 1
+
+#### generate-stack-fallback
+
+Scenario: golden; level: system; verifies SA-31.
+
+- Given: a specification whose implementation file is in Go, with only specarch-gen-echo on PATH
+- When: generate echo is run with --unapproved
+- Then: it runs specarch-gen-echo, writes its file into the output the implementation file names, and exits 0
+
+#### generate-stack-plugin
+
+Scenario: golden; level: system; verifies SA-31.
+
+- Given: a specification whose implementation file is in Go, with specarch-gen-echo-go and specarch-gen-echo both on PATH
+- When: generate echo is run with --unapproved
+- Then: it runs specarch-gen-echo-go, the plug-in for the file's stack, writes its file into the output the implementation file names, and exits 0
 
 #### generate-unapproved
 
@@ -1623,10 +1640,12 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-70 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+72 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
+| requirement SA-31 | acceptance 1 | golden | SA-31 names no harm |
+| requirement SA-31 | acceptance 2 | golden | SA-31 names no harm |
 | requirement SA-29 | acceptance 1 | golden | SA-29 names no harm |
 | requirement SA-29 | acceptance 2 | golden | SA-29 names no harm |
 | requirement SA-28 | acceptance 1 | golden | SA-28 names no harm |

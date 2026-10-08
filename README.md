@@ -161,6 +161,13 @@ or, from a clone of this repository:
 
     go install ./cmd/specarch
 
+Code targets are plug-ins on PATH. This repository has one,
+`specarch-gen-tests-go`, which `specarch generate tests` runs to write the
+Go tests of a specification; it is in no release yet, so install it from
+a commit or a clone:
+
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@<commit>
+
 The Swift build, for macOS, has the validate and version verbs and gives
 the same output. With Swift 6:
 

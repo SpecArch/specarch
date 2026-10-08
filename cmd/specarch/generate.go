@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
+	"unicode/utf8"
 
 	"go.yaml.in/yaml/v3"
 
@@ -37,6 +39,10 @@ type pluginRequest struct {
 	Specification   any                    `json:"specification"`
 	Implementations []pluginImplementation `json:"implementations"`
 	Output          string                 `json:"output"`
+	// Existing are the text files already in the output folder, so a
+	// plug-in that adds files (a migration, a snapshot) knows what is
+	// there without reading the disk.
+	Existing []pluginFile `json:"existing"`
 }
 
 type pluginImplementation struct {
@@ -238,7 +244,7 @@ func stackName(impl *yaml.Node) string {
 // newPluginRequest is the request a plug-in gets for one specification and
 // the implementation files that reach it.
 func newPluginRequest(l loaded, target, folder string, impls []generate.Implementation) pluginRequest {
-	req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: l.spec.Value, Output: filepath.ToSlash(folder), Implementations: []pluginImplementation{}}
+	req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: l.spec.Value, Output: filepath.ToSlash(folder), Implementations: []pluginImplementation{}, Existing: existingFiles(folder)}
 	for _, i := range impls {
 		settings := source.Child(source.Child(source.Child(i.Node, "targets"), target), "settings")
 		pi := pluginImplementation{File: filepath.ToSlash(i.Path), Content: source.ValueOf(i.Node), Idioms: []pluginIdiom{}}
@@ -266,6 +272,32 @@ func newPluginRequest(l loaded, target, folder string, impls []generate.Implemen
 		req.Implementations = append(req.Implementations, pi)
 	}
 	return req
+}
+
+// existingFiles lists the text files under an output folder, by their path
+// in it. A file that is not UTF-8, or larger than 4 MiB, is left out.
+func existingFiles(folder string) []pluginFile {
+	out := []pluginFile{}
+	_ = filepath.WalkDir(folder, func(p string, e fs.DirEntry, err error) error {
+		if err != nil || e.IsDir() {
+			return nil
+		}
+		info, err := e.Info()
+		if err != nil || !info.Mode().IsRegular() || info.Size() > 4<<20 {
+			return nil
+		}
+		data, err := os.ReadFile(p)
+		if err != nil || !utf8.Valid(data) {
+			return nil
+		}
+		rel, err := filepath.Rel(folder, p)
+		if err != nil {
+			return nil
+		}
+		out = append(out, pluginFile{Path: filepath.ToSlash(rel), Content: string(data)})
+		return nil
+	})
+	return out
 }
 
 // projectIdiomPath is where the project's own idiom of a name sits, beside

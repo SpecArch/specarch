@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: audit-fields
-version: 1.0.0
+version: 1.1.0
 concern: audit-fields
-stacks: [go]
+stacks: [go, any]
 reads: [audited]
 description: The columns an audited entity carries and who sets them.
 why: Who changed a record and when is only worth having if no caller can set it.
@@ -18,8 +18,9 @@ parts:
   columns:
     description: The column names, by the design's field names.
     stack:
-      go:
+      any:
         names: { createdAt: created_at, createdBy: created_by_user_id, createdByName: created_by_user_nameid, lastModifiedAt: last_modified_at, lastModifiedBy: last_modified_by_user_id, lastModifiedByName: last_modified_by_user_nameid }
+      go:
         code: |
           Set in the table layer on every insert and update from the
           session's user, as dxlib's tables/tables_table.go does; the user's

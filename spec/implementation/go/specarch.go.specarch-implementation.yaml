@@ -71,6 +71,13 @@ layout:
     description: Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys.
   internal/spec:
     description: Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems.
+  cmd/specarch-gen-sql:
+    description: The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk.
+    implements: ["#/commands/generate"]
+  internal/gensql:
+    description: The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect and a snapshot of the schema.
+  internal/typerows:
+    description: Matches a field to a row of a type rendering, for the validator and the generators alike.
   cmd/specarch-gen-openapi:
     description: The plug-in behind generate openapi. Reads the request on standard input, answers the OpenAPI document on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
@@ -205,6 +212,12 @@ testing:
     shipped-idioms:
       description: Checks every shipped idiom against the idiom schema, that each is named after its file, and that it cites only the sources it declares.
       run: go test ./internal/validate
+      level: unit
+      implementationOnly: true
+      ci: true
+    generated-sql:
+      description: Renders the library lending example on all four dialects and checks the column types, checks, defaults, encrypted columns and foreign keys each must have; the key-width and unwritable-check refusals; and the snapshot on a second run.
+      run: go test ./internal/gensql
       level: unit
       implementationOnly: true
       ci: true

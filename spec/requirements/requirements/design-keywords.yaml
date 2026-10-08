@@ -52,3 +52,16 @@ requirements:
     verification: test
     needs: [NEED-2, NEED-3]
     why: The server interface of a Go service is written by a standard OpenAPI generator in strict mode, so the document is where the design reaches the code; written by hand, it drifts from the design on the first change.
+  SA-37:
+    statement: specarch generate sql shall write, through a plug-in, the forward migrations of a specification's schema in PostgreSQL, SQL Server, Oracle or MariaDB, every column type through the type-rendering idiom of the target's dialect, with a snapshot of the schema beside them, and shall refuse what the dialect cannot hold.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - The library lending example renders on each dialect with the type-rendering rows, Oracle text as VARCHAR2 with character semantics and wider text as CLOB, an encrypted field as its ciphertext type with a hash column the unique constraint is on, the enum and boolean checks, the audit and deleted columns, the check constraints translated, and ON DELETE as the dialect writes it.
+      - A key or unique text column without a maxLength of at most 255, and a check whose function SQL is not given, are refused.
+      - A second run on an unchanged schema answers only the snapshot, and a changed schema is reported until the differ exists.
+      - Each plug-in request carries the files already in the output folder.
+    verification: test
+    needs: [NEED-2]
+    why: The schema is where a design reaches the data, and four engines read one design four ways; the rows say each way once, and the migration written from them cannot drift from the design.

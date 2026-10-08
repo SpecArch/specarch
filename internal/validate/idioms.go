@@ -16,6 +16,7 @@ import (
 	"github.com/SpecArch/specarch/internal/semver"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
+	"github.com/SpecArch/specarch/internal/typerows"
 )
 
 // IdiomSuffix ends the name of every idiom file.
@@ -352,121 +353,22 @@ func resolvedRendering(i, o Idiom, hasOverride bool, part, stack string) *yaml.N
 
 // checkRows reports every entity field that no row of a rendering matches.
 func (c *checker) checkRows(i Idiom, part, stack string, r *yaml.Node, root *yaml.Node, at *yaml.Node, ptr string) {
-	rows := source.Items(source.Child(r, "rows"))
-	claimed := map[string]bool{} // the formats a row names: only such a row renders them
-	for _, row := range rows {
-		if f := source.Str(source.Child(row, "format")); f != "" {
-			claimed[f] = true
-		}
-	}
+	rows := typerows.RowsOf(asList(source.ValueOf(source.Child(r, "rows"))))
 	for _, e := range source.Pairs(source.Child(root, "entities")) {
 		for _, f := range source.Pairs(source.Child(e.Value, "properties")) {
-			field := fieldShape(source.Deref(f.Value), root)
-			matched := false
-			for _, row := range rows {
-				if field.matches(row, claimed) {
-					matched = true
-					break
-				}
-			}
-			if !matched {
+			field, _ := source.ValueOf(f.Value).(map[string]any)
+			shape := typerows.ShapeOf(field)
+			if _, ok := typerows.Match(shape, rows); !ok {
 				c.add(at, ptr, RuleIdiomContract, "%s %s has no %s row in its %s part for #/entities/%s/properties/%s (%s); add one in an override of the part, or exclude the idiom with the reason",
-					i.Name(), i.Version(), stack, part, e.Key.Value, f.Key.Value, field.describe())
+					i.Name(), i.Version(), stack, part, e.Key.Value, f.Key.Value, shape.Describe())
 			}
 		}
 	}
 }
 
-// shape is what a type row matches a field on.
-type shape struct {
-	typ, format         string
-	enum                bool
-	maxLength           int
-	hasMaxLength        bool
-	precision           int
-	hasPrecision        bool
-	itemsTyp, itemsForm string
-}
-
-// fieldShape reads a field's shape: its JSON type with null dropped, a
-// $ref to an enum as an enum string and to an entity as an object.
-func fieldShape(f *yaml.Node, root *yaml.Node) shape {
-	var s shape
-	ref := source.Str(source.Child(f, "$ref"))
-	switch {
-	case strings.HasPrefix(ref, "#/enums/"):
-		s.typ, s.enum = "string", true
-		return s
-	case strings.HasPrefix(ref, "#/entities/"):
-		s.typ = "object"
-		return s
-	}
-	typ := source.Child(f, "type")
-	s.typ = source.Str(typ)
-	for _, item := range source.Items(typ) {
-		if item.Value != "null" {
-			s.typ = item.Value
-		}
-	}
-	s.format = source.Str(source.Child(f, "format"))
-	s.enum = source.Child(f, "enum") != nil
-	if n := source.Child(f, "maxLength"); n != nil {
-		s.maxLength, s.hasMaxLength = atoi(n.Value), true
-	}
-	if n := source.Child(f, "precision"); n != nil {
-		s.precision, s.hasPrecision = atoi(n.Value), true
-	}
-	if items := source.Deref(source.Child(f, "items")); items != nil {
-		is := fieldShape(items, root)
-		s.itemsTyp, s.itemsForm = is.typ, is.format
-	}
-	return s
-}
-
-// matches reports whether a row renders the field. A row without a format
-// matches a field of any format that no row of the rendering names, so a
-// decimal never falls through to a row for plain text.
-func (s shape) matches(row *yaml.Node, claimed map[string]bool) bool {
-	if source.Str(source.Child(row, "type")) != s.typ {
-		return false
-	}
-	f := source.Str(source.Child(row, "format"))
-	if f != "" && f != s.format || f == "" && claimed[s.format] {
-		return false
-	}
-	if source.Str(source.Child(row, "enum")) == "true" && !s.enum {
-		return false
-	}
-	if n := source.Child(row, "maxLengthAtMost"); n != nil && (!s.hasMaxLength || s.maxLength > atoi(n.Value)) {
-		return false
-	}
-	if n := source.Child(row, "precisionAtMost"); n != nil && (!s.hasPrecision || s.precision > atoi(n.Value)) {
-		return false
-	}
-	if t := source.Str(source.Child(row, "itemsType")); t != "" && t != s.itemsTyp {
-		return false
-	}
-	if f := source.Str(source.Child(row, "itemsFormat")); f != "" && f != s.itemsForm {
-		return false
-	}
-	return true
-}
-
-func (s shape) describe() string {
-	parts := []string{s.typ}
-	if s.format != "" {
-		parts = append(parts, "format "+s.format)
-	}
-	if s.enum {
-		parts = append(parts, "enum")
-	}
-	if s.hasMaxLength {
-		parts = append(parts, "maxLength "+itoa(s.maxLength))
-	}
-	if s.hasPrecision {
-		parts = append(parts, "precision "+itoa(s.precision))
-	}
-	return strings.Join(parts, ", ")
+func asList(v any) []any {
+	l, _ := v.([]any)
+	return l
 }
 
 func sortedIdiomNames(m map[string]Idiom) []string {
@@ -503,11 +405,6 @@ func stackList(isStack map[string]bool) string {
 	}
 	sort.Strings(out)
 	return strings.Join(out, ", ")
-}
-
-func atoi(s string) int {
-	n, _ := strconv.Atoi(s)
-	return n
 }
 
 func itoa(n int) string { return strconv.Itoa(n) }

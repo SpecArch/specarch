@@ -1,13 +1,13 @@
 arguments: [idioms, diff, type-rendering, .]
 exitStatus: 0
 standardOutput: |+
-  implementation/go/idioms/type-rendering.specarch-idiom.yaml overrides type-rendering 1.1.0; SpecArch ships 1.1.0.
+  implementation/go/idioms/type-rendering.specarch-idiom.yaml overrides type-rendering 1.2.0; SpecArch ships 1.2.0.
 
   part types, stack oracle, shipped:
     settings:
       maxStringSize: standard
     rows:
-      - {type: string, enum: true, render: "VARCHAR2({longestValue} CHAR) with a CHECK constraint on the values"}
+      - {type: string, enum: true, render: "VARCHAR2({longestValue} CHAR)", check: "{column} IN ({values})"}
       - type: string
         format: decimal
         precisionAtMost: 38
@@ -50,9 +50,9 @@ standardOutput: |+
       - {type: integer, format: int64, render: "NUMBER(19)"}
       - {type: integer, format: uint64, render: "NUMBER(20)"}
       - {type: number, render: BINARY_DOUBLE}
-      - {type: boolean, render: "NUMBER(1) with a CHECK constraint on 0 and 1"}
-      - {type: array, render: "CLOB holding the list as JSON, with an IS JSON check", why: "Oracle has no array column type; the list is JSON text, a documented representation rather than a silent loss."}
-      - {type: object, render: "CLOB holding JSON, with an IS JSON check"}
+      - {type: boolean, render: "NUMBER(1)", check: "{column} IN (0, 1)"}
+      - {type: array, render: CLOB, check: "{column} IS JSON", why: "Oracle has no array column type; the list is JSON text, a documented representation rather than a silent loss."}
+      - {type: object, render: CLOB, check: "{column} IS JSON"}
 
   part types, stack oracle, override:
     settings: {maxStringSize: extended}

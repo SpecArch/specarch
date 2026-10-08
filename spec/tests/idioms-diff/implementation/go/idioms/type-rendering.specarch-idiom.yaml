@@ -1,9 +1,9 @@
 specarchIdiom: "0.1"
 name: type-rendering
-version: 1.1.0
+version: 1.2.0
 description: Oracle text under MAX_STRING_SIZE = EXTENDED.
 why: The database runs with MAX_STRING_SIZE = EXTENDED, so VARCHAR2 always holds 8191 characters.
-overrides: { idiom: type-rendering, version: 1.1.0, parts: [types] }
+overrides: { idiom: type-rendering, version: 1.2.0, parts: [types] }
 parts:
   types:
     description: The Oracle rows for EXTENDED.

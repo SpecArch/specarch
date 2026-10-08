@@ -122,7 +122,7 @@ A title the library owns, with the number of physical copies.
 | Field | Type | Required | Limits | Description |
 |---|---|---|---|---|
 | id | uuid | yes | set by the system |   |
-| isbn | string | yes | matches `^[0-9]{13}$` |   |
+| isbn | string | yes | at most 13 characters, matches `^[0-9]{13}$` |   |
 | title | string | yes | at least 1 character, at most 500 characters |   |
 | author | string | yes | at least 1 character, at most 200 characters |   |
 | copiesOwned | int32 | yes | at least 0 |   |
@@ -174,7 +174,7 @@ A person with a library card.
 | Field | Type | Required | Limits | Description |
 |---|---|---|---|---|
 | id | uuid | yes | set by the system |   |
-| cardNumber | string | yes | matches `^[0-9]{8}$` | Printed on the card; assigned when the member joins. |
+| cardNumber | string | yes | at most 8 characters, matches `^[0-9]{8}$` | Printed on the card; assigned when the member joins. |
 | fullName | string | yes | at least 1 character, at most 200 characters |   |
 | email | string | yes | at most 320 characters, a valid email | Encrypted at rest, and found by a salted hash of it, since it must stay unique. |
 | tier | MembershipTier | yes |   |   |
@@ -544,7 +544,7 @@ storage: github.com/jackc/pgx/v5. Money columns are `numeric(10,2)`.
 | changes | ../../../docs |   |
 | releases | ../../../docs |   |
 | openapi | ../../../openapi | tool oapi-codegen |
-| sql | migrations | dialect postgresql |
+| sql | ../../../migrations | dialect postgresql |
 | ui | web | platform web, framework plain-javascript |
 | tests | internal/lending |   |
 
@@ -561,21 +561,21 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 
 | Idiom | Version | Applies as | Parts the project replaces |
 |---|---|---|---|
-| audit-fields | 1.0.0 | shipped |   |
+| audit-fields | 1.1.0 | shipped |   |
 | authorization-check | 1.0.0 | shipped |   |
 | background-jobs | 1.0.0 | shipped |   |
 | configuration-and-secrets | 1.0.0 | shipped |   |
-| encrypted-column | 1.0.0 | shipped |   |
+| encrypted-column | 1.1.0 | shipped |   |
 | error-response | 1.0.0 | shipped |   |
 | health-endpoint | 1.0.0 | shipped |   |
-| identifiers | 1.0.0 | shipped |   |
+| identifiers | 1.1.0 | shipped |   |
 | migrations | 1.0.0 | shipped |   |
 | paginated-list | 1.0.0 | shipped |   |
 | pii-in-logs | 1.0.0 | shipped |   |
 | request-validation | 1.0.0 | shipped |   |
-| soft-delete | 1.0.0 | shipped |   |
+| soft-delete | 1.1.0 | shipped |   |
 | transactions | 1.0.0 | shipped |   |
-| type-rendering | 1.1.0 | shipped |   |
+| type-rendering | 1.2.0 | shipped |   |
 
 #### Deployments
 

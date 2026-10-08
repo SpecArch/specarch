@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.4.0-dev of the specification: 9 needs, 36 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.4.0-dev of the specification: 9 needs, 37 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 ## 1. Needs to requirements
 
 | Need | Status | Refined by |
 |---|---|---|
 | NEED-1 | accepted | SA-33, SA-34, SA-35, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6 |
-| NEED-2 | accepted | SA-33, SA-34, SA-36, SA-32, SA-9, SA-10 |
+| NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-32, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-19 |
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-35, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
@@ -58,6 +58,7 @@ Version 0.4.0-dev of the specification: 9 needs, 36 requirements, and 0 gaps. Ea
 | SA-34 | NEED-1, NEED-2 | decisions ADR-025 | tests validate-interface-problems; tests validate-interface-valid |
 | SA-35 | NEED-1, NEED-5 | decisions ADR-026 | tests validate-jobs-menus; tests validate-jobs-menus-valid |
 | SA-36 | NEED-2, NEED-3 | decisions ADR-027 | tests generate-openapi |
+| SA-37 | NEED-2 | decisions ADR-029 | tests generate-sql |
 
 ## 3. Gaps
 

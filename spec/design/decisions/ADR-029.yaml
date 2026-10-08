@@ -1,0 +1,46 @@
+decisions:
+  ADR-029:
+    title: SQL migrations through the type-rendering rows, named by rule, with a snapshot beside them
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      The design is one schema and the engines are four. The type-rendering
+      idiom says how each holds each field; a generator has to turn that
+      into migrations that are never edited once applied, so it needs to
+      know what the last migration built without reading the disk.
+    decision: |
+      specarch-gen-sql writes NNNN_expand.sql and snapshot.yaml into the
+      sql target's folder, in the target's dialect. Every column type is
+      the render of the first type-rendering row that matches the field,
+      and a row's check becomes a check constraint; the defaults are the
+      dialect's literals from the idiom. A table is the entity's name in
+      snake case, or the table a mapping names; a column is the field's
+      name in snake case; the constraints are pk_<table>, ck_<table>_<column>
+      for a row's check, fk_<table>_<column>, and a declared constraint
+      keeps its own name. A field that is not required or may be null is
+      nullable, any other NOT NULL, and DEFAULT is written before NOT NULL.
+      An audited entity gains the audit-fields columns, a softly deleted one
+      the soft-delete column, an encrypted field the encrypted-column
+      ciphertext type and, with lookup hash, a hash column that its keys and
+      unique constraints use. A check expression is translated per dialect;
+      one SQL is not given for fails generation. A key or unique text column
+      needs a maxLength of at most 255. On SQL Server a unique constraint
+      over a nullable column is a filtered unique index; Oracle writes no
+      ON DELETE for restrict and SQL Server writes NO ACTION. Each plug-in
+      request carries the files already in the output folder.
+    consequences: |
+      The first run writes the whole schema; a run on an unchanged schema
+      answers only the snapshot, so generate --check passes; a changed
+      schema is reported until the differ writes the migration of the
+      change. The type-rendering idiom's SQL rows carry type text only, with
+      a check beside, and the column names of the audit, soft-delete,
+      identifier and encryption idioms sit under any. Identifiers are not
+      quoted, so a name that is a reserved word of an engine is not caught
+      yet. Indexes from a mapping's settings are not written yet.
+    why: |
+      Names derived by rule let the database gate derive the same names
+      without a mapping table. A key over unbounded text is the failure a
+      DBA meets on the second engine, so it is refused on all four. The
+      snapshot keeps only what the schema is made from, so a changed
+      description is not a schema change.
+    satisfies: [SA-37]

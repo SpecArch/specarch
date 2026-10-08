@@ -6311,7 +6311,12 @@ let idiomSchemaJSON = #"""
           "minLength": 1
         },
         "render": {
-          "description": "What the field becomes. Words in braces are filled from the field by a generator: {maxLength}, {precision}, {scale}, {longestValue} (the length of an enum's longest value), {items} (the rendering of the items' row).",
+          "description": "What the field becomes: a type, with words in braces a generator fills from the field: {maxLength}, {precision}, {scale}, {longestValue} (the length of an enum's longest value), {items} (the rendering of the items' row). For a SQL dialect, the column type only; a constraint goes under check.",
+          "type": "string",
+          "minLength": 1
+        },
+        "check": {
+          "description": "A check constraint the column needs beside its type, with words in braces a generator fills: {column}, the column's name; {values}, an enum's values, quoted and separated by commas.",
           "type": "string",
           "minLength": 1
         },
@@ -6420,9 +6425,9 @@ let shippedIdiomFiles: [(path: String, text: String)] = [
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: audit-fields
-version: 1.0.0
+version: 1.1.0
 concern: audit-fields
-stacks: [go]
+stacks: [go, any]
 reads: [audited]
 description: The columns an audited entity carries and who sets them.
 why: Who changed a record and when is only worth having if no caller can set it.
@@ -6437,8 +6442,9 @@ parts:
   columns:
     description: The column names, by the design's field names.
     stack:
-      go:
+      any:
         names: { createdAt: created_at, createdBy: created_by_user_id, createdByName: created_by_user_nameid, lastModifiedAt: last_modified_at, lastModifiedBy: last_modified_by_user_id, lastModifiedByName: last_modified_by_user_nameid }
+      go:
         code: |
           Set in the table layer on every insert and update from the
           session's user, as dxlib's tables/tables_table.go does; the user's
@@ -6538,9 +6544,9 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: encrypted-column
-version: 1.0.0
+version: 1.1.0
 concern: encryption
-stacks: [go]
+stacks: [go, any, postgresql, sqlserver, oracle, mariadb]
 reads: [atRest]
 description: How a field encrypted at rest is stored and still found.
 why: Encryption in the engine keeps the plain value out of backups and dumps; a hash beside it keeps the field usable as a key.
@@ -6555,8 +6561,18 @@ parts:
   column:
     description: The encrypted column and its hash.
     stack:
-      go:
+      any:
         names: { hashSuffix: _hash }
+        why: The hash is a hex SHA-256 of the salted value, 64 characters, so it can be a key and unique where the ciphertext cannot.
+      postgresql:
+        names: { ciphertext: BYTEA, hash: CHAR(64) }
+      sqlserver:
+        names: { ciphertext: VARBINARY(MAX), hash: CHAR(64) }
+      oracle:
+        names: { ciphertext: BLOB, hash: CHAR(64) }
+      mariadb:
+        names: { ciphertext: LONGBLOB, hash: CHAR(64) }
+      go:
         code: |
           The column holds the ciphertext from the engine's own function
           with the session key; a field with lookup hash gets a companion
@@ -6635,9 +6651,9 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: identifiers
-version: 1.0.0
+version: 1.1.0
 concern: identifiers
-stacks: [go]
+stacks: [go, any]
 reads: [entities]
 description: The keys a record carries and which of them leave the service.
 why: An integer key is fast and must never be guessable from outside; an opaque id is safe to show and slow to index; a record often needs both.
@@ -6655,8 +6671,9 @@ parts:
   columns:
     description: The key columns.
     stack:
-      go:
+      any:
         names: { internalKey: id, publicId: uid, nameId: nameid, versionTag: utag }
+      go:
         code: |
           id is a 64-bit generated key; uid is the hexadecimal microsecond
           time followed by a UUID, generated in the application or by the
@@ -6853,9 +6870,9 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: soft-delete
-version: 1.0.0
+version: 1.1.0
 concern: soft-delete
-stacks: [go]
+stacks: [go, any]
 reads: [deletion]
 description: How a softly deleted record is kept and hidden.
 why: A delete that can be undone keeps the record for audit and recovery, and must still look like a delete to every caller.
@@ -6873,8 +6890,10 @@ parts:
   column:
     description: The flag and the filter.
     stack:
+      any:
+        names: { deleted: is_deleted }
       go:
-        names: { deleted: is_deleted, softDelete: RequestSoftDelete, hardDelete: RequestHardDelete }
+        names: { softDelete: RequestSoftDelete, hardDelete: RequestHardDelete }
         code: |
           Every list and read adds is_deleted = false unless the caller asks
           for deleted records and may see them; the delete operation sets
@@ -6910,7 +6929,7 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: type-rendering
-version: 1.1.0
+version: 1.2.0
 concern: type-rendering
 stacks: [go, postgresql, sqlserver, oracle, mariadb, any]
 reads: [entities]
@@ -6980,7 +6999,7 @@ contract:
     check: document
   key-width:
     statement: A key or a unique text column is at most 255 characters wide.
-    check: guidance
+    check: document
     why: SQL Server indexes at most 900 bytes and MariaDB with utf8mb4 at most 3072; 255 characters fit under both.
   absent-and-null:
     statement: A field that may be left out of a request and a field whose value may be null are two things, and each stack renders them apart.
@@ -7020,7 +7039,7 @@ parts:
           - { type: object, render: "the entity's struct, or map[string]any for an object without properties" }
       postgresql:
         rows:
-          - { type: string, enum: true, render: "VARCHAR({longestValue}) with a CHECK constraint on the values" }
+          - { type: string, enum: true, render: "VARCHAR({longestValue})", check: "{column} IN ({values})" }
           - { type: string, format: decimal, precisionAtMost: 1000, render: "NUMERIC({precision},{scale})" }
           - { type: string, format: int64, render: BIGINT }
           - { type: string, format: uint64, render: "NUMERIC(20,0)", why: "BIGINT is signed, so an unsigned 64-bit value above 2^63 - 1 needs twenty digits." }
@@ -7042,7 +7061,7 @@ parts:
           - { type: object, render: JSONB }
       sqlserver:
         rows:
-          - { type: string, enum: true, render: "NVARCHAR({longestValue}) with a CHECK constraint on the values" }
+          - { type: string, enum: true, render: "NVARCHAR({longestValue})", check: "{column} IN ({values})" }
           - type: string
             format: decimal
             precisionAtMost: 38
@@ -7069,13 +7088,13 @@ parts:
           - { type: integer, format: uint64, render: "DECIMAL(20,0)" }
           - { type: number, render: FLOAT }
           - { type: boolean, render: BIT }
-          - { type: array, render: "NVARCHAR(MAX) holding the list as JSON", why: "SQL Server has no array type; the list is JSON text, a documented representation rather than a silent loss." }
-          - { type: object, render: "NVARCHAR(MAX) holding JSON" }
+          - { type: array, render: "NVARCHAR(MAX)", check: "ISJSON({column}) = 1", why: "SQL Server has no array type; the list is JSON text, a documented representation rather than a silent loss." }
+          - { type: object, render: "NVARCHAR(MAX)", check: "ISJSON({column}) = 1" }
       oracle:
         settings:
           maxStringSize: standard
         rows:
-          - { type: string, enum: true, render: "VARCHAR2({longestValue} CHAR) with a CHECK constraint on the values" }
+          - { type: string, enum: true, render: "VARCHAR2({longestValue} CHAR)", check: "{column} IN ({values})" }
           - type: string
             format: decimal
             precisionAtMost: 38
@@ -7118,12 +7137,12 @@ parts:
           - { type: integer, format: int64, render: "NUMBER(19)" }
           - { type: integer, format: uint64, render: "NUMBER(20)" }
           - { type: number, render: BINARY_DOUBLE }
-          - { type: boolean, render: "NUMBER(1) with a CHECK constraint on 0 and 1" }
-          - { type: array, render: "CLOB holding the list as JSON, with an IS JSON check", why: "Oracle has no array column type; the list is JSON text, a documented representation rather than a silent loss." }
-          - { type: object, render: "CLOB holding JSON, with an IS JSON check" }
+          - { type: boolean, render: "NUMBER(1)", check: "{column} IN (0, 1)" }
+          - { type: array, render: CLOB, check: "{column} IS JSON", why: "Oracle has no array column type; the list is JSON text, a documented representation rather than a silent loss." }
+          - { type: object, render: CLOB, check: "{column} IS JSON" }
       mariadb:
         rows:
-          - { type: string, enum: true, render: "VARCHAR({longestValue}) with a CHECK constraint on the values" }
+          - { type: string, enum: true, render: "VARCHAR({longestValue})", check: "{column} IN ({values})" }
           - type: string
             format: decimal
             precisionAtMost: 65
@@ -7148,8 +7167,21 @@ parts:
           - { type: integer, format: uint64, render: BIGINT UNSIGNED }
           - { type: number, render: DOUBLE }
           - { type: boolean, render: BOOLEAN }
-          - { type: array, render: "JSON holding the list", why: "MariaDB has no array column type; the list is JSON text, a documented representation rather than a silent loss." }
+          - { type: array, render: JSON, why: "MariaDB has no array column type; the list is JSON text, a documented representation rather than a silent loss." }
           - { type: object, render: JSON }
+
+  defaults:
+    description: The literals a column default is written with on each dialect.
+    stack:
+      postgresql:
+        names: { "true": "true", "false": "false", now: CURRENT_TIMESTAMP }
+      sqlserver:
+        names: { "true": "1", "false": "0", now: SYSDATETIMEOFFSET() }
+      oracle:
+        names: { "true": "1", "false": "0", now: SYSTIMESTAMP }
+        why: Oracle refuses DEFAULT after NOT NULL, so a generator writes the default first, as dxlib does.
+      mariadb:
+        names: { "true": "true", "false": "false", now: CURRENT_TIMESTAMP }
 
   money:
     description: How a money amount is declared, so that every stack holds it exactly.

@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: encrypted-column
-version: 1.0.0
+version: 1.1.0
 concern: encryption
-stacks: [go]
+stacks: [go, any, postgresql, sqlserver, oracle, mariadb]
 reads: [atRest]
 description: How a field encrypted at rest is stored and still found.
 why: Encryption in the engine keeps the plain value out of backups and dumps; a hash beside it keeps the field usable as a key.
@@ -18,8 +18,18 @@ parts:
   column:
     description: The encrypted column and its hash.
     stack:
-      go:
+      any:
         names: { hashSuffix: _hash }
+        why: The hash is a hex SHA-256 of the salted value, 64 characters, so it can be a key and unique where the ciphertext cannot.
+      postgresql:
+        names: { ciphertext: BYTEA, hash: CHAR(64) }
+      sqlserver:
+        names: { ciphertext: VARBINARY(MAX), hash: CHAR(64) }
+      oracle:
+        names: { ciphertext: BLOB, hash: CHAR(64) }
+      mariadb:
+        names: { ciphertext: LONGBLOB, hash: CHAR(64) }
+      go:
         code: |
           The column holds the ciphertext from the engine's own function
           with the session key; a field with lookup hash gets a companion

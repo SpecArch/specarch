@@ -4,7 +4,7 @@ entities:
     type: object
     properties:
       id: { type: string, format: uuid, readOnly: true }
-      isbn: { type: string, pattern: "^[0-9]{13}$" }
+      isbn: { type: string, pattern: "^[0-9]{13}$", maxLength: 13 }
       title: { type: string, minLength: 1, maxLength: 500 }
       author: { type: string, minLength: 1, maxLength: 200 }
       copiesOwned: { type: integer, format: int32, minimum: 0 }

@@ -30,7 +30,10 @@ commands:
       it uses, each with its `name`, `version`, how it applies (`as`:
       shipped, overridden, project or excluded), the `content` of the idiom
       that applies and the project's `override`) and `output` (the folder
-      the files are for). The plug-in answers on its standard output,
+      the files are for), and `existing`, the text files already in that
+      folder by their path in it, so a plug-in that adds files, such as a
+      migration beside a snapshot, knows what is there without reading the
+      disk. The plug-in answers on its standard output,
       as JSON, with `files` (each a `path` relative to the output folder and
       its `content`) and `diagnostics` (each with the validator's fields:
       file, line, severity, path, rule, message), and exits 0. The program

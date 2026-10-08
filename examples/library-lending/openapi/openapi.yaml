@@ -346,6 +346,7 @@ components:
           readOnly: true
         isbn:
           type: string
+          maxLength: 13
           pattern: ^[0-9]{13}$
         replacementCost:
           type: string
@@ -428,6 +429,7 @@ components:
         cardNumber:
           type: string
           description: Printed on the card; assigned when the member joins.
+          maxLength: 8
           pattern: ^[0-9]{8}$
         email:
           type: string

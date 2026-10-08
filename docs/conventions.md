@@ -320,6 +320,14 @@ style or in double quotes.
 The schema enforces these patterns. Targets rely on them to derive names in
 the output (table names, URL segments, constant names) without a mapping table.
 
+In SQL, a table is the entity's name in snake case (`LoanStatus` is
+`loan_status`), unless the implementation file's mapping names it
+(`target: table loans`); a column is the field's name in snake case
+(`dueOn` is `due_on`). A primary key is `pk_<table>`, the check of a
+type-rendering row `ck_<table>_<column>`, a foreign key
+`fk_<table>_<column>`, and a declared unique or check constraint keeps its
+own name. Identifiers are written unquoted and in lower case.
+
 ### Types
 
 Every value has a concrete type, and the type says how wide it is. A design

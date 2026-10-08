@@ -60,6 +60,7 @@ input one JSON object:
 | `root` | the root file's path |
 | `specification` | the merged, validated specification as plain values |
 | `implementations` | one object per implementation file: `file`, `content` (the file as plain values), `settings` (the target's settings from it, when any), and `idioms`: each idiom the file uses, with its `name`, `version`, how it applies (`as`: shipped, overridden, project or excluded), the `content` of the idiom that applies and the project's `override`, so a plug-in renders through an override without reading the disk |
+| `existing` | the text files already in the output folder, each a `path` in it and its `content`, so a plug-in that adds files knows what is there |
 | `output` | the folder the files are for |
 
 The plug-in answers on its standard output with one JSON object: `files`,
@@ -161,6 +162,18 @@ reviewed and fixed first, and the rest is derived. An emitter for such a
 format is generator 5 on the roadmap, written when a real project needs it.
 
 ## SQL migrations
+
+`specarch-gen-sql` writes the migrations in the `sql` target's dialect,
+PostgreSQL, SQL Server, Oracle or MariaDB, each column through the
+type-rendering idiom's rows for that dialect (`docs/idioms.md`): the first
+row that matches the field gives its type, and the row's check becomes a
+check constraint. Names follow `docs/conventions.md`. The audit,
+soft-delete and encrypted-column idioms give their columns, an encrypted
+field looked up by hash gains the hash column its keys use, and a key or
+unique text column needs a `maxLength` of at most 255. The first migration
+is `0001_expand.sql`, with `snapshot.yaml` beside it; a run on an
+unchanged schema writes only the snapshot again, so `generate --check`
+passes until the schema changes.
 
 Migrations are new files only. The emitter keeps a snapshot of the spec as it
 stood after the last generated migration, diffs the current spec against it,

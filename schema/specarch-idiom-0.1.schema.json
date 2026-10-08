@@ -396,7 +396,12 @@
           "minLength": 1
         },
         "render": {
-          "description": "What the field becomes. Words in braces are filled from the field by a generator: {maxLength}, {precision}, {scale}, {longestValue} (the length of an enum's longest value), {items} (the rendering of the items' row).",
+          "description": "What the field becomes: a type, with words in braces a generator fills from the field: {maxLength}, {precision}, {scale}, {longestValue} (the length of an enum's longest value), {items} (the rendering of the items' row). For a SQL dialect, the column type only; a constraint goes under check.",
+          "type": "string",
+          "minLength": 1
+        },
+        "check": {
+          "description": "A check constraint the column needs beside its type, with words in braces a generator fills: {column}, the column's name; {values}, an enum's values, quoted and separated by commas.",
           "type": "string",
           "minLength": 1
         },

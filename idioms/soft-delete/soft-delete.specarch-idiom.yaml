@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: soft-delete
-version: 1.0.0
+version: 1.1.0
 concern: soft-delete
-stacks: [go]
+stacks: [go, any]
 reads: [deletion]
 description: How a softly deleted record is kept and hidden.
 why: A delete that can be undone keeps the record for audit and recovery, and must still look like a delete to every caller.
@@ -21,8 +21,10 @@ parts:
   column:
     description: The flag and the filter.
     stack:
+      any:
+        names: { deleted: is_deleted }
       go:
-        names: { deleted: is_deleted, softDelete: RequestSoftDelete, hardDelete: RequestHardDelete }
+        names: { softDelete: RequestSoftDelete, hardDelete: RequestHardDelete }
         code: |
           Every list and read adds is_deleted = false unless the caller asks
           for deleted records and may see them; the delete operation sets

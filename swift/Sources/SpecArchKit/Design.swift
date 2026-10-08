@@ -198,6 +198,7 @@ extension Checker {
         checkValueObjects(d)
         checkSession(d)
         checkPages(d)
+        checkEnabledBy(d)
         checkPageEvents(d)
         checkFlows(d)
         checkPageStates(d)
@@ -602,6 +603,31 @@ extension Checker {
                     break
                 }
             }
+        }
+    }
+
+    /// Checks that an operation, command or page served only when a setting
+    /// is on names a boolean setting of configuration.
+    func checkEnabledBy(_ d: Design) {
+        func check(_ n: YNode?, _ ptr: String) {
+            let name = str(n)
+            guard let n, !name.isEmpty else { return }
+            guard let setting = d.settings[name] else {
+                add(n, ptr, .setting, "\(name) is not a setting of the specification's configuration\(suggest(name, d.settings))")
+                return
+            }
+            if str(setting.child("schema")?.child("type")) != "boolean" {
+                add(n, ptr, .setting, "\(name) is not a boolean setting, so it cannot switch this on or off; name a setting whose schema is type: boolean")
+            }
+        }
+        for o in d.opList {
+            check(o.node.child("enabledBy"), o.pointer("enabledBy"))
+        }
+        for (name, cmd) in d.commands {
+            check(cmd.child("enabledBy"), pointer("commands", name, "enabledBy"))
+        }
+        for (name, pg) in d.pages {
+            check(pg.child("enabledBy"), pointer("pages", name, "enabledBy"))
         }
     }
 

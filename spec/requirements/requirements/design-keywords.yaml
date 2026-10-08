@@ -74,6 +74,7 @@ requirements:
     acceptance:
       - The library lending example renders on each dialect with the type-rendering rows, Oracle text as VARCHAR2 with character semantics and wider text as CLOB, an encrypted field as its ciphertext type with a hash column the unique constraint is on, the enum and boolean checks, the audit and deleted columns, the check constraints translated, and ON DELETE as the dialect writes it.
       - A key or unique text column without a maxLength of at most 255, and a check whose function SQL is not given, are refused.
+      - A unique constraint with a where is a partial unique index on PostgreSQL and a filtered index on SQL Server, whose filter holds only fields compared with values joined with &&; Oracle and MariaDB, which have no such index, refuse it, and so does SQL Server for a condition its filter cannot hold.
       - A second run on an unchanged schema answers only the snapshot.
       - Each plug-in request carries the files already in the output folder.
       - Each view becomes a SQL view after the tables and their foreign keys, listing its entity's columns, joining each relation a path follows with a LEFT JOIN, and counting a relation to many in a subquery that leaves out softly deleted records, with a 64-bit count on every dialect; on SQL Server the statement runs through EXEC, since CREATE VIEW must start a batch. An added field named like an audit, deleted or hash column, and a path ending in a field only written, are refused.

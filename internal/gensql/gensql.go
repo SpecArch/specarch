@@ -318,7 +318,7 @@ var entityKeys = map[string]any{
 	"required": true, "primaryKey": true, "audited": true, "deletion": true,
 	"properties":  fieldKeys,
 	"relations":   map[string]any{"target": true, "kind": true, "via": true, "onDelete": true},
-	"constraints": map[string]any{"kind": true, "fields": true, "expression": true},
+	"constraints": map[string]any{"kind": true, "fields": true, "expression": true, "where": true},
 }
 
 // keep is a value with only the listed keys; a key listed with a map
@@ -541,6 +541,10 @@ func (g *gen) addConstraints(t *table, at string, props map[string]any, cols map
 		switch text(c["kind"]) {
 		case "unique":
 			k, nullable := keyCols(texts(list(c["fields"])))
+			if where := text(c["where"]); where != "" {
+				g.partialUnique(t, at, name, where, props, k, nullable)
+				continue
+			}
 			if g.dialect == "sqlserver" && nullable {
 				// SQL Server treats two NULLs as equal in a unique
 				// constraint; the other engines do not, so a filtered index
@@ -562,6 +566,90 @@ func (g *gen) addConstraints(t *table, at string, props map[string]any, cols map
 			t.constraints = append(t.constraints, fmt.Sprintf("CONSTRAINT %s CHECK (%s)", name, sql))
 		}
 	}
+}
+
+// partialUnique adds a unique constraint that holds only where its
+// condition does, as a partial unique index (PostgreSQL) or a filtered one
+// (SQL Server). Oracle and MariaDB have no index with a condition, so the
+// constraint is refused there rather than written as a plain unique one,
+// which would refuse rows the design allows.
+func (g *gen) partialUnique(t *table, at, name, where string, props map[string]any, k []string, nullable bool) {
+	at += "/constraints/" + name
+	if g.dialect != "postgresql" && g.dialect != "sqlserver" {
+		g.problem(at, "the unique constraint %s holds only where %s, and %s has no partial unique index; generate it for postgresql or sqlserver, or take the condition out", name, where, g.dialect)
+		return
+	}
+	n, errs := expr.Parse(where)
+	if len(errs) > 0 || n == nil {
+		g.problem(at, "the condition of %s cannot be written in %s: it does not parse", name, g.dialect)
+		return
+	}
+	tr := &translator{g: g, props: props, filter: g.dialect == "sqlserver"}
+	if tr.filter {
+		if why := filterPredicate(n, props); why != "" {
+			g.problem(at, "the condition of %s cannot be a SQL Server filtered index: %s", name, why)
+			return
+		}
+	}
+	conds := []string{tr.tr(n, true)}
+	if tr.err != "" {
+		g.problem(at, "the condition of %s cannot be written in %s: %s", name, g.dialect, tr.err)
+		return
+	}
+	if g.dialect == "sqlserver" && nullable {
+		// As for a unique constraint without a condition: SQL Server treats
+		// two NULLs as equal, the others do not.
+		for _, col := range k {
+			conds = append(conds, col+" IS NOT NULL")
+		}
+	}
+	t.indexes = append(t.indexes, fmt.Sprintf("CREATE UNIQUE INDEX %s ON %s (%s) WHERE %s", name, t.name, strings.Join(k, ", "), strings.Join(conds, " AND ")))
+}
+
+// filterPredicate says why a condition is not one SQL Server takes in a
+// filtered index, or "": its filter is conditions joined by AND, each a
+// column compared with a constant (CREATE INDEX, filter_predicate). A
+// boolean field on its own, or negated, is the column compared with 1 or 0.
+func filterPredicate(n *expr.Node, props map[string]any) string {
+	isField := func(a *expr.Node) bool { return a.Op == expr.OpName }
+	isBoolField := func(a *expr.Node) bool {
+		return isField(a) && text(obj0(props[a.Text])["type"]) == "boolean"
+	}
+	isConstant := func(a *expr.Node) bool {
+		switch a.Op {
+		case expr.OpInt, expr.OpUint, expr.OpDouble, expr.OpText, expr.OpBool, expr.OpNull:
+			return true
+		case expr.OpNeg:
+			return a.Args[0].Op == expr.OpInt || a.Args[0].Op == expr.OpDouble
+		}
+		return false
+	}
+	switch n.Op {
+	case "&&":
+		if why := filterPredicate(n.Args[0], props); why != "" {
+			return why
+		}
+		return filterPredicate(n.Args[1], props)
+	case "==", "!=", "<", "<=", ">", ">=":
+		if isField(n.Args[0]) && isConstant(n.Args[1]) {
+			return ""
+		}
+		if isConstant(n.Args[0]) && isField(n.Args[1]) {
+			return "write the field before the value it is compared with"
+		}
+		return "it compares only a field with a value"
+	case expr.OpName:
+		if isBoolField(n) {
+			return ""
+		}
+	case expr.OpNot:
+		if isBoolField(n.Args[0]) {
+			return ""
+		}
+	case "||":
+		return "it joins conditions only with &&"
+	}
+	return "it takes only fields compared with values, joined with &&"
 }
 
 // constraintsOnly renders the declared constraints of an entity given as
@@ -806,6 +894,9 @@ type translator struct {
 	g     *gen
 	props map[string]any
 	err   string
+	// filter is set for a SQL Server filtered index, whose filter has no
+	// NOT: a negated boolean field is written as the field equal to 0.
+	filter bool
 }
 
 func (t *translator) fail(format string, args ...any) string {
@@ -861,6 +952,9 @@ func (t *translator) tr(n *expr.Node, cond bool) string {
 	case expr.OpNull:
 		return "NULL"
 	case expr.OpNot:
+		if t.filter && t.isBoolean(n.Args[0]) {
+			return "(" + snake(n.Args[0].Text) + " = 0)"
+		}
 		return "NOT " + t.tr(n.Args[0], true)
 	case expr.OpNeg:
 		return "(-" + t.tr(n.Args[0], false) + ")"

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a unique constraint whose condition names no field, one whose condition gives a number, and a check constraint with a condition"
+when: validate is run
+then: "it reports expression_name, expression_type and schema for each, and exits 1"
+verifies: [SA-3]

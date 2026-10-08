@@ -19,16 +19,18 @@ requirements:
     acceptance:
       - A misspelt relation target, enum, operation, page, algorithm, decision, requirement, need, stakeholder, source or environment is reported with its own rule, naming the file and line of the reference.
       - A name defined in two files of the specification is reported with both files.
+      - An operation, command or page's enabledBy that is not a setting of configuration, or names one that is not boolean, is reported as setting; a valid one derives the case disabled by <setting>, the element refused with the setting off.
     verification: test
     needs: [NEED-1, NEED-4]
   SA-3:
-    statement: Every check constraint and formula shall parse and type-check in the fixed expression language.
+    statement: Every check constraint, condition of a unique constraint and formula shall parse and type-check in the fixed expression language.
     kind: functional
     priority: must
     status: accepted
     acceptance:
       - An expression outside the subset is refused with a message naming the construct.
       - An expression that mixes types without a written conversion is refused with the conversion to write.
+      - A unique constraint's where is an expression over the entity's fields that gives true or false, like a check; a where on a check constraint is refused.
     verification: test
     needs: [NEED-1]
   SA-4:

@@ -1,0 +1,28 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+entities:
+  Account:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      email: { type: string, maxLength: 200 }
+      active: { type: boolean }
+      tier: { type: integer, format: int32 }
+    required: [id, email, active, tier]
+    primaryKey: [id]
+    constraints:
+      account_email_active:
+        kind: unique
+        fields: [email]
+        where: activ
+        message: An active account has this email address already.
+      account_email_tier:
+        kind: unique
+        fields: [email]
+        where: tier + 1
+        message: An account of this tier has this email address already.
+      account_tier_positive:
+        kind: check
+        expression: tier > 0
+        where: active
+        message: The tier is above zero.

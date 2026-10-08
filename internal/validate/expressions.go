@@ -119,20 +119,28 @@ func (c *checker) checkExpressions(d *design) {
 			env[name] = d.fieldType(f)
 		}
 		for _, con := range source.Pairs(source.Child(e.Value, "constraints")) {
-			n := source.Child(con.Value, "expression")
-			if n == nil || !source.IsScalar(n) {
-				continue
-			}
-			ptr := source.Pointer("entities", e.Key.Value, "constraints", con.Key.Value, "expression")
-			tree, errs := expr.Parse(n.Value)
-			if len(errs) > 0 {
-				c.exprErrors(n, ptr, "the check", errs)
-				continue
-			}
-			t, errs := expr.Check(tree, env)
-			c.exprErrors(n, ptr, "the check", errs)
-			if len(errs) == 0 && (t.Kind != expr.Bool || t.Nullable) {
-				c.addFile(c.fileOf(n), exprLine(n, 1), ptr, RuleExpressionType, "the check gives %s, but a check must give true or false; compare the values with ==, <, > or similar", t)
+			// A check's expression, and the condition a unique constraint
+			// holds under.
+			for _, key := range []string{"expression", "where"} {
+				n := source.Child(con.Value, key)
+				if n == nil || !source.IsScalar(n) {
+					continue
+				}
+				what, kind := "the check", "a check"
+				if key == "where" {
+					what, kind = "the condition", "a condition"
+				}
+				ptr := source.Pointer("entities", e.Key.Value, "constraints", con.Key.Value, key)
+				tree, errs := expr.Parse(n.Value)
+				if len(errs) > 0 {
+					c.exprErrors(n, ptr, what, errs)
+					continue
+				}
+				t, errs := expr.Check(tree, env)
+				c.exprErrors(n, ptr, what, errs)
+				if len(errs) == 0 && (t.Kind != expr.Bool || t.Nullable) {
+					c.addFile(c.fileOf(n), exprLine(n, 1), ptr, RuleExpressionType, "%s gives %s, but %s must give true or false; compare the values with ==, <, > or similar", what, t, kind)
+				}
 			}
 		}
 	}

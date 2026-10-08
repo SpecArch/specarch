@@ -1,0 +1,70 @@
+specarch: "0.1"
+info: { title: Desk, version: 1.1.0-dev }
+requirements:
+  DESK-1:
+    statement: A member shall borrow a copy at the desk.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A copy on the shelf is lent to a member with a card.]
+    release: 1.0.0
+  DESK-2:
+    statement: A member shall renew a loan online.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance: [A loan not yet due is renewed once.]
+    release: 1.1.0
+  DESK-3:
+    statement: A member shall reserve a copy.
+    kind: functional
+    priority: could
+    status: proposed
+    acceptance: [A copy on loan is reserved for the next member.]
+permissions:
+  public: { description: Anyone at the desk. }
+commands:
+  lend:
+    summary: Lend a copy
+    permission: public
+    exitCodes:
+      "0": lent
+    satisfies: [DESK-1]
+  renew:
+    summary: Renew a loan
+    permission: public
+    exitCodes:
+      "0": renewed
+    satisfies: [DESK-2]
+  reserve:
+    summary: Reserve a copy
+    permission: public
+    exitCodes:
+      "0": reserved
+    satisfies: [DESK-3]
+tests:
+  lend-succeeds:
+    command: lend
+    level: system
+    scenario: golden
+    given: a copy on the shelf
+    when: lend is run
+    then: it exits 0
+    verifies: [DESK-1]
+  lend-usage-error:
+    command: lend
+    level: system
+    scenario: red
+    covers: [usage error]
+    given: a copy on the shelf
+    when: lend is run with an argument it does not accept
+    then: it prints how to use it and exits with the usage status
+    verifies: [DESK-1]
+  renew-succeeds:
+    command: renew
+    level: system
+    scenario: golden
+    given: a loan not yet due
+    when: renew is run
+    then: it exits 0
+    verifies: [DESK-2]

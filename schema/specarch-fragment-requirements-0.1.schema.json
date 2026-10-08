@@ -326,6 +326,11 @@
           "minItems": 1,
           "uniqueItems": true
         },
+        "release": {
+          "description": "SpecArch keyword. The release the requirement is meant for, by version: records/releases/ must hold a release of that version, planned or released. The test plan groups the requirements by it.",
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
         "why": {
           "$ref": "#/$defs/why"
         },

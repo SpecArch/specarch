@@ -218,17 +218,22 @@ extension Checker {
             var env: ExprEnv = [:]
             for (name, f) in fieldsOf(e.value) { env[name] = d.fieldType(f) }
             for con in pairs(e.value.child("constraints")) {
-                guard let n = con.value.child("expression"), n.kind == .scalar else { continue }
-                let ptr = pointer("entities", e.key.value, "constraints", con.key.value, "expression")
-                let (tree, perrs) = parseExpr(n.value)
-                guard let tree, perrs.isEmpty else {
-                    exprErrors(n, ptr, "the check", perrs)
-                    continue
-                }
-                let (t, errs) = checkExpr(tree, env)
-                exprErrors(n, ptr, "the check", errs)
-                if errs.isEmpty && (t.kind != .bool || t.nullable) {
-                    addFile(fileOf(n), exprLine(n, 1), ptr, .expressionType, "the check gives \(t), but a check must give true or false; compare the values with ==, <, > or similar")
+                // A check's expression, and the condition a unique constraint
+                // holds under.
+                for key in ["expression", "where"] {
+                    guard let n = con.value.child(key), n.kind == .scalar else { continue }
+                    let (what, kind) = key == "where" ? ("the condition", "a condition") : ("the check", "a check")
+                    let ptr = pointer("entities", e.key.value, "constraints", con.key.value, key)
+                    let (tree, perrs) = parseExpr(n.value)
+                    guard let tree, perrs.isEmpty else {
+                        exprErrors(n, ptr, what, perrs)
+                        continue
+                    }
+                    let (t, errs) = checkExpr(tree, env)
+                    exprErrors(n, ptr, what, errs)
+                    if errs.isEmpty && (t.kind != .bool || t.nullable) {
+                        addFile(fileOf(n), exprLine(n, 1), ptr, .expressionType, "\(what) gives \(t), but \(kind) must give true or false; compare the values with ==, <, > or similar")
+                    }
                 }
             }
         }

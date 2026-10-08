@@ -54,6 +54,7 @@ requirements:
       - A released release that includes a change still approved, or a released change whose release does not include it, is reported as release_contents.
       - A release that includes a major change but steps only the minor number after 1.0.0, or only the patch number before it, is reported as release_bump.
       - An info.version that is not the newest released version, and not a later pre-release whose release is planned, is reported as release_version.
+      - A requirement's release that is not a release record, or names a withdrawn one, is reported as record_ref, and the test plan groups the requirements by release.
     verification: test
     needs: [NEED-5]
     why: A version number is a promise to everyone who depends on the system; one that steps less than its contents say breaks a client that trusted it.

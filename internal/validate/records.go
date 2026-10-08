@@ -7,6 +7,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/semver"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
 )
@@ -92,6 +93,7 @@ func checkRecords(s *spec.Spec, d *design) []Diagnostic {
 	}
 	rootChecker := &checker{file: s.RootFile, files: s.Files}
 	rc.checkReleases(recs, rootChecker)
+	rc.checkRequirementReleases(rootChecker)
 	out := rootChecker.diags
 	for _, r := range recs {
 		out = append(out, withoutEchoes(r.c.diags)...)
@@ -208,6 +210,27 @@ func (rc *recordChecks) release(r *record, key string) {
 	n := source.Child(r.root, key)
 	if v := source.Str(n); n != nil && v != "" && !rc.set.has("release", v) {
 		r.c.add(n, source.Pointer(key), RuleRecordRef, "%s is not a release: there is no records/releases/%s.yaml", v, v)
+	}
+}
+
+// checkRequirementReleases checks that a requirement's release is a
+// release record that is planned or released.
+func (rc *recordChecks) checkRequirementReleases(root *checker) {
+	for id, req := range rc.d.requirements {
+		n := source.Child(req, "release")
+		v := source.Str(n)
+		if ver, ok := semver.Parse(v); n == nil || !ok || ver.Pre != "" {
+			continue // the schema reports a version that is not one
+		}
+		ptr := source.Pointer("requirements", id, "release")
+		rel := rc.set["release"][v]
+		if rel == nil {
+			root.add(n, ptr, RuleRecordRef, "%s is not a release: there is no records/releases/%s.yaml; add it with status planned, or name a release that exists", v, v)
+			continue
+		}
+		if st := rel.str("status"); st == "withdrawn" {
+			root.add(n, ptr, RuleRecordRef, "release %s is withdrawn, so no requirement is meant for it; name a planned or released release", v)
+		}
 	}
 }
 

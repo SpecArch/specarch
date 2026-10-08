@@ -435,6 +435,9 @@ redefined.
 | `satisfies`, `verifies` | SpecArch, after SysML and 29148 6.5 | the satisfy and verify relations from a design element or a test to a requirement |
 | `why`, `cites`, `source`, `clause`, `says` | SpecArch | the rationale and the citations every element may carry; 29148 (5.2.8) names rationale and source as attributes |
 | `primaryKey`, `relations`, `constraints`, `stateField`, `transitions` | SpecArch | data-model concepts JSON Schema has no words for |
+| `where` (of a unique constraint) | SpecArch, after PostgreSQL's partial index and SQL Server's filtered index | the records a unique constraint holds among; ISO SQL leaves indexes out, so no standard names it |
+| `enabledBy` | SpecArch | the boolean setting that switches an operation, command or page on |
+| `release` (of a requirement) | SpecArch | the release a requirement is meant for, by the version of its release record, as a change or a defect names the release it shipped in |
 | `precision`, `scale` | SpecArch | decimal size; JSON Schema has no decimal type, so `format: decimal` on a string carries them |
 | `valueDescriptions` | SpecArch | per-value meaning of an enum |
 | `commands`, `arguments`, `options`, `reads`, `writes`, `standardOutput`, `standardError`, `exitCodes`, `repeatable` | SpecArch | command-line interfaces; no standard describes one |
@@ -1119,6 +1122,22 @@ file: not as a `default`, not under a deployment's `configuration`. The
 validator refuses both (`secret_value`). The setting's description says
 where the value comes from, such as the host's secret store.
 
+### Settings that switch an element on
+
+An operation, a command or a page served only while a setting is on names
+it under `enabledBy`. The setting is a boolean of `configuration`; the
+validator refuses a name that is not a setting, or a setting of another
+type (`setting`), since a switch has two positions and anything else would
+need a comparison written somewhere. With the setting off the element is
+refused as not available, and the derived case `disabled by <setting>`
+asks for a test of it.
+
+    paths:
+      /exports:
+        post:
+          operationId: startExport
+          enabledBy: exportsOn
+
 ### Expressions
 
 `check` constraints and `formula` strings are written in a small subset of
@@ -1129,7 +1148,9 @@ CEL is strict on purpose. An implicit conversion is where precision is lost
 without anyone seeing it (an int64 turned into a double, a decimal into a
 float), so every conversion is written where it happens.
 
-A check is one expression that gives a bool. A formula is one expression
+A check is one expression that gives a bool, and so is the `where` of a
+unique constraint: the fields must be unique only among the records it
+holds for. A formula is one expression
 whose type is the algorithm's output type. The validator parses every
 expression, refuses anything outside the subset by name, checks every name
 and type against the declared fields and inputs, and evaluates every formula
@@ -1303,6 +1324,8 @@ mistake:
 | a 4xx or 5xx response | `response <status>` | red | occasional |
 | a command | `usage error`, and `exit <status>` for each non-zero exit code | red | frequent |
 | a check constraint / a unique constraint | `violates <constraint>` / `duplicate <constraint>` | red | occasional |
+| a unique constraint with `where` | `duplicate outside the condition` | golden | occasional |
+| an operation, command or page with `enabledBy` | `disabled by <setting>` | red | frequent |
 | a check constraint that can be false in more than one way | `violates <constraint>: <clause> is false`, one per way (below) | red | occasional |
 | an acceptance criterion of a requirement | `acceptance <N>` | golden | occasional |
 | a path of a state machine | `<state> to <state> to ...` | golden | occasional |
@@ -1341,6 +1364,12 @@ requirement, not what its failure costs.
     LIB-3:
       statement: A member shall have at most three open loans.
       harm: [money]
+
+A requirement may also name the release it is meant for, under `release`,
+by version. A release record of that version must exist, planned or
+released (`record_ref`), so a scope split into a first and a later release
+is written in the requirements, and the test plan groups the requirements
+by release with the tests that verify each.
 
 Each derived case then has a rank. It is `critical` when its subject
 satisfies, under its own `satisfies`, a requirement with a harm, or when

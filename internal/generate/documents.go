@@ -7,6 +7,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/semver"
 	"github.com/SpecArch/specarch/internal/source"
 )
 
@@ -280,6 +281,7 @@ func Testplan(root *yaml.Node, relRoot string, impls []Implementation, state *St
 			}
 		}
 	}
+	requirementsByRelease(d, root, tests)
 	stateMachines(d, root, state)
 	if state != nil && len(state.LeftOut) > 0 {
 		d.section("Derived cases left out")
@@ -297,6 +299,62 @@ func Testplan(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	}
 	d.sourcesIndex("Sources")
 	return d.String()
+}
+
+// requirementsByRelease groups the requirements by the release each is
+// meant for, oldest release first, with the design tests that verify
+// each, when any requirement names a release.
+func requirementsByRelease(d *doc, root *yaml.Node, tests []sourcePair) {
+	reqs := pairs(root, "requirements")
+	byRelease := map[string][]sourcePair{}
+	var none []sourcePair
+	for _, r := range reqs {
+		if v := str(r.Value, "release"); v != "" {
+			byRelease[v] = append(byRelease[v], r)
+		} else {
+			none = append(none, r)
+		}
+	}
+	if len(byRelease) == 0 {
+		return
+	}
+	versions := sortedKeys(byRelease)
+	slices.SortStableFunc(versions, func(a, b string) int {
+		va, okA := semver.Parse(a)
+		vb, okB := semver.Parse(b)
+		if !okA || !okB {
+			return strings.Compare(a, b)
+		}
+		return semver.Compare(va, vb)
+	})
+	verifiedBy := map[string][]string{}
+	for _, t := range tests {
+		for _, id := range strs(t.Value, "verifies") {
+			verifiedBy[id] = append(verifiedBy[id], t.Key.Value)
+		}
+	}
+	d.section("Requirements by release")
+	d.para(countText(len(reqs)-len(none), "requirement names the release it is", "requirements name the release they are") +
+		" meant for. Each release lists its requirements and the design tests that verify them, so a release is tested with its own scope.")
+	group := func(title string, rs []sourcePair) {
+		d.heading(3, title)
+		d.line("| Requirement | Priority | Verified by |")
+		d.line("|---|---|---|")
+		for _, r := range rs {
+			by := "none"
+			if t := verifiedBy[r.Key.Value]; len(t) > 0 {
+				by = strings.Join(t, ", ")
+			}
+			d.line("| %s | %s | %s |", r.Key.Value, cell(str(r.Value, "priority")), cell(by))
+		}
+		d.blank()
+	}
+	for _, v := range versions {
+		group("Release "+v, byRelease[v])
+	}
+	if len(none) > 0 {
+		group("No release named", none)
+	}
 }
 
 // harmCol is the Harm column of a traceability matrix, there only when a

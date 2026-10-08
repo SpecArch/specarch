@@ -68,6 +68,7 @@ func checkRecords(_ s: Spec, _ d: Design) -> [Diagnostic] {
     }
     let rootChecker = Checker(file: s.rootPath, files: s.files)
     rc.checkReleases(recs, rootChecker)
+    rc.checkRequirementReleases(rootChecker)
     var out = rootChecker.diags
     for r in recs {
         out += withoutEchoes(r.c.diags)
@@ -208,6 +209,25 @@ struct RecordChecks {
         let v = str(n)
         if !v.isEmpty && !has("release", v) {
             r.c.add(n, pointer(key), .recordRef, "\(v) is not a release: there is no records/releases/\(v).yaml")
+        }
+    }
+
+    /// Checks that a requirement's release is a release record that is
+    /// planned or released.
+    func checkRequirementReleases(_ root: Checker) {
+        for (id, req) in d.requirements {
+            guard let n = req.child("release") else { continue }
+            let v = str(n)
+            // The schema reports a version that is not one.
+            guard let ver = Version(v), ver.pre.isEmpty else { continue }
+            let ptr = pointer("requirements", id, "release")
+            guard let rel = set["release"]?[v] else {
+                root.add(n, ptr, .recordRef, "\(v) is not a release: there is no records/releases/\(v).yaml; add it with status planned, or name a release that exists")
+                continue
+            }
+            if rel.str("status") == "withdrawn" {
+                root.add(n, ptr, .recordRef, "release \(v) is withdrawn, so no requirement is meant for it; name a planned or released release")
+            }
         }
     }
 

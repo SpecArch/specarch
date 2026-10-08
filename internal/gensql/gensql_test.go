@@ -477,3 +477,111 @@ func TestOwned(t *testing.T) {
 		t.Errorf("handing members over should write only the snapshot, got %v and %v", resp.Files, resp.Diagnostics)
 	}
 }
+
+// withOneOpenLoan adds a unique constraint on a loan's book that holds only
+// where the condition does.
+func withOneOpenLoan(r *Request, fields []any, where string) {
+	loan := r.Specification["entities"].(map[string]any)["Loan"].(map[string]any)
+	loan["constraints"].(map[string]any)["loan_one_open"] = map[string]any{"kind": "unique", "fields": fields, "where": where, "message": "This copy is already on loan."}
+}
+
+// TestPartialUnique writes a unique constraint with a condition as a
+// partial unique index on PostgreSQL and a filtered one on SQL Server, and
+// refuses it on Oracle and MariaDB, and a condition SQL Server's filter
+// cannot hold.
+func TestPartialUnique(t *testing.T) {
+	for dialect, want := range map[string]string{
+		"postgresql": "CREATE UNIQUE INDEX loan_one_open ON loans (book_id) WHERE ((status = 'open') AND (returned_at IS NULL))",
+		"sqlserver":  "CREATE UNIQUE INDEX loan_one_open ON loans (book_id) WHERE ((status = 'open') AND (returned_at IS NULL))",
+	} {
+		r := request(t, dialect)
+		withOneOpenLoan(r, []any{"bookId"}, `status == "open" && returnedAt == null`)
+		sql := migration(t, r)
+		if !strings.Contains(sql, want) {
+			t.Errorf("%s: the migration has no %q:\n%s", dialect, want, sql)
+		}
+		if strings.Contains(sql, "CONSTRAINT loan_one_open") {
+			t.Errorf("%s: the partial constraint is also written as a plain one:\n%s", dialect, sql)
+		}
+	}
+
+	r := request(t, "sqlserver")
+	withOneOpenLoan(r, []any{"bookId", "returnedAt"}, `status == "open"`)
+	if sql, want := migration(t, r), "CREATE UNIQUE INDEX loan_one_open ON loans (book_id, returned_at) WHERE (status = 'open') AND book_id IS NOT NULL AND returned_at IS NOT NULL"; !strings.Contains(sql, want) {
+		t.Errorf("sqlserver: a nullable column joins the filter: no %q:\n%s", want, sql)
+	}
+
+	r = request(t, "postgresql")
+	withOneOpenLoan(r, []any{"bookId"}, `status == "open" || status == "overdue"`)
+	if sql, want := migration(t, r), "WHERE ((status = 'open') OR (status = 'overdue'))"; !strings.Contains(sql, want) {
+		t.Errorf("postgresql: no %q:\n%s", want, sql)
+	}
+
+	for dialect, want := range map[string]string{
+		"oracle":    "oracle has no partial unique index",
+		"mariadb":   "mariadb has no partial unique index",
+		"sqlserver": "joins conditions only with &&",
+	} {
+		r := request(t, dialect)
+		withOneOpenLoan(r, []any{"bookId"}, `status == "open" || status == "overdue"`)
+		resp := Generate(r)
+		if len(resp.Diagnostics) != 1 || !strings.Contains(resp.Diagnostics[0].Message, want) || resp.Diagnostics[0].Path != "/entities/Loan/constraints/loan_one_open" {
+			t.Errorf("%s: want one diagnostic saying %q, got %v", dialect, want, resp.Diagnostics)
+		}
+	}
+	for where, want := range map[string]string{
+		`"open" == status`:          "write the field before the value",
+		`size(status) > 3`:          "it compares only a field with a value",
+		`loanedAt > date(loanedAt)`: "it compares only a field with a value",
+	} {
+		r := request(t, "sqlserver")
+		withOneOpenLoan(r, []any{"bookId"}, where)
+		resp := Generate(r)
+		if len(resp.Diagnostics) != 1 || !strings.Contains(resp.Diagnostics[0].Message, want) {
+			t.Errorf("sqlserver, %s: want one diagnostic saying %q, got %v", where, want, resp.Diagnostics)
+		}
+	}
+}
+
+// TestPartialUniqueNegatedBoolean writes a negated boolean field as the
+// field equal to 0 in a SQL Server filter, which has no NOT.
+func TestPartialUniqueNegatedBoolean(t *testing.T) {
+	r := request(t, "sqlserver")
+	book := r.Specification["entities"].(map[string]any)["Book"].(map[string]any)
+	book["properties"].(map[string]any)["withdrawn"] = map[string]any{"type": "boolean", "default": false}
+	book["required"] = append(book["required"].([]any), "withdrawn")
+	book["constraints"].(map[string]any)["book_isbn_unique"].(map[string]any)["where"] = "!withdrawn"
+	if sql, want := migration(t, r), "CREATE UNIQUE INDEX book_isbn_unique ON books (isbn) WHERE (withdrawn = 0)"; !strings.Contains(sql, want) {
+		t.Errorf("no %q:\n%s", want, sql)
+	}
+}
+
+// TestDifferPartialUnique adds a partial unique index in a later
+// migration, and drops and writes it again when its condition changes.
+func TestDifferPartialUnique(t *testing.T) {
+	resp := changed(t, "postgresql", false, func(e map[string]any) {
+		e["Loan"].(map[string]any)["constraints"].(map[string]any)["loan_one_open"] = map[string]any{"kind": "unique", "fields": []any{"bookId"}, "where": `status == "open"`, "message": "m"}
+	})
+	if exp, want := file(resp, "0002_expand.sql"), "CREATE UNIQUE INDEX loan_one_open ON loans (book_id) WHERE (status = 'open');"; !strings.Contains(exp, want) {
+		t.Errorf("0002_expand.sql has no %q:\n%s%v", want, exp, resp.Diagnostics)
+	}
+	for dialect, drop := range map[string]string{"postgresql": "DROP INDEX loan_one_open;", "sqlserver": "DROP INDEX loan_one_open ON loans;"} {
+		base := request(t, dialect)
+		withOneOpenLoan(base, []any{"bookId"}, `status == "open"`)
+		var snap File
+		for _, f := range Generate(base).Files {
+			if f.Path == SnapshotName {
+				snap = f
+			}
+		}
+		r := request(t, dialect, snap, File{Path: "0001_expand.sql", Content: "..."})
+		withOneOpenLoan(r, []any{"bookId"}, `status == "overdue"`)
+		resp := Generate(r)
+		exp := file(resp, "0002_expand.sql")
+		for _, want := range []string{drop, "CREATE UNIQUE INDEX loan_one_open ON loans (book_id) WHERE (status = 'overdue');"} {
+			if !strings.Contains(exp, want) {
+				t.Errorf("%s: 0002_expand.sql has no %q:\n%s%v", dialect, want, exp, resp.Diagnostics)
+			}
+		}
+	}
+}

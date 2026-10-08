@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "requirements meant for a released release, a planned one, a withdrawn one, a version with no release record, and a version that is not major.minor.patch"
+when: validate is run
+then: "it reports record_ref for the withdrawn release and the missing one, schema for the malformed version, accepts the released and the planned one, and exits 1"
+verifies: [SA-24]

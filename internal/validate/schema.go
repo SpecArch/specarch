@@ -78,6 +78,7 @@ var patternNames = map[string]string{
 	"^[A-Z][A-Z0-9]{1,15}$":                                    "an upper-case prefix of 2 to 16 letters or digits, such as LIB",
 	"^ADR-[0-9]{3,}$":                                          "ADR- and three or more digits, such as ADR-001",
 	"^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$":             "a semantic version, such as 1.2.0",
+	"^[0-9]+\\.[0-9]+\\.[0-9]+$":                               "a release's version, major.minor.patch with no pre-release, such as 1.2.0",
 	"^([A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+|#/.+)$":              "a requirement ID such as LIB-5, or a #/ pointer such as #/entities/Loan",
 	"^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z][a-z0-9]*(-[a-z0-9]+)*$": "a date and an environment, such as 2026-10-07-production",
 	"^sha256:[0-9a-f]{64}$":                                    "sha256: and 64 lower-case hexadecimal digits",

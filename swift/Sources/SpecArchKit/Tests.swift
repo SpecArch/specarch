@@ -193,6 +193,16 @@ extension Design {
         }
     }
 
+    /// The case of an element served only when a setting is on: with the
+    /// setting off, it is refused. A name that is not a boolean setting is
+    /// reported by the setting rule instead.
+    func disabled(_ s: Subject, _ n: YNode?, _ what: String) {
+        let setting = str(n?.child("enabledBy"))
+        if str(settings[setting]?.child("schema")?.child("type")) == "boolean" {
+            s.red("disabled by " + setting, frequent, "the setting " + setting + " is off", what, "it is refused as not available")
+        }
+    }
+
     /// Every subject of the file with its derived cases: operations,
     /// commands, pages, then each entity's constraints and transitions.
     func subjects() -> [Subject] {
@@ -333,6 +343,7 @@ extension Design {
             }
         }
         denied(s, str(o.node.child("permission")), call)
+        disabled(s, o.node, call)
         var seenChannel = Set<String>()
         for e in items(o.node.child("emits")) {
             let ch = String(e.value.split(separator: "/", maxSplits: 1, omittingEmptySubsequences: false)[0])
@@ -512,6 +523,7 @@ extension Design {
             s.red("exit " + c.key.value, frequent, "...", run, "it exits " + c.key.value + ": " + str(c.value))
         }
         denied(s, str(p.value.child("permission")), run)
+        disabled(s, p.value, run)
         guardCases(s, p.value.child("guard"), run)
         return s
     }
@@ -561,6 +573,7 @@ extension Design {
         if !pathParameters(str(p.value.child("route"))).isEmpty { success.when = open + " for a record that exists" }
         s.success = success
         denied(s, str(p.value.child("permission")), open)
+        disabled(s, p.value, open)
         if str(p.value.child("kind")) == "task" {
             answerCases(s, p.value)
             stateCases(s, p.value, open)
@@ -666,8 +679,19 @@ extension Design {
         let msg = str(c.value.child("message"))
         switch str(c.value.child("kind")) {
         case "unique":
-            s.success = golden("no " + entity + " with the same values exists", "a " + entity + " is saved", "it is saved")
-            s.red("duplicate " + name, occasional, "a " + entity + " exists", "another " + entity + " with the same values is saved", "it is refused: " + msg)
+            let condition = str(c.value.child("where"))
+            if condition.isEmpty {
+                s.success = golden("no " + entity + " with the same values exists", "a " + entity + " is saved", "it is saved")
+                s.red("duplicate " + name, occasional, "a " + entity + " exists", "another " + entity + " with the same values is saved", "it is refused: " + msg)
+                break
+            }
+            // A partial unique constraint: the values clash only among the
+            // records the condition holds for.
+            s.success = golden("no " + entity + " with the same values for which " + condition + " holds exists", "a " + entity + " for which " + condition + " holds is saved", "it is saved")
+            s.red("duplicate " + name, occasional, "a " + entity + " for which " + condition + " holds exists",
+                  "another " + entity + " with the same values, for which " + condition + " holds, is saved", "it is refused: " + msg)
+            s.cases.append(DerivedCase(name: "duplicate outside the condition", scenario: "golden", given: "a " + entity + " for which " + condition + " holds exists",
+                                       when: "another " + entity + " with the same values, for which " + condition + " does not hold, is saved", then: "it is saved", frequency: occasional))
         case "check":
             s.success = golden("...", "a " + entity + " keeping it is saved", "it is saved")
             let rules = falsifiers(str(c.value.child("expression")))

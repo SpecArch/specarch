@@ -919,6 +919,11 @@
           "minItems": 1,
           "uniqueItems": true
         },
+        "release": {
+          "description": "SpecArch keyword. The release the requirement is meant for, by version: records/releases/ must hold a release of that version, planned or released. The test plan groups the requirements by it.",
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
         "why": {
           "$ref": "#/$defs/why"
         },
@@ -1712,6 +1717,11 @@
           "type": "string",
           "minLength": 1
         },
+        "where": {
+          "description": "For unique: one expression in SpecArch's subset of CEL over the entity's fields, giving true or false; the fields must be unique only among the records where it holds, as a partial unique index. generate sql writes it on the engines that have one and refuses on the others.",
+          "type": "string",
+          "minLength": 1
+        },
         "message": {
           "description": "What a user is told when the constraint fails.",
           "type": "string"
@@ -1762,7 +1772,10 @@
           "then": {
             "required": [
               "expression"
-            ]
+            ],
+            "properties": {
+              "where": false
+            }
           }
         }
       ],
@@ -2222,6 +2235,10 @@
         "deprecated": {
           "type": "boolean"
         },
+        "enabledBy": {
+          "description": "SpecArch keyword. The boolean setting of configuration that switches this on: while the setting is false it is refused as not available. The derived case 'disabled by <setting>' checks it.",
+          "$ref": "#/$defs/memberName"
+        },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
         },
@@ -2637,6 +2654,10 @@
         },
         "states": {
           "$ref": "#/$defs/pageStates"
+        },
+        "enabledBy": {
+          "description": "SpecArch keyword. The boolean setting of configuration that switches this on: while the setting is false it is refused as not available. The derived case 'disabled by <setting>' checks it.",
+          "$ref": "#/$defs/memberName"
         },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
@@ -3818,6 +3839,10 @@
         },
         "deprecated": {
           "type": "boolean"
+        },
+        "enabledBy": {
+          "description": "SpecArch keyword. The boolean setting of configuration that switches this on: while the setting is false it is refused as not available. The derived case 'disabled by <setting>' checks it.",
+          "$ref": "#/$defs/memberName"
         },
         "satisfies": {
           "$ref": "#/$defs/satisfies"

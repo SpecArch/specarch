@@ -353,9 +353,16 @@ func relationsByVia(e map[string]any) map[string]any {
 }
 
 // filteredUnique reports whether a unique constraint was written as a
-// filtered index (SQL Server, over a nullable column).
+// filtered index: one with a condition, or on SQL Server one over a
+// nullable column.
 func (g *gen) filteredUnique(c, props map[string]any, req map[string]bool) bool {
-	if g.dialect != "sqlserver" || text(c["kind"]) != "unique" {
+	if text(c["kind"]) != "unique" {
+		return false
+	}
+	if text(c["where"]) != "" {
+		return true // a partial unique index on the engines that write one
+	}
+	if g.dialect != "sqlserver" {
 		return false
 	}
 	for _, f := range texts(list(c["fields"])) {
@@ -414,6 +421,8 @@ func (g *gen) setNullable(t, c, typ string, nullable bool) string {
 
 func (g *gen) dropConstraint(t, name, kind string, filtered bool) string {
 	switch {
+	case filtered && g.dialect == "postgresql":
+		return "DROP INDEX " + name
 	case filtered:
 		return "DROP INDEX " + name + " ON " + t
 	case g.dialect == "mariadb" && kind == "unique":

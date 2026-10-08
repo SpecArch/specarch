@@ -1,0 +1,38 @@
+specarch: "0.1"
+info: { title: Case, version: 1.1.0-dev }
+requirements:
+  CASE-1:
+    statement: A member shall borrow a copy at the desk.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [It is shown at the desk.]
+    release: 1.0.0
+  CASE-2:
+    statement: A member shall renew a loan online.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance: [It is shown at the desk.]
+    release: 1.1.0
+  CASE-3:
+    statement: A member shall reserve a copy.
+    kind: functional
+    priority: could
+    status: proposed
+    acceptance: [It is shown at the desk.]
+    release: 1.0.1
+  CASE-4:
+    statement: A member shall pay a late fee online.
+    kind: functional
+    priority: could
+    status: proposed
+    acceptance: [It is shown at the desk.]
+    release: 2.0.0
+  CASE-5:
+    statement: A member shall see their history.
+    kind: functional
+    priority: could
+    status: proposed
+    acceptance: [It is shown at the desk.]
+    release: "1.1"

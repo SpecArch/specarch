@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an operation served behind a boolean setting with no test of it switched off, an operation behind a setting that is not declared, and a command behind a text setting"
+when: validate is run
+then: "it reports setting for the undeclared and the text setting, warns that the operation behind exportsOn has no red scenario for disabled by exportsOn, with a test to copy, and exits 1"
+verifies: [SA-2, SA-21]

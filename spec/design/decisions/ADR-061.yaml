@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-061:
+    title: A unique constraint may hold only where a condition does, an element may be switched on by a boolean setting, and a requirement may name its release
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Step 8 of docs/meta-model-0.2.md takes three smaller keywords that
+      extracted systems needed: a unique rule that applies only to some
+      records (one open loan per copy, one active account per address), an
+      operation, command or page served only behind a setting, and a
+      requirement's target release, so that a scope split into a first and a
+      later release is written in the requirements. The plan fixed the
+      words; the SQL each engine can hold, what a switch may be, and how a
+      release is checked were left to the step.
+    decision: |
+      A unique constraint may carry where, an expression in the subset over
+      the entity's fields giving true or false, checked as a check is
+      (expression_syntax, expression_name, expression_type); a where on a
+      check constraint is refused by the schema. generate sql writes it as a
+      partial unique index on PostgreSQL and a filtered unique index on SQL
+      Server, there only when the condition is fields compared with values
+      joined with &&, a boolean field alone or negated counting as the field
+      compared with 1 or 0; it refuses it on Oracle and MariaDB, and on SQL
+      Server for any other condition. A changed condition drops the index
+      and writes it again. Its derived cases are duplicate <constraint>
+      where the condition holds and the golden duplicate outside the
+      condition. enabledBy on an operation, a command or a page names a
+      setting of configuration whose schema is type boolean; anything else
+      is refused (setting), and a valid one derives disabled by <setting>,
+      red and frequent. A requirement's release is a version major.minor.patch
+      for which records/releases/ holds a release that is planned or
+      released; a missing or withdrawn one is refused (record_ref). The
+      test plan then groups the requirements by release, oldest first, each
+      with the tests that verify it, and the requirements with none last.
+    consequences: |
+      A rule that applies to some records is written once and reaches the
+      two engines that can hold it; a specification meant for Oracle or
+      MariaDB keeps it as a question or as a check the code runs. A switched
+      element is tested off as well as on. A release's scope is listed in
+      the test plan. No new rule name is added: each check reports under the
+      rule of what it checks.
+    why: |
+      Neither ISO SQL nor JSON Schema names a conditional unique rule,
+      because ISO SQL leaves indexes to the engines; PostgreSQL's partial
+      index and SQL Server's filtered index are the two that hold one, so
+      the keyword is SpecArch's and takes their WHERE. SQL Server's filter
+      accepts only columns compared with constants, IN lists and IS NULL,
+      joined by AND, because the optimiser must prove a query's predicate
+      implies the filter; a condition outside it would be refused by the
+      engine at migration time, so the generator refuses it first, with the
+      form to write. Oracle has no partial index, and its usual stand-in, a
+      function-based index over CASE expressions, is a different index the
+      design does not describe; MariaDB has none. Writing a plain unique
+      constraint there would refuse records the design allows, so the
+      generator refuses rather than drops or widens the rule, as it does
+      for a check SQL is not given for. A where on a check is refused
+      because the check's own expression already says when it applies, and
+      two places for one condition is the ambiguity the Low IQ Tax forbids.
+      A switch is boolean because a switch has two positions; a setting of
+      another type would need a comparison, which is an expression the
+      keyword does not hold. disabled by <setting> is frequent because an
+      element still served with its switch off is the defect the keyword
+      exists to prevent. A requirement's release names a version, as a
+      change or a defect does, and the validator reads the release records
+      for it as it already does for info.version (release_version); the
+      version has no pre-release tag because a requirement is meant for a
+      release, not for a build on the way to it, and a withdrawn release
+      will never ship what is meant for it.
+    satisfies: [SA-2, SA-3, SA-24, SA-37]

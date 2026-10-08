@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 281 design tests, 107 golden and 174 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 274 design tests, 102 golden and 172 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 277 |
+| system | 270 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -90,14 +90,6 @@ Scenario: golden; level: system; verifies SA-28.
 - Given: the same specification, with a test folder already named as the missing-name draft would be
 - When: derive is run
 - Then: it keeps that folder as it is, says so on standard error, writes the other drafts and exits 0
-
-#### derive-page-elements
-
-Scenario: golden; level: system; verifies SA-28, SA-42.
-
-- Given: a specification whose form picks a member, checks a date against another and has a pin entered twice, and whose list offers Deactivate only to an active member with a reason, both pages satisfying a requirement with a harm
-- When: derive is run
-- Then: it writes, among the operations' and the requirement's drafts, a test for the picker finding nothing, the check broken, the pin entered twice differently, Deactivate not offered and Deactivate without a reason, lists them and exits 0
 
 #### derive-root-tests
 
@@ -345,6 +337,14 @@ Scenario: golden; level: system.
 - When: document techspec is run with --out docs
 - Then: it writes docs/shop.techspec.md without chapter 7 and exits 0
 
+#### document-testplan-by-release
+
+Scenario: golden; level: system; verifies SA-16, SA-24.
+
+- Given: requirements meant for a released and a planned release, and one with no release, verified by design tests
+- When: document testplan is run
+- Then: it writes testplan.md with the requirements grouped by release, oldest first, each with the tests that verify it, the one with no release last, and exits 0
+
 #### document-testplan-left-out
 
 Scenario: golden; level: acceptance; verifies SA-22.
@@ -523,14 +523,6 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 - When: extract openapi is run on it
 - Then: it says the file is not an OpenAPI 3.0 or 3.1 document, writes nothing and exits 1
 
-#### extract-openapi-writes-schema
-
-Scenario: golden; level: system; verifies SA-48.
-
-- Given: a repository holding an OpenAPI 3.1 document with one operation whose 201 answers a component, whose request body and 409 answer are two other components, and a fourth component the first holds in a property
-- When: extract openapi is run on the document
-- Then: it writes the component the 201 answers as an entity with a question about its key, the request body and the refusal as schemas with no such question, the held component in place inside the entity and as a schema of its own, and exits 0
-
 #### extract-openapi-writes-tree
 
 Scenario: golden; level: system; verifies SA-44.
@@ -570,14 +562,6 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 - Given: a repository whose app folder holds two route groups, each with a page in a folder of the same name, so that both give one route
 - When: extract pages is run on the app folder
 - Then: it refuses the folder, naming both page files and the route, writes nothing, and exits 1
-
-#### extract-pages-task
-
-Scenario: golden; level: system; verifies SA-44.
-
-- Given: a repository whose app folder holds a page with no schema, and a sign-in page whose schema says it is a task that is open to everyone, names the operation it submits to and its fields, and names an entity besides
-- When: extract pages is run on the app folder
-- Then: it writes the sign-in page as a task with its fields and no entity, prints a line for the entity it leaves out, declares public without asking what it allows, asks only for the operation it submits to, and exits 0
 
 #### extract-pages-writes-tree
 
@@ -790,14 +774,6 @@ Scenario: golden; level: system; verifies SA-46.
 - Given: an output folder whose migrations created the authors and books tables, a specification that now marks Author as owned by the catalogue team and adds a field to Author and one to Book, and specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved
 - Then: it writes 0002_expand.sql with the new column of books and the view made again, no statement about authors and no drop, and a snapshot that lists Author under owned, and exits 0
-
-#### generate-sql-value-object
-
-Scenario: golden; level: system; verifies SA-48.
-
-- Given: a specification with an entity and a schema that a response refers to, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH
-- When: generate sql is run with --unapproved
-- Then: it writes 0001_expand.sql with the entity's table and nothing for the schema, and snapshot.yaml beside it, and exits 0
 
 #### generate-stack-fallback
 
@@ -1263,6 +1239,14 @@ Scenario: red; level: system; covers exit 2.
 - When: validate is run on it
 - Then: it says so and exits 2 rather than passing silently
 
+#### validate-enabled-by
+
+Scenario: red; level: system; covers exit 1; verifies SA-2, SA-21.
+
+- Given: an operation served behind a boolean setting with no test of it switched off, an operation behind a setting that is not declared, and a command behind a text setting
+- When: validate is run
+- Then: it reports setting for the undeclared and the text setting, warns that the operation behind exportsOn has no red scenario for disabled by exportsOn, with a test to copy, and exits 1
+
 #### validate-enum-value
 
 Scenario: red; level: system; covers exit 1.
@@ -1671,14 +1655,6 @@ Scenario: red; level: system; covers exit 1.
 - When: validate is run
 - Then: it reports page and exits 1
 
-#### validate-page-elements-unresolved
-
-Scenario: red; level: system; covers exit 1; verifies SA-42.
-
-- Given: a form with pickers whose source lists another entity, whose fields are not the target's or not the form's, of another type, for a field no relation holds or the form does not show, and one whose list a role that may open the form cannot read; field conditions on a list, on a view as read-only, on a field not shown, read-only twice, and naming a field a creating form does not show; checks and fields entered twice on a view, a check that is not true or false with a message that is not a sentence, and one naming a field the form does not show; and actions with when on a creating form, a misspelt enum value, a when that is not true or false or does not parse, and a reason that the body does not require, that is not a string, that is not in the body, on a navigate action, or without confirm
-- When: validate is run
-- Then: it reports picker ten times, form_field nine times, action five times, an expression error five times and a missing confirm once, and exits 1
-
 #### validate-page-events
 
 Scenario: red; level: system; covers exit 1; verifies SA-42.
@@ -1887,6 +1863,14 @@ Scenario: red; level: system; covers exit 1.
 - When: validate is run
 - Then: it reports requirement and exits 1
 
+#### validate-requirement-release
+
+Scenario: red; level: system; covers exit 1; verifies SA-24.
+
+- Given: requirements meant for a released release, a planned one, a withdrawn one, a version with no release record, and a version that is not major.minor.patch
+- When: validate is run
+- Then: it reports record_ref for the withdrawn release and the missing one, schema for the malformed version, accepts the released and the planned one, and exits 1
+
 #### validate-requirement-set
 
 Scenario: golden; level: system; verifies SA-2.
@@ -1999,14 +1983,6 @@ Scenario: red; level: system; covers exit 1; verifies SA-42.
 - When: validate is run
 - Then: it reports page four times and field once, and exits 1
 
-#### validate-separation-of-duties
-
-Scenario: red; level: system; covers exit 1; verifies SA-5.
-
-- Given: separation-of-duties sets over declared permissions and roles: a role that grants both permissions of a set of two, a set naming a permission that is not declared and one naming public, a cardinality of 3 over two permissions and a cardinality of 1; besides a role holding two of a set of three whose cardinality is 3, which is right
-- When: validate is run
-- Then: it reports separation_of_duties four times and schema once, and exits 1
-
 #### validate-session
 
 Scenario: red; level: system; covers exit 1; verifies SA-29.
@@ -2095,14 +2071,6 @@ Scenario: red; level: system; covers exit 1.
 - When: validate is run
 - Then: it reports suite and exits 1
 
-#### validate-task-pages
-
-Scenario: red; level: system; covers exit 1; verifies SA-42.
-
-- Given: a task page that names an entity and a source and shows a field its operation's body does not have, one that leaves out a property the body requires and acts on a status its operation does not answer and takes a route parameter from a property the response's body does not have, and a flow whose next step is not where any answer of a task page leads
-- When: validate is run
-- Then: it reports page five times and flow twice, lists a golden case for each success the submit operation answers, and exits 1
-
 #### validate-test-case
 
 Scenario: red; level: system; covers exit 1.
@@ -2183,6 +2151,14 @@ Scenario: red; level: system; covers exit 1.
 - When: validate is run
 - Then: it reports trigger and exits 1
 
+#### validate-unique-where
+
+Scenario: red; level: system; covers exit 1; verifies SA-3.
+
+- Given: a unique constraint whose condition names no field, one whose condition gives a number, and a check constraint with a condition
+- When: validate is run
+- Then: it reports expression_name, expression_type and schema for each, and exits 1
+
 #### validate-unquoted-date
 
 Scenario: red; level: system; covers exit 1.
@@ -2239,22 +2215,6 @@ Scenario: red; level: system; covers exit 1; verifies SA-29.
 - When: validate is run
 - Then: it reports validity for each, and exits 1
 
-#### validate-value-objects
-
-Scenario: red; level: system; covers exit 1; verifies SA-48.
-
-- Given: an entity that relates to a schema and holds one in a field, a schema named like the entity, a schema whose required list names a property it lacks, and a reference to a schema the specification lacks
-- When: validate is run
-- Then: it reports value_object three times, field and ref_type once each, and exits 1
-
-#### validate-value-objects-valid
-
-Scenario: golden; level: system; verifies SA-48.
-
-- Given: a schema that refers to an enum, one that is a request body, and one that is a response carrying an entity and a list of the first, which is also a message's payload
-- When: validate is run
-- Then: it reports no error, derives the request body's required property through its schema, and exits 0
-
 #### validate-views
 
 Scenario: red; level: system; covers exit 1; verifies SA-41.
@@ -2270,22 +2230,6 @@ Scenario: golden; level: system; verifies SA-41.
 - Given: a view of a loan with its member's name and, through the member, its branch's name, a view of a member with a count of its loans, and a list over the first view whose whitelists name both the view's fields and its entity's, answering the view's rows
 - When: validate is run
 - Then: it reports no error, and exits 0
-
-#### validate-workflow
-
-Scenario: red; level: system; covers exit 1; verifies SA-47.
-
-- Given: a workflow whose subject is not an entity, whose approver does not grant the approval's permission or is not a role, whose approval checks the trigger's permission with a deadline of zero and escalates to a step that is not a later approval, with two steps of one name and an operation step naming no operation; a workflow started by an operation that does not answer 202 whose approval checks an undeclared permission; and one started by an operation that does not exist
-- When: validate is run
-- Then: it reports workflow eleven times and permission_undeclared once, and exits 1
-
-#### validate-workflow-valid
-
-Scenario: golden; level: system; verifies SA-47.
-
-- Given: a workflow of two approvals, the first escalating to the second after a day, and an operation step, with a test of the requester approving their own request
-- When: validate is run
-- Then: it reports no error, counts the test as covering the four-eyes case, warns that no test covers the approved path, a refusal and the deadline at each approval and an approval without each permission, among the others, and exits 0
 
 #### validate-yaml-syntax
 
@@ -2315,7 +2259,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-148 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+143 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2347,9 +2291,6 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-34 | acceptance 4 | golden | SA-34 names no harm |
 | requirement SA-35 | acceptance 1 | golden | SA-35 names no harm |
 | requirement SA-35 | acceptance 2 | golden | SA-35 names no harm |
-| requirement SA-47 | acceptance 1 | golden | SA-47 names no harm |
-| requirement SA-47 | acceptance 2 | golden | SA-47 names no harm |
-| requirement SA-47 | acceptance 3 | golden | SA-47 names no harm |
 | requirement SA-36 | acceptance 1 | golden | SA-36 names no harm |
 | requirement SA-36 | acceptance 2 | golden | SA-36 names no harm |
 | requirement SA-36 | acceptance 3 | golden | SA-36 names no harm |
@@ -2359,6 +2300,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-37 | acceptance 3 | golden | SA-37 names no harm |
 | requirement SA-37 | acceptance 4 | golden | SA-37 names no harm |
 | requirement SA-37 | acceptance 5 | golden | SA-37 names no harm |
+| requirement SA-37 | acceptance 6 | golden | SA-37 names no harm |
 | requirement SA-38 | acceptance 1 | golden | SA-38 names no harm |
 | requirement SA-38 | acceptance 2 | golden | SA-38 names no harm |
 | requirement SA-38 | acceptance 3 | golden | SA-38 names no harm |
@@ -2383,16 +2325,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-42 | acceptance 6 | golden | SA-42 names no harm |
 | requirement SA-42 | acceptance 7 | golden | SA-42 names no harm |
 | requirement SA-42 | acceptance 8 | golden | SA-42 names no harm |
-| requirement SA-42 | acceptance 9 | golden | SA-42 names no harm |
 | requirement SA-43 | acceptance 1 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 2 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 3 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 4 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 5 | golden | SA-43 names no harm |
-| requirement SA-48 | acceptance 1 | golden | SA-48 names no harm |
-| requirement SA-48 | acceptance 2 | golden | SA-48 names no harm |
-| requirement SA-48 | acceptance 3 | golden | SA-48 names no harm |
-| requirement SA-48 | acceptance 4 | golden | SA-48 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |
@@ -2425,6 +2362,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-24 | acceptance 1 | golden | SA-24 names no harm |
 | requirement SA-24 | acceptance 2 | golden | SA-24 names no harm |
 | requirement SA-24 | acceptance 3 | golden | SA-24 names no harm |
+| requirement SA-24 | acceptance 4 | golden | SA-24 names no harm |
 | requirement SA-25 | acceptance 1 | golden | SA-25 names no harm |
 | requirement SA-25 | acceptance 2 | golden | SA-25 names no harm |
 | requirement SA-25 | acceptance 3 | golden | SA-25 names no harm |
@@ -2455,12 +2393,13 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-1 | acceptance 2 | golden | SA-1 names no harm |
 | requirement SA-2 | acceptance 1 | golden | SA-2 names no harm |
 | requirement SA-2 | acceptance 2 | golden | SA-2 names no harm |
+| requirement SA-2 | acceptance 3 | golden | SA-2 names no harm |
 | requirement SA-3 | acceptance 1 | golden | SA-3 names no harm |
 | requirement SA-3 | acceptance 2 | golden | SA-3 names no harm |
+| requirement SA-3 | acceptance 3 | golden | SA-3 names no harm |
 | requirement SA-4 | acceptance 1 | golden | SA-4 names no harm |
 | requirement SA-5 | acceptance 1 | golden | SA-5 names no harm |
 | requirement SA-5 | acceptance 2 | golden | SA-5 names no harm |
-| requirement SA-5 | acceptance 3 | golden | SA-5 names no harm |
 | requirement SA-6 | acceptance 1 | golden | SA-6 names no harm |
 | requirement SA-6 | acceptance 2 | golden | SA-6 names no harm |
 | requirement SA-9 | acceptance 1 | golden | SA-9 names no harm |

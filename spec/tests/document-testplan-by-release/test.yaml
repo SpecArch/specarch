@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: document
+level: system
+scenario: golden
+given: "requirements meant for a released and a planned release, and one with no release, verified by design tests"
+when: "document testplan is run"
+then: "it writes testplan.md with the requirements grouped by release, oldest first, each with the tests that verify it, the one with no release last, and exits 0"
+verifies: [SA-16, SA-24]

@@ -188,6 +188,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkValueObjects(d)
 	c.checkSession(d)
 	c.checkPages(d)
+	c.checkEnabledBy(d)
 	c.checkPageEvents(d)
 	c.checkFlows(d)
 	c.checkPageStates(d)
@@ -603,6 +604,34 @@ func (c *checker) checkPages(d *design) {
 				}
 			}
 		}
+	}
+}
+
+// checkEnabledBy checks that an operation, command or page served only
+// when a setting is on names a boolean setting of configuration.
+func (c *checker) checkEnabledBy(d *design) {
+	check := func(n *yaml.Node, ptr string) {
+		name := source.Str(n)
+		if n == nil || name == "" {
+			return
+		}
+		setting := d.settings[name]
+		if setting == nil {
+			c.add(n, ptr, RuleSetting, "%s is not a setting of the specification's configuration%s", name, suggest(name, d.settings))
+			return
+		}
+		if t := source.Child(source.Child(setting, "schema"), "type"); source.Str(t) != "boolean" {
+			c.add(n, ptr, RuleSetting, "%s is not a boolean setting, so it cannot switch this on or off; name a setting whose schema is type: boolean", name)
+		}
+	}
+	for _, o := range d.opList {
+		check(source.Child(o.node, "enabledBy"), o.pointer("enabledBy"))
+	}
+	for name, cmd := range d.commands {
+		check(source.Child(cmd, "enabledBy"), source.Pointer("commands", name, "enabledBy"))
+	}
+	for name, pg := range d.pages {
+		check(source.Child(pg, "enabledBy"), source.Pointer("pages", name, "enabledBy"))
 	}
 }
 

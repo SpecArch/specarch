@@ -1,0 +1,60 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+configuration:
+  exportsOn:
+    description: Whether members may export their history.
+    secret: false
+    schema: { type: boolean, default: false }
+  exportFormat:
+    description: The file format of an export.
+    secret: false
+    schema: { type: string, maxLength: 10 }
+permissions:
+  public: { description: Anyone. }
+paths:
+  /exports:
+    post:
+      operationId: startExport
+      summary: Start an export
+      permission: public
+      enabledBy: exportsOn
+      responses:
+        "202": { description: Started. }
+  /imports:
+    post:
+      operationId: startImport
+      summary: Start an import
+      permission: public
+      enabledBy: importsOn
+      responses:
+        "202": { description: Started. }
+commands:
+  export:
+    summary: Export the history
+    permission: public
+    enabledBy: exportFormat
+    exitCodes:
+      "0": exported
+tests:
+  start-export-succeeds:
+    operation: startExport
+    level: system
+    scenario: golden
+    given: exportsOn is on
+    when: startExport is called
+    then: "it answers 202: Started."
+  export-usage-error:
+    command: export
+    level: system
+    scenario: red
+    covers: [usage error]
+    given: a member
+    when: export is run with an argument it does not accept
+    then: it prints how to use it and exits with the usage status
+  export-succeeds:
+    command: export
+    level: system
+    scenario: golden
+    given: a member
+    when: export is run
+    then: it exits 0

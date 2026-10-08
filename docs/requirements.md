@@ -87,7 +87,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-45 | functional | must | accepted | specarch merge shall merge the partial specification trees the readers write into one specification that keeps the citations of every tree, turn every disagreement between the trees into a must question that cites both, and give byte-identical output for the same trees in the same order. |
 | SA-1 | functional | must | accepted | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. |
 | SA-2 | functional | must | accepted | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. |
-| SA-3 | functional | must | accepted | Every check constraint and formula shall parse and type-check in the fixed expression language. |
+| SA-3 | functional | must | accepted | Every check constraint, condition of a unique constraint and formula shall parse and type-check in the fixed expression language. |
 | SA-4 | functional | must | accepted | Every worked example's formula, evaluated on its inputs with exact arithmetic, shall give its expected value. |
 | SA-5 | functional | must | accepted | Access shall be fail-closed; every permission used is declared, and every declared permission is granted by a role or is public. |
 | SA-6 | interface | must | accepted | Every problem shall be reported, one line each, with file, line, YAML path and rule; the exit status is 0 when valid, 1 when invalid, 2 on a usage or read error. |
@@ -272,6 +272,7 @@ Acceptance criteria:
 
 - The library lending example renders on each dialect with the type-rendering rows, Oracle text as VARCHAR2 with character semantics and wider text as CLOB, an encrypted field as its ciphertext type with a hash column the unique constraint is on, the enum and boolean checks, the audit and deleted columns, the check constraints translated, and ON DELETE as the dialect writes it.
 - A key or unique text column without a maxLength of at most 255, and a check whose function SQL is not given, are refused.
+- A unique constraint with a where is a partial unique index on PostgreSQL and a filtered index on SQL Server, whose filter holds only fields compared with values joined with &&; Oracle and MariaDB, which have no such index, refuse it, and so does SQL Server for a condition its filter cannot hold.
 - A second run on an unchanged schema answers only the snapshot.
 - Each plug-in request carries the files already in the output folder.
 - Each view becomes a SQL view after the tables and their foreign keys, listing its entity's columns, joining each relation a path follows with a LEFT JOIN, and counting a relation to many in a subquery that leaves out softly deleted records, with a 64-bit count on every dialect; on SQL Server the statement runs through EXEC, since CREATE VIEW must start a batch. An added field named like an audit, deleted or hash column, and a path ending in a field only written, are refused.
@@ -550,6 +551,7 @@ Acceptance criteria:
 - A released release that includes a change still approved, or a released change whose release does not include it, is reported as release_contents.
 - A release that includes a major change but steps only the minor number after 1.0.0, or only the patch number before it, is reported as release_bump.
 - An info.version that is not the newest released version, and not a later pre-release whose release is planned, is reported as release_version.
+- A requirement's release that is not a release record, or names a withdrawn one, is reported as record_ref, and the test plan groups the requirements by release.
 
 **Insight:** A version number is a promise to everyone who depends on the system; one that steps less than its contents say breaks a client that trusted it.
 
@@ -703,10 +705,11 @@ Acceptance criteria:
 
 - A misspelt relation target, enum, operation, page, algorithm, decision, requirement, need, stakeholder, source or environment is reported with its own rule, naming the file and line of the reference.
 - A name defined in two files of the specification is reported with both files.
+- An operation, command or page's enabledBy that is not a setting of configuration, or names one that is not boolean, is reported as setting; a valid one derives the case disabled by <setting>, the element refused with the setting off.
 
 ### SA-3
 
-Every check constraint and formula shall parse and type-check in the fixed expression language.
+Every check constraint, condition of a unique constraint and formula shall parse and type-check in the fixed expression language.
 
 Kind: functional; priority: must; status: accepted; verified by test; refines NEED-1.
 
@@ -714,6 +717,7 @@ Acceptance criteria:
 
 - An expression outside the subset is refused with a message naming the construct.
 - An expression that mixes types without a written conversion is refused with the conversion to write.
+- A unique constraint's where is an expression over the entity's fields that gives true or false, like a check; a where on a check constraint is refused.
 
 ### SA-4
 

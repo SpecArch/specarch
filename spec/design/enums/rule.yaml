@@ -141,7 +141,7 @@ enums:
       permission_undeclared: an operation, command, page, action or role names a permission that is not declared
       permission_ungranted: a declared permission is granted by no role and is not `public`
       separation_of_duties: "a separation-of-duties set names a permission that is not declared or is `public`, asks for more of its permissions than it holds, or a role grants as many of the set's permissions as its cardinality"
-      expression_syntax: a check or formula does not parse
+      expression_syntax: a check, a unique constraint's condition or a formula does not parse
       expression_name: an expression names a field, input or function that does not exist
       expression_type: an expression combines values of types that do not fit
       example_input: a worked example's inputs are missing one, name an unknown one, or have the wrong type
@@ -164,11 +164,11 @@ enums:
       stakeholder: a need's `stakeholders`, a question's `decidedBy` or a mapping's `ownedBy` names a stakeholder that does not exist
       source: a citation names a source that is not declared under `sources`
       environment: a check, an environment's `promotesTo` or an implementation's deployment names an environment that does not exist, or a deployment names none when the specification declares them
-      setting: an implementation's deployment gives a value to a setting the specification does not declare
+      setting: an implementation's deployment gives a value to a setting the specification does not declare, or an operation, command or page is enabledBy a name that is not a boolean setting
       secret_value: a setting marked secret carries a value, as a default or in a deployment
       monitor: an implementation's deployment watches a monitor the specification does not declare
       record_name: a record's file name is not its ID, its version, or its date and environment, or it does not sit in the folder of its kind under `records/`
-      record_ref: a record names a stakeholder, requirement, `#/` pointer, test, environment or monitor the specification does not have, or a change, defect, incident, release or commissioning run that is not a record and not in a declared change-set or defect-set
+      record_ref: a record names a stakeholder, requirement, `#/` pointer, test, environment or monitor the specification does not have, or a change, defect, incident, release or commissioning run that is not a record and not in a declared change-set or defect-set; or a requirement's release is not a planned or released release record
       change_applied: an implemented or released change's `adds` or `changes` do not resolve or its `removes` still do, or an open change's `changes` or `removes` do not resolve; an open change whose `adds` already resolve is a warning
       change_decision: an approved, implemented or released change has no decision with outcome approved, or a rejected one no decision with outcome rejected
       defect_test: a fixed or released defect names no test, or one that neither verifies a requirement the defect violates nor is about an element it violates

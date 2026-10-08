@@ -285,6 +285,16 @@ func (d *design) denied(s *subject, perm, what string) {
 	}
 }
 
+// disabled adds the case of an element served only when a setting is on:
+// with the setting off, it is refused. A name that is not a boolean
+// setting is reported by the setting rule instead.
+func (d *design) disabled(s *subject, n *yaml.Node, what string) {
+	setting := source.Str(source.Child(n, "enabledBy"))
+	if source.Str(source.Child(source.Child(d.settings[setting], "schema"), "type")) == "boolean" {
+		s.red("disabled by "+setting, frequent, "the setting "+setting+" is off", what, "it is refused as not available")
+	}
+}
+
 // byNature adds a red case that is critical on its own.
 func (s *subject) byNature(name, given, when, then string) {
 	s.cases = append(s.cases, derivedCase{name: name, scenario: "red", given: given, when: when, then: then, frequency: rare, critical: true})
@@ -379,6 +389,7 @@ func (d *design) operationSubject(o operation) *subject {
 		}
 	}
 	d.denied(s, source.Str(source.Child(o.node, "permission")), call)
+	d.disabled(s, o.node, call)
 	seenChannel := map[string]bool{}
 	for _, e := range source.Items(source.Child(o.node, "emits")) {
 		ch, _, _ := strings.Cut(e.Value, "/")
@@ -634,6 +645,7 @@ func (d *design) commandSubject(p source.Pair) *subject {
 		}
 	}
 	d.denied(s, source.Str(source.Child(p.Value, "permission")), run)
+	d.disabled(s, p.Value, run)
 	guardCases(s, source.Child(p.Value, "guard"), run)
 	return s
 }
@@ -648,6 +660,7 @@ func (d *design) pageSubject(p source.Pair) *subject {
 		s.success.when = open + " for a record that exists"
 	}
 	d.denied(s, source.Str(source.Child(p.Value, "permission")), open)
+	d.disabled(s, p.Value, open)
 	if source.Str(source.Child(p.Value, "kind")) == "task" {
 		d.answerCases(s, p.Value)
 		d.stateCases(s, p.Value, open)
@@ -771,8 +784,18 @@ func constraintSubject(entity string, c source.Pair) *subject {
 	msg := source.Str(source.Child(c.Value, "message"))
 	switch source.Str(source.Child(c.Value, "kind")) {
 	case "unique":
-		s.success = golden("no "+entity+" with the same values exists", "a "+entity+" is saved", "it is saved")
-		s.red("duplicate "+name, occasional, "a "+entity+" exists", "another "+entity+" with the same values is saved", "it is refused: "+msg)
+		where := source.Str(source.Child(c.Value, "where"))
+		if where == "" {
+			s.success = golden("no "+entity+" with the same values exists", "a "+entity+" is saved", "it is saved")
+			s.red("duplicate "+name, occasional, "a "+entity+" exists", "another "+entity+" with the same values is saved", "it is refused: "+msg)
+			break
+		}
+		// A partial unique constraint: the values clash only among the
+		// records the condition holds for.
+		s.success = golden("no "+entity+" with the same values for which "+where+" holds exists", "a "+entity+" for which "+where+" holds is saved", "it is saved")
+		s.red("duplicate "+name, occasional, "a "+entity+" for which "+where+" holds exists", "another "+entity+" with the same values, for which "+where+" holds, is saved", "it is refused: "+msg)
+		s.cases = append(s.cases, derivedCase{name: "duplicate outside the condition", scenario: "golden", given: "a " + entity + " for which " + where + " holds exists",
+			when: "another " + entity + " with the same values, for which " + where + " does not hold, is saved", then: "it is saved", frequency: occasional})
 	case "check":
 		s.success = golden("...", "a "+entity+" keeping it is saved", "it is saved")
 		rules := falsifiers(source.Str(source.Child(c.Value, "expression")))

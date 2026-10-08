@@ -11,6 +11,14 @@ The lending desk lends books to registered members and takes them back.
 
 ## 2 Members
 
+The desk keeps these details of each member.
+
+| Field | Type | Required | Sensitivity |
+|---|---|---|---|
+| Card number | text | yes | internal |
+| Full name | text | yes | personal |
+| Phone number | text | no | personal |
+
 2.1 Anyone with a library card may borrow. A member is known by the card
 number printed on the card, and the desk records the member's full name.
 

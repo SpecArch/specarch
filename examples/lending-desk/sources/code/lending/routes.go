@@ -2,7 +2,7 @@ package lending
 
 import "net/http"
 
-// Route is one served method and path, with the permission it checks.
+// Route is one served method and path, with the permission it checks, if any.
 type Route struct {
 	Method     string
 	Path       string
@@ -17,6 +17,7 @@ func (s *Server) Routes() []Route {
 		{"POST", "/loans", "loans.write", s.LendBook},
 		{"POST", "/loans/{loanId}/return", "loans.write", s.ReturnBook},
 		{"GET", "/members/{cardNumber}/loans", "loans.read", s.ListMemberLoans},
+		{"GET", "/members/{cardNumber}", "", s.ShowMember},
 	}
 }
 
@@ -47,5 +48,10 @@ func (s *Server) ReturnBook(w http.ResponseWriter, r *http.Request) {
 
 // ListMemberLoans answers the loans of one member.
 func (s *Server) ListMemberLoans(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
+// ShowMember answers one member's card number and full name.
+func (s *Server) ShowMember(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }

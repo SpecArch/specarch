@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.3.0-dev of the specification: 5 stakeholders, 9 needs and 27 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.3.0-dev of the specification: 5 stakeholders, 9 needs and 28 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 ## 1. Purpose and scope
 
@@ -39,12 +39,13 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-17, SA-18, SA-19, SA-20 |
-| NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-27, SA-21, SA-22 |
+| NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-28, SA-27, SA-21, SA-22 |
 
 ## 4. Requirements
 
 | Requirement | Kind | Priority | Status | Statement |
 |---|---|---|---|---|
+| SA-28 | functional | should | accepted | specarch derive shall write a draft test for every derived case that no test covers, and shall never overwrite a test or write one for a subject an open must or should question holds up. |
 | SA-27 | functional | should | accepted | A design test may carry its fixture, input and expected outcome as structured data in the design's own vocabulary, and the validator shall check that data against the design. |
 | SA-21 | functional | must | accepted | specarch validate shall rank every test case it derives as critical, frequent or other, from the harm of the requirements its subject satisfies and from how often users get its field wrong, and shall warn only for the critical and frequent cases no test covers. |
 | SA-22 | functional | must | accepted | specarch document shall list in the test plan, under Derived cases left out, every derived case of rank other that no test covers, with its subject and the reason it was left out, and shall show each requirement's harm in the traceability matrix once a requirement names one. |
@@ -72,6 +73,20 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-6 | interface | must | accepted | Every problem shall be reported, one line each, with file, line, YAML path and rule; the exit status is 0 when valid, 1 when invalid, 2 on a usage or read error. |
 | SA-9 | constraint | must | accepted | A specification and its implementations shall be separate files; a specification holds no stack-specific key and an implementation file adds no design. |
 | SA-10 | functional | must | accepted | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. |
+
+### SA-28
+
+specarch derive shall write a draft test for every derived case that no test covers, and shall never overwrite a test or write one for a subject an open must or should question holds up.
+
+Kind: functional; priority: should; status: accepted; verified by test; refines NEED-9.
+
+Acceptance criteria:
+
+- A specification with uncovered chosen cases gets one test folder per case, each marked origin inferred, and validates afterwards.
+- A test folder that exists is kept as it is.
+- A subject a must question blocks gets no test, and derive names it.
+
+**Insight:** The tests a specification implies are only worth listing if writing them out is cheap; a draft the author completes is cheaper than a warning the author copies.
 
 ### SA-27
 

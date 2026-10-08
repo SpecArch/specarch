@@ -1,0 +1,8 @@
+command: derive
+level: system
+scenario: red
+covers: [exit 2]
+given: "a specification that keeps its tests in specarch.yaml"
+when: "derive is run"
+then: "it says each derived test needs a folder under tests/, writes nothing and exits 2"
+verifies: [SA-28]

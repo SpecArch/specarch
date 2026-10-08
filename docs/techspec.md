@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.3.0-dev of the specification: 27 requirements, 3 entities, 8 commands, 6 algorithms, 182 tests, 20 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.3.0-dev of the specification: 28 requirements, 3 entities, 9 commands, 6 algorithms, 188 tests, 20 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -58,6 +58,7 @@ The interfaces the system offers, as its clients see them.
 | Command | Summary | Permission | Exit statuses |
 |---|---|---|---|
 | approve | Record that the documents were read and the specification is approved | public | 0: the approval was recorded; 1: refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current; 2: usage error, or a file that could not be read or written |
+| derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, or there is no release record for the new version; 2: usage error, a path that could not be read, or a specification with errors |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder, or a file that could not be read or written |
 | extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects; 2: usage error, a source this build does not offer, or a path that could not be read or written |
@@ -298,6 +299,53 @@ sequenceDiagram
   P->>F: read {paths}
   P->>F: read <output>/<target>.md
   P->>F: write records/approvals/<version>.yaml
+  P-->>U: exit status 0, 1, 2
+```
+
+### Command derive
+
+Validates its input first and writes nothing from an invalid
+specification. Then, for every subject without a golden test, writes
+its success test, and for every chosen derived case no test covers,
+writes a test: a folder `tests/<name>/test.yaml` named as the
+validator suggests, with the subject, the scenario, the level,
+`covers`, `given`, `when` and `then` as the derivation words them,
+`verifies` from what the subject satisfies, `origin: inferred` and a
+`why` that says why the case was chosen, and the expected status or
+exit, or the caller of a denied case, where the design says them for
+certain.
+
+What it writes is a draft the author completes, not a generated
+output: it has no header and no `--check`, and an existing test
+folder is never overwritten. A subject a must or should question
+holds up is left out and named on standard error, since a test of a
+half-defined element would be a placeholder. A specification that
+keeps its tests in the root file is refused: each derived test needs
+a folder of its own. Writing tests changes the specification, so an
+approval of it no longer holds.
+
+**Insight:** The validator already says which tests a specification implies and gives each one to copy; writing them out is the step that turns the warnings into a test suite the author completes, instead of one the author types out from the warnings.
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<paths>` | string, one or more | yes | Folders holding specifications, searched as validate searches them. |
+
+Reads `{paths}`: The specifications.
+
+Writes `tests/<name>/test.yaml under each specification's folder`: One draft test per derived case no test covers.
+
+Standard output: The errors of an invalid specification, one line each; otherwise the path of each test written, one per line.
+
+Standard error: A usage message on a usage error, the reason on an unreadable path, each test left out or kept with the reason, and the count written.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: derive <paths>
+  P->>F: read {paths}
+  P->>F: write tests/<name>/test.yaml under each specification's folder
   P-->>U: exit status 0, 1, 2
 ```
 
@@ -758,7 +806,7 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 
 | Path | Holds | Implements |
 |---|---|---|
-| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/diff, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
+| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/diff, #/commands/derive, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
@@ -784,6 +832,7 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | #/commands/document | main.runDocument |   |
 | #/commands/generate | main.runGenerate | Refuses through main.gate while a question blocks what the target reads or the approval is missing or void; then runs the plug-in with main.runPlugin; the request and answer are the pluginRequest and pluginResponse structs. |
 | #/commands/extract | main.runExtract | Answers with status 2 until it is built. |
+| #/commands/derive | main.runDerive | Writes validate.Drafts, the drafts of the cases the warnings name. |
 | #/commands/diff | main.runDiff | Lists diff.Compare's changes, then checks the release record beside the new folder. |
 | #/enums/DocumentTarget | main.documentTargets |   |
 | #/enums/GeneratorTarget | main.builtGenerators | Empty; every target is a plug-in. |
@@ -904,7 +953,7 @@ From the implementation file version 0.1.0.
 A second implementation of the specification in `spec/`, for macOS,
 built from the same specification as the Go one. It offers the validate
 and version commands and passes the same conformance cases; the
-documents, the generators, gaps, approve and diff are built in Go only.
+documents, the generators, gaps, approve, diff and derive are built in Go only.
 
 Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin/arm64, darwin/amd64.
 
@@ -938,6 +987,7 @@ Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin
 | #/commands/approve | SpecArchKit.run | Exits 2: the record is written by the Go build only. |
 | #/commands/generate | SpecArchKit.run | Exits 2: this build runs no generator. |
 | #/commands/extract | SpecArchKit.run | Exits 2, as the Go build does until it is built. |
+| #/commands/derive | SpecArchKit.run | Exits 2: writing tests is built in Go only; the derivation it writes is in this build. |
 | #/commands/diff | SpecArchKit.run | Exits 2: the comparison of two versions is built in Go only; the release rules are in this build. |
 | #/algorithms/exitStatus | the end of SpecArchKit.runValidate |   |
 | #/algorithms/workedExampleHolds | SpecArchKit.Checker.checkExample |   |
@@ -1820,6 +1870,12 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | approve-refuses-stale-document | command approve | system | red | a configured requirements document that is not what the specification generates now | approve is run | it names the document that differs, writes nothing and exits 1 |
 | approve-usage-error | command approve | system | red | no --by | approve is run without saying who approves | it prints how to use it and exits 2 |
 | approve-writes-record | command approve | system | golden | a specification without open questions, a configured requirements document that is current, and a stakeholder owner | approve is run with --by owner and a date | it writes records/approvals/1.0.0.yaml with the role, the date, the document and the digest of the files, and exits 0 |
+| derive-invalid-spec | command derive | system | red | a specification whose operation names a permission that is not declared | derive is run | it prints the error, writes nothing and exits 1 |
+| derive-keeps-existing | command derive | system | golden | the same specification, with a test folder already named as the missing-name draft would be | derive is run | it keeps that folder as it is, says so on standard error, writes the other drafts and exits 0 |
+| derive-root-tests | command derive | system | red | a specification that keeps its tests in specarch.yaml | derive is run | it says each derived test needs a folder under tests/, writes nothing and exits 2 |
+| derive-skips-blocked | command derive | system | golden | the same specification with a must question that blocks the operation's path | derive is run | it writes only the requirement's acceptance draft, names the operation's drafts it left out and the question on standard error, and exits 0 |
+| derive-usage-error | command derive | system | red | no folder | derive is run with no arguments | it prints how to use it and exits 2 |
+| derive-writes-drafts | command derive | system | golden | a specification whose operation has a golden test, a required field, a permission, 403 and 409 responses, and satisfies a requirement with a harm | derive is run | it writes five draft tests, each origin inferred, with verifies, a why and the status or caller the design gives, lists them and exits 0 |
 | diagnostic-line-from-one | Diagnostic constraint diagnostic_line_positive | system | golden | a problem on the first line of a file | the diagnostic is made | its line is 1 |
 | diagnostic-line-zero | Diagnostic constraint diagnostic_line_positive | system | red | a problem found before any line was read | a diagnostic with line 0 is made | it is refused; a problem about the whole file is reported on line 1 |
 | diff-classifies-changes | command diff | system | golden | a new version that drops an enum value, requires a field it did not, and adds an optional query parameter, released as 2.0.0 by a major change naming them | diff is run | the enum and the entity are major with the reason, the operation minor, the major step passes, and it exits 0 |
@@ -2034,6 +2090,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 | Requirement | Statement | Kind | Priority | Status | Verification | Acceptance | Needs |
 |---|---|---|---|---|---|---|---|
+| SA-28 | specarch derive shall write a draft test for every derived case that no test covers, and shall never overwrite a test or write one for a subject an open must or should question holds up. | functional | should | accepted | test | A specification with uncovered chosen cases gets one test folder per case, each marked origin inferred, and validates afterwards. A test folder that exists is kept as it is. A subject a must question blocks gets no test, and derive names it. | NEED-9 |
 | SA-27 | A design test may carry its fixture, input and expected outcome as structured data in the design's own vocabulary, and the validator shall check that data against the design. | functional | should | accepted | test | A fixture naming a field the entity does not have, a value of the wrong type, or a record a check constraint refuses is reported as test_data. An input naming a parameter the operation does not have, or an expected status that is not one of its responses, is reported as test_data. A test with input and an input/ folder beside it is reported as test_data. | NEED-9 |
 | SA-21 | specarch validate shall rank every test case it derives as critical, frequent or other, from the harm of the requirements its subject satisfies and from how often users get its field wrong, and shall warn only for the critical and frequent cases no test covers. | functional | must | accepted | test | An operation that satisfies no requirement with harm gets no warning for the boundary cases of its fields, and still gets one for a missing required field and for a caller without the permission. The same operation, once it satisfies a requirement with harm, gets a warning for every derived case no test covers. A field with mistakes rare loses the warnings for its cases, and a field with mistakes frequent gains them. A failing channel is warned about whatever the harm of the operation. | NEED-9 |
 | SA-22 | specarch document shall list in the test plan, under Derived cases left out, every derived case of rank other that no test covers, with its subject and the reason it was left out, and shall show each requirement's harm in the traceability matrix once a requirement names one. | functional | must | accepted | test | The test plan of a specification with an uncovered boundary case on a subject with no harm has a row for that case, and the row is gone once a test covers it. The traceability matrix of a specification with a requirement that names a harm has a Harm column, and one without has none. | NEED-9, NEED-3 |
@@ -2061,6 +2118,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-6 | Every problem shall be reported, one line each, with file, line, YAML path and rule; the exit status is 0 when valid, 1 when invalid, 2 on a usage or read error. | interface | must | accepted | test | A run on a folder with three problems in two files prints three lines and exits 1. A run with no arguments prints how to use the command and exits 2. | NEED-1 |
 | SA-9 | A specification and its implementations shall be separate files; a specification holds no stack-specific key and an implementation file adds no design. | constraint | must | accepted | test | A stack-specific extension key in a specification is reported as stack_key. A design keyword in an implementation file is reported as design_key. | NEED-2 |
 | SA-10 | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. | functional | must | accepted | test | An implementation written against an older version of its specification is reported as implements. A pointer to an object the specification does not have is reported as design_ref. | NEED-2 |
+
+**Insight on SA-28:** The tests a specification implies are only worth listing if writing them out is cheap; a draft the author completes is cheaper than a warning the author copies.
 
 **Insight on SA-27:** A generator can only write a test from data it can read, and data checked against the design cannot describe a record that could never exist.
 
@@ -2145,6 +2204,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-25 | commands diff | tests diff-classifies-changes; tests diff-invalid-spec; tests diff-lists-changes; tests diff-no-release; tests diff-not-covered; tests diff-tracker-unknown; tests diff-usage-error; tests diff-version-step |
 | SA-26 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-releases |
 | SA-27 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
+| SA-28 | commands derive | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-root-tests; tests derive-skips-blocked; tests derive-usage-error; tests derive-writes-drafts |
 
 ## Sources
 

@@ -6,6 +6,7 @@
 //	specarch generate <target> [--out <folder>] [--check] <folder>...
 //	specarch extract <source> ...
 //	specarch diff <old> <new>
+//	specarch derive <folder>...
 //	specarch version
 package main
 
@@ -33,6 +34,7 @@ const usage = `usage:
                                             write code or data from an approved specification
   specarch extract <source> ...             write a specification from existing code or documents
   specarch diff <old folder> <new folder>   list what changed between two versions and check the release
+  specarch derive <folder>...               write a draft test for every derived case no test covers
   specarch version                          print the program version
 
 A specification is a folder holding specarch.yaml. A folder given here is
@@ -64,6 +66,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runExtract(args[1:], stdout, stderr)
 	case "diff":
 		return runDiff(args[1:], stdout, stderr)
+	case "derive":
+		return runDerive(args[1:], stdout, stderr)
 	case "version":
 		if len(args) > 1 {
 			fmt.Fprintf(stderr, "specarch version takes no arguments\n\n%s", usage)

@@ -148,7 +148,8 @@ goes from the specification to a document, `approve` records that the
 documents were read and the specification is approved, `generate` from
 the approved specification to code, `extract` (designed, built later) from
 existing code to a specification, and `diff` compares two versions of a
-specification and checks the release between them. It has two builds from
+specification and checks the release between them, and `derive` writes a
+draft test for every derived case no test covers. It has two builds from
 the same design.
 The Go build has every verb. With Go 1.26 or later:
 

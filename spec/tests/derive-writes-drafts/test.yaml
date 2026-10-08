@@ -1,0 +1,7 @@
+command: derive
+level: system
+scenario: golden
+given: "a specification whose operation has a golden test, a required field, a permission, 403 and 409 responses, and satisfies a requirement with a harm"
+when: "derive is run"
+then: "it writes five draft tests, each origin inferred, with verifies, a why and the status or caller the design gives, lists them and exits 0"
+verifies: [SA-28]

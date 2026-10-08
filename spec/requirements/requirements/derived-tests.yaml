@@ -1,4 +1,16 @@
 requirements:
+  SA-28:
+    statement: specarch derive shall write a draft test for every derived case that no test covers, and shall never overwrite a test or write one for a subject an open must or should question holds up.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - A specification with uncovered chosen cases gets one test folder per case, each marked origin inferred, and validates afterwards.
+      - A test folder that exists is kept as it is.
+      - A subject a must question blocks gets no test, and derive names it.
+    verification: test
+    needs: [NEED-9]
+    why: The tests a specification implies are only worth listing if writing them out is cheap; a draft the author completes is cheaper than a warning the author copies.
   SA-27:
     statement: A design test may carry its fixture, input and expected outcome as structured data in the design's own vocabulary, and the validator shall check that data against the design.
     kind: functional

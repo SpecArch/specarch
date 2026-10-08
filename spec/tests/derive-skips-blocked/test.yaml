@@ -1,0 +1,7 @@
+command: derive
+level: system
+scenario: golden
+given: "the same specification with a must question that blocks the operation's path"
+when: "derive is run"
+then: "it writes only the requirement's acceptance draft, names the operation's drafts it left out and the question on standard error, and exits 0"
+verifies: [SA-28]

@@ -14,7 +14,8 @@ of the test plan and the Harm column. The second is built too: the
 success case of every subject, the acceptance case per criterion, the
 paths of a state machine and the decision-table cases of a check
 constraint. So is the third: `fixture`, `input` and `expect` on a test,
-checked against the design. The other items are listed at the end.
+checked against the design. And the fourth: `specarch derive`, which
+writes the drafts. The other items are listed at the end.
 
 The standards are ISO/IEC/IEEE 29119-4:2021 for the techniques and their
 coverage measures, and ISO/IEC/IEEE 29119-1:2022 for why a test set is a
@@ -298,7 +299,13 @@ skips a subject a must or should question blocks and names it on
 standard error, since a test of a half-defined element would be a
 placeholder. Writing tests changes the specification's files, so it
 voids an approval, as any edit does. Exit 0 when it wrote or had nothing
-to write, 1 when the specification has errors, 2 on a usage or read error.
+to write, 1 when the specification has errors, 2 on a usage or read error
+or a specification that keeps its tests in its root file, since each
+derived test needs a folder of its own. The structured data it fills is
+what the design says for certain: the status of a success or a response
+case, the exit of a command, 404 for a not-found case when the operation
+has that response, and for a denied case 403 and a role that lacks the
+permission.
 
 ## From the tests to code
 
@@ -379,7 +386,7 @@ validator builds where it adds a rule, and the conformance cases.
 3. Built. `fixture`, `input` and `expect` on a test, the rule
    `test_data`, and their checks against the design, including a fixture
    evaluated against the entity's constraints. Both builds.
-4. `specarch derive`. Go only, like the other verbs that write.
+4. Built. `specarch derive`. Go only, like the other verbs that write.
 5. The `tests` target for Go: `specarch-gen-tests-go`, mapping fixture,
    input and expect through the implementation file; worked examples as
    unit tests. One real project's hand-written test is the acceptance

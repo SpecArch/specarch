@@ -1,0 +1,8 @@
+operation: createItem
+level: system
+scenario: red
+covers: [response 409]
+given: an item named lamp
+when: createItem is called with lamp
+then: it answers 409
+verifies: [ITEM-1]

@@ -10,8 +10,8 @@ usage:
 
 A specification is a folder holding specarch.yaml. A folder given here is
 searched for specifications and for *.specarch-implementation.yaml files
-outside one. This build has no document, generate, extract or diff verbs;
-the Go build of specarch has them.
+outside one. This build has no document, generate, extract, diff or derive
+verbs; the Go build of specarch has them.
 
 """
 
@@ -48,7 +48,7 @@ public func run(_ args: [String], stdout: TextSink, stderr: TextSink) -> Int32 {
         }
         stdout.write("specarch \(programVersion)\nspecifications: meta-model 0.1\nimplementation files: meta-model 0.1\n")
         return 0
-    case "document", "generate", "extract", "gaps", "approve", "diff":
+    case "document", "generate", "extract", "gaps", "approve", "diff", "derive":
         stderr.write("specarch \(command): this build has no \(command) verb; the Go build of specarch has it\n")
         return 2
     case "help", "-h", "--help":

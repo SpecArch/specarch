@@ -1,0 +1,10 @@
+requirement: ITEM-1
+level: acceptance
+scenario: golden
+covers: [acceptance 1]
+given: "..."
+when: "..."
+then: "An added item is in the stock."
+verifies: [ITEM-1]
+origin: inferred
+why: "Written by specarch derive: requirement ITEM-1 is at stake in a requirement that names a harm, so its cases are written. A draft: complete the given, when and then, and remove what does not hold."

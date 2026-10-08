@@ -1,0 +1,45 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [tests]
+stakeholders:
+  owner: { description: The product owner. }
+requirements:
+  ITEM-1:
+    statement: A clerk shall add an item to the stock, which is paid for by the item.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [An added item is in the stock.]
+    harm: [money]
+permissions:
+  items.create: { description: Add items. }
+  items.read: { description: See items. }
+roles:
+  clerk: { description: Staff., permissions: [items.create] }
+  visitor: { description: Someone looking., permissions: [items.read] }
+paths:
+  /items:
+    post:
+      operationId: createItem
+      summary: Add an item
+      permission: items.create
+      satisfies: [ITEM-1]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+              required: [name]
+      responses:
+        "201": { description: Added. }
+        "403": { description: Not allowed. }
+        "409": { description: An item with that name exists. }
+questions:
+  Q-1:
+    question: Does adding an item need a name at all?
+    kind: decision
+    priority: must
+    blocks: ["#/paths/~1items"]
+    decidedBy: owner

@@ -1,0 +1,8 @@
+command: derive
+level: system
+scenario: red
+covers: [usage error]
+given: "no folder"
+when: "derive is run with no arguments"
+then: "it prints how to use it and exits 2"
+verifies: [SA-28]

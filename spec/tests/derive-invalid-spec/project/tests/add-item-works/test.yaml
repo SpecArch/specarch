@@ -1,0 +1,7 @@
+operation: createItem
+level: system
+scenario: golden
+given: a clerk
+when: createItem is called with a name
+then: the item is added
+verifies: [ITEM-1]

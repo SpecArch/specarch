@@ -1,0 +1,4 @@
+arguments: [derive, project]
+exitStatus: 0
+standardOutput: |
+  project/tests/item-1-acceptance-1/test.yaml

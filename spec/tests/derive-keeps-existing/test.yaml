@@ -1,0 +1,7 @@
+command: derive
+level: system
+scenario: golden
+given: "the same specification, with a test folder already named as the missing-name draft would be"
+when: "derive is run"
+then: "it keeps that folder as it is, says so on standard error, writes the other drafts and exits 0"
+verifies: [SA-28]

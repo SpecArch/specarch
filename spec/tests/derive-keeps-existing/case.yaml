@@ -1,0 +1,6 @@
+arguments: [derive, project]
+exitStatus: 0
+standardOutput: |
+  project/tests/create-item-denied-without-items-create/test.yaml
+  project/tests/create-item-response-403/test.yaml
+  project/tests/item-1-acceptance-1/test.yaml

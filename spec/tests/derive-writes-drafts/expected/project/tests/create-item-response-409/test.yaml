@@ -1,0 +1,11 @@
+operation: createItem
+level: system
+scenario: red
+covers: [response 409]
+given: "..."
+when: "createItem is called"
+then: "it answers 409: An item with that name exists."
+verifies: [ITEM-1]
+origin: inferred
+why: "Written by specarch derive: operation createItem is at stake in a requirement that names a harm, so its cases are written. A draft: complete the given, when and then, and remove what does not hold."
+expect: { status: 409 }

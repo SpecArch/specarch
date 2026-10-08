@@ -1,0 +1,46 @@
+commands:
+  derive:
+    summary: Write a draft test for every derived case no test covers
+    description: |
+      Validates its input first and writes nothing from an invalid
+      specification. Then, for every subject without a golden test, writes
+      its success test, and for every chosen derived case no test covers,
+      writes a test: a folder `tests/<name>/test.yaml` named as the
+      validator suggests, with the subject, the scenario, the level,
+      `covers`, `given`, `when` and `then` as the derivation words them,
+      `verifies` from what the subject satisfies, `origin: inferred` and a
+      `why` that says why the case was chosen, and the expected status or
+      exit, or the caller of a denied case, where the design says them for
+      certain.
+
+      What it writes is a draft the author completes, not a generated
+      output: it has no header and no `--check`, and an existing test
+      folder is never overwritten. A subject a must or should question
+      holds up is left out and named on standard error, since a test of a
+      half-defined element would be a placeholder. A specification that
+      keeps its tests in the root file is refused: each derived test needs
+      a folder of its own. Writing tests changes the specification, so an
+      approval of it no longer holds.
+    permission: public
+    arguments:
+      - name: paths
+        description: Folders holding specifications, searched as validate searches them.
+        required: true
+        repeatable: true
+        schema: { type: string }
+    reads:
+      - { path: "{paths}", description: The specifications. }
+    writes:
+      - { path: "tests/<name>/test.yaml under each specification's folder", description: One draft test per derived case no test covers. }
+    standardOutput: The errors of an invalid specification, one line each; otherwise the path of each test written, one per line.
+    standardError: A usage message on a usage error, the reason on an unreadable path, each test left out or kept with the reason, and the count written.
+    exitCodes:
+      "0": the tests were written, or there was nothing to write
+      "1": a specification has errors
+      "2": usage error, a path that could not be read or written, or a specification that keeps its tests in the root file
+    satisfies: [SA-28]
+    why: |
+      The validator already says which tests a specification implies and
+      gives each one to copy; writing them out is the step that turns the
+      warnings into a test suite the author completes, instead of one the
+      author types out from the warnings.

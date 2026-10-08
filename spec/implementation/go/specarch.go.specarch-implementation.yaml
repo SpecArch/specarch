@@ -62,7 +62,7 @@ libraries:
 layout:
   cmd/specarch:
     description: The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status.
-    implements: ["#/commands/validate", "#/commands/gaps", "#/commands/document", "#/commands/approve", "#/commands/generate", "#/commands/extract", "#/commands/diff", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
+    implements: ["#/commands/validate", "#/commands/gaps", "#/commands/document", "#/commands/approve", "#/commands/generate", "#/commands/extract", "#/commands/diff", "#/commands/derive", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
   schema:
     description: The JSON Schemas, embedded into the binary from the files editors use.
   internal/source:
@@ -96,6 +96,7 @@ mappings:
   "#/commands/document": { target: main.runDocument }
   "#/commands/generate": { target: main.runGenerate, description: "Refuses through main.gate while a question blocks what the target reads or the approval is missing or void; then runs the plug-in with main.runPlugin; the request and answer are the pluginRequest and pluginResponse structs." }
   "#/commands/extract": { target: main.runExtract, description: Answers with status 2 until it is built. }
+  "#/commands/derive": { target: main.runDerive, description: "Writes validate.Drafts, the drafts of the cases the warnings name." }
   "#/commands/diff": { target: main.runDiff, description: "Lists diff.Compare's changes, then checks the release record beside the new folder." }
   "#/enums/DocumentTarget": { target: main.documentTargets }
   "#/enums/GeneratorTarget": { target: main.builtGenerators, description: Empty; every target is a plug-in. }

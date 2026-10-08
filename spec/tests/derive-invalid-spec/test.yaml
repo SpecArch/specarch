@@ -1,0 +1,8 @@
+command: derive
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification whose operation names a permission that is not declared"
+when: "derive is run"
+then: "it prints the error, writes nothing and exits 1"
+verifies: [SA-28]

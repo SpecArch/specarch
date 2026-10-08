@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.3.0-dev of the specification: 182 design tests, 56 golden and 125 red, about 9 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.3.0-dev of the specification: 188 design tests, 59 golden and 128 red, about 10 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.3.0-dev of the specification: 182 design tests, 56 golden and 125 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 178 |
+| system | 184 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -68,6 +68,56 @@ Scenario: golden; level: system; verifies SA-20.
 - Given: a specification without open questions, a configured requirements document that is current, and a stakeholder owner
 - When: approve is run with --by owner and a date
 - Then: it writes records/approvals/1.0.0.yaml with the role, the date, the document and the digest of the files, and exits 0
+
+### Command derive
+
+#### derive-invalid-spec
+
+Scenario: red; level: system; covers exit 1; verifies SA-28.
+
+- Given: a specification whose operation names a permission that is not declared
+- When: derive is run
+- Then: it prints the error, writes nothing and exits 1
+
+#### derive-keeps-existing
+
+Scenario: golden; level: system; verifies SA-28.
+
+- Given: the same specification, with a test folder already named as the missing-name draft would be
+- When: derive is run
+- Then: it keeps that folder as it is, says so on standard error, writes the other drafts and exits 0
+
+#### derive-root-tests
+
+Scenario: red; level: system; covers exit 2; verifies SA-28.
+
+- Given: a specification that keeps its tests in specarch.yaml
+- When: derive is run
+- Then: it says each derived test needs a folder under tests/, writes nothing and exits 2
+
+#### derive-skips-blocked
+
+Scenario: golden; level: system; verifies SA-28.
+
+- Given: the same specification with a must question that blocks the operation's path
+- When: derive is run
+- Then: it writes only the requirement's acceptance draft, names the operation's drafts it left out and the question on standard error, and exits 0
+
+#### derive-usage-error
+
+Scenario: red; level: system; covers usage error; verifies SA-28.
+
+- Given: no folder
+- When: derive is run with no arguments
+- Then: it prints how to use it and exits 2
+
+#### derive-writes-drafts
+
+Scenario: golden; level: system; verifies SA-28.
+
+- Given: a specification whose operation has a golden test, a required field, a permission, 403 and 409 responses, and satisfies a requirement with a harm
+- When: derive is run
+- Then: it writes five draft tests, each origin inferred, with verifies, a why and the status or caller the design gives, lists them and exits 0
 
 ### Diagnostic constraint diagnostic_line_positive
 
@@ -1509,10 +1559,13 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-63 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a failing dependency, and none is a mistake users make often. Writing a test that covers one removes it from this list.
+66 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a failing dependency, and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
+| requirement SA-28 | acceptance 1 | golden | SA-28 names no harm |
+| requirement SA-28 | acceptance 2 | golden | SA-28 names no harm |
+| requirement SA-28 | acceptance 3 | golden | SA-28 names no harm |
 | requirement SA-27 | acceptance 1 | golden | SA-27 names no harm |
 | requirement SA-27 | acceptance 2 | golden | SA-27 names no harm |
 | requirement SA-27 | acceptance 3 | golden | SA-27 names no harm |

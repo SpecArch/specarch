@@ -1,0 +1,10 @@
+entities:
+  Members:
+    type: object
+    properties:
+      cardNumber: {type: string, maxLength: 10}
+    required: [cardNumber]
+    primaryKey: [cardNumber]
+    origin: stated
+    cites:
+      - {source: code, clause: migrations public.members, says: 'Table public.members: card_number character varying(10) not null.'}

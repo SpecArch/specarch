@@ -1,0 +1,26 @@
+roles:
+  clerk:
+    description: Works the desk.
+    permissions: [loans.read]
+    origin: stated
+    cites:
+      - {source: manual, clause: "3", says: A clerk works the desk.}
+permissions:
+  loans.read:
+    description: Lets a desk clerk read the loans of a member.
+    origin: stated
+    cites:
+      - {source: manual, clause: "3", says: A clerk can read a member's loans.}
+paths:
+  /members/{cardNumber}/loans:
+    parameters:
+      - {name: cardNumber, in: path, required: true, schema: {type: string, maxLength: 12}}
+    get:
+      operationId: listMemberLoans
+      summary: Lists a member's loans
+      permission: loans.read
+      responses:
+        "200": {description: The loans}
+      origin: stated
+      cites:
+        - {source: manual, clause: "3", says: The desk lists a member's loans.}

@@ -5,6 +5,7 @@
 //	specarch document <target> [--out <folder>] [--check] <folder>...
 //	specarch generate <target> [--out <folder>] [--check] <folder>...
 //	specarch extract <source> [--source-key <key>] --out <folder> <path>...
+//	specarch merge --out <folder> <tree>...
 //	specarch diff <old> <new>
 //	specarch derive <folder>...
 //	specarch idioms [diff <idiom>] <folder>...
@@ -36,6 +37,7 @@ const usage = `usage:
   specarch extract <source> [--source-key <key>] --out <folder> <path>...
                                             write a specification from one surface of existing code;
                                             the sources are outline, database and router
+  specarch merge --out <folder> <tree>...  merge the trees extract wrote into one specification
   specarch diff <old folder> <new folder>   list what changed between two versions and check the release
   specarch derive <folder>...               write a draft test for every derived case no test covers
   specarch idioms <folder>...               list the idioms each implementation file uses, and how
@@ -69,6 +71,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runGenerate(args[1:], stdout, stderr)
 	case "extract":
 		return runExtract(args[1:], stdout, stderr)
+	case "merge":
+		return runMerge(args[1:], stdout, stderr)
 	case "diff":
 		return runDiff(args[1:], stdout, stderr)
 	case "derive":

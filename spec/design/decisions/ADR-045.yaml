@@ -1,0 +1,71 @@
+decisions:
+  ADR-045:
+    title: specarch merge joins the readers' trees element by element, asks wherever they disagree, and compares the documents with the code only where the code was read
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      ADR-042 has each reader write a tree of its own and a verb of its
+      own merge them, by the table of docs/from-sources.md, section 3.2,
+      with must for security and for what was given outside. The readers
+      of one repository read different paths and so name different
+      commits: the database tree names the commit that last changed the
+      migrations, the router tree the one that last changed the router's
+      folder, and both declare the same code source. The table compares
+      documents with code, while most trees merged are code of different
+      surfaces, each holding what the others do not.
+    decision: |
+      A tree is checked before it is merged: it tracks origin, validate
+      reports no error in it, and it holds no tests, implementation files
+      or records, which the readers do not write. Elements are matched by
+      their name in their section, an operation by its path and method, a
+      field by its entity and name, and an entry of a list of named
+      objects, such as a path's parameters, by its name. Citations are
+      joined; a key only one tree writes is kept; a key with different
+      values is left out, and one must question per key cites the
+      element in every tree that gives it and offers each value. The
+      origin taken is decided over stated over inferred. A tree is on the
+      code side when every source it declares is code, and on the
+      documents side otherwise. The table's rows for an element only one
+      side has apply to the design sections, decisions apart, and only
+      when the other side has elements in the same section, or for a
+      field when it has the same entity; two trees on one side never ask
+      about an element only one of them has. A source gets the key
+      givenOutside: true when the system's owners gave it to parties
+      outside. Sources of one key are joined when they agree in all but
+      their clauses; code sources that differ in their edition too are
+      joined at the newest edition, which every other is an ancestor of,
+      once every clause path of each tree is found unchanged from that
+      tree's edition up to it; anything else is refused. The trees'
+      questions are numbered again in the order the trees are given, and
+      each element stays in the file its first tree wrote it in.
+    consequences: |
+      The database and router trees of a repository merge with no
+      question of their own, since neither speaks of the other's
+      sections. A documents tree that speaks of operations makes every
+      route it does not mention a must question, which is how an open
+      endpoint is found. A document's entity the database does not have
+      asks whether it is built only when a database tree is merged, so a
+      manual merged with the routes alone does not claim every table is
+      missing. The order of the trees changes the questions' numbers and
+      which file holds an element, never what is merged.
+    why: |
+      Comparing only where the other side was read, because a reader reads
+      one surface, and an element missing from a tree that never looked
+      for it says nothing about the system; asking there would bury the
+      real gaps under ones that are not. The side from the sources a tree
+      declares, because that is what says whether a tree was read from
+      code, and a tree written by hand from documents declares documents.
+      The newest edition, because it is the commit rule of every reader,
+      the newest of the commits that last changed each path read, applied
+      to the paths of all the trees; the check that each path is unchanged
+      up to it, because a citation is only true for the content it was
+      read from, and git's ancestry is what says one commit includes
+      another. A question per key, because the owner answers one fact at a
+      time, and the key left out, because writing either value would be
+      choosing between the sources (docs/from-sources.md, 3.2). A boolean
+      named for what happened to the source, given outside, rather than a
+      kind, because a manual and an interface can both be published, and
+      the rule asks only whether someone outside holds the project to it.
+      Numbering in the order given, because the order is the one input a
+      reviewer chooses and can repeat.
+    satisfies: [SA-45]

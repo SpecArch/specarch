@@ -11,7 +11,7 @@ usage:
 A specification is a folder holding specarch.yaml. A folder given here is
 searched for specifications and for *.specarch-implementation.yaml files
 outside one. This build has no gaps, document, approve, generate, extract,
-diff, derive or idioms verbs; the Go build of specarch has them.
+merge, diff, derive or idioms verbs; the Go build of specarch has them.
 
 """
 
@@ -48,7 +48,7 @@ public func run(_ args: [String], stdout: TextSink, stderr: TextSink) -> Int32 {
         }
         stdout.write("specarch \(programVersion)\nspecifications: meta-model 0.1\nimplementation files: meta-model 0.1\n")
         return 0
-    case "document", "generate", "gaps", "approve", "extract", "diff", "derive", "idioms":
+    case "document", "generate", "gaps", "approve", "extract", "merge", "diff", "derive", "idioms":
         stderr.write("specarch \(command): this build has no \(command) verb; the Go build of specarch has it\n")
         return 2
     case "help", "-h", "--help":

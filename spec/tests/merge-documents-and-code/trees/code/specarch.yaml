@@ -1,0 +1,15 @@
+specarch: "0.1"
+info:
+  title: Desk code
+  version: 0.1.0
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 2ddae4f53139c036e8b99477922186064bdb4d6f
+    url: https://example.invalid/desk.git
+    clauses:
+      - {clause: migrations, title: The tables}
+      - {clause: router, title: The routes}

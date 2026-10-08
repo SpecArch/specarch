@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "two sources, one marked givenOutside with the text yes and one with false"
+when: validate is run
+then: it reports that givenOutside of the first is not a boolean, accepts the second, and exits 1
+verifies: [SA-45]

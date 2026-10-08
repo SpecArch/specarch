@@ -1,0 +1,20 @@
+entities:
+  Members:
+    type: object
+    properties:
+      cardNumber: {type: string, maxLength: 10}
+      fullName: {type: string, maxLength: 200}
+    required: [cardNumber, fullName]
+    primaryKey: [cardNumber]
+    origin: stated
+    cites:
+      - {source: code, clause: migrations public.members, says: Table public.members.}
+  Shelves:
+    type: object
+    properties:
+      code: {type: string, maxLength: 8}
+    required: [code]
+    primaryKey: [code]
+    origin: stated
+    cites:
+      - {source: code, clause: migrations public.shelves, says: Table public.shelves.}

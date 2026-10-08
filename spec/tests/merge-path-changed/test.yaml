@@ -1,0 +1,8 @@
+command: merge
+level: system
+scenario: red
+covers: [exit 1]
+given: "a repository whose first commit adds a migration, whose second adds another and whose third the router, a database tree read at the first and a router tree read at the third"
+when: "merge is run on the two trees"
+then: "it refuses them, saying the migrations changed at the second commit, after the first the database tree read them at, writes nothing and exits 1"
+verifies: [SA-45]

@@ -1,0 +1,7 @@
+questions:
+  Q-1:
+    question: Is a card number ever reused once a member leaves?
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Members']
+    decidedBy: system-owner

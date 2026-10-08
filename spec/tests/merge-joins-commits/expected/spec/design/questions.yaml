@@ -1,0 +1,19 @@
+questions:
+  Q-1:
+    question: Is a card number ever reused once a member leaves?
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Members']
+    decidedBy: system-owner
+  Q-2:
+    question: What does GET /members/{cardNumber} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members~1{cardNumber}/get/summary', '#/paths/~1members~1{cardNumber}/get/responses']
+    decidedBy: system-owner
+  Q-3:
+    question: 'What values does each path parameter of /members/{cardNumber} take: cardNumber?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members~1{cardNumber}/parameters/0/schema']
+    decidedBy: system-owner

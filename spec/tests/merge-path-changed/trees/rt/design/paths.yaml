@@ -1,0 +1,23 @@
+roles:
+  reader:
+    description: Reads the members.
+    permissions: [members.read]
+    origin: stated
+    cites:
+      - {source: code, clause: router, says: The router's roles give reader members.read.}
+permissions:
+  members.read:
+    description: Reads a member.
+    origin: stated
+    cites:
+      - {source: code, clause: 'router GET /members/{cardNumber}', says: 'GET /members/{cardNumber} checks members.read.'}
+paths:
+  /members/{cardNumber}:
+    parameters:
+      - {name: cardNumber, in: path, required: true}
+    get:
+      operationId: showMember
+      permission: members.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'router GET /members/{cardNumber}', says: 'GET /members/{cardNumber} checks members.read; its handler is ShowMember.'}

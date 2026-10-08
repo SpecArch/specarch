@@ -41,6 +41,15 @@ jobs:
           for run in one two; do go run ./cmd/specarch extract router --out "$RUNNER_TEMP/routes-$run" examples/lending-desk/sources/routes/routes.json > "$RUNNER_TEMP/routes-$run.txt" || exit 1; done
           diff -r "$RUNNER_TEMP/routes-one" "$RUNNER_TEMP/routes-two" && cmp "$RUNNER_TEMP/routes-one.txt" "$RUNNER_TEMP/routes-two.txt"
           go run ./cmd/specarch validate "$RUNNER_TEMP/routes-one"
+      - name: The lending desk's database and routes merge the same twice, validate and give their gaps
+        # gaps exits 1 while a must or should question is open, which is
+        # the normal state of a specification read from sources.
+        run: |
+          for run in one two; do go run ./cmd/specarch merge --out "$RUNNER_TEMP/merged-$run" "$RUNNER_TEMP/one" "$RUNNER_TEMP/routes-one" > "$RUNNER_TEMP/merged-$run.txt" || exit 1; done
+          diff -r "$RUNNER_TEMP/merged-one" "$RUNNER_TEMP/merged-two" && cmp "$RUNNER_TEMP/merged-one.txt" "$RUNNER_TEMP/merged-two.txt"
+          go run ./cmd/specarch validate "$RUNNER_TEMP/merged-one"
+          status=0; go run ./cmd/specarch gaps "$RUNNER_TEMP/merged-one" > "$RUNNER_TEMP/gaps.txt" || status=$?
+          test "$status" -eq 1 && grep -q '8 open questions (8 must' "$RUNNER_TEMP/gaps.txt"
       - name: Generated documents are current
         # examples/lending-desk is a partial specification written from
         # sources and configures only the four documents an owner reads

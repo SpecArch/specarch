@@ -635,6 +635,10 @@
           "type": "string",
           "minLength": 1
         },
+        "givenOutside": {
+          "description": "SpecArch keyword. True when the system's owners gave this source to parties outside, such as a published interface, a manual handed to customers or a contract, so that a promise in it is not the project's alone to change. specarch merge asks a must question about an element only this source or only the code has.",
+          "type": "boolean"
+        },
         "prefix": {
           "description": "For kind requirement-set, change-set or defect-set: the prefix of the IDs in that set, such as JIRA, so that a link JIRA-12 resolves to it. One tracker that holds several kinds is declared once per kind, and the prefixes may be the same.",
           "type": "string",

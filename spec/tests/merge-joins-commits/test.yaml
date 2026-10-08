@@ -1,0 +1,7 @@
+command: merge
+level: system
+scenario: golden
+given: "a repository whose first commit holds the migrations and whose second the router, a database tree read at the first that asks one question, and a router tree read at the second that asks two, both declaring the repository as the source code"
+when: "merge is run on the two trees"
+then: "it writes one specification with one source code at the second commit, whose clauses are both trees', every element of both trees, the stakeholder they share once and the three questions numbered again in the order the trees are given, says the migrations are unchanged up to the second commit, and exits 0"
+verifies: [SA-45]

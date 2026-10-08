@@ -1,0 +1,13 @@
+arguments: [merge, --out, spec, trees/db, trees/rt]
+repository:
+  folder: service
+  commits:
+    - [migrations]
+    - [router]
+exitStatus: 0
+standardOutput: |
+  tree trees/db: Database of migrations, on the code side: 2 elements and 1 question
+  tree trees/rt: Routes of router, on the code side: 4 elements and 2 questions
+  source code: one repository read at 2 commits; the merged edition is 1d5a5820ed49410e65316966befc77e8991bdaa0, the newest, and every path read at d170e3010677f1362aa65b996e8a627d7c89f94b (Database of migrations) is unchanged up to it
+  merged 5 elements, each an entry of a section or an operation: 1 in more than one tree, and 0 keys the trees disagree on
+  wrote 3 questions: 3 from the trees, numbered again in the order the trees are given, and 0 the merge asked

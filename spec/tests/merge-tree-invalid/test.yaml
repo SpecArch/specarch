@@ -1,0 +1,8 @@
+command: merge
+level: system
+scenario: red
+covers: [exit 1]
+given: "two trees, the second of which has an entity without its properties, which validate reports"
+when: "merge is run on the two trees"
+then: "it refuses the second tree, saying validate reports errors in it, writes nothing and exits 1"
+verifies: [SA-45]

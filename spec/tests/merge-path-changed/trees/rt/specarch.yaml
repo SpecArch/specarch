@@ -1,0 +1,14 @@
+specarch: "0.1"
+info:
+  title: Routes of router
+  version: 0.1.0
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 8b9415170e5db8912c1f5d1e642672c8cf83ff6f
+    url: ../../service
+    clauses:
+      - {clause: router, title: The routes the router built from here registers}

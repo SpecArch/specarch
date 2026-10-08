@@ -1,0 +1,21 @@
+specarch: "0.1"
+info:
+  title: Desk manual
+  version: 0.1.0
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  manual:
+    kind: document
+    title: The lending desk manual
+    edition: "3"
+    clauses:
+      - {clause: "2", title: Members}
+      - {clause: "3", title: Loans}
+  api:
+    kind: document
+    title: The published members interface
+    edition: "1.0"
+    givenOutside: true
+    clauses:
+      - {clause: "4", title: Fines}

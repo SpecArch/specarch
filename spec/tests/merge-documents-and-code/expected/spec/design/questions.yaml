@@ -1,0 +1,65 @@
+questions:
+  Q-1:
+    question: 'Which is right for #/entities/Members/properties/cardNumber/maxLength: 10 or 12?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Members/properties/cardNumber/maxLength']
+    decidedBy: system-owner
+    options: ['10, as Desk code has it', '12, as Desk manual has it']
+    why: 'The sources disagree: Desk code says 10, and Desk manual says 12. The merge leaves the key out rather than choose between them.'
+    cites:
+      - {source: code, clause: migrations public.members, says: Table public.members.}
+      - {source: manual, clause: "2", says: 'A member has a card number of up to twelve characters, a full name and an e-mail address.'}
+  Q-2:
+    question: 'Which is right for #/entities/Members/required: fullName required or fullName not required?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Members/required']
+    decidedBy: system-owner
+    options: ['fullName required, as Desk code has it', 'fullName not required, as Desk manual has it']
+    why: 'The sources disagree: Desk code says fullName required, and Desk manual says fullName not required. The merge leaves the key out rather than choose between them.'
+    cites:
+      - {source: code, clause: migrations public.members, says: Table public.members.}
+      - {source: manual, clause: "2", says: 'A member has a card number of up to twelve characters, a full name and an e-mail address.'}
+  Q-3:
+    question: 'Which is right for #/permissions/loans.read/description: Read loans. or Lets a desk clerk read the loans of a member.?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.read/description']
+    decidedBy: system-owner
+    options: ['Read loans., as Desk code has it', 'Lets a desk clerk read the loans of a member., as Desk manual has it']
+    why: 'The sources disagree: Desk code says Read loans., and Desk manual says Lets a desk clerk read the loans of a member.. The merge leaves the key out rather than choose between them.'
+    cites:
+      - {source: code, clause: 'router GET /members/{cardNumber}/loans', says: It checks loans.read.}
+      - {source: manual, clause: "3", says: A clerk can read a member's loans.}
+  Q-4:
+    question: 'Which is right for #/paths/~1members~1{cardNumber}~1loans/parameters/0/schema/maxLength: 10 or 12?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members~1{cardNumber}~1loans/parameters/0/schema/maxLength']
+    decidedBy: system-owner
+    options: ['10, as Desk code has it', '12, as Desk manual has it']
+    why: 'The sources disagree: Desk code says 10, and Desk manual says 12. The merge leaves the key out rather than choose between them.'
+    cites:
+      - {source: code, clause: 'router GET /members/{cardNumber}/loans', says: 'GET /members/{cardNumber}/loans checks loans.read.'}
+      - {source: manual, clause: "3", says: The desk lists a member's loans.}
+  Q-5:
+    question: 'Undocumented, from code: is entity Shelves meant to be part of the system? The code has it at migrations public.shelves, and no document mentions it.'
+    kind: decision
+    priority: should
+    blocks: ['#/entities/Shelves']
+    decidedBy: system-owner
+    options: ['Yes: the documents are to describe it', 'No: the code is to change']
+    why: Only the code has it, and it concerns neither security nor a source given outside, so the owner confirms it before it is built on.
+    cites:
+      - {source: code, clause: migrations public.shelves, says: Table public.shelves.}
+  Q-6:
+    question: 'Undocumented, from code: is operation health (GET /health) meant to be part of the system? The code has it at router GET /health, and no document mentions it.'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1health/get']
+    decidedBy: system-owner
+    options: ['Yes: the documents are to describe it', 'No: the code is to change']
+    why: Only the code has it, and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found.
+    cites:
+      - {source: code, clause: router GET /health, says: GET /health checks loans.read.}

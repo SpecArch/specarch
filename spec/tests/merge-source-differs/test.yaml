@@ -1,0 +1,8 @@
+command: merge
+level: system
+scenario: red
+covers: [exit 1]
+given: "two trees that both declare the source code, at two different urls"
+when: "merge is run on the two trees"
+then: "it refuses them, naming the source and what differs, writes nothing and exits 1"
+verifies: [SA-45]

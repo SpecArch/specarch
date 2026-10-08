@@ -1,0 +1,10 @@
+stakeholders:
+  system-owner:
+    description: Whoever owns the system that was read and answers for it.
+    origin: inferred
+    why: The surface names no one.
+  desk-manager:
+    description: Runs the lending desk.
+    origin: stated
+    cites:
+      - {source: manual, clause: "2", says: The desk manager runs the desk.}

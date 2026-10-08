@@ -1,0 +1,15 @@
+arguments: [merge, --out, spec, trees/code, trees/manual]
+exitStatus: 0
+standardOutput: |
+  tree trees/code: Desk code, on the code side: 7 elements and 0 questions
+  tree trees/manual: Desk manual, on the documents side: 6 elements and 0 questions
+  merged 9 elements, each an entry of a section or an operation: 4 in more than one tree, and 4 keys the trees disagree on
+  wrote 8 questions: 0 from the trees, numbered again in the order the trees are given, and 8 the merge asked
+  question Q-1 (must): #/entities/Members/properties/cardNumber/maxLength: the trees disagree
+  question Q-2 (must): #/entities/Members/required: the trees disagree
+  question Q-3 (must): #/permissions/loans.read/description: the trees disagree
+  question Q-4 (must): #/paths/~1members~1{cardNumber}~1loans/parameters/0/schema/maxLength: the trees disagree
+  question Q-5 (should): #/entities/Shelves: undocumented, from code
+  question Q-6 (must): #/paths/~1health/get: undocumented, from code
+  question Q-7 (must): #/entities/Members/properties/email: not built yet
+  question Q-8 (must): #/entities/Fines: not built yet

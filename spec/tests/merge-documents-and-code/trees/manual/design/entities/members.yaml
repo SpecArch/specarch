@@ -1,0 +1,21 @@
+entities:
+  Members:
+    type: object
+    properties:
+      cardNumber: {type: string, maxLength: 12}
+      fullName: {type: string, maxLength: 200}
+      email: {type: string, format: email, sensitivity: personal}
+    required: [cardNumber, email]
+    primaryKey: [cardNumber]
+    origin: stated
+    cites:
+      - {source: manual, clause: "2", says: 'A member has a card number of up to twelve characters, a full name and an e-mail address.'}
+  Fines:
+    type: object
+    properties:
+      amount: {type: integer, format: int32, minimum: 0}
+    required: [amount]
+    primaryKey: [amount]
+    origin: stated
+    cites:
+      - {source: api, clause: "4", says: A fine is a whole amount.}

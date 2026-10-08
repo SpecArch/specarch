@@ -1,0 +1,24 @@
+questions:
+  Q-7:
+    question: 'Not built yet. The documents have field email of entity Members, and the code read for entity Members does not: is it to be built, or are the documents to change?'
+    kind: decision
+    priority: must
+    blocks: [implementation]
+    decidedBy: system-owner
+    options: ['Built: the code is to add it', 'Dropped: the documents are to change']
+    why: Only the documents have it, and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found.
+    cites:
+      - {source: code, clause: migrations public.members, says: Table public.members.}
+      - {source: manual, clause: "2", says: 'A member has a card number of up to twelve characters, a full name and an e-mail address.'}
+  Q-8:
+    question: 'Not built yet. The documents have entity Fines, and the code read for entities does not: is it to be built, or are the documents to change?'
+    kind: decision
+    priority: must
+    blocks: [implementation]
+    decidedBy: system-owner
+    options: ['Built: the code is to add it', 'Dropped: the documents are to change']
+    why: Only the documents have it, and it cites a source given to parties outside, whose promise is not the project's alone to change.
+    cites:
+      - {source: api, clause: "4", says: A fine is a whole amount.}
+      - {source: code, clause: migrations, says: Read for this tree; what the documents have is not here.}
+      - {source: code, clause: router, says: Read for this tree; what the documents have is not here.}

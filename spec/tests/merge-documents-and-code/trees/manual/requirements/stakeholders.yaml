@@ -1,0 +1,6 @@
+stakeholders:
+  desk-manager:
+    description: Runs the lending desk.
+    origin: stated
+    cites:
+      - {source: manual, clause: "2", says: The desk manager runs the desk.}

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.5.0-dev of the specification: 9 needs, 44 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.5.0-dev of the specification: 9 needs, 45 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 ## 1. Needs to requirements
 
@@ -15,7 +15,7 @@ Version 0.5.0-dev of the specification: 9 needs, 44 requirements, and 0 gaps. Ea
 | NEED-5 | accepted | SA-35, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
 | NEED-6 | accepted | SA-15, SA-13 |
 | NEED-7 | accepted | SA-14 |
-| NEED-8 | accepted | SA-17, SA-18, SA-19, SA-20, SA-30, SA-44 |
+| NEED-8 | accepted | SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45 |
 | NEED-9 | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22 |
 
 ## 2. Requirements to design and verification
@@ -66,6 +66,7 @@ Version 0.5.0-dev of the specification: 9 needs, 44 requirements, and 0 gaps. Ea
 | SA-42 | NEED-2 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039 | tests validate-accessibility; tests validate-compact-columns; tests validate-flows; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-theme |
 | SA-43 | NEED-2 | decisions ADR-040 | tests generate-ui |
 | SA-44 | NEED-8 | commands extract; decisions ADR-043; decisions ADR-044 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-exit-1; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests gaps-outline-not-read |
+| SA-45 | NEED-8 | commands merge; decisions ADR-045 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-path-changed; tests merge-source-differs; tests merge-tree-invalid; tests validate-source-given-outside |
 
 ## 3. Gaps
 

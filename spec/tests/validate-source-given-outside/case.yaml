@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:7: error: /sources/interface/givenOutside: schema: this is a string, but a boolean is expected here

@@ -1,0 +1,14 @@
+specarch: "0.1"
+info:
+  title: Database of migrations
+  version: 0.1.0
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: d170e3010677f1362aa65b996e8a627d7c89f94b
+    url: ../../service
+    clauses:
+      - {clause: migrations, title: The database catalogue after every migration here is applied}

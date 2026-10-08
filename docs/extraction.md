@@ -49,8 +49,8 @@ project's repository. `specarch extract <source>`, the verb that goes from
 existing code or documents to a specification, is designed in
 `spec/design/commands/extract.yaml` and built one reader at a time in the
 steps of "Building extract" below. The Go build reads the sources
-`outline`, `database` and `router`; a source not built yet is answered with status
-2, and the Swift build has no extract verb.
+`outline`, `database` and `router`, and `specarch merge` joins their trees; a source not built yet is answered with status
+2, and the Swift build has no extract or merge verb.
 
 ## Building extract
 
@@ -152,14 +152,23 @@ Steps, in order:
    `examples/lending-desk/sources/routes/routes.json`; its four routes
    come out as four operations with their parameters and permissions,
    validated and byte-identical.
-4. `specarch merge`, with the priority rule above, written into
-   `docs/from-sources.md` section 3.2 as well, and an optional key on a
-   source that marks it as given to parties outside, added to the 0.1
-   design schema as the other keywords were. Done when the database
-   and router trees of the lending desk merge into one specification
-   that validates with no errors and `specarch gaps` reads, and a merge
-   run twice is byte-identical. A release tag after this step lets the
-   first project use the database and router readers.
+4. Built. `specarch merge`, with the priority rule above, written into
+   `docs/from-sources.md` section 3.2 as well, and the optional key
+   `givenOutside` on a source, marking it as given to parties outside,
+   in the 0.1 design schema (ADR-045). Each tree is validated on its own
+   first. Elements are matched by name, an operation by path and method,
+   a field by entity and name; citations are joined, and a key the trees
+   give different values is left out with a `must` question citing both.
+   The rows for an element only one side has apply between the code side
+   and the documents side, and only where the other side has elements of
+   the same section or entity. Code sources of one repository read at
+   different commits become one, at the newest commit, once git shows
+   every path each tree read unchanged up to it. The database and router
+   trees of the lending desk merge into one specification at commit
+   1711bb0 with the readers' eight questions, which validates with no
+   errors, `specarch gaps` reads, and a second run writes byte for byte;
+   CI repeats it. A release tag after this step lets the first project
+   use the database and router readers.
 5. A mark on an element that the project describes and compares but does
    not generate, naming the stakeholder that owns it: on the element's
    mapping in the implementation file, one element at a time, since one

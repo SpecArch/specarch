@@ -1,0 +1,39 @@
+permissions:
+  loans.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'router GET /members/{cardNumber}/loans', says: It checks loans.read.}
+      - {source: manual, clause: "3", says: A clerk can read a member's loans.}
+roles:
+  clerk:
+    description: Works the desk.
+    permissions: [loans.read]
+    origin: stated
+    cites:
+      - {source: code, clause: router, says: The router's role table has clerk with loans.read.}
+      - {source: manual, clause: "3", says: A clerk works the desk.}
+paths:
+  /members/{cardNumber}/loans:
+    parameters:
+      - {name: cardNumber, in: path, required: true, schema: {type: string}}
+    get:
+      operationId: listMemberLoans
+      summary: Lists a member's loans
+      permission: loans.read
+      responses:
+        "200": {description: The loans}
+      origin: stated
+      cites:
+        - {source: code, clause: 'router GET /members/{cardNumber}/loans', says: 'GET /members/{cardNumber}/loans checks loans.read.'}
+        - {source: manual, clause: "3", says: The desk lists a member's loans.}
+  /health:
+    get:
+      operationId: health
+      summary: Says the service is up
+      permission: loans.read
+      responses:
+        "200": {description: Up}
+      origin: inferred
+      cites:
+        - {source: code, clause: router GET /health, says: GET /health checks loans.read.}
+      why: Undocumented, from code. The code has it at router GET /health, and no document merged here mentions it.

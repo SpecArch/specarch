@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.5.0-dev of the specification: 239 design tests, 83 golden and 156 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.5.0-dev of the specification: 246 design tests, 85 golden and 161 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 235 |
+| system | 242 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -19,7 +19,7 @@ Framework: go test. Run: `go test ./...`.
 
 | Suite | Level | Runs | Command |
 |---|---|---|---|
-| conformance | system | every design test of command validate, command gaps, command document, command approve, command generate, command extract, command idioms, command idioms diff, command version | `go test ./cmd/specarch` |
+| conformance | system | every design test of command validate, command gaps, command document, command approve, command generate, command extract, command merge, command idioms, command idioms diff, command version | `go test ./cmd/specarch` |
 | shipped-idioms | unit | tests of this implementation only | `go test ./internal/validate` |
 | generated-sql | unit | tests of this implementation only | `go test ./internal/gensql` |
 | generated-openapi | unit | tests of this implementation only | `go test ./internal/genopenapi` |
@@ -802,6 +802,56 @@ Scenario: red; level: system; covers exit 2, usage error; verifies SA-32.
 - Given: no folder
 - When: idioms is run without arguments
 - Then: it prints the usage and exits 2
+
+### Command merge
+
+#### merge-documents-and-code
+
+Scenario: golden; level: system; verifies SA-45.
+
+- Given: a tree read from code and a tree written from a manual and a published interface, the interface marked givenOutside: they give one entity's card number and one path parameter different lengths, require different fields and describe one permission differently; only the code has a plain entity and an operation, and only the documents have a personal field and an entity from the interface
+- When: merge is run on the two trees
+- Then: it writes the elements of both with both citations, leaves out each key they disagree on with a must question citing both, writes the code's entity and operation inferred as undocumented, with a should question for the entity and a must question for the operation, keeps the documents' field and entity with a must Not built yet question for each in implementation/questions.yaml, and exits 0
+
+#### merge-joins-commits
+
+Scenario: golden; level: system; verifies SA-45.
+
+- Given: a repository whose first commit holds the migrations and whose second the router, a database tree read at the first that asks one question, and a router tree read at the second that asks two, both declaring the repository as the source code
+- When: merge is run on the two trees
+- Then: it writes one specification with one source code at the second commit, whose clauses are both trees', every element of both trees, the stakeholder they share once and the three questions numbered again in the order the trees are given, says the migrations are unchanged up to the second commit, and exits 0
+
+#### merge-path-changed
+
+Scenario: red; level: system; covers exit 1; verifies SA-45.
+
+- Given: a repository whose first commit adds a migration, whose second adds another and whose third the router, a database tree read at the first and a router tree read at the third
+- When: merge is run on the two trees
+- Then: it refuses them, saying the migrations changed at the second commit, after the first the database tree read them at, writes nothing and exits 1
+
+#### merge-source-differs
+
+Scenario: red; level: system; covers exit 1; verifies SA-45.
+
+- Given: two trees that both declare the source code, at two different urls
+- When: merge is run on the two trees
+- Then: it refuses them, naming the source and what differs, writes nothing and exits 1
+
+#### merge-tree-invalid
+
+Scenario: red; level: system; covers exit 1; verifies SA-45.
+
+- Given: two trees, the second of which has an entity without its properties, which validate reports
+- When: merge is run on the two trees
+- Then: it refuses the second tree, saying validate reports errors in it, writes nothing and exits 1
+
+#### merge-usage-error
+
+Scenario: red; level: system; covers usage error, exit 2.
+
+- Given: one tree
+- When: merge is run on it alone
+- Then: it says merge needs at least two trees, prints how to use it and exits 2
 
 ### Command validate
 
@@ -1741,6 +1791,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-13.
 - When: validate is run
 - Then: it reports source and exits 1
 
+#### validate-source-given-outside
+
+Scenario: red; level: system; covers exit 1; verifies SA-45.
+
+- Given: two sources, one marked givenOutside with the text yes and one with false
+- When: validate is run
+- Then: it reports that givenOutside of the first is not a boolean, accepts the second, and exits 1
+
 #### validate-stack-key
 
 Scenario: red; level: system; covers exit 1; verifies SA-9.
@@ -1977,7 +2035,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-131 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+135 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2097,6 +2155,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-44 | acceptance 3 | golden | SA-44 names no harm |
 | requirement SA-44 | acceptance 4 | golden | SA-44 names no harm |
 | requirement SA-44 | acceptance 5 | golden | SA-44 names no harm |
+| requirement SA-45 | acceptance 1 | golden | SA-45 names no harm |
+| requirement SA-45 | acceptance 2 | golden | SA-45 names no harm |
+| requirement SA-45 | acceptance 3 | golden | SA-45 names no harm |
+| requirement SA-45 | acceptance 4 | golden | SA-45 names no harm |
 | requirement SA-1 | acceptance 1 | golden | SA-1 names no harm |
 | requirement SA-1 | acceptance 2 | golden | SA-1 names no harm |
 | requirement SA-2 | acceptance 1 | golden | SA-2 names no harm |

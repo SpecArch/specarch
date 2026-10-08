@@ -196,7 +196,10 @@ Sources are declared once under `sources` in the root file, keyed by
 kebab-case name, with their `kind` (standard, regulation, document,
 interview, system, code, or requirement-set, change-set or defect-set for
 an external tracker, each with its `prefix`), `title`, `edition`, `author`,
-`date` and `url`. A citation of a source that is not
+`date` and `url`, and `givenOutside: true` when the system's owners gave
+it to parties outside, such as a published interface or a contract, which
+makes `specarch merge` ask a `must` question about an element only it or
+only the code has. A citation of a source that is not
 declared is refused (`source`). A `system` is a running system that was
 observed; `code` is a system's source code, read at the commit its
 `edition` names, and a citation of it names a file and line, or a package
@@ -376,7 +379,7 @@ redefined.
 | `type`, `title`, `properties`, `required`, `enum`, `const`, `format`, `default`, `examples`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`, `minLength`, `maxLength`, `pattern`, `items`, `minItems`, `maxItems`, `uniqueItems`, `readOnly`, `writeOnly`, `$ref` | JSON Schema 2020-12 | `$ref` is restricted to `#/entities/X`, `#/enums/X` and `#/views/X`; nullability is written `type: [string, "null"]` as JSON Schema does |
 | `channels`, `messages`, `payload` | AsyncAPI | one level: channel, messages, payload; no servers, bindings or operations objects |
 | `x-*` | OpenAPI convention | allowed in every object, ignored by validation |
-| `stages`, `sources` | SpecArch | the root file's list of stage folders and its registry of cited sources |
+| `stages`, `sources`, `givenOutside` | SpecArch | the root file's list of stage folders and its registry of cited sources, each marked when it was given to parties outside |
 | `stakeholders`, `needs`, `requirements`, `statement`, `priority`, `status`, `acceptance`, `verification` | SpecArch, after ISO/IEC/IEEE 29148 | the requirements stage: the standard's stakeholders (5.2.2), needs (6.3), requirements (6.4) and attributes (5.2.8); priority after MoSCoW; verification methods after MIL-STD-961E |
 | `glossary`, `assumptions`, `constraints` (top level) | SpecArch, after ISO/IEC/IEEE 29148 | 9.2.3, 9.5.19 and 9.6.16 of the standard; arc42 sections 2 and 12 |
 | `satisfies`, `verifies` | SpecArch, after SysML and 29148 6.5 | the satisfy and verify relations from a design element or a test to a requirement |

@@ -1,0 +1,9 @@
+arguments: [merge, --out, spec, trees/db, trees/rt]
+repository:
+  folder: service
+  commits:
+    - [migrations/001-members.sql]
+    - [migrations/002-full-name.sql]
+    - [router]
+exitStatus: 1
+standardOutput: ""

@@ -79,3 +79,16 @@ requirements:
     verification: test
     needs: [NEED-8]
     why: Reading a large system by hand misses the element nobody happened to look at, and a citation without the commit it was read at goes stale while still looking precise; extraction is rerun to see what changed, so any difference that is not a change in the sources hides the one that is.
+  SA-45:
+    statement: specarch merge shall merge the partial specification trees the readers write into one specification that keeps the citations of every tree, turn every disagreement between the trees into a must question that cites both, and give byte-identical output for the same trees in the same order.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - The database and router trees of one repository, read at different commits, merge into one specification with one code source at the newer commit, which validate accepts with no errors and gaps reads, and a second run writes the same bytes.
+      - Two trees that give the same key of the same element different values merge into the element without that key and a must question citing both.
+      - An element only the code has, merged with a documents tree that speaks of its section, is written inferred, starting its why with "Undocumented, from code.", with a question that is must for an operation, a permission, a role, a personal or credential field, or a source given outside, and should otherwise.
+      - A tree validate reports an error in, and a source two trees declare differently, are each refused with status 1.
+    verification: test
+    needs: [NEED-8]
+    why: The comparison between surfaces, and between the documents and the code, is where a specification extracted from an existing system finds what is wrong with it; done by hand it is skipped where the two look alike, and a choice made quietly between two sources hides the disagreement the owner must settle.

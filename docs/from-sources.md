@@ -21,7 +21,8 @@ reads the sources mechanically, is built one reader at a time: the
 `database` reader writes the entities from a catalogue dump, the
 `router` reader the operations and permissions from a route table the
 router prints, and the `outline` reader records a surface no reader reads yet, so it shows as
-not read. `docs/extraction.md` is the method behind it and
+not read. `specarch merge` joins the readers' trees, and a tree written
+from the documents, by the rules of section 3.2. `docs/extraction.md` is the method behind it and
 `docs/refinement.md` the design of origin, questions and approval.
 
 ## 1. Install and pin
@@ -71,6 +72,7 @@ declares the sources and says the specification tracks origin:
         title: <the document's own title>
         edition: <its version or date>
         url: <path to the file, from the root file>
+        givenOutside: true
         clauses:
           - { clause: "3.2", title: <heading> }
       <code-key>:
@@ -82,7 +84,10 @@ declares the sources and says the specification tracks origin:
           - { clause: internal/lending/routes.go, title: <what is there> }
 
 One source per document file. One source for the code, at the commit the
-agent read; reading a later commit is a new edition. `clauses` is the
+agent read; reading a later commit is a new edition. `givenOutside: true`
+marks a source the system's owners gave to parties outside, such as a
+published interface, a manual handed to customers or a contract; leave it
+out for one that stayed inside. `clauses` is the
 outline: every section of the document that has a number or a heading,
 and every file or folder of the code that holds behaviour (routes,
 handlers, models, migrations, seeds, configuration). List the leaves of
@@ -138,6 +143,27 @@ documents gave:
 | disagree | the element as far as both agree, and a `must` question (`decision`) that cites both and says "the document says X, the code does Y"; the disputed key is left out, and the question blocks it |
 | only the code has it | the element with `origin: inferred`, a `why` that starts "Undocumented, from code." and names the line, citing the code, and a `should` question asking the owner to confirm it |
 | only the documents have it | the element as the documents state it, and a `should` question in `implementation/questions.yaml`, blocking `implementation`, that starts "Not built yet." and cites the section and the code where it would be |
+
+A question about an element only one side has is `must`, not `should`,
+when the element concerns security (a role, a permission, an operation,
+or an entity or field that is `personal` or a `credential`) or when the
+source that has it is marked `givenOutside`. An undocumented route the
+code serves is the usual way an open endpoint is found, and a promise
+made outside is not the project's alone to break, so neither is left at
+`should`.
+
+`specarch merge --out <folder> <tree>...` applies this table to the trees
+the readers write and to a tree written by hand from the documents. A
+tree whose sources are all code is the code side, any other the
+documents side. An element only one side has is compared only where the
+other side has elements of the same section, or for a field the same
+entity, since a reader that never read a surface says nothing about it.
+Two code trees of one repository, read at different commits, become one
+source at the newest commit, once git shows that every path each tree
+read is unchanged up to it. Where two trees give one key different
+values, the key is left out and a `must` question cites both, whichever
+side they are on. The trees' questions are numbered again in the order
+the trees are given.
 
 Never choose between a document and the code. Whichever is right is the
 owner's decision, recorded as a decision record when it is answered
@@ -358,10 +384,9 @@ with the pinned version and checksum filled in:
 
 ## 6. Not built yet
 
-- `specarch extract` for documents, OpenAPI, permissions and pages, and
-  `specarch merge`: the agent reads those surfaces by hand and merges the
-  database and router readers' trees into the specification, following
-  section 3.2.
+- `specarch extract` for documents, OpenAPI, permissions and pages: the
+  agent reads those surfaces by hand into a tree of their own and merges
+  it with the database and router readers' trees with `specarch merge`.
 - `specarch decide`: the agent writes the decision record by hand.
 - `specarch gaps --json`: the dispatcher reads the text.
 - A validator rule for a citation outside its source's clauses: `gaps`

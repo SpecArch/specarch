@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.4.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: Merge of 2 trees
+  version: 0.1.0
+  description: |
+    The elements of these trees, merged in this order: Database of migrations; Routes of router. Every element cites where it was read; where the trees disagree, or the documents and the code do, a question asks which is right.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 1d5a5820ed49410e65316966befc77e8991bdaa0
+    url: ../service
+    clauses:
+      - {clause: migrations, title: The database catalogue after every migration here is applied}
+      - {clause: router, title: The routes the router built from here registers}

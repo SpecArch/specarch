@@ -1,0 +1,3 @@
+arguments: [merge, --out, spec, trees/a, trees/b]
+exitStatus: 1
+standardOutput: ""

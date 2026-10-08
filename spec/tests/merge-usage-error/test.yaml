@@ -1,0 +1,7 @@
+command: merge
+level: system
+scenario: red
+covers: [usage error, exit 2]
+given: "one tree"
+when: "merge is run on it alone"
+then: "it says merge needs at least two trees, prints how to use it and exits 2"

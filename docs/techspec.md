@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.5.0-dev of the specification: 44 requirements, 3 entities, 11 commands, 6 algorithms, 239 tests, 44 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.5.0-dev of the specification: 45 requirements, 3 entities, 12 commands, 6 algorithms, 246 tests, 45 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -66,6 +66,7 @@ The interfaces the system offers, as its clients see them.
 | generate | Write code or data from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads, the specification is not approved, the plug-in reported an error, or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written |
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
 | idioms diff | Print a shipped idiom's parts beside each override's | public | 0: the overrides were printed, or there was none; 2: usage error, an idiom this program does not ship, a path that could not be read, or a specification with errors |
+| merge | Merge the partial specifications the readers wrote into one | public | 0: the merged specification was written; 1: a tree could not be merged: it does not track origin, validate reports an error in it, it holds tests, implementation files or records, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at; 2: usage error, fewer than two trees, or a folder that could not be read or written |
 | validate | Check specifications and implementation files | public | 0: every input is valid; 1: at least one input has an error; 2: usage error, a path could not be read, or a folder holds no specification and no implementation file |
 | version | Print the program version and the meta-model versions it reads | public | 0: printed |
 
@@ -807,6 +808,79 @@ sequenceDiagram
   P-->>U: exit status 0, 2
 ```
 
+### Command merge
+
+Reads two or more partial specification trees, each written by
+`specarch extract` or by hand from documents, and writes one
+specification that holds every element of them, following
+`docs/from-sources.md`, section 3.2. Each tree is checked on its own
+first: a tree that does not track origin, that validate reports an
+error in, or that holds tests, implementation files or records is
+refused.
+
+- The same element in two trees (an entry of a section by its name,
+  an operation by its path and method, a field by its entity and
+  name) becomes one element with the citations of both. A key only
+  one tree writes is kept. A key the trees give different values is
+  left out, and a must question cites both and blocks it.
+- An element is stated when a tree states it; it is inferred only
+  when every tree that has it infers it.
+- A tree whose sources are all code is on the code side; any other
+  tree is on the documents side. Where both sides are merged, an
+  element of a design section that only one side has is compared
+  with the other side when that side has elements in the same
+  section, or, for a field, the same entity. Only the code has it:
+  it is written inferred, with a why that starts "Undocumented, from
+  code." and names where, and a question asks the owner to confirm
+  it. Only the documents have it: it is written as they state it,
+  and a question in `implementation/questions.yaml`, blocking
+  `implementation`, starts "Not built yet." and cites the documents
+  and the code that was read. Either question is must when the
+  element concerns security (a role, a permission, an operation, or
+  an entity or field that is personal or a credential) or when a
+  source it cites is marked `givenOutside`; otherwise it is should.
+- Sources of the same key are one source when they are the same in
+  everything but their clauses, which are joined. Code sources that
+  differ only in their edition are one repository read at different
+  commits: the merged edition is the newest of them, which each
+  other is an ancestor of, and every path a tree read must be
+  unchanged from the commit it was read at up to it. Sources of the
+  same key that differ otherwise are refused.
+- The questions of the trees are numbered again, Q-1 upward, in the
+  order the trees are given, and the merge's own questions follow.
+  Every element keeps the file its first tree wrote it in.
+- The same trees in the same order give byte-identical output.
+
+**Insight:** The readers write one tree per surface so that each is checked on its own; the comparison between surfaces, and between the documents and the code, is made once, here, where a disagreement becomes a question rather than a choice.
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<trees>` | string, one or more | yes | The partial specification trees to merge, each a folder holding specarch.yaml, in the order their questions are numbered. |
+| `--out` | string | yes | The folder the merged specification is written into; it becomes the specification's root folder. |
+
+Reads `{trees}`: The partial specification trees.
+
+Writes `{out}/`: The merged specification.
+
+Standard output: One line per tree naming its title and what it holds; one line per
+source joined from several trees, naming the edition taken; one line
+counting the elements written and those found in more than one
+tree; and one line per question the merge asked, naming what it
+blocks and why.
+
+Standard error: A usage message on a usage error, and the reason a tree could not be merged.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: merge <trees>
+  P->>F: read {trees}
+  P->>F: write {out}/
+  P-->>U: exit status 0, 1, 2
+```
+
 ### Command validate
 
 Checks every specification found under the paths given: a folder that
@@ -970,10 +1044,10 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 
 | Path | Holds | Implements |
 |---|---|---|
-| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/diff, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
+| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
-| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database and router readers, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer. |   |
+| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database and router readers, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry. |   |
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
 | cmd/specarch-gen-sql | The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk. | #/commands/generate |
@@ -1011,6 +1085,7 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | #/commands/document | main.runDocument |   |
 | #/commands/generate | main.runGenerate | Refuses through main.gate while a question blocks what the target reads or the approval is missing or void; then runs the plug-in with main.runPlugin; the request and answer are the pluginRequest and pluginResponse structs. |
 | #/commands/extract | main.runExtract | Runs the reader of the source, extract.Outline, extract.Database or extract.Router, after extract.Open has named the commit read and refused what no commit names; extract.Tree writes the tree from ordered YAML nodes. |
+| #/commands/merge | main.runMerge | Loads each tree with spec.Load and refuses one validate.CheckSpec reports an error in; extract.Merge joins the sources, the elements and the questions, and extract.Tree writes the result. |
 | #/commands/derive | main.runDerive | Writes validate.Drafts, the drafts of the cases the warnings name. |
 | #/commands/idioms | main.runIdioms | Prints validate.IdiomUses, the idioms each implementation file resolves to. |
 | #/commands/idioms diff | main.runIdiomsDiff |   |
@@ -1066,7 +1141,7 @@ Stand-ins: None. Every test runs the real program on real files.
 
 | Suite | Level | Runs | Command |
 |---|---|---|---|
-| conformance | system | every design test of command validate, command gaps, command document, command approve, command generate, command extract, command idioms, command idioms diff, command version | `go test ./cmd/specarch` |
+| conformance | system | every design test of command validate, command gaps, command document, command approve, command generate, command extract, command merge, command idioms, command idioms diff, command version | `go test ./cmd/specarch` |
 | shipped-idioms | unit | tests of this implementation only | `go test ./internal/validate` |
 | generated-sql | unit | tests of this implementation only | `go test ./internal/gensql` |
 | generated-openapi | unit | tests of this implementation only | `go test ./internal/genopenapi` |
@@ -3001,6 +3076,57 @@ each migration.
 
 **Insight:** A table the router prints, because only routes actually registered appear in it (ADR-042), and a printer of the project's own, because it knows its router's path syntax and where its permission check sits, which SpecArch would otherwise have to guess per library. JSON, as the catalogue dump is, so any language can print it with its standard library. {name} for a parameter, because it is the path templating of OpenAPI that the meta-model's paths follow, so the path is written as printed. null for no permission, and the key required, because a route that checks none and a printer that forgot to say are different facts, and an open endpoint is the one a reader must not miss; for the same reason such a route is a must question and is never written as public. Exactly four keys, because a key the reader did not know would be dropped without a word. HEAD and OPTIONS left out, because a path item holds the five methods the meta-model generates, and most routers answer HEAD as GET without a body (RFC 9110, 9.3.2) and OPTIONS by themselves. The handler's name, because it is what the code calls the operation; the method and path when it is shared, because an operationId names one operation (OpenAPI 3.1, 4.8.10). The router's folder as the path the dump is made from, rather than one file, because a router is built from the folder's code, and a change to any of it can change the routes.
 
+### ADR-045: specarch merge joins the readers' trees element by element, asks wherever they disagree, and compares the documents with the code only where the code was read
+
+Status: accepted, 2026-10-08.
+
+Context: ADR-042 has each reader write a tree of its own and a verb of its
+own merge them, by the table of docs/from-sources.md, section 3.2,
+with must for security and for what was given outside. The readers
+of one repository read different paths and so name different
+commits: the database tree names the commit that last changed the
+migrations, the router tree the one that last changed the router's
+folder, and both declare the same code source. The table compares
+documents with code, while most trees merged are code of different
+surfaces, each holding what the others do not.
+
+Decision: A tree is checked before it is merged: it tracks origin, validate
+reports no error in it, and it holds no tests, implementation files
+or records, which the readers do not write. Elements are matched by
+their name in their section, an operation by its path and method, a
+field by its entity and name, and an entry of a list of named
+objects, such as a path's parameters, by its name. Citations are
+joined; a key only one tree writes is kept; a key with different
+values is left out, and one must question per key cites the
+element in every tree that gives it and offers each value. The
+origin taken is decided over stated over inferred. A tree is on the
+code side when every source it declares is code, and on the
+documents side otherwise. The table's rows for an element only one
+side has apply to the design sections, decisions apart, and only
+when the other side has elements in the same section, or for a
+field when it has the same entity; two trees on one side never ask
+about an element only one of them has. A source gets the key
+givenOutside: true when the system's owners gave it to parties
+outside. Sources of one key are joined when they agree in all but
+their clauses; code sources that differ in their edition too are
+joined at the newest edition, which every other is an ancestor of,
+once every clause path of each tree is found unchanged from that
+tree's edition up to it; anything else is refused. The trees'
+questions are numbered again in the order the trees are given, and
+each element stays in the file its first tree wrote it in.
+
+Consequences: The database and router trees of a repository merge with no
+question of their own, since neither speaks of the other's
+sections. A documents tree that speaks of operations makes every
+route it does not mention a must question, which is how an open
+endpoint is found. A document's entity the database does not have
+asks whether it is built only when a database tree is merged, so a
+manual merged with the routes alone does not claim every table is
+missing. The order of the trees changes the questions' numbers and
+which file holds an element, never what is merged.
+
+**Insight:** Comparing only where the other side was read, because a reader reads one surface, and an element missing from a tree that never looked for it says nothing about the system; asking there would bury the real gaps under ones that are not. The side from the sources a tree declares, because that is what says whether a tree was read from code, and a tree written by hand from documents declares documents. The newest edition, because it is the commit rule of every reader, the newest of the commits that last changed each path read, applied to the paths of all the trees; the check that each path is unchanged up to it, because a citation is only true for the content it was read from, and git's ancestry is what says one commit includes another. A question per key, because the owner answers one fact at a time, and the key left out, because writing either value would be choosing between the sources (docs/from-sources.md, 3.2). A boolean named for what happened to the source, given outside, rather than a kind, because a manual and an interface can both be published, and the rule asks only whether someone outside holds the project to it. Numbering in the order given, because the order is the one input a reviewer chooses and can repeat.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -3100,6 +3226,12 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | idioms-diff-usage-error | command idioms diff | system | red | an idiom's name and no folder | idioms diff type-rendering is run | it prints how to use it and exits 2 |
 | idioms-lists | command idioms | system | golden | a specification with one implementation file in Go with an Oracle sql target, whose override of type-rendering replaces its types part, with the reason | idioms is run | it prints the file's path and type-rendering as overridden by the file, copied from 1.2.0, replacing types, with the reason, and exits 0 |
 | idioms-usage-error | command idioms | system | red | no folder | idioms is run without arguments | it prints the usage and exits 2 |
+| merge-documents-and-code | command merge | system | golden | a tree read from code and a tree written from a manual and a published interface, the interface marked givenOutside: they give one entity's card number and one path parameter different lengths, require different fields and describe one permission differently; only the code has a plain entity and an operation, and only the documents have a personal field and an entity from the interface | merge is run on the two trees | it writes the elements of both with both citations, leaves out each key they disagree on with a must question citing both, writes the code's entity and operation inferred as undocumented, with a should question for the entity and a must question for the operation, keeps the documents' field and entity with a must Not built yet question for each in implementation/questions.yaml, and exits 0 |
+| merge-joins-commits | command merge | system | golden | a repository whose first commit holds the migrations and whose second the router, a database tree read at the first that asks one question, and a router tree read at the second that asks two, both declaring the repository as the source code | merge is run on the two trees | it writes one specification with one source code at the second commit, whose clauses are both trees', every element of both trees, the stakeholder they share once and the three questions numbered again in the order the trees are given, says the migrations are unchanged up to the second commit, and exits 0 |
+| merge-path-changed | command merge | system | red | a repository whose first commit adds a migration, whose second adds another and whose third the router, a database tree read at the first and a router tree read at the third | merge is run on the two trees | it refuses them, saying the migrations changed at the second commit, after the first the database tree read them at, writes nothing and exits 1 |
+| merge-source-differs | command merge | system | red | two trees that both declare the source code, at two different urls | merge is run on the two trees | it refuses them, naming the source and what differs, writes nothing and exits 1 |
+| merge-tree-invalid | command merge | system | red | two trees, the second of which has an entity without its properties, which validate reports | merge is run on the two trees | it refuses the second tree, saying validate reports errors in it, writes nothing and exits 1 |
+| merge-usage-error | command merge | system | red | one tree | merge is run on it alone | it says merge needs at least two trees, prints how to use it and exits 2 |
 | validate-accessibility | command validate | system | red | a specification that names WCAG 2.2 at level AA, whose pages show or filter by a field with a title and two without one, and a page with two actions of the same label | validate is run | it reports accessibility for each field without a title, naming the pages that show it or filter by it, and for the second action, and exits 1 |
 | validate-algorithm | command validate | system | red | an operation that names an algorithm that does not exist | validate is run | it reports algorithm and exits 1 |
 | validate-change-applied | command validate | system | red | an implemented change whose addition is missing and whose removal is still there, and an approved change that changes a missing requirement and adds a test that already exists | validate is run | it reports change_applied errors for the first and the missing requirement, a change_applied warning for the test, and exits 1 |
@@ -3217,6 +3349,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-session | command validate | system | red | a session whose idle timeout is zero | validate is run | it reports session and exits 1 |
 | validate-setting | command validate | system | red | an implementation deployment that gives a value to a setting the specification does not declare | validate is run | it reports setting and exits 1 |
 | validate-source | command validate | system | red | a citation of a source that is not declared | validate is run | it reports source and exits 1 |
+| validate-source-given-outside | command validate | system | red | two sources, one marked givenOutside with the text yes and one with false | validate is run | it reports that givenOutside of the first is not a boolean, accepts the second, and exits 1 |
 | validate-stack-key | command validate | system | red | a design file with an x-oapi-codegen key on an operation | validate is run | it reports stack_key and exits 1 |
 | validate-stakeholder | command validate | system | red | a need whose stakeholders name a stakeholder that does not exist | validate is run | it reports stakeholder and exits 1 |
 | validate-state-field | command validate | system | red | a state field that is not an enum | validate is run | it reports state_field and exits 1 |
@@ -3318,6 +3451,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-20 | specarch generate shall refuse to run a target while a must or should question blocks a section it reads, and shall refuse without a record that a stakeholder read the current documents and approved the specification's files as they are, unless --unapproved is given; specarch approve shall write that record only when the documents on disk are current. | functional | must | accepted | test | generate on a specification with an approval record whose digest matches writes its files; after one byte of one file changes it refuses, and runs with --unapproved. approve refuses while a configured document differs from what the specification generates, and writes records/approvals/<version>.yaml once the documents are current. | NEED-8 |
 | SA-30 | A specification built from existing documents and existing code shall cite each element to the document section or the code file and line it came from, mappings of an implementation file included, and specarch gaps shall show for every source that lists its outline which elements each section or file produced and which produced nothing. | functional | must | accepted | test | A mapping stated without a citation is reported as origin_citation, and one inferred without a reason as origin_reason, in both builds. gaps on a specification whose manual and code list their clauses prints, per source, the elements under each clause, the count of clauses that produced nothing, and every citation that names a clause outside the outline. | NEED-8 |
 | SA-44 | specarch extract shall read one surface of an existing system into a specification tree in which every element carries its origin and cites where it was read, name the commit it read, refuse a source no commit names, and give byte-identical output for the same sources at the same commit. | functional | must | accepted | test | extract database on a committed catalogue dump writes a tree that validate accepts with no errors, and a second run writes the same bytes. A column type the meta-model cannot hold is printed as a line naming it. A dump older than the last change to the path it was made from, a path with changes not committed and a shallow clone are each refused with status 1. extract outline on a folder writes a source listing its files as clauses, and gaps on that tree lists each of them as producing nothing. extract router on a committed route table writes one operation per method and path pair, with its path parameters and the permission it checks, that validate accepts with no errors, and a route that checks no permission is a must question. | NEED-8 |
+| SA-45 | specarch merge shall merge the partial specification trees the readers write into one specification that keeps the citations of every tree, turn every disagreement between the trees into a must question that cites both, and give byte-identical output for the same trees in the same order. | functional | must | accepted | test | The database and router trees of one repository, read at different commits, merge into one specification with one code source at the newer commit, which validate accepts with no errors and gaps reads, and a second run writes the same bytes. Two trees that give the same key of the same element different values merge into the element without that key and a must question citing both. An element only the code has, merged with a documents tree that speaks of its section, is written inferred, starting its why with "Undocumented, from code.", with a question that is must for an operation, a permission, a role, a personal or credential field, or a source given outside, and should otherwise. A tree validate reports an error in, and a source two trees declare differently, are each refused with status 1. | NEED-8 |
 | SA-1 | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. | functional | must | accepted | test | A file that breaks the schema is reported with rule schema, its file, line and YAML path. A file that passes the schema and every other rule produces no output and status 0. | NEED-1 |
 | SA-2 | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. | functional | must | accepted | test | A misspelt relation target, enum, operation, page, algorithm, decision, requirement, need, stakeholder, source or environment is reported with its own rule, naming the file and line of the reference. A name defined in two files of the specification is reported with both files. | NEED-1, NEED-4 |
 | SA-3 | Every check constraint and formula shall parse and type-check in the fixed expression language. | functional | must | accepted | test | An expression outside the subset is refused with a message naming the construct. An expression that mixes types without a written conversion is refused with the conversion to write. | NEED-1 |
@@ -3413,6 +3547,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on SA-44:** Reading a large system by hand misses the element nobody happened to look at, and a citation without the commit it was read at goes stale while still looking precise; extraction is rerun to see what changed, so any difference that is not a change in the sources hides the one that is.
 
+**Insight on SA-45:** The comparison between surfaces, and between the documents and the code, is where a specification extracted from an existing system finds what is wrong with it; done by hand it is skipped where the two look alike, and a choice made quietly between two sources hides the disagreement the owner must settle.
+
 **Insight on SA-1:** The schema is the one definition of a file's shape; checking it first means every later rule can assume the shape.
 
 **Note on SA-6:** From The go command, Go documentation, 1.26: The Go tools print one problem per line as file:line, which editors and CI already parse. <https://go.dev/doc/>
@@ -3467,6 +3603,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039 | tests validate-accessibility; tests validate-compact-columns; tests validate-flows; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
 | SA-44 | commands extract; decisions ADR-043; decisions ADR-044 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-exit-1; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests gaps-outline-not-read |
+| SA-45 | commands merge; decisions ADR-045 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-path-changed; tests merge-source-differs; tests merge-tree-invalid; tests validate-source-given-outside |
 
 ## Sources
 

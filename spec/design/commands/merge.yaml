@@ -1,0 +1,73 @@
+commands:
+  merge:
+    summary: Merge the partial specifications the readers wrote into one
+    description: |
+      Reads two or more partial specification trees, each written by
+      `specarch extract` or by hand from documents, and writes one
+      specification that holds every element of them, following
+      `docs/from-sources.md`, section 3.2. Each tree is checked on its own
+      first: a tree that does not track origin, that validate reports an
+      error in, or that holds tests, implementation files or records is
+      refused.
+
+      - The same element in two trees (an entry of a section by its name,
+        an operation by its path and method, a field by its entity and
+        name) becomes one element with the citations of both. A key only
+        one tree writes is kept. A key the trees give different values is
+        left out, and a must question cites both and blocks it.
+      - An element is stated when a tree states it; it is inferred only
+        when every tree that has it infers it.
+      - A tree whose sources are all code is on the code side; any other
+        tree is on the documents side. Where both sides are merged, an
+        element of a design section that only one side has is compared
+        with the other side when that side has elements in the same
+        section, or, for a field, the same entity. Only the code has it:
+        it is written inferred, with a why that starts "Undocumented, from
+        code." and names where, and a question asks the owner to confirm
+        it. Only the documents have it: it is written as they state it,
+        and a question in `implementation/questions.yaml`, blocking
+        `implementation`, starts "Not built yet." and cites the documents
+        and the code that was read. Either question is must when the
+        element concerns security (a role, a permission, an operation, or
+        an entity or field that is personal or a credential) or when a
+        source it cites is marked `givenOutside`; otherwise it is should.
+      - Sources of the same key are one source when they are the same in
+        everything but their clauses, which are joined. Code sources that
+        differ only in their edition are one repository read at different
+        commits: the merged edition is the newest of them, which each
+        other is an ancestor of, and every path a tree read must be
+        unchanged from the commit it was read at up to it. Sources of the
+        same key that differ otherwise are refused.
+      - The questions of the trees are numbered again, Q-1 upward, in the
+        order the trees are given, and the merge's own questions follow.
+        Every element keeps the file its first tree wrote it in.
+      - The same trees in the same order give byte-identical output.
+    permission: public
+    arguments:
+      - name: trees
+        description: The partial specification trees to merge, each a folder holding specarch.yaml, in the order their questions are numbered.
+        required: true
+        repeatable: true
+        schema: { type: string }
+    options:
+      out:
+        description: The folder the merged specification is written into; it becomes the specification's root folder.
+        schema: { type: string }
+        required: true
+    reads:
+      - { path: "{trees}", description: The partial specification trees. }
+    writes:
+      - { path: "{out}/", description: The merged specification. }
+    standardOutput: |
+      One line per tree naming its title and what it holds; one line per
+      source joined from several trees, naming the edition taken; one line
+      counting the elements written and those found in more than one
+      tree; and one line per question the merge asked, naming what it
+      blocks and why.
+    standardError: A usage message on a usage error, and the reason a tree could not be merged.
+    exitCodes:
+      "0": the merged specification was written
+      "1": "a tree could not be merged: it does not track origin, validate reports an error in it, it holds tests, implementation files or records, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at"
+      "2": usage error, fewer than two trees, or a folder that could not be read or written
+    satisfies: [SA-45]
+    why: The readers write one tree per surface so that each is checked on its own; the comparison between surfaces, and between the documents and the code, is made once, here, where a disagreement becomes a question rather than a choice.

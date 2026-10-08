@@ -499,6 +499,12 @@ func testSubject(t *yaml.Node) string {
 	if tr := get(t, "transition"); tr != nil {
 		return fmt.Sprintf("%s %s to %s", str(t, "entity"), str(tr, "from"), str(tr, "to"))
 	}
+	if r := str(t, "requirement"); r != "" {
+		return "requirement " + r
+	}
+	if e := str(t, "entity"); e != "" {
+		return e + " state machine"
+	}
 	return ""
 }
 

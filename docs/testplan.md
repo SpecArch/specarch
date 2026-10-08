@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.3.0-dev of the specification: 174 design tests, 51 golden and 122 red, about 9 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.3.0-dev of the specification: 179 design tests, 55 golden and 123 red, about 9 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.3.0-dev of the specification: 174 design tests, 51 golden and 122 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 170 |
+| system | 175 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -290,6 +290,14 @@ Scenario: golden; level: acceptance; verifies SA-22.
 - Given: an operation that satisfies no requirement with a harm, with a length limit, a field marked mistakes rare and a 409 response, and one test that covers the case of a name that is too long
 - When: document testplan is run
 - Then: it writes testplan.md with a section Derived cases left out that lists the uncovered cases of rank other with the reason for each, leaves out the covered one, and exits 0
+
+#### document-testplan-state-machine
+
+Scenario: golden; level: system; verifies SA-16.
+
+- Given: a Loan state machine with two paths and a test that walks one of them
+- When: document testplan is run
+- Then: testplan.md has a State machines section with the Loan state diagram and a row per path naming the test that walks it, and exits 0
 
 #### document-traceability-harm
 
@@ -609,6 +617,14 @@ Scenario: golden; level: system; verifies SA-12.
 - When: validate is run
 - Then: it prints nothing and exits 0
 
+#### validate-derived-acceptance
+
+Scenario: golden; level: system; verifies SA-21.
+
+- Given: a requirement with a harm and two acceptance criteria, one with a test, and a requirement without a harm and no test
+- When: validate is run
+- Then: it warns only for the second criterion of the requirement with a harm, naming requirement and acceptance 2 in the test to copy, and exits 0
+
 #### validate-derived-cases-covered
 
 Scenario: golden; level: system.
@@ -640,6 +656,22 @@ Scenario: golden; level: acceptance; verifies SA-21.
 - Given: an operation that satisfies no requirement with a harm, with a required field marked mistakes rare, a field with a maximum marked mistakes frequent, a message it emits, and no tests
 - When: validate is run
 - Then: it warns for both boundary cases of the frequent field, for the failing channel and for the caller without the permission, not for the cases of the rare field, and exits 0
+
+#### validate-derived-decision-table
+
+Scenario: golden; level: system; verifies SA-21.
+
+- Given: a check constraint copies >= 0 && (copies <= owned || label == "spare") on a requirement with a harm, and only a golden test
+- When: validate is run
+- Then: it warns for two decision-table cases, the first clause false alone and the two clauses of the || false together, and exits 0
+
+#### validate-derived-flow
+
+Scenario: golden; level: system; verifies SA-21.
+
+- Given: a Loan state machine with two paths, open to returned and open to overdue to returned, the move to overdue satisfying a requirement with a harm
+- When: validate is run
+- Then: it warns for the path through overdue, leaves the other out, and exits 0
 
 #### validate-design-key
 
@@ -1345,6 +1377,14 @@ Scenario: red; level: system; covers exit 1.
 - When: validate is run
 - Then: it reports test_subject and exits 1
 
+#### validate-test-subject-no-state-machine
+
+Scenario: red; level: system; covers exit 1; verifies SA-21.
+
+- Given: a test about entity Book alone, which has no transitions
+- When: validate is run
+- Then: it reports test_subject, saying Book has no state machine path, and exits 1
+
 #### validate-traceability-warnings
 
 Scenario: golden; level: system; verifies SA-12.
@@ -1442,6 +1482,73 @@ Scenario: red; level: system; covers usage error.
 - Given: the program
 - When: version is run with an argument
 - Then: it prints how to use it and exits 2
+
+## 3. Derived cases left out
+
+60 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a failing dependency, and none is a mistake users make often. Writing a test that covers one removes it from this list.
+
+| Subject | Case | Scenario | Why it is left out |
+|---|---|---|---|
+| requirement SA-21 | acceptance 1 | golden | SA-21 names no harm |
+| requirement SA-21 | acceptance 2 | golden | SA-21 names no harm |
+| requirement SA-21 | acceptance 3 | golden | SA-21 names no harm |
+| requirement SA-21 | acceptance 4 | golden | SA-21 names no harm |
+| requirement SA-22 | acceptance 1 | golden | SA-22 names no harm |
+| requirement SA-22 | acceptance 2 | golden | SA-22 names no harm |
+| requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
+| requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
+| requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |
+| requirement SA-8 | acceptance 2 | golden | SA-8 names no harm |
+| requirement SA-26 | acceptance 1 | golden | SA-26 names no harm |
+| requirement SA-26 | acceptance 2 | golden | SA-26 names no harm |
+| requirement SA-14 | acceptance 1 | golden | SA-14 names no harm |
+| requirement SA-14 | acceptance 2 | golden | SA-14 names no harm |
+| requirement SA-15 | acceptance 1 | golden | SA-15 names no harm |
+| requirement SA-15 | acceptance 2 | golden | SA-15 names no harm |
+| requirement SA-15 | acceptance 3 | golden | SA-15 names no harm |
+| requirement SA-16 | acceptance 1 | golden | SA-16 names no harm |
+| requirement SA-16 | acceptance 2 | golden | SA-16 names no harm |
+| requirement SA-11 | acceptance 1 | golden | SA-11 names no harm |
+| requirement SA-11 | acceptance 2 | golden | SA-11 names no harm |
+| requirement SA-12 | acceptance 1 | golden | SA-12 names no harm |
+| requirement SA-12 | acceptance 2 | golden | SA-12 names no harm |
+| requirement SA-23 | acceptance 1 | golden | SA-23 names no harm |
+| requirement SA-23 | acceptance 2 | golden | SA-23 names no harm |
+| requirement SA-23 | acceptance 3 | golden | SA-23 names no harm |
+| requirement SA-23 | acceptance 4 | golden | SA-23 names no harm |
+| requirement SA-24 | acceptance 1 | golden | SA-24 names no harm |
+| requirement SA-24 | acceptance 2 | golden | SA-24 names no harm |
+| requirement SA-24 | acceptance 3 | golden | SA-24 names no harm |
+| requirement SA-25 | acceptance 1 | golden | SA-25 names no harm |
+| requirement SA-25 | acceptance 2 | golden | SA-25 names no harm |
+| requirement SA-25 | acceptance 3 | golden | SA-25 names no harm |
+| requirement SA-13 | acceptance 1 | golden | SA-13 names no harm |
+| requirement SA-17 | acceptance 1 | golden | SA-17 names no harm |
+| requirement SA-17 | acceptance 2 | golden | SA-17 names no harm |
+| requirement SA-17 | acceptance 3 | golden | SA-17 names no harm |
+| requirement SA-17 | acceptance 4 | golden | SA-17 names no harm |
+| requirement SA-18 | acceptance 1 | golden | SA-18 names no harm |
+| requirement SA-18 | acceptance 2 | golden | SA-18 names no harm |
+| requirement SA-19 | acceptance 1 | golden | SA-19 names no harm |
+| requirement SA-19 | acceptance 2 | golden | SA-19 names no harm |
+| requirement SA-19 | acceptance 3 | golden | SA-19 names no harm |
+| requirement SA-20 | acceptance 1 | golden | SA-20 names no harm |
+| requirement SA-20 | acceptance 2 | golden | SA-20 names no harm |
+| requirement SA-1 | acceptance 1 | golden | SA-1 names no harm |
+| requirement SA-1 | acceptance 2 | golden | SA-1 names no harm |
+| requirement SA-2 | acceptance 1 | golden | SA-2 names no harm |
+| requirement SA-2 | acceptance 2 | golden | SA-2 names no harm |
+| requirement SA-3 | acceptance 1 | golden | SA-3 names no harm |
+| requirement SA-3 | acceptance 2 | golden | SA-3 names no harm |
+| requirement SA-4 | acceptance 1 | golden | SA-4 names no harm |
+| requirement SA-5 | acceptance 1 | golden | SA-5 names no harm |
+| requirement SA-5 | acceptance 2 | golden | SA-5 names no harm |
+| requirement SA-6 | acceptance 1 | golden | SA-6 names no harm |
+| requirement SA-6 | acceptance 2 | golden | SA-6 names no harm |
+| requirement SA-9 | acceptance 1 | golden | SA-9 names no harm |
+| requirement SA-9 | acceptance 2 | golden | SA-9 names no harm |
+| requirement SA-10 | acceptance 1 | golden | SA-10 names no harm |
+| requirement SA-10 | acceptance 2 | golden | SA-10 names no harm |
 
 The checks run on the installed system before it is handed over are in the commissioning procedure.
 

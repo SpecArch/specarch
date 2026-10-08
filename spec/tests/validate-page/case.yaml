@@ -1,8 +1,8 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:14: warning: /paths/~1items/get: test_golden_missing: operation listItems has no golden scenario; add one under tests, for example list-items-succeeds: { operation: listItems, scenario: golden, given: "...", when: "...", then: "it succeeds" }
+  specarch.yaml:14: warning: /paths/~1items/get: test_golden_missing: operation listItems has no golden scenario; add one under tests, for example list-items-succeeds: { operation: listItems, scenario: golden, given: "any caller", when: "listItems is called", then: "it answers 200: The items." }
   specarch.yaml:14: warning: /paths/~1items/get: test_red_missing: operation listItems has no red scenario; add one under tests, for example list-items-refused: { operation: listItems, scenario: red, given: "...", when: "...", then: "it is refused" }
-  specarch.yaml:16: warning: /pages/items-list: test_golden_missing: page items-list has no golden scenario; add one under tests, for example items-list-succeeds: { page: items-list, scenario: golden, given: "...", when: "...", then: "it succeeds" }
+  specarch.yaml:16: warning: /pages/items-list: test_golden_missing: page items-list has no golden scenario; add one under tests, for example items-list-succeeds: { page: items-list, scenario: golden, given: "any caller", when: "the page items-list is opened", then: "it shows the page" }
   specarch.yaml:16: warning: /pages/items-list: test_red_missing: page items-list has no red scenario; add one under tests, for example items-list-refused: { page: items-list, scenario: red, given: "...", when: "...", then: "it is refused" }
   specarch.yaml:25: error: /pages/items-list/actions/0/target: page: item-form is not a page of the specification; use one of items-list

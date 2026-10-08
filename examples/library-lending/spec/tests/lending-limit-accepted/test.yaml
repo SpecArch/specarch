@@ -1,0 +1,8 @@
+requirement: LIB-3
+level: acceptance
+scenario: golden
+covers: [acceptance 1]
+given: "a standard-tier member with three open loans"
+when: "the librarian lends them a fourth copy"
+then: "A standard-tier member with three open loans is refused a fourth with 409."
+verifies: [LIB-3]

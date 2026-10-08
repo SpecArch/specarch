@@ -1,6 +1,6 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:7: warning: /paths/~1total/get: test_golden_missing: operation getTotal has no golden scenario; add one under tests, for example get-total-succeeds: { operation: getTotal, scenario: golden, given: "...", when: "...", then: "it succeeds" }
+  specarch.yaml:7: warning: /paths/~1total/get: test_golden_missing: operation getTotal has no golden scenario; add one under tests, for example get-total-succeeds: { operation: getTotal, scenario: golden, given: "any caller", when: "getTotal is called", then: "it answers 200: The total." }
   specarch.yaml:7: warning: /paths/~1total/get: test_red_missing: operation getTotal has no red scenario; add one under tests, for example get-total-refused: { operation: getTotal, scenario: red, given: "...", when: "...", then: "it is refused" }
   specarch.yaml:7: error: /paths/~1total/get/algorithm: algorithm: totl is not an algorithm of the specification; there are none in the specification

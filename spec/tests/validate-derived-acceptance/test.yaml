@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "a requirement with a harm and two acceptance criteria, one with a test, and a requirement without a harm and no test"
+when: validate is run
+then: "it warns only for the second criterion of the requirement with a harm, naming requirement and acceptance 2 in the test to copy, and exits 0"
+verifies: [SA-21]

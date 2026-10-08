@@ -10,8 +10,10 @@ to write when there are too many, saying in the specification why each
 was chosen and what was left out, and turning the tests into runnable code
 on each stack. The first implementation item is built: harm, mistakes,
 the rank of each derived case, the narrowed warning, the left-out section
-of the test plan and the Harm column. The other items are listed at the
-end.
+of the test plan and the Harm column. The second is built too: the
+success case of every subject, the acceptance case per criterion, the
+paths of a state machine and the decision-table cases of a check
+constraint. The other items are listed at the end.
 
 The standards are ISO/IEC/IEEE 29119-4:2021 for the techniques and their
 coverage measures, and ISO/IEC/IEEE 29119-1:2022 for why a test set is a
@@ -210,11 +212,22 @@ derivable:
   waits for the `flows` concept of meta-model 0.2.
 
 A check constraint with `&&` or `||` is a decision table (29119-4, 5.2.6):
-one red case per clause made false alone, derived from the expression
-tree the parser already builds; `violates loan_returned_after_loaned`
-becomes `violates loan_returned_after_loaned: returnedAt before loanedAt`
-and `...: returnedAt not null`. Decision table coverage (6.2.6) is each
-rule exercised once.
+one red case per way the expression can be false, each clause of an `&&`
+false alone and every disjunct of an `||` false at once. The case names
+the false clauses in the expression's own text, such as
+`violates copies_in_range: copies >= 0 is false`, rather than in prose
+such as "copies below zero": prose would have to be written the same way
+by the Go and the Swift build from two parsers, and the source text is
+already the same in both. A constraint false in only one way, such as
+`returnedAt == null || returnedAt >= loanedAt`, keeps the plain
+`violates <constraint>`. Decision table coverage (6.2.6) is each rule
+exercised once.
+
+A test names these subjects as `requirement: LIB-3`, its cases
+`acceptance 1` and on, and `entity: Loan` alone, its cases the paths such
+as `open to overdue to returned`. The paths take the transitions in
+document order and never visit a state twice, so both builds list them
+alike.
 
 ## What waits for meta-model 0.2
 
@@ -330,10 +343,11 @@ validator builds where it adds a rule, and the conformance cases.
    only, the test plan gains "Derived cases left out", the traceability
    matrix gains the harm column. Both builds; the conformance case
    `validate-derived-cases-listed` changes with it.
-2. The golden derivations: the success case per subject with its expected
-   outcome, the acceptance test per criterion, the flow paths of a state
-   machine, and the decision-table cases of a check constraint. Both
-   builds, with cases.
+2. Built. The golden derivations: the success case per subject with its
+   expected outcome, the acceptance test per criterion (a `requirement`
+   subject), the paths of a state machine (an `entity` subject alone), and
+   the decision-table cases of a check constraint. Both builds, with
+   cases; the test plan draws each state machine with its paths.
 3. `fixture`, `input` and `expect` on a test, the rule `test_data`, and
    their checks against the design, including a fixture evaluated against
    the entity's constraints. Both builds.

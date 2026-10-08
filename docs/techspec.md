@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.3.0-dev of the specification: 26 requirements, 3 entities, 8 commands, 6 algorithms, 174 tests, 20 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.3.0-dev of the specification: 26 requirements, 3 entities, 8 commands, 6 algorithms, 179 tests, 20 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -378,7 +378,9 @@ the needs with the requirements that refine them, and each
 requirement with its attributes and acceptance criteria. The
 testplan target writes `testplan.md`: the levels, how each
 implementation's suites run the tests, and every design test as a
-test case, grouped by subject, then the derived cases left out: each
+test case, grouped by subject, then each state machine with its
+state diagram and its paths from an initial to a terminal state, each
+with the tests that walk it, then the derived cases left out: each
 case of rank other that no test covers, with its subject and the
 reason. The traceability target writes `traceability.md`: needs to
 requirements, requirements to what satisfies and verifies them, with
@@ -1844,6 +1846,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-target-not-offered | command document | system | red | a document target of the design that this build does not offer | document manual is run | it says which targets it has and exits 2 |
 | document-techspec-without-implementation | command document | system | golden | a design file and no implementation file | document techspec is run with --out docs | it writes docs/shop.techspec.md without chapter 7 and exits 0 |
 | document-testplan-left-out | command document | acceptance | golden | an operation that satisfies no requirement with a harm, with a length limit, a field marked mistakes rare and a 409 response, and one test that covers the case of a name that is too long | document testplan is run | it writes testplan.md with a section Derived cases left out that lists the uncovered cases of rank other with the reason for each, leaves out the covered one, and exits 0 |
+| document-testplan-state-machine | command document | system | golden | a Loan state machine with two paths and a test that walks one of them | document testplan is run | testplan.md has a State machines section with the Loan state diagram and a row per path naming the test that walks it, and exits 0 |
 | document-traceability-harm | command document | acceptance | golden | a specification with two requirements, one of which names two harms | document traceability is run | it writes traceability.md with a Harm column that holds the two harms of the one requirement and is empty for the other, and exits 0 |
 | document-two-implementations | command document | system | golden | a specification with two implementation files, one of which names techspec's output folder | document techspec is run on it | chapter 7 has one part for each implementation, the header names both, and it exits 0 |
 | document-unknown-target | command document | system | red | a target name that does not exist | document is run with target pdf | it names the targets there are and exits 2 |
@@ -1883,10 +1886,13 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-defect-test | command validate | system | red | a fixed defect that names no test, and a fixed defect that violates a permission and names a test about a command | validate is run | it reports defect_test for each and exits 1 |
 | validate-deployment-environment-missing | command validate | system | red | an implementation deployment that names no environment while the specification declares them | validate is run | it reports environment at the deployment and exits 1 |
 | validate-deployment-valid | command validate | system | golden | a specification with environments, configuration, release, rollback, a migration, a check and a sign-off, and an implementation file whose deployment names its environment and gives the non-secret setting a value | validate is run | it prints nothing and exits 0 |
+| validate-derived-acceptance | command validate | system | golden | a requirement with a harm and two acceptance criteria, one with a test, and a requirement without a harm and no test | validate is run | it warns only for the second criterion of the requirement with a harm, naming requirement and acceptance 2 in the test to copy, and exits 0 |
 | validate-derived-cases-covered | command validate | system | golden | an operation whose every derived case is covered by a test, one of them marked not applicable with a reason | validate is run | it prints nothing and exits 0 |
 | validate-derived-cases-harm | command validate | acceptance | golden | an operation with a required field, length limits, a permission and a 409 response, which satisfies a could requirement that names a harm, and no tests | validate is run | it warns for every derived case, the boundary cases and the 409 too, since a case of a subject that satisfies a requirement with a harm is critical whatever the priority, and exits 0 |
 | validate-derived-cases-listed | command validate | system | golden | an operation with a required field, length limits, a permission and a 409 response, and no tests | validate is run | it warns once for the missing field and for the caller without the permission, each with a test to copy, not for the boundary cases or the 409 response, which users seldom meet on an operation that satisfies no requirement with a harm, and exits 0 |
 | validate-derived-cases-mistakes | command validate | acceptance | golden | an operation that satisfies no requirement with a harm, with a required field marked mistakes rare, a field with a maximum marked mistakes frequent, a message it emits, and no tests | validate is run | it warns for both boundary cases of the frequent field, for the failing channel and for the caller without the permission, not for the cases of the rare field, and exits 0 |
+| validate-derived-decision-table | command validate | system | golden | a check constraint copies >= 0 && (copies <= owned \|\| label == "spare") on a requirement with a harm, and only a golden test | validate is run | it warns for two decision-table cases, the first clause false alone and the two clauses of the \|\| false together, and exits 0 |
+| validate-derived-flow | command validate | system | golden | a Loan state machine with two paths, open to returned and open to overdue to returned, the move to overdue satisfying a requirement with a harm | validate is run | it warns for the path through overdue, leaves the other out, and exits 0 |
 | validate-design-key | command validate | system | red | an implementation file with an entities key | validate is run | it reports design_key and exits 1 |
 | validate-design-ref | command validate | system | red | an implementation mapping that points at an entity the design does not have | validate is run | it reports design_ref and exits 1 |
 | validate-duplicate-key | command validate | system | red | a file with info twice | validate is run | it reports duplicate_key at the second info and exits 1 |
@@ -1975,6 +1981,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-suite | command validate | system | red | an implementation suite that names a design test that does not exist | validate is run | it reports suite and exits 1 |
 | validate-test-case | command validate | system | red | a test that covers a case its operation does not have | validate is run | it reports test_case with the cases it has, warns for the case now uncovered, and exits 1 |
 | validate-test-subject | command validate | system | red | a test about an operation that does not exist | validate is run | it reports test_subject and exits 1 |
+| validate-test-subject-no-state-machine | command validate | system | red | a test about entity Book alone, which has no transitions | validate is run | it reports test_subject, saying Book has no state machine path, and exits 1 |
 | validate-traceability-warnings | command validate | system | golden | a need no requirement refines, a requirement without acceptance criteria, an entity that satisfies nothing and a test that verifies nothing | validate is run | it warns once for each gap and exits 0, since the file stays valid |
 | validate-tree-valid | command validate | system | golden | a tree with four stages, one object per file, an implementation file under implementation/go/, and a test folder whose data holds a decoy specarch.yaml | validate is run on the root folder | it reads the tree as one specification, ignores the test data, prints nothing and exits 0 |
 | validate-trigger | command validate | system | red | a transition whose trigger names nothing in the file | validate is run | it reports trigger and exits 1 |
@@ -2119,12 +2126,12 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-13 | enums Rule; commands validate; decisions ADR-012 | tests document-citation-unknown-source; tests validate-cites; tests validate-source |
 | SA-14 | enums GeneratorTarget; commands generate; decisions ADR-013 | tests generate-no-plugin; tests generate-plugin-path-outside; tests generate-with-plugin |
 | SA-15 | commands document; decisions ADR-015 | tests document-writes-requirements |
-| SA-16 | enums DocumentTarget; commands document; decisions ADR-016 | tests document-writes-commissioning; tests document-writes-deployment; tests document-writes-requirements; tests document-writes-testplan; tests document-writes-traceability |
+| SA-16 | enums DocumentTarget; commands document; decisions ADR-016 | tests document-testplan-state-machine; tests document-writes-commissioning; tests document-writes-deployment; tests document-writes-requirements; tests document-writes-testplan; tests document-writes-traceability |
 | SA-17 | enums Rule; commands validate; decisions ADR-017 | tests validate-question-answered; tests validate-question-block; tests validate-question-covers-missing; tests validate-question-should-not-covering; tests validate-question-stage |
 | SA-18 | enums Rule; commands validate; decisions ADR-018 | tests document-draft-notice; tests validate-origin; tests validate-origin-tracked |
 | SA-19 | enums DocumentTarget; commands document; commands gaps | tests document-draft-notice; tests document-writes-questions; tests gaps-lists-questions; tests gaps-none |
 | SA-20 | commands approve; commands generate; decisions ADR-019 | tests approve-refuses-open-question; tests approve-refuses-stale-document; tests approve-writes-record; tests generate-refuses-open-question; tests generate-refuses-unapproved; tests generate-unapproved |
-| SA-21 | commands validate; decisions ADR-020 | tests validate-derived-cases-harm; tests validate-derived-cases-listed; tests validate-derived-cases-mistakes; tests validate-schema-harm-unknown |
+| SA-21 | commands validate; decisions ADR-020 | tests validate-derived-acceptance; tests validate-derived-cases-harm; tests validate-derived-cases-listed; tests validate-derived-cases-mistakes; tests validate-derived-decision-table; tests validate-derived-flow; tests validate-schema-harm-unknown; tests validate-test-subject-no-state-machine |
 | SA-22 | commands document; decisions ADR-020 | tests document-testplan-left-out; tests document-traceability-harm; tests document-writes-traceability |
 | SA-23 | enums Rule; commands validate | tests validate-change-applied; tests validate-change-decision; tests validate-commissioning-record; tests validate-defect-duplicate; tests validate-defect-test; tests validate-incident-link; tests validate-layout-records-in-spec; tests validate-record-name; tests validate-record-ref; tests validate-record-schema; tests validate-record-tracker; tests validate-records-valid |
 | SA-24 | enums Rule; commands validate | tests validate-release-bump; tests validate-release-contents; tests validate-release-version; tests validate-releases-valid |

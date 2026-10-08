@@ -10,8 +10,14 @@ final class Subject {
     let name: String     // for the suggested test name
     var raw = ""         // the subject's own name inside its case names, if any
     var cases: [DerivedCase] = []
+    /// The golden path the design implies: what a caller allowed to do it
+    /// sends inside every limit, and the outcome.
+    var success: DerivedCase?
     /// True when a requirement the subject satisfies names a harm.
     var critical = false
+    /// True for a requirement or a state machine: every case is golden and
+    /// asked for on its own, so neither needs a scenario of each kind.
+    var whole = false
 
     init(label: String, node: YNode, path: String, yamlKey: String, name: String) {
         self.label = label
@@ -35,7 +41,7 @@ final class Subject {
     /// Critical for a case of a critical subject or a failing dependency,
     /// frequent for a case users get wrong often, other otherwise.
     func rank(_ dc: DerivedCase) -> String {
-        if critical || dc.name.hasPrefix("dependency fails ") { return rankCritical }
+        if critical || dc.critical || dc.name.hasPrefix("dependency fails ") { return rankCritical }
         let m = dc.mistakes
         return (m.isEmpty ? dc.frequency : m) == frequent ? rankFrequent : rankOther
     }
@@ -64,6 +70,9 @@ struct DerivedCase {
     var frequency: String
     var field: YNode? = nil
     var fieldName = ""
+    /// Marks one case critical on its own: a path through a transition that
+    /// satisfies a requirement with a harm.
+    var critical = false
 
     /// The field's own frequency, or "".
     var mistakes: String { str(child(field, "mistakes")) }
@@ -94,6 +103,15 @@ private func characters(_ n: String, _ off: Int) -> String {
 
 private let validatingFormats: Set<String> = ["date", "date-time", "time", "duration", "email", "uuid", "uri", "hostname", "ipv4", "ipv6", "decimal"]
 
+/// Who may do something that needs a permission.
+private func caller(_ perm: String) -> String {
+    perm.isEmpty || perm == "public" ? "any caller" : "a caller with " + perm
+}
+
+private func golden(_ given: String, _ when: String, _ then: String) -> DerivedCase {
+    DerivedCase(name: "succeeds", scenario: "golden", given: given, when: when, then: then, frequency: "")
+}
+
 private func denied(_ s: Subject, _ perm: String, _ what: String) {
     if perm.isEmpty || perm == "public" { return }
     s.red("denied without " + perm, frequent, "a caller without " + perm, what, "it is refused as not allowed")
@@ -110,8 +128,71 @@ extension Design {
         for e in pairs(root.child("entities")) {
             for c in pairs(e.value.child("constraints")) { out.append(withHarm(constraintSubject(e.key.value, c), c.value)) }
             for (i, t) in items(e.value.child("transitions")).enumerated() { out.append(withHarm(transitionSubject(e.key.value, i, t), t)) }
+            if let s = flowSubject(e) { out.append(s) }
+        }
+        for r in pairs(root.child("requirements")) {
+            if let s = requirementSubject(r) { out.append(s) }
         }
         return out
+    }
+
+    /// A requirement's acceptance tests: one golden case per acceptance
+    /// criterion, with the criterion as the outcome. They are chosen when
+    /// the requirement names a harm.
+    func requirementSubject(_ r: Pair) -> Subject? {
+        let id = r.key.value, status = str(r.value.child("status"))
+        let criteria = items(r.value.child("acceptance"))
+        if criteria.isEmpty || status == "rejected" || status == "retired" { return nil }
+        let s = Subject(label: "requirement " + id, node: r.key, path: pointer("requirements", id), yamlKey: "requirement: " + id, name: id.lowercased())
+        s.whole = true
+        s.critical = !items(r.value.child("harm")).isEmpty
+        for (i, c) in criteria.enumerated() {
+            s.cases.append(DerivedCase(name: "acceptance \(i + 1)", scenario: "golden", given: "...", when: "...", then: c.str, frequency: occasional))
+        }
+        return s
+    }
+
+    /// An entity's state machine: one golden case per path from an initial
+    /// state (one no transition reaches) to a terminal state (one no
+    /// transition leaves), taking the transitions in document order and
+    /// never visiting a state twice. A path is chosen when one of its
+    /// transitions satisfies a requirement with a harm.
+    func flowSubject(_ e: Pair) -> Subject? {
+        let entity = e.key.value
+        let transitions = items(e.value.child("transitions"))
+        if transitions.isEmpty { return nil }
+        var reached = Set<String>(), leaves = Set<String>(), starts: [String] = []
+        for t in transitions {
+            reached.insert(str(t.child("to")))
+            leaves.insert(str(t.child("from")))
+        }
+        for t in transitions {
+            let from = str(t.child("from"))
+            if !reached.contains(from) && !starts.contains(from) { starts.append(from) }
+        }
+        let s = Subject(label: entity + " state machine", node: e.key, path: pointer("entities", entity), yamlKey: "entity: " + entity, name: kebab(entity))
+        s.whole = true
+        func walk(_ state: String, _ states: [String], _ triggers: [String], _ critical: Bool) {
+            if !leaves.contains(state) {
+                if triggers.isEmpty { return }
+                var dc = DerivedCase(name: states.joined(separator: " to "), scenario: "golden",
+                                     given: "a " + entity + " that is " + states[0], when: triggers.joined(separator: ", then ") + " happen",
+                                     then: "the " + entity + " ends " + state + ", having been " + joinAnd(Array(states.dropLast())), frequency: occasional)
+                dc.critical = critical
+                s.cases.append(dc)
+                return
+            }
+            for t in transitions where str(t.child("from")) == state {
+                let to = str(t.child("to"))
+                if states.contains(to) { continue }
+                var trigger = str(t.child("trigger"))
+                if trigger.isEmpty { trigger = "the move to " + to }
+                let harmful = items(t.child("satisfies")).contains { !items(child(requirements[$0.value], "harm")).isEmpty }
+                walk(to, states + [to], triggers + [trigger], critical || harmful)
+            }
+        }
+        for start in starts { walk(start, [start], [], false) }
+        return s.cases.isEmpty ? nil : s
     }
 
     /// Marks the subject critical when a requirement its own satisfies
@@ -126,6 +207,14 @@ extension Design {
     func operationSubject(_ o: Operation) -> Subject {
         let s = Subject(label: "operation " + o.id, node: o.node, path: o.pointer(), yamlKey: "operation: " + o.id, name: kebab(o.id))
         let call = o.id + " is called"
+        var success = golden(caller(str(o.node.child("permission"))), call, "it succeeds")
+        if !pairs(o.node.child("requestBody")?.child("content")).isEmpty || !items(o.node.child("parameters")).isEmpty || !items(o.pathItem.child("parameters")).isEmpty {
+            success.when = call + " with values inside every limit"
+        }
+        if let r = pairs(o.node.child("responses")).first(where: { $0.key.value.hasPrefix("2") }) {
+            success.then = "it answers " + r.key.value + ": " + str(r.value.child("description"))
+        }
+        s.success = success
         let (body, bodyRequired) = requestFields(o.node)
         for f in bodyRequired {
             s.fieldCase("red", "missing " + f, frequent, f, body[f], "...", o.id + " is called without " + f, "it is refused")
@@ -265,6 +354,9 @@ extension Design {
         let s = Subject(label: "command " + name, node: p.key, path: pointer("commands", name), yamlKey: "command: " + name,
                         name: kebab(name.replacingOccurrences(of: " ", with: "-")))
         let run = name + " is run"
+        var success = golden("...", name + " is run with arguments it accepts", "it exits 0")
+        if let ok = p.value.child("exitCodes")?.child("0") { success.then = "it exits 0: " + str(ok) }
+        s.success = success
         s.red("usage error", frequent, "...", name + " is run with arguments it does not accept", "it prints how to use it and exits with the usage status")
         for c in pairs(p.value.child("exitCodes")) where c.key.value != "0" {
             s.red("exit " + c.key.value, frequent, "...", run, "it exits " + c.key.value + ": " + str(c.value))
@@ -277,6 +369,9 @@ extension Design {
         let name = p.key.value
         let s = Subject(label: "page " + name, node: p.key, path: pointer("pages", name), yamlKey: "page: " + name, name: name)
         let open = "the page " + name + " is opened"
+        var success = golden(caller(str(p.value.child("permission"))), open, "it shows the page")
+        if !pathParameters(str(p.value.child("route"))).isEmpty { success.when = open + " for a record that exists" }
+        s.success = success
         denied(s, str(p.value.child("permission")), open)
         for param in pathParameters(str(p.value.child("route"))) {
             s.red("not found " + param, frequent, "no record has that " + param, open + " for that " + param, "it says the record was not found")
@@ -292,9 +387,20 @@ extension Design {
         let msg = str(c.value.child("message"))
         switch str(c.value.child("kind")) {
         case "unique":
+            s.success = golden("no " + entity + " with the same values exists", "a " + entity + " is saved", "it is saved")
             s.red("duplicate " + name, occasional, "a " + entity + " exists", "another " + entity + " with the same values is saved", "it is refused: " + msg)
         case "check":
-            s.red("violates " + name, occasional, "...", "a " + entity + " breaking it is saved", "it is refused: " + msg)
+            s.success = golden("...", "a " + entity + " keeping it is saved", "it is saved")
+            let rules = falsifiers(str(c.value.child("expression")))
+            if rules.count < 2 {
+                s.red("violates " + name, occasional, "...", "a " + entity + " breaking it is saved", "it is refused: " + msg)
+                break
+            }
+            // A decision table: one case per way the expression can be false.
+            for rule in rules {
+                let falsehood = rule.joined(separator: " is false and ") + " is false"
+                s.red("violates " + name + ": " + falsehood, occasional, "...", "a " + entity + " is saved with " + falsehood, "it is refused: " + msg)
+            }
         default:
             break
         }
@@ -307,6 +413,7 @@ extension Design {
                         yamlKey: "entity: \(entity), transition: { from: \(from), to: \(to) }", name: kebab(entity) + "-" + from + "-to-" + to)
         var trigger = str(t.child("trigger"))
         if trigger.isEmpty { trigger = "the move" }
+        s.success = golden("the " + entity + " is " + from, trigger + " happens", "the " + entity + " is " + to)
         s.red("from wrong state", frequent, "the " + entity + " is not " + from, trigger + " happens", "it is refused and the state stays as it was")
         return s
     }
@@ -317,19 +424,26 @@ func testSubjectKey(_ t: YNode) -> String {
     if let v = t.child("operation"), !v.str.isEmpty { return "operation: " + v.str }
     if let v = t.child("command"), !v.str.isEmpty { return "command: " + v.str }
     if let v = t.child("page"), !v.str.isEmpty { return "page: " + v.str }
+    if let v = t.child("requirement"), !v.str.isEmpty { return "requirement: " + v.str }
     let ent = str(t.child("entity"))
     if ent.isEmpty { return "" }
     if let c = t.child("constraint"), !c.str.isEmpty { return "entity: " + ent + ", constraint: " + c.str }
     if let tr = t.child("transition") {
         return "entity: \(ent), transition: { from: \(str(tr.child("from"))), to: \(str(tr.child("to"))) }"
     }
-    return ""
+    return "entity: " + ent // the entity's state machine
 }
 
 /// A test in flow style the author can paste under tests.
 private func skeleton(_ s: Subject, _ dc: DerivedCase, _ name: String) -> String {
-    let covers = dc.name.isEmpty ? "" : ", covers: [" + dc.name + "]"
+    let covers = dc.name.isEmpty ? "" : ", covers: [" + flowScalar(dc.name) + "]"
     return "\(name): { \(s.yamlKey), scenario: \(dc.scenario)\(covers), given: \(quote(dc.given)), when: \(quote(dc.when)), then: \(quote(dc.then)) }"
+}
+
+/// A case name as YAML takes it inside a flow sequence: plain, or quoted
+/// when it holds a character that would end or change it.
+private func flowScalar(_ s: String) -> String {
+    s.contains(where: { ":,[]{}#\"'".contains($0) }) ? quote(s) : s
 }
 
 /// A suggested test name: the subject, then the case, without saying the
@@ -339,6 +453,9 @@ private func testName(_ s: Subject, _ dc: DerivedCase) -> String {
     if !s.raw.isEmpty, let r = c.range(of: s.raw) { c.replaceSubrange(r, with: "") }
     c = c.trimmingCharacters(in: .whitespaces)
     c = kebab(c).replacingOccurrences(of: " ", with: "-").replacingOccurrences(of: "_", with: "-").replacingOccurrences(of: ".", with: "-").lowercased()
+    // A decision-table case names clauses of an expression; a test name
+    // keeps only their words and numbers.
+    c = String(c.unicodeScalars.map { ("a"..."z").contains($0) || ("0"..."9").contains($0) || $0 == "-" ? Character($0) : "-" })
     while c.contains("--") { c = c.replacingOccurrences(of: "--", with: "-") }
     return s.name + "-" + c.trimmingCharacters(in: CharacterSet(charactersIn: "-"))
 }
@@ -366,9 +483,14 @@ extension Checker {
             let base = ["tests", name]
             let key = testSubjectKey(t)
             if key.isEmpty { continue } // the schema reports a test without a subject
+            if byKey[key] == nil && key.hasPrefix("entity: ") && !key.contains(", ") && d.entities[String(key.dropFirst(8))] != nil {
+                add(p.key, pointer(base), .testSubject,
+                    "test \(name) is about the state machine of \(key.dropFirst(8)), which has no path from an initial to a terminal state; give it transitions, or name one of its constraints or transitions")
+                continue
+            }
             guard let s = byKey[key] else {
                 add(p.key, pointer(base), .testSubject,
-                    "test \(name) is about \(key.replacingOccurrences(of: ": ", with: " ")), which is not in the specification; name an operationId, command, page, or an entity's constraint or transition that exists")
+                    "test \(name) is about \(key.replacingOccurrences(of: ": ", with: " ")), which is not in the specification; name an operationId, command, page, requirement with acceptance criteria, entity with a state machine, or an entity's constraint or transition that exists")
                 continue
             }
             let id = ObjectIdentifier(s)
@@ -392,9 +514,13 @@ extension Checker {
 
         for s in subjects {
             let id = ObjectIdentifier(s)
-            if !golden.contains(id) {
+            if !golden.contains(id) && !s.whole {
+                // Any golden test of the subject is its success case, so the
+                // skeleton names no case.
+                var success = s.success ?? DerivedCase(name: "", scenario: "golden", given: "...", when: "...", then: "it succeeds", frequency: "")
+                success.name = ""
                 warn(s.node, s.path, .testGoldenMissing, "\(s.label) has no golden scenario; add one under tests, for example " +
-                     skeleton(s, DerivedCase(name: "", scenario: "golden", given: "...", when: "...", then: "it succeeds", frequency: ""), s.name + "-succeeds"))
+                     skeleton(s, success, s.name + "-succeeds"))
             }
             var hasRedCase = false
             var seen = Set<String>()
@@ -404,10 +530,82 @@ extension Checker {
                 seen.insert(dc.name)
                 warn(s.node, s.path, .testCaseMissing, "\(s.label) has no \(dc.scenario) scenario for \(quote(dc.name)); add under tests " + skeleton(s, dc, testName(s, dc)))
             }
-            if !red.contains(id) && !hasRedCase {
+            if !red.contains(id) && !hasRedCase && !s.whole {
                 warn(s.node, s.path, .testRedMissing, "\(s.label) has no red scenario; add one under tests, for example " +
                      skeleton(s, DerivedCase(name: "", scenario: "red", given: "...", when: "...", then: "it is refused", frequency: ""), s.name + "-refused"))
             }
         }
     }
 }
+
+/// The ways a boolean expression can be false, each as the clauses that
+/// are false together: one per clause of an && made false alone, and for
+/// an || every disjunct false at once. The clauses are the expression's
+/// own text, so every build names them alike.
+func falsifiers(_ text: String) -> [[String]] {
+    let expr = trimSpace(text)
+    let ors = splitTop(expr, "||")
+    if ors.count > 1 {
+        var out: [[String]] = [[]]
+        for p in ors {
+            var next: [[String]] = []
+            for prefix in out {
+                for f in falsifiers(p) { next.append(prefix + f) }
+            }
+            out = next
+        }
+        return out
+    }
+    let ands = splitTop(expr, "&&")
+    if ands.count > 1 { return ands.flatMap { falsifiers($0) } }
+    if let inner = unwrap(expr) { return falsifiers(inner) }
+    return [[expr]]
+}
+
+private func trimSpace(_ s: String) -> String { s.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+/// Splits an expression at an operator that is outside every bracket and
+/// string.
+private func splitTop(_ expr: String, _ op: String) -> [String] {
+    let b = Array(expr.utf8), o = Array(op.utf8)
+    var parts: [String] = []
+    var depth = 0, start = 0, i = 0
+    var quote: UInt8 = 0
+    func text(_ from: Int, _ to: Int) -> String { trimSpace(String(decoding: b[from..<to], as: UTF8.self)) }
+    while i < b.count {
+        let ch = b[i]
+        if quote != 0 {
+            if ch == UInt8(ascii: "\\") { i += 1 } else if ch == quote { quote = 0 }
+        } else if ch == UInt8(ascii: "\"") || ch == UInt8(ascii: "'") {
+            quote = ch
+        } else if ch == UInt8(ascii: "(") || ch == UInt8(ascii: "[") || ch == UInt8(ascii: "{") {
+            depth += 1
+        } else if ch == UInt8(ascii: ")") || ch == UInt8(ascii: "]") || ch == UInt8(ascii: "}") {
+            depth -= 1
+        } else if depth == 0 && i + o.count <= b.count && Array(b[i..<(i + o.count)]) == o {
+            parts.append(text(start, i))
+            i += o.count - 1
+            start = i + 1
+        }
+        i += 1
+    }
+    parts.append(text(start, b.count))
+    return parts
+}
+
+/// Removes the parentheses around a whole expression.
+private func unwrap(_ expr: String) -> String? {
+    let b = Array(expr.utf8)
+    guard b.first == UInt8(ascii: "("), b.last == UInt8(ascii: ")") else { return nil }
+    var depth = 0
+    for (i, ch) in b.enumerated() {
+        if ch == UInt8(ascii: "(") {
+            depth += 1
+        } else if ch == UInt8(ascii: ")") {
+            depth -= 1
+            if depth == 0 && i != b.count - 1 { return nil }
+        }
+    }
+    return trimSpace(String(decoding: b[1..<(b.count - 1)], as: UTF8.self))
+}
+

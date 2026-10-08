@@ -1,0 +1,46 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+requirements:
+  LOAN-1:
+    statement: A loan not returned by its due date shall become overdue and be charged.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A loan past its due date is overdue the next day.]
+    harm: [money]
+enums:
+  LoanStatus:
+    type: string
+    enum: [open, overdue, returned, lost]
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      status: { $ref: "#/enums/LoanStatus" }
+    primaryKey: [id]
+    stateField: status
+    transitions:
+      - { from: open, to: overdue, satisfies: [LOAN-1] }
+      - { from: open, to: returned }
+      - { from: overdue, to: returned }
+tests:
+  loan-overdue-accepted:
+    requirement: LOAN-1
+    level: acceptance
+    scenario: golden
+    covers: [acceptance 1]
+    given: a loan due yesterday
+    when: the nightly check runs
+    then: A loan past its due date is overdue the next day.
+    verifies: [LOAN-1]
+  loan-overdue-then-returned:
+    entity: Loan
+    level: system
+    scenario: golden
+    covers: [open to overdue to returned]
+    given: a Loan that is open
+    when: it becomes overdue, then it is returned
+    then: the Loan ends returned, having been open and overdue
+    verifies: [LOAN-1]

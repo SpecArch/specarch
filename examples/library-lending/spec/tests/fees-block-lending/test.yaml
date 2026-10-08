@@ -1,0 +1,8 @@
+requirement: LIB-3
+level: acceptance
+scenario: golden
+covers: [acceptance 2]
+given: "a member who owes a late fee"
+when: "the librarian lends them a copy"
+then: "A member with outstanding fees is refused a loan with 409."
+verifies: [LIB-3]

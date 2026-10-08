@@ -2,6 +2,7 @@ package generate
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"go.yaml.in/yaml/v3"
@@ -279,6 +280,7 @@ func Testplan(root *yaml.Node, relRoot string, impls []Implementation, state *St
 			}
 		}
 	}
+	stateMachines(d, root, state)
 	if state != nil && len(state.LeftOut) > 0 {
 		d.section("Derived cases left out")
 		d.para(fmt.Sprintf("%s the design implies %s no test and %s not written by default: none is about a subject that satisfies a requirement with a harm, none is a failing dependency, and none is a mistake users make often. Writing a test that covers one removes it from this list.",
@@ -705,3 +707,46 @@ func joinSentences(list []string) string {
 	}
 	return strings.Join(out, "; ")
 }
+
+// stateMachines is the test plan's section on each entity with a state
+// machine: its diagram, then each path from an initial to a terminal state
+// with the tests that walk it.
+func stateMachines(d *doc, root *yaml.Node, state *State) {
+	var entities []string
+	for _, e := range pairs(root, "entities") {
+		if str(e.Value, "stateField") != "" && len(items(e.Value, "transitions")) > 0 {
+			entities = append(entities, e.Key.Value)
+		}
+	}
+	if len(entities) == 0 {
+		return
+	}
+	d.section("State machines")
+	d.para("Each entity with a state field is a state machine. A path runs from a state no move reaches to one no move leaves; a test about the entity alone walks one, and names it under covers. A path with no test is listed under the derived cases left out, or warned about when it moves through a transition that satisfies a requirement with a harm.")
+	for _, e := range entities {
+		d.heading(3, "States of "+e)
+		diagram, _ := stateDiagram(root, e)
+		d.block(diagram)
+		var paths []string
+		if state != nil {
+			paths = state.StatePaths[e]
+		}
+		if len(paths) == 0 {
+			d.para("It has no path from an initial to a terminal state.")
+			continue
+		}
+		d.line("| Path | Tests |")
+		d.line("|---|---|")
+		for _, p := range paths {
+			var tests []string
+			for _, t := range pairs(root, "tests") {
+				if str(t.Value, "entity") == e && str(t.Value, "constraint") == "" && get(t.Value, "transition") == nil && slices.Contains(strs(t.Value, "covers"), p) {
+					tests = append(tests, t.Key.Value)
+				}
+			}
+			d.line("| %s | %s |", cell(p), cell(strings.Join(tests, ", ")))
+		}
+		d.blank()
+	}
+}
+

@@ -1,8 +1,8 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:7: warning: /paths/~1a/get: test_golden_missing: operation getThing has no golden scenario; add one under tests, for example get-thing-succeeds: { operation: getThing, scenario: golden, given: "...", when: "...", then: "it succeeds" }
+  specarch.yaml:7: warning: /paths/~1a/get: test_golden_missing: operation getThing has no golden scenario; add one under tests, for example get-thing-succeeds: { operation: getThing, scenario: golden, given: "any caller", when: "getThing is called", then: "it answers 200: A." }
   specarch.yaml:7: warning: /paths/~1a/get: test_red_missing: operation getThing has no red scenario; add one under tests, for example get-thing-refused: { operation: getThing, scenario: red, given: "...", when: "...", then: "it is refused" }
-  specarch.yaml:9: warning: /paths/~1b/get: test_golden_missing: operation getThing has no golden scenario; add one under tests, for example get-thing-succeeds: { operation: getThing, scenario: golden, given: "...", when: "...", then: "it succeeds" }
+  specarch.yaml:9: warning: /paths/~1b/get: test_golden_missing: operation getThing has no golden scenario; add one under tests, for example get-thing-succeeds: { operation: getThing, scenario: golden, given: "any caller", when: "getThing is called", then: "it answers 200: B." }
   specarch.yaml:9: warning: /paths/~1b/get: test_red_missing: operation getThing has no red scenario; add one under tests, for example get-thing-refused: { operation: getThing, scenario: red, given: "...", when: "...", then: "it is refused" }
   specarch.yaml:9: error: /paths/~1b/get/operationId: duplicate_operation: operationId getThing is already used by GET /a; give this operation its own name

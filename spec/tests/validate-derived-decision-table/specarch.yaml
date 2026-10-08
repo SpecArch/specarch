@@ -1,0 +1,44 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  SHELF-1:
+    statement: A shelf shall never hold more copies than the library owns, except the spare shelf.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A shelf with more copies than owned is refused.]
+    harm: [money]
+entities:
+  Shelf:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      copies: { type: integer, format: int32 }
+      owned: { type: integer, format: int32 }
+      label: { type: string, maxLength: 20 }
+    primaryKey: [id]
+    constraints:
+      copies_in_range:
+        kind: check
+        expression: copies >= 0 && (copies <= owned || label == "spare")
+        message: Copies are between none and the shelf's own count, unless it is the spare shelf.
+        satisfies: [SHELF-1]
+tests:
+  shelf-copies-kept:
+    entity: Shelf
+    constraint: copies_in_range
+    level: system
+    scenario: golden
+    given: a shelf with 3 copies of 4 owned
+    when: it is saved
+    then: it is saved
+    verifies: [SHELF-1]
+  shelf-limit-accepted:
+    requirement: SHELF-1
+    level: acceptance
+    scenario: golden
+    covers: [acceptance 1]
+    given: a shelf owning 4 copies
+    when: it is saved holding 5
+    then: A shelf with more copies than owned is refused.
+    verifies: [SHELF-1]

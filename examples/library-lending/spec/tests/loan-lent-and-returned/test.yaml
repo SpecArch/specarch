@@ -1,0 +1,8 @@
+entity: Loan
+level: system
+scenario: golden
+covers: [open to returned]
+given: "a Loan that is open"
+when: "returnLoan happens before the due date"
+then: "the Loan ends returned, with no late fee"
+verifies: [LIB-5]

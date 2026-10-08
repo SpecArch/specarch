@@ -2719,7 +2719,7 @@ let designSchemaJSON = #"""
       "pattern": "^x-(oapi-codegen|ogen|openapi-generator|codegen|protoc|grpc|go|java|kotlin|python|typescript|javascript|rust|swift|dotnet|csharp|php|ruby|framework|router|middleware|cli-library|server|servers|host|port|deploy|deployment|environment)(-|$)"
     },
     "test": {
-      "description": "SpecArch keyword. One test scenario. Exactly one subject: operation, command, page, or entity with constraint or transition. In a folder tree it is the content of tests/<name>/test.yaml.",
+      "description": "SpecArch keyword. One test scenario. Exactly one subject: operation, command, page, requirement, or entity, alone for its state machine or with one constraint or transition. In a folder tree it is the content of tests/<name>/test.yaml.",
       "type": "object",
       "properties": {
         "operation": {
@@ -2735,8 +2735,12 @@ let designSchemaJSON = #"""
           "type": "string",
           "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
         },
+        "requirement": {
+          "description": "The requirement whose acceptance criteria the test shows met: its cases are 'acceptance 1', 'acceptance 2' and so on, one per criterion, and the test is usually level acceptance.",
+          "$ref": "#/$defs/idKey"
+        },
         "entity": {
-          "description": "The entity whose constraint or transition is under test.",
+          "description": "The entity under test: alone, its state machine, whose cases are its paths from an initial to a terminal state such as 'open to overdue to returned'; with constraint or transition, that one.",
           "$ref": "#/$defs/typeName"
         },
         "constraint": {
@@ -2847,6 +2851,11 @@ let designSchemaJSON = #"""
         },
         {
           "required": [
+            "requirement"
+          ]
+        },
+        {
+          "required": [
             "entity"
           ]
         }
@@ -2859,18 +2868,12 @@ let designSchemaJSON = #"""
             ]
           },
           "then": {
-            "oneOf": [
-              {
-                "required": [
-                  "constraint"
-                ]
-              },
-              {
-                "required": [
-                  "transition"
-                ]
-              }
-            ]
+            "not": {
+              "required": [
+                "constraint",
+                "transition"
+              ]
+            }
           }
         },
         {

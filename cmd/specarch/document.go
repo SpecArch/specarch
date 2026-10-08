@@ -54,6 +54,7 @@ func (l loaded) state() *generate.State {
 			st.Records = append(st.Records, doc.Root)
 		}
 	}
+	st.StatePaths = validate.StatePaths(l.spec.Root)
 	for _, c := range validate.LeftOutCases(l.spec.Root) {
 		st.LeftOut = append(st.LeftOut, generate.LeftOut{Subject: c.Subject, Case: c.Case, Scenario: c.Scenario, Reason: c.Reason})
 	}

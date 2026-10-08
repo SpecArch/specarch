@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:10: error: /tests/book-lifecycle: test_subject: test book-lifecycle is about the state machine of Book, which has no path from an initial to a terminal state; give it transitions, or name one of its constraints or transitions

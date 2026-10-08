@@ -1,0 +1,28 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  FEE-1:
+    statement: A late return shall be charged a flat daily rate, capped at the book's replacement cost.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A return seven days late at 0.50 a day is charged 3.50.
+      - A return a year late is charged no more than the replacement cost.
+    harm: [money]
+  FEE-2:
+    statement: A member shall see their fees.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance: [The member's page lists every unpaid fee.]
+tests:
+  late-fee-charged:
+    requirement: FEE-1
+    level: acceptance
+    scenario: golden
+    covers: [acceptance 1]
+    given: a loan returned seven days late at 0.50 a day
+    when: the return is recorded
+    then: A return seven days late at 0.50 a day is charged 3.50.
+    verifies: [FEE-1]

@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "a check constraint copies >= 0 && (copies <= owned || label == \"spare\") on a requirement with a harm, and only a golden test"
+when: validate is run
+then: "it warns for two decision-table cases, the first clause false alone and the two clauses of the || false together, and exits 0"
+verifies: [SA-21]

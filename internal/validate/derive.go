@@ -2,6 +2,7 @@ package validate
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"unicode"
@@ -14,7 +15,7 @@ import (
 // A subject is something tests are written about: an operation, a command,
 // a page, or an entity's constraint or transition.
 type subject struct {
-	kind    string     // operation, command, page, constraint, transition
+	kind    string     // operation, command, page, constraint, transition, requirement, flow
 	label   string     // how a message names it: "operation createLoan"
 	node    *yaml.Node // where a missing scenario is reported
 	path    string
@@ -22,6 +23,9 @@ type subject struct {
 	name    string // for the suggested test name
 	raw     string // the subject's own name inside its case names, if any
 	cases   []derivedCase
+	// success is the golden path the design implies: what a caller
+	// allowed to do it sends inside every limit, and the outcome.
+	success derivedCase
 	// critical is true when a requirement the subject satisfies names a
 	// harm.
 	critical bool
@@ -37,6 +41,12 @@ type derivedCase struct {
 	frequency string // how often users make the mistake: frequent, occasional or rare
 	field     *yaml.Node // the field or parameter schema the case is about, or nil
 	fieldName string
+	// critical marks one case critical on its own: a path through a
+	// transition that satisfies a requirement with a harm.
+	critical bool
+	// reason says why the case is left out, when the general one does not
+	// fit the subject.
+	reason string
 }
 
 // The frequencies of the case kinds, from the table in docs/conventions.md.
@@ -74,7 +84,7 @@ func (dc derivedCase) mistakes() string {
 // rank is critical for a case of a critical subject or a failing
 // dependency, frequent for a case users get wrong often, other otherwise.
 func (s *subject) rank(dc derivedCase) string {
-	if s.critical || strings.HasPrefix(dc.name, "dependency fails ") {
+	if s.critical || dc.critical || strings.HasPrefix(dc.name, "dependency fails ") {
 		return rankCritical
 	}
 	freq := dc.frequency
@@ -89,6 +99,9 @@ func (s *subject) rank(dc derivedCase) string {
 
 // leftOutReason says why a case of rank other is left out.
 func (s *subject) leftOutReason(dc derivedCase) string {
+	if dc.reason != "" {
+		return dc.reason
+	}
 	if m := dc.mistakes(); m != "" {
 		return fmt.Sprintf("%s is marked mistakes: %s, and %s satisfies no requirement with a harm", dc.fieldName, m, s.label)
 	}
@@ -131,9 +144,100 @@ func (d *design) subjects() []*subject {
 		for i, t := range source.Items(source.Child(e.Value, "transitions")) {
 			out = append(out, d.withHarm(transitionSubject(e.Key.Value, i, t), t))
 		}
+		if s := d.flowSubject(e); s != nil {
+			out = append(out, s)
+		}
+	}
+	for _, r := range source.Pairs(source.Child(d.root, "requirements")) {
+		if s := requirementSubject(r); s != nil {
+			out = append(out, s)
+		}
 	}
 	return out
 }
+
+// requirementSubject is a requirement's acceptance tests: one golden case
+// per acceptance criterion, with the criterion as the outcome. They are
+// chosen when the requirement names a harm.
+func requirementSubject(r source.Pair) *subject {
+	id := r.Key.Value
+	status := source.Str(source.Child(r.Value, "status"))
+	criteria := source.Items(source.Child(r.Value, "acceptance"))
+	if len(criteria) == 0 || status == "rejected" || status == "retired" {
+		return nil
+	}
+	s := &subject{kind: "requirement", label: "requirement " + id, node: r.Key, path: source.Pointer("requirements", id),
+		yamlKey: "requirement: " + id, name: strings.ToLower(id)}
+	s.critical = len(source.Items(source.Child(r.Value, "harm"))) > 0
+	for i, c := range criteria {
+		s.cases = append(s.cases, derivedCase{name: fmt.Sprintf("acceptance %d", i+1), scenario: "golden", given: "...", when: "...",
+			then: source.Str(c), frequency: occasional, reason: id + " names no harm"})
+	}
+	return s
+}
+
+// flowSubject is an entity's state machine: one golden case per path from
+// an initial state (one no transition reaches) to a terminal state (one no
+// transition leaves), taking the transitions in document order and never
+// visiting a state twice. A path is chosen when one of its transitions
+// satisfies a requirement with a harm.
+func (d *design) flowSubject(e source.Pair) *subject {
+	entity := e.Key.Value
+	transitions := source.Items(source.Child(e.Value, "transitions"))
+	if len(transitions) == 0 {
+		return nil
+	}
+	reached, leaves := map[string]bool{}, map[string]bool{}
+	var starts []string
+	for _, t := range transitions {
+		reached[source.Str(source.Child(t, "to"))] = true
+		leaves[source.Str(source.Child(t, "from"))] = true
+	}
+	seen := map[string]bool{}
+	for _, t := range transitions {
+		if from := source.Str(source.Child(t, "from")); !reached[from] && !seen[from] {
+			seen[from] = true
+			starts = append(starts, from)
+		}
+	}
+	s := &subject{kind: "flow", label: entity + " state machine", node: e.Key, path: source.Pointer("entities", entity),
+		yamlKey: "entity: " + entity, name: kebab(entity)}
+	var walk func(state string, states, triggers []string, critical bool)
+	walk = func(state string, states, triggers []string, critical bool) {
+		if !leaves[state] {
+			if len(triggers) == 0 {
+				return
+			}
+			s.cases = append(s.cases, derivedCase{name: strings.Join(states, " to "), scenario: "golden",
+				given: "a " + entity + " that is " + states[0], when: strings.Join(triggers, ", then ") + " happen",
+				then: "the " + entity + " ends " + state + ", having been " + joinAnd(states[:len(states)-1]),
+				frequency: occasional, critical: critical, reason: "no transition on the path satisfies a requirement with a harm"})
+			return
+		}
+		for _, t := range transitions {
+			if source.Str(source.Child(t, "from")) != state {
+				continue
+			}
+			to := source.Str(source.Child(t, "to"))
+			if slices.Contains(states, to) {
+				continue
+			}
+			trigger := source.Str(source.Child(t, "trigger"))
+			if trigger == "" {
+				trigger = "the move to " + to
+			}
+			walk(to, append(slices.Clone(states), to), append(slices.Clone(triggers), trigger), critical || d.withHarm(&subject{}, t).critical)
+		}
+	}
+	for _, start := range starts {
+		walk(start, []string{start}, nil, false)
+	}
+	if len(s.cases) == 0 {
+		return nil
+	}
+	return s
+}
+
 
 // withHarm marks the subject critical when a requirement its own
 // satisfies names, the node holding that list, has a harm.
@@ -144,6 +248,18 @@ func (d *design) withHarm(s *subject, n *yaml.Node) *subject {
 		}
 	}
 	return s
+}
+
+// caller is who may do something that needs a permission.
+func caller(perm string) string {
+	if perm == "" || perm == "public" {
+		return "any caller"
+	}
+	return "a caller with " + perm
+}
+
+func golden(given, when, then string) derivedCase {
+	return derivedCase{name: "succeeds", scenario: "golden", given: given, when: when, then: then}
 }
 
 func denied(s *subject, perm, what string) {
@@ -157,6 +273,16 @@ func (d *design) operationSubject(o operation) *subject {
 	s := &subject{kind: "operation", label: "operation " + o.id, node: o.node, path: o.pointer(),
 		yamlKey: "operation: " + o.id, name: kebab(o.id)}
 	call := o.id + " is called"
+	s.success = golden(caller(source.Str(source.Child(o.node, "permission"))), call, "it succeeds")
+	if len(source.Pairs(source.Child(source.Child(o.node, "requestBody"), "content"))) > 0 || len(source.Items(source.Child(o.node, "parameters"))) > 0 || len(source.Items(source.Child(o.pathItem, "parameters"))) > 0 {
+		s.success.when = call + " with values inside every limit"
+	}
+	for _, r := range source.Pairs(source.Child(o.node, "responses")) {
+		if strings.HasPrefix(r.Key.Value, "2") {
+			s.success.then = "it answers " + r.Key.Value + ": " + source.Str(source.Child(r.Value, "description"))
+			break
+		}
+	}
 	// The request body's fields: an inline object, or an entity's fields a
 	// client may set.
 	body, bodyRequired := d.requestFields(o.node)
@@ -344,6 +470,10 @@ func commandSubject(p source.Pair) *subject {
 	s := &subject{kind: "command", label: "command " + name, node: p.Key, path: source.Pointer("commands", name),
 		yamlKey: "command: " + name, name: kebab(strings.ReplaceAll(name, " ", "-"))}
 	run := name + " is run"
+	s.success = golden("...", name+" is run with arguments it accepts", "it exits 0")
+	if ok := source.Child(source.Child(p.Value, "exitCodes"), "0"); ok != nil {
+		s.success.then = "it exits 0: " + source.Str(ok)
+	}
 	s.red("usage error", frequent, "...", name+" is run with arguments it does not accept", "it prints how to use it and exits with the usage status")
 	for _, c := range source.Pairs(source.Child(p.Value, "exitCodes")) {
 		if c.Key.Value != "0" {
@@ -359,6 +489,10 @@ func pageSubject(p source.Pair) *subject {
 	s := &subject{kind: "page", label: "page " + name, node: p.Key, path: source.Pointer("pages", name),
 		yamlKey: "page: " + name, name: name}
 	open := "the page " + name + " is opened"
+	s.success = golden(caller(source.Str(source.Child(p.Value, "permission"))), open, "it shows the page")
+	if pathParam.MatchString(source.Str(source.Child(p.Value, "route"))) {
+		s.success.when = open + " for a record that exists"
+	}
 	denied(s, source.Str(source.Child(p.Value, "permission")), open)
 	for _, m := range pathParam.FindAllStringSubmatch(source.Str(source.Child(p.Value, "route")), -1) {
 		s.red("not found "+m[1], frequent, "no record has that "+m[1], open+" for that "+m[1], "it says the record was not found")
@@ -374,9 +508,20 @@ func constraintSubject(entity string, c source.Pair) *subject {
 	msg := source.Str(source.Child(c.Value, "message"))
 	switch source.Str(source.Child(c.Value, "kind")) {
 	case "unique":
+		s.success = golden("no "+entity+" with the same values exists", "a "+entity+" is saved", "it is saved")
 		s.red("duplicate "+name, occasional, "a "+entity+" exists", "another "+entity+" with the same values is saved", "it is refused: "+msg)
 	case "check":
-		s.red("violates "+name, occasional, "...", "a "+entity+" breaking it is saved", "it is refused: "+msg)
+		s.success = golden("...", "a "+entity+" keeping it is saved", "it is saved")
+		rules := falsifiers(source.Str(source.Child(c.Value, "expression")))
+		if len(rules) < 2 {
+			s.red("violates "+name, occasional, "...", "a "+entity+" breaking it is saved", "it is refused: "+msg)
+			break
+		}
+		// A decision table: one case per way the expression can be false.
+		for _, rule := range rules {
+			falsehood := strings.Join(rule, " is false and ") + " is false"
+			s.red("violates "+name+": "+falsehood, occasional, "...", "a "+entity+" is saved with "+falsehood, "it is refused: "+msg)
+		}
 	}
 	return s
 }
@@ -391,6 +536,7 @@ func transitionSubject(entity string, i int, t *yaml.Node) *subject {
 	if trigger == "" {
 		trigger = "the move"
 	}
+	s.success = golden("the "+entity+" is "+from, trigger+" happens", "the "+entity+" is "+to)
 	s.red("from wrong state", frequent, "the "+entity+" is not "+from, trigger+" happens", "it is refused and the state stays as it was")
 	return s
 }
@@ -420,3 +566,86 @@ func chars(n string) string {
 	}
 	return n + " characters"
 }
+
+// falsifiers lists the ways a boolean expression can be false, each as
+// the clauses that are false together: one per clause of an && made false
+// alone, and for an || every disjunct false at once. The clauses are the
+// expression's own text, so every build names them alike.
+func falsifiers(expr string) [][]string {
+	expr = strings.TrimSpace(expr)
+	if parts := splitTop(expr, "||"); len(parts) > 1 {
+		out := [][]string{nil}
+		for _, p := range parts {
+			var next [][]string
+			for _, prefix := range out {
+				for _, f := range falsifiers(p) {
+					next = append(next, append(append([]string{}, prefix...), f...))
+				}
+			}
+			out = next
+		}
+		return out
+	}
+	if parts := splitTop(expr, "&&"); len(parts) > 1 {
+		var out [][]string
+		for _, p := range parts {
+			out = append(out, falsifiers(p)...)
+		}
+		return out
+	}
+	if inner, ok := unwrap(expr); ok {
+		return falsifiers(inner)
+	}
+	return [][]string{{expr}}
+}
+
+// splitTop splits an expression at an operator that is outside every
+// bracket and string.
+func splitTop(expr, op string) []string {
+	var parts []string
+	depth, start := 0, 0
+	var quote byte
+	for i := 0; i < len(expr); i++ {
+		ch := expr[i]
+		switch {
+		case quote != 0:
+			if ch == '\\' {
+				i++
+			} else if ch == quote {
+				quote = 0
+			}
+		case ch == '"' || ch == '\'':
+			quote = ch
+		case ch == '(' || ch == '[' || ch == '{':
+			depth++
+		case ch == ')' || ch == ']' || ch == '}':
+			depth--
+		case depth == 0 && strings.HasPrefix(expr[i:], op):
+			parts = append(parts, strings.TrimSpace(expr[start:i]))
+			i += len(op) - 1
+			start = i + 1
+		}
+	}
+	return append(parts, strings.TrimSpace(expr[start:]))
+}
+
+// unwrap removes the parentheses around a whole expression.
+func unwrap(expr string) (string, bool) {
+	if !strings.HasPrefix(expr, "(") || !strings.HasSuffix(expr, ")") {
+		return "", false
+	}
+	depth := 0
+	for i := 0; i < len(expr); i++ {
+		switch expr[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth == 0 && i != len(expr)-1 {
+				return "", false
+			}
+		}
+	}
+	return strings.TrimSpace(expr[1 : len(expr)-1]), true
+}
+

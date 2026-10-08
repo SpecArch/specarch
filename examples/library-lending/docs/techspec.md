@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 7 requirements, 3 entities, 8 HTTP operations, 2 channels, 5 pages, 1 algorithm, 68 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 7 requirements, 3 entities, 8 HTTP operations, 2 channels, 5 pages, 1 algorithm, 71 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -627,6 +627,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | book-isbn-twice | Book constraint book_isbn_unique | system | red | a book with ISBN 9780000000001 | another book with that ISBN is saved | it is refused |
 | browse-catalogue | operation listBooks | system | golden | three books by two authors, and a visitor without a card | listBooks is called with q set to one author's name, and again with a 200-character q | the first call answers that author's books, the second an empty list |
 | browse-catalogue-query-too-long | operation listBooks | system | red | a visitor | listBooks is called with a 201-character q | it is refused as invalid input |
+| fees-block-lending | requirement LIB-3 | acceptance | golden | a member who owes a late fee | the librarian lends them a copy | A member with outstanding fees is refused a loan with 409. |
 | lend-a-copy | operation createLoan | system | golden | a standard-tier member with no loans and no fees, and a book with one copy available | createLoan is called for them | an open loan due in 21 days is created, the book has no copy available, and LoanCreated is published |
 | lend-bad-ids | operation createLoan | system | red | a librarian | createLoan is called with memberId abc and again with bookId abc | both are refused as invalid input |
 | lend-denied | operation createLoan | system | red | a caller holding only the member role | createLoan is called | it is refused as not allowed |
@@ -634,6 +635,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | lend-limit-reached | operation createLoan | system | red | a standard-tier member with three open loans | createLoan is called for a fourth book | it answers 409 and no loan is created |
 | lend-missing-field | operation createLoan | system | red | a librarian | createLoan is called without memberId and again without bookId | both are refused as invalid input |
 | lend-unknown-member-or-book | operation createLoan | system | red | a librarian | createLoan is called with a memberId and then a bookId that no record has | both are refused as not found |
+| lending-limit-accepted | requirement LIB-3 | acceptance | golden | a standard-tier member with three open loans | the librarian lends them a fourth copy | A standard-tier member with three open loans is refused a fourth with 409. |
 | list-loans | operation listLoans | system | golden | an open loan and a returned loan | listLoans is called with status open | only the open loan is answered |
 | list-loans-bad-filter | operation listLoans | system | red | a librarian | listLoans is called with status lent and again with memberId abc | both are refused as invalid input |
 | list-loans-denied | operation listLoans | system | red | a caller holding no role | listLoans is called | it is refused as not allowed |
@@ -644,6 +646,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | loan-due-on-loan-day | Loan constraint loan_due_after_loaned | system | red | a loan made on 2026-10-07 | it is saved due on 2026-10-07 | it is refused |
 | loan-form-denied | page loan-form | system | red | a caller holding only the member role | the page loan-form is opened | it is not shown |
 | loan-form-shown | page loan-form | system | golden | a librarian | the page loan-form is filled in and sent | the copy is lent |
+| loan-lent-and-returned | Loan state machine | system | golden | a Loan that is open | returnLoan happens before the due date | the Loan ends returned, with no late fee |
 | loan-overdue-only-from-open | Loan open to overdue | system | red | a returned loan due last week | the nightly job runs | the loan stays returned |
 | loan-returned-after-loaned | Loan constraint loan_returned_after_loaned | system | golden | a loan made at 2026-10-07T10:00:00Z | it is saved returned at 2026-10-08T10:00:00Z | it is saved |
 | loan-returned-before-loaned | Loan constraint loan_returned_after_loaned | system | red | a loan made at 2026-10-07T10:00:00Z | it is saved returned at 2026-10-06T10:00:00Z | it is refused |
@@ -746,9 +749,9 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 |---|---|---|---|
 | LIB-1 |   | entities Member constraints member_card_number_unique; entities Member; paths /members post | tests register-member; tests register-member-email-taken; checks lend-and-return; checks migrated-members |
 | LIB-2 |   | entities Book; permissions public; paths /books get | tests browse-catalogue; checks service-answers |
-| LIB-3 | money | entities Loan; paths /loans post; migrations add-membership-tier | tests lend-a-copy; tests lend-limit-reached; checks lend-and-return |
+| LIB-3 | money | entities Loan; paths /loans post; migrations add-membership-tier | tests fees-block-lending; tests lend-a-copy; tests lend-limit-reached; tests lending-limit-accepted; checks lend-and-return |
 | LIB-4 |   | entities Loan transitions 1; entities Loan; paths /loans/{loanId}/return post; channels loan.overdue; channels loan.overdue messages LoanOverdue; configuration notificationChannelUrl | tests loan-becomes-overdue; monitors overdue-notices-sent |
-| LIB-5 |   | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; configuration dailyRate | tests return-late; checks lend-and-return |
+| LIB-5 |   | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; configuration dailyRate | tests loan-lent-and-returned; tests return-late; checks lend-and-return |
 | LIB-6 |   | roles member | checks member-sees-own-loans |
 | LIB-7 |   | pages loan-form; pages member-form | checks lend-and-return; monitors catalogue-latency |
 

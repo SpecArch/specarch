@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "a Loan state machine with two paths, open to returned and open to overdue to returned, the move to overdue satisfying a requirement with a harm"
+when: validate is run
+then: "it warns for the path through overdue, leaves the other out, and exits 0"
+verifies: [SA-21]

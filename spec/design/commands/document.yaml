@@ -31,7 +31,9 @@ commands:
       requirement with its attributes and acceptance criteria. The
       testplan target writes `testplan.md`: the levels, how each
       implementation's suites run the tests, and every design test as a
-      test case, grouped by subject, then the derived cases left out: each
+      test case, grouped by subject, then each state machine with its
+      state diagram and its paths from an initial to a terminal state, each
+      with the tests that walk it, then the derived cases left out: each
       case of rank other that no test covers, with its subject and the
       reason. The traceability target writes `traceability.md`: needs to
       requirements, requirements to what satisfies and verifies them, with

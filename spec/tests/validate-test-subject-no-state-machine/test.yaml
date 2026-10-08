@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a test about entity Book alone, which has no transitions"
+when: validate is run
+then: "it reports test_subject, saying Book has no state machine path, and exits 1"
+verifies: [SA-21]

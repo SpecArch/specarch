@@ -26,6 +26,9 @@ func testSubjectKey(t *yaml.Node) string {
 	if v := source.Str(source.Child(t, "page")); v != "" {
 		return "page: " + v
 	}
+	if v := source.Str(source.Child(t, "requirement")); v != "" {
+		return "requirement: " + v
+	}
 	ent := source.Str(source.Child(t, "entity"))
 	if ent == "" {
 		return ""
@@ -36,7 +39,7 @@ func testSubjectKey(t *yaml.Node) string {
 	if tr := source.Child(t, "transition"); tr != nil {
 		return fmt.Sprintf("entity: %s, transition: { from: %s, to: %s }", ent, source.Str(source.Child(tr, "from")), source.Str(source.Child(tr, "to")))
 	}
-	return ""
+	return "entity: " + ent // the entity's state machine
 }
 
 func (c *checker) checkTests(d *design) {
@@ -62,8 +65,12 @@ func (c *checker) checkTests(d *design) {
 			continue // the schema reports a test without a subject
 		}
 		s := byKey[key]
+		if s == nil && strings.HasPrefix(key, "entity: ") && !strings.Contains(key, ", ") && d.entities[strings.TrimPrefix(key, "entity: ")] != nil {
+			c.add(p.Key, source.Pointer(base...), RuleTestSubject, "test %s is about the state machine of %s, which has no path from an initial to a terminal state; give it transitions, or name one of its constraints or transitions", name, strings.TrimPrefix(key, "entity: "))
+			continue
+		}
 		if s == nil {
-			c.add(p.Key, source.Pointer(base...), RuleTestSubject, "test %s is about %s, which is not in the specification; name an operationId, command, page, or an entity's constraint or transition that exists", name, strings.ReplaceAll(key, ": ", " "))
+			c.add(p.Key, source.Pointer(base...), RuleTestSubject, "test %s is about %s, which is not in the specification; name an operationId, command, page, requirement with acceptance criteria, entity with a state machine, or an entity's constraint or transition that exists", name, strings.ReplaceAll(key, ": ", " "))
 			continue
 		}
 		scenario := source.Str(source.Child(t, "scenario"))
@@ -94,9 +101,18 @@ func (c *checker) checkTests(d *design) {
 
 	for _, s := range subjects {
 		cv := cov[s]
-		if !cv.golden {
+		// A requirement's or a state machine's cases are all golden and
+		// each is asked for on its own, so neither needs a scenario of each
+		// kind.
+		whole := s.kind == "requirement" || s.kind == "flow"
+		if !cv.golden && !whole {
+			success := s.success
+			if success.scenario == "" {
+				success = derivedCase{scenario: "golden", given: "...", when: "...", then: "it succeeds"}
+			}
+			success.name = "" // any golden test of the subject is its success case
 			c.warn(s.node, s.path, RuleTestGoldenMissing, "%s has no golden scenario; add one under tests, for example %s", s.label,
-				skeleton(s, derivedCase{scenario: "golden", given: "...", when: "...", then: "it succeeds"}, s.name+"-succeeds"))
+				skeleton(s, success, s.name+"-succeeds"))
 		}
 		hasRedCase := false
 		seen := map[string]bool{}
@@ -111,7 +127,7 @@ func (c *checker) checkTests(d *design) {
 			c.warn(s.node, s.path, RuleTestCaseMissing, "%s has no %s scenario for %q; add under tests %s", s.label, dc.scenario, dc.name,
 				skeleton(s, dc, testName(s, dc)))
 		}
-		if !cv.red && !hasRedCase {
+		if !cv.red && !hasRedCase && !whole {
 			c.warn(s.node, s.path, RuleTestRedMissing, "%s has no red scenario; add one under tests, for example %s", s.label,
 				skeleton(s, derivedCase{scenario: "red", given: "...", when: "...", then: "it is refused"}, s.name+"-refused"))
 		}
@@ -137,9 +153,18 @@ func listCases(s *subject) string {
 func skeleton(s *subject, dc derivedCase, name string) string {
 	covers := ""
 	if dc.name != "" {
-		covers = ", covers: [" + dc.name + "]"
+		covers = ", covers: [" + flowScalar(dc.name) + "]"
 	}
 	return fmt.Sprintf("%s: { %s, scenario: %s%s, given: %q, when: %q, then: %q }", name, s.yamlKey, dc.scenario, covers, dc.given, dc.when, dc.then)
+}
+
+// flowScalar writes a case name as YAML takes it inside a flow sequence:
+// plain, or quoted when it holds a character that would end or change it.
+func flowScalar(s string) string {
+	if strings.ContainsAny(s, ":,[]{}#\"'") {
+		return fmt.Sprintf("%q", s)
+	}
+	return s
 }
 
 // testName suggests a test name: the subject, then the case, without saying
@@ -150,10 +175,33 @@ func testName(s *subject, dc derivedCase) string {
 		c = strings.TrimSpace(strings.Replace(c, s.raw, "", 1))
 	}
 	c = strings.ToLower(strings.NewReplacer(" ", "-", "_", "-", ".", "-").Replace(kebab(c)))
+	// A decision-table case names clauses of an expression; a test name
+	// keeps only their words and numbers.
+	c = strings.Map(func(r rune) rune {
+		if r >= 'a' && r <= 'z' || r >= '0' && r <= '9' || r == '-' {
+			return r
+		}
+		return '-'
+	}, c)
 	for strings.Contains(c, "--") {
 		c = strings.ReplaceAll(c, "--", "-")
 	}
 	return s.name + "-" + strings.Trim(c, "-")
+}
+
+// StatePaths lists, per entity with a state machine, its paths from an
+// initial to a terminal state, named as a test covers them.
+func StatePaths(root *yaml.Node) map[string][]string {
+	d := newDesign(root)
+	out := map[string][]string{}
+	for _, e := range source.Pairs(source.Child(d.root, "entities")) {
+		if s := d.flowSubject(e); s != nil {
+			for _, dc := range s.cases {
+				out[e.Key.Value] = append(out[e.Key.Value], dc.name)
+			}
+		}
+	}
+	return out
 }
 
 // LeftOut is a derived case of rank other that no test covers: the test

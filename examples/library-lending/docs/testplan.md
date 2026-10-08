@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 68 design tests, 24 golden and 43 red, about 24 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 71 design tests, 27 golden and 43 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -10,7 +10,8 @@ Version 0.1.0 of the specification: 68 design tests, 24 golden and 43 red, about
 
 | Level | Design tests |
 |---|---|
-| system | 68 |
+| acceptance | 2 |
+| system | 69 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -69,6 +70,24 @@ Scenario: red; level: system; covers q longer than 200 characters.
 - Given: a visitor
 - When: listBooks is called with a 201-character q
 - Then: it is refused as invalid input
+
+### Requirement LIB-3
+
+#### fees-block-lending
+
+Scenario: golden; level: acceptance; covers acceptance 2; verifies LIB-3.
+
+- Given: a member who owes a late fee
+- When: the librarian lends them a copy
+- Then: A member with outstanding fees is refused a loan with 409.
+
+#### lending-limit-accepted
+
+Scenario: golden; level: acceptance; covers acceptance 1; verifies LIB-3.
+
+- Given: a standard-tier member with three open loans
+- When: the librarian lends them a fourth copy
+- Then: A standard-tier member with three open loans is refused a fourth with 409.
 
 ### Operation createLoan
 
@@ -225,6 +244,16 @@ Scenario: golden; level: system.
 - Given: a librarian
 - When: the page loan-form is filled in and sent
 - Then: the copy is lent
+
+### Loan state machine
+
+#### loan-lent-and-returned
+
+Scenario: golden; level: system; covers open to returned; verifies LIB-5.
+
+- Given: a Loan that is open
+- When: returnLoan happens before the due date
+- Then: the Loan ends returned, with no late fee
 
 ### Loan constraint loan_returned_after_loaned
 
@@ -605,6 +634,49 @@ Scenario: red; level: system; covers not found memberId, response 404.
 - Given: a librarian and no member with a given id
 - When: getMember is called with that id
 - Then: it answers 404
+
+## 3. State machines
+
+Each entity with a state field is a state machine. A path runs from a state no move reaches to one no move leaves; a test about the entity alone walks one, and names it under covers. A path with no test is listed under the derived cases left out, or warned about when it moves through a transition that satisfies a requirement with a harm.
+
+### States of Loan
+
+```mermaid
+stateDiagram-v2
+  [*] --> open
+  open --> overdue : loan.overdue/LoanOverdue
+  open --> returned : returnLoan
+  overdue --> returned : returnLoan
+  open --> lost : reportLost
+  overdue --> lost : reportLost
+  returned --> [*]
+  lost --> [*]
+```
+
+| Path | Tests |
+|---|---|
+| open to overdue to returned |   |
+| open to overdue to lost |   |
+| open to returned | loan-lent-and-returned |
+| open to lost |   |
+
+## 4. Derived cases left out
+
+11 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a failing dependency, and none is a mistake users make often. Writing a test that covers one removes it from this list.
+
+| Subject | Case | Scenario | Why it is left out |
+|---|---|---|---|
+| Loan state machine | open to overdue to returned | golden | no transition on the path satisfies a requirement with a harm |
+| Loan state machine | open to overdue to lost | golden | no transition on the path satisfies a requirement with a harm |
+| Loan state machine | open to lost | golden | no transition on the path satisfies a requirement with a harm |
+| requirement LIB-1 | acceptance 1 | golden | LIB-1 names no harm |
+| requirement LIB-1 | acceptance 2 | golden | LIB-1 names no harm |
+| requirement LIB-2 | acceptance 1 | golden | LIB-2 names no harm |
+| requirement LIB-4 | acceptance 1 | golden | LIB-4 names no harm |
+| requirement LIB-5 | acceptance 1 | golden | LIB-5 names no harm |
+| requirement LIB-5 | acceptance 2 | golden | LIB-5 names no harm |
+| requirement LIB-6 | acceptance 1 | golden | LIB-6 names no harm |
+| requirement LIB-7 | acceptance 1 | golden | LIB-7 names no harm |
 
 The checks run on the installed system before it is handed over are in the commissioning procedure.
 

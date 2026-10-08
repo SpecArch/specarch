@@ -1,0 +1,7 @@
+command: document
+level: system
+scenario: golden
+given: "a Loan state machine with two paths and a test that walks one of them"
+when: "document testplan is run"
+then: "testplan.md has a State machines section with the Loan state diagram and a row per path naming the test that walks it, and exits 0"
+verifies: [SA-16]

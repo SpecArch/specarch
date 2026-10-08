@@ -51,6 +51,9 @@ type State struct {
 	// path order, and RecordsRel their folder as the document names it.
 	Records    []*yaml.Node
 	RecordsRel string
+	// StatePaths are, per entity with a state machine, its paths from an
+	// initial to a terminal state, for the test plan.
+	StatePaths map[string][]string
 }
 
 // LeftOut is one derived case the test plan lists as left out.

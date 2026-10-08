@@ -498,7 +498,8 @@ the tests of its own code (unit and integration suites, fixtures, mocks,
 performance targets, platforms).
 
 A design test is about one subject: an `operation`, a `command`, a `page`,
-or an `entity` with one of its `constraint`s or `transition`s. It has a
+a `requirement`, or an `entity`, with one of its `constraint`s or
+`transition`s or alone for its state machine. It has a
 `level`, `system` (the test exercises the system through its interfaces as a
 client would) or `acceptance` (it shows a stakeholder that a requirement is
 met, and names it under `verifies`); unit and integration tests belong to
@@ -521,8 +522,23 @@ and `then`. There is no test language beyond that. In a tree, each test is
     then: it answers 409 and no loan is created
     verifies: [LIB-3]
 
-Every subject needs at least one golden scenario and its red ones. The
-validator derives the cases a subject needs from the rest of the
+Every operation, command, page, constraint and transition needs at least
+one golden scenario and its red ones; any golden test of it is its success
+case, and the test the validator suggests when there is none carries the
+outcome the design gives (the 2xx response, exit 0, the page shown, the
+state reached). A requirement and a state machine are subjects of a
+different kind: every case is golden and asked for on its own.
+
+- A `requirement` subject has one case per acceptance criterion,
+  `acceptance 1`, `acceptance 2` and so on, with the criterion as its
+  outcome; its tests are usually `level: acceptance`.
+- An `entity` alone is its state machine, declared by `stateField` and
+  `transitions`. Its cases are its paths from an initial state (one no
+  transition reaches) to a terminal state (one no transition leaves),
+  taking the transitions in document order and never visiting a state
+  twice, named by their states: `open to overdue to returned`.
+
+The validator derives the cases a subject needs from the rest of the
 specification. Each case has a frequency, how often users make that
 mistake:
 
@@ -546,7 +562,23 @@ mistake:
 | a 4xx or 5xx response | `response <status>` | red | occasional |
 | a command | `usage error`, and `exit <status>` for each non-zero exit code | red | frequent |
 | a check constraint / a unique constraint | `violates <constraint>` / `duplicate <constraint>` | red | occasional |
+| a check constraint that can be false in more than one way | `violates <constraint>: <clause> is false`, one per way (below) | red | occasional |
+| an acceptance criterion of a requirement | `acceptance <N>` | golden | occasional |
+| a path of a state machine | `<state> to <state> to ...` | golden | occasional |
 | a transition | `from wrong state` | red | frequent |
+
+A check constraint whose expression joins clauses with `&&` or `||` is a
+decision table (ISO/IEC/IEEE 29119-4, 5.2.6): one red case per way it can
+be false, each clause of an `&&` false alone and every disjunct of an `||`
+false at once. The case names the false clauses in the expression's own
+text, `violates copies_in_range: copies >= 0 is false`, so that every
+build names it alike; a constraint false in only one way keeps the plain
+`violates <constraint>`. A case name holding a colon or a quote is quoted
+in `covers`.
+
+An acceptance case is chosen when its requirement names a `harm`, and a
+path when one of its transitions satisfies a requirement with a harm; the
+others are left out, as below.
 
 A field or a parameter's schema may replace the frequency of every case
 derived from it (its limits, pattern, enum and format, and `missing` or

@@ -1,0 +1,22 @@
+questions:
+  Q-1:
+    question: What does GET /health do, and what does it answer? The document gives no summary.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1health/get/summary']
+    decidedBy: system-owner
+    why: An operation needs a summary and its responses, and the document does not give them.
+  Q-2:
+    question: Which permission does GET /health check? The document gives it no security.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1health/get/permission']
+    decidedBy: system-owner
+    why: A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.
+  Q-3:
+    question: Which permission does GET /hello check? The document gives it no security.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1hello/get/permission']
+    decidedBy: system-owner
+    why: A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.

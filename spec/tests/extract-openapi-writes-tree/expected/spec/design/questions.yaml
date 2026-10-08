@@ -1,0 +1,43 @@
+questions:
+  Q-1:
+    question: What does POST /loans do, and what does it answer? The document gives no summary.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans/post/summary']
+    decidedBy: system-owner
+    why: An operation needs a summary and its responses, and the document does not give them.
+  Q-2:
+    question: Which permission does POST /loans check? The document says it needs no security.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans/post/permission']
+    decidedBy: system-owner
+    why: A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.
+  Q-3:
+    question: 'What values does each path parameter of /loans/{loanId} that the document does not declare take: loanId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1{loanId}/parameters/0/schema']
+    decidedBy: system-owner
+    why: The path's template names the parameter, and the document declares no schema for it.
+  Q-4:
+    question: Which permission does GET /loans/{loanId} check? The document gives it the security staff with the scopes loans.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1{loanId}/get/permission']
+    decidedBy: system-owner
+    why: A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.
+  Q-5:
+    question: Which fields identify one Loan, its primary key?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loan/primaryKey']
+    decidedBy: system-owner
+    why: A schema says what a record carries, not which of its fields identify it.
+  Q-6:
+    question: 'Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans/post/requestBody/content/application~1json/schema/properties/copies/format', '#/entities/Loan/properties/id/format', '#/entities/Loan/properties/fee/format']
+    decidedBy: system-owner
+    why: The meta-model needs a number's width, and the document gives none it holds; choosing one would be a guess.

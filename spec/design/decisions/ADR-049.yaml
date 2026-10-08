@@ -1,0 +1,66 @@
+decisions:
+  ADR-049:
+    title: extract openapi reads an OpenAPI document as a document source, and merge takes the answer one tree gives to another's question and reports a placeholder
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Step 7 of docs/extraction.md, Building extract, reads an OpenAPI
+      3.0 or 3.1 document: its operations, parameters, request and
+      response schemas. Where it and the router disagree, the merge asks;
+      a document none of whose paths the router serves is reported as a
+      placeholder, since a service template often ships a sample file
+      that is never served. The router reader asks what each operation
+      does and answers, and what values its path parameters take, which an
+      OpenAPI document says; the document cannot say which permission an
+      operation checks, which the router names. The merge copied every
+      tree's questions, so a question one tree asked stayed open after
+      another tree gave the key.
+    decision: |
+      extract openapi reads one OpenAPI document, YAML or JSON, into one
+      document source at the commit that last changed it, its clauses
+      the JSON pointers of its operations and component schemas.
+      Operations under get, post, put, patch and delete, their
+      parameters, request bodies and responses are written in the
+      meta-model's terms, with schemas in the field subset; a component
+      schema of type object is an entity and a string enum of snake_case
+      values an enum. What the meta-model cannot hold prints a line and
+      is left out. An operation's permission is always a must question,
+      and so is an integer or number with no width. merge leaves out a
+      tree's question when another tree gives every key it blocks, and
+      reports a documents-side source whose operations share no path with
+      the code side as a placeholder; its operations are still compared,
+      each a not-built question.
+    why: |
+      A document source, because an OpenAPI file is written by people
+      about the system and can drift from it, as the manual can, and the
+      merge compares the documents side with the code side; read as code,
+      a path the router does not serve would join the specification
+      unasked. No OpenAPI library, because the reader takes a subset of
+      the format that yaml/v3, already a dependency, parses in both
+      notations, and a library would add a dependency to check every
+      release for this subset alone. OpenAPI 3.0's nullable, example and
+      boolean exclusive bounds are rewritten in the 3.1 form, which is
+      JSON Schema's and the meta-model's, since they say the same thing.
+      A security scheme is not a permission: it says how a caller proves
+      who it is, and scopes are a scheme's own, so the permission is
+      asked, never derived, and never written as public, for the reason
+      the router reader gives. An integer with no width is asked because
+      the meta-model refuses one, and choosing int32 or int64 for the
+      document would be a guess. A property whose name is not camelCase
+      is left out rather than renamed, because a renamed property would
+      generate a document that differs from the contract clients use;
+      the meta-model has no name on the wire yet. A question another tree
+      answers is left out because the element then cites the tree that
+      gives the key, which is the row "agree" of docs/from-sources.md,
+      section 3.2, and an open question beside the value would ask what
+      the specification already states. The placeholder is reported and
+      not dropped, because the plan gives the refusal to the route-table
+      gate, and a reviewer needs the not-built questions to tell a
+      placeholder from a contract the code has not caught up with.
+    consequences: |
+      The lending desk's OpenAPI document merged with its router tree
+      gives the summaries, responses and parameter values the router
+      could not, takes the permissions from the router, and asks one
+      question about the path the router does not serve. Wire names that
+      are not camelCase wait for the meta-model to hold them.
+    satisfies: [SA-11, SA-44, SA-45]

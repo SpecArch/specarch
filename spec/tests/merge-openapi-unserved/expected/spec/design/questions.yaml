@@ -1,0 +1,36 @@
+questions:
+  Q-1:
+    question: Which permission does POST /loans/{loanId}/renew check? The document gives it the security deskStaff.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1{loanId}~1renew/post/permission']
+    decidedBy: system-owner
+    why: A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.
+  Q-2:
+    question: Which fields identify one Loan, its primary key?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loan/primaryKey']
+    decidedBy: system-owner
+    why: A schema says what a record carries, not which of its fields identify it.
+  Q-3:
+    question: Which fields identify one Member, its primary key?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Member/primaryKey']
+    decidedBy: system-owner
+    why: A schema says what a record carries, not which of its fields identify it.
+  Q-4:
+    question: 'Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loan/properties/id/format']
+    decidedBy: system-owner
+    why: The meta-model needs a number's width, and the document gives none it holds; choosing one would be a guess.
+  Q-5:
+    question: 'What does each permission allow: loans.read, loans.write, members.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.read/description', '#/permissions/loans.write/description', '#/permissions/members.write/description']
+    decidedBy: system-owner
+    why: A route table names the permission a route checks and not what it is for.

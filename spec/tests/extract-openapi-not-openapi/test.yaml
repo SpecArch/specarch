@@ -1,0 +1,8 @@
+command: extract
+level: system
+scenario: red
+covers: [exit 1]
+given: "a committed Swagger 2.0 document, which names no openapi version"
+when: "extract openapi is run on it"
+then: "it says the file is not an OpenAPI 3.0 or 3.1 document, writes nothing and exits 1"
+verifies: [SA-44]

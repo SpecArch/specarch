@@ -1,0 +1,69 @@
+paths:
+  /loans:
+    parameters:
+      - name: X-Branch
+        in: header
+        required: true
+        schema: {type: string, maxLength: 8}
+    post:
+      operationId: postLoans
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cardNumber: {type: string}
+                copies:
+                  type: integer
+                  minimum: 1
+                  exclusiveMaximum: 3
+              required: [cardNumber]
+      responses:
+        "201":
+          description: The new loan.
+          content:
+            application/json:
+              schema: {$ref: '#/entities/Loan'}
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1loans/post, says: 'POST /loans, with no summary.'}
+  /loans/{loanId}:
+    parameters:
+      - {name: loanId, in: path, required: true}
+    get:
+      operationId: getLoan
+      summary: One loan
+      parameters:
+        - name: expand
+          in: query
+          schema: {type: string, enum: [member, book]}
+      responses:
+        "200":
+          description: The loan.
+          content:
+            application/json:
+              schema: {$ref: '#/entities/Loan'}
+      origin: stated
+      cites:
+        - {source: openapi, clause: '/paths/~1loans~1{loanId}/get', says: 'GET /loans/{loanId}: One loan.'}
+entities:
+  Loan:
+    type: object
+    description: A book lent to a member.
+    properties:
+      id: {type: integer, readOnly: true}
+      status: {$ref: '#/enums/LoanStatus'}
+      fee: {type: [number, "null"]}
+    required: [id, status]
+    origin: stated
+    cites:
+      - {source: openapi, clause: /components/schemas/Loan, says: 'The schema Loan, with the properties id, status and fee.'}
+enums:
+  LoanStatus:
+    type: string
+    enum: [open, returned, lost]
+    origin: stated
+    cites:
+      - {source: openapi, clause: /components/schemas/LoanStatus, says: 'The schema LoanStatus, one of open, returned and lost.'}

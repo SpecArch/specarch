@@ -1,0 +1,93 @@
+openapi: 3.0.3
+info:
+  title: Branch lending API
+  version: 2.1.0
+servers:
+  - url: https://lending.example.invalid
+security:
+  - staff: [loans]
+tags:
+  - name: loans
+paths:
+  /loans/{loanId}:
+    get:
+      operationId: getLoan
+      summary: One loan
+      parameters:
+        - name: session
+          in: cookie
+          schema: { type: string }
+        - name: expand
+          in: query
+          schema: { type: string, enum: [member, book] }
+      responses:
+        "200":
+          description: The loan.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Loan" }
+        4XX:
+          description: Refused.
+      x-rate-group: reads
+    head:
+      responses:
+        "200": { description: The loan exists. }
+  /loans:
+    parameters:
+      - $ref: "#/components/parameters/Branch"
+    post:
+      operationId: create-loan
+      tags: [loans]
+      requestBody:
+        $ref: "#/components/requestBodies/NewLoan"
+      responses:
+        "201":
+          description: The new loan.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Loan" }
+      security: []
+components:
+  securitySchemes:
+    staff:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://lending.example.invalid/token
+          scopes: { loans: Lend and return books }
+  parameters:
+    Branch:
+      name: X-Branch
+      in: header
+      required: true
+      schema: { type: string, maxLength: 8 }
+  requestBodies:
+    NewLoan:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              cardNumber: { type: string }
+              copies: { type: integer, minimum: 1, maximum: 3, exclusiveMaximum: true }
+            required: [cardNumber]
+  schemas:
+    LoanStatus:
+      type: string
+      enum: [open, returned, lost]
+    Loan:
+      type: object
+      description: A book lent to a member.
+      properties:
+        id: { type: integer, format: int64, readOnly: true }
+        status: { $ref: "#/components/schemas/LoanStatus" }
+        due_on: { type: string, format: date }
+        fee: { type: number, format: float, nullable: true }
+        note:
+          allOf:
+            - { type: string }
+      required: [id, status, due_on]
+    loanList:
+      type: array
+      items: { $ref: "#/components/schemas/Loan" }

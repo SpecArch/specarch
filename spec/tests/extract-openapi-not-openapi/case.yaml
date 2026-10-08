@@ -1,0 +1,7 @@
+arguments: [extract, openapi, --out, spec, api/swagger.json]
+repository:
+  folder: api
+  commits:
+    - [swagger.json]
+exitStatus: 1
+standardOutput: ""

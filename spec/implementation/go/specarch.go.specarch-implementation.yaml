@@ -68,7 +68,7 @@ layout:
   idioms:
     description: The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set.
   internal/extract:
-    description: "The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router and documents readers, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, and a requirement that gives a number of days joined to the one check that names it."
+    description: "The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents and OpenAPI readers, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers left out, and a placeholder source reported."
   internal/source:
     description: Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys.
   internal/spec:

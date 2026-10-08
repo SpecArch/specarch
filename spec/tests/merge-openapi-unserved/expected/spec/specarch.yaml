@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.4.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: Merge of 2 trees
+  version: 0.1.0
+  description: |
+    The elements of these trees, merged in this order: Lending desk API; Lending desk routes. Every element cites where it was read; where the trees disagree, or the documents and the code do, a question asks which is right.
+  tracksOrigin: true
+stages: [requirements, design, implementation]
+sources:
+  openapi:
+    kind: document
+    title: Lending desk API
+    edition: 1.0.0
+    url: https://example.invalid/lending-desk-api.yaml
+    clauses:
+      - {clause: /components/schemas/Loan, title: schema Loan}
+      - {clause: /components/schemas/Member, title: schema Member}
+      - {clause: /paths/~1loans/post, title: POST /loans}
+      - {clause: '/paths/~1loans~1{loanId}~1renew/post', title: 'POST /loans/{loanId}/renew'}
+      - {clause: '/paths/~1loans~1{loanId}~1return/post', title: 'POST /loans/{loanId}/return'}
+      - {clause: /paths/~1members/post, title: POST /members}
+      - {clause: '/paths/~1members~1{cardNumber}~1loans/get', title: 'GET /members/{cardNumber}/loans'}
+  code:
+    kind: code
+    title: The code repository
+    edition: 1711bb0985356e46178489d92ef30a788bc21db7
+    url: https://example.invalid/lending-desk.git
+    clauses:
+      - {clause: examples/lending-desk/sources/code, title: The routes the router built from here registers}

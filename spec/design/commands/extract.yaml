@@ -57,6 +57,33 @@ commands:
         the document does not give a should question. A field of any other
         type, any other table and fenced code each print a line. The
         edition is the commit that last changed the file.
+      - `openapi`: one OpenAPI 3.0 or 3.1 document, in YAML or JSON, as
+        one document source under `--source-key` (default as for
+        documents), whose clauses are the JSON pointers of its operations
+        and component schemas. Each operation under get, post, put, patch
+        or delete becomes an operation under its path, citing its pointer,
+        with its operationId, summary, description, parameters, request
+        body and responses; a path's own parameters stay on the path. A
+        schema is written in the field subset: OpenAPI 3.0's `nullable`
+        becomes a type that allows null, its `example` an `examples`
+        list, and its boolean `exclusiveMinimum` and `exclusiveMaximum`
+        the number form; a reference to a component schema becomes a
+        reference to the entity of that name. A component schema of type
+        object becomes an entity, its primary key a must question, and
+        one of type string with an enum of snake_case values an enum.
+        What the meta-model cannot hold prints a line and is left out: the
+        methods head, options and trace; a cookie parameter or one given
+        by content; a response code range; response headers and links;
+        callbacks, servers, tags and external documents; a reference
+        outside the document; allOf, oneOf, anyOf, not,
+        additionalProperties and discriminator; a property whose name is
+        not camelCase, since 0.1 has no name on the wire; and an
+        operationId that is not camelCase, the operation then named by
+        its method and path. Every operation's permission is a must
+        question naming the security the document gives, since a security
+        scheme is not a permission, and so is an integer or number with no
+        width; a missing summary or responses is a must question too. The
+        edition is the commit that last changed the file.
 
       Every reader follows these rules:
 
@@ -92,11 +119,11 @@ commands:
     permission: public
     arguments:
       - name: source
-        description: "The surface to read: `outline`, `database`, `router` or `documents`."
+        description: "The surface to read: `outline`, `database`, `router`, `documents` or `openapi`."
         required: true
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
       - name: paths
-        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file."
+        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document."
         required: true
         repeatable: true
         schema: { type: string }
@@ -106,7 +133,7 @@ commands:
         schema: { type: string }
         required: true
       source-key:
-        description: The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents, when it is not given.
+        description: The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given.
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
     reads:
       - { path: "{paths}", description: The surface being read. }
@@ -120,7 +147,7 @@ commands:
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written
-      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, or a document that is not Markdown"
+      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, or a file that is not an OpenAPI 3.0 or 3.1 document"
       "2": usage error, a source this build does not offer, or a path that could not be read or written
     satisfies: [SA-11, SA-44]
     why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

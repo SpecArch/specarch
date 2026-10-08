@@ -1,0 +1,23 @@
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      responses:
+        "200":
+          description: Healthy.
+      origin: stated
+      cites:
+        - {source: sample, clause: /paths/~1health/get, says: 'GET /health, with no summary.'}
+  /hello:
+    get:
+      operationId: sayHello
+      summary: Say hello
+      responses:
+        "200":
+          description: A greeting.
+          content:
+            application/json:
+              schema: {type: object, properties: {message: {type: string}, count: {type: [integer, "null"], format: int32, exclusiveMinimum: 0}}}
+      origin: stated
+      cites:
+        - {source: sample, clause: /paths/~1hello/get, says: 'GET /hello: Say hello.'}

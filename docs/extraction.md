@@ -49,7 +49,7 @@ project's repository. `specarch extract <source>`, the verb that goes from
 existing code or documents to a specification, is designed in
 `spec/design/commands/extract.yaml` and built one reader at a time in the
 steps of "Building extract" below. The Go build reads the sources
-`outline`, `database`, `router` and `documents`, and `specarch merge` joins their trees; a source not built yet is answered with status
+`outline`, `database`, `router`, `documents` and `openapi`, and `specarch merge` joins their trees; a source not built yet is answered with status
 2, and the Swift build has no extract or merge verb.
 
 ## Building extract
@@ -211,13 +211,27 @@ Steps, in order:
    as one `must` question citing clause 3.3 and the loans table,
    validated and byte-identical; CI repeats it. PDF and slide decks
    follow once a reader for them passes the dependency rules.
-7. The OpenAPI reader, `extract openapi`, for OpenAPI 3.0 and 3.1:
-   operations, parameters, request and response schemas. Where it and
-   the router disagree, a question; a document none of whose paths the
-   router serves is reported as a placeholder. Done when an OpenAPI file
-   added to the lending desk, with one path the router does not serve,
-   merges with the router tree into one question naming that path, and a
-   file with only unserved paths is reported as a placeholder.
+7. Built. The OpenAPI reader, `extract openapi`, for OpenAPI 3.0 and
+   3.1, in YAML or JSON, with no dependency beyond the YAML library
+   (ADR-049): operations, parameters, request and response schemas, as a
+   document source whose clauses are the JSON pointers read. A component
+   schema of type object is an entity, its primary key a question; 3.0's
+   nullable, example and boolean exclusive bounds are written in the 3.1
+   form; a security scheme is not a permission, so every operation's
+   permission is a question, and so is a number with no width the
+   meta-model holds. What the meta-model cannot hold prints a line,
+   among it a property whose name is not camelCase, since 0.1 has no
+   name on the wire. `specarch merge` leaves out a tree's question when
+   another tree gives every key it blocks, and reports a documents-side
+   source none of whose paths the code serves as a placeholder. The
+   lending desk's OpenAPI document,
+   `examples/lending-desk/sources/openapi/openapi.yaml`, has the four
+   routes and a renewal the router does not serve; merged with the
+   router tree it gives the summaries, responses and parameter values,
+   takes the permissions from the router, and asks one question naming
+   `/loans/{loanId}/renew`, validated and byte-identical; CI repeats it.
+   A sample document whose paths the router serves none of is reported
+   as a placeholder.
 8. The permissions reader, `extract permissions`: roles and the
    permissions each grants, from the tables and seed scripts the running
    check reads. A check that runs only when a setting is present, and so

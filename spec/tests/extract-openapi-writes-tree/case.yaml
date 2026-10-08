@@ -1,0 +1,25 @@
+arguments: [extract, openapi, --out, spec, api/openapi.yaml]
+repository:
+  folder: api
+  commits:
+    - [openapi.yaml]
+exitStatus: 0
+standardOutput: |
+  commit bd936c947854df912ce3cc6e012a4391b82bca95: the last change to openapi.yaml
+  counted 2 paths and 3 component schemas: every key of paths and of components.schemas
+  wrote 2 operations on 2 paths, 1 entity, 1 enum and 6 questions: one operation per get, post, put, patch or delete, one entity per object schema, one enum per string enum, and one question per thing the document does not say
+  not held: operation POST /loans: its operationId create-loan is not camelCase, which an operationId is; it is named postLoans
+  not held: operation POST /loans: tags, which the meta-model does not hold here; left out
+  not held: operation HEAD /loans/{loanId}: the meta-model holds the methods get, post, put, patch and delete; left out
+  not held: operation GET /loans/{loanId}, parameter session: the meta-model holds a parameter in the path, the query or a header, not a cookie; left out
+  not held: operation GET /loans/{loanId}, response 4XX: the meta-model holds a response code or default, not a range; left out
+  not held: operation GET /loans/{loanId}: the extension x-rate-group, whose meaning the document's own tools define; left out
+  not held: schema Loan, property id: the format int64 is not a width the meta-model holds for a JSON integer; left out, and asked
+  not held: schema Loan, property due_on: its name is not camelCase, and meta-model 0.1 has no name on the wire; left out
+  not held: schema Loan, property fee: the format float is not a width the meta-model holds for a JSON number; left out, and asked
+  not held: schema Loan, property note: allOf combines schemas, which the field subset does not; left out
+  not held: schema Loan, property note: no type the meta-model holds is left; left out
+  not held: schema loanList: its name is not PascalCase, which an entity's or an enum's is; written in place wherever it is referred to
+  not held: the document's servers: the meta-model does not hold it; left out
+  not held: the document's tags: the meta-model does not hold it; left out
+  not held: components.securitySchemes: a security scheme is not a permission; named in each operation's permission question, and left out

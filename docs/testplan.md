@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.5.0-dev of the specification: 255 design tests, 91 golden and 164 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.5.0-dev of the specification: 259 design tests, 94 golden and 165 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 251 |
+| system | 255 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -504,8 +504,24 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 Scenario: red; level: system; covers exit 2.
 
 - Given: a source this build does not read yet
-- When: extract openapi is run on a file
+- When: extract permissions is run on a seed script
 - Then: it names the sources it reads, writes nothing and exits 2
+
+#### extract-openapi-not-openapi
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: a committed Swagger 2.0 document, which names no openapi version
+- When: extract openapi is run on it
+- Then: it says the file is not an OpenAPI 3.0 or 3.1 document, writes nothing and exits 1
+
+#### extract-openapi-writes-tree
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository holding an OpenAPI 3.0 document with two paths, a path-level parameter by reference, a template parameter it does not declare, a request body by reference, an operationId that is not camelCase, an operation with no summary and one with no security, a head method, a cookie parameter, a response range, an extension, an object schema with an int64 and a float without bounds, a nullable field, a snake_case property and an allOf, a string enum and an array schema named in lower case
+- When: extract openapi is run on the document
+- Then: it writes each operation under its path citing its pointer, the object schema as an entity and the enum as an enum, 3.0's nullable and boolean exclusive bound in the 3.1 form, a question for the missing summary, each permission, the undeclared parameter's values, the primary key and the widths, prints a line for everything it leaves out, and exits 0
 
 #### extract-outline-shallow-clone
 
@@ -868,6 +884,22 @@ Scenario: golden; level: system; verifies SA-45.
 - Given: a repository whose first commit holds the migrations and whose second the router, a database tree read at the first that asks one question, and a router tree read at the second that asks two, both declaring the repository as the source code
 - When: merge is run on the two trees
 - Then: it writes one specification with one source code at the second commit, whose clauses are both trees', every element of both trees, the stakeholder they share once and the three questions numbered again in the order the trees are given, says the migrations are unchanged up to the second commit, and exits 0
+
+#### merge-openapi-placeholder
+
+Scenario: golden; level: system; verifies SA-11.
+
+- Given: the tree the router's route table gives, and the tree of a sample OpenAPI document a service template ships, none of whose paths the router serves
+- When: merge is run on the two trees
+- Then: it reports the sample as a placeholder with the number of its paths, still asks whether each of its operations is to be built and whether each route is meant to exist, and exits 0
+
+#### merge-openapi-unserved
+
+Scenario: golden; level: system; verifies SA-11.
+
+- Given: the tree an OpenAPI document gives, with the four operations the router serves and one more, and the tree the router's route table gives
+- When: merge is run on the two trees
+- Then: the router's questions about summaries, responses and path parameters, and the document's questions about the permissions the router names, are left out as answered, the operation the router does not serve is one must question that names its path, and it exits 0
 
 #### merge-path-changed
 

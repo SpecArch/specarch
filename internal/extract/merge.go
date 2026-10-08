@@ -91,7 +91,52 @@ func Merge(specs []*spec.Spec, out string) (*Result, error) {
 	asked := m.disputeQuestions()
 	asked += m.sideQuestions()
 	asked += m.quantityQuestions()
+	m.placeholders()
 	return m.write(asked)
+}
+
+// placeholders reports a documents-side source whose operations share no
+// path with the code side's, such as an OpenAPI file a service template
+// ships and nothing serves (ADR-049).
+func (m *merger) placeholders() {
+	served := map[string]bool{}
+	for _, ptr := range m.order {
+		e := m.elements[ptr]
+		if e.section == "paths" && m.onSide(e, codeSide) {
+			served[e.tokens[1]] = true
+		}
+	}
+	if len(served) == 0 {
+		return
+	}
+	for _, t := range m.trees {
+		if t.side != documentsSide {
+			continue
+		}
+		for _, src := range source.Pairs(source.Child(t.s.Root, "sources")) {
+			var paths []string
+			for _, p := range source.Pairs(source.Child(t.s.Root, "paths")) {
+				for _, method := range pathMethods {
+					for _, c := range source.Items(source.Child(source.Child(p.Value, method), "cites")) {
+						if source.Str(source.Child(c, "source")) == src.Key.Value && !contains(paths, p.Key.Value) {
+							paths = append(paths, p.Key.Value)
+						}
+					}
+				}
+			}
+			if len(paths) == 0 {
+				continue
+			}
+			shared := false
+			for _, p := range paths {
+				shared = shared || served[p]
+			}
+			if !shared {
+				m.res.say("placeholder: the source %s of %s, %s, cites %s and the code serves none of them; a document no path of which is served is a placeholder until the owner says otherwise",
+					src.Key.Value, t.s.Dir, source.Str(source.Child(src.Value, "title")), plural(len(paths), "path"))
+			}
+		}
+	}
 }
 
 // checkTree refuses a tree merge does not take.
@@ -699,17 +744,39 @@ func itemNamed(n *yaml.Node, name string) *yaml.Node {
 // --- Questions -------------------------------------------------------------
 
 // treeQuestions takes every tree's questions, in the order the trees are
-// given, with their pointers following the merged lists.
+// given, with their pointers following the merged lists. A question whose
+// every blocked key another tree gives is left out: that tree answers it
+// (ADR-049).
 func (m *merger) treeQuestions() {
-	for _, t := range m.trees {
+	for ti, t := range m.trees {
 		for _, p := range source.Pairs(source.Child(t.s.Root, spec.QuestionsSection)) {
 			q := copyNode(p.Value)
-			for _, b := range source.Items(source.Child(q, "blocks")) {
+			blocks := source.Items(source.Child(q, "blocks"))
+			var givers []string
+			answered := len(blocks) > 0
+			for _, b := range blocks {
 				parsed, ok := spec.ParseBlock(b.Value)
 				if !ok || !parsed.IsPointer() {
+					answered = false
 					continue
 				}
-				b.Value = m.pointerOf(treeSteps(t.s.Root, parsed.Tokens))
+				steps := treeSteps(t.s.Root, parsed.Tokens)
+				b.Value = m.pointerOf(steps)
+				by := m.giversOf(ti, steps)
+				answered = answered && len(by) > 0
+				for _, g := range by {
+					if !contains(givers, g) {
+						givers = append(givers, g)
+					}
+				}
+			}
+			if answered {
+				var ptrs []string
+				for _, b := range blocks {
+					ptrs = append(ptrs, b.Value)
+				}
+				m.res.say("answered: %s of %s, on %s, is left out; %s %s it", p.Key.Value, t.s.Dir, strings.Join(ptrs, ", "), joinAnd(givers), giveOrGives(len(givers)))
+				continue
 			}
 			file := fileOf(t, p.Key, "")
 			if file == "/.yaml" {
@@ -718,6 +785,31 @@ func (m *merger) treeQuestions() {
 			m.addQuestion(q, file)
 		}
 	}
+}
+
+// giversOf names the trees other than the asking one that give the key at
+// steps, when the asking tree does not and the merged tree holds it.
+func (m *merger) giversOf(asking int, steps []mergeStep) []string {
+	if len(steps) < 3 || follow(m.trees[asking].s.Root, steps) != nil || m.walk(steps) == nil {
+		return nil
+	}
+	var out []string
+	for ti, t := range m.trees {
+		if ti == asking {
+			continue
+		}
+		if follow(t.s.Root, steps) != nil {
+			out = append(out, t.title)
+		}
+	}
+	return out
+}
+
+func giveOrGives(n int) string {
+	if n == 1 {
+		return "gives"
+	}
+	return "give"
 }
 
 // questionFile is the questions file of the stage a question blocks.

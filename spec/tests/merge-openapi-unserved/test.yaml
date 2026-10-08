@@ -1,0 +1,7 @@
+command: merge
+level: system
+scenario: golden
+given: "the tree an OpenAPI document gives, with the four operations the router serves and one more, and the tree the router's route table gives"
+when: "merge is run on the two trees"
+then: "the router's questions about summaries, responses and path parameters, and the document's questions about the permissions the router names, are left out as answered, the operation the router does not serve is one must question that names its path, and it exits 0"
+verifies: [SA-11]

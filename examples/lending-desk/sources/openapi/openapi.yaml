@@ -1,0 +1,117 @@
+openapi: 3.0.3
+info:
+  title: Lending desk API
+  version: 1.0.0
+  description: The interface the desk's terminals call. Renewals are planned for the next release.
+security:
+  - deskStaff: []
+paths:
+  /members:
+    post:
+      operationId: registerMember
+      summary: Register a new member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Member" }
+      responses:
+        "201":
+          description: The member, registered.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Member" }
+  /members/{cardNumber}/loans:
+    parameters:
+      - name: cardNumber
+        in: path
+        required: true
+        description: The number printed on the member's card.
+        schema: { type: string, pattern: "^[0-9]{10}$", example: "0000012345" }
+    get:
+      operationId: listMemberLoans
+      summary: List the loans of one member
+      responses:
+        "200":
+          description: The member's loans, open and returned.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Loan" }
+  /loans:
+    post:
+      operationId: lendBook
+      summary: Lend a book to a member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cardNumber: { type: string, pattern: "^[0-9]{10}$" }
+                barcode: { type: string, maxLength: 20 }
+              required: [cardNumber, barcode]
+      responses:
+        "201":
+          description: The new loan, with its due date.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Loan" }
+        "409":
+          description: The member already has the most books on loan at a time.
+  /loans/{loanId}/return:
+    parameters:
+      - name: loanId
+        in: path
+        required: true
+        schema: { type: integer, format: int64, minimum: 1, maximum: 9007199254740991 }
+    post:
+      operationId: returnBook
+      summary: Check a returned book in, which closes the loan
+      responses:
+        "200":
+          description: The closed loan.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Loan" }
+  /loans/{loanId}/renew:
+    parameters:
+      - name: loanId
+        in: path
+        required: true
+        schema: { type: integer, format: int64, minimum: 1, maximum: 9007199254740991 }
+    post:
+      operationId: renewLoan
+      summary: Renew a loan once, for one more loan period
+      responses:
+        "200":
+          description: The loan, with its new due date.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Loan" }
+        "409":
+          description: The loan was renewed already, or is past its due date.
+components:
+  securitySchemes:
+    deskStaff:
+      type: http
+      scheme: bearer
+  schemas:
+    Member:
+      type: object
+      properties:
+        cardNumber: { type: string, pattern: "^[0-9]{10}$" }
+        fullName: { type: string, maxLength: 200 }
+      required: [cardNumber, fullName]
+    Loan:
+      type: object
+      properties:
+        id: { type: integer, format: int64, readOnly: true }
+        cardNumber: { type: string, pattern: "^[0-9]{10}$" }
+        barcode: { type: string, maxLength: 20 }
+        loanedOn: { type: string, format: date }
+        dueOn: { type: string, format: date }
+        returnedOn: { type: string, format: date, nullable: true }
+      required: [id, cardNumber, barcode, loanedOn, dueOn]

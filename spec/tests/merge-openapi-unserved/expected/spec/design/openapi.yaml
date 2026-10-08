@@ -1,0 +1,144 @@
+entities:
+  Loan:
+    type: object
+    properties:
+      id: {type: integer, readOnly: true}
+      cardNumber: {type: string, pattern: "^[0-9]{10}$"}
+      barcode: {type: string, maxLength: 20}
+      loanedOn: {type: string, format: date}
+      dueOn: {type: string, format: date}
+      returnedOn: {type: [string, "null"], format: date}
+    required: [id, cardNumber, barcode, loanedOn, dueOn]
+    origin: stated
+    cites:
+      - {source: openapi, clause: /components/schemas/Loan, says: 'The schema Loan, with the properties id, cardNumber, barcode, loanedOn, dueOn and returnedOn.'}
+  Member:
+    type: object
+    properties:
+      cardNumber: {type: string, pattern: "^[0-9]{10}$"}
+      fullName: {type: string, maxLength: 200}
+    required: [cardNumber, fullName]
+    origin: stated
+    cites:
+      - {source: openapi, clause: /components/schemas/Member, says: 'The schema Member, with the properties cardNumber and fullName.'}
+paths:
+  /loans:
+    post:
+      operationId: lendBook
+      summary: Lend a book to a member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cardNumber: {type: string, pattern: "^[0-9]{10}$"}
+                barcode: {type: string, maxLength: 20}
+              required: [cardNumber, barcode]
+      responses:
+        "201":
+          description: The new loan, with its due date.
+          content:
+            application/json:
+              schema: {$ref: '#/entities/Loan'}
+        "409":
+          description: The member already has the most books on loan at a time.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1loans/post, says: 'POST /loans: Lend a book to a member.'}
+        - {source: code, clause: examples/lending-desk/sources/code POST /loans, says: POST /loans checks loans.write; its handler is LendBook.}
+      permission: loans.write
+  /loans/{loanId}/renew:
+    parameters:
+      - name: loanId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9007199254740991
+    post:
+      operationId: renewLoan
+      summary: Renew a loan once, for one more loan period
+      responses:
+        "200":
+          description: The loan, with its new due date.
+          content:
+            application/json:
+              schema: {$ref: '#/entities/Loan'}
+        "409":
+          description: The loan was renewed already, or is past its due date.
+      origin: stated
+      cites:
+        - {source: openapi, clause: '/paths/~1loans~1{loanId}~1renew/post', says: 'POST /loans/{loanId}/renew: Renew a loan once, for one more loan period.'}
+  /loans/{loanId}/return:
+    parameters:
+      - name: loanId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9007199254740991
+    post:
+      operationId: returnBook
+      summary: Check a returned book in, which closes the loan
+      responses:
+        "200":
+          description: The closed loan.
+          content:
+            application/json:
+              schema: {$ref: '#/entities/Loan'}
+      origin: stated
+      cites:
+        - {source: openapi, clause: '/paths/~1loans~1{loanId}~1return/post', says: 'POST /loans/{loanId}/return: Check a returned book in, which closes the loan.'}
+        - {source: code, clause: 'examples/lending-desk/sources/code POST /loans/{loanId}/return', says: 'POST /loans/{loanId}/return checks loans.write; its handler is ReturnBook.'}
+      permission: loans.write
+  /members:
+    post:
+      operationId: registerMember
+      summary: Register a new member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/entities/Member'}
+      responses:
+        "201":
+          description: The member, registered.
+          content:
+            application/json:
+              schema: {$ref: '#/entities/Member'}
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1members/post, says: 'POST /members: Register a new member.'}
+        - {source: code, clause: examples/lending-desk/sources/code POST /members, says: POST /members checks members.write; its handler is RegisterMember.}
+      permission: members.write
+  /members/{cardNumber}/loans:
+    parameters:
+      - name: cardNumber
+        in: path
+        description: The number printed on the member's card.
+        required: true
+        schema:
+          type: string
+          pattern: "^[0-9]{10}$"
+          examples:
+            - "0000012345"
+    get:
+      operationId: listMemberLoans
+      summary: List the loans of one member
+      responses:
+        "200":
+          description: The member's loans, open and returned.
+          content:
+            application/json:
+              schema: {type: array, items: {$ref: '#/entities/Loan'}}
+      origin: stated
+      cites:
+        - {source: openapi, clause: '/paths/~1members~1{cardNumber}~1loans/get', says: 'GET /members/{cardNumber}/loans: List the loans of one member.'}
+        - {source: code, clause: 'examples/lending-desk/sources/code GET /members/{cardNumber}/loans', says: 'GET /members/{cardNumber}/loans checks loans.read; its handler is ListMemberLoans.'}
+      permission: loans.read

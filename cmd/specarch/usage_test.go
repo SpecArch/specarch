@@ -16,7 +16,7 @@ func TestUsageNamesExtractSources(t *testing.T) {
 	lines := strings.Split(stdout.String(), "\n")
 	for i, line := range lines {
 		if strings.HasPrefix(strings.TrimSpace(line), "specarch extract ") {
-			entry := strings.Join(lines[i:min(i+3, len(lines))], "\n")
+			entry := strings.Join(lines[i:min(i+4, len(lines))], "\n")
 			for _, s := range extractSources {
 				if !strings.Contains(entry, s) {
 					t.Fatalf("the extract entry of the usage does not name the source %s:\n%s", s, entry)

@@ -54,6 +54,15 @@ commands:
         other is an ancestor of, and every path a tree read must be
         unchanged from the commit it was read at up to it. Sources of the
         same key that differ otherwise are refused.
+      - Where both sides have operations, a documents-side source none of
+        whose operations' paths the code side has, such as an OpenAPI file
+        left from a template, is reported as a placeholder, with the
+        number of its paths; its operations are compared as any other
+        (ADR-049).
+      - A question of a tree whose every blocked key another tree gives
+        is left out, since that tree answers it and the element cites
+        both; a question that blocks a stage, an element or a key no tree
+        gives is kept (ADR-049).
       - The questions of the trees are numbered again, Q-1 upward, in the
         order the trees are given, and the merge's own questions follow.
         Every element keeps the file its first tree wrote it in.
@@ -79,8 +88,9 @@ commands:
       source joined from several trees, naming the edition taken; one line
       counting the elements written and those found in more than one
       tree; one line per requirement joined to a check that gives the
-      same number of days; and one line per question the merge asked,
-      naming what it blocks and why.
+      same number of days; one line per question of a tree that another
+      tree answers; one line per placeholder source; and one line per
+      question the merge asked, naming what it blocks and why.
     standardError: A usage message on a usage error, and the reason a tree could not be merged.
     exitCodes:
       "0": the merged specification was written

@@ -12,7 +12,7 @@ import (
 
 // extractSources are the surfaces this build reads, in the order the usage
 // text lists them.
-var extractSources = []string{"outline", "database", "router", "documents"}
+var extractSources = []string{"outline", "database", "router", "documents", "openapi"}
 
 var sourceKey = regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
 
@@ -80,8 +80,11 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case source == "documents" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract documents reads one document, and was given %d paths; one source is written per document file\n", len(paths))
 		return 2
+	case source == "openapi" && len(paths) != 1:
+		fmt.Fprintf(stderr, "specarch extract openapi reads one OpenAPI document, and was given %d paths; one source is written per document file\n", len(paths))
+		return 2
 	}
-	if key == "" && source != "documents" {
+	if key == "" && source != "documents" && source != "openapi" {
 		key = "code"
 	}
 	var res *extract.Result
@@ -95,6 +98,8 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		res, err = extract.Router(paths[0], out, key)
 	case "documents":
 		res, err = extract.Documents(paths[0], out, key)
+	case "openapi":
+		res, err = extract.OpenAPI(paths[0], out, key)
 	}
 	if err != nil {
 		var refusal *extract.Refusal

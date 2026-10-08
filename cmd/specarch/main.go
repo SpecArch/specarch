@@ -36,8 +36,8 @@ const usage = `usage:
                                             write code or data from an approved specification
   specarch extract <source> [--source-key <key>] --out <folder> <path>...
                                             write a specification from one surface of existing code
-                                            or documents; the sources are outline, database, router
-                                            and documents
+                                            or documents; the sources are outline, database, router,
+                                            documents and openapi
   specarch merge --out <folder> <tree>...  merge the trees extract wrote into one specification
   specarch diff <old folder> <new folder>   list what changed between two versions and check the release
   specarch derive <folder>...               write a draft test for every derived case no test covers

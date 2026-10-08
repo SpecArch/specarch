@@ -1,0 +1,12 @@
+questions:
+  Q-6:
+    question: 'Not built yet. The documents have operation renewLoan (POST /loans/{loanId}/renew), and the code read for paths does not: is it to be built, or are the documents to change?'
+    kind: decision
+    priority: must
+    blocks: [implementation]
+    decidedBy: system-owner
+    options: ['Built: the code is to add it', 'Dropped: the documents are to change']
+    why: Only the documents have it, and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found.
+    cites:
+      - {source: openapi, clause: '/paths/~1loans~1{loanId}~1renew/post', says: 'POST /loans/{loanId}/renew: Renew a loan once, for one more loan period.'}
+      - {source: code, clause: examples/lending-desk/sources/code, says: Read for this tree; what the documents have is not here.}

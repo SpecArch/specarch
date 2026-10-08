@@ -1,0 +1,14 @@
+arguments: [merge, --out, spec, trees/routes, trees/sample]
+exitStatus: 0
+standardOutput: |
+  tree trees/routes: Lending desk routes, on the code side: 8 elements and 7 questions
+  tree trees/sample: Service template sample, on the documents side: 3 elements and 3 questions
+  placeholder: the source sample of trees/sample, Service template sample, cites 2 paths and the code serves none of them; a document no path of which is served is a placeholder until the owner says otherwise
+  merged 10 elements, each an entry of a section or an operation: 1 in more than one tree, and 0 keys the trees disagree on
+  wrote 16 questions: 10 from the trees, numbered again in the order the trees are given, and 6 the merge asked
+  question Q-11 (must): #/paths/~1loans/post: undocumented, from code
+  question Q-12 (must): #/paths/~1loans~1{loanId}~1return/post: undocumented, from code
+  question Q-13 (must): #/paths/~1members/post: undocumented, from code
+  question Q-14 (must): #/paths/~1members~1{cardNumber}~1loans/get: undocumented, from code
+  question Q-15 (must): #/paths/~1health/get: not built yet
+  question Q-16 (must): #/paths/~1hello/get: not built yet

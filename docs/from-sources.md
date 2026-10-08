@@ -167,7 +167,12 @@ the requirement, and a different number leaves the statement out with a
 different commits, become one source at the newest commit, once git shows that every path each tree
 read is unchanged up to it. Where two trees give one key different
 values, the key is left out and a `must` question cites both, whichever
-side they are on. The trees' questions are numbered again in the order
+side they are on. A question of one tree whose every blocked key another
+tree gives is left out, since the other tree answers it: the router
+asks what an operation answers, and the OpenAPI document says. A source
+of the documents side whose operations share no path with the code side,
+such as the sample OpenAPI file a service template ships, is reported
+as a placeholder. The trees' questions are numbered again in the order
 the trees are given.
 
 Never choose between a document and the code. Whichever is right is the

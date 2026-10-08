@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.4.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: Branch lending API
+  version: 0.1.0
+  description: |
+    The OpenAPI document openapi.yaml, read at commit bd936c947854df912ce3cc6e012a4391b82bca95: every operation and component schema is a clause, every operation is written under its path citing it, and every component schema of type object is an entity. What the document does not say is a question.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  openapi:
+    kind: document
+    title: Branch lending API
+    edition: bd936c947854df912ce3cc6e012a4391b82bca95
+    url: ../api/openapi.yaml
+    clauses:
+      - {clause: /paths/~1loans/post, title: POST /loans}
+      - {clause: '/paths/~1loans~1{loanId}/head', title: 'HEAD /loans/{loanId}'}
+      - {clause: '/paths/~1loans~1{loanId}/get', title: 'GET /loans/{loanId}'}
+      - {clause: /components/schemas/Loan, title: schema Loan}
+      - {clause: /components/schemas/LoanStatus, title: schema LoanStatus}
+      - {clause: /components/schemas/loanList, title: schema loanList}

@@ -1,0 +1,7 @@
+command: merge
+level: system
+scenario: golden
+given: "the tree the router's route table gives, and the tree of a sample OpenAPI document a service template ships, none of whose paths the router serves"
+when: "merge is run on the two trees"
+then: "it reports the sample as a placeholder with the number of its paths, still asks whether each of its operations is to be built and whether each route is meant to exist, and exits 0"
+verifies: [SA-11]

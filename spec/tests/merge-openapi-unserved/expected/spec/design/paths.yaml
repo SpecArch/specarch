@@ -1,0 +1,13 @@
+permissions:
+  loans.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'examples/lending-desk/sources/code GET /members/{cardNumber}/loans', says: 'GET /members/{cardNumber}/loans checks loans.read.'}
+  loans.write:
+    origin: stated
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/code POST /loans, says: 'POST /loans and POST /loans/{loanId}/return check loans.write.'}
+  members.write:
+    origin: stated
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/code POST /members, says: POST /members checks members.write.}

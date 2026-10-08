@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.4.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: Merge of 2 trees
+  version: 0.1.0
+  description: |
+    The elements of these trees, merged in this order: Lending desk routes; Service template sample. Every element cites where it was read; where the trees disagree, or the documents and the code do, a question asks which is right.
+  tracksOrigin: true
+stages: [requirements, design, implementation]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 1711bb0985356e46178489d92ef30a788bc21db7
+    url: https://example.invalid/lending-desk.git
+    clauses:
+      - {clause: examples/lending-desk/sources/code, title: The routes the router built from here registers}
+  sample:
+    kind: document
+    title: Service template sample
+    edition: 0.0.1
+    url: https://example.invalid/service-template-sample.json
+    clauses:
+      - {clause: /paths/~1health/get, title: GET /health}
+      - {clause: /paths/~1health/head, title: HEAD /health}
+      - {clause: /paths/~1hello/get, title: GET /hello}

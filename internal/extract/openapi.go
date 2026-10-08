@@ -1,0 +1,956 @@
+package extract
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"math/big"
+	"os"
+	"path/filepath"
+	"regexp"
+	"sort"
+	"strings"
+
+	"go.yaml.in/yaml/v3"
+)
+
+// The OpenAPI versions the reader takes, and the names the meta-model
+// gives an entity, an enum value, a field and a media type.
+var (
+	openapiVersion = regexp.MustCompile(`^3\.[01]\.[0-9]+$`)
+	typeNameWord   = regexp.MustCompile(`^[A-Z][A-Za-z0-9]*$`)
+	memberNameWord = regexp.MustCompile(`^[a-z][A-Za-z0-9]*$`)
+	enumValueWord  = regexp.MustCompile(`^[a-z][a-z0-9]*(_[a-z0-9]+)*$`)
+	mediaTypeWord  = regexp.MustCompile(`^[a-z]+/[a-z0-9.+-]+$`)
+	responseCode   = regexp.MustCompile(`^([1-5][0-9][0-9]|default)$`)
+	templateParam  = regexp.MustCompile(`\{([^}/]+)\}`)
+)
+
+// The keywords of a schema the field subset holds as OpenAPI writes them,
+// in the order they are written.
+var fieldKeywords = []string{"title", "description", "enum", "const", "default", "examples", "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum",
+	"multipleOf", "minLength", "maxLength", "pattern", "minItems", "maxItems", "uniqueItems", "readOnly", "writeOnly", "deprecated"}
+
+// The formats a field can take (docs/conventions.md, Types). float has no
+// row: a number is a double or a decimal.
+var fieldFormats = map[string]bool{"int32": true, "int64": true, "uint64": true, "double": true, "date": true, "date-time": true, "time": true, "duration": true,
+	"email": true, "uuid": true, "uri": true, "hostname": true, "ipv4": true, "ipv6": true, "byte": true, "binary": true, "password": true}
+
+var fieldTypes = map[string]bool{"string": true, "integer": true, "number": true, "boolean": true, "array": true, "object": true}
+
+// OpenAPI reads one OpenAPI 3.0 or 3.1 document into a tree: its
+// operations under their paths, its component schemas as entities and
+// enums, and a question for what the document does not say (ADR-049).
+func OpenAPI(path, out, key string) (*Result, error) {
+	ext := strings.ToLower(filepath.Ext(path))
+	if ext != ".yaml" && ext != ".yml" && ext != ".json" {
+		return nil, refuse("%s is not an OpenAPI document: this build reads one written in YAML (.yaml, .yml) or JSON (.json)", path)
+	}
+	r, err := Open([]string{path})
+	if err != nil {
+		return nil, err
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var doc *yaml.Node
+	if ext == ".json" {
+		doc, err = jsonNode(data)
+	} else {
+		var n yaml.Node
+		err = yaml.Unmarshal(data, &n)
+		if err == nil && len(n.Content) == 1 {
+			doc = n.Content[0]
+		}
+	}
+	if err != nil || doc == nil || doc.Kind != yaml.MappingNode {
+		reason := "it holds no mapping"
+		if err != nil {
+			reason = err.Error()
+		}
+		return nil, refuse("%s is not an OpenAPI document: %s", path, reason)
+	}
+	version := scalar(child(doc, "openapi"))
+	if !openapiVersion.MatchString(version) {
+		if version == "" {
+			version = "missing"
+		}
+		return nil, refuse("%s is not an OpenAPI 3.0 or 3.1 document: its openapi is %s", path, version)
+	}
+	if key == "" {
+		key = kebab(strings.TrimSuffix(filepath.Base(path), filepath.Ext(path)))
+	}
+	if !regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`).MatchString(key) {
+		return nil, fmt.Errorf("the file name %s gives no source key; name one with --source-key", filepath.Base(path))
+	}
+	res := &Result{Tree: newTree()}
+	commitLine(res, r)
+	o := &openapiReader{doc: doc, v30: strings.HasPrefix(version, "3.0."), key: key, res: res, questions: &yaml.Node{Kind: yaml.MappingNode}}
+	if line, text, ok := generatedMark(path); ok {
+		res.say("generated: %s:%d says it is generated from another source: %s", r.Paths[0], line, text)
+	}
+	o.read()
+
+	url, err := relativeURL(out, filepath.Join(r.Repository.Root, filepath.FromSlash(r.Paths[0])))
+	if err != nil {
+		return nil, err
+	}
+	title := scalar(child(child(doc, "info"), "title"))
+	if title == "" {
+		title = filepath.Base(path)
+	}
+	src := mapping("kind", "document", "title", title, "edition", r.Commit, "url", url, "clauses", o.clauses)
+	var stages []string
+	design := mapping()
+	if len(o.paths.Content) > 0 {
+		set(design, "paths", o.paths)
+	}
+	if o.entities != nil {
+		set(design, "entities", o.entities)
+	}
+	if o.enums != nil {
+		set(design, "enums", o.enums)
+	}
+	if len(design.Content) > 0 {
+		stages = []string{"design"}
+		res.Tree.put("design/"+key+".yaml", design)
+	}
+	if len(o.questions.Content) > 0 {
+		stages = []string{"requirements", "design"}
+		res.Tree.put("requirements/stakeholders.yaml", mapping("stakeholders", ownerStakeholder()))
+		res.Tree.put("design/questions.yaml", mapping("questions", o.questions))
+	}
+	description := fmt.Sprintf("The OpenAPI document %s, read at commit %s: every operation and component schema is a clause, every operation is written under its path citing it, and every component schema of type object is an entity. What the document does not say is a question.\n", r.Paths[0], r.Commit)
+	res.Tree.put("specarch.yaml", rootFile(title, description, stages, mapping(key, src)))
+	return res, nil
+}
+
+type openapiReader struct {
+	doc       *yaml.Node
+	v30       bool
+	key       string
+	res       *Result
+	clauses   []*yaml.Node
+	paths     *yaml.Node
+	entities  *yaml.Node
+	enums     *yaml.Node
+	questions *yaml.Node
+	nextID    int
+	notHeld   []string
+	// The component schemas written as an entity or an enum, by name; a
+	// reference to any other is written in place.
+	written map[string]string
+	// The numbers with no width the meta-model holds, by the element
+	// asked about, in the order read.
+	widths []string
+}
+
+func (o *openapiReader) gap(format string, args ...any) {
+	o.notHeld = append(o.notHeld, "not held: "+fmt.Sprintf(format, args...))
+}
+
+func (o *openapiReader) question(text string, blocks []string, why string) {
+	o.nextID++
+	set(o.questions, fmt.Sprintf("Q-%d", o.nextID), mapping(
+		"question", text,
+		"kind", "decision",
+		"priority", "must",
+		"blocks", blocks,
+		"decidedBy", owner,
+		"why", why,
+	))
+}
+
+// read writes the component schemas first, so that a reference knows
+// whether it names an entity, then the operations in the order of their
+// paths and methods.
+func (o *openapiReader) read() {
+	o.written = map[string]string{}
+	schemas := child(child(o.doc, "components"), "schemas")
+	names := sortedKeys(schemas)
+	for _, name := range names {
+		s := o.resolve(child(schemas, name))
+		switch {
+		case !typeNameWord.MatchString(name):
+		case scalar(child(s, "type")) == "object" && child(s, "properties") != nil:
+			o.written[name] = "entities"
+		case scalar(child(s, "type")) == "string" && isEnumOfWords(child(s, "enum")):
+			o.written[name] = "enums"
+		}
+	}
+	o.paths = &yaml.Node{Kind: yaml.MappingNode}
+	operations, pathCount := 0, 0
+	for _, p := range sortedKeys(child(o.doc, "paths")) {
+		item := o.resolve(child(child(o.doc, "paths"), p))
+		if n := o.pathItem(p, item); n > 0 {
+			operations += n
+			pathCount++
+		}
+	}
+	entities, enums := 0, 0
+	for _, name := range names {
+		pointer := "/components/schemas/" + escapeToken(name)
+		o.clauses = append(o.clauses, flow(mapping("clause", pointer, "title", "schema "+name)))
+		s := o.resolve(child(schemas, name))
+		switch o.written[name] {
+		case "entities":
+			if o.entity(name, pointer, s) {
+				entities++
+			}
+		case "enums":
+			o.enum(name, pointer, s)
+			enums++
+		default:
+			why := "it is neither an object with properties nor a string enum of snake_case values"
+			if !typeNameWord.MatchString(name) {
+				why = "its name is not PascalCase, which an entity's or an enum's is"
+			}
+			o.gap("schema %s: %s; written in place wherever it is referred to", name, why)
+		}
+	}
+	o.askWidths()
+	for _, k := range keys(o.doc) {
+		switch k {
+		case "openapi", "info", "paths", "components", "security":
+		default:
+			o.gap("the document's %s: the meta-model does not hold it; left out", k)
+		}
+	}
+	for _, k := range keys(child(o.doc, "components")) {
+		switch k {
+		case "schemas", "parameters", "requestBodies", "responses":
+			// Read where an operation refers to them.
+		case "securitySchemes":
+			o.gap("components.securitySchemes: a security scheme is not a permission; named in each operation's permission question, and left out")
+		default:
+			o.gap("components.%s: %s; left out", k, notHeldKey(k))
+		}
+	}
+	countedPaths := len(sortedKeys(child(o.doc, "paths")))
+	o.res.say("counted %s and %s: every key of paths and of components.schemas", plural(countedPaths, "path"), plural(len(names), "component schema"))
+	o.res.say("wrote %s on %s, %s, %s and %s: one operation per get, post, put, patch or delete, one entity per object schema, one enum per string enum, and one question per thing the document does not say",
+		plural(operations, "operation"), plural(pathCount, "path"), plural(entities, "entity"), plural(enums, "enum"), plural(o.nextID, "question"))
+	o.res.Lines = append(o.res.Lines, o.notHeld...)
+}
+
+// pathItem writes the operations of one path and returns how many.
+func (o *openapiReader) pathItem(p string, item *yaml.Node) int {
+	var methods []string
+	for _, k := range keys(item) {
+		switch k {
+		case "get", "post", "put", "patch", "delete":
+			methods = append(methods, k)
+		case "head", "options", "trace":
+			o.clauses = append(o.clauses, flow(mapping("clause", "/paths/"+escapeToken(p)+"/"+k, "title", strings.ToUpper(k)+" "+p)))
+			o.gap("operation %s %s: the meta-model holds the methods get, post, put, patch and delete; left out", strings.ToUpper(k), p)
+		case "parameters", "summary", "description":
+		default:
+			o.gap("path %s: %s; left out", p, notHeldKey(k))
+		}
+	}
+	sort.Slice(methods, func(i, j int) bool { return methodRank(methods[i]) < methodRank(methods[j]) })
+	if len(methods) == 0 {
+		return 0
+	}
+	params, reason := pathParameters(p)
+	if reason != "" {
+		for _, m := range methods {
+			o.clauses = append(o.clauses, flow(mapping("clause", "/paths/"+escapeToken(p)+"/"+m, "title", strings.ToUpper(m)+" "+p)))
+		}
+		o.gap("path %s: %s; its operations are left out", p, reason)
+		return 0
+	}
+	at := "#/paths/" + escapeToken(p)
+	out := mapping()
+	if d := scalar(child(item, "description")); d != "" {
+		set(out, "description", d)
+	} else if s := scalar(child(item, "summary")); s != "" {
+		set(out, "description", s)
+	}
+	declared := map[string]bool{}
+	var shared []*yaml.Node
+	for _, pn := range items(child(item, "parameters")) {
+		if param := o.parameter(o.resolve(pn), fmt.Sprintf("path %s", p), at+fmt.Sprintf("/parameters/%d", len(shared)), params); param != nil {
+			shared = append(shared, param)
+			if scalar(child(param, "in")) == "path" {
+				declared[scalar(child(param, "name"))] = true
+			}
+		}
+	}
+	// A parameter of the template that no operation declares is written on
+	// the path, its values asked for.
+	var missing []string
+	for _, name := range params {
+		inAll := true
+		for _, m := range methods {
+			found := false
+			for _, pn := range items(child(o.resolve(child(item, m)), "parameters")) {
+				pn = o.resolve(pn)
+				found = found || (scalar(child(pn, "in")) == "path" && scalar(child(pn, "name")) == name)
+			}
+			inAll = inAll && found
+		}
+		if !declared[name] && !inAll {
+			missing = append(missing, name)
+		}
+	}
+	if len(missing) > 0 {
+		var blocks []string
+		for _, name := range missing {
+			blocks = append(blocks, fmt.Sprintf("%s/parameters/%d/schema", at, len(shared)))
+			shared = append(shared, flow(mapping("name", name, "in", "path", "required", true)))
+		}
+		o.question(fmt.Sprintf("What values does each path parameter of %s that the document does not declare take: %s?", p, strings.Join(missing, ", ")),
+			blocks, "The path's template names the parameter, and the document declares no schema for it.")
+	}
+	if len(shared) > 0 {
+		set(out, "parameters", shared)
+	}
+	for _, m := range methods {
+		set(out, m, o.operation(p, m, o.resolve(child(item, m)), params))
+	}
+	set(o.paths, p, out)
+	return len(methods)
+}
+
+// operation writes one operation in the meta-model's terms.
+func (o *openapiReader) operation(p, method string, op *yaml.Node, params []string) *yaml.Node {
+	pointer := "/paths/" + escapeToken(p) + "/" + method
+	label := strings.ToUpper(method) + " " + p
+	o.clauses = append(o.clauses, flow(mapping("clause", pointer, "title", label)))
+	at := "#" + pointer
+	out := mapping()
+	id := scalar(child(op, "operationId"))
+	if !memberNameWord.MatchString(id) {
+		named := method
+		for _, seg := range strings.Split(p, "/") {
+			if m := routeSegment.FindStringSubmatch(seg); m != nil {
+				seg = "by_" + m[1]
+			}
+			named += pascal(notWord.ReplaceAllString(seg, "_"))
+		}
+		if id == "" {
+			o.gap("operation %s: it has no operationId; it is named %s", label, named)
+		} else {
+			o.gap("operation %s: its operationId %s is not camelCase, which an operationId is; it is named %s", label, id, named)
+		}
+		id = named
+	}
+	set(out, "operationId", id)
+	summary := scalar(child(op, "summary"))
+	set(out, "summary", nonEmpty(summary))
+	set(out, "description", nonEmpty(scalar(child(op, "description"))))
+	var unasked []string
+	if summary == "" {
+		unasked = append(unasked, at+"/summary")
+	}
+	var list []*yaml.Node
+	for _, pn := range items(child(op, "parameters")) {
+		if param := o.parameter(o.resolve(pn), "operation "+label, fmt.Sprintf("%s/parameters/%d", at, len(list)), params); param != nil {
+			list = append(list, param)
+		}
+	}
+	if len(list) > 0 {
+		set(out, "parameters", list)
+	}
+	if rb := child(op, "requestBody"); rb != nil {
+		set(out, "requestBody", o.requestBody(o.resolve(rb), label, at+"/requestBody"))
+	}
+	responses := mapping()
+	for _, code := range keys(child(op, "responses")) {
+		if !responseCode.MatchString(code) {
+			o.gap("operation %s, response %s: the meta-model holds a response code or default, not a range; left out", label, code)
+			continue
+		}
+		at := at + "/responses/" + code
+		set(responses, code, o.response(o.resolve(child(child(op, "responses"), code)), label+", response "+code, at))
+	}
+	if len(responses.Content) > 0 {
+		set(out, "responses", responses)
+	} else {
+		unasked = append(unasked, at+"/responses")
+	}
+	if child(op, "deprecated") != nil && scalar(child(op, "deprecated")) == "true" {
+		set(out, "deprecated", true)
+	}
+	for _, k := range keys(op) {
+		switch k {
+		case "operationId", "summary", "description", "parameters", "requestBody", "responses", "deprecated", "security":
+		default:
+			o.gap("operation %s: %s; left out", label, notHeldKey(k))
+		}
+	}
+	set(out, "origin", "stated")
+	says := label + ": " + summary
+	if summary == "" {
+		says = label + ", with no summary."
+	} else if !strings.HasSuffix(says, ".") {
+		says += "."
+	}
+	set(out, "cites", []*yaml.Node{citation(o.key, pointer, says)})
+	if len(unasked) > 0 {
+		o.question(fmt.Sprintf("What does %s do, and what does it answer? The document gives no %s.", label, missingWhat(unasked)),
+			unasked, "An operation needs a summary and its responses, and the document does not give them.")
+	}
+	o.question(fmt.Sprintf("Which permission does %s check? %s", label, o.securityText(op)),
+		[]string{at + "/permission"}, "A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.")
+	return out
+}
+
+// missingWhat names what an operation's question blocks.
+func missingWhat(blocks []string) string {
+	switch {
+	case len(blocks) == 2:
+		return "summary or responses"
+	case strings.HasSuffix(blocks[0], "/summary"):
+		return "summary"
+	}
+	return "responses"
+}
+
+// securityText says what the document gives as the operation's security.
+func (o *openapiReader) securityText(op *yaml.Node) string {
+	sec := child(op, "security")
+	if sec == nil {
+		sec = child(o.doc, "security")
+	}
+	if sec == nil {
+		return "The document gives it no security."
+	}
+	var alts []string
+	for _, req := range items(sec) {
+		var parts []string
+		for _, name := range keys(req) {
+			scopes := scalarList(child(req, name))
+			if len(scopes) > 0 {
+				parts = append(parts, fmt.Sprintf("%s with the scopes %s", name, strings.Join(scopes, ", ")))
+			} else {
+				parts = append(parts, name)
+			}
+		}
+		if len(parts) == 0 {
+			alts = append(alts, "none")
+		} else {
+			alts = append(alts, strings.Join(parts, " and "))
+		}
+	}
+	if len(alts) == 0 {
+		return "The document says it needs no security."
+	}
+	return "The document gives it the security " + strings.Join(alts, ", or ") + "."
+}
+
+// parameter writes one parameter, or prints why it cannot.
+func (o *openapiReader) parameter(pn *yaml.Node, where, at string, params []string) *yaml.Node {
+	name, in := scalar(child(pn, "name")), scalar(child(pn, "in"))
+	where = fmt.Sprintf("%s, parameter %s", where, name)
+	switch {
+	case pn == nil || name == "":
+		o.gap("%s: a parameter with no name; left out", where)
+		return nil
+	case in == "cookie":
+		o.gap("%s: the meta-model holds a parameter in the path, the query or a header, not a cookie; left out", where)
+		return nil
+	case in != "path" && in != "query" && in != "header":
+		o.gap("%s: in %q is not a place a parameter is sent; left out", where, in)
+		return nil
+	case child(pn, "schema") == nil:
+		o.gap("%s: it is given by content and not by a schema, and the meta-model holds a parameter's schema; left out", where)
+		return nil
+	case in == "path" && !contains(params, name):
+		o.gap("%s: the path's template has no {%s}; left out", where, name)
+		return nil
+	}
+	out := mapping("name", name, "in", in)
+	set(out, "description", nonEmpty(scalar(child(pn, "description"))))
+	if in == "path" {
+		set(out, "required", true)
+	} else if scalar(child(pn, "required")) == "true" {
+		set(out, "required", true)
+	}
+	schema := o.field(child(pn, "schema"), where, at+"/schema", 0)
+	if schema == nil {
+		return nil
+	}
+	set(out, "schema", schema)
+	for _, k := range keys(pn) {
+		switch k {
+		case "name", "in", "description", "required", "schema":
+		default:
+			o.gap("%s: %s; left out", where, notHeldKey(k))
+		}
+	}
+	return out
+}
+
+func (o *openapiReader) requestBody(rb *yaml.Node, label, at string) *yaml.Node {
+	content := o.content(child(rb, "content"), label+", request body", at+"/content")
+	if content == nil {
+		o.gap("operation %s, request body: no media type the meta-model holds; left out", label)
+		return nil
+	}
+	out := mapping()
+	set(out, "description", nonEmpty(scalar(child(rb, "description"))))
+	if scalar(child(rb, "required")) == "true" {
+		set(out, "required", true)
+	}
+	set(out, "content", content)
+	return out
+}
+
+func (o *openapiReader) response(r *yaml.Node, where, at string) *yaml.Node {
+	out := mapping()
+	if d := scalar(child(r, "description")); d != "" {
+		set(out, "description", d)
+	} else {
+		o.question(fmt.Sprintf("What does %s mean? The document gives it no description.", where), []string{at + "/description"},
+			"A response needs a description, and the document does not give one.")
+	}
+	if c := child(r, "content"); c != nil {
+		set(out, "content", o.content(c, where, at+"/content"))
+	}
+	for _, k := range keys(r) {
+		switch k {
+		case "description", "content":
+		default:
+			o.gap("%s: %s; left out", where, notHeldKey(k))
+		}
+	}
+	return out
+}
+
+func (o *openapiReader) content(c *yaml.Node, where, at string) *yaml.Node {
+	out := mapping()
+	for _, mt := range keys(c) {
+		media := child(c, mt)
+		switch {
+		case !mediaTypeWord.MatchString(mt):
+			o.gap("%s, media type %s: the meta-model holds a media type of lower-case type and subtype, without wildcards or parameters; left out", where, mt)
+			continue
+		case child(media, "schema") == nil:
+			o.gap("%s, media type %s: it has no schema; left out", where, mt)
+			continue
+		}
+		for _, k := range keys(media) {
+			if k != "schema" {
+				o.gap("%s, media type %s: %s; left out", where, mt, notHeldKey(k))
+			}
+		}
+		schema := o.field(child(media, "schema"), where+", media type "+mt, at+"/"+escapeToken(mt)+"/schema", 0)
+		if schema == nil {
+			continue
+		}
+		set(out, mt, mapping("schema", schema))
+	}
+	if len(out.Content) == 0 {
+		return nil
+	}
+	return out
+}
+
+// entity writes a component schema of type object as an entity.
+func (o *openapiReader) entity(name, pointer string, s *yaml.Node) bool {
+	at := "#/entities/" + name
+	props, required := o.properties(s, "schema "+name, at)
+	if props == nil {
+		o.gap("schema %s: none of its properties can be held; left out", name)
+		delete(o.written, name)
+		return false
+	}
+	out := mapping("type", "object")
+	set(out, "description", nonEmpty(scalar(child(s, "description"))))
+	set(out, "properties", props)
+	if len(required) > 0 {
+		set(out, "required", required)
+	}
+	var fields []string
+	for i := 0; i < len(props.Content); i += 2 {
+		fields = append(fields, props.Content[i].Value)
+	}
+	set(out, "origin", "stated")
+	set(out, "cites", []*yaml.Node{citation(o.key, pointer, fmt.Sprintf("The schema %s, with the properties %s.", name, joinAnd(fields)))})
+	if o.entities == nil {
+		o.entities = &yaml.Node{Kind: yaml.MappingNode}
+	}
+	set(o.entities, name, out)
+	o.question(fmt.Sprintf("Which fields identify one %s, its primary key?", name), []string{at + "/primaryKey"},
+		"A schema says what a record carries, not which of its fields identify it.")
+	for _, k := range keys(s) {
+		switch k {
+		case "type", "properties", "required", "description", "title":
+		default:
+			o.gap("schema %s: %s; left out", name, notHeldKey(k))
+		}
+	}
+	return true
+}
+
+func (o *openapiReader) enum(name, pointer string, s *yaml.Node) {
+	values := scalarList(child(s, "enum"))
+	out := mapping("type", "string", "enum", values)
+	set(out, "description", nonEmpty(scalar(child(s, "description"))))
+	set(out, "origin", "stated")
+	set(out, "cites", []*yaml.Node{citation(o.key, pointer, fmt.Sprintf("The schema %s, one of %s.", name, joinAnd(values)))})
+	if o.enums == nil {
+		o.enums = &yaml.Node{Kind: yaml.MappingNode}
+	}
+	set(o.enums, name, out)
+}
+
+// properties writes an object schema's properties and the required list,
+// leaving out a property whose name is not camelCase.
+func (o *openapiReader) properties(s *yaml.Node, where, at string) (*yaml.Node, []string) {
+	var props *yaml.Node
+	kept := map[string]bool{}
+	for _, name := range keys(child(s, "properties")) {
+		if !memberNameWord.MatchString(name) {
+			o.gap("%s, property %s: its name is not camelCase, and meta-model 0.1 has no name on the wire; left out", where, name)
+			continue
+		}
+		f := o.field(child(child(s, "properties"), name), where+", property "+name, at+"/properties/"+name, 0)
+		if f == nil {
+			continue
+		}
+		if props == nil {
+			props = &yaml.Node{Kind: yaml.MappingNode}
+		}
+		set(props, name, f)
+		kept[name] = true
+	}
+	var required []string
+	for _, r := range scalarList(child(s, "required")) {
+		if kept[r] {
+			required = append(required, r)
+		}
+	}
+	return props, required
+}
+
+// field writes a schema in the meta-model's field subset (ADR-049).
+func (o *openapiReader) field(s *yaml.Node, where, at string, depth int) *yaml.Node {
+	if ref := scalar(child(s, "$ref")); ref != "" {
+		if name, ok := strings.CutPrefix(ref, "#/components/schemas/"); ok && o.written[name] != "" {
+			return flow(mapping("$ref", "#/"+o.written[name]+"/"+name))
+		}
+		target := o.resolve(s)
+		if target == s || depth > 8 {
+			o.gap("%s: the reference %s does not lead to a schema in the document that can be written in place; left out", where, ref)
+			return nil
+		}
+		return o.field(target, where, at, depth+1)
+	}
+	out := mapping()
+	typ := child(s, "type")
+	switch {
+	case typ == nil:
+	case typ.Kind == yaml.ScalarNode && fieldTypes[typ.Value]:
+		if o.v30 && scalar(child(s, "nullable")) == "true" {
+			set(out, "type", []string{typ.Value, "null"})
+		} else {
+			set(out, "type", typ.Value)
+		}
+	case typ.Kind == yaml.SequenceNode && len(typ.Content) == 2 && contains(scalarList(typ), "null"):
+		set(out, "type", scalarList(typ))
+	default:
+		o.gap("%s: the type %s is not one the meta-model holds; left out", where, inlineNode(typ))
+	}
+	base := scalar(typ)
+	if typ != nil && typ.Kind == yaml.SequenceNode {
+		for _, t := range scalarList(typ) {
+			if t != "null" {
+				base = t
+			}
+		}
+	}
+	format := scalar(child(s, "format"))
+	switch {
+	case (base == "integer" || base == "number") && !widthHeld(base, format, s):
+		if format != "" {
+			o.gap("%s: the format %s is not a width the meta-model holds for a JSON %s; left out, and asked", where, format, base)
+		}
+		o.widths = append(o.widths, at+"/format")
+	case format == "":
+	case fieldFormats[format]:
+		set(out, "format", format)
+	default:
+		o.gap("%s: the format %s is not one the meta-model holds; left out", where, format)
+	}
+	for _, k := range fieldKeywords {
+		v := child(s, k)
+		if v == nil {
+			continue
+		}
+		switch {
+		case o.v30 && k == "exclusiveMinimum" || o.v30 && k == "exclusiveMaximum":
+			// OpenAPI 3.0 writes the bound under minimum or maximum and
+			// says here that it is exclusive.
+			continue
+		case k == "minimum" || k == "maximum":
+			exclusive := "exclusiveMinimum"
+			if k == "maximum" {
+				exclusive = "exclusiveMaximum"
+			}
+			if o.v30 && scalar(child(s, exclusive)) == "true" {
+				set(out, exclusive, copyNode(v))
+				continue
+			}
+		}
+		set(out, k, copyNode(v))
+	}
+	if o.v30 && child(s, "example") != nil {
+		set(out, "examples", []*yaml.Node{copyNode(child(s, "example"))})
+	}
+	if items := child(s, "items"); items != nil {
+		set(out, "items", o.field(items, where+", items", at+"/items", depth+1))
+	}
+	if child(s, "properties") != nil {
+		props, required := o.properties(s, where, at)
+		set(out, "properties", props)
+		if len(required) > 0 {
+			set(out, "required", required)
+		}
+	}
+	for _, k := range keys(s) {
+		switch k {
+		case "type", "format", "items", "properties", "required", "nullable", "example":
+		default:
+			if !containsWord(fieldKeywords, k) {
+				o.gap("%s: %s; left out", where, notHeldKey(k))
+			}
+		}
+	}
+	if child(out, "type") == nil {
+		o.gap("%s: no type the meta-model holds is left; left out", where)
+		return nil
+	}
+	if len(out.Content) <= 4 {
+		flow(out)
+	}
+	return out
+}
+
+// widthHeld says whether a JSON integer or number has a width the
+// meta-model holds: an int64 or uint64 only within 2^53, as the
+// validator's unsafe_integer rule asks.
+func widthHeld(base, format string, s *yaml.Node) bool {
+	if base == "number" {
+		return format == "double"
+	}
+	switch format {
+	case "int32":
+		return true
+	case "int64", "uint64":
+		safe := big.NewRat(9007199254740991, 1)
+		high, ok := new(big.Rat).SetString(scalar(child(s, "maximum")))
+		if !ok || high.Cmp(safe) > 0 {
+			return false
+		}
+		if format == "uint64" {
+			return true
+		}
+		low, ok := new(big.Rat).SetString(scalar(child(s, "minimum")))
+		return ok && low.Cmp(new(big.Rat).Neg(safe)) >= 0
+	}
+	return false
+}
+
+// askWidths asks the width of every number that has none the meta-model
+// holds, in one question.
+func (o *openapiReader) askWidths() {
+	if len(o.widths) == 0 {
+		return
+	}
+	o.question("Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale?",
+		o.widths, "The meta-model needs a number's width, and the document gives none it holds; choosing one would be a guess.")
+}
+
+// resolve follows a reference inside the document; anything else is
+// returned as it is.
+func (o *openapiReader) resolve(n *yaml.Node) *yaml.Node {
+	for i := 0; i < 8; i++ {
+		ref := scalar(child(n, "$ref"))
+		if !strings.HasPrefix(ref, "#/") {
+			return n
+		}
+		target := o.doc
+		for _, tok := range strings.Split(ref[2:], "/") {
+			tok = strings.NewReplacer("~1", "/", "~0", "~").Replace(tok)
+			target = child(target, tok)
+		}
+		if target == nil {
+			return n
+		}
+		n = target
+	}
+	return n
+}
+
+// --- Reading the document's nodes ---------------------------------------
+
+func child(n *yaml.Node, key string) *yaml.Node {
+	if n == nil || n.Kind != yaml.MappingNode {
+		return nil
+	}
+	for i := 0; i+1 < len(n.Content); i += 2 {
+		if n.Content[i].Value == key {
+			return n.Content[i+1]
+		}
+	}
+	return nil
+}
+
+func keys(n *yaml.Node) []string {
+	if n == nil || n.Kind != yaml.MappingNode {
+		return nil
+	}
+	var out []string
+	for i := 0; i+1 < len(n.Content); i += 2 {
+		out = append(out, n.Content[i].Value)
+	}
+	return out
+}
+
+func sortedKeys(n *yaml.Node) []string {
+	k := keys(n)
+	sort.Strings(k)
+	return k
+}
+
+func items(n *yaml.Node) []*yaml.Node {
+	if n == nil || n.Kind != yaml.SequenceNode {
+		return nil
+	}
+	return n.Content
+}
+
+func scalar(n *yaml.Node) string {
+	if n == nil || n.Kind != yaml.ScalarNode {
+		return ""
+	}
+	return n.Value
+}
+
+func scalarList(n *yaml.Node) []string {
+	var out []string
+	for _, i := range items(n) {
+		out = append(out, scalar(i))
+	}
+	return out
+}
+
+func nonEmpty(s string) any {
+	if strings.TrimSpace(s) == "" {
+		return nil
+	}
+	return s
+}
+
+func isEnumOfWords(n *yaml.Node) bool {
+	values := items(n)
+	for _, v := range values {
+		if v.Kind != yaml.ScalarNode || !enumValueWord.MatchString(v.Value) {
+			return false
+		}
+	}
+	return len(values) > 0
+}
+
+func containsWord(list []string, s string) bool {
+	for _, v := range list {
+		if v == s {
+			return true
+		}
+	}
+	return false
+}
+
+// notHeldKey says why a key the reader does not write is left out.
+func notHeldKey(k string) string {
+	switch k {
+	case "allOf", "oneOf", "anyOf", "not":
+		return k + " combines schemas, which the field subset does not"
+	case "additionalProperties":
+		return "additionalProperties, which the field subset does not hold"
+	case "discriminator":
+		return "discriminator, which the field subset does not hold"
+	case "$ref":
+		return "a reference outside the document, which the reader does not follow"
+	}
+	if strings.HasPrefix(k, "x-") {
+		return "the extension " + k + ", whose meaning the document's own tools define"
+	}
+	return k + ", which the meta-model does not hold here"
+}
+
+func inlineNode(n *yaml.Node) string {
+	b, err := yaml.Marshal(flow(copyNode(n)))
+	if err != nil {
+		return "?"
+	}
+	return strings.TrimSpace(string(b))
+}
+
+// jsonNode reads a JSON document into a YAML node, keeping the order of
+// its keys and writing each number as it was written.
+func jsonNode(data []byte) (*yaml.Node, error) {
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.UseNumber()
+	var read func() (*yaml.Node, error)
+	read = func() (*yaml.Node, error) {
+		tok, err := dec.Token()
+		if err != nil {
+			return nil, err
+		}
+		switch t := tok.(type) {
+		case json.Delim:
+			if t == '{' {
+				m := &yaml.Node{Kind: yaml.MappingNode}
+				for dec.More() {
+					k, err := dec.Token()
+					if err != nil {
+						return nil, err
+					}
+					v, err := read()
+					if err != nil {
+						return nil, err
+					}
+					m.Content = append(m.Content, str(k.(string)), v)
+				}
+				_, err := dec.Token()
+				return m, err
+			}
+			s := &yaml.Node{Kind: yaml.SequenceNode}
+			for dec.More() {
+				v, err := read()
+				if err != nil {
+					return nil, err
+				}
+				s.Content = append(s.Content, v)
+			}
+			_, err := dec.Token()
+			return s, err
+		case string:
+			return str(t), nil
+		case json.Number:
+			if strings.ContainsAny(t.String(), ".eE") {
+				return literal("!!float", t.String()), nil
+			}
+			return literal("!!int", t.String()), nil
+		case bool:
+			return value(t), nil
+		case nil:
+			return &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!null", Value: "null"}, nil
+		}
+		return nil, fmt.Errorf("unexpected %v", tok)
+	}
+	n, err := read()
+	if err != nil {
+		return nil, err
+	}
+	if _, err := dec.Token(); err != io.EOF {
+		return nil, fmt.Errorf("text after the document")
+	}
+	return n, nil
+}

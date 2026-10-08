@@ -1,0 +1,7 @@
+command: document
+level: system
+scenario: golden
+given: "a specification with an approved and a released change request and a confirmed defect in the records beside it"
+when: "document changes is run"
+then: "it writes changes.md with the open change first, each item's affects and decision, the defect with what it violates, and exits 0"
+verifies: [SA-26]

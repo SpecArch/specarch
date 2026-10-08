@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.3.0-dev of the specification: 172 design tests, 49 golden and 122 red, about 9 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.3.0-dev of the specification: 174 design tests, 51 golden and 122 red, about 9 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.3.0-dev of the specification: 172 design tests, 49 golden and 122 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 168 |
+| system | 170 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -323,6 +323,14 @@ Scenario: red; level: system; covers usage error, exit 2.
 - When: document is run without arguments
 - Then: it prints how to use it and exits 2
 
+#### document-writes-changes
+
+Scenario: golden; level: system; verifies SA-26.
+
+- Given: a specification with an approved and a released change request and a confirmed defect in the records beside it
+- When: document changes is run
+- Then: it writes changes.md with the open change first, each item's affects and decision, the defect with what it violates, and exits 0
+
 #### document-writes-commissioning
 
 Scenario: golden; level: system; verifies SA-16.
@@ -346,6 +354,14 @@ Scenario: golden; level: system; verifies SA-19.
 - Given: a specification with two must questions in two stages and a could question, and no implementation file
 - When: document questions is run
 - Then: it writes questions.md with the questions by stage and the outputs, where code generation waits on the questions and the approval, and exits 0
+
+#### document-writes-releases
+
+Scenario: golden; level: system; verifies SA-26.
+
+- Given: a released 1.0.0 that includes a change, and a planned 1.1.0 that includes a change and a defect
+- When: document releases is run
+- Then: it writes releases.md with 1.1.0 first, each release's items grouped as changed and fixed, and exits 0
 
 #### document-writes-requirements
 

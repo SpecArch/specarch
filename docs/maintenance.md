@@ -5,9 +5,9 @@ system keeps changing: a stakeholder asks for something new, someone finds
 a defect, a release goes out, the live system misbehaves. This document is
 the design of how SpecArch records that life, during development and in
 production, without turning the specification into a change log. The
-operation stage, the records with their rules, the release rules and the
-diff verb are built; the two documents are not yet, and the implementation
-items are listed at the end.
+operation stage, the records with their rules, the release rules, the
+diff verb and the two documents made from the records are built, and the
+implementation items are listed at the end.
 
 The processes come from ISO/IEC/IEEE 12207:2017: configuration management
 (6.3.5), operation (6.4.12) and maintenance (6.4.13). Versions follow
@@ -347,10 +347,25 @@ names.
 
 Two targets join `DocumentTarget`, after the first set of documents:
 
-- `changes`: the change and defect register, open items first, each with
-  its status, what it affects and its decision.
-- `releases`: release notes, newest first: for each version, what it
-  includes, grouped as added, changed, removed and fixed, from the records.
+- `changes`: the change and defect register. A table of the change
+  requests and one of the defects, open items first (a change that is
+  proposed, analysed or approved, a defect that is reported or confirmed),
+  then the done ones, then the ones closed without a change; within each
+  group by ID. After each table, one paragraph per item: who raised it and
+  when, its type and urgency or its severity, its reason, what it affects
+  or violates, the test that shows a fix, and the decision with its why.
+- `releases`: release notes, newest first by SemVer's precedence. For each
+  version its status and date, then what it includes, grouped as added,
+  changed, removed (from the `affects` of each change) and fixed (the
+  defects), with an included ID kept in a tracker listed apart; then the
+  specification and implementation versions, the commissioning runs that
+  accepted it and the commit.
+
+Both read the records beside the specification, name the records folder
+in their generated-from header, and are never drafts: an open question is
+about the specification, and these are made from what happened. For the
+same reason they are not rows of the open questions document's Outputs
+table, which says what can be made from the specification now.
 
 The rule that documents carry no change-log text is about documents made
 from the specification, which describe the system as it is. These two are

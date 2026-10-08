@@ -52,6 +52,14 @@ commands:
       questions about it as Open question paragraphs, and starts with a
       Draft notice when a must or should question blocks what it reads.
 
+      The changes and releases targets are made from the records beside the
+      specification, and their header names the records folder too. The
+      changes target writes `changes.md`: the change requests and the
+      defects, open ones first, each with its status, what it affects or
+      violates and its decision. The releases target writes `releases.md`:
+      the releases newest first, each with what it includes grouped as
+      added, changed, removed and fixed. Neither is ever a draft.
+
       In every document an element's why is an Insight and each citation
       a Note (ADR-015), and a document that cites sources ends with them.
     permission: public
@@ -74,6 +82,7 @@ commands:
     reads:
       - { path: "{paths}", description: The specifications and their implementation files. }
       - { path: "specarch.md", description: "The hand-written document beside each root file, when there is one." }
+      - { path: "records/ beside each specification's folder", description: "The change, defect and release records, for the changes and releases targets." }
       - { path: "{out}", description: "The current output, with `--check`." }
     writes:
       - { path: "{out}/<target>.md", description: "The document. Nothing is written with `--check`." }
@@ -88,7 +97,7 @@ commands:
       "1": a specification has an error, a marker is wrong, or with `--check` the output differs
       "2": usage error, a target this build does not offer, no output folder, or a file that could not be read or written
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22]
+    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22, SA-26]
     why: Documents are read by more people than the YAML, so they come first among the targets and are made from the specification rather than kept beside it.
     cites:
       - source: arc42

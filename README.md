@@ -121,6 +121,8 @@ a defect in the roadmap, not an accepted state.
 | `spec/` | SpecArch's own specification: every stage, the design of the `specarch` command, its Go and Swift implementation files, and in `spec/tests/` the conformance suite every implementation of `specarch` must pass |
 | `docs/techspec.md` | SpecArch's technical specification, generated from `spec/` |
 | `docs/requirements.md`, `testplan.md`, `traceability.md`, `deployment.md`, `commissioning.md`, `questions.md` | SpecArch's other documents, generated from `spec/` |
+| `docs/changes.md`, `releases.md` | the change register and the release notes, generated from the records in `records/` |
+| `records/` | SpecArch's own records: its releases |
 | `swift/` | the Swift build of `specarch` |
 | `history/` | what changed and why, one file per day |
 | `docs/principles.md` | the Low IQ Tax principle and how SpecArch applies it |

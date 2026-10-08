@@ -78,6 +78,10 @@ targets:
     output: ../../../docs
   questions:
     output: ../../../docs
+  changes:
+    output: ../../../docs
+  releases:
+    output: ../../../docs
   openapi:
     output: api
     tool: oapi-codegen

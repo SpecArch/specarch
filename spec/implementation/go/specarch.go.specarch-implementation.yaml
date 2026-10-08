@@ -129,6 +129,12 @@ targets:
   questions:
     output: ../../../docs
     description: The open questions and what they hold up, kept current by CI.
+  changes:
+    output: ../../../docs
+    description: The change and defect register, from the records beside the specification, kept current by CI.
+  releases:
+    output: ../../../docs
+    description: The release notes, from the records beside the specification, kept current by CI.
 
 bindings:
   cli:

@@ -49,6 +49,11 @@ func (l loaded) state() *generate.State {
 	}
 	version := source.Str(source.Child(source.Child(l.spec.Root, "info"), "version"))
 	st.Approved, st.Approval = approval.State(l.spec.Dir, version)
+	for _, r := range l.spec.Records {
+		if doc := source.Parse(r.Data); doc.Root != nil {
+			st.Records = append(st.Records, doc.Root)
+		}
+	}
 	for _, c := range validate.LeftOutCases(l.spec.Root) {
 		st.LeftOut = append(st.LeftOut, generate.LeftOut{Subject: c.Subject, Case: c.Case, Scenario: c.Scenario, Reason: c.Reason})
 	}
@@ -89,7 +94,9 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		for _, i := range l.impls {
 			impls = append(impls, generate.Implementation{Node: i.Node, Rel: relSlash(folder, i.Path), Path: i.Path})
 		}
-		text, _ := generate.Document(target, l.spec.Root, relSlash(folder, l.spec.RootFile), impls, l.state())
+		st := l.state()
+		st.RecordsRel = relSlash(folder, l.spec.RecordsDir)
+		text, _ := generate.Document(target, l.spec.Root, relSlash(folder, l.spec.RootFile), impls, st)
 		plan = append(plan, planned{filepath.Join(folder, generate.DocumentName(target)), text})
 		if target != "techspec" {
 			continue

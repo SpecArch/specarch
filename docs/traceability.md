@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.3.0-dev of the specification: 9 needs, 25 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.3.0-dev of the specification: 9 needs, 26 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 ## 1. Needs to requirements
 
@@ -10,9 +10,9 @@ Version 0.3.0-dev of the specification: 9 needs, 25 requirements, and 0 gaps. Ea
 |---|---|---|
 | NEED-1 | accepted | SA-1, SA-2, SA-3, SA-4, SA-5, SA-6 |
 | NEED-2 | accepted | SA-9, SA-10 |
-| NEED-3 | accepted | SA-22, SA-7, SA-8, SA-16, SA-19 |
+| NEED-3 | accepted | SA-22, SA-7, SA-8, SA-26, SA-16, SA-19 |
 | NEED-4 | accepted | SA-11, SA-2 |
-| NEED-5 | accepted | SA-16, SA-12, SA-23, SA-24, SA-25 |
+| NEED-5 | accepted | SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
 | NEED-6 | accepted | SA-15, SA-13 |
 | NEED-7 | accepted | SA-14 |
 | NEED-8 | accepted | SA-17, SA-18, SA-19, SA-20 |
@@ -47,6 +47,7 @@ Version 0.3.0-dev of the specification: 9 needs, 25 requirements, and 0 gaps. Ea
 | SA-23 | NEED-5 | enums Rule; commands validate | tests validate-change-applied; tests validate-change-decision; tests validate-commissioning-record; tests validate-defect-duplicate; tests validate-defect-test; tests validate-incident-link; tests validate-layout-records-in-spec; tests validate-record-name; tests validate-record-ref; tests validate-record-schema; tests validate-record-tracker; tests validate-records-valid |
 | SA-24 | NEED-5 | enums Rule; commands validate | tests validate-release-bump; tests validate-release-contents; tests validate-release-version; tests validate-releases-valid |
 | SA-25 | NEED-5 | commands diff | tests diff-classifies-changes; tests diff-invalid-spec; tests diff-lists-changes; tests diff-no-release; tests diff-not-covered; tests diff-tracker-unknown; tests diff-usage-error; tests diff-version-step |
+| SA-26 | NEED-3, NEED-5 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-releases |
 
 ## 3. Gaps
 

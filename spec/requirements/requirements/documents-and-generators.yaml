@@ -19,6 +19,17 @@ requirements:
       - A marked region is rewritten and every other line of the document is unchanged.
     verification: test
     needs: [NEED-3]
+  SA-26:
+    statement: specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision.
+      - The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed.
+    verification: test
+    needs: [NEED-3, NEED-5]
+    why: Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
   SA-14:
     statement: A code target that specarch does not build in shall be produced by the plug-in specarch-gen-<target> found on PATH, which receives the validated specification on its standard input and answers with the files to write, so that specarch writes them, checks them and keeps them inside the target's folder.
     kind: interface

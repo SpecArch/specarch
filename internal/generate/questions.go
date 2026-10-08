@@ -14,8 +14,8 @@ import (
 // DocumentTargets are the document targets of the design, in the order
 // they are listed; BuiltDocuments says which this program has.
 var (
-	DocumentTargets = []string{"techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "questions", "manual", "operations"}
-	BuiltDocuments  = map[string]bool{"techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "questions": true}
+	DocumentTargets = []string{"techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "questions", "changes", "releases", "manual", "operations"}
+	BuiltDocuments  = map[string]bool{"techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "questions": true, "changes": true, "releases": true}
 )
 
 // documentReads says which sections each document reads, so that a
@@ -47,6 +47,10 @@ type State struct {
 	Approval string              // one sentence: approved on, not approved because
 	Approved bool
 	LeftOut  []LeftOut // the derived cases of rank other no test covers, for the test plan
+	// Records are the record files beside the specification, parsed, in
+	// path order, and RecordsRel their folder as the document names it.
+	Records    []*yaml.Node
+	RecordsRel string
 }
 
 // LeftOut is one derived case the test plan lists as left out.
@@ -298,7 +302,7 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 	d.line("| Output | State | Waits on |")
 	d.line("|---|---|---|")
 	for _, t := range DocumentTargets {
-		if !BuiltDocuments[t] || t == "questions" {
+		if !BuiltDocuments[t] || t == "questions" || recordDocuments[t] {
 			continue
 		}
 		ids := holding(qs, documentReads[t])

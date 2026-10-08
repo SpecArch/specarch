@@ -473,6 +473,8 @@ storage: github.com/jackc/pgx/v5. Money columns are `numeric(10,2)`.
 | deployment | ../../../docs |   |
 | commissioning | ../../../docs |   |
 | questions | ../../../docs |   |
+| changes | ../../../docs |   |
+| releases | ../../../docs |   |
 | openapi | api | tool oapi-codegen |
 | sql | migrations | dialect postgresql |
 | ui | web | platform web, framework plain-javascript |

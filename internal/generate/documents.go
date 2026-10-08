@@ -30,6 +30,10 @@ func Document(target string, root *yaml.Node, relRoot string, impls []Implementa
 		return Commissioning(root, relRoot, impls), true
 	case "questions":
 		return Questions(root, relRoot, impls, state), true
+	case "changes":
+		return Changes(root, relRoot, state), true
+	case "releases":
+		return Releases(root, relRoot, state), true
 	}
 	return "", false
 }

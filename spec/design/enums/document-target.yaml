@@ -3,10 +3,11 @@ enums:
     type: string
     description: |
       The documents `specarch document` writes from a specification, one per
-      stage of the life cycle, and the open questions. manual and operations
-      answer with status 2 until the specification holds what they need
-      (ADR-016).
-    enum: [techspec, requirements, testplan, traceability, deployment, commissioning, questions, manual, operations]
+      stage of the life cycle, the open questions, and from the records
+      beside the specification the change register and the release notes.
+      manual and operations answer with status 2 until the specification
+      holds what they need (ADR-016).
+    enum: [techspec, requirements, testplan, traceability, deployment, commissioning, questions, changes, releases, manual, operations]
     valueDescriptions:
       techspec: arc42 technical specification in Markdown with generated Mermaid diagrams
       requirements: requirements specification, in the layout of ISO/IEC/IEEE 29148
@@ -15,9 +16,11 @@ enums:
       deployment: deployment guide, from the deployment stage and the implementation's deployments
       commissioning: commissioning test procedure and sign-off sheet
       questions: the open questions by stage, what each blocks and who decides, and which outputs are ready, drafts or waiting
+      changes: the change and defect register, open items first, from the records beside the specification
+      releases: release notes, newest first, each release's changes and fixes grouped as added, changed, removed and fixed, from the records
       manual: user manual, from the pages and permissions
       operations: operations guide, from the endpoints, channels and deployments
-    satisfies: [SA-7, SA-16, SA-19]
+    satisfies: [SA-7, SA-16, SA-19, SA-26]
     cites:
       - source: iso-29119-3
         clause: "7.2 and 8.3"

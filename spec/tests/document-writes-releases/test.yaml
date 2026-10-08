@@ -1,0 +1,7 @@
+command: document
+level: system
+scenario: golden
+given: "a released 1.0.0 that includes a change, and a planned 1.1.0 that includes a change and a defect"
+when: "document releases is run"
+then: "it writes releases.md with 1.1.0 first, each release's items grouped as changed and fixed, and exits 0"
+verifies: [SA-26]

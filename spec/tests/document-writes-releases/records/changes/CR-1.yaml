@@ -1,0 +1,14 @@
+specarchRecord: "0.1"
+kind: change
+id: CR-1
+title: Let a member hold six books
+raisedBy: owner
+raised: "2026-10-09"
+phase: production
+type: perfective
+urgency: normal
+reason: Families share one card.
+affects: { changes: [CASE-1] }
+impact: minor
+decision: { by: owner, date: "2026-10-10", outcome: approved, why: Families are most of the members. }
+status: approved

@@ -1,7 +1,7 @@
 decisions:
   ADR-039:
     title: A form or a view groups its fields in titled sections, whose order is the focus order
-    status: proposed
+    status: accepted
     date: "2026-10-08"
     context: |
       A form or a view with more than a handful of fields groups them: a
@@ -16,7 +16,7 @@ decisions:
       focus order. Neither, both, a field in two sections, a field the
       entity lacks and sections on a list are refused (page, field). A page
       says nothing of columns, widths or positions. This decision is D4 of
-      docs/ui-design.md and waits for the owner to confirm or veto it.
+      docs/ui-design.md and the owner confirmed it.
     consequences: |
       An owner reviews the grouping and the order of every form and view in
       the techspec, and a generator draws a heading per section. Every

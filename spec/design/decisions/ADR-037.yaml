@@ -1,7 +1,7 @@
 decisions:
   ADR-037:
     title: A specification names its accessibility target, WCAG 2.2 at a level, and the design is checked against it
-    status: proposed
+    status: accepted
     date: "2026-10-08"
     context: |
       WCAG 2.2 (W3C Recommendation, October 2023) is the conformance
@@ -22,8 +22,8 @@ decisions:
       contrast is checked either way. The techspec lists the criteria of
       the level that the design settles or leaves to the generator, and who
       meets each; every other criterion of the level is a person's to check
-      at commissioning. This decision is D6
-      of docs/ui-design.md and waits for the owner to confirm or veto it.
+      at commissioning. This decision is D6 of docs/ui-design.md and the
+      owner confirmed it.
     consequences: |
       A specification that claims a level shows, criterion by criterion,
       what is settled in the design and what is left to the build and to a

@@ -1,7 +1,7 @@
 decisions:
   ADR-034:
     title: A page's events say where each leads, after the navigation flows of IFML
-    status: proposed
+    status: accepted
     date: "2026-10-08"
     context: |
       A page says what it shows and what a person can do on it, but only an
@@ -33,7 +33,7 @@ decisions:
       page and the event on it (select, submitted, or an action by its
       label) that leads to the next step's page; it is drawn as its steps
       and is a test subject. This decision is D3 of docs/ui-design.md and
-      waits for the owner to confirm or veto it.
+      the owner confirmed it.
     consequences: |
       A reviewer reads where each step leads from the page itself and sees
       it drawn, and a generator writes the navigation instead of guessing

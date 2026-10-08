@@ -2504,7 +2504,7 @@ cannot be said; it waits for a real specification that needs one.
 
 ### ADR-034: A page's events say where each leads, after the navigation flows of IFML
 
-Status: proposed, 2026-10-08.
+Status: accepted, 2026-10-08.
 
 Context: A page says what it shows and what a person can do on it, but only an
 action of kind navigate says where it leads. Where a form goes once it
@@ -2535,7 +2535,7 @@ step names, and its steps, each a
 page and the event on it (select, submitted, or an action by its
 label) that leads to the next step's page; it is drawn as its steps
 and is a test subject. This decision is D3 of docs/ui-design.md and
-waits for the owner to confirm or veto it.
+the owner confirmed it.
 
 Consequences: A reviewer reads where each step leads from the page itself and sees
 it drawn, and a generator writes the navigation instead of guessing
@@ -2549,7 +2549,7 @@ walks it.
 
 ### ADR-035: A page names what it shows when empty or failed, from a fixed set of states
 
-Status: proposed, 2026-10-08.
+Status: accepted, 2026-10-08.
 
 Context: A page that reads or submits something is loading, showing its
 content, empty, or failed, and what it says in each is decided by
@@ -2573,8 +2573,8 @@ shows what its stack shows. Once a page declares states they must be
 complete: a list has empty, a list with filters has filteredEmpty and
 only it, every problem type has a message or there is a default, and
 no other problem type is named (state). Each state is a derived case
-of the page. This decision is D2 of docs/ui-design.md and waits for
-the owner to confirm or veto it.
+of the page. This decision is D2 of docs/ui-design.md and the owner
+confirmed it.
 
 Consequences: An owner reads every message a person can meet, in the techspec,
 before a screen exists, and a new problem type on an operation is
@@ -2586,7 +2586,7 @@ page, rather than declared per page.
 
 ### ADR-036: A list says which columns a compact screen keeps, and the stack says what compact is
 
-Status: proposed, 2026-10-08.
+Status: accepted, 2026-10-08.
 
 Context: A list of loans with six columns fits a desktop window and not a
 phone. Which columns to keep is a design decision, since it says
@@ -2602,7 +2602,7 @@ in order; each must be one of the list's columns, and only a list
 has them (page). SpecArch names one class, compact; its size in
 points or pixels and the layout of a compact row are the stack's,
 defaulting to the platform's. This decision is D5 of
-docs/ui-design.md and waits for the owner to confirm or veto it.
+docs/ui-design.md and the owner confirmed it.
 
 Consequences: A phone screen shows what the analyst chose rather than what fits,
 and a reviewer sees it beside the full columns in the techspec. A
@@ -2613,7 +2613,7 @@ compact variant.
 
 ### ADR-037: A specification names its accessibility target, WCAG 2.2 at a level, and the design is checked against it
 
-Status: proposed, 2026-10-08.
+Status: accepted, 2026-10-08.
 
 Context: WCAG 2.2 (W3C Recommendation, October 2023) is the conformance
 target of nearly every accessibility law and procurement rule, as
@@ -2633,8 +2633,8 @@ label (accessibility). Without it, neither is checked; a theme's
 contrast is checked either way. The techspec lists the criteria of
 the level that the design settles or leaves to the generator, and who
 meets each; every other criterion of the level is a person's to check
-at commissioning. This decision is D6
-of docs/ui-design.md and waits for the owner to confirm or veto it.
+at commissioning. This decision is D6 of docs/ui-design.md and the
+owner confirmed it.
 
 Consequences: A specification that claims a level shows, criterion by criterion,
 what is settled in the design and what is left to the build and to a
@@ -2645,7 +2645,7 @@ criteria once a theme declares its colours.
 
 ### ADR-038: The theme is design tokens in the W3C Design Tokens format, and its pairs of colours are checked for contrast
 
-Status: proposed, 2026-10-08.
+Status: accepted, 2026-10-08.
 
 Context: The visual design of an application is a set of named values,
 colours, spaces, fonts and durations, that a design tool and several
@@ -2674,8 +2674,8 @@ AAA when the accessibility target is AAA and at AA otherwise, since
 WCAG asks no contrast at level A; a
 translucent pair is refused, since its contrast depends on what lies
 beneath (theme). The techspec lists the tokens per mode and each
-pair's contrast. This decision is D7 of docs/ui-design.md and waits
-for the owner to confirm or veto it.
+pair's contrast. This decision is D7 of docs/ui-design.md and the
+owner confirmed it.
 
 Consequences: A contrast that fails is caught when the colour is chosen, in every
 mode, rather than by a person with a tool after the screens exist,
@@ -2688,7 +2688,7 @@ specification that needs them.
 
 ### ADR-039: A form or a view groups its fields in titled sections, whose order is the focus order
 
-Status: proposed, 2026-10-08.
+Status: accepted, 2026-10-08.
 
 Context: A form or a view with more than a handful of fields groups them: a
 member's identity apart from their membership. Which fields belong
@@ -2702,7 +2702,7 @@ sections, each a title and its fields, in reading order, which is the
 focus order. Neither, both, a field in two sections, a field the
 entity lacks and sections on a list are refused (page, field). A page
 says nothing of columns, widths or positions. This decision is D4 of
-docs/ui-design.md and waits for the owner to confirm or veto it.
+docs/ui-design.md and the owner confirmed it.
 
 Consequences: An owner reviews the grouping and the order of every form and view in
 the techspec, and a generator draws a heading per section. Every

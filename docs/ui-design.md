@@ -35,9 +35,9 @@ beside it in the implementation file. Its findings, in short:
 5. Build one UI generator first, SwiftUI, against a real hand-built screen,
    and the plain JavaScript web generator after it.
 
-Decisions D1 to D9 at the end are for the owner to confirm or veto. D2 to
-D7 are built as ADR-034 to ADR-039, which stay proposed until the owner
-confirms them; D9 waits for the owner's pick.
+Decisions D1 to D9 at the end are the owner's, and the owner confirmed
+them: D2 to D7 are built as ADR-034 to ADR-039, and D9, plain JavaScript
+for the web, as ADR-040.
 
 ## The base it builds on
 
@@ -359,17 +359,17 @@ before it.
 
 ## Decisions for the owner
 
-| | Decision | Recommendation |
+| | Decision | Owner |
 |---|---|---|
-| D1 | The design says structure, behaviour and rules; geometry, components and animation are a stack's | confirm |
-| D2 | A page's states are the named set loading, content, empty, filtered empty, submitting and failed, with failed per problem type; a page does not declare its own state machine; states are optional, and complete once given | confirm |
-| D3 | Events and flows after IFML: `onSubmitted`, `onSelect` and an action's `then`, each with `navigate`, `with` and `message`; `flows` as named tasks across pages, each a test subject | confirm |
-| D4 | A form or view gives its fields once, as `fields` or as titled `sections`, and the order is the focus order | confirm |
-| D5 | One screen class, compact, with `compactColumns`; the stack sets its size | confirm |
-| D6 | `accessibility: { standard: WCAG 2.2, level: AA }` in the design turns on the checks listed above; without it only the theme's contrast is checked, at AA | confirm |
-| D7 | The theme is `design/theme.yaml` in the Design Tokens Community Group format, `$type` and `$value` kept, srgb colours only, with `modes` and `pairs` as SpecArch's | confirm |
-| D8 | No wireframe images in the documents; the structure table and the diagrams instead | confirm |
-| D9 | The first UI generator is SwiftUI, against a hand-built screen of an existing app; the web one follows | the owner picks |
+| D1 | The design says structure, behaviour and rules; geometry, components and animation are a stack's | confirmed |
+| D2 | A page's states are the named set loading, content, empty, filtered empty, submitting and failed, with failed per problem type; a page does not declare its own state machine; states are optional, and complete once given | confirmed |
+| D3 | Events and flows after IFML: `onSubmitted`, `onSelect` and an action's `then`, each with `navigate`, `with` and `message`; `flows` as named tasks across pages, each a test subject | confirmed |
+| D4 | A form or view gives its fields once, as `fields` or as titled `sections`, and the order is the focus order | confirmed |
+| D5 | One screen class, compact, with `compactColumns`; the stack sets its size | confirmed |
+| D6 | `accessibility: { standard: WCAG 2.2, level: AA }` in the design turns on the checks listed above; without it only the theme's contrast is checked, at AA | confirmed |
+| D7 | The theme is `design/theme.yaml` in the Design Tokens Community Group format, `$type` and `$value` kept, srgb colours only, with `modes` and `pairs` as SpecArch's | confirmed |
+| D8 | No wireframe images in the documents; the structure table and the diagrams instead | confirmed |
+| D9 | The first UI generator: SwiftUI was recommended, against a hand-built screen of an existing app | plain JavaScript for the web, picked |
 
 ## Implementation items, in order
 

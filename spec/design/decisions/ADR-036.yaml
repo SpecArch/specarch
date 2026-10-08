@@ -1,7 +1,7 @@
 decisions:
   ADR-036:
     title: A list says which columns a compact screen keeps, and the stack says what compact is
-    status: proposed
+    status: accepted
     date: "2026-10-08"
     context: |
       A list of loans with six columns fits a desktop window and not a
@@ -18,7 +18,7 @@ decisions:
       has them (page). SpecArch names one class, compact; its size in
       points or pixels and the layout of a compact row are the stack's,
       defaulting to the platform's. This decision is D5 of
-      docs/ui-design.md and waits for the owner to confirm or veto it.
+      docs/ui-design.md and the owner confirmed it.
     consequences: |
       A phone screen shows what the analyst chose rather than what fits,
       and a reviewer sees it beside the full columns in the techspec. A

@@ -1,7 +1,7 @@
 decisions:
   ADR-035:
     title: A page names what it shows when empty or failed, from a fixed set of states
-    status: proposed
+    status: accepted
     date: "2026-10-08"
     context: |
       A page that reads or submits something is loading, showing its
@@ -26,8 +26,8 @@ decisions:
       complete: a list has empty, a list with filters has filteredEmpty and
       only it, every problem type has a message or there is a default, and
       no other problem type is named (state). Each state is a derived case
-      of the page. This decision is D2 of docs/ui-design.md and waits for
-      the owner to confirm or veto it.
+      of the page. This decision is D2 of docs/ui-design.md and the owner
+      confirmed it.
     consequences: |
       An owner reads every message a person can meet, in the techspec,
       before a screen exists, and a new problem type on an operation is

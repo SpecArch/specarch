@@ -1,7 +1,7 @@
 decisions:
   ADR-038:
     title: The theme is design tokens in the W3C Design Tokens format, and its pairs of colours are checked for contrast
-    status: proposed
+    status: accepted
     date: "2026-10-08"
     context: |
       The visual design of an application is a set of named values,
@@ -31,8 +31,8 @@ decisions:
       WCAG asks no contrast at level A; a
       translucent pair is refused, since its contrast depends on what lies
       beneath (theme). The techspec lists the tokens per mode and each
-      pair's contrast. This decision is D7 of docs/ui-design.md and waits
-      for the owner to confirm or veto it.
+      pair's contrast. This decision is D7 of docs/ui-design.md and the
+      owner confirmed it.
     consequences: |
       A contrast that fails is caught when the colour is chosen, in every
       mode, rather than by a person with a tool after the screens exist,

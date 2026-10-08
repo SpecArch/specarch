@@ -1,0 +1,77 @@
+specarch: "0.1"
+info: { title: Catalogue, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+enums:
+  Shelf: { type: string, enum: [fiction, reference] }
+entities:
+  Book:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      title: { type: string, title: Title, minLength: 1, maxLength: 200 }
+      shelf: { $ref: "#/enums/Shelf", title: Shelf }
+    required: [id, title, shelf]
+    primaryKey: [id]
+errors:
+  book-on-loan: { status: 409, title: The book is on loan, condition: A member holds the book. }
+permissions:
+  books.read: { description: See the catalogue. }
+  books.write: { description: Change the catalogue. }
+roles:
+  librarian: { description: Keeps the catalogue., permissions: [books.read, books.write] }
+paths:
+  /books:
+    get:
+      operationId: listBooks
+      summary: The books
+      permission: books.read
+      parameters:
+        - { name: shelf, in: query, schema: { $ref: "#/enums/Shelf" } }
+      listOf:
+        entity: Book
+        pageSize: { default: 25, maximum: 100 }
+      responses:
+        "200":
+          description: The books.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Book" } }
+  /books/{bookId}/withdraw:
+    parameters:
+      - { name: bookId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: withdrawBook
+      summary: Take a book out of the catalogue
+      permission: books.write
+      responses:
+        "204": { description: Withdrawn. }
+        "409": { description: The book is on loan., problem: book-on-loan }
+pages:
+  books-list:
+    kind: list
+    title: Books
+    route: /books
+    entity: Book
+    permission: books.read
+    source: listBooks
+    columns: [title, shelf]
+    compactColumns: [title]
+    filters: [shelf]
+    states:
+      empty: { message: The catalogue is empty. }
+      filteredEmpty: { message: No book is on this shelf. }
+      failed:
+        book-on-loan: { message: "A member holds this book, so it stays in the catalogue." }
+    actions:
+      - { label: Withdraw, kind: operation, target: withdrawBook, permission: books.write, then: { message: The book is withdrawn. } }
+accessibility: { standard: WCAG 2.2, level: AA }
+theme:
+  tokens:
+    color:
+      $type: color
+      ink: { $value: { colorSpace: srgb, components: [0, 0, 0] } }
+      paper: { $value: { colorSpace: srgb, components: [1, 1, 1] } }
+  pairs:
+    - { text: color.ink, background: color.paper, use: text }

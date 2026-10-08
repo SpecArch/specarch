@@ -172,8 +172,11 @@ OpenAPI 3.1 document of a specification, `specarch-gen-sql`, which
 Server, Oracle or MariaDB, and `specarch-gen-tests-go`, which `specarch
 generate tests` runs to write its Go tests, and `specarch-gen-go-dxlib`,
 which `specarch generate go-dxlib` runs to write the tables, handlers, seeds
-and tasks of a Go service on dxlib. Install them at the same tag as
-`specarch`:
+and tasks of a Go service on dxlib. A fifth, `specarch-gen-ui`, which
+`specarch generate ui` runs to write list pages for the web in plain
+JavaScript, is newer than the last tag, so it is installed from a commit or
+a clone (`go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@<commit>`).
+Install the four at the same tag as `specarch`:
 
     go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v0.4.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v0.4.0

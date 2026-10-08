@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 100 design tests, 31 golden and 68 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 101 design tests, 31 golden and 69 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.1.0 of the specification: 100 design tests, 31 golden and 68 red, abou
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 96 |
+| system | 97 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -394,6 +394,14 @@ Scenario: golden; level: system.
 - Given: two members and a librarian
 - When: listMembers is called
 - Then: both members are answered
+
+#### list-members-bad-tier
+
+Scenario: red; level: system; covers tier not one of its values.
+
+- Given: a librarian
+- When: listMembers is called with the tier gold-plus, which is not a membership tier
+- Then: it is refused as invalid input
 
 #### list-members-denied
 
@@ -922,11 +930,14 @@ stateDiagram-v2
 
 ## 4. Derived cases left out
 
-30 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+33 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
 | operation listMembers | deleted Member not listed | golden | occasional case, and operation listMembers satisfies no requirement with a harm |
+| operation listMembers | page beyond last | golden | occasional case, and operation listMembers satisfies no requirement with a harm |
+| operation listMembers | page size above 100 | red | occasional case, and operation listMembers satisfies no requirement with a harm |
+| operation listMembers | sort by a field not sortable | red | occasional case, and operation listMembers satisfies no requirement with a harm |
 | operation getMember | deleted Member read | red | occasional case, and operation getMember satisfies no requirement with a harm |
 | operation listLoans | page beyond last | golden | occasional case, and operation listLoans satisfies no requirement with a harm |
 | operation listLoans | page size above 100 | red | occasional case, and operation listLoans satisfies no requirement with a harm |

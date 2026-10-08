@@ -295,9 +295,9 @@ color, dimension, fontFamily, fontWeight, duration and number.
 `pairs` names which colours are shown on which background and for what
 `use`: text, large text, or the parts of a control. That is what the
 contrast check reads. The design file holds values and names
-only; a token is used by a stack through the token-rendering idiom (CSS
+only; a token is used by a stack as that stack's generator writes it (CSS
 custom properties for the web, an asset catalogue and a `Color` extension
-for SwiftUI). A specification without a theme is valid: the stack's own
+for SwiftUI); an idiom for it arrives with a second stack. A specification without a theme is valid: the stack's own
 look applies, and the contrast check has nothing to read.
 
 What is left out on purpose: the format's composite types (typography,
@@ -314,7 +314,7 @@ design never names a component:
 |---|---|---|
 | the component library, and the component per page kind and per field type | target settings, and the ui-components idiom | SwiftUI `List` and `Form`; a project's own `DataTable` |
 | the navigation container | target settings | a `NavigationStack` with a tab bar on compact, a split view on regular |
-| how a token becomes code | the token-rendering idiom | a `Color` extension over an asset catalogue; CSS custom properties |
+| how a token becomes code | the stack's generator, and an idiom once a second stack needs one | a `Color` extension over an asset catalogue; CSS custom properties |
 | the compact class in points or pixels | target settings, defaulting to the platform's | 600 density independent pixels |
 | the event bus of the web | the generated code, per the roadmap | one module with every event name as a constant |
 | strings and their translations | a strings file per stack, keyed by page and state | `Localizable.strings` |
@@ -373,7 +373,7 @@ before it.
 
 ## Implementation items, in order
 
-Items 1 to 5 are built; item 6 waits for D9.
+Items 1 to 5 are built. Item 6 is built for the web in plain JavaScript, the owner's pick (D9), for list pages first (ADR-040).
 
 1. The keywords of D2 to D7 in the schema, `docs/conventions.md` and the
    rule enum (`state`, `flow`, `accessibility`, `theme`), spec first, with

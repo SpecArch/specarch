@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.5.0-dev of the specification: 225 design tests, 75 golden and 149 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.5.0-dev of the specification: 226 design tests, 76 golden and 149 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.5.0-dev of the specification: 225 design tests, 75 golden and 149 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 221 |
+| system | 222 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -25,6 +25,7 @@ Framework: go test. Run: `go test ./...`.
 | shipped-idioms | unit | tests of this implementation only | `go test ./internal/validate` |
 | generated-sql | unit | tests of this implementation only | `go test ./internal/gensql` |
 | generated-openapi | unit | tests of this implementation only | `go test ./internal/genopenapi` |
+| generated-ui | unit | tests of this implementation only | `go test ./internal/genui` |
 | generated-go-dxlib | unit | tests of this implementation only | `go test ./internal/gendxlib` |
 | generated-tests | unit | tests of this implementation only | `go test ./internal/gentests` |
 | expressions | unit | tests of this implementation only | `go test ./internal/expr` |
@@ -621,6 +622,14 @@ Scenario: golden; level: system; verifies SA-31.
 - Given: a specification whose implementation file is in Go, with specarch-gen-echo-go and specarch-gen-echo both on PATH
 - When: generate echo is run with --unapproved
 - Then: it runs specarch-gen-echo-go, the plug-in for the file's stack, writes its file into the output the implementation file names, and exits 0
+
+#### generate-ui
+
+Scenario: golden; level: system; verifies SA-43.
+
+- Given: a specification with a list page that filters by an enum, keeps one column on a compact screen, declares its empty, filtered empty and failed states, runs an operation on a row with a message and no confirmation, and a theme of two colours; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it writes the page's HTML and module, events.js with the page's and the operation's events, and theme.css with the tokens as custom properties and the rules the target's token settings name, and exits 0
 
 #### generate-unapproved
 
@@ -1864,7 +1873,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-119 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+124 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1927,6 +1936,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-42 | acceptance 6 | golden | SA-42 names no harm |
 | requirement SA-42 | acceptance 7 | golden | SA-42 names no harm |
 | requirement SA-42 | acceptance 8 | golden | SA-42 names no harm |
+| requirement SA-43 | acceptance 1 | golden | SA-43 names no harm |
+| requirement SA-43 | acceptance 2 | golden | SA-43 names no harm |
+| requirement SA-43 | acceptance 3 | golden | SA-43 names no harm |
+| requirement SA-43 | acceptance 4 | golden | SA-43 names no harm |
+| requirement SA-43 | acceptance 5 | golden | SA-43 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

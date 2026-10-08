@@ -104,9 +104,10 @@ difference. The rules and the pattern each target follows are in
    flow can be followed. The specification's events stay neutral; the bus is
    how the web implementation carries them. The design keywords a generator
    reads are built (`docs/ui-design.md`): page events and flows, states,
-   sections, compact columns, the accessibility target and the theme. The
-   first generator waits for the owner's pick of stack; SwiftUI is
-   recommended, since hand-built screens to reproduce exist there.
+   sections, compact columns, the accessibility target and the theme. Built
+   for the web: `specarch-gen-ui` writes list pages in plain JavaScript
+   (ADR-040). Next for it: forms, views, navigation between pages, and the
+   first real project's screen to check it against. SwiftUI follows.
 5. Other DSL formats on request, limited to what that DSL can execute:
    a concept the target cannot represent is reported, not silently omitted.
 6. Tests from the specification. The specification gives the business cases:

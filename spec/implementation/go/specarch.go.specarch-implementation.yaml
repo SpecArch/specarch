@@ -86,6 +86,11 @@ layout:
   cmd/specarch-gen-go-dxlib:
     description: The plug-in behind generate go-dxlib. Reads the request on standard input, answers the Go file on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
+  cmd/specarch-gen-ui:
+    description: The plug-in behind generate ui. Reads the request on standard input, answers the screens on standard output, and never touches the disk.
+    implements: ["#/commands/generate"]
+  internal/genui:
+    description: The list pages for the web in plain JavaScript, the events they raise, and the theme as CSS custom properties.
   internal/gendxlib:
     description: The Go file of a service on dxlib, its tables, handlers, seeds and tasks, read from the design through the dxlib dialect's names and types.
   cmd/specarch-gen-tests-go:
@@ -229,6 +234,12 @@ testing:
     generated-openapi:
       description: Generates the library lending example's OpenAPI document and checks it parses, pages its list through the idiom, answers its refusals with problem documents and carries the audit fields; that a list by POST takes its paging in the body; the views as read-only schemas in both dialects, a path through an optional relation allowing null and a count as a 64-bit integer; and the dxlib dialect's document, which dxlib's own reader reads and validates when SPECARCH_DXLIB names a dxlib checkout, as on the owner's Mac, and is skipped without one, as in CI.
       run: go test ./internal/genopenapi
+      level: unit
+      implementationOnly: true
+      ci: true
+    generated-ui:
+      description: Generates the library lending example's screens and checks they are the files committed in the example, the loans list among them written by hand first; and refuses a target that is not plain JavaScript for the web, one without a language, and a filter the list's operation cannot take.
+      run: go test ./internal/genui
       level: unit
       implementationOnly: true
       ci: true

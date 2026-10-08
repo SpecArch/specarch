@@ -22,6 +22,12 @@ paths:
       operationId: listMembers
       summary: List members
       permission: members.read
+      parameters:
+        - { name: tier, in: query, schema: { $ref: "#/enums/MembershipTier" } }
+      listOf:
+        entity: Member
+        sortable: [fullName, joinedOn]
+        pageSize: { default: 20, maximum: 100 }
       responses:
         "200":
           description: All members.

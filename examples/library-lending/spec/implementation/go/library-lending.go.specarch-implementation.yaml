@@ -101,7 +101,7 @@ targets:
     description: The screens as plain JavaScript in the browser, from the design's pages, events, states and theme.
     settings:
       language: en
-      tokens: { text: color.text, background: color.background, accent: color.link, danger: color.danger, border: color.border, space: space.small, font: font.body }
+      tokens: { text: color.text, background: color.background, accent: color.accent, danger: color.danger, border: color.border, space: space.small, font: font.body }
   tests:
     output: internal/lending
 

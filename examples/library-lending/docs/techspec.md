@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 7 requirements, 3 entities, 8 HTTP operations, 2 channels, 1 dependency, 5 pages, 1 flow, 1 algorithm, 100 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 7 requirements, 3 entities, 8 HTTP operations, 2 channels, 1 dependency, 5 pages, 1 flow, 1 algorithm, 101 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -249,6 +249,8 @@ sequenceDiagram
 ```
 
 ### listMembers (GET /members)
+
+Lists Member a page at a time, 20 records by default, at most 100 a page. It may be sorted by fullName and joinedOn. A request outside these is refused, not ignored (the paginated-list idiom).
 
 ```mermaid
 sequenceDiagram
@@ -853,6 +855,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | list-loans-denied | operation listLoans | system | red | a caller holding no role | listLoans is called | it is refused as not allowed |
 | list-loans-denied-with-expired-session | operation listLoans | system | red | a librarian whose session expired after half an hour without a request | listLoans is called | it is refused as not signed in, and nothing changes |
 | list-members | operation listMembers | system | golden | two members and a librarian | listMembers is called | both members are answered |
+| list-members-bad-tier | operation listMembers | system | red | a librarian | listMembers is called with the tier gold-plus, which is not a membership tier | it is refused as invalid input |
 | list-members-denied | operation listMembers | system | red | a caller holding only the member role | listMembers is called | it is refused as not allowed |
 | list-members-denied-with-expired-session | operation listMembers | system | red | a librarian whose session expired after half an hour without a request | listMembers is called | it is refused as not signed in, and nothing changes |
 | loan-becomes-overdue | Loan open to overdue | system | golden | an open loan due yesterday | the nightly job runs | the loan is overdue and LoanOverdue is published |

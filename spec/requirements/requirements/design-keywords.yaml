@@ -41,7 +41,7 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-5]
     why: What runs at night or on a queue is the part of a system nobody watches, and the part a test plan forgets; written in the design, its tests follow from it like an operation's.
-  SA-49:
+  SA-47:
     statement: A specification shall be able to declare workflows, requests that finish after people approve them, as a sequential subset of BPMN 2.0, with the operation that starts each, the entity that holds the request while it waits, and approval and operation steps in order; specarch validate shall check each against the design, and a workflow shall be a subject of tests whose cases include the requester approving their own request.
     kind: functional
     priority: must

@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 285 design tests, 108 golden and 177 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 288 design tests, 110 golden and 178 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 281 |
+| system | 284 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -531,6 +531,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 - When: extract openapi is run on it
 - Then: it says the file is not an OpenAPI 3.0 or 3.1 document, writes nothing and exits 1
 
+#### extract-openapi-snake-case
+
+Scenario: golden; level: system; verifies SA-44, SA-49.
+
+- Given: a repository holding an OpenAPI 3.1 document whose property names are snake_case throughout: an inline request body, an object schema with a nested object, a name with a digit inside it, one whose last word is a digit, and a required list naming them
+- When: extract openapi is run on the document
+- Then: it writes info.wireNames snake_case and every property, the nested ones and the required lists included, by its camelCase name, leaves out with a line the name that would go back on the wire as another, and exits 0
+
 #### extract-openapi-writes-schema
 
 Scenario: golden; level: system; verifies SA-48.
@@ -734,6 +742,14 @@ Scenario: golden; level: system; verifies SA-46.
 - Given: a specification whose Author entity and the operation that reads one author the implementation file marks as owned by the catalogue team, another operation that answers an Author, and specarch-gen-openapi built from this repository on PATH
 - When: generate openapi is run with --unapproved
 - Then: it writes openapi.yaml with no Author schema and no path for the owned operation, the other operation still referring to the Author schema, and exits 0
+
+#### generate-openapi-wire-names
+
+Scenario: golden; level: system; verifies SA-36, SA-49.
+
+- Given: a specification whose wire names are snake_case, with an audited entity of names of two words, a nested object with an acronym, and a list of the entity filtered and sorted by such names, and an implementation file in Go with an openapi target; specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved
+- Then: it writes openapi.yaml with every property, required list, audit field, filter, sort value, paging parameter and envelope field in snake_case, the path parameter as the specification names it, and exits 0
 
 #### generate-plugin-path-outside
 
@@ -2303,6 +2319,14 @@ Scenario: golden; level: system; verifies SA-41.
 - When: validate is run
 - Then: it reports no error, and exits 0
 
+#### validate-wire-names
+
+Scenario: red; level: system; covers exit 1; verifies SA-49.
+
+- Given: a specification whose wire names are snake_case, with two entity fields, two fields of a nested object, two fields of an array's items, a view's added field and its entity's, two fields of a message payload, two of a path parameter's schema and two of a request body each mapping to one wire name, acronyms and runs of capitals among them
+- When: validate is run
+- Then: it reports wire_name seven times, at the second name of each pair, and exits 1
+
 #### validate-workflow
 
 Scenario: red; level: system; covers exit 1; verifies SA-47.
@@ -2347,7 +2371,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-152 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+156 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2426,6 +2450,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-48 | acceptance 2 | golden | SA-48 names no harm |
 | requirement SA-48 | acceptance 3 | golden | SA-48 names no harm |
 | requirement SA-48 | acceptance 4 | golden | SA-48 names no harm |
+| requirement SA-49 | acceptance 1 | golden | SA-49 names no harm |
+| requirement SA-49 | acceptance 2 | golden | SA-49 names no harm |
+| requirement SA-49 | acceptance 3 | golden | SA-49 names no harm |
+| requirement SA-49 | acceptance 4 | golden | SA-49 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.6.0-dev of the specification: 9 needs, 48 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.6.0-dev of the specification: 9 needs, 49 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 ## 1. Needs to requirements
 
 | Need | Status | Refined by |
 |---|---|---|
 | NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6 |
-| NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-46, SA-32, SA-9, SA-10 |
+| NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-49, SA-46, SA-32, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-19 |
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-35, SA-47, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
@@ -57,7 +57,7 @@ Version 0.6.0-dev of the specification: 9 needs, 48 requirements, and 0 gaps. Ea
 | SA-33 | NEED-1, NEED-2 | decisions ADR-024 | tests validate-stored-data; tests validate-stored-data-valid |
 | SA-34 | NEED-1, NEED-2 | decisions ADR-025 | tests validate-interface-problems; tests validate-interface-valid |
 | SA-35 | NEED-1, NEED-5 | decisions ADR-026 | tests validate-jobs-menus; tests validate-jobs-menus-valid |
-| SA-36 | NEED-2, NEED-3 | decisions ADR-027 | tests generate-openapi |
+| SA-36 | NEED-2, NEED-3 | decisions ADR-027; decisions ADR-062 | tests generate-openapi; tests generate-openapi-wire-names |
 | SA-37 | NEED-2 | decisions ADR-029; decisions ADR-061 | tests generate-sql |
 | SA-38 | NEED-2 | decisions ADR-030 | tests generate-sql-expand |
 | SA-39 | NEED-2 | decisions ADR-031 | tests generate-openapi-dxlib |
@@ -65,11 +65,12 @@ Version 0.6.0-dev of the specification: 9 needs, 48 requirements, and 0 gaps. Ea
 | SA-41 | NEED-2 | enums Rule; decisions ADR-033 | tests validate-views; tests validate-views-valid |
 | SA-42 | NEED-2 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058 | tests derive-page-elements; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-pages; tests validate-theme |
 | SA-43 | NEED-2 | decisions ADR-040 | tests generate-ui |
-| SA-44 | NEED-8 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-openapi-not-openapi; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-route-twice; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests gaps-outline-not-read |
-| SA-45 | NEED-8 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-pages-field-by-name; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-source-differs; tests merge-tree-invalid; tests validate-source-given-outside |
+| SA-44 | NEED-8 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-route-twice; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests gaps-outline-not-read |
+| SA-45 | NEED-8 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-pages-field-by-name; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-source-differs; tests merge-tree-invalid; tests validate-source-given-outside |
 | SA-46 | NEED-2, NEED-8 | commands generate; decisions ADR-046 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-owned-by-unknown |
 | SA-47 | NEED-1, NEED-5 | enums Rule; decisions ADR-054 | tests validate-workflow; tests validate-workflow-valid |
 | SA-48 | NEED-1 | enums Rule; decisions ADR-060 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |
+| SA-49 | NEED-2 | enums Rule; decisions ADR-062 | tests extract-openapi-snake-case; tests generate-openapi-wire-names; tests validate-wire-names |
 
 ## 3. Gaps
 

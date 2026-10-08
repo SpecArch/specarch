@@ -1,0 +1,5 @@
+arguments: [idioms, .]
+exitStatus: 0
+standardOutput: |+
+  implementation/go/case.go.specarch-implementation.yaml
+    type-rendering 1.0.0: overridden by implementation/go/idioms/type-rendering.specarch-idiom.yaml, copied from 1.0.0, replacing types; The database runs with MAX_STRING_SIZE = EXTENDED, so VARCHAR2 always holds 8191 characters.

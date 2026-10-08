@@ -1,0 +1,13 @@
+requirements:
+  SA-32:
+    statement: SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - An idiom key naming no idiom, an exclusion or override without why, an override naming an unknown part or defining one it does not list, rendering a stack that is not the file's, or changing a shipped contract statement is each reported under its rule in both builds; an override copied from an older version is warned about.
+      - A field that no row of the type rendering matches for a stack of the implementation file, such as a decimal wider than Oracle holds, is reported as idiom_contract.
+      - An override that replaces the Oracle text rows for MAX_STRING_SIZE = EXTENDED validates without a diagnostic.
+    verification: test
+    needs: [NEED-2]
+    why: How a decimal, a text column or a missing value is held on a stack is decided once and read by every generator and every agent; without the table each implementation file restates it in prose, each a little differently.

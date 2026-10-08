@@ -1,0 +1,6 @@
+specarchIdiom: "0.1"
+name: house-style
+version: 1.0.0
+concern: other
+stacks: [go]
+description: The project's own conventions.

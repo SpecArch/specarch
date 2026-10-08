@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.4.0-dev of the specification: 198 design tests, 63 golden and 134 red, about 10 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.4.0-dev of the specification: 205 design tests, 66 golden and 138 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.4.0-dev of the specification: 198 design tests, 63 golden and 134 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 194 |
+| system | 201 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -21,7 +21,8 @@ Framework: go test. Run: `go test ./...`.
 
 | Suite | Level | Runs | Command |
 |---|---|---|---|
-| conformance | system | every design test of command validate, command gaps, command document, command approve, command generate, command extract, command version | `go test ./cmd/specarch` |
+| conformance | system | every design test of command validate, command gaps, command document, command approve, command generate, command extract, command idioms, command idioms diff, command version | `go test ./cmd/specarch` |
+| shipped-idioms | unit | tests of this implementation only | `go test ./internal/validate` |
 | generated-tests | unit | tests of this implementation only | `go test ./internal/gentests` |
 | expressions | unit | tests of this implementation only | `go test ./internal/expr` |
 
@@ -602,6 +603,50 @@ Scenario: golden; level: system; verifies SA-7, SA-14.
 - When: generate echo is run with --out out
 - Then: it writes both files under out/ and exits 0
 
+### Command idioms diff
+
+#### idioms-diff
+
+Scenario: golden; level: system; verifies SA-32.
+
+- Given: the same specification, whose override replaces the Oracle rows of type-rendering's types part
+- When: idioms diff type-rendering is run
+- Then: it prints the override's file, the version it was copied from and the shipped version, then the shipped Oracle rendering and the override's, and exits 0
+
+#### idioms-diff-unknown
+
+Scenario: red; level: system; covers exit 2; verifies SA-32.
+
+- Given: a specification, and an idiom name SpecArch does not ship
+- When: idioms diff paginated-lists is run
+- Then: it says the idiom is not shipped and exits 2
+
+#### idioms-diff-usage-error
+
+Scenario: red; level: system; covers exit 2, usage error; verifies SA-32.
+
+- Given: an idiom's name and no folder
+- When: idioms diff type-rendering is run
+- Then: it prints how to use it and exits 2
+
+### Command idioms
+
+#### idioms-lists
+
+Scenario: golden; level: system; verifies SA-32.
+
+- Given: a specification with one implementation file in Go with an Oracle sql target, whose override of type-rendering replaces its types part, with the reason
+- When: idioms is run
+- Then: it prints the file's path and type-rendering as overridden by the file, copied from 1.0.0, replacing types, with the reason, and exits 0
+
+#### idioms-usage-error
+
+Scenario: red; level: system; covers exit 2, usage error; verifies SA-32.
+
+- Given: no folder
+- When: idioms is run without arguments
+- Then: it prints the usage and exits 2
+
 ### Command validate
 
 #### validate-algorithm
@@ -971,6 +1016,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-29.
 - Given: an idempotency key on a GET, and one on a POST that names a query parameter rather than a header
 - When: validate is run
 - Then: it reports idempotency_key for both, saying that GET is idempotent by itself and that the key is not a header parameter, and exits 1
+
+#### validate-idiom-override
+
+Scenario: golden; level: system; verifies SA-32.
+
+- Given: an implementation file in Go with an Oracle sql target, whose override of type-rendering replaces the Oracle rows of its types part for MAX_STRING_SIZE = EXTENDED, with the reason, and an entity with a UUID and a 5000-character text field
+- When: validate is run
+- Then: it reports nothing and exits 0: the override's rows cover every field on Oracle, and the shipped Go rows cover them on Go
+
+#### validate-idiom-problems
+
+Scenario: red; level: system; covers exit 1; verifies SA-32.
+
+- Given: an implementation file in Go with an Oracle sql target, which names an idiom SpecArch does not ship, excludes the project's own idiom without why, and overrides type-rendering with a file that has no why, lists an unknown part, defines a part it does not list, renders swift, changes a shipped contract statement and was copied from an older version; a decimal field is wider than Oracle holds, and a stray file sits in the idioms folder
+- When: validate is run
+- Then: it reports idiom_unknown, idiom_override_reason, idiom_part_unknown, idiom_stack, idiom_contract on the statement and on the decimal's missing Oracle row, idiom_version_behind as a warning, and the stray file under layout, and exits 1
 
 #### validate-implements
 
@@ -1640,7 +1701,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-72 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+75 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1673,6 +1734,9 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-15 | acceptance 3 | golden | SA-15 names no harm |
 | requirement SA-16 | acceptance 1 | golden | SA-16 names no harm |
 | requirement SA-16 | acceptance 2 | golden | SA-16 names no harm |
+| requirement SA-32 | acceptance 1 | golden | SA-32 names no harm |
+| requirement SA-32 | acceptance 2 | golden | SA-32 names no harm |
+| requirement SA-32 | acceptance 3 | golden | SA-32 names no harm |
 | requirement SA-11 | acceptance 1 | golden | SA-11 names no harm |
 | requirement SA-11 | acceptance 2 | golden | SA-11 names no harm |
 | requirement SA-12 | acceptance 1 | golden | SA-12 names no harm |

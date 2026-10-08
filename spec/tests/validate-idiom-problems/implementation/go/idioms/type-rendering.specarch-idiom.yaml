@@ -1,0 +1,21 @@
+specarchIdiom: "0.1"
+name: type-rendering
+version: 0.9.0
+description: Text on Oracle under MAX_STRING_SIZE = EXTENDED.
+overrides: { idiom: type-rendering, version: 0.9.0, parts: [types, colours] }
+contract:
+  every-field-rendered:
+    statement: Most fields have a row.
+    check: guidance
+parts:
+  types:
+    description: The rows.
+    stack:
+      swift:
+        rows:
+          - { type: string, render: String }
+  money:
+    description: Money.
+    stack:
+      any:
+        code: A decimal.

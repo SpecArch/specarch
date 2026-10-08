@@ -1,0 +1,8 @@
+command: idioms diff
+level: system
+scenario: red
+covers: [exit 2, usage error]
+given: "an idiom's name and no folder"
+when: "idioms diff type-rendering is run"
+then: "it prints how to use it and exits 2"
+verifies: [SA-32]

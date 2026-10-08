@@ -104,7 +104,7 @@ func approve(l loaded, by, date string, stdout, stderr io.Writer) int {
 		}
 		var impls []generate.Implementation
 		for _, i := range l.impls {
-			impls = append(impls, generate.Implementation{Node: i.Node, Rel: relSlash(folder, i.Path), Path: i.Path})
+			impls = append(impls, generate.Implementation{Node: i.Node, Rel: relSlash(folder, i.Path), Path: i.Path, Idioms: i.Idioms})
 		}
 		text, _ := generate.Document(target, root, relSlash(folder, l.spec.RootFile), impls, l.state())
 		p := filepath.Join(folder, generate.DocumentName(target))

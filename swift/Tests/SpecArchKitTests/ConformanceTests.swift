@@ -112,6 +112,24 @@ private func ownSpecification() throws -> YNode {
     #expect(implementationSchemaJSON + "\n" == implementation, "run swift/embed-schemas.sh")
     let record = try String(contentsOf: repository.appendingPathComponent("schema/specarch-record-0.1.schema.json"), encoding: .utf8)
     #expect(recordSchemaJSON + "\n" == record, "run swift/embed-schemas.sh")
+    let idiom = try String(contentsOf: repository.appendingPathComponent("schema/specarch-idiom-0.1.schema.json"), encoding: .utf8)
+    #expect(idiomSchemaJSON + "\n" == idiom, "run swift/embed-schemas.sh")
+}
+
+/// The embedded idioms are the files in idioms/, every one of them.
+@Test func embeddedIdiomsAreCurrent() throws {
+    let folder = repository.appendingPathComponent("idioms")
+    var paths: [String] = []
+    for concern in try FileManager.default.contentsOfDirectory(atPath: folder.path) {
+        let dir = folder.appendingPathComponent(concern)
+        guard let names = try? FileManager.default.contentsOfDirectory(atPath: dir.path) else { continue }
+        for n in names where n.hasSuffix(".specarch-idiom.yaml") { paths.append("idioms/\(concern)/\(n)") }
+    }
+    #expect(paths.sorted() == shippedIdiomFiles.map(\.path).sorted(), "run swift/embed-schemas.sh")
+    for f in shippedIdiomFiles {
+        let text = try String(contentsOf: repository.appendingPathComponent(f.path), encoding: .utf8)
+        #expect(f.text + "\n" == text, "run swift/embed-schemas.sh")
+    }
 }
 
 /// The evaluator knows every keyword the schemas use.
@@ -119,4 +137,5 @@ private func ownSpecification() throws -> YNode {
     _ = try SchemaEvaluator(json: designSchemaJSON)
     _ = try SchemaEvaluator(json: implementationSchemaJSON)
     _ = try SchemaEvaluator(json: recordSchemaJSON)
+    _ = try SchemaEvaluator(json: idiomSchemaJSON)
 }

@@ -2,7 +2,7 @@ import Foundation
 
 /// The kind of a SpecArch file, read from its name.
 public enum Kind {
-    case none, design, implementation, record
+    case none, design, implementation, record, idiom
 }
 
 public let implementationSuffix = ".specarch-implementation.yaml"

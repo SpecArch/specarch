@@ -1,0 +1,499 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json",
+  "title": "SpecArch idiom 0.1",
+  "description": "An idiom: a named, versioned statement of how one recurring implementation concern is done, with a contract that holds on every stack, renderings per stack, and the tests it implies. SpecArch ships a set under idioms/; a project overrides one, or adds its own, in implementation/<stack>/idioms/. docs/idioms.md is the design.",
+  "type": "object",
+  "properties": {
+    "specarchIdiom": {
+      "description": "The meta-model version of the idiom format.",
+      "const": "0.1"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "description": "The idiom's name, kebab-case: the key an implementation file and an override use. An override carries the name of the idiom it overrides."
+    },
+    "version": {
+      "description": "The idiom's own version, semantic. It moves when a contract statement, a part or a test changes.",
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+    },
+    "concern": {
+      "description": "The concern the idiom settles, from a closed list.",
+      "type": "string",
+      "enum": [
+        "type-rendering",
+        "request-validation",
+        "error-response",
+        "list-operations",
+        "authorization",
+        "pii-logging",
+        "audit-fields",
+        "soft-delete",
+        "identifiers",
+        "transactions",
+        "retries",
+        "idempotency",
+        "configuration",
+        "secrets",
+        "background-jobs",
+        "migrations",
+        "encryption",
+        "health",
+        "rate-limit",
+        "other"
+      ]
+    },
+    "stacks": {
+      "description": "The stacks the idiom renders: a language such as go, swift or dart, a SQL dialect such as postgresql, sqlserver, oracle or mariadb, or any for one that is stack-neutral.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(any|[a-z][a-z0-9]*(-[a-z0-9]+)*)$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "description": {
+      "$ref": "#/$defs/markdown"
+    },
+    "reads": {
+      "description": "The design sections or keywords the idiom applies to. It applies only to a specification that uses one of them.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "why": {
+      "$ref": "#/$defs/markdown"
+    },
+    "sources": {
+      "description": "The standards and documents the idiom cites, in the shape of a specification's sources.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "cites": {
+      "$ref": "#/$defs/citations"
+    },
+    "contract": {
+      "description": "Statements that hold on every stack, keyed by id.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/statement"
+      }
+    },
+    "parts": {
+      "description": "The renderings, keyed by part name.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/part"
+      }
+    },
+    "tests": {
+      "description": "The cases the idiom implies for every element it applies to.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    },
+    "overrides": {
+      "$ref": "#/$defs/overrides"
+    }
+  },
+  "required": [
+    "specarchIdiom",
+    "name",
+    "version",
+    "description"
+  ],
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "markdown": {
+      "description": "Prose in Markdown.",
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "description": "One source an idiom cites.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "standard",
+            "regulation",
+            "document",
+            "system",
+            "code"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "edition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "author": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "kind",
+        "title"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "citation": {
+      "description": "One citation: which source, where in it, and what it says here.",
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+          "description": "The key of a source under the idiom's sources."
+        },
+        "clause": {
+          "type": "string",
+          "minLength": 1
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "source",
+        "says"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "citations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/citation"
+      },
+      "minItems": 1
+    },
+    "statement": {
+      "description": "One contract statement.",
+      "type": "object",
+      "properties": {
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "check": {
+          "description": "What checks it: schema (the validator, against the design and the implementation file), name (a derivation rule for names), document (the generated document or code must contain it), test (a derived test case), or guidance (no check; advice for whoever writes the code).",
+          "type": "string",
+          "enum": [
+            "schema",
+            "name",
+            "document",
+            "test",
+            "guidance"
+          ]
+        },
+        "why": {
+          "$ref": "#/$defs/markdown"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "statement",
+        "check"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "part": {
+      "description": "One part of the idiom, rendered per stack.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "why": {
+          "$ref": "#/$defs/markdown"
+        },
+        "stack": {
+          "description": "The rendering per stack; any for the stack-neutral one.",
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^(any|[a-z][a-z0-9]*(-[a-z0-9]+)*)$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/rendering"
+          },
+          "minProperties": 1
+        }
+      },
+      "required": [
+        "description",
+        "stack"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "rendering": {
+      "description": "How one stack renders a part.",
+      "type": "object",
+      "properties": {
+        "libraries": {
+          "description": "The libraries the rendering uses, as an implementation file's libraries: version and licence.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "licence": {
+                "type": "string",
+                "minLength": 1
+              },
+              "purpose": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "version",
+              "licence"
+            ],
+            "patternProperties": {
+              "^x-": {}
+            },
+            "additionalProperties": false
+          }
+        },
+        "settings": {
+          "description": "Settings of the rendering a project may change in an override.",
+          "type": "object"
+        },
+        "names": {
+          "description": "Derived names, by the role they play.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "rows": {
+          "description": "For a type rendering: ordered rows, the first that matches a field renders it.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/row"
+          },
+          "minItems": 1
+        },
+        "code": {
+          "$ref": "#/$defs/markdown"
+        },
+        "why": {
+          "$ref": "#/$defs/markdown"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "row": {
+      "description": "One row of a type rendering.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "description": "The field's JSON type, with null dropped from a type list. A $ref to an entity is an object.",
+          "type": "string",
+          "enum": [
+            "string",
+            "integer",
+            "number",
+            "boolean",
+            "array",
+            "object"
+          ]
+        },
+        "format": {
+          "description": "The field's format; a row without one matches any format.",
+          "type": "string",
+          "minLength": 1
+        },
+        "enum": {
+          "description": "true: the row matches only an enum field, a $ref into #/enums/ or an enum list.",
+          "const": true
+        },
+        "maxLengthAtMost": {
+          "description": "The row matches only a field whose maxLength is at most this.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "precisionAtMost": {
+          "description": "The row matches only a decimal whose precision is at most this.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "itemsType": {
+          "description": "For an array: the items' JSON type.",
+          "type": "string",
+          "enum": [
+            "string",
+            "integer",
+            "number",
+            "boolean",
+            "array",
+            "object"
+          ]
+        },
+        "itemsFormat": {
+          "description": "For an array: the items' format.",
+          "type": "string",
+          "minLength": 1
+        },
+        "render": {
+          "description": "What the field becomes. Words in braces are filled from the field by a generator: {maxLength}, {precision}, {scale}, {longestValue} (the length of an enum's longest value), {items} (the rendering of the items' row).",
+          "type": "string",
+          "minLength": 1
+        },
+        "why": {
+          "$ref": "#/$defs/markdown"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "type",
+        "render"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "case": {
+      "description": "One test case the idiom implies.",
+      "type": "object",
+      "properties": {
+        "case": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scenario": {
+          "type": "string",
+          "enum": [
+            "golden",
+            "red"
+          ]
+        },
+        "given": {
+          "type": "string",
+          "minLength": 1
+        },
+        "when": {
+          "type": "string",
+          "minLength": 1
+        },
+        "then": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "case",
+        "scenario"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "overrides": {
+      "description": "In a project's file: the shipped idiom it overrides, and what it replaces.",
+      "type": "object",
+      "properties": {
+        "idiom": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+          "description": "The shipped idiom this file overrides."
+        },
+        "version": {
+          "description": "The shipped version this file was copied from.",
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+        },
+        "parts": {
+          "description": "The parts this file replaces; the others come from the shipped idiom.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "whole": {
+          "description": "true: this file replaces every part.",
+          "const": true
+        },
+        "staysBehind": {
+          "description": "true: the project stays on this version on purpose, which why must say; idiom_version_behind is then silent.",
+          "const": true
+        }
+      },
+      "required": [
+        "idiom",
+        "version"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    }
+  }
+}

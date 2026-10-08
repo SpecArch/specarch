@@ -1,0 +1,8 @@
+command: idioms
+level: system
+scenario: red
+covers: [exit 2, usage error]
+given: "no folder"
+when: "idioms is run without arguments"
+then: "it prints the usage and exits 2"
+verifies: [SA-32]

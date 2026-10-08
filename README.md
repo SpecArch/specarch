@@ -118,6 +118,8 @@ a defect in the roadmap, not an accepted state.
 | `schema/specarch-design-0.1.schema.json` | the meta-model of a specification, JSON Schema 2020-12 |
 | `schema/specarch-implementation-0.1.schema.json` | the meta-model of implementation files |
 | `schema/specarch-record-0.1.schema.json` | the records beside a specification |
+| `schema/specarch-idiom-0.1.schema.json` | the meta-model of an idiom, shipped or a project's |
+| `idioms/` | the idioms SpecArch ships, one folder per concern, embedded into the program: `type-rendering`, what each field type becomes in Go and in PostgreSQL, SQL Server, Oracle and MariaDB |
 | `spec/` | SpecArch's own specification: every stage, the design of the `specarch` command, its Go and Swift implementation files, and in `spec/tests/` the conformance suite every implementation of `specarch` must pass |
 | `docs/techspec.md` | SpecArch's technical specification, generated from `spec/` |
 | `docs/requirements.md`, `testplan.md`, `traceability.md`, `deployment.md`, `commissioning.md`, `questions.md` | SpecArch's other documents, generated from `spec/` |
@@ -132,7 +134,7 @@ a defect in the roadmap, not an accepted state.
 | `docs/refinement.md` | from an old document to code: partial specifications, open questions, origin, approval and the gate on generation |
 | `docs/test-generation.md` | tests from the specification: the golden paths, which red paths are written and why, structured test data, the derive verb and the tests target, as designed |
 | `docs/dxlib-lessons.md` | what SpecArch takes from dxlib, the owner's Go library: one type rendered to many targets, the design keywords it proves are needed, a Go implementation on dxlib, and what is left behind |
-| `docs/idioms.md` | idioms: how each recurring implementation concern is done the same way everywhere, shipped with SpecArch and overridable per project, as designed |
+| `docs/idioms.md` | idioms: how each recurring implementation concern is done the same way everywhere, shipped with SpecArch and overridable per project |
 | `docs/authoring-layer-evaluation.md` | TypeSpec, CUE and Pkl as an optional authoring layer |
 | `docs/generators.md` | the rules every document and code target follows, and the plug-in protocol |
 | `docs/sync-gates.md` | the CI checks that keep a spec and its code equal |
@@ -151,7 +153,8 @@ documents were read and the specification is approved, `generate` from
 the approved specification to code, `extract` (designed, built later) from
 existing code to a specification, and `diff` compares two versions of a
 specification and checks the release between them, and `derive` writes a
-draft test for every derived case no test covers. It has two builds from
+draft test for every derived case no test covers, and `idioms` lists the
+idioms each implementation file uses. It has two builds from
 the same design.
 The Go build has every verb. With Go 1.26 or later:
 

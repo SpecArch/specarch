@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go.yaml.in/yaml/v3"
+
 	"github.com/SpecArch/specarch/internal/approval"
 	"github.com/SpecArch/specarch/internal/generate"
 	"github.com/SpecArch/specarch/internal/source"
@@ -93,7 +95,7 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		}
 		var impls []generate.Implementation
 		for _, i := range l.impls {
-			impls = append(impls, generate.Implementation{Node: i.Node, Rel: relSlash(folder, i.Path), Path: i.Path})
+			impls = append(impls, generate.Implementation{Node: i.Node, Rel: relSlash(folder, i.Path), Path: i.Path, Idioms: i.Idioms})
 		}
 		st := l.state()
 		st.RecordsRel = relSlash(folder, l.spec.RecordsDir)
@@ -158,7 +160,7 @@ func loadSpecs(paths []string, verb string, stdout, stderr io.Writer) ([]loaded,
 		l := loaded{spec: s, covered: covered}
 		for _, impl := range s.Implementations {
 			doc := source.Parse(impl.Data)
-			l.impls = append(l.impls, generate.Implementation{Node: doc.Root, Path: impl.Path})
+			l.impls = append(l.impls, generate.Implementation{Node: doc.Root, Path: impl.Path, Idioms: idiomUses(impl.Path, doc.Root, s)})
 		}
 		specs = append(specs, l)
 	}
@@ -319,4 +321,14 @@ func contains(list []string, s string) bool {
 		}
 	}
 	return false
+}
+
+// idiomUses resolves the idioms an implementation file uses, for the
+// documents.
+func idiomUses(path string, root *yaml.Node, s *spec.Spec) []generate.IdiomUse {
+	var out []generate.IdiomUse
+	for _, u := range validate.IdiomUses(path, root, s) {
+		out = append(out, generate.IdiomUse{Name: u.Name, Version: u.Version, As: u.As, From: u.From, Why: u.Why, Parts: u.Parts})
+	}
+	return out
 }

@@ -18,7 +18,7 @@ let designKeys: Set<String> = [
 /// mistake.
 let namedMaps: Set<String> = [
     "layout", "mappings", "targets", "tasks", "libraries",
-    "deployments", "decisions", "suites", "configuration", "bindings",
+    "deployments", "decisions", "suites", "configuration", "bindings", "idioms",
 ]
 
 /// Cleans a slash path the way Go's filepath.Clean does: no ".", no
@@ -135,6 +135,7 @@ extension Checker {
         checkCitations(root, [], d)
         checkDeployments(d)
         checkSuites(d)
+        checkIdioms(s)
     }
 
     /// Checks each deployment names an environment of the specification

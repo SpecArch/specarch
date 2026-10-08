@@ -517,6 +517,14 @@ storage: github.com/jackc/pgx/v5. Money columns are `numeric(10,2)`.
 | generate | `go generate ./...` |   |
 | test | `go test ./...` | yes |
 
+#### Idioms
+
+How this implementation does each recurring concern: the idioms SpecArch ships apply unless the file excludes or overrides one, and an override replaces only the parts it names (docs/idioms.md).
+
+| Idiom | Version | Applies as | Parts the project replaces |
+|---|---|---|---|
+| type-rendering | 1.0.0 | shipped |   |
+
 #### Deployments
 
 local: A developer's machine. Environment: development. Servers: http://localhost:8080. Settings: dailyRate 0.50, notificationChannelUrl http://localhost:8081/events.

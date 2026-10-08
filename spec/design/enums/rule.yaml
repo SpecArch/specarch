@@ -83,6 +83,12 @@ enums:
       - origin_reason
       - origin_decision
       - origin_missing
+      - idiom_unknown
+      - idiom_part_unknown
+      - idiom_override_reason
+      - idiom_stack
+      - idiom_version_behind
+      - idiom_contract
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: the file is not well-formed YAML
@@ -162,4 +168,10 @@ enums:
       origin_reason: an element whose origin is inferred has no why
       origin_decision: an element whose origin is decided names no decision, or a decision that does not exist or is not accepted, or is a decision itself; or decidedIn is set without origin decided
       origin_missing: the specification tracks origin and an element of a section carries none (a warning)
+      idiom_unknown: "an implementation file's `idioms` key, or an override's `overrides.idiom`, names no shipped idiom and none of the project's, or an override names no file in the idioms folder"
+      idiom_part_unknown: "an override names a part the idiom does not have, or defines a part it does not list under `overrides.parts`"
+      idiom_override_reason: "an idiom is excluded, or overridden, without `why`"
+      idiom_stack: "an override renders a stack that is not the implementation file's: its language, the dialect of one of its targets, or `any`"
+      idiom_version_behind: "an override was copied from an older version of the shipped idiom and does not say it stays behind on purpose (a warning)"
+      idiom_contract: "an override changes a shipped contract statement, or a field has no row in a type rendering for a stack of the implementation file"
     satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29]

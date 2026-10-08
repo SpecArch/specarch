@@ -1,11 +1,11 @@
 import Foundation
 
-private let evaluators: (design: SchemaEvaluator?, implementation: SchemaEvaluator?, record: SchemaEvaluator?, error: String?) = {
+private let evaluators: (design: SchemaEvaluator?, implementation: SchemaEvaluator?, record: SchemaEvaluator?, idiom: SchemaEvaluator?, error: String?) = {
     do {
         return (try SchemaEvaluator(json: designSchemaJSON), try SchemaEvaluator(json: implementationSchemaJSON),
-                try SchemaEvaluator(json: recordSchemaJSON), nil)
+                try SchemaEvaluator(json: recordSchemaJSON), try SchemaEvaluator(json: idiomSchemaJSON), nil)
     } catch {
-        return (nil, nil, nil, "\(error)")
+        return (nil, nil, nil, nil, "\(error)")
     }
 }()
 
@@ -51,6 +51,7 @@ extension Checker {
         switch kind {
         case .implementation: evaluator = evaluators.implementation!
         case .record: evaluator = evaluators.record!
+        case .idiom: evaluator = evaluators.idiom!
         default: evaluator = evaluators.design!
         }
         var seen = Set<String>()

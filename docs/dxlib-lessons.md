@@ -90,11 +90,16 @@ this one is not.
 
 Enums are not in the type model. A parameter carries an `Enum` list of
 values compared case-insensitively as strings; a column has no enum type, and
-a status is a set of Go string constants beside the table. Nullability is
-written twice: as a type (`nullable-string` maps to `*string`;
-`nullable-int32` maps to `int32`, not a pointer, which is the kind of slip a
-name-keyed table invites) and as a flag (`IsNullable` on a parameter,
-`IsNotNull` on a column). Check constraints do not exist in the model at all:
+a status is a set of Go string constants beside the table. "Nullable" is
+written twice, as a type name and as a flag (`IsNullable` on a parameter,
+`IsNotNull` on a column), and on a request parameter it means that the
+parameter may be left out, not that it carries a JSON null: the request
+layer records whether a value was given, so `nullable-int32` maps to a
+plain `int32` by design. `nullable-string` maps to `*string`, so the two
+names differ in their Go type, but both describe absence. SpecArch keeps
+the two ideas apart: `required: false` on a request field for absence, a
+type list with `null` for a null value; the type-rendering idiom says how
+each renders. Check constraints do not exist in the model at all:
 a rule such as "the due date is after the loan date" is code in a handler.
 Unique groups exist twice, as a column flag rendered into the DDL and as the
 table layer's `ValidationUniqueFieldNameGroups`, checked by a query before an
@@ -152,6 +157,16 @@ worth copying, the reason dxlib wrote next to it is kept too.
 | decimal P,S | `NUMERIC(P,S)` | `DECIMAL(P,S)` | `NUMBER(P,S)` | `DECIMAL(P,S)` |
 | text up to N, N at most 8000 | `VARCHAR(N)` | `VARCHAR(N)` | `VARCHAR2(N)` | `VARCHAR(N)` |
 | text beyond 8000 | `VARCHAR(N)` | `VARCHAR(MAX)` | `CLOB` | `TEXT` |
+
+That table is dxlib's. Two of its rows change in SpecArch's type-rendering
+idiom. Oracle text is `VARCHAR2(N CHAR)` only up to 1000 characters and
+`CLOB` beyond: Oracle's limit is 4000 bytes under `MAX_STRING_SIZE =
+STANDARD`, the default, and a length in characters is a limit rather than a
+capacity, so 1000 characters is what the column always holds (8191 under
+`EXTENDED`, which a project sets in an override). dxlib mixes `VARCHAR` and
+`VARCHAR2` on Oracle; the idiom always takes `VARCHAR2`. SQL Server text is
+`NVARCHAR`, since `VARCHAR` holds the column's code page unless its
+collation is a UTF-8 one.
 | boolean | `BOOLEAN` | `BIT` | `NUMBER(1)` | `BOOLEAN` |
 | date | `DATE` | `DATE` | `DATE` | `DATE` |
 | time of day | `TIME` | `TIME` | `DATE` | `TIME` |
@@ -185,7 +200,8 @@ The reasons that travel with the rows:
   travels as a JSON string because JavaScript numbers lose digits.
 - Text wider than 8000 is `VARCHAR(MAX)` on SQL Server because that is its
   `VARCHAR` ceiling, and `CLOB` or `TEXT` on the engines that have no wide
-  `VARCHAR`.
+  `VARCHAR`. On Oracle the ceiling is lower than 8000, as the paragraph
+  under the table says.
 - A public identifier that must not be guessable is generated as the
   hexadecimal microsecond time followed by a UUID, in the application
   (`GenerateUID`) or by the engine (`DefaultValueByDatabaseType` carries the
@@ -218,8 +234,8 @@ fact (`docs/conventions.md`, Types):
 | `money` | `type: string, format: decimal, precision: 23, scale: 4`, or the precision and scale the field needs |
 | `string255`, `string1024` | `type: string, maxLength: 255`; `maxLength: 1024` |
 | `non-empty-string` | `minLength: 1` |
-| `nullable-string` | `type: [string, "null"]` |
-| `email`, `date`, `time`, `iso8601` | `format: email`, `format: date`, `format: date-time`; no time-of-day format yet |
+| `nullable-string`, `nullable-int32` on a request parameter | `required: false`: the field may be left out; a type list with `null` only for a value that may itself be null |
+| `email`, `date`, `time`, `iso8601` | `format: email`, `format: date`, `format: time`, `format: date-time` |
 | `bool` | `type: boolean` |
 | `blob` | `type: string, format: byte` |
 | `json`, `array-string`, `array-int64` | `type: object` with `properties`; `type: array, items: { ... }` |
@@ -251,8 +267,8 @@ row matches a type, a format, a width class and, for decimals, the precision
 and scale.
 
 The table is the first shipped idiom, `type-rendering`, in the form
-`docs/idioms.md` designs: SpecArch carries the default rows for Go, Swift and
-the four SQL dialects, a project may override a row, and the override is
+`docs/idioms.md` designs: SpecArch carries the default rows for Go and the
+four SQL dialects, Swift and Dart once a project on each exists, a project may override a row, and the override is
 recorded and reported. The `sql` target's `dialect` grows from one value to
 four, and `specarch-gen-sql` renders through the table. The OpenAPI target
 needs no table, since the design is already JSON Schema. Go, Swift and Dart
@@ -261,37 +277,38 @@ right home: in dxlib the two renderings that are read, validation and the
 OpenAPI document, live where the reader is, and the two that were only
 declared, `JSONType` and `GoType`, were never used.
 
-Copy as is: the SQL table above, the four engine divergences and their
+Copy as is: the SQL table above, with its Oracle and SQL Server text rows
+as corrected under it, the four engine divergences and their
 reasons, the default sentinels, the identity forms, the index-safe width
 rule, the public-id expressions, the fixed-width instant text on MariaDB.
 
 Change: precision and scale stay per field, not fixed at 23,4; a 32-bit
 float is not in SpecArch and is not added, since nothing in the owner's
-designs needs an approximate narrow number; nullability is one keyword, not
-a type and a flag; an enum column is rendered as text of the longest value's
+designs needs an approximate narrow number; absence and null are two
+keywords, `required` and a type list with `null`, each meaning one thing,
+rather than one word on a type and a flag; an enum column is rendered as text of the longest value's
 width plus a check constraint on all four engines, because the native enum
 types of PostgreSQL and MariaDB make renaming or removing a value a type
 change; a 64-bit integer is carried as a JSON string or bounded, which
 SpecArch's `unsafe_integer` rule already enforces and dxlib does not.
 
-Owner's decisions, to confirm or veto:
+The owner's decisions on the open points:
 
-- Lists on the three engines without an array type. dxlib stores them as JSON
-  text and says so in the description. Rule 4 of `docs/generators.md` says
-  a target that cannot express a concept fails generation. Recommendation:
-  the row renders JSON text and says so in its `why`, as dxlib does, because
-  it is a documented representation, not a silent loss, and the alternative
-  is a child table that the design did not ask for. The owner may prefer the
-  strict reading.
-- A UUID column. dxlib has no UUID type and stores its public id as text.
-  Recommendation: `UUID` on PostgreSQL, `UNIQUEIDENTIFIER` on SQL Server,
-  `VARCHAR2(36)` on Oracle and `CHAR(36)` on MariaDB, with the public-id
-  text form from dxlib as the alternative row a project may choose.
-- A duration column. dxlib has none. Recommendation: `INTERVAL` on
-  PostgreSQL and `INTERVAL DAY TO SECOND` on Oracle, ISO 8601 text of width
-  32 on SQL Server and MariaDB.
-- `format: time`, a time of day, is added to the SpecArch type list, since
-  dxlib and both services use it.
+- Lists on the three engines without an array type render as JSON text, and
+  the row says so in its `why`, as dxlib does: it is a documented
+  representation, not a silent loss, and the alternative is a child table
+  the design did not ask for.
+- A UUID column is `UUID` on PostgreSQL, `UNIQUEIDENTIFIER` on SQL Server,
+  `VARCHAR2(36 CHAR)` on Oracle and `CHAR(36)` on MariaDB; the public-id
+  text form from dxlib is a row a project may choose in an override.
+- A duration column is `INTERVAL` on PostgreSQL and `INTERVAL DAY TO
+  SECOND` on Oracle, and ISO 8601 text of width 32 on SQL Server and
+  MariaDB.
+- `format: time`, a time of day, is in the SpecArch type list.
+- A money amount is a decimal of the precision and scale the field needs,
+  23 and 4 for a currency with many zeros; in Go it is `decimal.Decimal`
+  from `github.com/shopspring/decimal` (v1.4.0, MIT), the library dxlib
+  uses, and never a float or a plain integer.
 
 ## 1. Map: dxlib concept to SpecArch element
 
@@ -610,8 +627,8 @@ where it adds a rule, and the conformance cases; the generators are Go only.
    project, when the owner decides that service's specification goes ahead.
 7. Reported to dxlib's own queue, not done here: enforce the JSON Schema
    bounds in the parameter validator and accept them in the OpenAPI reader;
-   route by method and URI; add `money` to the parameter registry and make
-   `nullable-int32` a pointer; answer with a problem document.
+   route by method and URI; add `money` to the parameter registry; answer
+   with a problem document.
 8. `views` as a read model, after the first real specification needs one.
 
 ## Left out of this document

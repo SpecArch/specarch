@@ -1,0 +1,297 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: type-rendering
+version: 1.0.0
+concern: type-rendering
+stacks: [go, postgresql, sqlserver, oracle, mariadb, any]
+reads: [entities]
+description: |
+  What each field type of the design becomes on a stack: a Go type, and a
+  column type on PostgreSQL, SQL Server, Oracle and MariaDB. The design
+  says what a value is (type, format, width, precision and scale, null);
+  this idiom says how each stack holds it. A row matches a field by its
+  JSON type, its format, whether it is an enum, and its width or precision;
+  the first row that matches renders it.
+why: |
+  One design type, many targets. The rows are kept where the readers are,
+  a generator and the agent that writes the code, so a field is rendered
+  the same way in every service on the stack. The SQL rows are the ones a
+  library proven in production carries, with the reasons it wrote next to
+  them, and changed where SpecArch's types say more.
+
+sources:
+  oracle-data-types:
+    kind: standard
+    title: Oracle Database SQL Language Reference, Data Types
+    edition: "19c"
+    author: Oracle
+    url: https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Data-Types.html
+  oracle-max-string-size:
+    kind: standard
+    title: Oracle Database Reference, MAX_STRING_SIZE
+    edition: "19c"
+    author: Oracle
+    url: https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/MAX_STRING_SIZE.html
+  oracle-lob-restrictions:
+    kind: standard
+    title: Oracle Database SecureFiles and Large Objects Developer's Guide, LOB Restrictions
+    edition: "23ai"
+    author: Oracle
+    url: https://docs.oracle.com/en/database/oracle/oracle-database/23/adlob/LOB-restrictions.html
+  sqlserver-nvarchar:
+    kind: standard
+    title: nchar and nvarchar (Transact-SQL)
+    author: Microsoft
+    url: https://learn.microsoft.com/en-us/sql/t-sql/data-types/nchar-and-nvarchar-transact-sql
+  ieee-754:
+    kind: standard
+    title: IEEE Standard for Floating-Point Arithmetic, IEEE 754
+    edition: "2019"
+    author: IEEE
+
+contract:
+  every-field-rendered:
+    statement: Every field of every entity has a row for every stack of the implementation file that this idiom renders.
+    check: schema
+  exact-decimal:
+    statement: A decimal renders as an exact decimal on every stack, and never as a binary floating-point number; a money amount is a decimal.
+    check: document
+    why: A binary float cannot hold most decimal fractions exactly, so a sum of amounts drifts by fractions of a cent.
+    cites:
+      - { source: ieee-754, says: "Binary formats represent a value as a binary significand times a power of two, so 0.1 has no exact binary representation." }
+  nullable-column:
+    statement: An entity field that is nullable, or not in the entity's required list, renders as a nullable column; every other field renders as NOT NULL.
+    check: document
+  enum-as-text:
+    statement: An enum renders as text as wide as its longest value, with a check constraint on its values, never as a native enum type.
+    check: document
+    why: The native enum types of PostgreSQL and MariaDB make renaming or removing a value a change of the column's type; text with a check constraint changes with one constraint.
+  oracle-varchar2:
+    statement: On Oracle, text renders as VARCHAR2 with character length semantics, never as VARCHAR.
+    check: document
+  key-width:
+    statement: A key or a unique text column is at most 255 characters wide.
+    check: guidance
+    why: SQL Server indexes at most 900 bytes and MariaDB with utf8mb4 at most 3072; 255 characters fit under both.
+  absent-and-null:
+    statement: A field that may be left out of a request and a field whose value may be null are two things, and each stack renders them apart.
+    check: guidance
+
+parts:
+  types:
+    description: The rows, per stack.
+    stack:
+      go:
+        libraries:
+          github.com/shopspring/decimal:
+            version: v1.4.0
+            licence: MIT
+            purpose: Exact decimal arithmetic for decimal fields, money included.
+        rows:
+          - { type: string, enum: true, render: "a named string type with one constant per value" }
+          - type: string
+            format: decimal
+            render: decimal.Decimal
+            why: The standard library has no exact decimal type, and neither float64 nor int64 holds an amount of a currency with many zeros and an exact fraction; shopspring/decimal does, with arbitrary precision.
+          - { type: string, format: int64, render: int64 }
+          - { type: string, format: uint64, render: uint64 }
+          - { type: string, format: date-time, render: time.Time }
+          - { type: string, format: date, render: time.Time, why: "The standard library has no calendar date type; the date is a time.Time at midnight UTC, and only its year, month and day are read." }
+          - { type: string, format: time, render: string, why: "The standard library has no time-of-day type; the value stays the RFC 3339 partial time, HH:MM:SS." }
+          - { type: string, format: duration, render: time.Duration }
+          - { type: string, format: byte, render: "[]byte" }
+          - { type: string, format: binary, render: "[]byte" }
+          - { type: string, render: string }
+          - { type: integer, format: int32, render: int32 }
+          - { type: integer, format: int64, render: int64 }
+          - { type: integer, format: uint64, render: uint64 }
+          - { type: number, render: float64 }
+          - { type: boolean, render: bool }
+          - { type: array, render: "[]{items}" }
+          - { type: object, render: "the entity's struct, or map[string]any for an object without properties" }
+      postgresql:
+        rows:
+          - { type: string, enum: true, render: "VARCHAR({longestValue}) with a CHECK constraint on the values" }
+          - { type: string, format: decimal, precisionAtMost: 1000, render: "NUMERIC({precision},{scale})" }
+          - { type: string, format: int64, render: BIGINT }
+          - { type: string, format: uint64, render: "NUMERIC(20,0)", why: "BIGINT is signed, so an unsigned 64-bit value above 2^63 - 1 needs twenty digits." }
+          - { type: string, format: date-time, render: TIMESTAMP WITH TIME ZONE }
+          - { type: string, format: date, render: DATE }
+          - { type: string, format: time, render: TIME }
+          - { type: string, format: duration, render: INTERVAL }
+          - { type: string, format: uuid, render: UUID }
+          - { type: string, format: byte, render: BYTEA }
+          - { type: string, format: binary, render: BYTEA }
+          - { type: string, maxLengthAtMost: 10485760, render: "VARCHAR({maxLength})" }
+          - { type: string, render: TEXT }
+          - { type: integer, format: int32, render: INT }
+          - { type: integer, format: int64, render: BIGINT }
+          - { type: integer, format: uint64, render: "NUMERIC(20,0)" }
+          - { type: number, render: DOUBLE PRECISION }
+          - { type: boolean, render: BOOLEAN }
+          - { type: array, render: "{items}[]", why: "PostgreSQL has array columns, so a list is one." }
+          - { type: object, render: JSONB }
+      sqlserver:
+        rows:
+          - { type: string, enum: true, render: "NVARCHAR({longestValue}) with a CHECK constraint on the values" }
+          - type: string
+            format: decimal
+            precisionAtMost: 38
+            render: "DECIMAL({precision},{scale})"
+            why: 38 digits is SQL Server's ceiling; a wider decimal has no row and is refused.
+          - { type: string, format: int64, render: BIGINT }
+          - { type: string, format: uint64, render: "DECIMAL(20,0)" }
+          - { type: string, format: date-time, render: DATETIMEOFFSET }
+          - { type: string, format: date, render: DATE }
+          - { type: string, format: time, render: TIME }
+          - { type: string, format: duration, render: "VARCHAR(32)", why: "SQL Server has no interval type; the value is ISO 8601 duration text." }
+          - { type: string, format: uuid, render: UNIQUEIDENTIFIER }
+          - { type: string, format: byte, render: "VARBINARY(MAX)" }
+          - { type: string, format: binary, render: "VARBINARY(MAX)" }
+          - type: string
+            maxLengthAtMost: 4000
+            render: "NVARCHAR({maxLength})"
+            why: VARCHAR holds the code page of the column's collation unless the collation is a UTF-8 one, so it can lose characters; NVARCHAR holds Unicode on every collation, up to 4000 characters.
+            cites:
+              - { source: sqlserver-nvarchar, says: "nvarchar [ ( n | max ) ]: n defines the string size in byte-pairs, and can be a value from 1 through 4,000. max indicates that the maximum storage size is 2^31-1 bytes." }
+          - { type: string, render: "NVARCHAR(MAX)" }
+          - { type: integer, format: int32, render: INT }
+          - { type: integer, format: int64, render: BIGINT }
+          - { type: integer, format: uint64, render: "DECIMAL(20,0)" }
+          - { type: number, render: FLOAT }
+          - { type: boolean, render: BIT }
+          - { type: array, render: "NVARCHAR(MAX) holding the list as JSON", why: "SQL Server has no array type; the list is JSON text, a documented representation rather than a silent loss." }
+          - { type: object, render: "NVARCHAR(MAX) holding JSON" }
+      oracle:
+        settings:
+          maxStringSize: standard
+        rows:
+          - { type: string, enum: true, render: "VARCHAR2({longestValue} CHAR) with a CHECK constraint on the values" }
+          - type: string
+            format: decimal
+            precisionAtMost: 38
+            render: "NUMBER({precision},{scale})"
+            why: 38 digits is Oracle's ceiling; a wider decimal has no row and is refused.
+          - { type: string, format: int64, render: "NUMBER(19)" }
+          - { type: string, format: uint64, render: "NUMBER(20)" }
+          - { type: string, format: date-time, render: TIMESTAMP WITH TIME ZONE }
+          - { type: string, format: date, render: DATE, why: "Oracle's DATE also holds a time of day; a date field keeps it at midnight." }
+          - { type: string, format: time, render: "INTERVAL DAY(0) TO SECOND(0)", why: "Oracle has no time-of-day type; an interval from midnight compares and sorts as a time does, which a DATE on a fixed day only does by convention." }
+          - { type: string, format: duration, render: INTERVAL DAY TO SECOND }
+          - { type: string, format: uuid, render: "VARCHAR2(36 CHAR)" }
+          - { type: string, format: byte, render: BLOB }
+          - { type: string, format: binary, render: BLOB }
+          - type: string
+            maxLengthAtMost: 1000
+            render: "VARCHAR2({maxLength} CHAR)"
+            why: |
+              VARCHAR2 is Oracle's text type; VARCHAR is reserved and must not
+              be used. Its limit is in bytes: 4000 under MAX_STRING_SIZE =
+              STANDARD, the default, and 32767 under EXTENDED. A length in
+              characters is a limit, not a capacity, since a character may take
+              four bytes, so 1000 characters is the most a column always holds
+              under STANDARD (8191 under EXTENDED, which a project sets in an
+              override of this part).
+            cites:
+              - { source: oracle-data-types, clause: VARCHAR2 Data Type, says: "Maximum size is 32767 bytes or characters if MAX_STRING_SIZE = EXTENDED; 4000 bytes or characters if MAX_STRING_SIZE = STANDARD. The value of size in characters is a length constraint, not guaranteed capacity: to always store size characters, use a size of at most 8191 if EXTENDED, or 1000 if STANDARD." }
+              - { source: oracle-max-string-size, says: "The default value is STANDARD, under which the limits before Oracle Database 12c apply: 4000 bytes for VARCHAR2." }
+          - type: string
+            render: CLOB
+            why: |
+              Text wider than VARCHAR2 can always hold. It costs: a CLOB cannot
+              be part of an ordinary index key, cannot appear in ORDER BY,
+              GROUP BY, DISTINCT or a join, and cannot be compared with = or
+              IN in SQL, so such a field is never a key, a sort field or a
+              filter by equality.
+            cites:
+              - { source: oracle-lob-restrictions, says: "LOB columns cannot be specified in an ORDER BY clause, a GROUP BY clause, an aggregate function, SELECT DISTINCT, a join, or as part of an index key." }
+          - { type: integer, format: int32, render: "NUMBER(10)" }
+          - { type: integer, format: int64, render: "NUMBER(19)" }
+          - { type: integer, format: uint64, render: "NUMBER(20)" }
+          - { type: number, render: BINARY_DOUBLE }
+          - { type: boolean, render: "NUMBER(1) with a CHECK constraint on 0 and 1" }
+          - { type: array, render: "CLOB holding the list as JSON, with an IS JSON check", why: "Oracle has no array column type; the list is JSON text, a documented representation rather than a silent loss." }
+          - { type: object, render: "CLOB holding JSON, with an IS JSON check" }
+      mariadb:
+        rows:
+          - { type: string, enum: true, render: "VARCHAR({longestValue}) with a CHECK constraint on the values" }
+          - type: string
+            format: decimal
+            precisionAtMost: 65
+            render: "DECIMAL({precision},{scale})"
+            why: 65 digits is MariaDB's ceiling; a wider decimal has no row and is refused.
+          - { type: string, format: int64, render: BIGINT }
+          - { type: string, format: uint64, render: BIGINT UNSIGNED }
+          - type: string
+            format: date-time
+            render: "VARCHAR(35)"
+            why: MariaDB has no column type that keeps an offset, as DATETIME drops it and TIMESTAMP reads through the session's time zone. Fixed-width UTC text with nine fractional digits, 2006-01-02T15:04:05.000000000Z, is the one form whose byte order is time order, which ORDER BY, BETWEEN, MIN and MAX depend on.
+          - { type: string, format: date, render: DATE }
+          - { type: string, format: time, render: TIME }
+          - { type: string, format: duration, render: "VARCHAR(32)", why: "MariaDB has no interval type; the value is ISO 8601 duration text." }
+          - { type: string, format: uuid, render: "CHAR(36)" }
+          - { type: string, format: byte, render: LONGBLOB }
+          - { type: string, format: binary, render: LONGBLOB }
+          - { type: string, maxLengthAtMost: 8000, render: "VARCHAR({maxLength})" }
+          - { type: string, render: LONGTEXT, why: "A row of MariaDB holds at most 65535 bytes across its VARCHAR columns, so wider text goes out of the row." }
+          - { type: integer, format: int32, render: INT }
+          - { type: integer, format: int64, render: BIGINT }
+          - { type: integer, format: uint64, render: BIGINT UNSIGNED }
+          - { type: number, render: DOUBLE }
+          - { type: boolean, render: BOOLEAN }
+          - { type: array, render: "JSON holding the list", why: "MariaDB has no array column type; the list is JSON text, a documented representation rather than a silent loss." }
+          - { type: object, render: JSON }
+
+  money:
+    description: How a money amount is declared, so that every stack holds it exactly.
+    stack:
+      any:
+        code: |
+          A money amount is a decimal: type string, format decimal, with the
+          precision and scale the field needs. For a currency with many
+          zeros, precision 23 and scale 4 holds 19 integer digits and 4
+          decimals, which fits the 38-digit ceiling of SQL Server and Oracle
+          and the 65 of MariaDB. The currency is a field of its own, or fixed
+          by the design, never part of the type.
+        why: Large amounts with an exact fraction overflow a 64-bit integer of minor units once the fraction is kept, and a double loses digits; a decimal of declared precision holds both on every stack.
+
+  absence-and-null:
+    description: A field left out of a request against a field whose value is null.
+    why: |
+      They are two ideas. required false on a request field says the caller
+      may leave the field out; a type list with null says the value may be
+      null. A REST parameter that may be absent need not be a pointer in Go,
+      because the request layer records whether it was given. A library
+      whose type names say "nullable" for a parameter that may be left out
+      is describing absence, and maps to required false, not to a type list
+      with null.
+    stack:
+      any:
+        code: |
+          JSON: an absent field has no key; a null field has the key with the
+          value null. JavaScript: undefined against null; never treat one as
+          the other. SQL: a nullable column holds null; absence has no column
+          of its own, so an entity field that is not required is a nullable
+          column, as one that is nullable is.
+      go:
+        code: |
+          Absent only (required false, not nullable): the plain type, with a
+          presence flag or an accessor the request layer sets, such as
+          Has(name). Null only (required, type list with null): a pointer, or
+          a sql.Null type at the storage layer. Both: a pointer and the
+          presence flag. Never a pointer to say only that a field may be left
+          out.
+
+  wire:
+    description: How a value travels in JSON and is read in JavaScript.
+    stack:
+      any:
+        code: |
+          The design already says how each value travels: a decimal and a
+          64-bit integer above 2^53 as a JSON string, everything else as its
+          JSON type. In JavaScript a decimal string is never turned into a
+          Number, since a Number is a binary double and loses digits; it is
+          kept as text, or read into an exact decimal type. A 64-bit integer
+          carried as a string is read as a BigInt.
+        cites:
+          - { source: ieee-754, says: "A binary64 value has a 53-bit significand, so integers above 2^53 and most decimal fractions are not exact." }

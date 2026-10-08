@@ -1,0 +1,8 @@
+command: idioms diff
+level: system
+scenario: red
+covers: [exit 2]
+given: "a specification, and an idiom name SpecArch does not ship"
+when: "idioms diff paginated-lists is run"
+then: "it says the idiom is not shipped and exits 2"
+verifies: [SA-32]

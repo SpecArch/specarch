@@ -14,9 +14,18 @@ const CompanionName = "specarch.md"
 // Implementation is one implementation file of the specification, parsed.
 // Rel is its path as seen from the output folder; Path as given.
 type Implementation struct {
-	Node *yaml.Node
-	Rel  string
-	Path string
+	Node   *yaml.Node
+	Rel    string
+	Path   string
+	Idioms []IdiomUse // the idioms the file uses, as the validator resolves them
+}
+
+// IdiomUse is one idiom as an implementation file uses it: shipped,
+// overridden (with the parts the project replaces and the version it
+// copied), the project's own, or excluded, with the reason.
+type IdiomUse struct {
+	Name, Version, As, From, Why string
+	Parts                        []string
 }
 
 // Techspec writes the technical specification of one specification: its

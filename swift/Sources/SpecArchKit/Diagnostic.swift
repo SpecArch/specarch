@@ -81,6 +81,12 @@ public enum Rule: String, CaseIterable, Sendable {
     case originReason = "origin_reason"
     case originDecision = "origin_decision"
     case originMissing = "origin_missing"
+    case idiomUnknown = "idiom_unknown"
+    case idiomPartUnknown = "idiom_part_unknown"
+    case idiomOverrideReason = "idiom_override_reason"
+    case idiomStack = "idiom_stack"
+    case idiomVersionBehind = "idiom_version_behind"
+    case idiomContract = "idiom_contract"
 }
 
 /// Whether a diagnostic makes the file invalid.

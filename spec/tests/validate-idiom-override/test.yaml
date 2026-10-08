@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "an implementation file in Go with an Oracle sql target, whose override of type-rendering replaces the Oracle rows of its types part for MAX_STRING_SIZE = EXTENDED, with the reason, and an entity with a UUID and a 5000-character text field"
+when: "validate is run"
+then: "it reports nothing and exits 0: the override's rows cover every field on Oracle, and the shipped Go rows cover them on Go"
+verifies: [SA-32]

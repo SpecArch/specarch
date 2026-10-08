@@ -127,7 +127,7 @@ func deployment(d *doc, root *yaml.Node, impls []Implementation) {
 		monitorsTable(d, mons)
 	}
 	for _, i := range impls {
-		implementation(d, i.Node)
+		implementation(d, i.Node, i.Idioms)
 	}
 }
 
@@ -175,7 +175,7 @@ func stepsTable(d *doc, steps *yaml.Node) {
 }
 
 // implementation is one implementation file's part of chapter 7.
-func implementation(d *doc, impl *yaml.Node) {
+func implementation(d *doc, impl *yaml.Node, idioms []IdiomUse) {
 	info := get(impl, "info")
 	d.heading(3, "Implementation: "+str(info, "title"))
 	d.para(fmt.Sprintf("From the implementation file version %s.", str(info, "version")))
@@ -290,6 +290,28 @@ func implementation(d *doc, impl *yaml.Node) {
 		}
 		d.blank()
 		d.explainRows(pairRows(testing, "suites"))
+	}
+	if len(idioms) > 0 {
+		d.heading(4, "Idioms")
+		d.para("How this implementation does each recurring concern: the idioms SpecArch ships apply unless the file excludes or overrides one, and an override replaces only the parts it names (docs/idioms.md).")
+		d.line("| Idiom | Version | Applies as | Parts the project replaces |")
+		d.line("|---|---|---|---|")
+		for _, u := range idioms {
+			as := u.As
+			switch u.As {
+			case "overridden":
+				as = "overridden, copied from " + u.From
+			case "project":
+				as = "the project's own"
+			}
+			d.line("| %s | %s | %s | %s |", u.Name, u.Version, cell(as), cell(strings.Join(u.Parts, ", ")))
+		}
+		d.blank()
+		for _, u := range idioms {
+			if u.Why != "" {
+				d.para(fmt.Sprintf("**Insight on %s:** %s", u.Name, oneParagraph(u.Why)))
+			}
+		}
 	}
 	if deps := pairs(impl, "deployments"); len(deps) > 0 {
 		d.heading(4, "Deployments")

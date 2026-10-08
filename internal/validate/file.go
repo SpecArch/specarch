@@ -19,6 +19,7 @@ const (
 	KindDesign
 	KindImplementation
 	KindRecord
+	KindIdiom
 )
 
 const (

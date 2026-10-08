@@ -130,6 +130,14 @@ Stack: language Go 1.26.
 |---|---|---|
 | techspec | ../docs |   |
 
+#### Idioms
+
+How this implementation does each recurring concern: the idioms SpecArch ships apply unless the file excludes or overrides one, and an override replaces only the parts it names (docs/idioms.md).
+
+| Idiom | Version | Applies as | Parts the project replaces |
+|---|---|---|---|
+| type-rendering | 1.0.0 | shipped |   |
+
 ## 8. Cross-cutting concepts
 
 ### Permissions

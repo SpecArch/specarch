@@ -1,0 +1,7 @@
+command: idioms diff
+level: system
+scenario: golden
+given: "the same specification, whose override replaces the Oracle rows of type-rendering's types part"
+when: "idioms diff type-rendering is run"
+then: "it prints the override's file, the version it was copied from and the shipped version, then the shipped Oracle rendering and the override's, and exits 0"
+verifies: [SA-32]

@@ -648,6 +648,10 @@ func Find(dir string) (roots []string, implementations []string, err error) {
 	return roots, implementations, err
 }
 
+// PlainIOError is the reason a file could not be read, in the words the C
+// library uses, so both builds print the same.
+func PlainIOError(err error) string { return plainIOError(err) }
+
 func plainIOError(err error) string {
 	msg := err.Error()
 	if i := strings.LastIndex(msg, ": "); i >= 0 {

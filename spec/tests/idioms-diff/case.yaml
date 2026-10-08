@@ -1,0 +1,62 @@
+arguments: [idioms, diff, type-rendering, .]
+exitStatus: 0
+standardOutput: |+
+  implementation/go/idioms/type-rendering.specarch-idiom.yaml overrides type-rendering 1.0.0; SpecArch ships 1.0.0.
+
+  part types, stack oracle, shipped:
+    settings:
+      maxStringSize: standard
+    rows:
+      - {type: string, enum: true, render: "VARCHAR2({longestValue} CHAR) with a CHECK constraint on the values"}
+      - type: string
+        format: decimal
+        precisionAtMost: 38
+        render: "NUMBER({precision},{scale})"
+        why: 38 digits is Oracle's ceiling; a wider decimal has no row and is refused.
+      - {type: string, format: int64, render: "NUMBER(19)"}
+      - {type: string, format: uint64, render: "NUMBER(20)"}
+      - {type: string, format: date-time, render: TIMESTAMP WITH TIME ZONE}
+      - {type: string, format: date, render: DATE, why: "Oracle's DATE also holds a time of day; a date field keeps it at midnight."}
+      - {type: string, format: time, render: "INTERVAL DAY(0) TO SECOND(0)", why: "Oracle has no time-of-day type; an interval from midnight compares and sorts as a time does, which a DATE on a fixed day only does by convention."}
+      - {type: string, format: duration, render: INTERVAL DAY TO SECOND}
+      - {type: string, format: uuid, render: "VARCHAR2(36 CHAR)"}
+      - {type: string, format: byte, render: BLOB}
+      - {type: string, format: binary, render: BLOB}
+      - type: string
+        maxLengthAtMost: 1000
+        render: "VARCHAR2({maxLength} CHAR)"
+        why: |
+          VARCHAR2 is Oracle's text type; VARCHAR is reserved and must not
+          be used. Its limit is in bytes: 4000 under MAX_STRING_SIZE =
+          STANDARD, the default, and 32767 under EXTENDED. A length in
+          characters is a limit, not a capacity, since a character may take
+          four bytes, so 1000 characters is the most a column always holds
+          under STANDARD (8191 under EXTENDED, which a project sets in an
+          override of this part).
+        cites:
+          - {source: oracle-data-types, clause: VARCHAR2 Data Type, says: "Maximum size is 32767 bytes or characters if MAX_STRING_SIZE = EXTENDED; 4000 bytes or characters if MAX_STRING_SIZE = STANDARD. The value of size in characters is a length constraint, not guaranteed capacity: to always store size characters, use a size of at most 8191 if EXTENDED, or 1000 if STANDARD."}
+          - {source: oracle-max-string-size, says: "The default value is STANDARD, under which the limits before Oracle Database 12c apply: 4000 bytes for VARCHAR2."}
+      - type: string
+        render: CLOB
+        why: |
+          Text wider than VARCHAR2 can always hold. It costs: a CLOB cannot
+          be part of an ordinary index key, cannot appear in ORDER BY,
+          GROUP BY, DISTINCT or a join, and cannot be compared with = or
+          IN in SQL, so such a field is never a key, a sort field or a
+          filter by equality.
+        cites:
+          - {source: oracle-lob-restrictions, says: "LOB columns cannot be specified in an ORDER BY clause, a GROUP BY clause, an aggregate function, SELECT DISTINCT, a join, or as part of an index key."}
+      - {type: integer, format: int32, render: "NUMBER(10)"}
+      - {type: integer, format: int64, render: "NUMBER(19)"}
+      - {type: integer, format: uint64, render: "NUMBER(20)"}
+      - {type: number, render: BINARY_DOUBLE}
+      - {type: boolean, render: "NUMBER(1) with a CHECK constraint on 0 and 1"}
+      - {type: array, render: "CLOB holding the list as JSON, with an IS JSON check", why: "Oracle has no array column type; the list is JSON text, a documented representation rather than a silent loss."}
+      - {type: object, render: "CLOB holding JSON, with an IS JSON check"}
+
+  part types, stack oracle, override:
+    settings: {maxStringSize: extended}
+    rows:
+      - {type: string, format: uuid, render: "VARCHAR2(36 CHAR)"}
+      - {type: string, maxLengthAtMost: 8191, render: "VARCHAR2({maxLength} CHAR)"}
+      - {type: string, render: CLOB}

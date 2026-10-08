@@ -116,15 +116,16 @@ The keys:
 | `stacks` | the stacks the idiom renders; `any` for one that is stack-neutral |
 | `reads` | the design keywords it applies to; an idiom applies only to a specification that uses them, so an idiom for `listOf` is silent in a specification without one |
 | `contract` | statements keyed by id, each with `statement`, and `check`: `schema` (a shape the implementation file or an override must carry), `name` (a derivation rule for names, as the conventions derive table names), `document` (something the generated document or code must contain, checked by the generator's `--check`), `test` (a derived test case), or `guidance` (no check) |
-| `parts` | the renderings, keyed by part name, each with `description` and `stack`, under which each stack has `libraries` (name to version and licence, as the implementation file's), `settings`, `names`, `code` and `why` |
+| `parts` | the renderings, keyed by part name, each with `description` and `stack`, under which each stack has `libraries` (name to version and licence, as the implementation file's), `settings`, `names`, `rows` (for a type rendering, below), `code`, `why` and `cites` |
 | `tests` | the cases derived for every element the idiom applies to, in the shape of the derived cases of `docs/conventions.md` |
 | `why`, `cites` | as everywhere else |
+| `sources` | the sources the idiom's citations name, in the shape of a specification's `sources` |
 
 In a project's file, one more key:
 
 | Key | Holds |
 |---|---|
-| `overrides` | `{ idiom, version, parts: [names] }` or `{ idiom, version, whole: true }`, and `why`; `version` is the shipped version the file was copied from |
+| `overrides` | `{ idiom, version, parts: [names] }` or `{ idiom, version, whole: true }`, with `staysBehind: true` when the project keeps an older version on purpose, and `why` at the top of the file; `version` is the shipped version the file was copied from |
 
 A project's own idiom, for a concern SpecArch ships nothing for, is the same
 file without `overrides`, under a name no shipped idiom has.
@@ -167,6 +168,34 @@ shipped, overridden or the project's own, and which parts an override
 replaces; and the techspec's implementation chapter carries the same as an
 Idioms table, with each override's `why` as an Insight.
 
+## Stacks and type rows
+
+An implementation file's stacks are its language, from its file name
+(`<name>.go.specarch-implementation.yaml` is `go`), and the `dialect` of each
+of its targets: `postgresql`, `sqlserver`, `oracle` or `mariadb`; a target
+named `sql` without a dialect is `postgresql`. An idiom applies to the file
+when it renders one of those stacks and the specification uses one of the
+keywords under its `reads`. An override may render only those stacks and
+`any` (`idiom_stack`).
+
+A part that renders types carries `rows` per stack. A row matches a field on
+its JSON type (with `null` dropped from a type list; a `$ref` to an enum is
+an enum string, to an entity an object), its `format`, `enum: true`,
+`maxLengthAtMost`, `precisionAtMost`, and for an array `itemsType` and
+`itemsFormat`. The rows are tried in order and the first that matches
+renders the field. A row without a `format` matches only a format that no
+row of the rendering names, so a decimal or a UUID never falls through to
+the row for plain text. Words in braces in `render`, such as
+`VARCHAR({maxLength})`, are filled from the field by a generator; they are a
+function of the field, never left in output, and so not a placeholder. The
+validator checks that every entity field has a row for every stack of the
+file the idiom renders (`idiom_contract`), and reports a missing row at the
+stack's key in the implementation file: `stack` for the language, the
+target's `dialect` for a SQL dialect.
+
+An idiom file declares the sources it cites under `sources`, in the shape of
+a specification's, since it is read on its own.
+
 ## Lookup order
 
 For one implementation file, one idiom and one part, the rendering used is
@@ -182,20 +211,22 @@ is as small as the difference. `whole: true` replaces every part. An
 override may add contract statements and may not remove or weaken a shipped
 one: the contract is what makes the idiom the same across projects, and a
 project that needs a different contract excludes the shipped idiom and
-writes its own under another name, with the reason. This is a decision made
-here, for the owner to confirm or veto.
+writes its own under another name, with the reason. A statement the override
+repeats must be identical in `statement` and `check`; one it changes is
+refused (`idiom_contract`).
 
 ## Noticing a newer template
 
 Every override file records the shipped version it was copied from. On every
 validation the validator compares that with the version it ships. When the
 shipped one is newer it warns, `idiom_version_behind`, naming both versions
-and the parts the override replaces, and `specarch idioms diff <name>`
-prints the shipped parts beside the override's. The warning repeats until
+and the parts the override replaces, and `specarch idioms diff <name> <folders>`
+prints, for each part the override replaces and each stack it renders, the
+shipped rendering beside the override's. The warning repeats until
 the project either moves the override to the new version, by copying the
-changed parts it wants and updating `version`, or records in the override's
-`why` that it stays behind on purpose, which turns the warning into a line
-in the Idioms table. An idiom whose shipped `version` changed but whose
+changed parts it wants and updating `version`, or sets `staysBehind: true`
+under `overrides` and says why, which silences the warning and leaves the
+reason in the Idioms table. An idiom whose shipped `version` changed but whose
 override replaced none of the changed parts gets the same warning, because
 the contract or the tests may have moved.
 
@@ -251,6 +282,11 @@ table, and the document marks them as what they are.
 In order; each changes the specification of `specarch` first, both validator
 builds where it adds a rule, and the conformance cases.
 
+Items 1 and 2 are built, and of item 3 the two verbs and the Idioms table;
+not yet built are each idiom's contract in the techspec's chapter 8, and the
+cases under an idiom's `tests` joining the derived cases
+(`test_case_missing`).
+
 1. The idiom schema, `schema/specarch-idiom-0.1.schema.json`, and the file
    format above; the shipped folder `idioms/` embedded into the binary; the
    `idioms` section and the `idioms/` folder of an implementation file in
@@ -262,6 +298,7 @@ builds where it adds a rule, and the conformance cases.
    in chapter 8.
 4. The first two shipped idioms, `type-rendering` and `paginated-list`, with
    their Go and SQL renderings, since `specarch-gen-sql` and
-   `specarch-gen-openapi` read them.
+   `specarch-gen-openapi` read them. `type-rendering` is built;
+   `paginated-list` reads `listOf`, which comes with the 0.2 keywords.
 5. The rest of the first set, as the generators and the first real projects
    need them, Go first.

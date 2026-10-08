@@ -170,6 +170,16 @@
     "testing": {
       "$ref": "#/$defs/testing"
     },
+    "idioms": {
+      "description": "SpecArch keyword. The idioms this implementation file deviates from; every other shipped idiom whose stacks and reads match applies by default. Each key names a shipped idiom or one of the project's own, with exclude and why, or override naming a file in the idioms folder beside this file.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/idiomUse"
+      }
+    },
     "deployments": {
       "description": "Real deployments, keyed by environment name: the environment of the specification each one installs, its servers, hosts and ports, and the values of the non-secret settings.",
       "type": "object",
@@ -432,10 +442,13 @@
           "type": "string"
         },
         "dialect": {
-          "description": "For the sql target: the database dialect. The default is postgresql, the only dialect so far.",
+          "description": "For the sql target: the database dialect, which is also a stack of the implementation file for its idioms. The default is postgresql.",
           "type": "string",
           "enum": [
-            "postgresql"
+            "postgresql",
+            "sqlserver",
+            "oracle",
+            "mariadb"
           ],
           "default": "postgresql"
         },
@@ -944,6 +957,39 @@
           }
         }
       ]
+    },
+    "idiomUse": {
+      "type": "object",
+      "properties": {
+        "exclude": {
+          "description": "true: the idiom does not apply to this file; why says what the project does instead.",
+          "const": true
+        },
+        "override": {
+          "description": "The override file, relative to this file, in its idioms folder.",
+          "type": "string",
+          "pattern": "^idioms/[a-z][a-z0-9]*(-[a-z0-9]+)*\\.specarch-idiom\\.yaml$"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "exclude"
+          ]
+        },
+        {
+          "required": [
+            "override"
+          ]
+        }
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
     }
   }
 }

@@ -1,0 +1,16 @@
+specarchIdiom: "0.1"
+name: type-rendering
+version: 1.0.0
+description: Oracle text under MAX_STRING_SIZE = EXTENDED.
+why: The database runs with MAX_STRING_SIZE = EXTENDED, so VARCHAR2 always holds 8191 characters.
+overrides: { idiom: type-rendering, version: 1.0.0, parts: [types] }
+parts:
+  types:
+    description: The Oracle rows for EXTENDED.
+    stack:
+      oracle:
+        settings: { maxStringSize: extended }
+        rows:
+          - { type: string, format: uuid, render: "VARCHAR2(36 CHAR)" }
+          - { type: string, maxLengthAtMost: 8191, render: "VARCHAR2({maxLength} CHAR)" }
+          - { type: string, render: CLOB }

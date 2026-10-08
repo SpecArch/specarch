@@ -90,6 +90,12 @@ const (
 	RuleOriginReason           Rule = "origin_reason"
 	RuleOriginDecision         Rule = "origin_decision"
 	RuleOriginMissing          Rule = "origin_missing"
+	RuleIdiomUnknown           Rule = "idiom_unknown"
+	RuleIdiomPartUnknown       Rule = "idiom_part_unknown"
+	RuleIdiomOverrideReason    Rule = "idiom_override_reason"
+	RuleIdiomStack             Rule = "idiom_stack"
+	RuleIdiomVersionBehind     Rule = "idiom_version_behind"
+	RuleIdiomContract          Rule = "idiom_contract"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -172,6 +178,12 @@ var Rules = []Rule{
 	RuleOriginReason,
 	RuleOriginDecision,
 	RuleOriginMissing,
+	RuleIdiomUnknown,
+	RuleIdiomPartUnknown,
+	RuleIdiomOverrideReason,
+	RuleIdiomStack,
+	RuleIdiomVersionBehind,
+	RuleIdiomContract,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

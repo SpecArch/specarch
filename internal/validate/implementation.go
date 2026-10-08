@@ -30,7 +30,7 @@ var designKeys = map[string]bool{
 // design keyword by mistake.
 var namedMaps = map[string]bool{
 	"layout": true, "mappings": true, "targets": true, "tasks": true, "libraries": true,
-	"deployments": true, "decisions": true, "suites": true, "configuration": true, "bindings": true,
+	"deployments": true, "decisions": true, "suites": true, "configuration": true, "bindings": true, "idioms": true,
 }
 
 func (c *checker) checkBoundaryImplementation() {
@@ -115,6 +115,7 @@ func (c *checker) checkImplementation(s *spec.Spec, load Loader) {
 	c.checkCitations(c.root, nil, d)
 	c.checkDeployments(d)
 	c.checkSuites(d, rel)
+	c.checkIdioms(s)
 }
 
 // checkDeployments checks each deployment names an environment of the

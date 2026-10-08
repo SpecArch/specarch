@@ -62,9 +62,11 @@ libraries:
 layout:
   cmd/specarch:
     description: The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status.
-    implements: ["#/commands/validate", "#/commands/gaps", "#/commands/document", "#/commands/approve", "#/commands/generate", "#/commands/extract", "#/commands/diff", "#/commands/derive", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
+    implements: ["#/commands/validate", "#/commands/gaps", "#/commands/document", "#/commands/approve", "#/commands/generate", "#/commands/extract", "#/commands/diff", "#/commands/derive", "#/commands/idioms", "#/commands/idioms diff", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
   schema:
     description: The JSON Schemas, embedded into the binary from the files editors use.
+  idioms:
+    description: The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set.
   internal/source:
     description: Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys.
   internal/spec:
@@ -102,6 +104,8 @@ mappings:
   "#/commands/generate": { target: main.runGenerate, description: "Refuses through main.gate while a question blocks what the target reads or the approval is missing or void; then runs the plug-in with main.runPlugin; the request and answer are the pluginRequest and pluginResponse structs." }
   "#/commands/extract": { target: main.runExtract, description: Answers with status 2 until it is built. }
   "#/commands/derive": { target: main.runDerive, description: "Writes validate.Drafts, the drafts of the cases the warnings name." }
+  "#/commands/idioms": { target: main.runIdioms, description: "Prints validate.IdiomUses, the idioms each implementation file resolves to." }
+  "#/commands/idioms diff": { target: main.runIdiomsDiff }
   "#/commands/diff": { target: main.runDiff, description: "Lists diff.Compare's changes, then checks the release record beside the new folder." }
   "#/enums/DocumentTarget": { target: main.documentTargets }
   "#/enums/GeneratorTarget": { target: main.builtGenerators, description: Empty; every target is a plug-in. }
@@ -189,7 +193,15 @@ testing:
         - { command: approve }
         - { command: generate }
         - { command: extract }
+        - { command: idioms }
+        - { command: idioms diff }
         - { command: version }
+      ci: true
+    shipped-idioms:
+      description: Checks every shipped idiom against the idiom schema, that each is named after its file, and that it cites only the sources it declares.
+      run: go test ./internal/validate
+      level: unit
+      implementationOnly: true
       ci: true
     generated-tests:
       description: Generates the tests of the library lending example and compiles them with go vet beside a harness that does nothing, so a generated file that would not compile in a project fails here.

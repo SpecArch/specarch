@@ -1,0 +1,57 @@
+commands:
+  idioms:
+    summary: List the idioms each implementation file uses, and how
+    description: |
+      Validates its input first and prints nothing but the errors from a
+      specification that has them. Then prints, for every implementation
+      file of every specification, its path and one line per idiom: every
+      shipped idiom and every one of the project's own that applies to the
+      file, by its stacks and by the keywords the specification uses, with
+      its version and how it applies: shipped, overridden (by which file,
+      copied from which version, replacing which parts), the project's own,
+      or excluded; an override's or an exclusion's reason follows.
+    permission: public
+    arguments:
+      - name: paths
+        description: Folders holding specifications, searched as validate searches them.
+        required: true
+        repeatable: true
+        schema: { type: string }
+    reads:
+      - { path: "{paths}", description: "The specifications, their implementation files, and the idioms folder beside each." }
+    standardOutput: The errors of an invalid specification, one line each; otherwise each implementation file's path and its idioms, one per line.
+    standardError: A usage message on a usage error, and the reason on an unreadable path.
+    exitCodes:
+      "0": the idioms were listed
+      "2": usage error, a path that could not be read, or a specification with errors
+    satisfies: [SA-32]
+    why: The shipped idioms apply without a word in the implementation file, so a reader needs one place that says which ones do, and where the project deviates.
+  idioms diff:
+    summary: Print a shipped idiom's parts beside each override's
+    description: |
+      Validates its input first, as idioms does. Then, for every
+      implementation file that overrides the named idiom, prints the
+      override's file, the version it was copied from and the version this
+      program ships, and for each part it replaces and each stack the
+      override renders, the shipped rendering and then the override's, as
+      YAML. With no override of the idiom, it says so.
+    permission: public
+    arguments:
+      - name: idiom
+        description: The name of a shipped idiom.
+        required: true
+        schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
+      - name: paths
+        description: Folders holding specifications, searched as validate searches them.
+        required: true
+        repeatable: true
+        schema: { type: string }
+    reads:
+      - { path: "{paths}", description: "The specifications, their implementation files, and the idioms folder beside each." }
+    standardOutput: The errors of an invalid specification, one line each; otherwise each override with the shipped and the overriding renderings of what it replaces.
+    standardError: A usage message on a usage error, the reason on an unreadable path, and that the idiom is not shipped.
+    exitCodes:
+      "0": the overrides were printed, or there was none
+      "2": usage error, an idiom this program does not ship, a path that could not be read, or a specification with errors
+    satisfies: [SA-32]
+    why: An override records the version it was copied from, and the validator warns when a newer one ships; this is how the project sees what changed before it moves.

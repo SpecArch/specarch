@@ -98,9 +98,14 @@ object maps onto the stack (`mappings`, each of which may carry `why`,
 `cites` and `origin` like any element), the framework per interface kind
 (`bindings`), the document and code targets with their folders and settings
 (`targets`), build, test and CI commands (`tasks`), the test suites with
-their levels (`testing`), real servers, hosts, ports and the values of
+their levels (`testing`), the shipped idioms it excludes or overrides, each
+with the reason (`idioms`), real servers, hosts, ports and the values of
 non-secret settings per environment (`deployments`), and implementation
-decisions (`decisions`). Its schema,
+decisions (`decisions`). The idioms SpecArch ships, under `idioms/`, apply
+to every implementation file by default; an override or a project's own
+idiom is a file in the `idioms/` folder beside the implementation file,
+checked against `schema/specarch-idiom-0.1.schema.json`. `docs/idioms.md`
+is the design, and `specarch idioms` lists what each file uses. Its schema,
 `schema/specarch-implementation-0.1.schema.json`, has no keyword for an
 entity, an operation or any other design object, so an implementation file
 cannot add or change design. One specification can have several
@@ -339,6 +344,7 @@ the value is. The types, one line each:
 | date | `type: string, format: date` | a calendar date, `"2026-10-07"` |
 | timestamp | `type: string, format: date-time` | an instant, RFC 3339, `"2026-10-07T09:30:00Z"` |
 | duration | `type: string, format: duration` | a length of time, ISO 8601, `"PT2H"` |
+| time of day | `type: string, format: time` | a time of day without a date, RFC 3339 partial time, `"09:30:00"` |
 | enum | `$ref: "#/enums/Name"` | one of the enum's values, carried as a string |
 
 The schema refuses an `integer` without `int32`, `int64` or `uint64`, a

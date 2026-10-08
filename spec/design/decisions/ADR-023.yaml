@@ -1,0 +1,48 @@
+decisions:
+  ADR-023:
+    title: Idioms are shipped files, applied by default, overridden part by part with the reason
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      docs/idioms.md designs idioms, and the owner confirmed its decisions:
+      an override may add contract statements but not weaken one; lists on
+      engines without arrays are JSON text with the reason; a UUID is
+      native where the engine has it and 36-character text elsewhere; a
+      duration is an interval where the engine has one and ISO 8601 text
+      elsewhere; an enum column is text with a check constraint. Building
+      it left seven points open that both validator builds must settle
+      the same way.
+    decision: |
+      The shipped idioms are files under idioms/, embedded in both builds.
+      An implementation file's stacks are its language, from its file name,
+      and the dialect of each target that has one; a target named sql
+      without a dialect is postgresql. An idiom applies when it renders one
+      of those stacks and the specification uses a keyword it reads, unless
+      the file excludes it. A type row matches a field on its JSON type with
+      null dropped, its format, whether it is an enum, its maxLength and its
+      precision; the first row that matches renders it, and a row without a
+      format matches only a format no row of the rendering names, so a
+      decimal never falls through to plain text. Words in braces in a row's
+      render are filled from the field by a generator. An idiom file
+      declares the sources it cites. An override stays behind on purpose
+      only with staysBehind: true. An override may add contract statements;
+      one it repeats must be identical in statement and check. The checks on
+      an override are reported in the override's file, a missing row at the
+      stack's node in the implementation file: the stack key for the
+      language, the target's dialect for a SQL dialect.
+    consequences: |
+      An implementation file says nothing to get the shipped idioms, and a
+      reviewer sees each deviation where it is made. The type rendering's
+      rows are checked for every entity field now; specarch-gen-sql renders
+      through them when it is built. The cases an idiom's tests imply do
+      not yet join the derived cases.
+    why: |
+      Matching on the field's own keys, not on a type the validator infers,
+      keeps the two builds equal without a shared library. A format that a
+      row names is a type of its own on that stack (a decimal, a date, a
+      UUID), so letting the general text row take it would hide the one
+      thing the check is for. Placeholders are forbidden in data, but a
+      render pattern is a function of the field, filled by a generator and
+      never left in output. staysBehind is a key rather than a phrase in
+      why, because prose cannot be checked.
+    satisfies: [SA-32]

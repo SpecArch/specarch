@@ -19,3 +19,8 @@ var Implementation []byte
 //
 //go:embed specarch-record-0.1.schema.json
 var Record []byte
+
+// Idiom is the schema of an idiom, shipped or a project's.
+//
+//go:embed specarch-idiom-0.1.schema.json
+var Idiom []byte

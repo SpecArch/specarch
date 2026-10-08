@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.4.0-dev of the specification: 31 requirements, 3 entities, 9 commands, 6 algorithms, 198 tests, 22 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.4.0-dev of the specification: 32 requirements, 3 entities, 11 commands, 6 algorithms, 205 tests, 23 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -64,6 +64,8 @@ The interfaces the system offers, as its clients see them.
 | extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects; 2: usage error, a source this build does not offer, or a path that could not be read or written |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open; 1: at least one must or should question is open; 2: usage error, a path that could not be read, or a specification with errors |
 | generate | Write code or data from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads, the specification is not approved, the plug-in reported an error, or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written |
+| idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
+| idioms diff | Print a shipped idiom's parts beside each override's | public | 0: the overrides were printed, or there was none; 2: usage error, an idiom this program does not ship, a path that could not be read, or a specification with errors |
 | validate | Check specifications and implementation files | public | 0: every input is valid; 1: at least one input has an error; 2: usage error, a path could not be read, or a folder holds no specification and no implementation file |
 | version | Print the program version and the meta-model versions it reads | public | 0: printed |
 
@@ -253,6 +255,12 @@ Primary key: path.
 | Rule | origin_reason | an element whose origin is inferred has no why |
 | Rule | origin_decision | an element whose origin is decided names no decision, or a decision that does not exist or is not accepted, or is a decision itself; or decidedIn is set without origin decided |
 | Rule | origin_missing | the specification tracks origin and an element of a section carries none (a warning) |
+| Rule | idiom_unknown | an implementation file's `idioms` key, or an override's `overrides.idiom`, names no shipped idiom and none of the project's, or an override names no file in the idioms folder |
+| Rule | idiom_part_unknown | an override names a part the idiom does not have, or defines a part it does not list under `overrides.parts` |
+| Rule | idiom_override_reason | an idiom is excluded, or overridden, without `why` |
+| Rule | idiom_stack | an override renders a stack that is not the implementation file's: its language, the dialect of one of its targets, or `any` |
+| Rule | idiom_version_behind | an override was copied from an older version of the shipped idiom and does not say it stays behind on purpose (a warning) |
+| Rule | idiom_contract | an override changes a shipped contract statement, or a field has no row in a type rendering for a stack of the implementation file |
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
@@ -657,6 +665,71 @@ sequenceDiagram
   P-->>U: exit status 0, 1, 2
 ```
 
+### Command idioms
+
+Validates its input first and prints nothing but the errors from a
+specification that has them. Then prints, for every implementation
+file of every specification, its path and one line per idiom: every
+shipped idiom and every one of the project's own that applies to the
+file, by its stacks and by the keywords the specification uses, with
+its version and how it applies: shipped, overridden (by which file,
+copied from which version, replacing which parts), the project's own,
+or excluded; an override's or an exclusion's reason follows.
+
+**Insight:** The shipped idioms apply without a word in the implementation file, so a reader needs one place that says which ones do, and where the project deviates.
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<paths>` | string, one or more | yes | Folders holding specifications, searched as validate searches them. |
+
+Reads `{paths}`: The specifications, their implementation files, and the idioms folder beside each.
+
+Standard output: The errors of an invalid specification, one line each; otherwise each implementation file's path and its idioms, one per line.
+
+Standard error: A usage message on a usage error, and the reason on an unreadable path.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: idioms <paths>
+  P->>F: read {paths}
+  P-->>U: exit status 0, 2
+```
+
+### Command idioms diff
+
+Validates its input first, as idioms does. Then, for every
+implementation file that overrides the named idiom, prints the
+override's file, the version it was copied from and the version this
+program ships, and for each part it replaces and each stack the
+override renders, the shipped rendering and then the override's, as
+YAML. With no override of the idiom, it says so.
+
+**Insight:** An override records the version it was copied from, and the validator warns when a newer one ships; this is how the project sees what changed before it moves.
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<idiom>` | string | yes | The name of a shipped idiom. |
+| `<paths>` | string, one or more | yes | Folders holding specifications, searched as validate searches them. |
+
+Reads `{paths}`: The specifications, their implementation files, and the idioms folder beside each.
+
+Standard output: The errors of an invalid specification, one line each; otherwise each override with the shipped and the overriding renderings of what it replaces.
+
+Standard error: A usage message on a usage error, the reason on an unreadable path, and that the idiom is not shipped.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: idioms diff <idiom> <paths>
+  P->>F: read {paths}
+  P-->>U: exit status 0, 2
+```
+
 ### Command validate
 
 Checks every specification found under the paths given: a folder that
@@ -820,8 +893,9 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 
 | Path | Holds | Implements |
 |---|---|---|
-| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/diff, #/commands/derive, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
+| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/diff, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
+| idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
 | cmd/specarch-gen-tests-go | The plug-in behind generate tests for a Go implementation file. Reads the request on standard input, answers the Go test file on standard output, and never touches the disk. | #/commands/generate |
@@ -849,6 +923,8 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | #/commands/generate | main.runGenerate | Refuses through main.gate while a question blocks what the target reads or the approval is missing or void; then runs the plug-in with main.runPlugin; the request and answer are the pluginRequest and pluginResponse structs. |
 | #/commands/extract | main.runExtract | Answers with status 2 until it is built. |
 | #/commands/derive | main.runDerive | Writes validate.Drafts, the drafts of the cases the warnings name. |
+| #/commands/idioms | main.runIdioms | Prints validate.IdiomUses, the idioms each implementation file resolves to. |
+| #/commands/idioms diff | main.runIdiomsDiff |   |
 | #/commands/diff | main.runDiff | Lists diff.Compare's changes, then checks the release record beside the new folder. |
 | #/enums/DocumentTarget | main.documentTargets |   |
 | #/enums/GeneratorTarget | main.builtGenerators | Empty; every target is a plug-in. |
@@ -901,9 +977,18 @@ Stand-ins: None. Every test runs the real program on real files.
 
 | Suite | Level | Runs | Command |
 |---|---|---|---|
-| conformance | system | every design test of command validate, command gaps, command document, command approve, command generate, command extract, command version | `go test ./cmd/specarch` |
+| conformance | system | every design test of command validate, command gaps, command document, command approve, command generate, command extract, command idioms, command idioms diff, command version | `go test ./cmd/specarch` |
+| shipped-idioms | unit | tests of this implementation only | `go test ./internal/validate` |
 | generated-tests | unit | tests of this implementation only | `go test ./internal/gentests` |
 | expressions | unit | tests of this implementation only | `go test ./internal/expr` |
+
+#### Idioms
+
+How this implementation does each recurring concern: the idioms SpecArch ships apply unless the file excludes or overrides one, and an override replaces only the parts it names (docs/idioms.md).
+
+| Idiom | Version | Applies as | Parts the project replaces |
+|---|---|---|---|
+| type-rendering | 1.0.0 | shipped |   |
 
 #### Implementation decisions
 
@@ -970,7 +1055,7 @@ From the implementation file version 0.1.0.
 A second implementation of the specification in `spec/`, for macOS,
 built from the same specification as the Go one. It offers the validate
 and version commands and passes the same conformance cases; the
-documents, the generators, gaps, approve, diff and derive are built in Go only.
+documents, the generators, gaps, approve, diff, derive and idioms are built in Go only.
 
 Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin/arm64, darwin/amd64.
 
@@ -1005,6 +1090,8 @@ Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin
 | #/commands/generate | SpecArchKit.run | Exits 2: this build runs no generator. |
 | #/commands/extract | SpecArchKit.run | Exits 2, as the Go build does until it is built. |
 | #/commands/derive | SpecArchKit.run | Exits 2: writing tests is built in Go only; the derivation it writes is in this build. |
+| #/commands/idioms | SpecArchKit.run | Exits 2: listing the idioms is built in Go only; the idiom checks are in this build. |
+| #/commands/idioms diff | SpecArchKit.run | Exits 2, as idioms does. |
 | #/commands/diff | SpecArchKit.run | Exits 2: the comparison of two versions is built in Go only; the release rules are in this build. |
 | #/algorithms/exitStatus | the end of SpecArchKit.runValidate |   |
 | #/algorithms/workedExampleHolds | SpecArchKit.Checker.checkExample |   |
@@ -1036,6 +1123,14 @@ Stand-ins: None. Every test runs the real program on real files.
 |---|---|---|---|
 | conformance | system | every design test of command validate, command version | `swift test --package-path swift --filter ConformanceTests` |
 | expressions | unit | tests of this implementation only | `swift test --package-path swift --filter ExprTests` |
+
+#### Idioms
+
+How this implementation does each recurring concern: the idioms SpecArch ships apply unless the file excludes or overrides one, and an override replaces only the parts it names (docs/idioms.md).
+
+| Idiom | Version | Applies as | Parts the project replaces |
+|---|---|---|---|
+| type-rendering | 1.0.0 | shipped |   |
 
 #### Implementation decisions
 
@@ -1956,6 +2051,45 @@ waits until a real project shows whether outlines stay complete.
 
 **Insight:** A source of kind `system` is a running system that was observed, which code is not: code is read, at a commit, and its citation is a line that anyone can open. Undocumented and not built are not new origins, because they are not new ways of knowing: the first is a conclusion from the code, which is what inferred means, and the second is a fact the documents state about something the code lacks; both are things the owner must confirm, which is what a should question is. One way to say each thing keeps the agent from choosing between two.
 
+### ADR-023: Idioms are shipped files, applied by default, overridden part by part with the reason
+
+Status: accepted, 2026-10-08.
+
+Context: docs/idioms.md designs idioms, and the owner confirmed its decisions:
+an override may add contract statements but not weaken one; lists on
+engines without arrays are JSON text with the reason; a UUID is
+native where the engine has it and 36-character text elsewhere; a
+duration is an interval where the engine has one and ISO 8601 text
+elsewhere; an enum column is text with a check constraint. Building
+it left seven points open that both validator builds must settle
+the same way.
+
+Decision: The shipped idioms are files under idioms/, embedded in both builds.
+An implementation file's stacks are its language, from its file name,
+and the dialect of each target that has one; a target named sql
+without a dialect is postgresql. An idiom applies when it renders one
+of those stacks and the specification uses a keyword it reads, unless
+the file excludes it. A type row matches a field on its JSON type with
+null dropped, its format, whether it is an enum, its maxLength and its
+precision; the first row that matches renders it, and a row without a
+format matches only a format no row of the rendering names, so a
+decimal never falls through to plain text. Words in braces in a row's
+render are filled from the field by a generator. An idiom file
+declares the sources it cites. An override stays behind on purpose
+only with staysBehind: true. An override may add contract statements;
+one it repeats must be identical in statement and check. The checks on
+an override are reported in the override's file, a missing row at the
+stack's node in the implementation file: the stack key for the
+language, the target's dialect for a SQL dialect.
+
+Consequences: An implementation file says nothing to get the shipped idioms, and a
+reviewer sees each deviation where it is made. The type rendering's
+rows are checked for every entity field now; specarch-gen-sql renders
+through them when it is built. The cases an idiom's tests imply do
+not yet join the derived cases.
+
+**Insight:** Matching on the field's own keys, not on a type the validator infers, keeps the two builds equal without a shared library. A format that a row names is a type of its own on that stack (a decimal, a date, a UUID), so letting the general text row take it would hide the one thing the check is for. Placeholders are forbidden in data, but a render pattern is a function of the field, filled by a generator and never left in output. staysBehind is a key rather than a phrase in why, because prose cannot be checked.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -2031,6 +2165,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-unapproved | command generate | system | golden | a specification without an approval record, and specarch-gen-echo on PATH | generate echo is run with --unapproved | it writes the files under out/ and exits 0 |
 | generate-usage-error | command generate | system | red | no target | generate is run without arguments | it prints how to use it and exits 2 |
 | generate-with-plugin | command generate | system | golden | an approved specification, its approval record beside it, and specarch-gen-echo on PATH, which answers two files | generate echo is run with --out out | it writes both files under out/ and exits 0 |
+| idioms-diff | command idioms diff | system | golden | the same specification, whose override replaces the Oracle rows of type-rendering's types part | idioms diff type-rendering is run | it prints the override's file, the version it was copied from and the shipped version, then the shipped Oracle rendering and the override's, and exits 0 |
+| idioms-diff-unknown | command idioms diff | system | red | a specification, and an idiom name SpecArch does not ship | idioms diff paginated-lists is run | it says the idiom is not shipped and exits 2 |
+| idioms-diff-usage-error | command idioms diff | system | red | an idiom's name and no folder | idioms diff type-rendering is run | it prints how to use it and exits 2 |
+| idioms-lists | command idioms | system | golden | a specification with one implementation file in Go with an Oracle sql target, whose override of type-rendering replaces its types part, with the reason | idioms is run | it prints the file's path and type-rendering as overridden by the file, copied from 1.0.0, replacing types, with the reason, and exits 0 |
+| idioms-usage-error | command idioms | system | red | no folder | idioms is run without arguments | it prints the usage and exits 2 |
 | validate-algorithm | command validate | system | red | an operation that names an algorithm that does not exist | validate is run | it reports algorithm and exits 1 |
 | validate-change-applied | command validate | system | red | an implemented change whose addition is missing and whose removal is still there, and an approved change that changes a missing requirement and adds a test that already exists | validate is run | it reports change_applied errors for the first and the missing requirement, a change_applied warning for the test, and exits 1 |
 | validate-change-decision | command validate | system | red | an approved change without a decision, and a rejected change whose decision's outcome is approved | validate is run | it reports change_decision for each and exits 1 |
@@ -2077,6 +2216,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-fragment-given-by-name | command validate | system | red | a file of a tree given by name instead of the tree's folder | validate is run on it | it reports file_kind naming the folder to run on and exits 1 |
 | validate-guard | command validate | system | red | a guard naming an entity that does not exist, and a guard whose precondition compares a string with a number | validate is run | it reports guard for the entity and expression_type for the precondition, and exits 1 |
 | validate-idempotency-key | command validate | system | red | an idempotency key on a GET, and one on a POST that names a query parameter rather than a header | validate is run | it reports idempotency_key for both, saying that GET is idempotent by itself and that the key is not a header parameter, and exits 1 |
+| validate-idiom-override | command validate | system | golden | an implementation file in Go with an Oracle sql target, whose override of type-rendering replaces the Oracle rows of its types part for MAX_STRING_SIZE = EXTENDED, with the reason, and an entity with a UUID and a 5000-character text field | validate is run | it reports nothing and exits 0: the override's rows cover every field on Oracle, and the shipped Go rows cover them on Go |
+| validate-idiom-problems | command validate | system | red | an implementation file in Go with an Oracle sql target, which names an idiom SpecArch does not ship, excludes the project's own idiom without why, and overrides type-rendering with a file that has no why, lists an unknown part, defines a part it does not list, renders swift, changes a shipped contract statement and was copied from an older version; a decimal field is wider than Oracle holds, and a stray file sits in the idioms folder | validate is run | it reports idiom_unknown, idiom_override_reason, idiom_part_unknown, idiom_stack, idiom_contract on the statement and on the decimal's missing Oracle row, idiom_version_behind as a warning, and the stray file under layout, and exits 1 |
 | validate-implements | command validate | system | red | an implementation file written against an older version of its design | validate is run | it reports implements and exits 1 |
 | validate-incident-link | command validate | system | golden | a resolved incident that names no defect and no change and gives no noChange reason | validate is run | it warns with incident_link and exits 0, since the record is still valid |
 | validate-layout-folder-missing | command validate | system | red | stages that list deployment with no deployment/ folder | validate is run | it reports layout at stages and exits 1 |
@@ -2208,6 +2349,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-14 | A code target that specarch does not build in shall be produced by the plug-in specarch-gen-<target> found on PATH, which receives the validated specification on its standard input and answers with the files to write, so that specarch writes them, checks them and keeps them inside the target's folder. | interface | should | accepted | test | specarch generate <target> with no built-in generator and no plug-in on PATH says so and exits 2. A plug-in's answer that names a path outside the output folder is refused and nothing is written. | NEED-7 |
 | SA-15 | Every document specarch writes shall show an element's why as an Insight and each of its citations as a Note, next to the element, and shall end with the sources its Notes cite. | functional | must | accepted | test | An element with a why gets one paragraph labelled Insight, and each citation one paragraph labelled Note that names the source's title, edition, the clause and what it says. An element shown as a row of a table gets its Insight and Notes after the table, labelled with the row's name. A document whose Notes cite sources ends with a table of exactly those sources. | NEED-6 |
 | SA-16 | specarch document shall write, besides the technical specification, the requirements specification, the test plan, the traceability matrix, the deployment guide and the commissioning procedure with its sign-off sheet. | functional | must | accepted | test | Each of the five targets writes <target>.md into the folder it owns, with the generated-from header. The commissioning procedure has a Result column for every step and a sign-off sheet with a row for every signer. | NEED-3, NEED-5 |
+| SA-32 | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. | functional | must | accepted | test | An idiom key naming no idiom, an exclusion or override without why, an override naming an unknown part or defining one it does not list, rendering a stack that is not the file's, or changing a shipped contract statement is each reported under its rule in both builds; an override copied from an older version is warned about. A field that no row of the type rendering matches for a stack of the implementation file, such as a decimal wider than Oracle holds, is reported as idiom_contract. An override that replaces the Oracle text rows for MAX_STRING_SIZE = EXTENDED validates without a diagnostic. | NEED-2 |
 | SA-11 | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. | functional | must | accepted | test | A tree whose root lists its stages and holds each stage's files under that folder validates. A file in the wrong folder, a section in the wrong file, a listed stage without a folder, and a folder that is not a stage are each reported as layout. | NEED-4 |
 | SA-12 | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. | functional | must | accepted | test | A specification with only a requirements stage validates with no error. A requirement no design element satisfies, a requirement no test, check or monitor verifies, and a need no requirement refines are reported as warnings once the later stage exists. | NEED-5 |
 | SA-23 | The validator shall check the records kept beside a specification (change requests, defects, releases, incidents, commissioning runs and approvals) against their schema and against the specification they point into, without the specification pointing back at them. | functional | must | accepted | test | A record whose file name is not its ID or version, or that sits in another kind's folder, is reported as record_name. A record naming a role, requirement, pointer, test, environment or monitor the specification does not have is reported as record_ref, unless the ID falls in a declared change-set or defect-set. An implemented change whose additions are not in the specification, a change approved without a decision, a fixed defect without a test that shows the fix, a duplicate of a duplicate, and a commissioning run naming a check that does not exist are each reported under their rule. A resolved incident that leads to no defect and no change, and says nothing in noChange, is reported as a warning. | NEED-5 |
@@ -2257,6 +2399,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-15:** A reader can skip every Insight and Note and still read the document, or read only them to follow the reasoning; a label on each makes both possible.
 
 **Note on SA-16:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 7.2 and 8.3: A test plan and test case specifications are the test documentation items of a project. <https://www.iso.org/standard/79429.html>
+
+**Insight on SA-32:** How a decimal, a text column or a missing value is held on a stack is decided once and read by every generator and every agent; without the table each implementation file restates it in prose, each a little differently.
 
 **Insight on SA-11:** One file for a whole system grows past what a reader can navigate; a tree whose folder names say what is inside lets the reader walk to a thing.
 
@@ -2327,6 +2471,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-29 | enums Rule; commands validate; decisions ADR-021 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
 | SA-30 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests validate-mapping-origin |
 | SA-31 | commands generate | tests generate-stack-fallback; tests generate-stack-plugin |
+| SA-32 | commands idioms; commands idioms diff; decisions ADR-023 | tests idioms-diff; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems |
 
 ## Sources
 

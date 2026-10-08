@@ -1,0 +1,8 @@
+questions:
+  Q-1:
+    question: 'What is a user told when each constraint of table public.loans fails: loans_loan_period?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loans/constraints/loans_loan_period/message']
+    decidedBy: system-owner
+    why: A constraint carries the message a user reads, and a database catalogue holds none.

@@ -255,14 +255,31 @@ Steps, in order:
    Its one role and three permissions come out validated and
    byte-identical, and a seed that grants a permission no route checks is
    reported by the merge; CI repeats both.
-9. The pages reader, `extract pages`, for a file-system router tree such
-   as an `app/` folder: one page per folder that holds a page file, with
-   dynamic segments as parameters and route groups recognised; and where
-   a page has a schema file the component library renders from, the
-   page's content from that schema. Done when an `app/` tree added to the
-   lending desk, with a dynamic segment, a route group and one page with a
-   schema file, gives one page per route with its parameters and that
-   page's fields, validated and byte-identical.
+9. Built. The pages reader, `extract pages`, for a file-system router
+   tree such as an `app/` folder (ADR-057): one page per folder that
+   holds `page.tsx`, `page.ts`, `page.jsx` or `page.js`, read from the
+   files git tracks, a folder `[name]` the parameter `{name}` and a
+   folder in parentheses a route group that adds nothing to the route.
+   Two folders giving one route are refused; a catch-all segment, a
+   parallel or intercepting route, a private folder, another page file
+   and a route handler each print a line. A page whose folder holds
+   `page.schema.ts`, the schema its component library renders from,
+   takes its content from it: the file is read in the subset of
+   TypeScript that is also JSON5, the form the TypeScript generator of
+   ADR-051 writes, and its keys named as the design's page keywords give
+   the kind, title, entity, permission, columns, fields, sections and
+   filters; the operations it names are asked for, since they are the
+   router's. The entity is written by name with the fields the page
+   shows, each known only by name, and a must question asks its primary
+   key and their types; `specarch merge` takes an element known only by
+   name as not given, so the database tree answers that question, and
+   `validate` covers everything under a field known only by name that a
+   must question blocks. The lending desk's
+   `examples/lending-desk/sources/web/app/`, beside its code so that its
+   dumps stay current, has a route group, a dynamic segment and one list
+   page with a schema file: its three pages come out with the parameter
+   and that page's fields, validated and byte-identical, and merged with
+   the database tree the entity's question is answered; CI repeats it.
 10. The whole example: `examples/lending-desk/` extracted end to end by a
     script, with a personal column the manual has and the database does
     not, and a route the code serves without a permission that the

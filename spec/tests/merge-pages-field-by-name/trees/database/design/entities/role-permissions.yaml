@@ -1,0 +1,13 @@
+entities:
+  RolePermissions:
+    type: object
+    properties:
+      role: {type: string, maxLength: 40}
+      permission: {type: string, maxLength: 80}
+    required: [role, permission]
+    primaryKey: [role, permission]
+    relations:
+      roles: {target: Roles, kind: many-to-one, via: role, onDelete: restrict}
+    origin: stated
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/code/migrations public.role_permissions, says: 'Table public.role_permissions: role character varying(40) not null, permission character varying(80) not null. role_permissions_pkey PRIMARY KEY (role, permission); role_permissions_role_fkey FOREIGN KEY (role) REFERENCES roles(name).'}

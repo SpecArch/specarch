@@ -270,8 +270,8 @@ The question is the one licence for an element to be incomplete. A
 required key missing at or under a pointer a `must` question blocks is
 covered: the validator reports neither it nor the warnings about that
 element, and `specarch gaps` lists the missing keys under the question. An
-element known only by name is written as an empty mapping and blocked by
-pointer. Nothing else is covered: a wrong value beside the gap is still an
+element known only by name, such as an entity or one of its fields, is
+written as an empty mapping and blocked by pointer. Nothing else is covered: a wrong value beside the gap is still an
 error, and a `should` question covers no missing key.
 
 The validator checks that every `blocks` entry resolves (`question_block`),

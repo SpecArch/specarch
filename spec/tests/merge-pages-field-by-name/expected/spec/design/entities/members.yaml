@@ -1,0 +1,11 @@
+entities:
+  Members:
+    type: object
+    properties:
+      cardNumber: {type: string, maxLength: 10}
+      fullName: {type: string, maxLength: 200}
+    required: [cardNumber, fullName]
+    primaryKey: [cardNumber]
+    origin: stated
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/code/migrations public.members, says: 'Table public.members: card_number character(10) not null, full_name character varying(200) not null. members_pkey PRIMARY KEY (card_number).'}

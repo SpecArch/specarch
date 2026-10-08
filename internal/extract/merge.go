@@ -865,9 +865,11 @@ func (m *merger) treeQuestions() {
 }
 
 // giversOf names the trees other than the asking one that give the key at
-// steps, when the asking tree does not and the merged tree holds it.
+// steps, when the asking tree does not and the merged tree holds it. An
+// element written only by name, as an empty mapping, is not given
+// (ADR-057).
 func (m *merger) giversOf(asking int, steps []mergeStep) []string {
-	if len(steps) < 3 || follow(m.trees[asking].s.Root, steps) != nil || m.walk(steps) == nil {
+	if len(steps) < 3 || given(follow(m.trees[asking].s.Root, steps)) || !given(m.walk(steps)) {
 		return nil
 	}
 	var out []string
@@ -875,11 +877,17 @@ func (m *merger) giversOf(asking int, steps []mergeStep) []string {
 		if ti == asking {
 			continue
 		}
-		if follow(t.s.Root, steps) != nil {
+		if given(follow(t.s.Root, steps)) {
 			out = append(out, t.title)
 		}
 	}
 	return out
+}
+
+// given says whether a tree gives a key: it holds it, and not only as an
+// empty mapping that names an element and says nothing of it.
+func given(n *yaml.Node) bool {
+	return n != nil && (n.Kind != yaml.MappingNode || len(n.Content) > 0)
 }
 
 func giveOrGives(n int) string {

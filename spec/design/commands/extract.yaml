@@ -104,6 +104,43 @@ commands:
         nothing to grant. Each such check prints a line and is a must
         question blocking the roles, since while the setting is empty the
         check lets every request through and nothing says so.
+      - `pages`: one folder that is a file-system router's root, such as
+        the `app` folder of a Next.js application, read from its tracked
+        files (ADR-057). Every folder that holds a page file, `page.tsx`,
+        `page.ts`, `page.jsx` or `page.js`, is one page, its route the
+        folders from the root down: a folder named in parentheses is a
+        route group and adds nothing to the route, and a folder named
+        `[name]` is the route parameter `{name}`. The page is named after
+        its route in kebab-case, a parameter as `by-` and its name, and
+        the root's own page `root`. Two folders that give one route are
+        refused, as the router refuses them. What the meta-model cannot
+        hold prints a line and is left out: a catch-all segment
+        `[...name]` or `[[...name]]`, a parallel route `@name`, an
+        intercepting route `(.)name`, a page in a private folder `_name`,
+        a parameter whose name is not an identifier, any other page file
+        such as `page.mdx`, and a route handler, `route.ts` and the like,
+        which serves an operation the router reader reads. A page whose
+        folder holds `page.schema.ts`, the schema its component library
+        renders from, takes its content from it: the file holds imports,
+        comments and one exported object literal, optionally followed by
+        `satisfies` and a type, written in the subset of TypeScript that
+        is also JSON5 (keys as names or quoted, strings, numbers, true,
+        false, null, arrays and objects, trailing commas). Of its keys,
+        `kind`, `title`, `entity`, `permission`, `columns`,
+        `compactColumns`, `fields`, `sections` and `filters` are read as
+        the page keywords of the same name; `source` and `submit` are
+        named in the question that asks for them, since the operations
+        they name are the router's; every other key, a value that is not
+        a literal, and a file outside the subset print a line, and what
+        they would have given is asked for. An entity a schema names is
+        written by name, of type object, with every field a page shows
+        as a field known only by name, citing the schemas; its primary key
+        and each field's type are a must question. Each page cites its
+        page file and its schema; its kind, title, entity and the
+        operations it reads or submits, where no schema gives them, are a
+        must question, and so is the permission it checks, never written
+        as public. Every permission a schema names is declared, its
+        description and the role that grants it must questions.
 
       Every reader follows these rules:
 
@@ -140,11 +177,11 @@ commands:
     permission: public
     arguments:
       - name: source
-        description: "The surface to read: `outline`, `database`, `router`, `documents`, `openapi` or `permissions`."
+        description: "The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions` or `pages`."
         required: true
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
       - name: paths
-        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table."
+        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder."
         required: true
         repeatable: true
         schema: { type: string }
@@ -168,7 +205,7 @@ commands:
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written
-      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, or a file that is not an OpenAPI 3.0 or 3.1 document"
+      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, or a file that is not an OpenAPI 3.0 or 3.1 document"
       "2": usage error, a source this build does not offer, or a path that could not be read or written
     satisfies: [SA-11, SA-44]
     why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

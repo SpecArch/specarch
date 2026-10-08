@@ -62,7 +62,10 @@ commands:
       - A question of a tree whose every blocked key another tree gives
         is left out, since that tree answers it and the element cites
         both; a question that blocks a stage, an element or a key no tree
-        gives is kept (ADR-049).
+        gives is kept (ADR-049). An element the asking tree writes only by
+        name, as an empty mapping, is one it does not give, so a tree that
+        gives it with content answers the question, such as a field a page
+        shows whose type the database gives (ADR-057).
       - A question of a tree whose every blocked key a question kept
         before it blocks, with the same priority, is left out, since both
         ask the same thing, such as a permission's description that the

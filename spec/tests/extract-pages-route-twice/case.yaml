@@ -1,0 +1,7 @@
+arguments: [extract, pages, --out, spec, site/app]
+repository:
+  folder: site
+  commits:
+    - [app]
+exitStatus: 1
+standardOutput: ""

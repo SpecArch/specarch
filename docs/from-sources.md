@@ -170,7 +170,10 @@ read is unchanged up to it. Where two trees give one key different
 values, the key is left out and a `must` question cites both, whichever
 side they are on. A question of one tree whose every blocked key another
 tree gives is left out, since the other tree answers it: the router
-asks what an operation answers, and the OpenAPI document says. A source
+asks what an operation answers, and the OpenAPI document says. An
+element a tree knows only by name, as an empty mapping, is not given:
+the pages reader names the fields a page shows, and the database gives
+their types. A source
 of the documents side whose operations share no path with the code side,
 such as the sample OpenAPI file a service template ships, is reported
 as a placeholder. The trees' questions are numbered again in the order

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.5.0-dev of the specification: 46 requirements, 3 entities, 12 commands, 6 algorithms, 265 tests, 56 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.5.0-dev of the specification: 46 requirements, 3 entities, 12 commands, 6 algorithms, 269 tests, 57 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -61,7 +61,7 @@ The interfaces the system offers, as its clients see them.
 | derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, or there is no release record for the new version; 2: usage error, a path that could not be read, or a specification with errors |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder, or a file that could not be read or written |
-| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, or a file that is not an OpenAPI 3.0 or 3.1 document; 2: usage error, a source this build does not offer, or a path that could not be read or written |
+| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, or a file that is not an OpenAPI 3.0 or 3.1 document; 2: usage error, a source this build does not offer, or a path that could not be read or written |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open; 1: at least one must or should question is open; 2: usage error, a path that could not be read, or a specification with errors |
 | generate | Write code or data from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads, the specification is not approved, the plug-in reported an error, or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written |
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
@@ -629,6 +629,43 @@ The sources this build reads:
   nothing to grant. Each such check prints a line and is a must
   question blocking the roles, since while the setting is empty the
   check lets every request through and nothing says so.
+- `pages`: one folder that is a file-system router's root, such as
+  the `app` folder of a Next.js application, read from its tracked
+  files (ADR-057). Every folder that holds a page file, `page.tsx`,
+  `page.ts`, `page.jsx` or `page.js`, is one page, its route the
+  folders from the root down: a folder named in parentheses is a
+  route group and adds nothing to the route, and a folder named
+  `[name]` is the route parameter `{name}`. The page is named after
+  its route in kebab-case, a parameter as `by-` and its name, and
+  the root's own page `root`. Two folders that give one route are
+  refused, as the router refuses them. What the meta-model cannot
+  hold prints a line and is left out: a catch-all segment
+  `[...name]` or `[[...name]]`, a parallel route `@name`, an
+  intercepting route `(.)name`, a page in a private folder `_name`,
+  a parameter whose name is not an identifier, any other page file
+  such as `page.mdx`, and a route handler, `route.ts` and the like,
+  which serves an operation the router reader reads. A page whose
+  folder holds `page.schema.ts`, the schema its component library
+  renders from, takes its content from it: the file holds imports,
+  comments and one exported object literal, optionally followed by
+  `satisfies` and a type, written in the subset of TypeScript that
+  is also JSON5 (keys as names or quoted, strings, numbers, true,
+  false, null, arrays and objects, trailing commas). Of its keys,
+  `kind`, `title`, `entity`, `permission`, `columns`,
+  `compactColumns`, `fields`, `sections` and `filters` are read as
+  the page keywords of the same name; `source` and `submit` are
+  named in the question that asks for them, since the operations
+  they name are the router's; every other key, a value that is not
+  a literal, and a file outside the subset print a line, and what
+  they would have given is asked for. An entity a schema names is
+  written by name, of type object, with every field a page shows
+  as a field known only by name, citing the schemas; its primary key
+  and each field's type are a must question. Each page cites its
+  page file and its schema; its kind, title, entity and the
+  operations it reads or submits, where no schema gives them, are a
+  must question, and so is the permission it checks, never written
+  as public. Every permission a schema names is declared, its
+  description and the role that grants it must questions.
 
 Every reader follows these rules:
 
@@ -667,8 +704,8 @@ Every reader follows these rules:
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
-| `<source>` | string | yes | The surface to read: `outline`, `database`, `router`, `documents`, `openapi` or `permissions`. |
-| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table. |
+| `<source>` | string | yes | The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions` or `pages`. |
+| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder. |
 | `--out` | string | yes | The folder the specification is written into; it becomes the specification's root folder. |
 | `--source-key` | string |   | The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given. |
 
@@ -950,7 +987,10 @@ refused.
 - A question of a tree whose every blocked key another tree gives
   is left out, since that tree answers it and the element cites
   both; a question that blocks a stage, an element or a key no tree
-  gives is kept (ADR-049).
+  gives is kept (ADR-049). An element the asking tree writes only by
+  name, as an empty mapping, is one it does not give, so a tree that
+  gives it with content answers the question, such as a field a page
+  shows whose type the database gives (ADR-057).
 - A question of a tree whose every blocked key a question kept
   before it blocks, with the same priority, is left out, since both
   ask the same thing, such as a permission's description that the
@@ -1165,7 +1205,7 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
-| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI and permissions readers, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers or a question kept before it asks left out, a placeholder source reported, and a permission granted and checked by nothing reported. |   |
+| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions and pages readers, the subset of TypeScript a page schema is read in, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, a placeholder source reported, and a permission granted and checked by nothing reported. |   |
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
 | cmd/specarch-gen-sql | The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk. | #/commands/generate |
@@ -3670,6 +3710,61 @@ the word it needs.
 
 **Insight:** A kind of its own rather than an optional entity on a form, because a form loads and writes a record of its entity and a task page does neither, and a page with an optional entity would mean two things. The fields come from the request body so that the validation the person sees is the one the server applies, written once. onSubmitted by status, because a sign-in leads to a different page when a second factor is due, and the operation's declared responses are the only list of answers a page can rely on. The other elements are design and not stack because each states behaviour a tester can check (what is offered, what is refused, what is sent), the test of docs/ui-design.md for what belongs in a specification.
 
+### ADR-057: extract pages reads a file-system router's folders from git and a page's schema file in the subset of TypeScript that is also JSON5, and merge takes an element given only by name as not given
+
+Status: accepted, 2026-10-09.
+
+Context: Step 9 of docs/extraction.md, Building extract, reads a web
+application's pages from a file-system router tree such as a
+Next.js app folder: one page per folder that holds a page file,
+with dynamic segments as parameters and route groups recognised,
+and a page's content from the schema file its component library
+renders from, where it has one. The owner asked for both the tree
+and the schema files. The tree is the router: Next.js builds its
+routes from the folders and nothing else, so no printer is needed
+as it is for a router built in code. The schema file is the one
+ADR-051 has the TypeScript generator write beside each page,
+page.schema.ts, one object literal typed with satisfies. A page in
+meta-model 0.1 needs a kind, a title, an entity and a permission,
+and the fields it shows must be fields of its entity; a field with
+no type is not valid unless a must question blocks it whole, so a
+question about a field's type cannot be answered by another tree
+under the rule of ADR-049, which counts only keys the asking tree
+leaves out.
+
+Decision: extract pages reads one folder, the router's root, from the files
+git tracks under it, at the commit that last changed it. A folder
+with page.tsx, page.ts, page.jsx or page.js is a page; a folder in
+parentheses is a route group and adds nothing to the route; [name]
+is the parameter {name}. The page is named after its route in
+kebab-case, a parameter as by- and its name, the root's page root.
+Two folders giving one route are refused. Catch-all segments,
+parallel and intercepting routes, private folders, other page files
+and route handlers print a line and are left out. page.schema.ts is
+read in the subset of TypeScript that is also JSON5: imports,
+comments and one exported object literal, with satisfies and a type
+after it allowed; its keys kind, title, entity, permission,
+columns, compactColumns, fields, sections and filters are taken as
+the page keywords of those names, source and submit are named in
+the question that asks for them, and everything else prints a line.
+An entity a schema names is written by name with the fields pages
+show, each an empty mapping, and a must question blocks its primary
+key and each field. What no schema gives, and the permission of
+every page, is a must question, and so are each permission's
+description and the role that grants it. merge takes an element the asking
+tree writes only as an empty mapping as one it does not give, so a
+tree that gives it with content answers the question.
+
+Consequences: The lending desk gains a small app folder beside its code, with a
+route group, a dynamic segment and one page with a schema file, so
+that its route table and catalogue, which name the code folder, do
+not go stale. A schema whose component library names its keys
+otherwise is read as giving none of them and prints a line per key;
+a page that submits without loading a record, which 0.1 cannot
+hold, has its entity asked for.
+
+**Insight:** The folders from git, not a printed table, because in a file-system router the tracked folders are the route table: nothing registers a route in code, so a reader of the tree reads exactly what is served, and git's list of tracked files gives the same order on every machine. Two folders giving one route are refused because Next.js refuses to build such a tree; the surface is broken, not partly unread. A catch-all segment is left out as the router reader leaves a wildcard out, since an OpenAPI path template, and a page's route, hold one whole parameter per segment. The schema file in the subset that is also JSON5, because that is the form ADR-051's generator writes and its comparison of hand-built screens reads, so a generated page and an extracted one are read the same way, and JSON5 is a published grammar whose values are exactly JSON's, so no TypeScript compiler, and no dependency, is needed to read it; a file outside it is reported and its content asked for, never guessed from code. The design's own keywords as the keys read, because they are the only names SpecArch knows without the ui-components idiom that would map a library's names, and a key read under a wrong name is worse than one asked for. source and submit are only named in a question because the operations they name are the router's and this tree holds none, and a reference to an operation the tree does not hold is an error. The entity by name with empty fields, because a page's fields must be its entity's, and the meta-model's way to write an element known only by name is an empty mapping blocked by a must question (docs/conventions.md, Open questions). The permission is always asked when no schema names it, because the folders do not say who may open a page, and a page open to everyone is the screen counterpart of an open endpoint. Merge treats an empty mapping as not given because that is what it means: the tree knew the name and nothing else, and the tree that gives the content, such as the database's types, answers what was asked.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -3738,6 +3833,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-outline-shallow-clone | command extract | system | red | a clone of depth 1 of a repository with two commits | extract outline is run on a folder of it | it refuses the shallow clone, whose history cannot name the last change to a path, writes nothing and exits 1 |
 | extract-outline-uncommitted | command extract | system | red | a folder whose files are committed, one of them changed since and not committed | extract outline is run on the folder | it refuses, naming the changed file, since no commit names what would be read; it writes nothing and exits 1 |
 | extract-outline-writes-clauses | command extract | system | golden | a repository holding a folder of workflow definitions, which no reader reads yet, one of them a TypeScript file that says it is generated from the others | extract outline is run on the folder with a source key | it writes a root that lists every tracked file as a clause of that source at the commit, and no element; it names the commit, counts the files, reports the generated file, and exits 0 |
+| extract-pages-route-twice | command extract | system | red | a repository whose app folder holds two route groups, each with a page in a folder of the same name, so that both give one route | extract pages is run on the app folder | it refuses the folder, naming both page files and the route, writes nothing, and exits 1 |
+| extract-pages-writes-tree | command extract | system | golden | a repository whose app folder holds a root page, a route group with a list page whose schema file gives its content, keys the reader does not read, a hook and a compact column that is not a column, a page with a dynamic segment whose schema is outside the subset, a page that says it is generated, and a catch-all segment, a parallel route, a private folder, an intercepting route, a route handler and a page.mdx | extract pages is run on the app folder | it writes one page per route with its parameter, the list page's content from its schema with the entity, its fields and the permission it names, a question for what neither the folders nor the schemas say, names the commit, counts the page and schema files, reports the generated page, prints a line for every folder, file and key it leaves out, and exits 0 |
 | extract-permissions-grant-twice | command extract | system | red | a permission table that lists one role granting one permission twice | extract permissions is run on the permission table | it refuses the table, naming the grant listed twice, writes nothing and exits 1 |
 | extract-permissions-writes-tree | command extract | system | golden | a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it, naming the first; the table has two roles sharing a permission, a grant of public, a role whose name is not kebab-case, a role whose one permission is not a permission name, and a check that runs only when a setting is present | extract permissions is run on the permission table | it writes each role with the permissions it grants in the order of their names and every permission granted, a question for the roles' and the permissions' descriptions and one for the check a setting switches off, names the commit, counts the grants and gates, prints a line for the gate, the grant of public, the role's name, the permission's name and the role left with nothing, and exits 0 |
 | extract-router-route-twice | command extract | system | red | a route table that lists the same method and path pair twice | extract router is run on the route table | it refuses the route table, naming the route listed twice, writes nothing and exits 1 |
@@ -3783,6 +3880,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | merge-joins-commits | command merge | system | golden | a repository whose first commit holds the migrations and whose second the router, a database tree read at the first that asks one question, and a router tree read at the second that asks two, both declaring the repository as the source code | merge is run on the two trees | it writes one specification with one source code at the second commit, whose clauses are both trees', every element of both trees, the stakeholder they share once and the three questions numbered again in the order the trees are given, says the migrations are unchanged up to the second commit, and exits 0 |
 | merge-openapi-placeholder | command merge | system | golden | the tree the router's route table gives, and the tree of a sample OpenAPI document a service template ships, none of whose paths the router serves | merge is run on the two trees | it reports the sample as a placeholder with the number of its paths, still asks whether each of its operations is to be built and whether each route is meant to exist, and exits 0 |
 | merge-openapi-unserved | command merge | system | golden | the tree an OpenAPI document gives, with the four operations the router serves and one more, and the tree the router's route table gives | merge is run on the two trees | the router's questions about summaries, responses and path parameters, and the document's questions about the permissions the router names, are left out as answered, the operation the router does not serve is one must question that names its path, and it exits 0 |
+| merge-pages-field-by-name | command merge | system | golden | the tree a catalogue dump gives, and the tree of an app folder whose one schema names the loans entity and the fields its page shows, each field known only by name, with a must question on the entity's primary key and those fields | merge is run on the two trees | the database tree gives the primary key and every field the pages tree knows only by name, so the pages tree's question is left out as answered; the entity cites both trees, and it exits 0 |
 | merge-path-changed | command merge | system | red | a repository whose first commit adds a migration, whose second adds another and whose third the router, a database tree read at the first and a router tree read at the third | merge is run on the two trees | it refuses them, saying the migrations changed at the second commit, after the first the database tree read them at, writes nothing and exits 1 |
 | merge-permissions-asked-twice | command merge | system | golden | the tree the router's route table gives and the tree of a permission table, each asking with must what the same three permissions allow | merge is run on the two trees | it keeps the router's question, leaves out the permission table's as asked twice, naming the question that asks it, and exits 0 |
 | merge-permissions-unchecked | command merge | system | golden | the tree the router's route table gives, and the tree of a permission table whose one role grants the three permissions the routes check and a fourth that no route checks | merge is run on the two trees | it reports the permission no operation, command or page checks with the role that grants it, keeps it in the merged specification, and exits 0 |
@@ -3877,6 +3975,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-permission-ungranted-without-description | command validate | system | red | a declared permission that no role grants and that has no description, with a must question that blocks its description, as an extracted tree writes it | validate is run | the missing description is covered by the question, and it still reports permission_ungranted and exits 1 |
 | validate-question-answered | command validate | system | red | an accepted decision that answers a question still present | validate is run | it reports question_answered at the answers entry and exits 1 |
 | validate-question-block | command validate | system | red | a question whose decider is misspelt and whose blocks name a misspelt entity, a word that is no stage or section, a key below a missing key, a pointer into no section and a pointer with no name | validate is run | it reports each with question_block or stakeholder and exits 1 |
+| validate-question-covers-field-by-name | command validate | system | golden | an entity with a field known only by its name, an empty mapping, and a must question that blocks that field by its pointer | validate is run | the field's missing type is covered by the question, as an element known only by name is; it prints nothing and exits 0 |
 | validate-question-covers-missing | command validate | system | golden | a requirement without priority and acceptance, an entity that is only a name, and must questions in every stage folder that block exactly those, including files directly under tests/ and implementation/ | validate is run | the missing keys and the warnings about the blocked elements are covered by the questions; it prints nothing and exits 0 |
 | validate-question-covers-ungranted | command validate | system | golden | a declared permission that no role grants and that has no description, with a must question that blocks the permission itself | validate is run | the missing description and the ungranted permission are covered by the question; it prints nothing and exits 0 |
 | validate-question-should-not-covering | command validate | system | red | a requirement without priority and a should question that blocks the key | validate is run | the missing key is still reported, because only a must question covers one, and it exits 1 |
@@ -4134,13 +4233,13 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-8 | entities GeneratedFile; commands document; commands generate; algorithms markersWellFormed | tests document-entity-diagram; tests document-two-implementations; tests document-writes-techspec |
 | SA-9 | enums DocumentKind; enums Rule; commands validate; decisions ADR-001; decisions ADR-002; decisions ADR-007 | tests validate-design-key; tests validate-stack-key |
 | SA-10 | enums Rule; commands validate | tests validate-deployment-environment-missing; tests validate-design-ref; tests validate-implements; tests validate-setting; tests validate-tree-valid |
-| SA-11 | enums Rule; entities SpecFile; commands extract; commands validate; decisions ADR-010; decisions ADR-042; decisions ADR-048; decisions ADR-049; decisions ADR-050 | tests merge-documents-days; tests merge-openapi-placeholder; tests merge-openapi-unserved; tests validate-duplicate-name-across-files; tests validate-layout-folder-missing; tests validate-layout-not-a-stage; tests validate-layout-section-folder-in-root; tests validate-layout-section-in-root; tests validate-layout-section-in-wrong-stage; tests validate-layout-stack-mismatch; tests validate-layout-stage-not-listed; tests validate-layout-subfolder-section; tests validate-layout-test-without-file; tests validate-tree-valid; checks checks-the-examples |
+| SA-11 | enums Rule; entities SpecFile; commands extract; commands validate; decisions ADR-010; decisions ADR-042; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057 | tests merge-documents-days; tests merge-openapi-placeholder; tests merge-openapi-unserved; tests validate-duplicate-name-across-files; tests validate-layout-folder-missing; tests validate-layout-not-a-stage; tests validate-layout-section-folder-in-root; tests validate-layout-section-in-root; tests validate-layout-section-in-wrong-stage; tests validate-layout-stack-mismatch; tests validate-layout-stage-not-listed; tests validate-layout-subfolder-section; tests validate-layout-test-without-file; tests validate-tree-valid; checks checks-the-examples |
 | SA-12 | enums Rule; commands validate; decisions ADR-011; decisions ADR-014; decisions ADR-052 | tests validate-deployment-valid; tests validate-monitor-environment; tests validate-monitor-not-declared; tests validate-monitor-valid; tests validate-need-rejected; tests validate-requirements-only; tests validate-secret-in-deployment; tests validate-secret-value; tests validate-traceability-warnings |
 | SA-13 | enums Rule; commands validate; decisions ADR-012 | tests document-citation-unknown-source; tests validate-cites; tests validate-source |
 | SA-14 | enums GeneratorTarget; commands generate; decisions ADR-013; decisions ADR-051 | tests generate-no-plugin; tests generate-plugin-path-outside; tests generate-with-plugin |
 | SA-15 | commands document; decisions ADR-015 | tests document-writes-requirements |
 | SA-16 | enums DocumentTarget; commands document; decisions ADR-016 | tests document-testplan-state-machine; tests document-writes-commissioning; tests document-writes-deployment; tests document-writes-requirements; tests document-writes-testplan; tests document-writes-traceability |
-| SA-17 | enums Rule; commands validate; decisions ADR-017 | tests validate-question-answered; tests validate-question-block; tests validate-question-covers-missing; tests validate-question-covers-ungranted; tests validate-question-should-not-covering; tests validate-question-stage |
+| SA-17 | enums Rule; commands validate; decisions ADR-017 | tests validate-question-answered; tests validate-question-block; tests validate-question-covers-field-by-name; tests validate-question-covers-missing; tests validate-question-covers-ungranted; tests validate-question-should-not-covering; tests validate-question-stage |
 | SA-18 | enums Rule; commands validate; decisions ADR-018 | tests document-draft-notice; tests validate-origin; tests validate-origin-tracked |
 | SA-19 | enums DocumentTarget; commands document; commands gaps | tests document-draft-notice; tests document-writes-questions; tests gaps-lists-questions; tests gaps-none |
 | SA-20 | commands approve; commands generate; decisions ADR-019 | tests approve-refuses-open-question; tests approve-refuses-stale-document; tests approve-writes-record; tests generate-refuses-open-question; tests generate-refuses-unapproved; tests generate-unapproved |
@@ -4167,8 +4266,8 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-41 | enums Rule; decisions ADR-033 | tests validate-views; tests validate-views-valid |
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056 | tests validate-accessibility; tests validate-compact-columns; tests validate-flows; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
-| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-openapi-not-openapi; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests gaps-outline-not-read |
-| SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-source-differs; tests merge-tree-invalid; tests validate-source-given-outside |
+| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-openapi-not-openapi; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-route-twice; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests gaps-outline-not-read |
+| SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-pages-field-by-name; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-source-differs; tests merge-tree-invalid; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-owned-by-unknown |
 
 ## Sources

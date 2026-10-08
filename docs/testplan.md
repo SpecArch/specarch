@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.5.0-dev of the specification: 265 design tests, 98 golden and 167 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.5.0-dev of the specification: 269 design tests, 101 golden and 168 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 261 |
+| system | 265 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -547,6 +547,22 @@ Scenario: golden; level: system; verifies SA-44.
 - When: extract outline is run on the folder with a source key
 - Then: it writes a root that lists every tracked file as a clause of that source at the commit, and no element; it names the commit, counts the files, reports the generated file, and exits 0
 
+#### extract-pages-route-twice
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: a repository whose app folder holds two route groups, each with a page in a folder of the same name, so that both give one route
+- When: extract pages is run on the app folder
+- Then: it refuses the folder, naming both page files and the route, writes nothing, and exits 1
+
+#### extract-pages-writes-tree
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository whose app folder holds a root page, a route group with a list page whose schema file gives its content, keys the reader does not read, a hook and a compact column that is not a column, a page with a dynamic segment whose schema is outside the subset, a page that says it is generated, and a catch-all segment, a parallel route, a private folder, an intercepting route, a route handler and a page.mdx
+- When: extract pages is run on the app folder
+- Then: it writes one page per route with its parameter, the list page's content from its schema with the entity, its fields and the permission it names, a question for what neither the folders nor the schemas say, names the commit, counts the page and schema files, reports the generated page, prints a line for every folder, file and key it leaves out, and exits 0
+
 #### extract-permissions-grant-twice
 
 Scenario: red; level: system; covers exit 1; verifies SA-44.
@@ -916,6 +932,14 @@ Scenario: golden; level: system; verifies SA-11.
 - Given: the tree an OpenAPI document gives, with the four operations the router serves and one more, and the tree the router's route table gives
 - When: merge is run on the two trees
 - Then: the router's questions about summaries, responses and path parameters, and the document's questions about the permissions the router names, are left out as answered, the operation the router does not serve is one must question that names its path, and it exits 0
+
+#### merge-pages-field-by-name
+
+Scenario: golden; level: system; verifies SA-45.
+
+- Given: the tree a catalogue dump gives, and the tree of an app folder whose one schema names the loans entity and the fields its page shows, each field known only by name, with a must question on the entity's primary key and those fields
+- When: merge is run on the two trees
+- Then: the database tree gives the primary key and every field the pages tree knows only by name, so the pages tree's question is left out as answered; the entity cites both trees, and it exits 0
 
 #### merge-path-changed
 
@@ -1670,6 +1694,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-17.
 - Given: a question whose decider is misspelt and whose blocks name a misspelt entity, a word that is no stage or section, a key below a missing key, a pointer into no section and a pointer with no name
 - When: validate is run
 - Then: it reports each with question_block or stakeholder and exits 1
+
+#### validate-question-covers-field-by-name
+
+Scenario: golden; level: system; verifies SA-17.
+
+- Given: an entity with a field known only by its name, an empty mapping, and a must question that blocks that field by its pointer
+- When: validate is run
+- Then: the field's missing type is covered by the question, as an element known only by name is; it prints nothing and exits 0
 
 #### validate-question-covers-missing
 

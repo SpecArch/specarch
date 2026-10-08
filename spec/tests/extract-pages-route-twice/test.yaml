@@ -1,0 +1,8 @@
+command: extract
+level: system
+scenario: red
+covers: [exit 1]
+given: "a repository whose app folder holds two route groups, each with a page in a folder of the same name, so that both give one route"
+when: "extract pages is run on the app folder"
+then: "it refuses the folder, naming both page files and the route, writes nothing, and exits 1"
+verifies: [SA-44]

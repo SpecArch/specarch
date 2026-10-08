@@ -1,0 +1,28 @@
+permissions:
+  loans.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'examples/lending-desk/sources/web/app/(desk)/members/[cardNumber]/loans/page.schema.ts', says: 'The page at /members/{cardNumber}/loans checks loans.read.'}
+pages:
+  loans-new:
+    route: /loans/new
+    origin: stated
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/web/app/(desk)/loans/new/page.tsx, says: 'The folder (desk)/loans/new holds page.tsx, so the router serves a page at /loans/new.'}
+  members-by-card-number-loans:
+    kind: list
+    title: Loans of a member
+    route: /members/{cardNumber}/loans
+    entity: Loans
+    permission: loans.read
+    columns: [barcode, loanedOn, dueOn, returnedOn]
+    compactColumns: [barcode, dueOn]
+    origin: stated
+    cites:
+      - {source: code, clause: 'examples/lending-desk/sources/web/app/(desk)/members/[cardNumber]/loans/page.tsx', says: 'The folder (desk)/members/[cardNumber]/loans holds page.tsx, so the router serves a page at /members/{cardNumber}/loans.'}
+      - {source: code, clause: 'examples/lending-desk/sources/web/app/(desk)/members/[cardNumber]/loans/page.schema.ts', says: 'The page''s schema gives its kind, title, entity, permission, source, columns and compactColumns.'}
+  root:
+    route: /
+    origin: stated
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/web/app/page.tsx, says: 'The root folder holds page.tsx, so the router serves a page at /.'}

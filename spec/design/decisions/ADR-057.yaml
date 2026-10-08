@@ -1,0 +1,88 @@
+decisions:
+  ADR-057:
+    title: extract pages reads a file-system router's folders from git and a page's schema file in the subset of TypeScript that is also JSON5, and merge takes an element given only by name as not given
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Step 9 of docs/extraction.md, Building extract, reads a web
+      application's pages from a file-system router tree such as a
+      Next.js app folder: one page per folder that holds a page file,
+      with dynamic segments as parameters and route groups recognised,
+      and a page's content from the schema file its component library
+      renders from, where it has one. The owner asked for both the tree
+      and the schema files. The tree is the router: Next.js builds its
+      routes from the folders and nothing else, so no printer is needed
+      as it is for a router built in code. The schema file is the one
+      ADR-051 has the TypeScript generator write beside each page,
+      page.schema.ts, one object literal typed with satisfies. A page in
+      meta-model 0.1 needs a kind, a title, an entity and a permission,
+      and the fields it shows must be fields of its entity; a field with
+      no type is not valid unless a must question blocks it whole, so a
+      question about a field's type cannot be answered by another tree
+      under the rule of ADR-049, which counts only keys the asking tree
+      leaves out.
+    decision: |
+      extract pages reads one folder, the router's root, from the files
+      git tracks under it, at the commit that last changed it. A folder
+      with page.tsx, page.ts, page.jsx or page.js is a page; a folder in
+      parentheses is a route group and adds nothing to the route; [name]
+      is the parameter {name}. The page is named after its route in
+      kebab-case, a parameter as by- and its name, the root's page root.
+      Two folders giving one route are refused. Catch-all segments,
+      parallel and intercepting routes, private folders, other page files
+      and route handlers print a line and are left out. page.schema.ts is
+      read in the subset of TypeScript that is also JSON5: imports,
+      comments and one exported object literal, with satisfies and a type
+      after it allowed; its keys kind, title, entity, permission,
+      columns, compactColumns, fields, sections and filters are taken as
+      the page keywords of those names, source and submit are named in
+      the question that asks for them, and everything else prints a line.
+      An entity a schema names is written by name with the fields pages
+      show, each an empty mapping, and a must question blocks its primary
+      key and each field. What no schema gives, and the permission of
+      every page, is a must question, and so are each permission's
+      description and the role that grants it. merge takes an element the asking
+      tree writes only as an empty mapping as one it does not give, so a
+      tree that gives it with content answers the question.
+    why: |
+      The folders from git, not a printed table, because in a file-system
+      router the tracked folders are the route table: nothing registers a
+      route in code, so a reader of the tree reads exactly what is
+      served, and git's list of tracked files gives the same order on
+      every machine. Two folders giving one route are refused because
+      Next.js refuses to build such a tree; the surface is broken, not
+      partly unread. A catch-all segment is left out as the router reader
+      leaves a wildcard out, since an OpenAPI path template, and a page's
+      route, hold one whole parameter per segment. The schema file in the
+      subset that is also JSON5, because that is the form ADR-051's
+      generator writes and its comparison of hand-built screens reads, so
+      a generated page and an extracted one are read the same way, and
+      JSON5 is a published grammar whose values are exactly JSON's, so no
+      TypeScript compiler, and no dependency, is needed to read it; a
+      file outside it is reported and its content asked for, never
+      guessed from code. The design's own keywords as the keys read,
+      because they are the only names SpecArch knows without the
+      ui-components idiom that would map a library's names, and a key
+      read under a wrong name is worse than one asked for. source and
+      submit are only named in a question because the operations they
+      name are the router's and this tree holds none, and a reference to
+      an operation the tree does not hold is an error. The entity by name
+      with empty fields, because a page's fields must be its entity's,
+      and the meta-model's way to write an element known only by name is
+      an empty mapping blocked by a must question (docs/conventions.md,
+      Open questions). The permission is always asked when no schema
+      names it, because the folders do not say who may open a page, and
+      a page open to everyone is the screen counterpart of an open
+      endpoint. Merge treats an empty mapping as not given because that
+      is what it means: the tree knew the name and nothing else, and
+      the tree that gives the content, such as the database's types,
+      answers what was asked.
+    consequences: |
+      The lending desk gains a small app folder beside its code, with a
+      route group, a dynamic segment and one page with a schema file, so
+      that its route table and catalogue, which name the code folder, do
+      not go stale. A schema whose component library names its keys
+      otherwise is read as giving none of them and prints a line per key;
+      a page that submits without loading a record, which 0.1 cannot
+      hold, has its entity asked for.
+    satisfies: [SA-11, SA-44, SA-45]

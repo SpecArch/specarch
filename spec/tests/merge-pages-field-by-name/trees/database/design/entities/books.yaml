@@ -1,0 +1,11 @@
+entities:
+  Books:
+    type: object
+    properties:
+      barcode: {type: string, maxLength: 20}
+      title: {type: string, maxLength: 300}
+    required: [barcode, title]
+    primaryKey: [barcode]
+    origin: stated
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/code/migrations public.books, says: 'Table public.books: barcode character varying(20) not null, title character varying(300) not null. books_pkey PRIMARY KEY (barcode).'}

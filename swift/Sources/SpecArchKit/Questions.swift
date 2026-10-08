@@ -152,8 +152,10 @@ func joinAnd(_ items: [String]) -> String {
 /// Splits the diagnostics into the ones to report and the ones an open must
 /// question covers: a required key missing at or under a pointer the
 /// question blocks, the warnings about that element, and a permission no
-/// role grants when the question blocks that permission. A wrong value next
-/// to the gap stays an error.
+/// role grants when the question blocks that permission. A pointer to an
+/// element known only by name, an empty mapping such as a field with
+/// nothing but its name, covers everything under it. A wrong value next to
+/// the gap stays an error.
 func coveredByQuestions(_ ds: [Diagnostic], _ root: YNode) -> (kept: [Diagnostic], covered: [Diagnostic]) {
     var elements: [String] = []
     var keys: [String: [String]] = [:]
@@ -163,6 +165,10 @@ func coveredByQuestions(_ ds: [Diagnostic], _ root: YNode) -> (kept: [Diagnostic
             let k = b.key
             if !k.isEmpty {
                 keys[pointer(Array(b.tokens.dropLast())), default: []].append(k)
+                let (n, reached) = resolve(root, b.tokens)
+                if reached && n.kind == .mapping && n.pairs.isEmpty {
+                    elements.append(pointer(b.tokens))
+                }
             } else {
                 elements.append(b.element)
             }

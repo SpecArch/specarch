@@ -1,0 +1,7 @@
+command: merge
+level: system
+scenario: golden
+given: "the tree a catalogue dump gives, and the tree of an app folder whose one schema names the loans entity and the fields its page shows, each field known only by name, with a must question on the entity's primary key and those fields"
+when: "merge is run on the two trees"
+then: "the database tree gives the primary key and every field the pages tree knows only by name, so the pages tree's question is left out as answered; the entity cites both trees, and it exits 0"
+verifies: [SA-45]

@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "an entity with a field known only by its name, an empty mapping, and a must question that blocks that field by its pointer"
+when: "validate is run"
+then: "the field's missing type is covered by the question, as an element known only by name is; it prints nothing and exits 0"
+verifies: [SA-17]

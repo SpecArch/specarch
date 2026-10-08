@@ -190,8 +190,10 @@ func (c *checker) checkOriginTracked(d *design) {
 // Covered splits the diagnostics into the ones to report and the ones an
 // open must question covers: a required key missing at or under a pointer
 // the question blocks, the warnings about that element, and a permission
-// no role grants when the question blocks that permission. A wrong value
-// next to the gap stays an error. root is the merged specification.
+// no role grants when the question blocks that permission. A pointer to an
+// element known only by name, an empty mapping such as a field with
+// nothing but its name, covers everything under it. A wrong value next to
+// the gap stays an error. root is the merged specification.
 func Covered(ds []Diagnostic, root *yaml.Node) (kept, covered []Diagnostic) {
 	var elements []string         // pointers of blocked elements, such as /entities/Loan
 	keys := map[string][]string{} // element pointer -> the blocked keys
@@ -207,6 +209,11 @@ func Covered(ds []Diagnostic, root *yaml.Node) (kept, covered []Diagnostic) {
 			if k := b.Key(); k != "" {
 				parent := source.Pointer(b.Tokens[:len(b.Tokens)-1]...)
 				keys[parent] = append(keys[parent], k)
+				if n, ok := source.Resolve(root, b.Tokens); ok {
+					if n = source.Deref(n); n.Kind == yaml.MappingNode && len(n.Content) == 0 {
+						elements = append(elements, source.Pointer(b.Tokens...))
+					}
+				}
 			} else {
 				elements = append(elements, b.Element())
 			}

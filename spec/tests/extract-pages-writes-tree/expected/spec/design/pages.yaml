@@ -1,0 +1,45 @@
+entities:
+  Order:
+    type: object
+    properties:
+      number: {}
+      placedOn: {}
+      total: {}
+    origin: stated
+    cites:
+      - {source: code, clause: app/(shop)/orders/page.schema.ts, says: The page at /orders shows Order.}
+permissions:
+  orders.read:
+    origin: stated
+    cites:
+      - {source: code, clause: app/(shop)/orders/page.schema.ts, says: The page at /orders checks orders.read.}
+pages:
+  orders:
+    kind: list
+    title: Orders
+    route: /orders
+    entity: Order
+    permission: orders.read
+    columns: [number, placedOn, total]
+    compactColumns: [number]
+    filters: [placedOn]
+    origin: stated
+    cites:
+      - {source: code, clause: app/(shop)/orders/page.tsx, says: 'The folder (shop)/orders holds page.tsx, so the router serves a page at /orders.'}
+      - {source: code, clause: app/(shop)/orders/page.schema.ts, says: 'The page''s schema gives its kind, title, entity, permission, source, columns, compactColumns and filters.'}
+  orders-by-order-id:
+    route: /orders/{orderId}
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/(shop)/orders/[orderId]/page.tsx', says: 'The folder (shop)/orders/[orderId] holds page.tsx, so the router serves a page at /orders/{orderId}.'}
+      - {source: code, clause: 'app/(shop)/orders/[orderId]/page.schema.ts', says: The page's schema gives none of the page's keys.}
+  root:
+    route: /
+    origin: stated
+    cites:
+      - {source: code, clause: app/page.tsx, says: 'The root folder holds page.tsx, so the router serves a page at /.'}
+  status:
+    route: /status
+    origin: stated
+    cites:
+      - {source: code, clause: app/status/page.js, says: 'The folder status holds page.js, so the router serves a page at /status.'}

@@ -1,0 +1,15 @@
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: integer, format: int32 }
+      dueOn: {}
+    primaryKey: [id]
+    satisfies: [CASE-1]
+questions:
+  Q-1:
+    question: What does a loan's dueOn hold?
+    kind: decision
+    priority: must
+    blocks: ["#/entities/Loan/properties/dueOn"]
+    decidedBy: owner

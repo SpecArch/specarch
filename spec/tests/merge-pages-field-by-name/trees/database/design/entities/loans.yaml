@@ -1,0 +1,20 @@
+entities:
+  Loans:
+    type: object
+    properties:
+      id: {type: string, format: int64, readOnly: true}
+      cardNumber: {type: string, maxLength: 10}
+      barcode: {type: string, maxLength: 20}
+      loanedOn: {type: string, format: date}
+      dueOn: {type: string, format: date}
+      returnedOn: {type: [string, "null"], format: date}
+    required: [id, cardNumber, barcode, loanedOn, dueOn]
+    primaryKey: [id]
+    relations:
+      books: {target: Books, kind: many-to-one, via: barcode, onDelete: restrict}
+      members: {target: Members, kind: many-to-one, via: cardNumber, onDelete: restrict}
+    constraints:
+      loans_loan_period: {kind: check, expression: dueOn == loanedOn + duration("P14D")}
+    origin: stated
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/code/migrations public.loans, says: 'Table public.loans: id bigint not null default nextval(''loans_id_seq''::regclass), card_number character(10) not null, barcode character varying(20) not null, loaned_on date not null, due_on date not null, returned_on date. loans_barcode_fkey FOREIGN KEY (barcode) REFERENCES books(barcode); loans_card_number_fkey FOREIGN KEY (card_number) REFERENCES members(card_number); loans_loan_period CHECK ((due_on = (loaned_on + 14))); loans_pkey PRIMARY KEY (id).'}

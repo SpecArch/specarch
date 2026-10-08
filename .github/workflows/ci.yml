@@ -85,6 +85,19 @@ jobs:
           go run ./cmd/specarch validate "$RUNNER_TEMP/granted-one"
           test "$(grep -c '^asked twice: ' "$RUNNER_TEMP/granted-one.txt")" -eq 1
           if grep -q '^unchecked: ' "$RUNNER_TEMP/granted-one.txt"; then echo "a granted permission was reported unchecked"; exit 1; fi
+      - name: The lending desk's app folder extracts the same twice, and merged with the database the loans entity's question is answered
+        # Three pages, one in a route group with a dynamic segment and a
+        # schema file that names the loans entity and its columns.
+        run: |
+          for run in one two; do go run ./cmd/specarch extract pages --out "$RUNNER_TEMP/pages-$run" examples/lending-desk/sources/web/app > "$RUNNER_TEMP/pages-$run.txt" || exit 1; done
+          diff -r "$RUNNER_TEMP/pages-one" "$RUNNER_TEMP/pages-two" && cmp "$RUNNER_TEMP/pages-one.txt" "$RUNNER_TEMP/pages-two.txt"
+          go run ./cmd/specarch validate "$RUNNER_TEMP/pages-one"
+          grep -q 'wrote 3 pages, 1 entity, 1 permission' "$RUNNER_TEMP/pages-one.txt"
+          grep -q 'columns: \[barcode, loanedOn, dueOn, returnedOn\]' "$RUNNER_TEMP/pages-one/design/pages.yaml"
+          for run in one two; do go run ./cmd/specarch merge --out "$RUNNER_TEMP/paged-$run" "$RUNNER_TEMP/one" "$RUNNER_TEMP/pages-one" > "$RUNNER_TEMP/paged-$run.txt" || exit 1; done
+          diff -r "$RUNNER_TEMP/paged-one" "$RUNNER_TEMP/paged-two" && cmp "$RUNNER_TEMP/paged-one.txt" "$RUNNER_TEMP/paged-two.txt"
+          go run ./cmd/specarch validate "$RUNNER_TEMP/paged-one"
+          grep -q '^answered: .*#/entities/Loans/primaryKey' "$RUNNER_TEMP/paged-one.txt"
       - name: The lending desk's SQL and OpenAPI leave out the book records another team owns, the same twice
         # Book's mapping names the catalogue team under ownedBy: no table
         # and no schema for it, the loans table's foreign key to books

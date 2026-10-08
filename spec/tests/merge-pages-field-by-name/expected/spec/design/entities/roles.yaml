@@ -1,0 +1,10 @@
+entities:
+  Roles:
+    type: object
+    properties:
+      name: {type: string, maxLength: 40}
+    required: [name]
+    primaryKey: [name]
+    origin: stated
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/code/migrations public.roles, says: 'Table public.roles: name character varying(40) not null. roles_pkey PRIMARY KEY (name).'}

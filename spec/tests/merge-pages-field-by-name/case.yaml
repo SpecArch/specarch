@@ -1,0 +1,8 @@
+arguments: [merge, --out, spec, trees/database, trees/pages]
+exitStatus: 0
+standardOutput: |
+  tree trees/database: Database of examples/lending-desk/sources/code/migrations, on the code side: 6 elements and 1 question
+  tree trees/pages: Pages of examples/lending-desk/sources/web/app, on the code side: 6 elements and 8 questions
+  answered: Q-6 of trees/pages, on #/entities/Loans/primaryKey, #/entities/Loans/properties/barcode, #/entities/Loans/properties/dueOn, #/entities/Loans/properties/loanedOn, #/entities/Loans/properties/returnedOn, is left out; Database of examples/lending-desk/sources/code/migrations gives it
+  merged 10 elements, each an entry of a section or an operation: 2 in more than one tree, and 0 keys the trees disagree on
+  wrote 8 questions: 8 from the trees, numbered again in the order the trees are given, and 0 the merge asked

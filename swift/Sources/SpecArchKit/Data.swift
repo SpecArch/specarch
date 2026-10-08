@@ -82,8 +82,9 @@ extension Checker {
 }
 
 extension Design {
-    /// Every field a schema can carry: through a $ref to an entity, its
-    /// items, and its properties, each entity once.
+    /// Every field a schema can carry: through a $ref to an entity, a view
+    /// or a schema of the specification, its items, and its properties, each
+    /// entity, view and schema once.
     func responseFields(_ schema: YNode?) -> [NamedField] {
         var out: [NamedField] = []
         var seen = Set<String>()
@@ -95,6 +96,13 @@ extension Design {
                 guard !seen.contains(name), let e = entities[name] else { return }
                 seen.insert(name)
                 visit(e, name)
+                return
+            }
+            if ref.hasPrefix("#/schemas/") {
+                let name = String(ref.dropFirst("#/schemas/".count))
+                guard !seen.contains("$" + name), let v = schemas[name] else { return }
+                seen.insert("$" + name)
+                visit(v, name)
                 return
             }
             if ref.hasPrefix("#/views/") {

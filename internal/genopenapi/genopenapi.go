@@ -370,8 +370,8 @@ func (g *gen) schema(s map[string]any) *yaml.Node {
 	return n
 }
 
-// components writes the entities and enums as schemas, the problem
-// document, the problem catalogue, and the security scheme.
+// components writes the entities, views, schemas and enums as schemas,
+// the problem document, the problem catalogue, and the security scheme.
 func (g *gen) components() *yaml.Node {
 	out := mapping()
 	schemas := mapping()
@@ -379,7 +379,8 @@ func (g *gen) components() *yaml.Node {
 	entities := obj(g.spec["entities"])
 	var names []string
 	views := obj(g.spec["views"])
-	for section, m := range map[string]map[string]any{"enums": enums, "entities": entities, "views": views} {
+	values := obj(g.spec["schemas"])
+	for section, m := range map[string]map[string]any{"enums": enums, "entities": entities, "views": views, "schemas": values} {
 		for k := range m {
 			if !g.owned.Covers(ownership.Entity(section, k)) {
 				names = append(names, k)
@@ -406,6 +407,9 @@ func (g *gen) components() *yaml.Node {
 			continue
 		}
 		e := obj(entities[name])
+		if v, ok := values[name].(map[string]any); ok {
+			e = v
+		}
 		description := text(e["description"])
 		ps := obj(e["properties"])
 		var added []any

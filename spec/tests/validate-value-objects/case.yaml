@@ -1,0 +1,8 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |+
+  specarch.yaml:10: error: /entities/Loan/properties/receipt/$ref: value_object: Receipt is a schema, which is passed around and never stored, and Loan is stored; hold the fields Loan needs in Loan, or make Receipt an entity
+  specarch.yaml:13: error: /entities/Loan/relations/summary/target: value_object: Receipt is a schema, a value with no identity, and a relation leads to a record; give Receipt a key and make it an entity, or hold its fields in Loan
+  specarch.yaml:20: error: /schemas/Receipt/required/1: field: returnedOn is not a field of Receipt, so it cannot be required; use one of dueOn
+  specarch.yaml:22: error: /schemas/Loan: value_object: Loan is the name of an entity too; a schema, an entity and a view are one namespace, since each becomes a schema of its own in the interface; rename the schema
+  specarch.yaml:30: error: /schemas/Notice/properties/receipt/$ref: ref_type: Reciept is not a schema of the specification; did you mean Receipt?

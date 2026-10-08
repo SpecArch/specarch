@@ -27,7 +27,7 @@ let patternNames: [String: String] = [
     "^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z][a-z0-9]*(-[a-z0-9]+)*$": "a date and an environment, such as 2026-10-07-production",
     "^sha256:[0-9a-f]{64}$": "sha256: and 64 lower-case hexadecimal digits",
     "^[a-z][A-Za-z0-9]*(\\.[a-z][A-Za-z0-9]*)+$": "relations and a field separated by dots, such as member.fullName",
-    "^#/(entities|enums|views)/[A-Z][A-Za-z0-9]*$": "#/entities/Name, #/enums/Name or #/views/Name",
+    "^#/(entities|enums|views|schemas)/[A-Z][A-Za-z0-9]*$": "#/entities/Name, #/enums/Name, #/views/Name or #/schemas/Name",
     "^/": "a path starting with /",
     "^([1-5][0-9][0-9]|default)$": "an HTTP status code such as 200, or default",
     "^[a-z]+/[a-z0-9.+-]+$": "a media type, such as application/json",

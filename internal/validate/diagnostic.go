@@ -114,6 +114,7 @@ const (
 	RulePicker                 Rule = "picker"
 	RuleAction                 Rule = "action"
 	RuleFormField              Rule = "form_field"
+	RuleValueObject            Rule = "value_object"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -220,6 +221,7 @@ var Rules = []Rule{
 	RulePicker,
 	RuleAction,
 	RuleFormField,
+	RuleValueObject,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

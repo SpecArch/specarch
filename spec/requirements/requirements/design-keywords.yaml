@@ -164,3 +164,16 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: A screen written by hand drifts from the pages, states and messages the owner reviewed; written from them, it says what the design says, and a change to the design reaches the screen on the next run.
+  SA-48:
+    statement: A specification shall declare a value object under schemas, data passed around but not stored and with no identity, which a request body, a response, a message or another schema may refer to and an entity may not, and specarch validate shall check every use of one.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - A schema is an object with properties and a required list, and nothing only a stored record has; a request body, a response, a message's payload and another schema's property may refer to it as '#/schemas/Name', and a derived case reads a body's required properties through it.
+      - A relation whose target is a schema, an entity's field that refers to one, a schema named like an entity or a view, and a required name that is not one of the schema's properties are refused (value_object, field); a reference to a schema the specification lacks is refused (ref_type).
+      - specarch generate sql writes nothing for a schema, and specarch generate openapi writes it under components.schemas.
+      - specarch extract openapi writes a component schema it finds no key for as a schema, with no question about its key.
+    verification: test
+    needs: [NEED-1]
+    why: Data passed around but never stored, a diagnostic, a summary or a token's claims, was written as an entity with a made-up key, so the generators gave it a table nobody uses and a reader of the specification could not tell it from a stored record.

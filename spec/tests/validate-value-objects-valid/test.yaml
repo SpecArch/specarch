@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "a schema that refers to an enum, one that is a request body, and one that is a response carrying an entity and a list of the first, which is also a message's payload"
+when: "validate is run"
+then: "it reports no error, derives the request body's required property through its schema, and exits 0"
+verifies: [SA-48]

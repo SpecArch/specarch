@@ -240,3 +240,34 @@ func TestViews(t *testing.T) {
 		t.Error("listLoans does not answer LoanRow")
 	}
 }
+
+// A schema is written under components.schemas as it is, and a body
+// referring to it refers to that component.
+func TestValueObjects(t *testing.T) {
+	r := request(t, "../../examples/library-lending/spec")
+	r.Specification["schemas"] = map[string]any{
+		"Diagnostic": map[string]any{
+			"type":        "object",
+			"description": "One thing a check found.",
+			"properties":  map[string]any{"text": map[string]any{"type": "string", "maxLength": json.Number("200")}},
+			"required":    []any{"text"},
+		},
+	}
+	resp := Generate(r)
+	if len(resp.Diagnostics) > 0 {
+		t.Fatalf("diagnostics: %v", resp.Diagnostics)
+	}
+	var doc map[string]any
+	if err := yaml.Unmarshal([]byte(resp.Files[0].Content), &doc); err != nil {
+		t.Fatal(err)
+	}
+	d := at(t, doc, "components", "schemas", "Diagnostic")
+	for _, c := range []struct {
+		keys []any
+		want any
+	}{{[]any{"type"}, "object"}, {[]any{"description"}, "One thing a check found."}, {[]any{"properties", "text", "maxLength"}, 200}, {[]any{"required", 0}, "text"}} {
+		if got := at(t, d, c.keys...); got != c.want {
+			t.Errorf("Diagnostic %v is %#v, not %#v", c.keys, got, c.want)
+		}
+	}
+}

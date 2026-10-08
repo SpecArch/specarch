@@ -130,6 +130,16 @@
         "$ref": "#/$defs/view"
       }
     },
+    "schemas": {
+      "description": "OpenAPI's components.schemas. Value objects keyed by PascalCase name: data passed around but not stored, with no identity, such as a diagnostic, a summary or a token's claims. A schema has no key and no table; a request body, a response, a message or another schema may refer to it, and an entity may not.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/typeName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/valueObject"
+      }
+    },
     "permissions": {
       "description": "SpecArch keyword. Named rights, keyed by dotted lower-case name such as 'loans.create'. The name 'public' is reserved: an operation or page that grants it is open to everyone, including unauthenticated callers.",
       "type": "object",
@@ -569,9 +579,9 @@
       "type": "string"
     },
     "schemaRef": {
-      "description": "A JSON pointer into the specification, such as '#/entities/Member', '#/enums/LoanStatus' or '#/views/LoanRow'. The pointer names the object wherever its file is in the tree.",
+      "description": "A JSON pointer into the specification, such as '#/entities/Member', '#/enums/LoanStatus', '#/views/LoanRow' or '#/schemas/Diagnostic'. The pointer names the object wherever its file is in the tree.",
       "type": "string",
-      "pattern": "^#/(entities|enums|views)/[A-Z][A-Za-z0-9]*$"
+      "pattern": "^#/(entities|enums|views|schemas)/[A-Z][A-Za-z0-9]*$"
     },
     "info": {
       "description": "OpenAPI keyword. What the system is. Only in specarch.yaml.",
@@ -5027,6 +5037,65 @@
             "items"
           ]
         }
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "valueObject": {
+      "description": "An object schema with no key: JSON Schema's properties and required, and nothing that only a stored record has (a primary key, relations, constraints, states).",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "type": {
+          "type": "string",
+          "const": "object"
+        },
+        "properties": {
+          "description": "JSON Schema keyword. The schema's fields.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/field"
+          },
+          "minProperties": 1
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "uniqueItems": true
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "type",
+        "properties"
       ],
       "propertyNames": {
         "not": {

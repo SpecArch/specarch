@@ -125,6 +125,7 @@ func contents(root *yaml.Node) string {
 	count(len(pairs(root, "requirements")), "requirement", "requirements")
 	count(len(pairs(root, "entities")), "entity", "entities")
 	count(len(pairs(root, "views")), "view", "views")
+	count(len(pairs(root, "schemas")), "schema", "schemas")
 	count(len(operations(root)), "HTTP operation", "HTTP operations")
 	count(len(pairs(root, "commands")), "command", "commands")
 	count(len(pairs(root, "channels")), "channel", "channels")
@@ -267,7 +268,8 @@ func buildingBlocks(d *doc, root *yaml.Node) {
 	entities := pairs(root, "entities")
 	enums := pairs(root, "enums")
 	views := pairs(root, "views")
-	if len(entities)+len(enums)+len(views) == 0 {
+	schemas := pairs(root, "schemas")
+	if len(entities)+len(enums)+len(views)+len(schemas) == 0 {
 		return
 	}
 	d.heading(2, "5. Building blocks")
@@ -356,6 +358,29 @@ func buildingBlocks(d *doc, root *yaml.Node) {
 			}
 			d.blank()
 			d.para("Reads from: " + from + ".")
+		}
+	}
+	if len(schemas) > 0 {
+		d.heading(3, "Schemas")
+		d.para("A schema is data passed around but not stored: it has no key and no table, and a request body, a response, a message or another schema carries it.")
+		for _, v := range schemas {
+			d.heading(4, v.Key.Value)
+			d.para(str(v.Value, "description"))
+			d.explain(v.Value)
+			required := map[string]bool{}
+			for _, r := range strs(v.Value, "required") {
+				required[r] = true
+			}
+			d.line("| Field | Type | Required | Limits | Description |")
+			d.line("|---|---|---|---|---|")
+			for _, f := range pairs(v.Value, "properties") {
+				req := ""
+				if required[f.Key.Value] {
+					req = "yes"
+				}
+				d.line("| %s | %s | %s | %s | %s |", f.Key.Value, cell(typeText(f.Value)), cell(req), cell(limits(f.Value)), cell(str(f.Value, "description")))
+			}
+			d.blank()
 		}
 	}
 	if len(enums) > 0 {

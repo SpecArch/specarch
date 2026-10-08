@@ -105,6 +105,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case picker = "picker"
     case action = "action"
     case formField = "form_field"
+    case valueObject = "value_object"
 }
 
 /// Whether a diagnostic makes the file invalid.

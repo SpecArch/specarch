@@ -1,0 +1,7 @@
+command: generate
+level: system
+scenario: golden
+given: "a specification with an entity and a schema that a response refers to, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH"
+when: "generate sql is run with --unapproved"
+then: "it writes 0001_expand.sql with the entity's table and nothing for the schema, and snapshot.yaml beside it, and exits 0"
+verifies: [SA-48]

@@ -392,7 +392,7 @@ extension Design {
     }
 
     /// The request body's fields and its required ones. For a $ref to an
-    /// entity, fields the system sets (readOnly) are left out.
+    /// entity or a schema, fields the system sets (readOnly) are left out.
     func requestFields(_ op: YNode) -> ([String: YNode], [String]) {
         let content = pairs(child(op.child("requestBody"), "content"))
         guard let first = content.first else { return ([:], []) }
@@ -401,6 +401,9 @@ extension Design {
         let ref = str(child(schema, "$ref"))
         if ref.hasPrefix("#/entities/") {
             schema = entities[String(ref.dropFirst("#/entities/".count))]
+            readOnlyLeftOut = true
+        } else if ref.hasPrefix("#/schemas/") {
+            schema = schemas[String(ref.dropFirst("#/schemas/".count))]
             readOnlyLeftOut = true
         }
         var fields: [String: YNode] = [:]

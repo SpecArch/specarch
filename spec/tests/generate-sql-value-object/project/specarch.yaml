@@ -1,0 +1,41 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Book:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      title: { type: string, maxLength: 300 }
+    required: [id, title]
+    primaryKey: [id]
+schemas:
+  ShelfCheck:
+    description: What a shelf check found, passed back and never kept.
+    type: object
+    properties:
+      book: { $ref: "#/entities/Book" }
+      missing: { type: boolean }
+    required: [book, missing]
+permissions:
+  books.check: { description: Check a shelf. }
+roles:
+  clerk: { description: Staff., permissions: [books.check] }
+paths:
+  /shelf-checks:
+    post:
+      operationId: checkShelf
+      summary: Check a book is on its shelf
+      permission: books.check
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, properties: { bookId: { type: string, format: uuid } }, required: [bookId] }
+      responses:
+        "200":
+          description: What the check found.
+          content:
+            application/json:
+              schema: { $ref: "#/schemas/ShelfCheck" }

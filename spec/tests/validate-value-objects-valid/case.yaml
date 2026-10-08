@@ -1,0 +1,7 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |+
+  specarch.yaml:50: warning: /paths/~1renewals/post: test_case_missing: operation renewLoan has no red scenario for "denied without loans.renew"; add under tests renew-loan-denied-without-loans-renew: { operation: renewLoan, scenario: red, covers: [denied without loans.renew], given: "a caller without loans.renew", when: "renewLoan is called", then: "it is refused as not allowed" }
+  specarch.yaml:50: warning: /paths/~1renewals/post: test_case_missing: operation renewLoan has no red scenario for "loanId not a valid uuid"; add under tests renew-loan-loan-id-not-a-valid-uuid: { operation: renewLoan, scenario: red, covers: [loanId not a valid uuid], given: "...", when: "renewLoan is called with loanId that is not a valid uuid", then: "it is refused" }
+  specarch.yaml:50: warning: /paths/~1renewals/post: test_case_missing: operation renewLoan has no red scenario for "missing loanId"; add under tests renew-loan-missing-loan-id: { operation: renewLoan, scenario: red, covers: [missing loanId], given: "...", when: "renewLoan is called without loanId", then: "it is refused" }
+  specarch.yaml:50: warning: /paths/~1renewals/post: test_golden_missing: operation renewLoan has no golden scenario; add one under tests, for example renew-loan-succeeds: { operation: renewLoan, scenario: golden, given: "a caller with loans.renew", when: "renewLoan is called with values inside every limit", then: "it answers 200: The loan, renewed." }

@@ -489,7 +489,8 @@ func (d *design) responseIsList(op *yaml.Node) bool {
 }
 
 // requestFields returns the request body's fields and its required ones.
-// For a $ref to an entity, fields the system sets (readOnly) are left out.
+// For a $ref to an entity or a schema, fields the system sets (readOnly)
+// are left out.
 func (d *design) requestFields(op *yaml.Node) (map[string]*yaml.Node, []string) {
 	content := source.Pairs(source.Child(source.Child(op, "requestBody"), "content"))
 	if len(content) == 0 {
@@ -499,6 +500,9 @@ func (d *design) requestFields(op *yaml.Node) (map[string]*yaml.Node, []string) 
 	readOnlyLeftOut := false
 	if ref := source.Str(source.Child(schema, "$ref")); strings.HasPrefix(ref, "#/entities/") {
 		schema = d.entities[strings.TrimPrefix(ref, "#/entities/")]
+		readOnlyLeftOut = true
+	} else if strings.HasPrefix(ref, "#/schemas/") {
+		schema = d.schemas[strings.TrimPrefix(ref, "#/schemas/")]
 		readOnlyLeftOut = true
 	}
 	fields := map[string]*yaml.Node{}

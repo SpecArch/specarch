@@ -1,0 +1,63 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+enums:
+  Severity: { type: string, enum: [notice, refusal] }
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      dueOn: { type: string, format: date }
+    primaryKey: [id]
+    required: [id, dueOn]
+    satisfies: [CASE-1]
+schemas:
+  Diagnostic:
+    description: One thing a check found, passed back and never kept.
+    type: object
+    properties:
+      severity: { $ref: "#/enums/Severity" }
+      text: { type: string, maxLength: 200 }
+    required: [severity, text]
+    satisfies: [CASE-1]
+  RenewalRequest:
+    type: object
+    properties:
+      loanId: { type: string, format: uuid }
+      reason: { type: string, maxLength: 200 }
+    required: [loanId]
+    satisfies: [CASE-1]
+  RenewalAnswer:
+    type: object
+    properties:
+      loan: { $ref: "#/entities/Loan" }
+      diagnostics: { type: array, items: { $ref: "#/schemas/Diagnostic" }, maxItems: 20 }
+    required: [loan]
+    satisfies: [CASE-1]
+permissions:
+  loans.renew: { description: Renew loans. }
+roles:
+  desk: { description: The desk., permissions: [loans.renew] }
+channels:
+  loan.checks:
+    messages:
+      CheckFailed: { summary: A check on a loan failed., payload: { $ref: "#/schemas/Diagnostic" } }
+paths:
+  /renewals:
+    post:
+      operationId: renewLoan
+      summary: Renew a loan
+      permission: loans.renew
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/schemas/RenewalRequest" }
+      responses:
+        "200":
+          description: The loan, renewed.
+          content:
+            application/json:
+              schema: { $ref: "#/schemas/RenewalAnswer" }
+      satisfies: [CASE-1]

@@ -18,6 +18,7 @@ type design struct {
 	spec         *spec.Spec // the specification on disk, when known
 	entities     map[string]*yaml.Node
 	views        map[string]*yaml.Node
+	schemas      map[string]*yaml.Node
 	enums        map[string]*yaml.Node
 	permissions  map[string]*yaml.Node
 	roles        map[string]*yaml.Node
@@ -63,6 +64,7 @@ func newDesign(root *yaml.Node) *design {
 		root:         root,
 		entities:     topMap(root, "entities"),
 		views:        topMap(root, "views"),
+		schemas:      topMap(root, "schemas"),
 		enums:        topMap(root, "enums"),
 		permissions:  topMap(root, "permissions"),
 		roles:        topMap(root, "roles"),
@@ -183,6 +185,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkWorkflows(d)
 	c.checkMenus(d)
 	c.checkViews(d)
+	c.checkValueObjects(d)
 	c.checkSession(d)
 	c.checkPages(d)
 	c.checkPageEvents(d)
@@ -226,6 +229,11 @@ func (c *checker) checkRefs(d *design) {
 				name := strings.TrimPrefix(ref, "#/views/")
 				if d.views[name] == nil {
 					c.add(p.Value, ptr, RuleRefType, "%s is not a view of the specification%s", name, suggest(name, d.views))
+				}
+			case strings.HasPrefix(ref, "#/schemas/"):
+				name := strings.TrimPrefix(ref, "#/schemas/")
+				if d.schemas[name] == nil {
+					c.add(p.Value, ptr, RuleRefType, "%s is not a schema of the specification%s", name, suggest(name, d.schemas))
 				}
 			case strings.HasPrefix(ref, "#/enums/"):
 				name := strings.TrimPrefix(ref, "#/enums/")
@@ -369,6 +377,11 @@ func (c *checker) checkRelation(d *design, entity string, fields map[string]*yam
 	base := []string{"entities", entity, "relations", p.Key.Value}
 	targetNode := source.Child(p.Value, "target")
 	target := source.Str(targetNode)
+	if target != "" && d.entities[target] == nil && d.schemas[target] != nil {
+		c.add(targetNode, source.Pointer(append(base, "target")...), RuleValueObject,
+			"%s is a schema, a value with no identity, and a relation leads to a record; give %s a key and make it an entity, or hold its fields in %s", target, target, entity)
+		return
+	}
 	if target != "" && d.entities[target] == nil {
 		c.add(targetNode, source.Pointer(append(base, "target")...), RuleRelationTarget,
 			"%s is not an entity of the specification%s", target, suggest(target, d.entities))

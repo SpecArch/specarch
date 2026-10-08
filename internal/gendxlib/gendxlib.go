@@ -347,8 +347,11 @@ func (g *gen) params(o operation) []param {
 		s := obj(obj(c)["schema"])
 		required := map[string]bool{}
 		props := obj(s["properties"])
-		if r := text(s["$ref"]); strings.HasPrefix(r, "#/entities/") {
+		if r := text(s["$ref"]); strings.HasPrefix(r, "#/entities/") || strings.HasPrefix(r, "#/schemas/") {
 			e := obj(g.entities[strings.TrimPrefix(r, "#/entities/")])
+			if name, ok := strings.CutPrefix(r, "#/schemas/"); ok {
+				e = obj(obj(g.spec["schemas"])[name])
+			}
 			props = map[string]any{}
 			for k, v := range obj(e["properties"]) {
 				if obj(v)["readOnly"] != true {

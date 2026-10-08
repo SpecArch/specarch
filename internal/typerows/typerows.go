@@ -30,8 +30,8 @@ type Row struct {
 }
 
 // ShapeOf reads a field given as plain values: its JSON type with null
-// dropped, a $ref to an enum as an enum string and to an entity as an
-// object.
+// dropped, a $ref to an enum as an enum string and to an entity or a
+// schema as an object.
 func ShapeOf(f map[string]any) Shape {
 	var s Shape
 	ref := text(f["$ref"])
@@ -39,7 +39,7 @@ func ShapeOf(f map[string]any) Shape {
 	case strings.HasPrefix(ref, "#/enums/"):
 		s.Type, s.Enum = "string", true
 		return s
-	case strings.HasPrefix(ref, "#/entities/"):
+	case strings.HasPrefix(ref, "#/entities/"), strings.HasPrefix(ref, "#/schemas/"):
 		s.Type = "object"
 		return s
 	}

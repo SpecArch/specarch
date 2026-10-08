@@ -426,7 +426,7 @@ redefined.
 | Keyword | Origin | Notes |
 |---|---|---|
 | `info`, `paths`, `parameters`, `requestBody`, `responses`, `content`, `operationId`, `summary`, `deprecated` | OpenAPI 3 | bounded subset: `in` is path, query or header; no callbacks, links or servers |
-| `type`, `title`, `properties`, `required`, `enum`, `const`, `format`, `default`, `examples`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`, `minLength`, `maxLength`, `pattern`, `items`, `minItems`, `maxItems`, `uniqueItems`, `readOnly`, `writeOnly`, `$ref` | JSON Schema 2020-12 | `$ref` is restricted to `#/entities/X`, `#/enums/X` and `#/views/X`; nullability is written `type: [string, "null"]` as JSON Schema does |
+| `type`, `title`, `properties`, `required`, `enum`, `const`, `format`, `default`, `examples`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`, `minLength`, `maxLength`, `pattern`, `items`, `minItems`, `maxItems`, `uniqueItems`, `readOnly`, `writeOnly`, `$ref` | JSON Schema 2020-12 | `$ref` is restricted to `#/entities/X`, `#/enums/X`, `#/views/X` and `#/schemas/X`; nullability is written `type: [string, "null"]` as JSON Schema does |
 | `channels`, `messages`, `payload` | AsyncAPI | one level: channel, messages, payload; no servers, bindings or operations objects |
 | `x-*` | OpenAPI convention | allowed in every object, ignored by validation |
 | `stages`, `sources`, `givenOutside` | SpecArch | the root file's list of stage folders and its registry of cited sources, each marked when it was given to parties outside |
@@ -452,6 +452,7 @@ redefined.
 | `menus`, `title`, `page`, `items` | SpecArch | the navigation: a tree whose leaves open pages |
 | `workflows`, `trigger`, `subject`, `steps`, `approvers`, `deadline`, `onDeadline`, `escalateTo` | BPMN 2.0, a sequential subset | a request that finishes after people approve it: an approval is a user task with its potential owners and a timer, an operation step a service task |
 | `views`, `from`, `path`, `count` | SpecArch, after the SQL view of ISO/IEC 9075 | a read model: an entity's row with fields read through its relations and counts added, never written |
+| `schemas` | OpenAPI 3, `components.schemas` | value objects: named object schemas with no key and no table, data passed around but not stored |
 | `errors`, `status`, `title`, `condition`, `type`, `problem` | RFC 9457, Problem Details for HTTP APIs | the catalogue of problem types; `condition` is SpecArch's, the standard's other members are the document's own at run time |
 | a duration (`timeout`, `idleTimeout`, `absoluteTimeout`) | ISO 8601, the form JSON Schema's `format: duration` names | days, hours, minutes and seconds only (`PT5S`, `P1DT12H`): weeks, months and years depend on the calendar, so a limit written in them would not mean the same every day |
 | `emits`, `algorithm` | SpecArch | links from an operation to its events and its computation |
@@ -1082,6 +1083,33 @@ engines differ beyond that, so a write goes to the entity, its one place.
 In SQL a view is named as a table is: the view's name in snake case,
 unless the implementation file's mapping names it (`target: view
 loan_rows`).
+
+### Value objects
+
+Data passed around but not stored, with no identity of its own (a
+diagnostic, a request's summary, a token's claims), is a schema under
+`schemas`, named as OpenAPI names the shapes under `components.schemas`:
+
+    Diagnostic:
+      description: One thing a check found, passed back and never kept.
+      type: object
+      properties:
+        severity: { $ref: "#/enums/Severity" }
+        text: { type: string, maxLength: 200 }
+      required: [severity, text]
+
+A schema has `type: object`, `properties` and `required`, and nothing only
+a stored record has: no primary key, relations, constraints, states,
+validity, audit or deletion. A request body, a response, a message's
+payload and another schema's property refer to it as
+`$ref: "#/schemas/Diagnostic"`, and a derived case reads a request body's
+required properties through it as it does through an entity. An entity
+may not relate to a schema, since a relation leads to a record and a
+schema has none, nor hold one in a field, since a stored copy is a record
+and so an entity of its own; a schema may not share the name of an entity
+or a view, since all three become schemas of one interface
+(`value_object`). `generate sql` writes nothing for a schema;
+`generate openapi` writes it under `components.schemas` as it is.
 
 ### Secrets
 

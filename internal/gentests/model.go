@@ -367,10 +367,14 @@ func (g *walker) responseFields(t map[string]any) map[string]map[string]any {
 	return nil
 }
 
-// schemaFields are an object schema's fields, through a $ref to an entity.
+// schemaFields are an object schema's fields, through a $ref to an entity
+// or a schema of the specification.
 func (g *walker) schemaFields(schema map[string]any) map[string]map[string]any {
 	if ref := str(schema, "$ref"); strings.HasPrefix(ref, "#/entities/") {
 		return g.entityFields(strings.TrimPrefix(ref, "#/entities/"))
+	} else if strings.HasPrefix(ref, "#/schemas/") {
+		s, _ := mapAt(g.spec, "schemas", strings.TrimPrefix(ref, "#/schemas/")).(map[string]any)
+		return g.schemaFields(map[string]any{"properties": s["properties"]})
 	}
 	out := map[string]map[string]any{}
 	props, _ := schema["properties"].(map[string]any)
@@ -444,7 +448,7 @@ func kind(field map[string]any, v any) string {
 	if strings.HasPrefix(str(field, "$ref"), "#/enums/") {
 		return "enum"
 	}
-	if strings.HasPrefix(str(field, "$ref"), "#/entities/") {
+	if strings.HasPrefix(str(field, "$ref"), "#/entities/") || strings.HasPrefix(str(field, "$ref"), "#/schemas/") {
 		return "object"
 	}
 	if _, ok := field["enum"]; ok {

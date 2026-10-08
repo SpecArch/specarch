@@ -430,6 +430,13 @@ func (g *gen) generateDxlib(r *Request) Response {
 			add(schemas, vn, n)
 		}
 	}
+	// A schema is its own fields; it has no table, so no audit fields.
+	for _, sn := range sortedKeys(obj(g.spec["schemas"])) {
+		if !g.owned.Covers(ownership.Entity("schemas", sn)) {
+			v := obj(obj(g.spec["schemas"])[sn])
+			add(schemas, sn, g.dxSchema(map[string]any{"type": "object", "description": v["description"], "properties": v["properties"], "required": v["required"]}, "/schemas/"+sn))
+		}
+	}
 	add(comps, "schemas", schemas)
 	if errs := obj(g.spec["errors"]); len(errs) > 0 {
 		cat := mapping()
@@ -492,8 +499,9 @@ func (g *gen) dxOperation(path, method string, op, item map[string]any) *yaml.No
 	}
 	for _, c := range obj(obj(op["requestBody"])["content"]) {
 		schema := obj(obj(c)["schema"])
-		if r := text(schema["$ref"]); strings.HasPrefix(r, "#/entities/") {
-			e := obj(obj(g.spec["entities"])[strings.TrimPrefix(r, "#/entities/")])
+		if r := text(schema["$ref"]); strings.HasPrefix(r, "#/entities/") || strings.HasPrefix(r, "#/schemas/") {
+			section, name, _ := strings.Cut(strings.TrimPrefix(r, "#/"), "/")
+			e := obj(obj(g.spec[section])[name])
 			req := map[string]bool{}
 			for _, x := range list(e["required"]) {
 				req[text(x)] = true

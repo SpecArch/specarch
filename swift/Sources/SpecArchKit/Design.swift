@@ -26,7 +26,7 @@ let methods = ["get", "post", "put", "patch", "delete"]
 final class Design {
     let root: YNode
     var spec: Spec? // the specification on disk, when known
-    let entities, views, enums, permissions, roles, commands, channels, dependencies, pages, algorithms, decisions, sources: [String: YNode]
+    let entities, views, schemas, enums, permissions, roles, commands, channels, dependencies, pages, algorithms, decisions, sources: [String: YNode]
     let stakeholders, needs, requirements, environments, settings, checks, monitors, questions: [String: YNode]
     var operations: [String: Operation] = [:] // by operationId, the first definition
     var opList: [Operation] = []              // every operation in document order
@@ -40,6 +40,7 @@ final class Design {
         self.root = root
         entities = topMap("entities")
         views = topMap("views")
+        schemas = topMap("schemas")
         enums = topMap("enums")
         permissions = topMap("permissions")
         roles = topMap("roles")
@@ -194,6 +195,7 @@ extension Checker {
         checkWorkflows(d)
         checkMenus(d)
         checkViews(d)
+        checkValueObjects(d)
         checkSession(d)
         checkPages(d)
         checkPageEvents(d)
@@ -233,6 +235,11 @@ extension Checker {
                     let name = String(ref.dropFirst("#/views/".count))
                     if d.views[name] == nil {
                         add(p.value, ptr, .refType, "\(name) is not a view of the specification\(suggest(name, d.views))")
+                    }
+                } else if ref.hasPrefix("#/schemas/") {
+                    let name = String(ref.dropFirst("#/schemas/".count))
+                    if d.schemas[name] == nil {
+                        add(p.value, ptr, .refType, "\(name) is not a schema of the specification\(suggest(name, d.schemas))")
                     }
                 } else if ref.hasPrefix("#/enums/") {
                     let name = String(ref.dropFirst("#/enums/".count))
@@ -427,6 +434,10 @@ extension Checker {
         let base = ["entities", entity, "relations", p.key.value]
         let targetNode = p.value.child("target")
         let target = str(targetNode)
+        if !target.isEmpty && d.entities[target] == nil && d.schemas[target] != nil {
+            add(targetNode, pointer(base + ["target"]), .valueObject, "\(target) is a schema, a value with no identity, and a relation leads to a record; give \(target) a key and make it an entity, or hold its fields in \(entity)")
+            return
+        }
         if !target.isEmpty && d.entities[target] == nil {
             add(targetNode, pointer(base + ["target"]), .relationTarget, "\(target) is not an entity of the specification\(suggest(target, d.entities))")
             return

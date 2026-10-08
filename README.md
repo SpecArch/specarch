@@ -151,7 +151,7 @@ a defect in the roadmap, not an accepted state.
 checks, `gaps` lists the open questions and what they hold up, `document`
 goes from the specification to a document, `approve` records that the
 documents were read and the specification is approved, `generate` from
-the approved specification to code, `extract` (designed, built later) from
+the approved specification to code, `extract` (designed, not built) from
 existing code to a specification, and `diff` compares two versions of a
 specification and checks the release between them, and `derive` writes a
 draft test for every derived case no test covers, and `idioms` lists the

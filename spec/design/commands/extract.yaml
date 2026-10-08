@@ -8,9 +8,10 @@ commands:
       catalogue for entities, an OpenAPI document for operations, the
       running authorisation rules for permissions. The source names which
       surface is read. The result is a specification tree to be checked by
-      regenerating and comparing, then reviewed by hand. This command is
-      designed here and built when the first real project needs it; until
-      then every build answers with status 2.
+      regenerating and comparing, then reviewed by hand. It is built one
+      reader at a time, in the steps of docs/extraction.md; until the
+      first reader is built every build answers with status 2, and its
+      line in the usage text says it is designed, not built.
     permission: public
     arguments:
       - name: source

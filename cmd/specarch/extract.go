@@ -13,6 +13,6 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "specarch extract needs a source and at least one path\n\n%s", usage)
 		return 2
 	}
-	fmt.Fprintln(stderr, "specarch extract: this build does not offer extract; it is designed in spec/ and described in docs/extraction.md, and is built when the first real project needs it")
+	fmt.Fprintln(stderr, "specarch extract: this build does not offer extract; it is designed in spec/ and described in docs/extraction.md, and not built yet")
 	return 2
 }

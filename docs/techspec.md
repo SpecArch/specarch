@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.5.0-dev of the specification: 43 requirements, 3 entities, 11 commands, 6 algorithms, 230 tests, 41 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.5.0-dev of the specification: 43 requirements, 3 entities, 11 commands, 6 algorithms, 230 tests, 42 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -532,9 +532,10 @@ specification of it into a folder, following the method in
 catalogue for entities, an OpenAPI document for operations, the
 running authorisation rules for permissions. The source names which
 surface is read. The result is a specification tree to be checked by
-regenerating and comparing, then reviewed by hand. This command is
-designed here and built when the first real project needs it; until
-then every build answers with status 2.
+regenerating and comparing, then reviewed by hand. It is built one
+reader at a time, in the steps of docs/extraction.md; until the
+first reader is built every build answers with status 2, and its
+line in the usage text says it is designed, not built.
 
 **Insight:** Existing systems enter SpecArch by extraction, so the verb exists from the start; building it waits for the real projects that show which readers repeat.
 
@@ -2811,6 +2812,36 @@ nothing, as for Go.
 
 **Insight:** Swift Testing over XCTest: it is the framework Swift 6 ships on every platform it runs on, its #expect and Issue.record take the caller's source location as a default argument, which gives a helper the same failure line t.Helper gives in Go, and a test is a plain function, so a test with a body written by hand is a call like any other. XCTest needs a class per suite, SpecArch's own Swift build already tests with Swift Testing, and supporting both would be two ways to say one thing. A namespace keeps Value, Record, Response and Harness from colliding with the project's own types, which live in the same test target; Go has its own package for that, and Dart has an import prefix. Dart's test runners look only at files ending in _test.dart, and every Dart file is its own library, so the types the project's harness needs go in a library of their own that both import, rather than in the test file. package:test and flutter_test export the same test, group and fail, so they differ only in the import, and flutter_test is needed for a widget test's binding. Asynchronous harness methods, because a harness on either stack talks to a server, a database or a widget tree; in Swift a synchronous method satisfies an asynchronous requirement, and in Dart an async body that awaits nothing does, so a harness that needs none of it loses nothing. The standard library alone for decimals, because a decimal package would be a dependency, with its licence and scan, that every project using the plug-in has to take.
 
+### ADR-042: extract is built one reader at a time, each writing a partial specification at a named commit, and the readers' trees are merged into one
+
+Status: accepted, 2026-10-08.
+
+Context: The first real project to need specarch extract has arrived: a
+production service with an HTTP router, a Postgres database under
+migrations, a web interface on a file-system router and a large set
+of drifted design documents. docs/extraction.md asks for a reader
+per surface; docs/from-sources.md is the procedure the readers
+replace. The project asked for seven readers and a merge.
+
+Decision: extract is built in the steps of docs/extraction.md, Building
+extract. Each reader reads one surface into a partial specification
+tree that tracks origin; a code source's edition is the commit that
+last changed the path read, and a path with changes not committed
+is refused. The output is byte-identical for the same sources at the
+same commit. Standard output adds the commit read and every count
+with how it was counted to the lines for what the meta-model could
+not hold. The trees of several readers are merged into one
+specification by the rules of docs/from-sources.md, section 3.2.
+The usage text marks extract designed, not built, until the first
+reader is built.
+
+Consequences: Each reader can be built, checked and released on its own, and the
+merge is written once for all of them. A reader whose output the
+meta-model cannot hold yet, such as workflow definitions, waits for
+the meta-model rather than writing prose.
+
+**Insight:** One tree per reader keeps each reader small and testable on its own sources, and keeps the comparison between sources in one place, the merge, where a disagreement becomes a question. The commit that last changed the path, rather than the repository's head, because a citation is only true for the content it was read from, and a commit elsewhere in the repository does not change that content; a head commit would make every committed extraction stale on each unrelated commit. Uncommitted changes are refused because no commit names them, so a citation to them could never be checked again. Byte-identical output, because extraction is rerun to see what changed, and a difference that is not a change in the sources hides the one that is. The database first and the router next, because the meta-model holds their output as it is, and the merge needs two code readers to be tested against. Marking the verb in the usage text, because a reader of the help plans around what it lists.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -3231,7 +3262,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-8 | entities GeneratedFile; commands document; commands generate; algorithms markersWellFormed | tests document-entity-diagram; tests document-two-implementations; tests document-writes-techspec |
 | SA-9 | enums DocumentKind; enums Rule; commands validate; decisions ADR-001; decisions ADR-002; decisions ADR-007 | tests validate-design-key; tests validate-stack-key |
 | SA-10 | enums Rule; commands validate | tests validate-deployment-environment-missing; tests validate-design-ref; tests validate-implements; tests validate-setting; tests validate-tree-valid |
-| SA-11 | enums Rule; entities SpecFile; commands extract; commands validate; decisions ADR-010 | tests validate-duplicate-name-across-files; tests validate-layout-folder-missing; tests validate-layout-not-a-stage; tests validate-layout-section-folder-in-root; tests validate-layout-section-in-root; tests validate-layout-section-in-wrong-stage; tests validate-layout-stack-mismatch; tests validate-layout-stage-not-listed; tests validate-layout-subfolder-section; tests validate-layout-test-without-file; tests validate-tree-valid; checks checks-the-examples |
+| SA-11 | enums Rule; entities SpecFile; commands extract; commands validate; decisions ADR-010; decisions ADR-042 | tests validate-duplicate-name-across-files; tests validate-layout-folder-missing; tests validate-layout-not-a-stage; tests validate-layout-section-folder-in-root; tests validate-layout-section-in-root; tests validate-layout-section-in-wrong-stage; tests validate-layout-stack-mismatch; tests validate-layout-stage-not-listed; tests validate-layout-subfolder-section; tests validate-layout-test-without-file; tests validate-tree-valid; checks checks-the-examples |
 | SA-12 | enums Rule; commands validate; decisions ADR-011; decisions ADR-014 | tests validate-deployment-valid; tests validate-monitor-environment; tests validate-monitor-not-declared; tests validate-monitor-valid; tests validate-need-rejected; tests validate-requirements-only; tests validate-secret-in-deployment; tests validate-secret-value; tests validate-traceability-warnings |
 | SA-13 | enums Rule; commands validate; decisions ADR-012 | tests document-citation-unknown-source; tests validate-cites; tests validate-source |
 | SA-14 | enums GeneratorTarget; commands generate; decisions ADR-013 | tests generate-no-plugin; tests generate-plugin-path-outside; tests generate-with-plugin |

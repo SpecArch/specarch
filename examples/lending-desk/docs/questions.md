@@ -22,9 +22,9 @@ Is the loan period 21 days, as the manual says, or 14 days, as the service does?
 
 **Note:** From Lending desk manual, 2025, clause 3.3: The loan period is 21 days. <../sources/manual.md>
 
-**Note:** From The lending desk service, 7fdf7f6ef8b19f6d288058d822dcdd737e03c145, clause lending/model.go:8: LoanPeriod is 14 days. <../sources/code>
+**Note:** From The lending desk service, 1711bb0985356e46178489d92ef30a788bc21db7, clause lending/model.go:8: LoanPeriod is 14 days. <../sources/code>
 
-**Note:** From The lending desk service, 7fdf7f6ef8b19f6d288058d822dcdd737e03c145, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14. <../sources/code>
+**Note:** From The lending desk service, 1711bb0985356e46178489d92ef30a788bc21db7, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14. <../sources/code>
 
 ### Q-3 (must, decision)
 
@@ -63,7 +63,7 @@ Renewing a loan is in the manual but not in the service. Build it as the manual 
 
 **Note:** From Lending desk manual, 2025, clause 4.1: A member may renew a loan once. <../sources/manual.md>
 
-**Note:** From The lending desk service, 7fdf7f6ef8b19f6d288058d822dcdd737e03c145, clause lending/routes.go:14: Routes serves no renew route. <../sources/code>
+**Note:** From The lending desk service, 1711bb0985356e46178489d92ef30a788bc21db7, clause lending/routes.go:14: Routes serves no renew route. <../sources/code>
 
 ## 3. Tests
 
@@ -127,6 +127,6 @@ Every source a Note in this document cites.
 
 | Source | Title | Edition | Author | Where to read it |
 |---|---|---|---|---|
-| desk-code | The lending desk service | 7fdf7f6ef8b19f6d288058d822dcdd737e03c145 | The desk team | ../sources/code |
+| desk-code | The lending desk service | 1711bb0985356e46178489d92ef30a788bc21db7 | The desk team | ../sources/code |
 | desk-manual | Lending desk manual | 2025 | The desk team | ../sources/manual.md |
 

@@ -31,8 +31,7 @@ decisions:
     consequences: |
       The first run writes the whole schema; a run on an unchanged schema
       answers only the snapshot, so generate --check passes; a changed
-      schema is reported until the differ writes the migration of the
-      change. The type-rendering idiom's SQL rows carry type text only, with
+      schema gets the next migrations, as ADR-030 decides. The type-rendering idiom's SQL rows carry type text only, with
       a check beside, and the column names of the audit, soft-delete,
       identifier and encryption idioms sit under any. Identifiers are not
       quoted, so a name that is a reserved word of an engine is not caught

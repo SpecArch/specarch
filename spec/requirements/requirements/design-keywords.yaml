@@ -60,8 +60,20 @@ requirements:
     acceptance:
       - The library lending example renders on each dialect with the type-rendering rows, Oracle text as VARCHAR2 with character semantics and wider text as CLOB, an encrypted field as its ciphertext type with a hash column the unique constraint is on, the enum and boolean checks, the audit and deleted columns, the check constraints translated, and ON DELETE as the dialect writes it.
       - A key or unique text column without a maxLength of at most 255, and a check whose function SQL is not given, are refused.
-      - A second run on an unchanged schema answers only the snapshot, and a changed schema is reported until the differ exists.
+      - A second run on an unchanged schema answers only the snapshot.
       - Each plug-in request carries the files already in the output folder.
     verification: test
     needs: [NEED-2]
     why: The schema is where a design reaches the data, and four engines read one design four ways; the rows say each way once, and the migration written from them cannot drift from the design.
+  SA-38:
+    statement: specarch generate sql shall write the migration of what changed since the last snapshot as new files only, what only adds in an expand migration and what can lose data in a contract migration of its own that the target's settings must allow, and shall refuse a change it cannot tell from a rewrite.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A new nullable column, a wider text column, a new table with its foreign key, and a new enum value are written in the next expand migration, and the earlier migrations are left as they are.
+      - A dropped column, a narrower column and a removed enum value are refused until destructive is true in the sql target's settings, and then written in a contract migration of their own.
+      - A new required column without a default, a changed type, a changed key and a changed default are refused with what to do instead.
+    verification: test
+    needs: [NEED-2]
+    why: A migration that has run on a database is history; writing the next one from the design, and refusing what could lose data unless it is asked for, is the expand and contract pattern kept honest by the tool.

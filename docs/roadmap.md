@@ -78,8 +78,8 @@ difference. The rules and the pattern each target follows are in
    problem documents; lists page through the paginated-list idiom. Server
    interfaces and types then come from a standard OpenAPI code generator
    per stack, not from SpecArch. The dxlib dialect comes with go-dxlib.
-3. Built, the first migration and the snapshot, with the differ next:
-   `specarch-gen-sql`. SQL migrations, new files only, in PostgreSQL by
+3. Built: `specarch-gen-sql`, the first migration, the snapshot and the
+   differ; indexes from a mapping's settings are next. SQL migrations, new files only, in PostgreSQL by
    default; the other dialects render through the type-rendering idiom of
    `docs/idioms.md`,
    with the table in `docs/dxlib-lessons.md`. The generator diffs the spec against

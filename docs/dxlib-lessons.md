@@ -632,8 +632,8 @@ where it adds a rule, and the conformance cases; the generators are Go only.
 5. `specarch-gen-sql` through `type-rendering`, four dialects, new-file
    migrations with the destructive step in its own file, indexes from the
    entity mapping's settings, encrypted columns through their idiom. Built:
-   the four dialects, the first migration with its snapshot, and the
-   encrypted columns; the differ and the indexes come next.
+   the four dialects, the migrations with their snapshot and differ, and
+   the encrypted columns; the indexes come next.
 6. The `dialect: dxlib` setting on the openapi target, and
    `specarch-gen-go-dxlib`, against the notification service as the real
    project, when the owner decides that service's specification goes ahead.

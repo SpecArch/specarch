@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.4.0-dev of the specification: 213 design tests, 71 golden and 141 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.4.0-dev of the specification: 214 design tests, 72 golden and 141 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.4.0-dev of the specification: 213 design tests, 71 golden and 141 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 209 |
+| system | 210 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -580,6 +580,14 @@ Scenario: golden; level: system; verifies SA-37.
 - Given: a specification with an enum, an audited entity with soft deletion, a unique and a check constraint, an encrypted field found by hash, and a relation, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved
 - Then: it writes 0001_expand.sql, each column through the type-rendering rows with the enum's check, the audit and deleted columns, the hash column the unique constraint is on, the translated check and the foreign key, and snapshot.yaml beside it, and exits 0
+
+#### generate-sql-expand
+
+Scenario: golden; level: system; verifies SA-38.
+
+- Given: the specification of generate-sql with its first migration and snapshot in the output folder, and one new field, a subtitle that may be left out; specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved
+- Then: it writes 0002_expand.sql, which adds the subtitle column, leaves 0001_expand.sql as it was, writes the snapshot again, and exits 0
 
 #### generate-stack-fallback
 
@@ -1767,7 +1775,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-93 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+96 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1804,6 +1812,9 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-37 | acceptance 2 | golden | SA-37 names no harm |
 | requirement SA-37 | acceptance 3 | golden | SA-37 names no harm |
 | requirement SA-37 | acceptance 4 | golden | SA-37 names no harm |
+| requirement SA-38 | acceptance 1 | golden | SA-38 names no harm |
+| requirement SA-38 | acceptance 2 | golden | SA-38 names no harm |
+| requirement SA-38 | acceptance 3 | golden | SA-38 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

@@ -173,7 +173,12 @@ field looked up by hash gains the hash column its keys use, and a key or
 unique text column needs a `maxLength` of at most 255. The first migration
 is `0001_expand.sql`, with `snapshot.yaml` beside it; a run on an
 unchanged schema writes only the snapshot again, so `generate --check`
-passes until the schema changes.
+passes until the schema changes. A change is written as the next
+`NNNN_expand.sql`, and what can lose data as the next `NNNN_contract.sql`,
+which the `sql` target's settings must allow with `destructive: true`;
+a change the differ cannot tell from a rewrite (a new type, a new key, a
+new default, a new required column without a default) is refused with
+what to do by hand.
 
 Migrations are new files only. The emitter keeps a snapshot of the spec as it
 stood after the last generated migration, diffs the current spec against it,
@@ -183,7 +188,8 @@ been applied anywhere is never regenerated or edited: regenerating it would
 change history that a database has already recorded.
 
 A destructive step (dropping a column or a table, narrowing a type) is
-emitted only when asked for by a flag, and always as a file of its own. That
+emitted only when asked for, by the target setting `destructive: true`, and
+always as a file of its own. That
 keeps the expand-contract pattern honest for a column that live code reads:
 add the new column in one release, backfill it, switch the code, and remove
 the old column in a later release, each in its own migration. The emitter

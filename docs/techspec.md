@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.4.0-dev of the specification: 37 requirements, 3 entities, 11 commands, 6 algorithms, 213 tests, 29 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.4.0-dev of the specification: 38 requirements, 3 entities, 11 commands, 6 algorithms, 214 tests, 30 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -2319,14 +2319,43 @@ request carries the files already in the output folder.
 
 Consequences: The first run writes the whole schema; a run on an unchanged schema
 answers only the snapshot, so generate --check passes; a changed
-schema is reported until the differ writes the migration of the
-change. The type-rendering idiom's SQL rows carry type text only, with
+schema gets the next migrations, as ADR-030 decides. The type-rendering idiom's SQL rows carry type text only, with
 a check beside, and the column names of the audit, soft-delete,
 identifier and encryption idioms sit under any. Identifiers are not
 quoted, so a name that is a reserved word of an engine is not caught
 yet. Indexes from a mapping's settings are not written yet.
 
 **Insight:** Names derived by rule let the database gate derive the same names without a mapping table. A key over unbounded text is the failure a DBA meets on the second engine, so it is refused on all four. The snapshot keeps only what the schema is made from, so a changed description is not a schema change.
+
+### ADR-030: The next migration is an expand file, and a contract file only when allowed
+
+Status: accepted, 2026-10-08.
+
+Context: Once a migration has run on a database it is history, and the schema
+keeps changing. The generator has to write each change as new files,
+keep what can lose data apart from what cannot, and know where its
+own judgement ends.
+
+Decision: specarch-gen-sql compares the snapshot of the last migration with the
+schema now. A new table, a new nullable column or one with a default,
+a new or changed constraint, a new foreign key, a wider text column
+or more precision at the same scale, a new enum value and a NOT NULL
+column made nullable go into NNNN_expand.sql; dropping a constraint or
+a foreign key goes there too, since it cannot fail on the data. A
+dropped table or column, a narrower column, a removed enum value and a
+nullable column made NOT NULL go into the next NNNN_contract.sql, and
+only when the sql target's settings say destructive: true; without it
+each is reported. A changed type, key, default or table name, a new
+required column without a default, an entity becoming audited, and a
+new dialect are refused with what to do by hand. Each dialect writes
+its own ALTER statements.
+
+Consequences: The earlier migrations are never written again. destructive is meant
+for the one run that writes a contract file, then taken out, so the
+next change cannot drop data unasked. A rename reads as a drop and an
+add, so it is written as two releases, as docs/generators.md says.
+
+**Insight:** Splitting the files by whether they can lose data is the expand and contract pattern: the expand file can run while the old code still reads the table, and the contract file only after the code moved on. A setting rather than a flag, because the plug-in protocol carries settings and no flags.
 
 ## 10. Quality requirements
 
@@ -2400,6 +2429,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-refuses-open-question | command generate | system | red | a specification with a must question that blocks an entity, and specarch-gen-echo on PATH | generate echo is run | it refuses because the question blocks what the target reads, writes nothing and exits 1 |
 | generate-refuses-unapproved | command generate | system | red | a specification without open questions and without an approval record, and specarch-gen-echo on PATH | generate echo is run | it refuses because the specification is not approved, writes nothing and exits 1 |
 | generate-sql | command generate | system | golden | a specification with an enum, an audited entity with soft deletion, a unique and a check constraint, an encrypted field found by hash, and a relation, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0001_expand.sql, each column through the type-rendering rows with the enum's check, the audit and deleted columns, the hash column the unique constraint is on, the translated check and the foreign key, and snapshot.yaml beside it, and exits 0 |
+| generate-sql-expand | command generate | system | golden | the specification of generate-sql with its first migration and snapshot in the output folder, and one new field, a subtitle that may be left out; specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0002_expand.sql, which adds the subtitle column, leaves 0001_expand.sql as it was, writes the snapshot again, and exits 0 |
 | generate-stack-fallback | command generate | system | golden | a specification whose implementation file is in Go, with only specarch-gen-echo on PATH | generate echo is run with --unapproved | it runs specarch-gen-echo, writes its file into the output the implementation file names, and exits 0 |
 | generate-stack-plugin | command generate | system | golden | a specification whose implementation file is in Go, with specarch-gen-echo-go and specarch-gen-echo both on PATH | generate echo is run with --unapproved | it runs specarch-gen-echo-go, the plug-in for the file's stack, writes its file into the output the implementation file names, and exits 0 |
 | generate-unapproved | command generate | system | golden | a specification without an approval record, and specarch-gen-echo on PATH | generate echo is run with --unapproved | it writes the files under out/ and exits 0 |
@@ -2593,7 +2623,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-34 | A specification shall be able to say that an operation answers a page of an entity's records with the fields it searches, filters and sorts by and its page size, the limits a client keeps to, and the catalogue of problem types its refusals answer with, and specarch validate shall check each against the design and derive the cases each implies. | functional | must | accepted | test | A list naming a field its entity lacks, an encrypted field to search or sort by or to filter by without a hash, or a default page above the maximum is reported as list_of. A rate over no time, or with a burst below its requests, is reported as limits. A response naming a problem type that is not under errors or has another status, and a 4xx or 5xx response that names none once errors exist, is reported as problem. A list gets the cases page beyond last, page size above the maximum, and sort and filter outside the lists; a limit gets request too large and rate exceeded. | NEED-1, NEED-2 |
 | SA-35 | A specification shall be able to declare the jobs the system runs on its own, with what starts each, the role it acts as, what it reads, writes, calls and publishes, and how it retries, and the menus that lead to its pages; specarch validate shall check each against the design, and a job shall be a subject of tests with the cases it implies. | functional | must | accepted | test | A job acting as a role the specification lacks, reading or writing an entity it lacks, or consuming a message no channel declares is reported as job; a menu entry opening a page that does not exist is reported as menu. A test may name a job as its subject, and a job gets the cases runs twice, a dependency failing or timing out for each it calls, and an item failing every try when it retries. | NEED-1, NEED-5 |
 | SA-36 | specarch generate openapi shall write, through a plug-in, the OpenAPI 3.1 document of a specification in the standard dialect, with the problem catalogue as the error responses and every list expanded through the paginated-list idiom that applies, so that a standard OpenAPI code generator can write the server interface from it. | functional | must | accepted | test | The document of the library lending example parses, is OpenAPI 3.1.0, pages its list of loans by the idiom's names in the idiom's envelope, answers its refusals with RFC 9457 problem documents naming their types, carries an audited entity's audit fields as read-only, and carries SpecArch's own keywords as x-specarch- extensions. A list by a method other than GET takes its paging in its request body, and a body that is a reference to an entity is reported. Each implementation file in a plug-in's request carries the idioms it uses, with the content of the idiom that applies and the project's override. | NEED-2, NEED-3 |
-| SA-37 | specarch generate sql shall write, through a plug-in, the forward migrations of a specification's schema in PostgreSQL, SQL Server, Oracle or MariaDB, every column type through the type-rendering idiom of the target's dialect, with a snapshot of the schema beside them, and shall refuse what the dialect cannot hold. | functional | must | accepted | test | The library lending example renders on each dialect with the type-rendering rows, Oracle text as VARCHAR2 with character semantics and wider text as CLOB, an encrypted field as its ciphertext type with a hash column the unique constraint is on, the enum and boolean checks, the audit and deleted columns, the check constraints translated, and ON DELETE as the dialect writes it. A key or unique text column without a maxLength of at most 255, and a check whose function SQL is not given, are refused. A second run on an unchanged schema answers only the snapshot, and a changed schema is reported until the differ exists. Each plug-in request carries the files already in the output folder. | NEED-2 |
+| SA-37 | specarch generate sql shall write, through a plug-in, the forward migrations of a specification's schema in PostgreSQL, SQL Server, Oracle or MariaDB, every column type through the type-rendering idiom of the target's dialect, with a snapshot of the schema beside them, and shall refuse what the dialect cannot hold. | functional | must | accepted | test | The library lending example renders on each dialect with the type-rendering rows, Oracle text as VARCHAR2 with character semantics and wider text as CLOB, an encrypted field as its ciphertext type with a hash column the unique constraint is on, the enum and boolean checks, the audit and deleted columns, the check constraints translated, and ON DELETE as the dialect writes it. A key or unique text column without a maxLength of at most 255, and a check whose function SQL is not given, are refused. A second run on an unchanged schema answers only the snapshot. Each plug-in request carries the files already in the output folder. | NEED-2 |
+| SA-38 | specarch generate sql shall write the migration of what changed since the last snapshot as new files only, what only adds in an expand migration and what can lose data in a contract migration of its own that the target's settings must allow, and shall refuse a change it cannot tell from a rewrite. | functional | must | accepted | test | A new nullable column, a wider text column, a new table with its foreign key, and a new enum value are written in the next expand migration, and the earlier migrations are left as they are. A dropped column, a narrower column and a removed enum value are refused until destructive is true in the sql target's settings, and then written in a contract migration of their own. A new required column without a default, a changed type, a changed key and a changed default are refused with what to do instead. | NEED-2 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -2654,6 +2685,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-36:** The server interface of a Go service is written by a standard OpenAPI generator in strict mode, so the document is where the design reaches the code; written by hand, it drifts from the design on the first change.
 
 **Insight on SA-37:** The schema is where a design reaches the data, and four engines read one design four ways; the rows say each way once, and the migration written from them cannot drift from the design.
+
+**Insight on SA-38:** A migration that has run on a database is history; writing the next one from the design, and refusing what could lose data unless it is asked for, is the expand and contract pattern kept honest by the tool.
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
@@ -2740,6 +2773,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-35 | decisions ADR-026 | tests validate-jobs-menus; tests validate-jobs-menus-valid |
 | SA-36 | decisions ADR-027 | tests generate-openapi |
 | SA-37 | decisions ADR-029 | tests generate-sql |
+| SA-38 | decisions ADR-030 | tests generate-sql-expand |
 
 ## Sources
 

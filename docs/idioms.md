@@ -255,8 +255,8 @@ dxlib. The stack-neutral contract is written first; the Go rendering second;
 Swift and Dart renderings when the first project on each stack exists. The
 dxlib files each is read from are in `docs/dxlib-lessons.md`. A `document`
 check on a table's columns is made by `specarch-gen-sql`'s `--check`; the
-identifiers' columns and the migrations' new-files rule wait for its
-differ, and their rows say so.
+identifiers' columns are not written by it, since a design's own primary
+key is rendered as declared, and their row says so.
 
 | Idiom | Contract, checked | Contract, guidance | Go rendering from dxlib |
 |---|---|---|---|
@@ -268,11 +268,11 @@ differ, and their rows say so.
 | `pii-in-logs` | a `credential` field never appears in a response (`schema`, from `sensitivity`) | every personal field is masked by its rule in every log line, request dump and response dump; credential headers are masked whole | the mask rules of `utils/utils.go`: partial with front and back characters kept, email as two characters of each part, initials as the first letter of each word, location rounded to two decimals; `MaskForLog` on every dump |
 | `audit-fields` | an audited entity's table carries the six columns (`document`, checked by `specarch-gen-sql`) | the library sets them; a caller's values are overwritten | `created_at`, `created_by_user_id`, `created_by_user_nameid`, `last_modified_at`, `last_modified_by_user_id`, `last_modified_by_user_nameid`, set in `tables/tables_table.go` |
 | `soft-delete` | the column (`document`, checked by `specarch-gen-sql`); deleted rows are not listed and read as not found (`test`) | a hard delete is a separate, separately permitted operation | `is_deleted` boolean, false by default; the list filter adds `is_deleted = false` unless asked; `RequestSoftDelete` beside `RequestHardDelete` |
-| `identifiers` | the column names (`document`, waiting for the differ of `specarch-gen-sql`: a design's own primary key is rendered as declared) | an internal integer key that never leaves the service; a public opaque id of at most 255 characters that cannot be enumerated; an optional human name id, unique; an optional version tag | `id` as a 64-bit generated key; `uid` as hexadecimal microseconds plus a UUID, 255 wide; `nameid`; `utag` |
+| `identifiers` | the column names (`document`, not yet written: a design's own primary key is rendered as declared) | an internal integer key that never leaves the service; a public opaque id of at most 255 characters that cannot be enumerated; an optional human name id, unique; an optional version tag | `id` as a 64-bit generated key; `uid` as hexadecimal microseconds plus a UUID, 255 wide; `nameid`; `utag` |
 | `transactions` | | one transaction per mutating operation, the audit entry inside it, rolled back on any error | `DXDatabaseTx` through `TransactionBegin`, the `Tx` forms of insert, update and delete |
 | `configuration-and-secrets` | no secret value in any file (`secret_value`, already a rule) | settings from a file and the environment; a secret read from a vault into locked memory and resolved only where it is used | `configuration` with `SensitiveDataKey`, `secure_memory`, `vault` |
 | `background-jobs` | the derived cases `runs twice` and `dependency fails` (`test`) | a job runs once or repeats with a delay, stops on shutdown, retries a failed item a bounded number of times and then marks it dead | `task` with `once` or `always` and `after_delay_sec`; the drain loop of the notification module |
-| `migrations` | new files only, destructive steps in their own file (`document`, with the differ of `specarch-gen-sql`) | the model is the source and the DDL is derived | `models.ModelDB` and `CreateDDL`, with the snapshot the ERP backend keeps |
+| `migrations` | new files only, destructive steps in their own file (`document`, checked by `specarch-gen-sql`) | the model is the source and the DDL is derived | `models.ModelDB` and `CreateDDL`, with the snapshot the ERP backend keeps |
 | `encrypted-column` | an `atRest: encrypted` field renders through the idiom or fails (`document`, checked by `specarch-gen-sql`) | encryption in the engine with a session key from locked memory; a salted hash companion when the field must stay searchable | `EncryptionColumnDef` with `HashFieldName`, the per-dialect expressions of `databases/db/encryption_expression.go` |
 | `health-endpoint` | | a public operation answers the service's name and version | `GET /ping` of `dxlib_module/module/oam` |
 

@@ -117,26 +117,151 @@ func TestOracleWideText(t *testing.T) {
 	}
 }
 
-// TestSnapshot answers only the snapshot when nothing changed, and refuses
-// to write a second migration until the differ exists.
+// TestSnapshot answers only the snapshot when nothing changed.
 func TestSnapshot(t *testing.T) {
-	first := Generate(request(t, "postgresql"))
-	var snap File
-	for _, f := range first.Files {
-		if f.Path == SnapshotName {
-			snap = f
-		}
-	}
+	snap := firstSnapshot(t, "postgresql")
 	again := Generate(request(t, "postgresql", snap, File{Path: "0001_expand.sql", Content: "..."}))
 	if len(again.Diagnostics) > 0 || len(again.Files) != 1 || again.Files[0].Path != SnapshotName || again.Files[0].Content != snap.Content {
 		t.Errorf("an unchanged schema should answer only its snapshot, got %v and %v", again.Files, again.Diagnostics)
 	}
-	r := request(t, "postgresql", snap, File{Path: "0001_expand.sql", Content: "..."})
-	book := r.Specification["entities"].(map[string]any)["Book"].(map[string]any)
-	book["properties"].(map[string]any)["edition"] = map[string]any{"type": "string", "maxLength": json.Number("40")}
-	changed := Generate(r)
-	if len(changed.Diagnostics) != 1 || !strings.Contains(changed.Diagnostics[0].Message, "changed since migration 0001") {
-		t.Errorf("a changed schema should be reported, got %v", changed.Diagnostics)
+}
+
+func firstSnapshot(t *testing.T, dialect string) File {
+	t.Helper()
+	for _, f := range Generate(request(t, dialect)).Files {
+		if f.Path == SnapshotName {
+			return f
+		}
+	}
+	t.Fatal("the first run wrote no snapshot")
+	return File{}
+}
+
+// changed runs the differ on the example after a change, on a dialect.
+func changed(t *testing.T, dialect string, destructive bool, change func(entities map[string]any)) Response {
+	t.Helper()
+	snap := firstSnapshot(t, dialect)
+	r := request(t, dialect, snap, File{Path: "0001_expand.sql", Content: "..."})
+	if destructive {
+		r.Implementations[0].Settings = map[string]any{"destructive": true}
+	}
+	change(r.Specification["entities"].(map[string]any))
+	return Generate(r)
+}
+
+func file(resp Response, path string) string {
+	for _, f := range resp.Files {
+		if f.Path == path {
+			return f.Content
+		}
+	}
+	return ""
+}
+
+func book(e map[string]any) map[string]any { return e["Book"].(map[string]any) }
+func bookProps(e map[string]any) map[string]any {
+	return book(e)["properties"].(map[string]any)
+}
+
+// TestDiffer checks the migration of each kind of change.
+func TestDiffer(t *testing.T) {
+	resp := changed(t, "postgresql", false, func(e map[string]any) {
+		bookProps(e)["edition"] = map[string]any{"type": "string", "maxLength": json.Number("40")}
+		bookProps(e)["title"].(map[string]any)["maxLength"] = json.Number("800")
+	})
+	exp := file(resp, "0002_expand.sql")
+	for _, want := range []string{"ALTER TABLE books ADD COLUMN edition VARCHAR(40);", "ALTER TABLE books ALTER COLUMN title TYPE VARCHAR(800);"} {
+		if !strings.Contains(exp, want) {
+			t.Errorf("0002_expand.sql has no %q:\n%s%v", want, exp, resp.Diagnostics)
+		}
+	}
+	if file(resp, SnapshotName) == "" {
+		t.Error("the snapshot is not written again")
+	}
+
+	resp = changed(t, "postgresql", false, func(e map[string]any) {
+		bookProps(e)["edition"] = map[string]any{"type": "string", "maxLength": json.Number("40")}
+		book(e)["required"] = append(book(e)["required"].([]any), "edition")
+	})
+	if len(resp.Diagnostics) != 1 || !strings.Contains(resp.Diagnostics[0].Message, "new required column") {
+		t.Errorf("a new required column without a default should be refused, got %v", resp.Diagnostics)
+	}
+
+	drop := func(e map[string]any) {
+		delete(bookProps(e), "author")
+		var req []any
+		for _, r := range book(e)["required"].([]any) {
+			if r != "author" {
+				req = append(req, r)
+			}
+		}
+		book(e)["required"] = req
+	}
+	resp = changed(t, "postgresql", false, drop)
+	if len(resp.Diagnostics) != 1 || !strings.Contains(resp.Diagnostics[0].Message, "drop the column author of books") {
+		t.Errorf("a dropped column should need destructive: true, got %v", resp.Diagnostics)
+	}
+	resp = changed(t, "postgresql", true, drop)
+	if c := file(resp, "0002_contract.sql"); !strings.Contains(c, "ALTER TABLE books DROP COLUMN author;") {
+		t.Errorf("0002_contract.sql has no DROP COLUMN: %q %v", c, resp.Diagnostics)
+	}
+
+	resp = changed(t, "postgresql", false, func(e map[string]any) {
+		bookProps(e)["title"].(map[string]any)["maxLength"] = json.Number("100")
+	})
+	if len(resp.Diagnostics) != 1 || !strings.Contains(resp.Diagnostics[0].Message, "narrow title of books") {
+		t.Errorf("a narrower column should need destructive: true, got %v", resp.Diagnostics)
+	}
+
+	resp = changed(t, "postgresql", false, func(e map[string]any) {
+		bookProps(e)["copiesOwned"] = map[string]any{"type": "string", "maxLength": json.Number("10")}
+	})
+	if len(resp.Diagnostics) != 1 || !strings.Contains(resp.Diagnostics[0].Message, "the type of copiesOwned changed") {
+		t.Errorf("a changed type should be refused, got %v", resp.Diagnostics)
+	}
+
+	resp = changed(t, "postgresql", false, func(e map[string]any) {
+		e["Shelf"] = map[string]any{"type": "object", "properties": map[string]any{
+			"id": map[string]any{"type": "string", "format": "uuid"}, "bookId": map[string]any{"type": "string", "format": "uuid"}},
+			"required": []any{"id", "bookId"}, "primaryKey": []any{"id"},
+			"relations": map[string]any{"book": map[string]any{"target": "Book", "kind": "many-to-one", "via": "bookId"}}}
+	})
+	exp = file(resp, "0002_expand.sql")
+	for _, want := range []string{"CREATE TABLE shelf (", "ALTER TABLE shelf ADD CONSTRAINT fk_shelf_book_id FOREIGN KEY (book_id) REFERENCES books (id) ON DELETE RESTRICT;"} {
+		if !strings.Contains(exp, want) {
+			t.Errorf("0002_expand.sql has no %q:\n%s%v", want, exp, resp.Diagnostics)
+		}
+	}
+
+	resp = changed(t, "oracle", false, func(e map[string]any) {
+		bookProps(e)["edition"] = map[string]any{"type": "string", "maxLength": json.Number("40")}
+	})
+	if exp := file(resp, "0002_expand.sql"); !strings.Contains(exp, "ALTER TABLE books ADD (edition VARCHAR2(40 CHAR));") {
+		t.Errorf("Oracle adds a column in parentheses: %q %v", exp, resp.Diagnostics)
+	}
+}
+
+// TestDifferEnum widens an enum's check for a new value, and needs
+// destructive: true to take one away.
+func TestDifferEnum(t *testing.T) {
+	snap := firstSnapshot(t, "postgresql")
+	first := File{Path: "0001_expand.sql", Content: "..."}
+	r := request(t, "postgresql", snap, first)
+	status := r.Specification["enums"].(map[string]any)["LoanStatus"].(map[string]any)
+	status["enum"] = append(status["enum"].([]any), "damaged")
+	resp := Generate(r)
+	exp := file(resp, "0002_expand.sql")
+	for _, want := range []string{"ALTER TABLE loans DROP CONSTRAINT ck_loans_status;", "ALTER TABLE loans ADD CONSTRAINT ck_loans_status CHECK (status IN ('open', 'overdue', 'returned', 'lost', 'damaged'));"} {
+		if !strings.Contains(exp, want) {
+			t.Errorf("0002_expand.sql has no %q:\n%s%v", want, exp, resp.Diagnostics)
+		}
+	}
+	r = request(t, "postgresql", snap, first)
+	status = r.Specification["enums"].(map[string]any)["LoanStatus"].(map[string]any)
+	status["enum"] = []any{"open", "returned", "lost", "overdue"}[:3]
+	resp = Generate(r)
+	if len(resp.Diagnostics) == 0 || !strings.Contains(resp.Diagnostics[0].Message, "fewer values in status of loans") {
+		t.Errorf("a removed enum value should need destructive: true, got %v", resp.Diagnostics)
 	}
 }
 

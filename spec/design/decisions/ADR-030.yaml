@@ -1,0 +1,36 @@
+decisions:
+  ADR-030:
+    title: The next migration is an expand file, and a contract file only when allowed
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      Once a migration has run on a database it is history, and the schema
+      keeps changing. The generator has to write each change as new files,
+      keep what can lose data apart from what cannot, and know where its
+      own judgement ends.
+    decision: |
+      specarch-gen-sql compares the snapshot of the last migration with the
+      schema now. A new table, a new nullable column or one with a default,
+      a new or changed constraint, a new foreign key, a wider text column
+      or more precision at the same scale, a new enum value and a NOT NULL
+      column made nullable go into NNNN_expand.sql; dropping a constraint or
+      a foreign key goes there too, since it cannot fail on the data. A
+      dropped table or column, a narrower column, a removed enum value and a
+      nullable column made NOT NULL go into the next NNNN_contract.sql, and
+      only when the sql target's settings say destructive: true; without it
+      each is reported. A changed type, key, default or table name, a new
+      required column without a default, an entity becoming audited, and a
+      new dialect are refused with what to do by hand. Each dialect writes
+      its own ALTER statements.
+    consequences: |
+      The earlier migrations are never written again. destructive is meant
+      for the one run that writes a contract file, then taken out, so the
+      next change cannot drop data unasked. A rename reads as a drop and an
+      add, so it is written as two releases, as docs/generators.md says.
+    why: |
+      Splitting the files by whether they can lose data is the expand and
+      contract pattern: the expand file can run while the old code still
+      reads the table, and the contract file only after the code moved on.
+      A setting rather than a flag, because the plug-in protocol carries
+      settings and no flags.
+    satisfies: [SA-38]

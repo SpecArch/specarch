@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 277 design tests, 104 golden and 173 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 281 design tests, 107 golden and 174 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 273 |
+| system | 277 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -523,6 +523,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 - When: extract openapi is run on it
 - Then: it says the file is not an OpenAPI 3.0 or 3.1 document, writes nothing and exits 1
 
+#### extract-openapi-writes-schema
+
+Scenario: golden; level: system; verifies SA-48.
+
+- Given: a repository holding an OpenAPI 3.1 document with one operation whose 201 answers a component, whose request body and 409 answer are two other components, and a fourth component the first holds in a property
+- When: extract openapi is run on the document
+- Then: it writes the component the 201 answers as an entity with a question about its key, the request body and the refusal as schemas with no such question, the held component in place inside the entity and as a schema of its own, and exits 0
+
 #### extract-openapi-writes-tree
 
 Scenario: golden; level: system; verifies SA-44.
@@ -782,6 +790,14 @@ Scenario: golden; level: system; verifies SA-46.
 - Given: an output folder whose migrations created the authors and books tables, a specification that now marks Author as owned by the catalogue team and adds a field to Author and one to Book, and specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved
 - Then: it writes 0002_expand.sql with the new column of books and the view made again, no statement about authors and no drop, and a snapshot that lists Author under owned, and exits 0
+
+#### generate-sql-value-object
+
+Scenario: golden; level: system; verifies SA-48.
+
+- Given: a specification with an entity and a schema that a response refers to, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved
+- Then: it writes 0001_expand.sql with the entity's table and nothing for the schema, and snapshot.yaml beside it, and exits 0
 
 #### generate-stack-fallback
 
@@ -2223,6 +2239,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-29.
 - When: validate is run
 - Then: it reports validity for each, and exits 1
 
+#### validate-value-objects
+
+Scenario: red; level: system; covers exit 1; verifies SA-48.
+
+- Given: an entity that relates to a schema and holds one in a field, a schema named like the entity, a schema whose required list names a property it lacks, and a reference to a schema the specification lacks
+- When: validate is run
+- Then: it reports value_object three times, field and ref_type once each, and exits 1
+
+#### validate-value-objects-valid
+
+Scenario: golden; level: system; verifies SA-48.
+
+- Given: a schema that refers to an enum, one that is a request body, and one that is a response carrying an entity and a list of the first, which is also a message's payload
+- When: validate is run
+- Then: it reports no error, derives the request body's required property through its schema, and exits 0
+
 #### validate-views
 
 Scenario: red; level: system; covers exit 1; verifies SA-41.
@@ -2283,7 +2315,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-144 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+148 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2357,6 +2389,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-43 | acceptance 3 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 4 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 5 | golden | SA-43 names no harm |
+| requirement SA-48 | acceptance 1 | golden | SA-48 names no harm |
+| requirement SA-48 | acceptance 2 | golden | SA-48 names no harm |
+| requirement SA-48 | acceptance 3 | golden | SA-48 names no harm |
+| requirement SA-48 | acceptance 4 | golden | SA-48 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

@@ -24,7 +24,7 @@ decisions:
       parameters, request bodies and responses are written in the
       meta-model's terms, with schemas in the field subset; a component
       schema of type object is an entity when an operation creates it or
-      a path with a parameter answers it, otherwise a schema (ADR-058),
+      a path with a parameter answers it, otherwise a schema (ADR-060),
       and a string enum of snake_case values an enum. What the meta-model cannot hold prints a line and
       is left out. An operation's permission is always a must question,
       and so is an integer or number with no width. merge leaves out a

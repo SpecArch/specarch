@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 47 requirements, 3 entities, 12 commands, 7 algorithms, 277 tests, 58 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 48 requirements, 3 entities, 12 commands, 7 algorithms, 281 tests, 59 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -280,6 +280,7 @@ Primary key: path.
 | Rule | picker | a picker is on a page that is not a form, or for a field the form does not show or that no many-to-one relation of its entity holds; its source is not an operationId of the specification, or not an operation whose listOf names the relation's target, or a role that may open the form may not call it; it shows a field the target lacks; or it fills a field the form does not show from a field the target lacks or of another type |
 | Rule | action | an action's when is on a form that loads no record, or its reason is on an action that runs no operation or names no property of the operation's request body, one the body does not require, or one that is not a string |
 | Rule | form_field | a page's fieldConditions name a field it does not show, make a field read-only on a page that is not a form, or give readOnly and readOnlyWhen together; its checks or enteredTwice are on a page that is not a form, or a check's field or a field entered twice is not one the form shows; or a check's message is not a full sentence |
+| Rule | value_object | a relation leads to a schema, an entity holds one in a field, or a schema is named like an entity or a view |
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
@@ -601,11 +602,15 @@ The sources this build reads:
   the number form; a schema with properties and no type is an
   object, and one with items an array, as JSON Schema reads those
   keywords. A component schema of type object with at least one
-  property that can be held becomes an entity, its primary key a
-  must question, and a reference to it a reference to the entity;
-  one of type string with an enum of snake_case values becomes an
-  enum; a reference to any other component schema is written in
-  place.
+  property that can be held becomes an entity when an operation's
+  201 response answers it or a path with a parameter answers it as
+  it is, its primary key a must question, and a reference to it a
+  reference to the entity; any other becomes a schema under
+  `schemas`, with no question about a key, and a reference to it a
+  reference to the schema, except inside an entity, which holds it
+  in place; one of type string with an enum of snake_case values
+  becomes an enum; a reference to any other component schema is
+  written in place.
   What the meta-model cannot hold prints a line and is left out: the
   methods head, options and trace; a cookie parameter or one given
   by content; a response code range; response headers and links;
@@ -3483,8 +3488,9 @@ the JSON pointers of its operations and component schemas.
 Operations under get, post, put, patch and delete, their
 parameters, request bodies and responses are written in the
 meta-model's terms, with schemas in the field subset; a component
-schema of type object is an entity and a string enum of snake_case
-values an enum. What the meta-model cannot hold prints a line and
+schema of type object is an entity when an operation creates it or
+a path with a parameter answers it, otherwise a schema (ADR-060),
+and a string enum of snake_case values an enum. What the meta-model cannot hold prints a line and
 is left out. An operation's permission is always a must question,
 and so is an integer or number with no width. merge leaves out a
 tree's question when another tree gives every key it blocks, and
@@ -3853,6 +3859,44 @@ stack.
 
 **Insight:** Maps keyed by the field, as a page's failed states are keyed by problem type, add what a field needs without a second way to list fields: a list item that may be a name or an object would be two ways to say one thing. The picker goes through the relation because the relation already says which entity the key points at; naming the entity again on the page could disagree with it. Its source must declare listOf because a picker pages and searches a list, which is what listOf promises, and an operation answering a bare array of the entity promises neither. pickers rather than lookups, because one word for two things is the ambiguity the Low IQ Tax forbids. The expressions use the subset already fixed for checks, as CEL is chosen for the reasons under Expressions in docs/conventions.md, and must give true or false, never null, so a missing value never offers or hides by accident. A mode keyword is left out because SpecArch's pages are each one mode already, and a list of modes on a field would be a second way to say which page shows it.
 
+### ADR-060: Data passed around but not stored is a schema under schemas, after OpenAPI's components.schemas, with no key and no table, and an entity may not relate to one or hold one
+
+Status: accepted, 2026-10-09.
+
+Context: Step 7 of docs/meta-model-0.2.md. A diagnostic, a request summary or
+a token's claims as a body is passed around and never stored, and
+has no identity. Meta-model 0.1 can name an object only as an
+entity, which needs a primary key and becomes a table, so such data
+was written as an entity with a made-up key. The SQL generator gave
+it a table nobody uses, and a reader could not tell it from a
+stored record. Inline objects carry it once, but not when two
+operations or a message share it.
+
+Decision: schemas holds named object schemas keyed by PascalCase name, each
+with type object, properties and required, and the rationale keys
+every element has; it has no primaryKey, relations, constraints,
+states, validity, audit or deletion. A request body, a response, a
+message's payload and another schema's property may refer to one
+as '#/schemas/Name'. A relation whose target is a schema and an
+entity's field that refers to one are refused (value_object); so is
+a schema named like an entity or a view, since all three become
+schemas of one interface. A derived case reads a request body's
+required properties through a schema as it does through an entity.
+specarch generate sql writes nothing for a schema; specarch generate
+openapi writes it under components.schemas. specarch extract openapi
+writes a component schema of type object as an entity only when the
+document treats it as a resource: an operation's 201 response
+answers it, or a path with a parameter answers it as it is. Every
+other one is a schema, with no question about its key, and inside
+an entity a reference to one is written in place.
+
+Consequences: Data with a made-up key can be rewritten as a schema without a
+version change, since schemas is an addition to the 0.1 design
+schema. A value held in a stored record is written as fields of the
+entity, or as an entity of its own with a key.
+
+**Insight:** The name schemas, and the shape of an object schema, are OpenAPI's: components.schemas is where an OpenAPI document keeps the named shapes its operations share, and JSON Schema's properties and required are the field subset every entity already uses, so a schema reads as the component it becomes and a generator writes it unchanged. OpenAPI puts stored and unstored shapes in one namespace, and so does the generated document, which is why a schema may not share an entity's or a view's name. OpenAPI does not say what is stored; that is the design's, and keeping a schema apart from an entity is what lets generate sql leave it out and a reader see that it has no identity. An entity may not relate to a schema because a relation is a foreign key to a record, and a schema has no record to point at; an entity may not hold one in a field either, because the field would need a column whose shape no generator can read from the design, and a stored copy of passed-around data is a record, which is what an entity says. Keeping the rule narrow costs nothing: a schema may still refer to an entity, as a response carrying a record does. OpenAPI never says which fields identify a record, so the reader takes what the document does say: 201 Created means the request created a resource (RFC 9110, 15.3.2), and a path parameter that selects what a response answers names one record of it; a component the document creates or addresses that way has an identity, and its key is asked for. A component the document only passes, such as a refusal's body, has none to ask for, so asking for a key would invite the made-up key this decision removes. The owner chose this rule over writing every component as a schema and letting merge turn it into an entity, which would move every extracted tree and merge's join.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -3918,6 +3962,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-exit-1 | command extract | system | red | a file that is not a catalogue dump | extract database is run on it | it says the file is not a catalogue dump, writes nothing and exits 1 |
 | extract-not-offered | command extract | system | red | a source this build does not read yet | extract workflows is run on a workflow definition | it names the sources it reads, writes nothing and exits 2 |
 | extract-openapi-not-openapi | command extract | system | red | a committed Swagger 2.0 document, which names no openapi version | extract openapi is run on it | it says the file is not an OpenAPI 3.0 or 3.1 document, writes nothing and exits 1 |
+| extract-openapi-writes-schema | command extract | system | golden | a repository holding an OpenAPI 3.1 document with one operation whose 201 answers a component, whose request body and 409 answer are two other components, and a fourth component the first holds in a property | extract openapi is run on the document | it writes the component the 201 answers as an entity with a question about its key, the request body and the refusal as schemas with no such question, the held component in place inside the entity and as a schema of its own, and exits 0 |
 | extract-openapi-writes-tree | command extract | system | golden | a repository holding an OpenAPI 3.0 document with two paths, a path-level parameter by reference, a template parameter it does not declare, a request body by reference, an operationId that is not camelCase, an operation with no summary and one with no security, a head method, a cookie parameter, a response range, an extension, an object schema with an int64 and a float without bounds, a nullable field, a snake_case property and an allOf, a string enum and an array schema named in lower case | extract openapi is run on the document | it writes each operation under its path citing its pointer, the object schema as an entity and the enum as an enum, 3.0's nullable and boolean exclusive bound in the 3.1 form, a question for the missing summary, each permission, the undeclared parameter's values, the primary key and the widths, prints a line for everything it leaves out, and exits 0 |
 | extract-outline-shallow-clone | command extract | system | red | a clone of depth 1 of a repository with two commits | extract outline is run on a folder of it | it refuses the shallow clone, whose history cannot name the last change to a path, writes nothing and exits 1 |
 | extract-outline-uncommitted | command extract | system | red | a folder whose files are committed, one of them changed since and not committed | extract outline is run on the folder | it refuses, naming the changed file, since no commit names what would be read; it writes nothing and exits 1 |
@@ -3950,6 +3995,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-sql-expand | command generate | system | golden | the specification of generate-sql with its first migration and snapshot in the output folder, and one new field, a subtitle that may be left out; specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0002_expand.sql, which adds the subtitle column, leaves 0001_expand.sql as it was, writes the snapshot again, and exits 0 |
 | generate-sql-owned | command generate | system | golden | a specification whose Author entity the implementation file marks as owned by the catalogue team, a Book entity with a foreign key to it and a view that joins it, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes no table for Author, the books table with its foreign key to authors and the view joining authors, and a snapshot that keeps Author's shape and lists it under owned, and exits 0 |
 | generate-sql-owned-handed-over | command generate | system | golden | an output folder whose migrations created the authors and books tables, a specification that now marks Author as owned by the catalogue team and adds a field to Author and one to Book, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0002_expand.sql with the new column of books and the view made again, no statement about authors and no drop, and a snapshot that lists Author under owned, and exits 0 |
+| generate-sql-value-object | command generate | system | golden | a specification with an entity and a schema that a response refers to, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0001_expand.sql with the entity's table and nothing for the schema, and snapshot.yaml beside it, and exits 0 |
 | generate-stack-fallback | command generate | system | golden | a specification whose implementation file is in Go, with only specarch-gen-echo on PATH | generate echo is run with --unapproved | it runs specarch-gen-echo, writes its file into the output the implementation file names, and exits 0 |
 | generate-stack-plugin | command generate | system | golden | a specification whose implementation file is in Go, with specarch-gen-echo-go and specarch-gen-echo both on PATH | generate echo is run with --unapproved | it runs specarch-gen-echo-go, the plug-in for the file's stack, writes its file into the output the implementation file names, and exits 0 |
 | generate-tests-dart | command generate | system | golden | the specification of generate-tests-go, and an implementation file in Dart whose testing framework is flutter_test; specarch-gen-tests-dart built from this repository on PATH | generate tests is run with --unapproved | it writes the library of values, harness and checks and the test file beside it, both importing flutter_test: the same tests as in Go through Harness, a body to write by hand for the test with no call, the reason of the test that does not apply, a group per algorithm with a test per worked example, and exits 0 |
@@ -4129,6 +4175,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-valid-design | command validate | system | golden | a design file with only specarch and info | validate is run on its folder | it prints nothing and exits 0 |
 | validate-valid-implementation | command validate | system | golden | a design file and an implementation file that names it at the same version | validate is run on their folder | it prints nothing and exits 0 |
 | validate-validity | command validate | system | red | an entity whose validity names a date-time and a date, and one whose validity names a field it does not have and a field with no format | validate is run | it reports validity for each, and exits 1 |
+| validate-value-objects | command validate | system | red | an entity that relates to a schema and holds one in a field, a schema named like the entity, a schema whose required list names a property it lacks, and a reference to a schema the specification lacks | validate is run | it reports value_object three times, field and ref_type once each, and exits 1 |
+| validate-value-objects-valid | command validate | system | golden | a schema that refers to an enum, one that is a request body, and one that is a response carrying an entity and a list of the first, which is also a message's payload | validate is run | it reports no error, derives the request body's required property through its schema, and exits 0 |
 | validate-views | command validate | system | red | views with a path to a field that does not exist, a path over a one-to-many relation, a property that repeats a field of its entity, a count of a many-to-one relation, a view of an entity that does not exist, a view named like an entity counting a relation it lacks, a list filtering by a field the view lacks, a request body naming a view, and a reference to a view that does not exist | validate is run | it reports view seven times, list_of, view for the request body and ref_type once each, and exits 1 |
 | validate-views-valid | command validate | system | golden | a view of a loan with its member's name and, through the member, its branch's name, a view of a member with a count of its loans, and a list over the first view whose whitelists name both the view's fields and its entity's, answering the view's rows | validate is run | it reports no error, and exits 0 |
 | validate-workflow | command validate | system | red | a workflow whose subject is not an entity, whose approver does not grant the approval's permission or is not a role, whose approval checks the trigger's permission with a deadline of zero and escalates to a step that is not a later approval, with two steps of one name and an operation step naming no operation; a workflow started by an operation that does not answer 202 whose approval checks an undeclared permission; and one started by an operation that does not exist | validate is run | it reports workflow eleven times and permission_undeclared once, and exits 1 |
@@ -4190,6 +4238,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-41 | A specification shall declare a read model under views, an entity's row with fields read through its relations and counts of its related records added, which is never written, and specarch validate shall check every path, count and use of a view. | functional | should | accepted | test | A view names the entity it reads from, and adds properties that are either a path through many-to-one or one-to-one relations ending in a field, or a count of a one-to-many or many-to-many relation; it carries every field of its entity besides. A path through a relation that does not exist or does not lead to one record, a count of a relation that does not lead to many, a property that repeats a field of the entity, and a view named like an entity are refused (view). A list may read from a view, with its whitelists naming the view's fields; a view under a request body is refused, since a view is never written. The techspec shows each view with the source and the type of every added property. | NEED-2 |
 | SA-42 | A specification shall define the behaviour, structure and rules of a user interface without naming a stack, the events of a page and where each leads among them, and specarch validate shall check them. | functional | should | accepted | test | A form's onSubmitted, a list's onSelect and an operation action's then lead to a page with exactly that page's route parameters, each from a field of the page's entity, and may carry a message, a full sentence; an event on a page or action that does not raise it, a page that does not exist, a route parameter missing or not the target's, a field the entity lacks and a message that is not a sentence are refused (flow). A flow names a task across pages, its actor and its steps, each a page and the event on it that leads to the next step's page; an actor that is not a role or may not open a page or take an action on the way, a page that does not exist, an event the page does not raise and an event that leads elsewhere are refused (flow). A test may name a flow as its subject. A page may declare its states, each with a message in a full sentence; once it does, a list has empty, a list with filters has filteredEmpty, and every problem type the page's operations answer has a message under failed or a default, and a failed state of a form or a task may name the field it is about; anything else is refused (state). Each state is a derived case of the page. A list may name compactColumns, the columns a compact screen keeps, each one of its columns; on another page, or naming another column, it is refused (page). A specification may name its accessibility target, WCAG 2.2 at level A, AA or AAA; with it, a field a page shows or filters by without a title and two actions of a page with one label are refused (accessibility), and the techspec lists the criteria of the level the design settles or leaves to the generator, with who meets each. A theme holds design tokens in the W3C Design Tokens format, modes and pairs of colours; a token without a type or with a value not of its type, a colour outside srgb, a hex that is not its components, a broken or circular alias, a mode naming no token, a number not written in decimals, and a pair below the contrast WCAG 2.2 asks of its use at AA, or AAA when that is the target, in any mode, are refused (theme), and the techspec lists the tokens and each pair's contrast. A form or a view gives its fields once, as fields or as titled sections in reading order; neither, both, a field in two sections and sections on a list are refused (page). A task page submits to an operation without loading a record. It has no entity, source, columns or filters, its fields are properties of the operation's request body and include every required one, and its onSubmitted is keyed by the success statuses the operation declares, each leading to a page whose route parameters come from that response's body; anything else, and an operation that takes no body, is refused (page, flow). A flow's step that submits it leads on when any answer leads to the next page. Its derived cases are a golden case per success the operation answers and a red case per problem type. The techspec's screen-flow diagram draws every event, each answer of a task page under its status, and each flow is drawn as its steps. | NEED-2 |
 | SA-43 | specarch generate ui shall write, through a plug-in, the list pages of a specification for the web in plain JavaScript, with no package, bundler or build step, so that the screens follow the design's pages, events, states, accessibility and theme. | functional | should | accepted | test | Each list page becomes an HTML page and an ES module that reads its list a page at a time by the paginated-list idiom, filters by the source operation's query parameters, hides on a compact screen the columns compactColumns leaves out, runs its operation actions with their confirmation and message, and shows its states in a status line announced without moving focus. Every event of the screens is declared once in events.js as an UPPERCASE constant with its payload, and each component subscribes where it is created. The theme's tokens become CSS custom properties with the dark mode under prefers-color-scheme, and the target's settings say which tokens play which part. A target that is not platform web in plain-javascript, one without a language, a filter that is neither a query parameter of the list's operation nor filterable in its listOf, a list whose path takes a parameter or that does not page, a service whose API is in the dxlib dialect, two events with one name, and a token name that cannot be a custom property are refused; forms, views, navigation, actions that take a request body and modes other than dark are reported and left out. The library lending example's loans list, written by hand before the generator, was reproduced by it apart from its header. | NEED-2 |
+| SA-48 | A specification shall declare a value object under schemas, data passed around but not stored and with no identity, which a request body, a response, a message or another schema may refer to and an entity may not, and specarch validate shall check every use of one. | functional | should | accepted | test | A schema is an object with properties and a required list, and nothing only a stored record has; a request body, a response, a message's payload and another schema's property may refer to it as '#/schemas/Name', and a derived case reads a body's required properties through it. A relation whose target is a schema, an entity's field that refers to one, a schema named like an entity or a view, and a required name that is not one of the schema's properties are refused (value_object, field); a reference to a schema the specification lacks is refused (ref_type). specarch generate sql writes nothing for a schema, and specarch generate openapi writes it under components.schemas. specarch extract openapi writes a component schema it finds no key for as a schema, with no question about its key. | NEED-1 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -4268,6 +4317,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on SA-43:** A screen written by hand drifts from the pages, states and messages the owner reviewed; written from them, it says what the design says, and a change to the design reaches the screen on the next run.
 
+**Insight on SA-48:** Data passed around but never stored, a diagnostic, a summary or a token's claims, was written as an entity with a made-up key, so the generators gave it a table nobody uses and a reader of the specification could not tell it from a stored record.
+
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
 **Note on SA-14:** From Protocol buffers compiler plug-in protocol, plugin.proto, 2024: A plug-in reads a CodeGeneratorRequest from standard input and writes a CodeGeneratorResponse to standard output; protoc writes the files, so a plug-in never touches the disk. <https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto>
@@ -4322,7 +4373,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 
 | Requirement | Satisfied by | Verified by |
 |---|---|---|
-| SA-1 | enums DocumentKind; entities SpecFile; commands validate; decisions ADR-003; decisions ADR-006; decisions ADR-007; decisions ADR-009; decisions ADR-052; decisions ADR-055 | tests validate-schema-name-form; tests validate-schema-untyped-integer; tests validate-valid-design; checks checks-the-examples; monitors main-stays-green |
+| SA-1 | enums DocumentKind; entities SpecFile; commands validate; decisions ADR-003; decisions ADR-006; decisions ADR-007; decisions ADR-009; decisions ADR-052; decisions ADR-055; decisions ADR-060 | tests validate-schema-name-form; tests validate-schema-untyped-integer; tests validate-valid-design; checks checks-the-examples; monitors main-stays-green |
 | SA-2 | enums Rule; commands validate; algorithms referenceResolves | tests validate-duplicate-name-across-files; tests validate-environment; tests validate-need; tests validate-ref-type; tests validate-relation-target; tests validate-requirement-set; tests validate-stakeholder |
 | SA-3 | enums Rule; commands validate; decisions ADR-004; decisions ADR-047 | tests validate-expression-date-days; tests validate-expression-date-number; tests validate-expression-in-stage-file; tests validate-expression-syntax; tests validate-expression-type |
 | SA-4 | enums Rule; commands validate; algorithms workedExampleHolds; decisions ADR-004 | tests validate-example-mismatch |
@@ -4369,6 +4420,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-pages-field-by-name; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-source-differs; tests merge-tree-invalid; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-owned-by-unknown |
 | SA-47 | enums Rule; decisions ADR-054 | tests validate-workflow; tests validate-workflow-valid |
+| SA-48 | enums Rule; decisions ADR-060 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |
 
 ## Sources
 

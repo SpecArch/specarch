@@ -237,19 +237,37 @@ func pagesFlowchart(root *yaml.Node) string {
 		fmt.Fprintf(&b, "  %s[\"%s (%s)\"]\n", mermaidID(p.Key.Value), mermaidText(str(p.Value, "title")), str(p.Value, "kind"))
 	}
 	ops := map[string]bool{}
+	op := func(target string) string {
+		if !ops[target] {
+			ops[target] = true
+			fmt.Fprintf(&b, "  op_%s([\"%s\"])\n", mermaidID(target), target)
+		}
+		return "op_" + mermaidID(target)
+	}
 	for _, p := range pages {
+		from := mermaidID(p.Key.Value)
+		if nav := str(get(p.Value, "onSelect"), "navigate"); nav != "" {
+			fmt.Fprintf(&b, "  %s -->|\"select\"| %s\n", from, mermaidID(nav))
+		}
+		if submit := str(p.Value, "submit"); submit != "" {
+			o := op(submit)
+			fmt.Fprintf(&b, "  %s -.->|\"submit\"| %s\n", from, o)
+			if nav := str(get(p.Value, "onSubmitted"), "navigate"); nav != "" {
+				fmt.Fprintf(&b, "  %s -->|\"submitted\"| %s\n", o, mermaidID(nav))
+			}
+		}
 		for _, a := range items(p.Value, "actions") {
 			target := str(a, "target")
 			label := mermaidText(str(a, "label"))
 			switch str(a, "kind") {
 			case "navigate":
-				fmt.Fprintf(&b, "  %s -->|\"%s\"| %s\n", mermaidID(p.Key.Value), label, mermaidID(target))
+				fmt.Fprintf(&b, "  %s -->|\"%s\"| %s\n", from, label, mermaidID(target))
 			case "operation":
-				if !ops[target] {
-					ops[target] = true
-					fmt.Fprintf(&b, "  op_%s([\"%s\"])\n", mermaidID(target), target)
+				o := op(target)
+				fmt.Fprintf(&b, "  %s -.->|\"%s\"| %s\n", from, label, o)
+				if nav := str(get(a, "then"), "navigate"); nav != "" {
+					fmt.Fprintf(&b, "  %s -->|\"%s done\"| %s\n", o, label, mermaidID(nav))
 				}
-				fmt.Fprintf(&b, "  %s -.->|\"%s\"| op_%s\n", mermaidID(p.Key.Value), label, mermaidID(target))
 			}
 		}
 	}

@@ -401,6 +401,7 @@ redefined.
 | a duration (`timeout`, `idleTimeout`, `absoluteTimeout`) | ISO 8601, the form JSON Schema's `format: duration` names | days, hours, minutes and seconds only (`PT5S`, `P1DT12H`): weeks, months and years depend on the calendar, so a limit written in them would not mean the same every day |
 | `emits`, `algorithm` | SpecArch | links from an operation to its events and its computation |
 | `pages`, `kind`, `route`, `entity`, `source`, `submit`, `columns`, `fields`, `filters`, `actions` | SpecArch | UI page definitions |
+| `onSubmitted`, `onSelect`, `then`, `navigate`, `with`, `message` | SpecArch, after the events and navigation flows of OMG IFML 1.0 | where an event of a page leads, and the status message it carries (WCAG 2.2, 4.1.3) |
 | `algorithms`, `inputs`, `output`, `formula`, `examples` (of an algorithm), `pseudocode` | SpecArch | IEEE 1016 algorithm viewpoint, made testable |
 | `decisions` and the ADR fields | SpecArch, after Michael Nygard's record | the common ADR shape: context, decision, consequences, plus `why` |
 | `tests`, `scenario`, `level`, `given`, `when`, `then`, `covers`, `notApplicable` | SpecArch, after ISO/IEC/IEEE 29119 and Gherkin | design tests; the levels are 29119-1's; given, when and then are the Gherkin words, without Gherkin's file format |
@@ -628,6 +629,31 @@ and `an item fails every try` when it retries.
 `menus` is the navigation, a tree of entries, each a `title` with a `page`
 or with `items` of its own. Every page an entry opens must exist (`menu`).
 An entry is shown to who may open its page.
+
+### Page events
+
+A page raises events: a form is submitted, a row of a list is selected,
+an operation run from an action succeeds. Each says where it leads:
+
+    member-form:
+      kind: form
+      submit: createMember
+      onSubmitted: { navigate: member-view, with: { memberId: id }, message: The member is registered. }
+    members-list:
+      kind: list
+      onSelect: { navigate: member-view, with: { memberId: id } }
+      actions:
+        - { label: Remove, kind: operation, target: removeMember, then: { message: The member is removed. } }
+
+`onSubmitted` is a form's, `onSelect` a list's, and `then` an action's of
+kind operation; an action of kind navigate leads already. `navigate` names
+a page, and `with` gives exactly that page's route parameters, each from
+a field of the page's entity: the record submitted, selected or acted on.
+`message` is a status message, a full sentence, announced without moving
+focus (WCAG 2.2, 4.1.3). An event with only a message stays on the page.
+Every rule here is `flow`. The concepts are IFML's events and navigation
+flows; its diagram notation is not used, and the techspec draws the
+screen flow from the pages.
 
 ### Views
 

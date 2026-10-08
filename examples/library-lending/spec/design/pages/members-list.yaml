@@ -8,5 +8,6 @@ pages:
     source: listMembers
     columns: [cardNumber, fullName, email, tier, outstandingFees]
     filters: [tier]
+    onSelect: { navigate: member-view, with: { memberId: id } }
     actions:
       - { label: New member, kind: navigate, target: member-form, permission: members.write }

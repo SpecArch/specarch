@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "pages whose events lead to a page that does not exist, to a page without its route parameter and with one it does not have, from a field the entity lacks, an onSubmitted on a view, and a then on an action that navigates; besides a list's onSelect and an operation's then with only a message, which are right"
+when: "validate is run"
+then: "it reports flow six times, and exits 1"
+verifies: [SA-42]

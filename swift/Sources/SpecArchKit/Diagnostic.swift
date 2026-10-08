@@ -96,6 +96,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case job = "job"
     case menu = "menu"
     case view = "view"
+    case flow = "flow"
 }
 
 /// Whether a diagnostic makes the file invalid.

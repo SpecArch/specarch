@@ -648,11 +648,18 @@ flowchart LR
   member_form["Register member (form)"]
   member_view["Member (view)"]
   members_list["Members (list)"]
+  op_createLoan(["createLoan"])
+  loan_form -.->|"submit"| op_createLoan
+  op_createLoan -->|"submitted"| member_view
   op_returnLoan(["returnLoan"])
   loans_list -.->|"Return"| op_returnLoan
   op_reportLost(["reportLost"])
   loans_list -.->|"Lost"| op_reportLost
+  op_createMember(["createMember"])
+  member_form -.->|"submit"| op_createMember
+  op_createMember -->|"submitted"| member_view
   member_view -->|"Lend a book"| loan_form
+  members_list -->|"select"| member_view
   members_list -->|"New member"| member_form
 ```
 

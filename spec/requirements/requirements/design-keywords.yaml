@@ -119,3 +119,14 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: Every list page shows a row with names and counts joined onto it; written by hand, the join drifts from the relations it follows, and a client cannot tell from the document which fields it may filter by.
+  SA-42:
+    statement: A specification shall define the behaviour, structure and rules of a user interface without naming a stack, the events of a page and where each leads among them, and specarch validate shall check them.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - A form's onSubmitted, a list's onSelect and an operation action's then lead to a page with exactly that page's route parameters, each from a field of the page's entity, and may carry a message; an event on a page or action that does not raise it, a page that does not exist, a route parameter missing or not the target's, and a field the entity lacks are refused (flow).
+      - The techspec's screen-flow diagram draws every event.
+    verification: test
+    needs: [NEED-2]
+    why: Where a person goes after each step is decided today by whoever builds the screen, so screens of one application drift apart, and no reviewer sees the flow until it runs.

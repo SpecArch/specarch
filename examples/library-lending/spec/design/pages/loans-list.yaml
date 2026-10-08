@@ -9,5 +9,5 @@ pages:
     columns: [memberId, bookId, loanedAt, dueOn, status, lateFee]
     filters: [status, memberId]
     actions:
-      - { label: Return, kind: operation, target: returnLoan, permission: loans.return, confirm: "Record this copy as returned?" }
-      - { label: Lost, kind: operation, target: reportLost, permission: loans.return, confirm: "Charge the replacement cost and close this loan?" }
+      - { label: Return, kind: operation, target: returnLoan, permission: loans.return, confirm: "Record this copy as returned?", then: { message: The copy is recorded as returned. } }
+      - { label: Lost, kind: operation, target: reportLost, permission: loans.return, confirm: "Charge the replacement cost and close this loan?", then: { message: The loan is closed and the replacement cost charged. } }

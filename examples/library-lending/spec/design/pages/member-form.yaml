@@ -7,4 +7,5 @@ pages:
     permission: members.write
     submit: createMember
     fields: [fullName, email, tier]
+    onSubmitted: { navigate: member-view, with: { memberId: id }, message: The member is registered. }
     satisfies: [LIB-7]

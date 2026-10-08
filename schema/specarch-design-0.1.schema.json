@@ -2398,6 +2398,14 @@
             "$ref": "#/$defs/action"
           }
         },
+        "onSubmitted": {
+          "description": "For a form: where a successful submission leads.",
+          "$ref": "#/$defs/pageEvent"
+        },
+        "onSelect": {
+          "description": "For a list: where selecting a row leads.",
+          "$ref": "#/$defs/pageEvent"
+        },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
         },
@@ -2504,6 +2512,10 @@
         "confirm": {
           "description": "Question asked before an operation runs.",
           "type": "string"
+        },
+        "then": {
+          "description": "For an operation: where it leads once it succeeds.",
+          "$ref": "#/$defs/pageEvent"
         }
       },
       "required": [
@@ -2515,6 +2527,40 @@
         "not": {
           "$ref": "#/$defs/stackSpecificKey"
         }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "pageEvent": {
+      "description": "SpecArch keyword, after the navigation flow of OMG's IFML. Where an event of a page leads: to another page with the route parameters it needs, and with a message announced to the person (WCAG 2.2, 4.1.3). Geometry and animation are a stack's.",
+      "type": "object",
+      "properties": {
+        "navigate": {
+          "description": "The page the event leads to.",
+          "type": "string",
+          "minLength": 1
+        },
+        "with": {
+          "description": "The route parameters of the page navigated to, each from a field of this page's entity: the record submitted, selected or acted on.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minProperties": 1
+        },
+        "message": {
+          "description": "A status message, a full sentence, announced without moving focus.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "minProperties": 1,
+      "dependentRequired": {
+        "with": [
+          "navigate"
+        ]
       },
       "patternProperties": {
         "^x-": {}

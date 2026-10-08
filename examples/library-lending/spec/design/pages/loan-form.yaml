@@ -7,4 +7,5 @@ pages:
     permission: loans.create
     submit: createLoan
     fields: [memberId, bookId]
+    onSubmitted: { navigate: member-view, with: { memberId: memberId }, message: The copy is lent. }
     satisfies: [LIB-7]

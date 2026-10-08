@@ -1,0 +1,45 @@
+decisions:
+  ADR-034:
+    title: A page's events say where each leads, after the navigation flows of IFML
+    status: proposed
+    date: "2026-10-08"
+    context: |
+      A page says what it shows and what a person can do on it, but only an
+      action of kind navigate says where it leads. Where a form goes once it
+      is submitted, what selecting a row of a list opens, and what follows
+      an operation run from a page are decided by whoever builds the screen,
+      so screens of one application drift apart and a reviewer sees the flow
+      only once it runs. OMG's Interaction Flow Modeling Language (IFML 1.0,
+      2015) is the standard for this part of a front end: view containers
+      and components raise events, and each event follows a navigation flow
+      to a target, carrying parameters. It came from fifteen years of
+      generating web front ends from models (WebML) and keeps events and
+      flows, not layout. WCAG 2.2, criterion 4.1.3, asks that a status
+      message reach a person without moving focus.
+    decision: |
+      A form's onSubmitted, a list's onSelect and an operation action's then
+      are page events. Each may navigate to a page, giving under with
+      exactly that page's route parameters, each from a field of the page's
+      entity (the record submitted, selected or acted on), and may carry a
+      message, a status message in a full sentence. An event on a page or an
+      action that does not raise it, a page that does not exist, a route
+      parameter missing or not the target's, and a field the entity lacks
+      are refused (flow). IFML's concepts are taken and its diagram notation
+      is not: the events are written on the page that raises them. The
+      techspec's screen-flow diagram draws every event. This decision is D3
+      of docs/ui-design.md and waits for the owner to confirm or veto it.
+    consequences: |
+      A reviewer reads where each step leads from the page itself and sees
+      it drawn, and a generator writes the navigation instead of guessing
+      it. A failed submission stays on its page; what it shows there is the
+      page's failed state, a decision of its own. Named flows across pages
+      build on these events.
+    why: |
+      Writing an event on the page that raises it keeps one place for it,
+      as an action already is. Taking the route parameters from the
+      entity's fields makes each navigation checkable: a target page cannot
+      be opened without the parameter its route needs, and a misspelt field
+      is caught before a screen is built. A message rather than a free
+      callback keeps the design free of a stack's notification component,
+      which the generator chooses.
+    satisfies: [SA-42]

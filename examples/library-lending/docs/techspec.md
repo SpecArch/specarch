@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 7 requirements, 3 entities, 8 HTTP operations, 2 channels, 1 dependency, 5 pages, 1 algorithm, 94 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 7 requirements, 3 entities, 8 HTTP operations, 2 channels, 1 dependency, 5 pages, 1 algorithm, 96 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -226,6 +226,18 @@ stateDiagram-v2
   lost --> [*]
 ```
 
+### Problem types
+
+Every refusal is an RFC 9457 problem document of one of these types; each operation below names the ones it answers with.
+
+| Problem type | Status | Title | When |
+|---|---|---|---|
+| email-taken | 409 | Email address already registered | A member with the same email address exists. |
+| member-not-found | 404 | No such member | No member has the id in the path. |
+| lending-refused | 409 | The copy cannot be lent | The member holds the most open loans their tier allows, has outstanding fees, or the book has no copy available. |
+| loan-closed | 409 | The loan is already closed | The loan was returned or reported lost before. |
+| fee-ledger-unavailable | 503 | The fee ledger is unavailable | The fee ledger failed or did not answer in time, and the loan stays as it was. |
+
 ### listBooks (GET /books)
 
 ```mermaid
@@ -248,6 +260,8 @@ sequenceDiagram
 
 ### createMember (POST /members)
 
+Refuses with 409 email-taken.
+
 ```mermaid
 sequenceDiagram
   participant C as Client
@@ -258,6 +272,8 @@ sequenceDiagram
 
 ### getMember (GET /members/{memberId})
 
+Refuses with 404 member-not-found.
+
 ```mermaid
 sequenceDiagram
   participant C as Client
@@ -267,6 +283,8 @@ sequenceDiagram
 ```
 
 ### listLoans (GET /loans)
+
+Lists Loan a page at a time, 20 records by default, at most 100 a page. It may be sorted by dueOn and loanedAt. A request outside these is refused, not ignored (the paginated-list idiom).
 
 ```mermaid
 sequenceDiagram
@@ -280,6 +298,10 @@ sequenceDiagram
 
 Refused when the member already holds the maximum open loans for their
 tier, has outstanding fees, or the book has no copy available.
+
+Refuses with 409 lending-refused.
+
+Limits: a request body of at most 1024 bytes; 30 requests per PT1M, with bursts of up to 60.
 
 Idempotent by the Idempotency-Key header: a request repeated with the same key is answered as the first was and has no second effect; a different request with a key already used is refused.
 
@@ -296,6 +318,8 @@ sequenceDiagram
 ### returnLoan (POST /loans/{loanId}/return)
 
 Calls feeLedger (within PT5S).
+
+Refuses with 409 loan-closed and 503 fee-ledger-unavailable.
 
 Guard: the change writes 1 Loan record, and `status == "open" || status == "overdue"` must hold on each as it is at the moment of the change; a change that finds otherwise is refused and changes nothing, so a second writer on the same record is refused rather than overwriting the first.
 
@@ -316,6 +340,8 @@ sequenceDiagram
 ### reportLost (POST /loans/{loanId}/lost)
 
 Calls feeLedger (within PT5S).
+
+Refuses with 409 loan-closed and 503 fee-ledger-unavailable.
 
 Guard: the change writes 1 Loan record, and `status == "open" || status == "overdue"` must hold on each as it is at the moment of the change; a change that finds otherwise is refused and changes nothing, so a second writer on the same record is refused rather than overwriting the first.
 
@@ -693,7 +719,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | create-loan-idempotency-key-not-a-valid-uuid | operation createLoan | system | red | a member and a book that exist | createLoan is called with an Idempotency-Key that is not a UUID | it is refused and no loan is created |
 | create-loan-idempotency-key-reused-for-another-request | operation createLoan | system | red | a loan was created under an Idempotency-Key | createLoan is called with the same Idempotency-Key for another book | it is refused and no loan is created |
 | create-loan-not-yet-valid-member-id | operation createLoan | system | red | a member registered with a joinedOn of tomorrow, and a book with a copy available | createLoan is called for them | it is refused as not yet valid and no loan is created |
+| create-loan-rate-exceeded | operation createLoan | system | red | a librarian who has made 60 lending requests within the last minute, the burst the rate of 30 a minute allows | createLoan is called once more within that minute | it is refused as too many requests and no loan is created |
 | create-loan-repeated-with-the-same-idempotency-key | operation createLoan | system | golden | a loan was created for a member and a book under an Idempotency-Key, and the client never saw the answer | createLoan is called again with the same Idempotency-Key, member and book | it answers 201 with the loan already created, no second loan exists, and the book's copies available are unchanged |
+| create-loan-request-larger-than-1024-bytes | operation createLoan | system | red | a librarian at the desk | createLoan is called with a body larger than 1024 bytes | it is refused as too large and no loan is created |
 | create-member-denied-with-expired-session | operation createMember | system | red | a librarian whose session expired after half an hour without a request | createMember is called | it is refused as not signed in, and nothing changes |
 | fees-block-lending | requirement LIB-3 | acceptance | golden | a member who owes a late fee | the librarian lends them a copy | A member with outstanding fees is refused a loan with 409. |
 | get-member-denied-with-expired-session | operation getMember | system | red | a librarian whose session expired after half an hour without a request | getMember is called for a member that exists | it is refused as not signed in, and nothing changes |
@@ -777,6 +805,14 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | show-member-denied | operation getMember | system | red | a caller holding only the member role | getMember is called | it is refused as not allowed |
 | show-member-not-found | operation getMember | system | red | a librarian and no member with a given id | getMember is called with that id | it answers 404 |
 
+**Origin on create-loan-rate-exceeded:** inferred.
+
+**Insight on create-loan-rate-exceeded:** Derived from the rate on createLoan, then completed by hand; lending runs at the desk, so a burst well above the rate covers a busy morning.
+
+**Origin on create-loan-request-larger-than-1024-bytes:** inferred.
+
+**Insight on create-loan-request-larger-than-1024-bytes:** Derived from the body limit on createLoan, then completed by hand; a lending request holds two ids, so anything near the limit is not a lending request.
+
 ## 12. Glossary
 
 | Term | Meaning |
@@ -833,7 +869,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 |---|---|---|---|
 | LIB-1 |   | entities Member constraints member_card_number_unique; entities Member; paths /members post | tests register-member; tests register-member-email-taken; checks lend-and-return; checks migrated-members |
 | LIB-2 |   | entities Book; permissions public; paths /books get | tests browse-catalogue; checks service-answers |
-| LIB-3 | money | entities Loan; paths /loans post; migrations add-membership-tier | tests create-loan-repeated-with-the-same-idempotency-key; tests fees-block-lending; tests lend-a-copy; tests lend-limit-reached; tests lending-limit-accepted; checks lend-and-return |
+| LIB-3 | money | entities Loan; paths /loans post; migrations add-membership-tier | tests create-loan-rate-exceeded; tests create-loan-repeated-with-the-same-idempotency-key; tests create-loan-request-larger-than-1024-bytes; tests fees-block-lending; tests lend-a-copy; tests lend-limit-reached; tests lending-limit-accepted; checks lend-and-return |
 | LIB-4 |   | entities Loan transitions 1; entities Loan; paths /loans/{loanId}/return post; channels loan.overdue; channels loan.overdue messages LoanOverdue; configuration notificationChannelUrl | tests loan-becomes-overdue; monitors overdue-notices-sent |
 | LIB-5 |   | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; configuration dailyRate | tests loan-lent-and-returned; tests return-late; checks lend-and-return |
 | LIB-6 |   | roles member; session | checks member-sees-own-loans |

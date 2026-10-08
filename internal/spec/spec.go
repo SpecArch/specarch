@@ -43,7 +43,7 @@ var Sections = map[string]string{
 	"stakeholders": "requirements", "needs": "requirements", "requirements": "requirements",
 	"glossary": "requirements", "assumptions": "requirements", "constraints": "requirements",
 	"enums": "design", "entities": "design", "permissions": "design", "roles": "design", "session": "design", "paths": "design",
-	"commands": "design", "channels": "design", "dependencies": "design", "pages": "design", "algorithms": "design", "decisions": "design",
+	"commands": "design", "channels": "design", "dependencies": "design", "errors": "design", "pages": "design", "algorithms": "design", "decisions": "design",
 	"tests":        "tests",
 	"environments": "deployment", "configuration": "deployment", "release": "deployment",
 	"rollback": "deployment", "migrations": "deployment",
@@ -55,7 +55,7 @@ var Sections = map[string]string{
 // docs/conventions.md: life-cycle order, the questions last.
 var sectionOrder = []string{
 	"stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
-	"enums", "entities", "permissions", "roles", "session", "paths", "commands", "channels", "dependencies", "pages", "algorithms",
+	"enums", "entities", "permissions", "roles", "session", "paths", "commands", "channels", "dependencies", "errors", "pages", "algorithms",
 	"tests", "decisions",
 	"environments", "configuration", "release", "rollback", "migrations",
 	"checks", "signoff",

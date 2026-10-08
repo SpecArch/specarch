@@ -1,0 +1,44 @@
+decisions:
+  ADR-025:
+    title: A list's whitelists, an operation's limits and the problem catalogue are design
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      The dxlib study found that every list in the services it serves has
+      one shape, that its endpoints carry a request size ceiling and a rate
+      limit, and that every refusal has one body; none of it could be said
+      in a specification, so a client and a tester had to learn it from the
+      code.
+    decision: |
+      An operation may carry listOf, naming the entity, the fields a search
+      matches (searchable), the fields a filter may name (filterable) and the
+      fields to sort by (sortable), and a pageSize with a maximum and a
+      default. It may carry limits: maxRequestBytes, and a rate of requests
+      per a duration with a burst. The design may declare errors, a
+      catalogue of RFC 9457 problem types keyed by name, each with its
+      status, title and condition, and a response names one under problem;
+      once the catalogue exists, every 4xx and 5xx response names one, of
+      its own status. An encrypted field is never searched or sorted by, and
+      is filtered by only through its hash. A list derives page beyond last,
+      page size above the maximum, and a sort and a filter outside the
+      lists; limits derive request too large and rate exceeded.
+    consequences: |
+      The parameter names and the answer's envelope of a list are the
+      paginated-list idiom, which now has its keyword; the OpenAPI target
+      expands listOf through it when it is built, and a test of a list
+      therefore carries no input for the paging parameters yet. The runtime
+      side of limits is the rate-limit idiom. The problem catalogue is
+      optional, so a specification without one is not refused; the meta-model
+      stays at 0.1.
+    why: |
+      A request outside the whitelists is refused rather than ignored, since
+      an ignored filter answers rows the caller did not ask for. RFC 9457 is
+      taken over a shape of SpecArch's own because a problem carries a type
+      a client can branch on without parsing a message, and every HTTP
+      client library reads it. A rate is a duration in the form the
+      timeouts use, never zero, since a rate over no time allows nothing.
+    cites:
+      - source: rfc-9457
+        clause: "3"
+        says: "A problem details object carries a type URI that identifies the problem type, a short human-readable title, and the HTTP status code."
+    satisfies: [SA-34]

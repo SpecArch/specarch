@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "a list with search, filter and sort fields and a page size, a body size limit and a rate, a catalogue of problem types named by every 4xx response, and a requirement with a harm the operations satisfy"
+when: "validate is run"
+then: "it reports no error, warns that no test covers the cases page beyond last, page size above the maximum, sort and filter outside the lists, a request too large and too many requests, among the others, and exits 0"
+verifies: [SA-34]

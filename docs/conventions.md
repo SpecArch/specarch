@@ -269,16 +269,17 @@ folder and only the first four are in the root file.
 2. `stakeholders`, `needs`, `requirements`, `glossary`, `assumptions`, `constraints`
 3. `enums`
 4. `entities`
-5. `permissions`, `roles`
+5. `permissions`, `roles`, `session`
 6. `paths`
 7. `commands`
-8. `channels`
+8. `channels`, `dependencies`, `errors`
 9. `pages`
 10. `algorithms`
 11. `tests`
 12. `decisions`
 13. `environments`, `configuration`, `release`, `rollback`, `migrations`
 14. `checks`, `signoff`
+15. `monitors`
 
 Inside an entity: `description`, `type`, `properties`, `required`,
 `primaryKey`, `relations`, `constraints`, `stateField`, `transitions`,
@@ -383,6 +384,9 @@ redefined.
 | `validity`, `from`, `until` | SpecArch | the fields that bound when a record is current |
 | `guard`, `precondition`, `recordsChanged` | SpecArch | what is checked together with a data change |
 | `sensitivity`, `atRest`, `lookup`, `audited`, `deletion` | SpecArch | how sensitive a field is and how it is stored, and what the system keeps about each record of an entity |
+| `listOf`, `searchable`, `filterable`, `sortable`, `pageSize` | SpecArch | a list's whitelists and page size, which a client must know |
+| `limits`, `maxRequestBytes`, `rate`, `requests`, `per`, `burst` | SpecArch | the request size and rate a client keeps to |
+| `errors`, `status`, `title`, `condition`, `type`, `problem` | RFC 9457, Problem Details for HTTP APIs | the catalogue of problem types; `condition` is SpecArch's, the standard's other members are the document's own at run time |
 | a duration (`timeout`, `idleTimeout`, `absoluteTimeout`) | ISO 8601, the form JSON Schema's `format: duration` names | days, hours, minutes and seconds only (`PT5S`, `P1DT12H`): weeks, months and years depend on the calendar, so a limit written in them would not mean the same every day |
 | `emits`, `algorithm` | SpecArch | links from an operation to its events and its computation |
 | `pages`, `kind`, `route`, `entity`, `source`, `submit`, `columns`, `fields`, `filters`, `actions` | SpecArch | UI page definitions |
@@ -559,6 +563,35 @@ engine's encryption and key, the column names) is an idiom
 (`docs/idioms.md`): pii-in-logs, encrypted-column, audit-fields and
 soft-delete.
 
+### Lists, limits and problem types
+
+An operation that answers a page of an entity's records says so, with the
+fields a client may search, filter and sort by:
+
+    listOf:
+      entity: Loan
+      filterable: [status, memberId]
+      sortable: [dueOn, loanedAt]
+      pageSize: { default: 20, maximum: 100 }
+
+A request outside the lists, or for a page above the maximum, is refused,
+never ignored, since an ignored filter answers rows the caller did not ask
+for. The fields must be the entity's; an encrypted field is never
+searchable or sortable, and filterable only with `lookup: hash`; the default
+page fits the maximum (`list_of`). The parameter names and the answer's
+envelope are the paginated-list idiom.
+
+`limits` says the largest request body, `maxRequestBytes`, and a `rate`: so
+many `requests` `per` a duration, with a `burst` of at least as many
+(`limits`).
+
+`errors` is the catalogue of problem types, in the shape of RFC 9457: each,
+keyed by a kebab-case name, has its HTTP `status`, a short `title` that
+does not change between occurrences, and the `condition` under which it is
+answered. A response names its type under `problem`, of its own status.
+Once the catalogue exists, every 4xx and 5xx response names one
+(`problem`), so a client can branch on the type without parsing a message.
+
 ### Secrets
 
 A setting under `configuration` says whether it is a `secret`. A secret's
@@ -727,6 +760,10 @@ mistake:
 | a body field that is the `via` of a relation to an entity with `validity` | `expired <field>`, and with `from` `not yet valid <field>` | red | occasional |
 | a GET answering a list of an entity with `deletion: soft` | `deleted <Entity> not listed` | golden | occasional |
 | a GET by a path parameter answering an entity with `deletion: soft` | `deleted <Entity> read` | red | occasional |
+| an operation with `listOf` | `page beyond last` | golden | occasional |
+| an operation with `listOf` | `page size above <maximum>`; with `sortable`, `sort by a field not sortable`; with `filterable`, `filter by a field not filterable` | red | occasional |
+| an operation with `limits.maxRequestBytes` | `request larger than <n> bytes` | red | occasional |
+| an operation with `limits.rate` | `rate exceeded` | red | occasional |
 | a `session`, for every permission other than `public` | `denied with expired session` | red | frequent |
 | a `guard` with a precondition | `guard precondition fails` | red | occasional |
 | a `guard` | `concurrent write` | red | rare |

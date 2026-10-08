@@ -99,6 +99,9 @@ const (
 	RuleSensitivityExposed     Rule = "sensitivity_exposed"
 	RuleAtRest                 Rule = "at_rest"
 	RuleAudited                Rule = "audited"
+	RuleListOf                 Rule = "list_of"
+	RuleLimits                 Rule = "limits"
+	RuleProblem                Rule = "problem"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -190,6 +193,9 @@ var Rules = []Rule{
 	RuleSensitivityExposed,
 	RuleAtRest,
 	RuleAudited,
+	RuleListOf,
+	RuleLimits,
+	RuleProblem,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

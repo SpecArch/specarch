@@ -49,7 +49,7 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/entities/Member" }
-        "409": { description: Email address already registered. }
+        "409": { description: Email address already registered., problem: email-taken }
       satisfies: [LIB-1]
 
   /members/{memberId}:
@@ -65,7 +65,7 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/entities/Member" }
-        "404": { description: No such member. }
+        "404": { description: No such member., problem: member-not-found }
 
   /loans:
     get:
@@ -75,6 +75,10 @@ paths:
       parameters:
         - { name: status, in: query, schema: { $ref: "#/enums/LoanStatus" } }
         - { name: memberId, in: query, schema: { type: string, format: uuid } }
+      listOf:
+        entity: Loan
+        sortable: [dueOn, loanedAt]
+        pageSize: { default: 20, maximum: 100 }
       responses:
         "200":
           description: Matching loans.
@@ -89,6 +93,9 @@ paths:
         tier, has outstanding fees, or the book has no copy available.
       permission: loans.create
       idempotencyKey: Idempotency-Key
+      limits:
+        maxRequestBytes: 1024
+        rate: { requests: 30, per: PT1M, burst: 60 }
       parameters:
         - name: Idempotency-Key
           in: header
@@ -111,7 +118,7 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/entities/Loan" }
-        "409": { description: "Loan limit reached, fees outstanding, or no copy available." }
+        "409": { description: "Loan limit reached, fees outstanding, or no copy available.", problem: lending-refused }
       emits: [loan.lifecycle/LoanCreated]
       satisfies: [LIB-3]
 
@@ -129,8 +136,8 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/entities/Loan" }
-        "409": { description: The loan is already closed. }
-        "503": { description: "The fee ledger is unavailable, and the loan stays as it was." }
+        "409": { description: The loan is already closed., problem: loan-closed }
+        "503": { description: "The fee ledger is unavailable, and the loan stays as it was.", problem: fee-ledger-unavailable }
       emits: [loan.lifecycle/LoanReturned]
       calls: [feeLedger]
       guard: { entity: Loan, precondition: 'status == "open" || status == "overdue"', recordsChanged: 1 }
@@ -149,8 +156,8 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/entities/Loan" }
-        "409": { description: The loan is already closed. }
-        "503": { description: "The fee ledger is unavailable, and the loan stays as it was." }
+        "409": { description: The loan is already closed., problem: loan-closed }
+        "503": { description: "The fee ledger is unavailable, and the loan stays as it was.", problem: fee-ledger-unavailable }
       emits: [loan.lifecycle/LoanLost]
       calls: [feeLedger]
       guard: { entity: Loan, precondition: 'status == "open" || status == "overdue"', recordsChanged: 1 }

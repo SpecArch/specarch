@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.4.0-dev of the specification: 9 needs, 33 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.4.0-dev of the specification: 9 needs, 34 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 ## 1. Needs to requirements
 
 | Need | Status | Refined by |
 |---|---|---|
-| NEED-1 | accepted | SA-33, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6 |
-| NEED-2 | accepted | SA-33, SA-32, SA-9, SA-10 |
+| NEED-1 | accepted | SA-33, SA-34, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6 |
+| NEED-2 | accepted | SA-33, SA-34, SA-32, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-7, SA-8, SA-26, SA-16, SA-19 |
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
@@ -55,6 +55,7 @@ Version 0.4.0-dev of the specification: 9 needs, 33 requirements, and 0 gaps. Ea
 | SA-31 | NEED-9 | commands generate | tests generate-stack-fallback; tests generate-stack-plugin |
 | SA-32 | NEED-2 | commands idioms; commands idioms diff; decisions ADR-023 | tests idioms-diff; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems |
 | SA-33 | NEED-1, NEED-2 | decisions ADR-024 | tests validate-stored-data; tests validate-stored-data-valid |
+| SA-34 | NEED-1, NEED-2 | decisions ADR-025 | tests validate-interface-problems; tests validate-interface-valid |
 
 ## 3. Gaps
 

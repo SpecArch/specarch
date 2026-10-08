@@ -92,6 +92,9 @@ enums:
       - sensitivity_exposed
       - at_rest
       - audited
+      - list_of
+      - limits
+      - problem
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: the file is not well-formed YAML
@@ -180,4 +183,7 @@ enums:
       sensitivity_exposed: "a credential field that is not writeOnly can appear in a response; a personal field can appear in the response of a public operation (a warning)"
       at_rest: "lookup without atRest encrypted, or an encrypted field that is a key or unique without lookup hash"
       audited: "an audited entity declares a field the system sets (createdAt, createdBy, lastModifiedAt, lastModifiedBy), or one with soft deletion declares deleted"
+      list_of: "a listOf names an entity the specification does not have or a field the entity does not have, puts an encrypted field in searchable or sortable or in filterable without lookup hash, or has a default page size above its maximum"
+      limits: "a rate's time is zero, or its burst is below its requests"
+      problem: "a response names a problem type not under errors, or one of another status, or the specification declares errors and a 4xx or 5xx response names none"
     satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29]

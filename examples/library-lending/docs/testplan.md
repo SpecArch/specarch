@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 94 design tests, 28 golden and 65 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 96 design tests, 28 golden and 67 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.1.0 of the specification: 94 design tests, 28 golden and 65 red, about
 | Level | Design tests |
 |---|---|
 | acceptance | 2 |
-| system | 92 |
+| system | 94 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -113,6 +113,18 @@ Scenario: red; level: system; covers not yet valid memberId.
 - When: createLoan is called for them
 - Then: it is refused as not yet valid and no loan is created
 
+#### create-loan-rate-exceeded
+
+Scenario: red; level: system; covers rate exceeded; verifies LIB-3.
+
+- Given: a librarian who has made 60 lending requests within the last minute, the burst the rate of 30 a minute allows
+- When: createLoan is called once more within that minute
+- Then: it is refused as too many requests and no loan is created
+
+**Origin:** inferred.
+
+**Insight:** Derived from the rate on createLoan, then completed by hand; lending runs at the desk, so a burst well above the rate covers a busy morning.
+
 #### create-loan-repeated-with-the-same-idempotency-key
 
 Scenario: golden; level: system; covers repeated with the same Idempotency-Key; verifies LIB-3.
@@ -120,6 +132,18 @@ Scenario: golden; level: system; covers repeated with the same Idempotency-Key; 
 - Given: a loan was created for a member and a book under an Idempotency-Key, and the client never saw the answer
 - When: createLoan is called again with the same Idempotency-Key, member and book
 - Then: it answers 201 with the loan already created, no second loan exists, and the book's copies available are unchanged
+
+#### create-loan-request-larger-than-1024-bytes
+
+Scenario: red; level: system; covers request larger than 1024 bytes; verifies LIB-3.
+
+- Given: a librarian at the desk
+- When: createLoan is called with a body larger than 1024 bytes
+- Then: it is refused as too large and no loan is created
+
+**Origin:** inferred.
+
+**Insight:** Derived from the body limit on createLoan, then completed by hand; a lending request holds two ids, so anything near the limit is not a lending request.
 
 #### lend-a-copy
 
@@ -846,12 +870,15 @@ stateDiagram-v2
 
 ## 4. Derived cases left out
 
-17 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+20 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
 | operation listMembers | deleted Member not listed | golden | occasional case, and operation listMembers satisfies no requirement with a harm |
 | operation getMember | deleted Member read | red | occasional case, and operation getMember satisfies no requirement with a harm |
+| operation listLoans | page beyond last | golden | occasional case, and operation listLoans satisfies no requirement with a harm |
+| operation listLoans | page size above 100 | red | occasional case, and operation listLoans satisfies no requirement with a harm |
+| operation listLoans | sort by a field not sortable | red | occasional case, and operation listLoans satisfies no requirement with a harm |
 | operation returnLoan | guard precondition fails | red | occasional case, and operation returnLoan satisfies no requirement with a harm |
 | operation returnLoan | response 503 | red | occasional case, and operation returnLoan satisfies no requirement with a harm |
 | operation reportLost | guard precondition fails | red | occasional case, and operation reportLost satisfies no requirement with a harm |

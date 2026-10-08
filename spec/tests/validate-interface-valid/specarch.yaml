@@ -1,0 +1,42 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.], harm: [money] }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      fullName: { type: string, maxLength: 200 }
+      email: { type: string, format: email, maxLength: 320, atRest: encrypted, lookup: hash }
+    primaryKey: [id]
+    satisfies: [CASE-1]
+errors:
+  too-many-requests: { status: 429, title: Too many requests, condition: The caller made more requests than the rate allows. }
+permissions:
+  members.read: { description: See members. }
+roles:
+  desk: { description: The desk., permissions: [members.read] }
+paths:
+  /members:
+    post:
+      operationId: searchMembers
+      summary: Search the members
+      permission: members.read
+      listOf:
+        entity: Member
+        searchable: [fullName]
+        filterable: [email]
+        sortable: [fullName]
+        pageSize: { default: 20, maximum: 100 }
+      limits:
+        maxRequestBytes: 4096
+        rate: { requests: 10, per: PT1M, burst: 20 }
+      responses:
+        "200":
+          description: A page of members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+        "429": { description: Too many requests., problem: too-many-requests }
+      satisfies: [CASE-1]

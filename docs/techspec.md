@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.4.0-dev of the specification: 33 requirements, 3 entities, 11 commands, 6 algorithms, 207 tests, 24 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.4.0-dev of the specification: 34 requirements, 3 entities, 11 commands, 6 algorithms, 209 tests, 25 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -264,6 +264,9 @@ Primary key: path.
 | Rule | sensitivity_exposed | a credential field that is not writeOnly can appear in a response; a personal field can appear in the response of a public operation (a warning) |
 | Rule | at_rest | lookup without atRest encrypted, or an encrypted field that is a key or unique without lookup hash |
 | Rule | audited | an audited entity declares a field the system sets (createdAt, createdBy, lastModifiedAt, lastModifiedBy), or one with soft deletion declares deleted |
+| Rule | list_of | a listOf names an entity the specification does not have or a field the entity does not have, puts an encrypted field in searchable or sortable or in filterable without lookup hash, or has a default page size above its maximum |
+| Rule | limits | a rate's time is zero, or its burst is below its requests |
+| Rule | problem | a response names a problem type not under errors, or one of another status, or the specification declares errors and a 4xx or 5xx response names none |
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
@@ -2124,6 +2127,41 @@ existing file breaks on.
 
 **Insight:** Declaring the audit fields and also marking the entity audited would be two ways to say one thing, so the keyword wins and the fields are implied. A credential arrives in a request body by design, so only responses are checked; writeOnly is JSON Schema's own word for a value that is sent and never returned. An encrypted value cannot be compared in storage, so it can be a key or unique only through a hash of it.
 
+### ADR-025: A list's whitelists, an operation's limits and the problem catalogue are design
+
+Status: accepted, 2026-10-08.
+
+Context: The dxlib study found that every list in the services it serves has
+one shape, that its endpoints carry a request size ceiling and a rate
+limit, and that every refusal has one body; none of it could be said
+in a specification, so a client and a tester had to learn it from the
+code.
+
+Decision: An operation may carry listOf, naming the entity, the fields a search
+matches (searchable), the fields a filter may name (filterable) and the
+fields to sort by (sortable), and a pageSize with a maximum and a
+default. It may carry limits: maxRequestBytes, and a rate of requests
+per a duration with a burst. The design may declare errors, a
+catalogue of RFC 9457 problem types keyed by name, each with its
+status, title and condition, and a response names one under problem;
+once the catalogue exists, every 4xx and 5xx response names one, of
+its own status. An encrypted field is never searched or sorted by, and
+is filtered by only through its hash. A list derives page beyond last,
+page size above the maximum, and a sort and a filter outside the
+lists; limits derive request too large and rate exceeded.
+
+Consequences: The parameter names and the answer's envelope of a list are the
+paginated-list idiom, which now has its keyword; the OpenAPI target
+expands listOf through it when it is built, and a test of a list
+therefore carries no input for the paging parameters yet. The runtime
+side of limits is the rate-limit idiom. The problem catalogue is
+optional, so a specification without one is not refused; the meta-model
+stays at 0.1.
+
+**Insight:** A request outside the whitelists is refused rather than ignored, since an ignored filter answers rows the caller did not ask for. RFC 9457 is taken over a shape of SpecArch's own because a problem carries a type a client can branch on without parsing a message, and every HTTP client library reads it. A rate is a duration in the form the timeouts use, never zero, since a rate over no time allows nothing.
+
+**Note:** From RFC 9457, Problem Details for HTTP APIs, 2023, clause 3: A problem details object carries a type URI that identifies the problem type, a short human-readable title, and the HTTP status code. <https://www.rfc-editor.org/rfc/rfc9457>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -2254,6 +2292,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-idiom-problems | command validate | system | red | an implementation file in Go with an Oracle sql target, which names an idiom SpecArch does not ship, excludes the project's own idiom without why, and overrides type-rendering with a file that has no why, lists an unknown part, defines a part it does not list, renders swift, changes a shipped contract statement and was copied from an older version; a decimal field is wider than Oracle holds, and a stray file sits in the idioms folder | validate is run | it reports idiom_unknown, idiom_override_reason, idiom_part_unknown, idiom_stack, idiom_contract on the statement and on the decimal's missing Oracle row, idiom_version_behind as a warning, and the stray file under layout, and exits 1 |
 | validate-implements | command validate | system | red | an implementation file written against an older version of its design | validate is run | it reports implements and exits 1 |
 | validate-incident-link | command validate | system | golden | a resolved incident that names no defect and no change and gives no noChange reason | validate is run | it warns with incident_link and exits 0, since the record is still valid |
+| validate-interface-problems | command validate | system | red | a list naming a field its entity lacks, an encrypted field to sort by and one to filter by without a hash, and a default page above the maximum; a rate over no time with a burst below it; a catalogue of problem types, a response naming an unknown type, one naming a type of another status, and a 4xx response naming none | validate is run | it reports list_of four times, limits twice and problem three times, and exits 1 |
+| validate-interface-valid | command validate | system | golden | a list with search, filter and sort fields and a page size, a body size limit and a rate, a catalogue of problem types named by every 4xx response, and a requirement with a harm the operations satisfy | validate is run | it reports no error, warns that no test covers the cases page beyond last, page size above the maximum, sort and filter outside the lists, a request too large and too many requests, among the others, and exits 0 |
 | validate-layout-folder-missing | command validate | system | red | stages that list deployment with no deployment/ folder | validate is run | it reports layout at stages and exits 1 |
 | validate-layout-not-a-stage | command validate | system | red | a docs/ folder beside specarch.yaml | validate is run | it reports layout naming the stage folders there are and exits 1 |
 | validate-layout-records-in-spec | command validate | system | red | a records folder inside the specification's folder | validate is run | it reports layout, saying the folder belongs beside the specification's folder, and exits 1 |
@@ -2380,6 +2420,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-21 | specarch validate shall rank every test case it derives as critical, frequent or other, from the harm of the requirements its subject satisfies and from how often users get its field wrong, and shall warn only for the critical and frequent cases no test covers. | functional | must | accepted | test | An operation that satisfies no requirement with harm gets no warning for the boundary cases of its fields, and still gets one for a missing required field and for a caller without the permission. The same operation, once it satisfies a requirement with harm, gets a warning for every derived case no test covers. A field with mistakes rare loses the warnings for its cases, and a field with mistakes frequent gains them. A failing channel is warned about whatever the harm of the operation. | NEED-9 |
 | SA-22 | specarch document shall list in the test plan, under Derived cases left out, every derived case of rank other that no test covers, with its subject and the reason it was left out, and shall show each requirement's harm in the traceability matrix once a requirement names one. | functional | must | accepted | test | The test plan of a specification with an uncovered boundary case on a subject with no harm has a row for that case, and the row is gone once a test covers it. The traceability matrix of a specification with a requirement that names a harm has a Harm column, and one without has none. | NEED-9, NEED-3 |
 | SA-33 | A specification shall be able to say how sensitive a field is, that it is encrypted at rest and how it is still found, and that an entity is audited or deleted softly, and specarch validate shall check each against the design and derive the cases a soft delete implies. | functional | must | accepted | test | A credential field that a response can carry and that is not writeOnly is reported as sensitivity_exposed; a personal field in the response of a public operation is warned about. A lookup on a field that is not encrypted, and an encrypted key or unique field without lookup hash, are reported as at_rest. An audited entity that declares createdAt, createdBy, lastModifiedAt or lastModifiedBy, and one with soft deletion that declares deleted, is reported as audited. A list of an entity with soft deletion gets the case deleted record not listed, and a read by id the case deleted record read, answered as not found. | NEED-1, NEED-2 |
+| SA-34 | A specification shall be able to say that an operation answers a page of an entity's records with the fields it searches, filters and sorts by and its page size, the limits a client keeps to, and the catalogue of problem types its refusals answer with, and specarch validate shall check each against the design and derive the cases each implies. | functional | must | accepted | test | A list naming a field its entity lacks, an encrypted field to search or sort by or to filter by without a hash, or a default page above the maximum is reported as list_of. A rate over no time, or with a burst below its requests, is reported as limits. A response naming a problem type that is not under errors or has another status, and a 4xx or 5xx response that names none once errors exist, is reported as problem. A list gets the cases page beyond last, page size above the maximum, and sort and filter outside the lists; a limit gets request too large and rate exceeded. | NEED-1, NEED-2 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -2430,6 +2471,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-22:** A case left out is a decision, and a decision the reader cannot see is one nobody can question.
 
 **Insight on SA-33:** Which fields are personal, which are encrypted and whether a delete can be undone are facts a client, a tester and an auditor need; written in the design, they are checked where a mistake would leak data, and the tests follow from them.
+
+**Insight on SA-34:** Which fields a client may filter and sort by, how large a page or a request may be, and what a refusal looks like are part of the interface; a client that guesses them is refused, and a tester who does not know them misses the cases at their edges.
+
+**Note on SA-34:** From RFC 9457, Problem Details for HTTP APIs, 2023, clause 3: A problem details object carries a type URI that identifies the problem type, a short human-readable title, and the HTTP status code; a client branches on the type. <https://www.rfc-editor.org/rfc/rfc9457>
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
@@ -2512,6 +2557,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-31 | commands generate | tests generate-stack-fallback; tests generate-stack-plugin |
 | SA-32 | commands idioms; commands idioms diff; decisions ADR-023 | tests idioms-diff; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems |
 | SA-33 | decisions ADR-024 | tests validate-stored-data; tests validate-stored-data-valid |
+| SA-34 | decisions ADR-025 | tests validate-interface-problems; tests validate-interface-valid |
 
 ## Sources
 
@@ -2539,5 +2585,6 @@ Every source a Note in this document cites.
 | owasp-session-management | OWASP Session Management Cheat Sheet |   | OWASP | https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html |
 | protoc-plugins | Protocol buffers compiler plug-in protocol, plugin.proto | 2024 | The protocol buffers project | https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto |
 | rfc-9110 | RFC 9110, HTTP Semantics | 2022 | IETF | https://www.rfc-editor.org/rfc/rfc9110 |
+| rfc-9457 | RFC 9457, Problem Details for HTTP APIs | 2023 | IETF | https://www.rfc-editor.org/rfc/rfc9457 |
 | semver | Semantic Versioning | 2.0.0 | The Semantic Versioning project | https://semver.org/spec/v2.0.0.html |
 

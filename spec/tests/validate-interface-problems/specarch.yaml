@@ -1,0 +1,44 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      email: { type: string, format: email, atRest: encrypted, lookup: hash }
+      phone: { type: string, maxLength: 20, atRest: encrypted }
+    primaryKey: [id]
+    satisfies: [CASE-1]
+errors:
+  not-found: { status: 404, title: Not found, condition: No record has the id. }
+  limit-reached: { status: 409, title: Limit reached, condition: The member has five open loans. }
+permissions:
+  members.read: { description: See members. }
+roles:
+  desk: { description: The desk., permissions: [members.read] }
+paths:
+  /members:
+    get:
+      operationId: listMembers
+      summary: The members
+      permission: members.read
+      listOf:
+        entity: Member
+        searchable: [name]
+        sortable: [email]
+        filterable: [phone]
+        pageSize: { default: 200, maximum: 100 }
+      limits:
+        rate: { requests: 10, per: PT0S, burst: 5 }
+      responses:
+        "200":
+          description: The members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+        "400": { description: A bad filter. }
+        "404": { description: Nothing here., problem: no-such-thing }
+        "409": { description: Wrong status., problem: not-found }
+      satisfies: [CASE-1]

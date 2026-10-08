@@ -401,13 +401,13 @@ with a validator rule or a generator that reads it.
    and total pages; a sibling endpoint downloads the same selection as a
    sheet. The whitelists are design: a client must know which fields it may
    filter and sort by, and a tester needs the boundary cases of the page
-   size. The parameter names and the answer envelope are an idiom. Proposed:
+   size. The parameter names and the answer envelope are an idiom. Built:
    `listOf` on an operation, naming the entity, with `searchable`,
    `filterable` and `sortable` field lists and `pageSize` with `maximum`;
-   the validator checks the fields exist, derives `page beyond last`,
-   `page size above maximum` and `sort by a field not sortable` cases, and
-   the OpenAPI target expands the operation through the `paginated-list`
-   idiom.
+   the validator checks the fields exist (`list_of`) and derives `page
+   beyond last`, `page size above maximum`, and a sort and a filter outside
+   the lists. The OpenAPI target will expand the operation through the
+   `paginated-list` idiom.
 5. **Background jobs.** dxlib runs a task once or forever with a delay, and
    the notification service drains a queue with retries and a dead-letter
    state. Already a 0.2 candidate in `docs/roadmap.md`; dxlib confirms the
@@ -419,21 +419,22 @@ with a validator rule or a generator that reads it.
 6. **The error body.** dxlib answers every refusal with one JSON shape and
    one upper-case code; its status codes are its own (422 for every
    validation failure, 409 for a bad credential). The shape is design: a
-   client parses it. Proposed: adopt RFC 9457, Problem Details for HTTP
-   APIs, as the shape of every 4xx and 5xx response, and add `errors` to
-   the design: a named catalogue of problem types, each with its status, its
-   title and the condition, that a response names under `problem`. The
-   reason to take the standard rather than dxlib's shape is that a problem
-   document carries a `type` URI and an `instance`, so a client can branch
-   on the type without parsing a message, and every HTTP client library
-   already reads it. The validator refuses a 4xx response without a problem
-   type once the catalogue exists; the test derivation names the type in
-   each red case.
+   client parses it. Built: RFC 9457, Problem Details for HTTP APIs, is
+   the shape of every 4xx and 5xx response, and `errors` in the design is a
+   named catalogue of problem types, each with its status, its title and
+   the condition, that a response names under `problem`. The reason to take
+   the standard rather than dxlib's shape is that a problem document
+   carries a `type` URI and an `instance`, so a client can branch on the
+   type without parsing a message, and every HTTP client library already
+   reads it. The validator refuses a 4xx or 5xx response without a problem
+   type once the catalogue exists (`problem`), and the techspec names the
+   types each operation refuses with.
 7. **Limits on an operation.** A request size ceiling and a rate-limit group
-   are facts a client must know. Proposed: `limits` on an operation with
-   `maxRequestBytes` and `rate` (`requests`, `per`, `burst`), rendered to the
-   OpenAPI document as an extension and to the runtime through the
-   `rate-limit` idiom.
+   are facts a client must know. Built: `limits` on an operation with
+   `maxRequestBytes` and `rate` (`requests`, `per`, `burst`), with the cases
+   `request larger than <n> bytes` and `rate exceeded`; the OpenAPI document
+   will carry it as an extension, and the runtime through the `rate-limit`
+   idiom.
 8. **Navigation.** A menu item in dxlib is a page's place in a tree, with
    the privilege that shows it. Proposed: `menus`, a tree whose leaves name
    pages; the validator checks every leaf is a page and inherits its

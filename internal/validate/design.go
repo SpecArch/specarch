@@ -470,6 +470,9 @@ func (c *checker) checkOperations(d *design) {
 		c.checkCalls(d, o)
 		c.checkIdempotencyKey(o)
 		c.checkExposed(d, o)
+		c.checkListOf(d, o)
+		c.checkLimits(o)
+		c.checkProblems(d, o)
 		c.checkGuard(d, source.Child(o.node, "guard"), o.pointer("guard"))
 	}
 }

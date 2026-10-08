@@ -1,0 +1,10 @@
+operation: createLoan
+level: system
+scenario: red
+covers: [request larger than 1024 bytes]
+given: a librarian at the desk
+when: createLoan is called with a body larger than 1024 bytes
+then: it is refused as too large and no loan is created
+verifies: [LIB-3]
+origin: inferred
+why: Derived from the body limit on createLoan, then completed by hand; a lending request holds two ids, so anything near the limit is not a lending request.

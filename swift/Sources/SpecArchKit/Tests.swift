@@ -122,6 +122,45 @@ private func golden(_ given: String, _ when: String, _ then: String) -> DerivedC
 
 /// The cases of a guard on an operation or a command: the precondition not
 /// holding, and a second writer on the same record.
+/// The cases of a list: a page after the last, a page larger than the
+/// maximum, and a sort or filter outside the lists.
+private func pageCases(_ s: Subject, _ o: Operation, _ call: String) {
+    guard let l = o.node.child("listOf") else { return }
+    s.cases.append(DerivedCase(name: "page beyond last", scenario: "golden", given: "fewer records than fill the pages asked for",
+                               when: call + " for a page after the last", then: "it answers an empty page with the true totals", frequency: occasional))
+    let max = str(l.child("pageSize")?.child("maximum"))
+    if !max.isEmpty {
+        s.red("page size above " + max, occasional, "...", call + " with a page size of \((Int(max) ?? 0) + 1)", "it is refused")
+    }
+    if l.child("sortable") != nil {
+        s.red("sort by a field not sortable", occasional, "...", call + " sorted by a field that is not sortable", "it is refused, not ignored")
+    }
+    if l.child("filterable") != nil {
+        s.red("filter by a field not filterable", occasional, "...", call + " filtered by a field that is not filterable", "it is refused, not ignored")
+    }
+}
+
+/// The cases of an operation's limits: a body too large, and more requests
+/// than the rate allows.
+private func limitsCases(_ s: Subject, _ o: Operation, _ call: String) {
+    let l = o.node.child("limits")
+    let n = str(l?.child("maxRequestBytes"))
+    if !n.isEmpty {
+        s.red("request larger than " + n + " bytes", occasional, "...", call + " with a body larger than " + n + " bytes", failureOr(o.node, "413", "it is refused as too large"))
+    }
+    if let rate = l?.child("rate") {
+        let r = str(rate.child("requests")), per = str(rate.child("per"))
+        s.red("rate exceeded", occasional, "a caller who has made " + r + " requests within " + per, call + " once more", failureOr(o.node, "429", "it is refused as too many requests"))
+    }
+}
+
+/// The response of a status, or the plain refusal when the operation does
+/// not declare it.
+private func failureOr(_ op: YNode, _ status: String, _ plain: String) -> String {
+    let then = failureResponse(op, status)
+    return then == "..." ? plain : then
+}
+
 private func guardCases(_ s: Subject, _ g: YNode?, _ what: String) {
     guard let g else { return }
     let ent = str(g.child("entity"))
@@ -312,6 +351,8 @@ extension Design {
             s.fieldCase("red", key + " reused for another request", occasional, key, schema, given, o.id + " is called with the same " + key + " and a different request", "it is refused")
         }
         guardCases(s, o.node.child("guard"), call)
+        pageCases(s, o, call)
+        limitsCases(s, o, call)
         for r in pairs(o.node.child("responses")) {
             let code = r.key.value
             if code.count == 3, code.first == "4" || code.first == "5" {
@@ -332,9 +373,7 @@ extension Design {
             return
         }
         for p in items(o.pathItem.child("parameters")) + items(o.node.child("parameters")) where str(p.child("in")) == "path" {
-            var then = failureResponse(o.node, "404")
-            if then == "..." { then = "it is refused as not found" }
-            s.red("deleted " + ent + " read", occasional, deleted, o.id + " is called with its " + str(p.child("name")), then)
+            s.red("deleted " + ent + " read", occasional, deleted, o.id + " is called with its " + str(p.child("name")), failureOr(o.node, "404", "it is refused as not found"))
             return
         }
     }

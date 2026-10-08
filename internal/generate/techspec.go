@@ -360,6 +360,17 @@ func runtime(d *doc, root *yaml.Node) {
 		}
 		d.explainRows(rows)
 	}
+	if errs := pairs(root, "errors"); len(errs) > 0 {
+		d.heading(3, "Problem types")
+		d.para("Every refusal is an RFC 9457 problem document of one of these types; each operation below names the ones it answers with.")
+		d.line("| Problem type | Status | Title | When |")
+		d.line("|---|---|---|---|")
+		for _, e := range errs {
+			d.line("| %s | %s | %s | %s |", e.Key.Value, str(e.Value, "status"), cell(str(e.Value, "title")), cell(str(e.Value, "condition")))
+		}
+		d.blank()
+		d.explainRows(rowsOf(errs))
+	}
 	for _, o := range ops {
 		d.heading(3, fmt.Sprintf("%s (%s %s)", o.id, strings.ToUpper(o.method), o.path))
 		d.para(str(o.node, "description"))
@@ -386,6 +397,43 @@ func operationDetails(d *doc, root *yaml.Node, op *yaml.Node) {
 			parts = append(parts, fmt.Sprintf("%s (within %s)", c, str(get(get(root, "dependencies"), c), "timeout")))
 		}
 		d.para("Calls " + strings.Join(parts, ", ") + ".")
+	}
+	if l := get(op, "listOf"); l != nil {
+		text := "Lists " + str(l, "entity") + " a page at a time"
+		size := get(l, "pageSize")
+		if def := str(size, "default"); def != "" {
+			text += ", " + def + " records by default"
+		}
+		text += ", at most " + str(size, "maximum") + " a page."
+		for _, k := range [][2]string{{"searchable", "A search matches"}, {"filterable", "A filter may name"}, {"sortable", "It may be sorted by"}} {
+			if fs := strs(l, k[0]); len(fs) > 0 {
+				text += " " + k[1] + " " + joinAnd(fs) + "."
+			}
+		}
+		d.para(text + " A request outside these is refused, not ignored (the paginated-list idiom).")
+	}
+	var refusals []string
+	for _, r := range pairs(op, "responses") {
+		if p := str(r.Value, "problem"); p != "" {
+			refusals = append(refusals, r.Key.Value+" "+p)
+		}
+	}
+	if len(refusals) > 0 {
+		d.para("Refuses with " + joinAnd(refusals) + ".")
+	}
+	if l := get(op, "limits"); l != nil {
+		var parts []string
+		if n := str(l, "maxRequestBytes"); n != "" {
+			parts = append(parts, "a request body of at most "+n+" bytes")
+		}
+		if r := get(l, "rate"); r != nil {
+			rate := str(r, "requests") + " requests per " + str(r, "per")
+			if b := str(r, "burst"); b != "" {
+				rate += ", with bursts of up to " + b
+			}
+			parts = append(parts, rate)
+		}
+		d.para("Limits: " + strings.Join(parts, "; ") + ".")
 	}
 	if key := str(op, "idempotencyKey"); key != "" {
 		d.para(fmt.Sprintf("Idempotent by the %s header: a request repeated with the same key is answered as the first was and has no second effect; a different request with a key already used is refused.", key))

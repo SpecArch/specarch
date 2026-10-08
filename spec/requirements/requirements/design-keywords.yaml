@@ -12,3 +12,20 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-2]
     why: Which fields are personal, which are encrypted and whether a delete can be undone are facts a client, a tester and an auditor need; written in the design, they are checked where a mistake would leak data, and the tests follow from them.
+  SA-34:
+    statement: A specification shall be able to say that an operation answers a page of an entity's records with the fields it searches, filters and sorts by and its page size, the limits a client keeps to, and the catalogue of problem types its refusals answer with, and specarch validate shall check each against the design and derive the cases each implies.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A list naming a field its entity lacks, an encrypted field to search or sort by or to filter by without a hash, or a default page above the maximum is reported as list_of.
+      - A rate over no time, or with a burst below its requests, is reported as limits.
+      - A response naming a problem type that is not under errors or has another status, and a 4xx or 5xx response that names none once errors exist, is reported as problem.
+      - A list gets the cases page beyond last, page size above the maximum, and sort and filter outside the lists; a limit gets request too large and rate exceeded.
+    verification: test
+    needs: [NEED-1, NEED-2]
+    why: Which fields a client may filter and sort by, how large a page or a request may be, and what a refusal looks like are part of the interface; a client that guesses them is refused, and a tester who does not know them misses the cases at their edges.
+    cites:
+      - source: rfc-9457
+        clause: "3"
+        says: "A problem details object carries a type URI that identifies the problem type, a short human-readable title, and the HTTP status code; a client branches on the type."

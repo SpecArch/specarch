@@ -486,6 +486,9 @@ extension Checker {
             checkCalls(d, o)
             checkIdempotencyKey(o)
             checkExposed(d, o)
+            checkListOf(d, o)
+            checkLimits(o)
+            checkProblems(d, o)
             checkGuard(d, o.node.child("guard"), o.pointer("guard"))
         }
     }

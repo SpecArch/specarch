@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.4.0-dev of the specification: 207 design tests, 67 golden and 139 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.4.0-dev of the specification: 209 design tests, 68 golden and 140 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.4.0-dev of the specification: 207 design tests, 67 golden and 139 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 203 |
+| system | 205 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1049,6 +1049,22 @@ Scenario: golden; level: system; verifies SA-23.
 - When: validate is run
 - Then: it warns with incident_link and exits 0, since the record is still valid
 
+#### validate-interface-problems
+
+Scenario: red; level: system; covers exit 1; verifies SA-34.
+
+- Given: a list naming a field its entity lacks, an encrypted field to sort by and one to filter by without a hash, and a default page above the maximum; a rate over no time with a burst below it; a catalogue of problem types, a response naming an unknown type, one naming a type of another status, and a 4xx response naming none
+- When: validate is run
+- Then: it reports list_of four times, limits twice and problem three times, and exits 1
+
+#### validate-interface-valid
+
+Scenario: golden; level: system; verifies SA-34.
+
+- Given: a list with search, filter and sort fields and a page size, a body size limit and a rate, a catalogue of problem types named by every 4xx response, and a requirement with a harm the operations satisfy
+- When: validate is run
+- Then: it reports no error, warns that no test covers the cases page beyond last, page size above the maximum, sort and filter outside the lists, a request too large and too many requests, among the others, and exits 0
+
 #### validate-layout-folder-missing
 
 Scenario: red; level: system; covers exit 1; verifies SA-11.
@@ -1717,7 +1733,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-79 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+83 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1741,6 +1757,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-33 | acceptance 2 | golden | SA-33 names no harm |
 | requirement SA-33 | acceptance 3 | golden | SA-33 names no harm |
 | requirement SA-33 | acceptance 4 | golden | SA-33 names no harm |
+| requirement SA-34 | acceptance 1 | golden | SA-34 names no harm |
+| requirement SA-34 | acceptance 2 | golden | SA-34 names no harm |
+| requirement SA-34 | acceptance 3 | golden | SA-34 names no harm |
+| requirement SA-34 | acceptance 4 | golden | SA-34 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

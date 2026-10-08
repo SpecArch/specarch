@@ -90,6 +90,9 @@ public enum Rule: String, CaseIterable, Sendable {
     case sensitivityExposed = "sensitivity_exposed"
     case atRest = "at_rest"
     case audited = "audited"
+    case listOf = "list_of"
+    case limits = "limits"
+    case problem = "problem"
 }
 
 /// Whether a diagnostic makes the file invalid.

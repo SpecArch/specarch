@@ -11,6 +11,9 @@ let designKeys: Set<String> = [
     "relations", "constraints", "transitions", "operationId", "responses",
     "requestBody", "parameters", "permission", "formula", "examples",
     "properties", "primaryKey", "stateField", "messages", "payload",
+    "calls", "idempotencyKey", "guard", "validity",
+    "sensitivity", "atRest", "lookup", "audited", "deletion",
+    "listOf", "limits", "problem", "errors",
 ]
 
 /// The implementation file's maps whose keys the author chooses (a folder,

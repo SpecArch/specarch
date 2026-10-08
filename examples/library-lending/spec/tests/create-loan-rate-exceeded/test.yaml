@@ -1,0 +1,10 @@
+operation: createLoan
+level: system
+scenario: red
+covers: [rate exceeded]
+given: a librarian who has made 60 lending requests within the last minute, the burst the rate of 30 a minute allows
+when: createLoan is called once more within that minute
+then: it is refused as too many requests and no loan is created
+verifies: [LIB-3]
+origin: inferred
+why: Derived from the rate on createLoan, then completed by hand; lending runs at the desk, so a burst well above the rate covers a busy morning.

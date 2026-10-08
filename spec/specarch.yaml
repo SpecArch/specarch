@@ -48,6 +48,12 @@ sources:
     edition: "2022"
     author: IETF
     url: https://www.rfc-editor.org/rfc/rfc9110
+  rfc-9457:
+    kind: standard
+    title: RFC 9457, Problem Details for HTTP APIs
+    edition: "2023"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc9457
   ietf-idempotency-key:
     kind: document
     title: The Idempotency-Key HTTP Header Field, an Internet-Draft of the IETF HTTP API working group

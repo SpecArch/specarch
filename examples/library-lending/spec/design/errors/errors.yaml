@@ -1,0 +1,21 @@
+errors:
+  email-taken:
+    status: 409
+    title: Email address already registered
+    condition: A member with the same email address exists.
+  member-not-found:
+    status: 404
+    title: No such member
+    condition: No member has the id in the path.
+  lending-refused:
+    status: 409
+    title: The copy cannot be lent
+    condition: The member holds the most open loans their tier allows, has outstanding fees, or the book has no copy available.
+  loan-closed:
+    status: 409
+    title: The loan is already closed
+    condition: The loan was returned or reported lost before.
+  fee-ledger-unavailable:
+    status: 503
+    title: The fee ledger is unavailable
+    condition: The fee ledger failed or did not answer in time, and the loan stays as it was.

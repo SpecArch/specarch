@@ -299,6 +299,7 @@ cases under an idiom's `tests` joining the derived cases
 4. The first two shipped idioms, `type-rendering` and `paginated-list`, with
    their Go and SQL renderings, since `specarch-gen-sql` and
    `specarch-gen-openapi` read them. `type-rendering` is built;
-   `paginated-list` reads `listOf`, which comes with the 0.2 keywords.
+   `paginated-list` reads `listOf`, which the design now has, and is written
+when `specarch-gen-openapi` needs it.
 5. The rest of the first set, as the generators and the first real projects
    need them, Go first.

@@ -184,6 +184,17 @@
         "$ref": "#/$defs/dependency"
       }
     },
+    "errors": {
+      "description": "SpecArch keyword. The catalogue of problem types the operations answer with, keyed by kebab-case name. Every 4xx and 5xx response is an RFC 9457 problem document and names its type under problem.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/problemType"
+      }
+    },
     "pages": {
       "description": "SpecArch keyword. Screens, keyed by kebab-case name.",
       "type": "object",
@@ -2002,6 +2013,12 @@
         "guard": {
           "$ref": "#/$defs/guard"
         },
+        "listOf": {
+          "$ref": "#/$defs/listOf"
+        },
+        "limits": {
+          "$ref": "#/$defs/limits"
+        },
         "algorithm": {
           "description": "SpecArch keyword. The algorithm this operation runs, if any.",
           "$ref": "#/$defs/memberName"
@@ -2076,6 +2093,11 @@
         },
         "content": {
           "$ref": "#/$defs/content"
+        },
+        "problem": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+          "description": "SpecArch keyword. The problem type this response answers with, by its name under errors. Once the specification declares errors, every 4xx and 5xx response names one."
         }
       },
       "required": [
@@ -3678,6 +3700,175 @@
         "minItems": 1
       },
       "minProperties": 1
+    },
+    "listOf": {
+      "description": "SpecArch keyword. The operation answers a page of an entity's records: which fields a free-text search covers, which may be filtered and sorted by, and the page size. A client must know the lists, and a request outside them is refused, never ignored. The parameter names and the answer's envelope are the paginated-list idiom.",
+      "type": "object",
+      "properties": {
+        "entity": {
+          "description": "The entity listed.",
+          "$ref": "#/$defs/typeName"
+        },
+        "searchable": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "The fields a free-text search matches."
+        },
+        "filterable": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "The fields a filter may name."
+        },
+        "sortable": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "The fields the list may be sorted by."
+        },
+        "pageSize": {
+          "description": "How many records a page holds.",
+          "type": "object",
+          "properties": {
+            "default": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            },
+            "maximum": {
+              "description": "The largest page a request may ask for; above it the request is refused.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          },
+          "required": [
+            "maximum"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "entity",
+        "pageSize"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "limits": {
+      "description": "SpecArch keyword. Limits a client must keep to: the largest request body, and how many requests are taken in a time. The runtime side is the rate-limit idiom.",
+      "type": "object",
+      "properties": {
+        "maxRequestBytes": {
+          "description": "The largest request body, in bytes; a larger one is refused.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "rate": {
+          "description": "How many requests one caller may make in a time, and how many at once above that.",
+          "type": "object",
+          "properties": {
+            "requests": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            },
+            "per": {
+              "$ref": "#/$defs/duration"
+            },
+            "burst": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          },
+          "required": [
+            "requests",
+            "per"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "minProperties": 1,
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "problemType": {
+      "description": "SpecArch keyword. One kind of problem an operation answers with, in the shape of RFC 9457, Problem Details for HTTP APIs: its HTTP status, a short title that does not change between occurrences, and the condition under which it is answered.",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "minimum": 400,
+          "maximum": 599
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "condition": {
+          "$ref": "#/$defs/markdown"
+        },
+        "type": {
+          "description": "The problem type's URI, when it is not derived from the name.",
+          "type": "string",
+          "minLength": 1
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "status",
+        "title",
+        "condition"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
     }
   }
 }

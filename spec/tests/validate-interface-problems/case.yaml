@@ -1,0 +1,14 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |+
+  specarch.yaml:24: warning: /paths/~1members/get: test_case_missing: operation listMembers has no red scenario for "denied without members.read"; add under tests list-members-denied-without-members-read: { operation: listMembers, scenario: red, covers: [denied without members.read], given: "a caller without members.read", when: "listMembers is called", then: "it is refused as not allowed" }
+  specarch.yaml:24: warning: /paths/~1members/get: test_golden_missing: operation listMembers has no golden scenario; add one under tests, for example list-members-succeeds: { operation: listMembers, scenario: golden, given: "a caller with members.read", when: "listMembers is called", then: "it answers 200: The members." }
+  specarch.yaml:29: error: /paths/~1members/get/listOf/searchable/0: list_of: name is not a field of Member, so it cannot be searchable; use one of email, id, phone
+  specarch.yaml:30: error: /paths/~1members/get/listOf/sortable/0: list_of: email is encrypted at rest, so it cannot be sortable: storage cannot read it; leave it out of sortable
+  specarch.yaml:31: error: /paths/~1members/get/listOf/filterable/0: list_of: phone is encrypted at rest, so it can be filtered by only through a hash of it; add lookup: hash to the field, or leave it out of filterable
+  specarch.yaml:32: error: /paths/~1members/get/listOf/pageSize/default: list_of: the default page of 200 is above the maximum of 100; lower the default, or raise the maximum
+  specarch.yaml:34: error: /paths/~1members/get/limits/rate/burst: limits: a burst of 5 is below the 10 requests the rate allows, so it would lower the limit; raise it to at least 10, or remove it
+  specarch.yaml:34: error: /paths/~1members/get/limits/rate/per: limits: PT0S is no time at all; give the rate a limit above zero
+  specarch.yaml:41: error: /paths/~1members/get/responses/400: problem: the specification declares its problem types under errors, so the 400 response of listMembers names one under problem
+  specarch.yaml:42: error: /paths/~1members/get/responses/404/problem: problem: no-such-thing is not a problem type under errors; use one of limit-reached, not-found
+  specarch.yaml:43: error: /paths/~1members/get/responses/409/problem: problem: not-found is a 404 problem, and this is the 409 response; name a problem type of status 409

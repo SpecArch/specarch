@@ -23,6 +23,8 @@ var designKeys = map[string]bool{
 	"requestBody": true, "parameters": true, "permission": true, "formula": true, "examples": true,
 	"properties": true, "primaryKey": true, "stateField": true, "messages": true, "payload": true,
 	"calls": true, "idempotencyKey": true, "guard": true, "validity": true,
+	"sensitivity": true, "atRest": true, "lookup": true, "audited": true, "deletion": true,
+	"listOf": true, "limits": true, "problem": true, "errors": true,
 }
 
 // namedMaps are the implementation file's maps whose keys the author

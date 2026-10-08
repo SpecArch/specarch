@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -392,12 +393,57 @@ func (d *design) operationSubject(o operation) *subject {
 		s.fieldCase("red", key+" reused for another request", occasional, key, schema, given, o.id+" is called with the same "+key+" and a different request", "it is refused")
 	}
 	guardCases(s, source.Child(o.node, "guard"), call)
+	pageCases(s, o, call)
+	limitsCases(s, o, call)
 	for _, r := range source.Pairs(source.Child(o.node, "responses")) {
 		if code := r.Key.Value; len(code) == 3 && (code[0] == '4' || code[0] == '5') {
 			s.red("response "+code, occasional, "...", call, "it answers "+code+": "+source.Str(source.Child(r.Value, "description")))
 		}
 	}
 	return s
+}
+
+// pageCases are the cases of a list: a page after the last, a page larger
+// than the maximum, and a sort or filter outside the lists.
+func pageCases(s *subject, o operation, call string) {
+	l := source.Child(o.node, "listOf")
+	if l == nil {
+		return
+	}
+	s.cases = append(s.cases, derivedCase{name: "page beyond last", scenario: "golden", given: "fewer records than fill the pages asked for",
+		when: call + " for a page after the last", then: "it answers an empty page with the true totals", frequency: occasional})
+	if max := source.Str(source.Child(source.Child(l, "pageSize"), "maximum")); max != "" {
+		n, _ := strconv.Atoi(max)
+		s.red("page size above "+max, occasional, "...", call+" with a page size of "+strconv.Itoa(n+1), "it is refused")
+	}
+	if source.Child(l, "sortable") != nil {
+		s.red("sort by a field not sortable", occasional, "...", call+" sorted by a field that is not sortable", "it is refused, not ignored")
+	}
+	if source.Child(l, "filterable") != nil {
+		s.red("filter by a field not filterable", occasional, "...", call+" filtered by a field that is not filterable", "it is refused, not ignored")
+	}
+}
+
+// limitsCases are the cases of an operation's limits: a body too large,
+// and more requests than the rate allows.
+func limitsCases(s *subject, o operation, call string) {
+	l := source.Child(o.node, "limits")
+	if n := source.Str(source.Child(l, "maxRequestBytes")); n != "" {
+		s.red("request larger than "+n+" bytes", occasional, "...", call+" with a body larger than "+n+" bytes", failureOr(o.node, "413", "it is refused as too large"))
+	}
+	if rate := source.Child(l, "rate"); rate != nil {
+		r, per := source.Str(source.Child(rate, "requests")), source.Str(source.Child(rate, "per"))
+		s.red("rate exceeded", occasional, "a caller who has made "+r+" requests within "+per, call+" once more", failureOr(o.node, "429", "it is refused as too many requests"))
+	}
+}
+
+// failureOr is the response of a status, or the plain refusal when the
+// operation does not declare it.
+func failureOr(op *yaml.Node, status, plain string) string {
+	if then := failureResponse(op, status); then != "..." {
+		return then
+	}
+	return plain
 }
 
 // softDeleteCases are the cases of a read of an entity with soft deletion:
@@ -412,11 +458,7 @@ func (d *design) softDeleteCases(s *subject, o operation, ent, call string) {
 	}
 	for _, p := range append(source.Items(source.Child(o.pathItem, "parameters")), source.Items(source.Child(o.node, "parameters"))...) {
 		if source.Str(source.Child(p, "in")) == "path" {
-			then := failureResponse(o.node, "404")
-			if then == "..." {
-				then = "it is refused as not found"
-			}
-			s.red("deleted "+ent+" read", occasional, deleted, o.id+" is called with its "+source.Str(source.Child(p, "name")), then)
+			s.red("deleted "+ent+" read", occasional, deleted, o.id+" is called with its "+source.Str(source.Child(p, "name")), failureOr(o.node, "404", "it is refused as not found"))
 			return
 		}
 	}

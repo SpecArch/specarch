@@ -141,8 +141,8 @@ documents gave:
 |---|---|
 | agree | one element, `origin: stated`, citing the document section and the code line |
 | disagree | the element as far as both agree, and a `must` question (`decision`) that cites both and says "the document says X, the code does Y"; the disputed key is left out, and the question blocks it |
-| only the code has it | the element with `origin: inferred`, a `why` that starts "Undocumented, from code." and names the line, citing the code, and a `should` question asking the owner to confirm it |
-| only the documents have it | the element as the documents state it, and a `should` question in `implementation/questions.yaml`, blocking `implementation`, that starts "Not built yet." and cites the section and the code where it would be |
+| only the code has it | the element with `origin: inferred`, a `why` that starts "Undocumented, from code." and names the line, citing the code, and a question, `should` or `must` by the rule below, asking the owner to confirm it |
+| only the documents have it | the element as the documents state it, and a question, `should` or `must` by the rule below, in `implementation/questions.yaml`, blocking `implementation`, that starts "Not built yet." and cites the section and the code where it would be |
 
 A question about an element only one side has is `must`, not `should`,
 when the element concerns security (a role, a permission, an operation,

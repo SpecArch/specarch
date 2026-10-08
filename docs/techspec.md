@@ -822,7 +822,12 @@ refused.
   an operation by its path and method, a field by its entity and
   name) becomes one element with the citations of both. A key only
   one tree writes is kept. A key the trees give different values is
-  left out, and a must question cites both and blocks it.
+  left out, and a must question cites both and blocks it. An
+  entity's `required` is compared field by field: a field only one
+  tree has keeps what that tree says, and a field both have that
+  one requires and the other does not is left out of `required`,
+  with a must question on that field that blocks the entity's
+  `required`.
 - An element is stated when a tree states it; it is inferred only
   when every tree that has it infers it.
 - A tree whose sources are all code is on the code side; any other
@@ -3098,7 +3103,11 @@ field by its entity and name, and an entry of a list of named
 objects, such as a path's parameters, by its name. Citations are
 joined; a key only one tree writes is kept; a key with different
 values is left out, and one must question per key cites the
-element in every tree that gives it and offers each value. The
+element in every tree that gives it and offers each value. An
+entity's required list is compared field by field, so a field one
+tree does not have is no disagreement, and a field both have that
+only one requires is left out of the list with a must question on
+it. The
 origin taken is decided over stated over inferred. A tree is on the
 code side when every source it declares is code, and on the
 documents side otherwise. The table's rows for an element only one

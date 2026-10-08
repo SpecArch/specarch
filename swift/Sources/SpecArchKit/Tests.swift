@@ -543,7 +543,42 @@ extension Design {
         for param in pathParameters(str(p.value.child("route"))) {
             s.red("not found " + param, frequent, "no record has that " + param, open + " for that " + param, "it says the record was not found")
         }
+        stateCases(s, p.value, open)
         return s
+    }
+
+    /// The cases of a page's states, when it declares them: its empty and
+    /// filtered empty states, and each problem type it can meet, showing its
+    /// own message or the default.
+    func stateCases(_ s: Subject, _ pg: YNode, _ open: String) {
+        guard let states = pg.child("states") else { return }
+        func shows(_ st: YNode) -> String { "it shows: " + str(st.child("message")) }
+        if let st = states.child("empty") {
+            s.cases.append(DerivedCase(name: "empty", scenario: "golden", given: "no records", when: open, then: shows(st), frequency: occasional))
+        }
+        if let st = states.child("filteredEmpty") {
+            s.cases.append(DerivedCase(name: "filtered empty", scenario: "golden", given: "records, none matching the filters", when: open + " with those filters", then: shows(st), frequency: occasional))
+        }
+        let failed = states.child("failed")
+        var labels: [String: String] = [:]
+        for a in items(pg.child("actions")) where str(a.child("kind")) == "operation" {
+            let t = str(a.child("target"))
+            if labels[t] == nil { labels[t] = str(a.child("label")) }
+        }
+        let (problems, by) = pageProblems(pg)
+        for pr in problems {
+            guard let st = failed?.child(pr) ?? failed?.child("default") else { continue } // the state check reports it
+            var when = open
+            let id = by[pr] ?? ""
+            if id == str(pg.child("submit")) {
+                when = "the form is submitted"
+            } else if id != str(pg.child("source")) {
+                when = "the action " + (labels[id] ?? "") + " is taken"
+            }
+            var given = str(root.child("errors")?.child(pr)?.child("condition"))
+            if given.isEmpty { given = "..." }
+            s.red("fails with " + pr, occasional, given, when, shows(st))
+        }
     }
 
     func constraintSubject(_ entity: String, _ c: Pair) -> Subject {

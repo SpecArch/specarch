@@ -680,6 +680,20 @@ The menu, each entry shown to who may open its page:
 | member-view | view | /members/{memberId} | Member | members.read | cardNumber, fullName, email, tier, joinedOn, membershipEndsOn, outstandingFees |
 | members-list | list | /members | Member | members.read | cardNumber, fullName, email, tier, outstandingFees |
 
+What each page shows when it is empty or fails; while it loads or submits, the stack draws its own:
+
+| Page | State | Message |
+|---|---|---|
+| loan-form | failed: lending-refused | This member cannot borrow now: the loan limit is reached, fees are outstanding, or no copy is available. |
+| loans-list | empty | No loans yet. A loan is made from a member's record. |
+| loans-list | filtered empty | No loan matches these filters. |
+| loans-list | failed: loan-closed | This loan was already closed, so nothing changed. |
+| loans-list | failed: default | The loans cannot be changed right now. Try again in a moment. |
+| member-form | failed: email-taken, beside email | Another member already has this email address. |
+| member-view | failed: member-not-found | There is no member with this card. |
+| members-list | empty | No members yet. Register the first one. |
+| members-list | filtered empty | No member is in this tier. |
+
 ### Flow lend-a-copy
 
 A librarian finds the member at the desk, opens their record and lends them a copy. Done by librarian.

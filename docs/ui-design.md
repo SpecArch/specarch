@@ -131,20 +131,24 @@ with a problem type the operation answers, and the catalogue under
       kind: list
       ...
       states:
-        empty: { message: No loans yet. Lend a copy from a member's page. }
-        filteredEmpty: { message: No loans match these filters., actions: [clear-filters] }
+        empty: { message: No loans yet. A loan is made from a member's record. }
+        filteredEmpty: { message: No loan matches these filters. }
         failed:
-          default: { message: The loans cannot be shown right now. Try again in a moment., actions: [retry] }
-          loan-closed: { message: This loan is already closed. }
+          loan-closed: { message: "This loan was already closed, so nothing changed." }
+          default: { message: The loans cannot be changed right now. Try again in a moment. }
 
-Loading has no text to write, and a generator draws it the stack's way.
-A form adds `submitting`, and its failed states are per problem type of
-its `submit` operation, with `field` naming the field a problem is about,
-so the message shows beside it (WCAG 3.3.1). Checks: every problem type a
-page's operation answers is named under `failed` or covered by `default`;
-a list has `empty`; a list with filters has `filteredEmpty`; a message is
-a full sentence (`state`). Derived tests gain a case per state: `empty
-<page> shows its message`, and a red case per problem type.
+Loading and submitting have no text to write, and a generator draws them
+the stack's way; it also offers to retry a failed read and to clear
+filters, the same on every page, so neither is declared. The failed
+states are per problem type of every operation the page calls: the one
+it reads or submits and those its actions run. A form's may name the
+`field` a problem is about, so the message shows beside it (WCAG 3.3.1).
+Checks: every problem type is named under `failed` or covered by
+`default`; a list has `empty`; a list with filters has `filteredEmpty`;
+a message is a full sentence (`state`). A page without `states` stays
+valid and shows what its stack shows; once it has them, they are
+complete. Derived tests gain a case per state: `empty`, `filtered empty`,
+and a red `fails with <problem>` per problem type.
 
 ### Events and screen flows
 
@@ -338,7 +342,7 @@ before it.
 | | Decision | Recommendation |
 |---|---|---|
 | D1 | The design says structure, behaviour and rules; geometry, components and animation are a stack's | confirm |
-| D2 | A page's states are the named set loading, content, empty, filtered empty, submitting and failed, with failed per problem type; a page does not declare its own state machine | confirm |
+| D2 | A page's states are the named set loading, content, empty, filtered empty, submitting and failed, with failed per problem type; a page does not declare its own state machine; states are optional, and complete once given | confirm |
 | D3 | Events and flows after IFML: `onSubmitted`, `onSelect` and an action's `then`, each with `navigate`, `with` and `message`; `flows` as named tasks across pages, each a test subject | confirm |
 | D4 | `sections` replaces `fields` on a form or view when fields are grouped, and its order is the focus order | confirm |
 | D5 | One screen class, compact, with `compactColumns`; the stack sets its size | confirm |

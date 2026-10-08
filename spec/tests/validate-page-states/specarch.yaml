@@ -1,0 +1,132 @@
+specarch: "0.1"
+info: { title: Member desk, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      fullName: { type: string, minLength: 1, maxLength: 200 }
+      email: { type: string, format: email, maxLength: 254 }
+    required: [id, fullName, email]
+    primaryKey: [id]
+errors:
+  member-not-found: { status: 404, title: Member not found, condition: no member has that identifier }
+  email-taken: { status: 409, title: Email address taken, condition: another member has that email address }
+permissions:
+  members.read: { description: See members. }
+  members.write: { description: Register members. }
+roles:
+  desk: { description: The desk., permissions: [members.read, members.write] }
+paths:
+  /members:
+    get:
+      operationId: listMembers
+      summary: The members
+      permission: members.read
+      parameters:
+        - { name: email, in: query, schema: { type: string, maxLength: 254 } }
+      responses:
+        "200":
+          description: The members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+    post:
+      operationId: createMember
+      summary: Register a member
+      permission: members.write
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Member" }
+      responses:
+        "201":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+        "409": { description: The email address is taken., problem: email-taken }
+  /members/{memberId}:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getMember
+      summary: One member
+      permission: members.read
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+        "404": { description: No such member., problem: member-not-found }
+pages:
+  members-list:
+    kind: list
+    title: Members
+    route: /members
+    entity: Member
+    permission: members.read
+    source: listMembers
+    columns: [fullName, email]
+    filters: [email]
+    states:
+      empty: { message: No members yet. }
+      filteredEmpty: { message: No member has that email address. }
+  member-form:
+    kind: form
+    title: Register member
+    route: /members/new
+    entity: Member
+    permission: members.write
+    submit: createMember
+    fields: [fullName, email]
+    states:
+      failed:
+        email-taken: { message: Another member has this email address., field: email }
+  member-view:
+    kind: view
+    title: Member
+    route: /members/{memberId}
+    entity: Member
+    permission: members.read
+    source: getMember
+    fields: [fullName, email]
+    states:
+      failed:
+        default: { message: This member cannot be shown right now. }
+  members-by-name:
+    kind: list
+    title: Members by name
+    route: /members/by-name
+    entity: Member
+    permission: members.read
+    source: listMembers
+    columns: [fullName]
+    states:
+      filteredEmpty: { message: none match }
+  member-form-again:
+    kind: form
+    title: Register member again
+    route: /members/new-again
+    entity: Member
+    permission: members.write
+    submit: createMember
+    fields: [fullName]
+    states:
+      empty: { message: Nothing here. }
+      failed:
+        email-takn: { message: Taken., field: email }
+  member-card:
+    kind: view
+    title: Member card
+    route: /members/{memberId}/card
+    entity: Member
+    permission: members.read
+    source: getMember
+    fields: [fullName]
+    states:
+      failed:
+        email-taken: { message: Taken., field: fullName }

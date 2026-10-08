@@ -7,5 +7,8 @@ pages:
     permission: members.write
     submit: createMember
     fields: [fullName, email, tier]
+    states:
+      failed:
+        email-taken: { message: Another member already has this email address., field: email }
     onSubmitted: { navigate: member-view, with: { memberId: id }, message: The member is registered. }
     satisfies: [LIB-7]

@@ -593,7 +593,32 @@ func crossCutting(d *doc, root *yaml.Node) {
 			d.line("| %s | %s | %s | %s | %s | %s |", p.Key.Value, str(p.Value, "kind"), cell(str(p.Value, "route")), str(p.Value, "entity"), str(p.Value, "permission"), cell(strings.Join(shows, ", ")))
 		}
 		d.blank()
+		var stateRows []string
+		for _, p := range pages {
+			states := get(p.Value, "states")
+			for _, k := range []string{"empty", "filteredEmpty"} {
+				if st := get(states, k); st != nil {
+					stateRows = append(stateRows, fmt.Sprintf("| %s | %s | %s |", p.Key.Value, map[string]string{"empty": "empty", "filteredEmpty": "filtered empty"}[k], cell(str(st, "message"))))
+				}
+			}
+			for _, f := range pairs(states, "failed") {
+				state := "failed: " + f.Key.Value
+				if fld := str(f.Value, "field"); fld != "" {
+					state += ", beside " + fld
+				}
+				stateRows = append(stateRows, fmt.Sprintf("| %s | %s | %s |", p.Key.Value, state, cell(str(f.Value, "message"))))
+			}
+		}
 		d.explainRows(rowsOf(pages))
+		if len(stateRows) > 0 {
+			d.para("What each page shows when it is empty or fails; while it loads or submits, the stack draws its own:")
+			d.line("| Page | State | Message |")
+			d.line("|---|---|---|")
+			for _, r := range stateRows {
+				d.line("%s", r)
+			}
+			d.blank()
+		}
 	}
 	for _, f := range pairs(root, "flows") {
 		d.heading(3, "Flow "+f.Key.Value)

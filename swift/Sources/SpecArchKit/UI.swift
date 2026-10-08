@@ -132,3 +132,99 @@ extension Checker {
         }
     }
 }
+
+extension Design {
+    /// The problem types a page can meet, in order, with the operation that
+    /// answers each first: those of the operation it reads or submits and
+    /// of every operation its actions run.
+    func pageProblems(_ pg: YNode) -> (names: [String], by: [String: String]) {
+        var by: [String: String] = [:]
+        var names: [String] = []
+        var ids = [str(pg.child("source")), str(pg.child("submit"))]
+        for a in items(pg.child("actions")) where str(a.child("kind")) == "operation" {
+            ids.append(str(a.child("target")))
+        }
+        for id in ids where !id.isEmpty {
+            guard let o = operations[id] else { continue }
+            for r in pairs(o.node.child("responses")) {
+                let p = str(r.value.child("problem"))
+                if !p.isEmpty && by[p] == nil {
+                    by[p] = id
+                    names.append(p)
+                }
+            }
+        }
+        return (names, by)
+    }
+}
+
+/// Whether a message reads as a full sentence: a capital or a digit first,
+/// and a full stop, question mark or exclamation mark last.
+func sentence(_ s: String) -> Bool {
+    let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard let first = t.unicodeScalars.first, let last = t.unicodeScalars.last else { return false }
+    let cat = first.properties.generalCategory
+    return (cat == .uppercaseLetter || cat == .decimalNumber) && ".?!".unicodeScalars.contains(last)
+}
+
+extension Checker {
+    /// Checks a page's states: a list has empty, a list with filters has
+    /// filteredEmpty and a page without them has neither, every problem type
+    /// the page can meet is named under failed or covered by its default and
+    /// no other is named, a field a problem is about is a field the form
+    /// shows, and every message is a full sentence. A page without states is
+    /// not checked: its stack shows its own.
+    func checkPageStates(_ d: Design) {
+        for p in pairs(d.root.child("pages")) {
+            let name = p.key.value, pg = p.value
+            guard let states = pg.child("states") else { continue }
+            let base = ["pages", name, "states"]
+            let kind = str(pg.child("kind"))
+            let filters = !items(pg.child("filters")).isEmpty
+            func message(_ st: YNode, _ at: [String]) {
+                if let m = st.child("message"), !sentence(m.value) {
+                    add(m, pointer(at + ["message"]), .state, "\(quote(m.value)) is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one")
+                }
+            }
+            for k in ["empty", "filteredEmpty"] {
+                if let st = states.child(k) { message(st, base + [k]) }
+            }
+            if kind == "list" && states.child("empty") == nil {
+                add(pg.key("states"), pointer(base), .state, "\(name) is a list, so it shows an empty state when there are no records; add empty with its message")
+            } else if kind != "list" && states.child("empty") != nil {
+                add(states.key("empty"), pointer(base + ["empty"]), .state, "\(name) is a \(kind), which is never empty; leave empty out")
+            }
+            if filters && states.child("filteredEmpty") == nil {
+                add(pg.key("states"), pointer(base), .state, "\(name) has filters, so it shows a state when no record matches them; add filteredEmpty with its message")
+            } else if !filters && states.child("filteredEmpty") != nil {
+                add(states.key("filteredEmpty"), pointer(base + ["filteredEmpty"]), .state, "\(name) has no filters, so nothing can filter it empty; leave filteredEmpty out")
+            }
+            let (problems, by) = d.pageProblems(pg)
+            let failed = states.child("failed")
+            let fields = Set(items(pg.child("fields")).map { $0.value })
+            var named: [String: YNode] = [:]
+            for kv in pairs(failed) {
+                let at = base + ["failed", kv.key.value]
+                named[kv.key.value] = kv.value
+                if kv.key.value != "default" && by[kv.key.value] == nil {
+                    var known: [String: YNode] = [:]
+                    for pr in problems { known[pr] = kv.key }
+                    add(kv.key, pointer(at), .state, "\(kv.key.value) is not a problem type an operation of \(name) answers\(suggest(kv.key.value, known))")
+                }
+                message(kv.value, at)
+                if let f = kv.value.child("field") {
+                    if kind != "form" {
+                        add(f, pointer(at + ["field"]), .state, "field is for a form, which shows a problem beside the field it is about; \(name) is a \(kind)")
+                    } else if !fields.contains(f.value) {
+                        add(f, pointer(at + ["field"]), .state, "\(f.value) is not a field the form \(name) shows")
+                    }
+                }
+            }
+            if named["default"] != nil { continue }
+            let missing = problems.filter { named[$0] == nil }.map { $0 + " (from " + (by[$0] ?? "") + ")" }
+            if !missing.isEmpty {
+                add(states.key("failed") ?? pg.key("states"), pointer(base + ["failed"]), .state, "\(name) can fail with \(missing.joined(separator: ", ")); give each a message under failed, or a default for the rest")
+            }
+        }
+    }
+}

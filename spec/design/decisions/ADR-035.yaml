@@ -1,0 +1,45 @@
+decisions:
+  ADR-035:
+    title: A page names what it shows when empty or failed, from a fixed set of states
+    status: proposed
+    date: "2026-10-08"
+    context: |
+      A page that reads or submits something is loading, showing its
+      content, empty, or failed, and what it says in each is decided by
+      whoever builds it, so one screen says "Error" and the next explains
+      what happened and what to do. ISO 9241-110:2020 asks that a system be
+      self-descriptive and robust against use errors, and WCAG 2.2 asks
+      that an error be identified in text (3.3.1), with a suggestion when
+      one is known (3.3.3). The problem types a page can meet are already
+      in the catalogue under errors, named by the responses of the
+      operations it calls. Statecharts would let each page declare its own
+      machine, but a page's states are few and the same on every page.
+    decision: |
+      A page may declare states: empty for a list, filteredEmpty for a list
+      with filters, and failed, keyed by each problem type the page's
+      operations can answer (the one it reads or submits and those its
+      actions run), or default for every problem type not named. Each
+      state is a message, a full sentence; a failed state of a form may
+      name the field the problem is about. Loading and submitting have no
+      text and are drawn by the stack. A page without states is valid and
+      shows what its stack shows. Once a page declares states they must be
+      complete: a list has empty, a list with filters has filteredEmpty and
+      only it, every problem type has a message or there is a default, and
+      no other problem type is named (state). Each state is a derived case
+      of the page. This decision is D2 of docs/ui-design.md and waits for
+      the owner to confirm or veto it.
+    consequences: |
+      An owner reads every message a person can meet, in the techspec,
+      before a screen exists, and a new problem type on an operation is
+      caught on every page that calls it. Retrying a failed read and
+      clearing filters are offered by the generator, the same way on every
+      page, rather than declared per page.
+    why: |
+      Named states rather than a machine per page keep the design short and
+      the checks exact: there are no transitions to get wrong. Keying the
+      failed states by problem type ties each message to a condition the
+      design already states, so the message cannot drift from the cause.
+      Leaving states optional keeps every existing specification valid,
+      and requiring them complete once present means a reader never meets a
+      half-defined page.
+    satisfies: [SA-42]

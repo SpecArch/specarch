@@ -644,7 +644,54 @@ func (d *design) pageSubject(p source.Pair) *subject {
 	for _, m := range pathParam.FindAllStringSubmatch(source.Str(source.Child(p.Value, "route")), -1) {
 		s.red("not found "+m[1], frequent, "no record has that "+m[1], open+" for that "+m[1], "it says the record was not found")
 	}
+	d.stateCases(s, p.Value, open)
 	return s
+}
+
+// stateCases are the cases of a page's states, when it declares them: its
+// empty and filtered empty states, and each problem type it can meet,
+// showing its own message or the default.
+func (d *design) stateCases(s *subject, pg *yaml.Node, open string) {
+	states := source.Child(pg, "states")
+	if states == nil {
+		return
+	}
+	shows := func(st *yaml.Node) string { return "it shows: " + source.Str(source.Child(st, "message")) }
+	if st := source.Child(states, "empty"); st != nil {
+		s.cases = append(s.cases, derivedCase{name: "empty", scenario: "golden", given: "no records", when: open, then: shows(st), frequency: occasional})
+	}
+	if st := source.Child(states, "filteredEmpty"); st != nil {
+		s.cases = append(s.cases, derivedCase{name: "filtered empty", scenario: "golden", given: "records, none matching the filters", when: open + " with those filters", then: shows(st), frequency: occasional})
+	}
+	failed := source.Child(states, "failed")
+	labels := map[string]string{}
+	for _, a := range source.Items(source.Child(pg, "actions")) {
+		if source.Str(source.Child(a, "kind")) == "operation" && labels[source.Str(source.Child(a, "target"))] == "" {
+			labels[source.Str(source.Child(a, "target"))] = source.Str(source.Child(a, "label"))
+		}
+	}
+	problems, by := d.pageProblems(pg)
+	for _, pr := range problems {
+		st := source.Child(failed, pr)
+		if st == nil {
+			st = source.Child(failed, "default")
+		}
+		if st == nil {
+			continue // the state check reports it
+		}
+		when := open
+		switch id := by[pr]; {
+		case id == source.Str(source.Child(pg, "submit")):
+			when = "the form is submitted"
+		case id != source.Str(source.Child(pg, "source")):
+			when = "the action " + labels[id] + " is taken"
+		}
+		given := source.Str(source.Child(source.Child(source.Child(d.root, "errors"), pr), "condition"))
+		if given == "" {
+			given = "..."
+		}
+		s.red("fails with "+pr, occasional, given, when, shows(st))
+	}
 }
 
 func constraintSubject(entity string, c source.Pair) *subject {

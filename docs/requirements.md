@@ -326,6 +326,7 @@ Acceptance criteria:
 
 - A form's onSubmitted, a list's onSelect and an operation action's then lead to a page with exactly that page's route parameters, each from a field of the page's entity, and may carry a message; an event on a page or action that does not raise it, a page that does not exist, a route parameter missing or not the target's, and a field the entity lacks are refused (flow).
 - A flow names a task across pages, its actor and its steps, each a page and the event on it that leads to the next step's page; an actor that is not a role or may not open a page on the way, a page that does not exist, an event the page does not raise and an event that leads elsewhere are refused (flow). A test may name a flow as its subject.
+- A page may declare its states, each with a message in a full sentence; once it does, a list has empty, a list with filters has filteredEmpty, and every problem type the page's operations answer has a message under failed or a default, and a failed state of a form may name the field it is about; anything else is refused (state). Each state is a derived case of the page.
 - The techspec's screen-flow diagram draws every event, and each flow is drawn as its steps.
 
 **Insight:** Where a person goes after each step is decided today by whoever builds the screen, so screens of one application drift apart, and no reviewer sees the flow until it runs.

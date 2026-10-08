@@ -922,7 +922,7 @@ stateDiagram-v2
 
 ## 4. Derived cases left out
 
-21 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+30 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -936,6 +936,15 @@ stateDiagram-v2
 | operation reportLost | guard precondition fails | red | occasional case, and operation reportLost satisfies no requirement with a harm |
 | operation reportLost | response 503 | red | occasional case, and operation reportLost satisfies no requirement with a harm |
 | job markOverdue | an item fails every try | red | occasional case, and job markOverdue satisfies no requirement with a harm |
+| page loan-form | fails with lending-refused | red | occasional case, and page loan-form satisfies no requirement with a harm |
+| page loans-list | empty | golden | occasional case, and page loans-list satisfies no requirement with a harm |
+| page loans-list | filtered empty | golden | occasional case, and page loans-list satisfies no requirement with a harm |
+| page loans-list | fails with loan-closed | red | occasional case, and page loans-list satisfies no requirement with a harm |
+| page loans-list | fails with fee-ledger-unavailable | red | occasional case, and page loans-list satisfies no requirement with a harm |
+| page member-form | fails with email-taken | red | occasional case, and page member-form satisfies no requirement with a harm |
+| page member-view | fails with member-not-found | red | occasional case, and page member-view satisfies no requirement with a harm |
+| page members-list | empty | golden | occasional case, and page members-list satisfies no requirement with a harm |
+| page members-list | filtered empty | golden | occasional case, and page members-list satisfies no requirement with a harm |
 | Loan state machine | open to overdue to returned | golden | no transition on the path satisfies a requirement with a harm |
 | Loan state machine | open to overdue to lost | golden | no transition on the path satisfies a requirement with a harm |
 | Loan state machine | open to lost | golden | no transition on the path satisfies a requirement with a harm |

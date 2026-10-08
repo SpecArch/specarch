@@ -7,5 +7,8 @@ pages:
     permission: loans.create
     submit: createLoan
     fields: [memberId, bookId]
+    states:
+      failed:
+        lending-refused: { message: "This member cannot borrow now: the loan limit is reached, fees are outstanding, or no copy is available." }
     onSubmitted: { navigate: member-view, with: { memberId: memberId }, message: The copy is lent. }
     satisfies: [LIB-7]

@@ -8,6 +8,12 @@ pages:
     source: listLoans
     columns: [memberId, bookId, loanedAt, dueOn, status, lateFee]
     filters: [status, memberId]
+    states:
+      empty: { message: No loans yet. A loan is made from a member's record. }
+      filteredEmpty: { message: No loan matches these filters. }
+      failed:
+        loan-closed: { message: "This loan was already closed, so nothing changed." }
+        default: { message: The loans cannot be changed right now. Try again in a moment. }
     actions:
       - { label: Return, kind: operation, target: returnLoan, permission: loans.return, confirm: "Record this copy as returned?", then: { message: The copy is recorded as returned. } }
       - { label: Lost, kind: operation, target: reportLost, permission: loans.return, confirm: "Charge the replacement cost and close this loan?", then: { message: The loan is closed and the replacement cost charged. } }

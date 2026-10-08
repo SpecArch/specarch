@@ -403,6 +403,7 @@ redefined.
 | `pages`, `kind`, `route`, `entity`, `source`, `submit`, `columns`, `fields`, `filters`, `actions` | SpecArch | UI page definitions |
 | `onSubmitted`, `onSelect`, `then`, `navigate`, `with`, `message` | SpecArch, after the events and navigation flows of OMG IFML 1.0 | where an event of a page leads, and the status message it carries (WCAG 2.2, 4.1.3) |
 | `flows`, `actor`, `steps`, `event`, `action` | SpecArch, after IFML's navigation flows | a task a person does across pages, step by step |
+| `states`, `empty`, `filteredEmpty`, `failed`, `message`, `field` | SpecArch | what a page shows when it is empty or fails |
 | `algorithms`, `inputs`, `output`, `formula`, `examples` (of an algorithm), `pseudocode` | SpecArch | IEEE 1016 algorithm viewpoint, made testable |
 | `decisions` and the ADR fields | SpecArch, after Michael Nygard's record | the common ADR shape: context, decision, consequences, plus `why` |
 | `tests`, `scenario`, `level`, `given`, `when`, `then`, `covers`, `notApplicable` | SpecArch, after ISO/IEC/IEEE 29119 and Gherkin | design tests; the levels are 29119-1's; given, when and then are the Gherkin words, without Gherkin's file format |
@@ -673,6 +674,40 @@ way. Each step is a page and the `event` on it: `select`, `submitted`, or
 the next step's page (`flow`). The techspec draws each flow as its steps.
 A test names a flow as its subject with `flow: <name>`; its golden case
 walks the steps.
+
+### Page states
+
+A page may say what it shows when it is empty or fails:
+
+    loans-list:
+      kind: list
+      filters: [status, memberId]
+      states:
+        empty: { message: No loans yet. A loan is made from a member's record. }
+        filteredEmpty: { message: No loan matches these filters. }
+        failed:
+          loan-closed: { message: "This loan was already closed, so nothing changed." }
+          default: { message: The loans cannot be changed right now. Try again in a moment. }
+    member-form:
+      kind: form
+      states:
+        failed:
+          email-taken: { message: Another member already has this email address., field: email }
+
+`empty` is a list's, and `filteredEmpty` a list's with filters. `failed`
+is keyed by the problem types the page's operations can answer: the one
+it reads or submits, and those its actions run; `default` covers every
+problem type not named. A form's failed state may name the `field` it is
+about, so the message shows beside it (WCAG 2.2, 3.3.1). Every message
+is a full sentence. Loading and submitting have no text: the stack draws
+them, and offers to retry a failed read and to clear filters the same way
+on every page.
+
+A page without `states` shows what its stack shows. Once a page has
+`states`, they are complete: a list has `empty`, a list with filters has
+`filteredEmpty`, every problem type has a message or there is a
+`default`, and nothing else is named (`state`). Each state is a derived
+case of the page: `empty`, `filtered empty`, and `fails with <problem>`.
 
 ### Views
 

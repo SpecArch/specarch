@@ -197,6 +197,7 @@ extension Checker {
         checkPages(d)
         checkPageEvents(d)
         checkFlows(d)
+        checkPageStates(d)
         checkDecisions(d)
         checkAccess(d)
         checkExpressions(d)

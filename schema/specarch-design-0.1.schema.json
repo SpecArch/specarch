@@ -2416,6 +2416,9 @@
           "description": "For a list: where selecting a row leads.",
           "$ref": "#/$defs/pageEvent"
         },
+        "states": {
+          "$ref": "#/$defs/pageStates"
+        },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
         },
@@ -2672,6 +2675,57 @@
           ]
         }
       },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "pageStates": {
+      "description": "SpecArch keyword. What a page shows in each state but its content: empty and filtered empty for a list, and failed per problem type it can meet. Loading and submitting have no text of their own, and a stack draws them its way. Without states, a stack shows its own.",
+      "type": "object",
+      "properties": {
+        "empty": {
+          "description": "For a list: what it shows when there are no records.",
+          "$ref": "#/$defs/pageState"
+        },
+        "filteredEmpty": {
+          "description": "For a list with filters: what it shows when no record matches them.",
+          "$ref": "#/$defs/pageState"
+        },
+        "failed": {
+          "description": "What the page shows when an operation it calls fails, keyed by problem type, or default for every problem type not named.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/pageState"
+          },
+          "minProperties": 1
+        }
+      },
+      "minProperties": 1,
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "pageState": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "description": "A full sentence the person reads, and a screen reader announces (WCAG 2.2, 3.3.1 and 4.1.3).",
+          "type": "string",
+          "minLength": 1
+        },
+        "field": {
+          "description": "For a failed state of a form: the field the problem is about, so the message shows beside it.",
+          "$ref": "#/$defs/memberName"
+        }
+      },
+      "required": [
+        "message"
+      ],
       "patternProperties": {
         "^x-": {}
       },

@@ -256,7 +256,7 @@ func (rd *routeReader) read(dumpName string) error {
 		}
 		sort.Strings(names)
 		rd.permissions = &yaml.Node{Kind: yaml.MappingNode}
-		var blocks []string
+		var blocks, grants []string
 		for _, n := range names {
 			var says []string
 			for _, rt := range usedBy[n] {
@@ -268,11 +268,17 @@ func (rd *routeReader) read(dumpName string) error {
 				"cites", []*yaml.Node{citation(rd.key, rd.clause(first), fmt.Sprintf("%s %s %s.", joinAnd(says), checkOrChecks(len(says)), n))},
 			))
 			blocks = append(blocks, "#/permissions/"+escapeToken(n)+"/description")
+			grants = append(grants, "#/permissions/"+escapeToken(n))
 		}
 		rd.question(
 			fmt.Sprintf("What does each permission allow: %s?", strings.Join(names, ", ")),
 			blocks,
 			"A route table names the permission a route checks and not what it is for.",
+		)
+		rd.question(
+			fmt.Sprintf("Which role grants each permission: %s?", strings.Join(names, ", ")),
+			grants,
+			"A route table names the permission a route checks and not who holds it.",
 		)
 	}
 	permissions := 0

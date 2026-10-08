@@ -49,7 +49,7 @@ jobs:
           diff -r "$RUNNER_TEMP/merged-one" "$RUNNER_TEMP/merged-two" && cmp "$RUNNER_TEMP/merged-one.txt" "$RUNNER_TEMP/merged-two.txt"
           go run ./cmd/specarch validate "$RUNNER_TEMP/merged-one"
           status=0; go run ./cmd/specarch gaps "$RUNNER_TEMP/merged-one" > "$RUNNER_TEMP/gaps.txt" || status=$?
-          test "$status" -eq 1 && grep -q '8 open questions (8 must' "$RUNNER_TEMP/gaps.txt"
+          test "$status" -eq 1 && grep -q '9 open questions (9 must' "$RUNNER_TEMP/gaps.txt"
       - name: The lending desk's manual extracts the same twice, and merged with the code gives the loan period as one must question
         # The manual says 21 days at clause 3.3; the loans table checks 14.
         run: |

@@ -76,3 +76,10 @@ questions:
     blocks: ['#/permissions/copies.read/description', '#/permissions/copies.write/description']
     decidedBy: system-owner
     why: A route table names the permission a route checks and not what it is for.
+  Q-12:
+    question: 'Which role grants each permission: copies.read, copies.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/copies.read', '#/permissions/copies.write']
+    decidedBy: system-owner
+    why: A route table names the permission a route checks and not who holds it.

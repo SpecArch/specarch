@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a declared permission that no role grants and that has no description, with a must question that blocks its description, as an extracted tree writes it"
+when: validate is run
+then: "the missing description is covered by the question, and it still reports permission_ungranted and exits 1"
+verifies: [SA-5]

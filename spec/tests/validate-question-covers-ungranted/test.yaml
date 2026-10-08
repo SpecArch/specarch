@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "a declared permission that no role grants and that has no description, with a must question that blocks the permission itself"
+when: validate is run
+then: "the missing description and the ungranted permission are covered by the question; it prints nothing and exits 0"
+verifies: [SA-5, SA-17]

@@ -32,7 +32,7 @@ commands:
         it checks or null, and its handler. Each route becomes an operation
         under its path, named after its handler, with the path's
         parameters and the permission it checks; every permission checked
-        is declared. A route that checks no permission is a must question,
+        is declared, and a must question asks which role grants it. A route that checks no permission is a must question,
         never written as public.
       - `documents`: one Markdown document, as one document source under
         `--source-key` (default the file's name in kebab-case, without its

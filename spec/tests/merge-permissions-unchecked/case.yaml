@@ -1,8 +1,8 @@
 arguments: [merge, --out, spec, trees/routes, trees/grants]
 exitStatus: 0
 standardOutput: |
-  tree trees/routes: Lending desk routes, on the code side: 8 elements and 7 questions
+  tree trees/routes: Lending desk routes, on the code side: 8 elements and 8 questions
   tree trees/grants: Lending desk grants, on the code side: 6 elements and 2 questions
   unchecked: the permission fines.waive, which desk-staff grants, is checked by no operation, command or page; it is left from code that was removed, or guards something the routes do not show
   merged 10 elements, each an entry of a section or an operation: 4 in more than one tree, and 0 keys the trees disagree on
-  wrote 9 questions: 9 from the trees, numbered again in the order the trees are given, and 0 the merge asked
+  wrote 10 questions: 10 from the trees, numbered again in the order the trees are given, and 0 the merge asked

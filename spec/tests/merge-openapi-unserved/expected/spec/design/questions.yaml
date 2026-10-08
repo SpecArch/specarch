@@ -34,3 +34,10 @@ questions:
     blocks: ['#/permissions/loans.read/description', '#/permissions/loans.write/description', '#/permissions/members.write/description']
     decidedBy: system-owner
     why: A route table names the permission a route checks and not what it is for.
+  Q-6:
+    question: 'Which role grants each permission: loans.read, loans.write, members.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.read', '#/permissions/loans.write', '#/permissions/members.write']
+    decidedBy: system-owner
+    why: A route table names the permission a route checks and not who holds it.

@@ -2,7 +2,7 @@ arguments: [merge, --out, spec, trees/api, trees/routes]
 exitStatus: 0
 standardOutput: |
   tree trees/api: Lending desk API, on the documents side: 8 elements and 8 questions
-  tree trees/routes: Lending desk routes, on the code side: 8 elements and 7 questions
+  tree trees/routes: Lending desk routes, on the code side: 8 elements and 8 questions
   answered: Q-1 of trees/api, on #/paths/~1loans/post/permission, is left out; Lending desk routes gives it
   answered: Q-3 of trees/api, on #/paths/~1loans~1{loanId}~1return/post/permission, is left out; Lending desk routes gives it
   answered: Q-4 of trees/api, on #/paths/~1members/post/permission, is left out; Lending desk routes gives it
@@ -14,5 +14,5 @@ standardOutput: |
   answered: Q-5 of trees/routes, on #/paths/~1members~1{cardNumber}~1loans/parameters/0/schema, is left out; Lending desk API gives it
   answered: Q-6 of trees/routes, on #/paths/~1members~1{cardNumber}~1loans/get/summary, #/paths/~1members~1{cardNumber}~1loans/get/responses, is left out; Lending desk API gives it
   merged 11 elements, each an entry of a section or an operation: 5 in more than one tree, and 0 keys the trees disagree on
-  wrote 6 questions: 5 from the trees, numbered again in the order the trees are given, and 1 the merge asked
-  question Q-6 (must): #/paths/~1loans~1{loanId}~1renew/post: not built yet
+  wrote 7 questions: 6 from the trees, numbered again in the order the trees are given, and 1 the merge asked
+  question Q-7 (must): #/paths/~1loans~1{loanId}~1renew/post: not built yet

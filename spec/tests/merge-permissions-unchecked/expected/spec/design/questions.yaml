@@ -49,13 +49,20 @@ questions:
     decidedBy: system-owner
     why: A route table names the permission a route checks and not what it is for.
   Q-8:
+    question: 'Which role grants each permission: loans.read, loans.write, members.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.read', '#/permissions/loans.write', '#/permissions/members.write']
+    decidedBy: system-owner
+    why: A route table names the permission a route checks and not who holds it.
+  Q-9:
     question: 'What is each role for, and who holds it: desk-staff?'
     kind: decision
     priority: must
     blocks: ['#/roles/desk-staff/description']
     decidedBy: system-owner
     why: A permission table names a role and what it grants, not who holds it.
-  Q-9:
+  Q-10:
     question: 'What does each permission allow: fines.waive, loans.read, loans.write, members.write?'
     kind: decision
     priority: must

@@ -1,5 +1,5 @@
 questions:
-  Q-15:
+  Q-16:
     question: 'Not built yet. The documents have operation getHealth (GET /health), and the code read for paths does not: is it to be built, or are the documents to change?'
     kind: decision
     priority: must
@@ -10,7 +10,7 @@ questions:
     cites:
       - {source: sample, clause: /paths/~1health/get, says: 'GET /health, with no summary.'}
       - {source: code, clause: examples/lending-desk/sources/code, says: Read for this tree; what the documents have is not here.}
-  Q-16:
+  Q-17:
     question: 'Not built yet. The documents have operation sayHello (GET /hello), and the code read for paths does not: is it to be built, or are the documents to change?'
     kind: decision
     priority: must

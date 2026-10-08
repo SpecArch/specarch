@@ -1,0 +1,13 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+permissions:
+  items.read: {}
+questions:
+  Q-1:
+    question: What does items.read allow, and which role grants it?
+    kind: material
+    priority: must
+    blocks: ["#/permissions/items.read"]
+    decidedBy: owner

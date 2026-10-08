@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.5.0-dev of the specification: 263 design tests, 97 golden and 166 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.5.0-dev of the specification: 265 design tests, 98 golden and 167 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 259 |
+| system | 261 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -585,7 +585,7 @@ Scenario: golden; level: system; verifies SA-44.
 
 - Given: a repository whose first commit holds a router's folder and whose second holds the route table printed from it, naming the first; the table has two methods on one path, a path with a parameter, a route with no permission, a HEAD route, a path with a wildcard, a handler serving two routes and a permission that is not a permission name
 - When: extract router is run on the route table
-- Then: it writes one operation per held method and path pair with its path parameters and permission, one permission per name a route checks, a question for each operation's summary and responses, each path's parameter values, the permissions' descriptions and every route without a usable permission, names the commit, counts the routes, prints a line for the HEAD route, the wildcard, the permission name and the shared handler, and exits 0
+- Then: it writes one operation per held method and path pair with its path parameters and permission, one permission per name a route checks, a question for each operation's summary and responses, each path's parameter values, the permissions' descriptions and the roles that grant them, every route without a usable permission, names the commit, counts the routes, prints a line for the HEAD route, the wildcard, the permission name and the shared handler, and exits 0
 
 #### extract-usage-error
 
@@ -1647,6 +1647,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-5.
 - When: validate is run
 - Then: it reports permission_ungranted and exits 1
 
+#### validate-permission-ungranted-without-description
+
+Scenario: red; level: system; covers exit 1; verifies SA-5.
+
+- Given: a declared permission that no role grants and that has no description, with a must question that blocks its description, as an extracted tree writes it
+- When: validate is run
+- Then: the missing description is covered by the question, and it still reports permission_ungranted and exits 1
+
 #### validate-question-answered
 
 Scenario: red; level: system; covers exit 1; verifies SA-17.
@@ -1670,6 +1678,14 @@ Scenario: golden; level: system; verifies SA-17.
 - Given: a requirement without priority and acceptance, an entity that is only a name, and must questions in every stage folder that block exactly those, including files directly under tests/ and implementation/
 - When: validate is run
 - Then: the missing keys and the warnings about the blocked elements are covered by the questions; it prints nothing and exits 0
+
+#### validate-question-covers-ungranted
+
+Scenario: golden; level: system; verifies SA-5, SA-17.
+
+- Given: a declared permission that no role grants and that has no description, with a must question that blocks the permission itself
+- When: validate is run
+- Then: the missing description and the ungranted permission are covered by the question; it prints nothing and exits 0
 
 #### validate-question-should-not-covering
 

@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:6: error: /permissions/items.read: permission_ungranted: no role grants items.read, so nobody can use what it guards; add it to a role, or use public if it is meant for everyone

@@ -35,7 +35,8 @@ decisions:
       line. A path's parameters are written once on the path, in: path and
       required, and one must question asks the values they take. Every
       permission a route checks is declared, citing the routes that check
-      it, and one must question asks what each allows. Each operation has
+      it, one must question asks what each allows, and one more which role
+      grants each, since a route table names no roles. Each operation has
       a must question for its summary and responses, and one more for its
       permission when the route checks none or checks a name the
       meta-model cannot hold. HEAD, OPTIONS and any other method, and a

@@ -151,7 +151,8 @@ func joinAnd(_ items: [String]) -> String {
 
 /// Splits the diagnostics into the ones to report and the ones an open must
 /// question covers: a required key missing at or under a pointer the
-/// question blocks, and the warnings about that element. A wrong value next
+/// question blocks, the warnings about that element, and a permission no
+/// role grants when the question blocks that permission. A wrong value next
 /// to the gap stays an error.
 func coveredByQuestions(_ ds: [Diagnostic], _ root: YNode) -> (kept: [Diagnostic], covered: [Diagnostic]) {
     var elements: [String] = []
@@ -180,6 +181,11 @@ func coveredByQuestions(_ ds: [Diagnostic], _ root: YNode) -> (kept: [Diagnostic
             isCovered = under(d.path) || (keys[d.path] ?? []).contains(missing)
         } else if d.severity == .warning {
             isCovered = under(d.path) || (d.rule == .acceptanceMissing && (keys[d.path] ?? []).contains("acceptance"))
+        } else if d.rule == .permissionUngranted {
+            // The grant is what is missing, and it is written in a role,
+            // not under the permission; a question on the permission
+            // itself is the one place that can say it is not known.
+            isCovered = under(d.path)
         }
         if isCovered { covered.append(d) } else { kept.append(d) }
     }

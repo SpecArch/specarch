@@ -1,5 +1,5 @@
 questions:
-  Q-6:
+  Q-7:
     question: 'Not built yet. The documents have operation renewLoan (POST /loans/{loanId}/renew), and the code read for paths does not: is it to be built, or are the documents to change?'
     kind: decision
     priority: must

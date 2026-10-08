@@ -46,7 +46,7 @@ requirements:
     status: accepted
     acceptance:
       - An operation, command or page without a permission is a schema error.
-      - A permission no role grants is reported.
+      - A permission no role grants is reported, also when it has no description; only a must question that blocks the permission itself covers it.
     verification: test
     needs: [NEED-1]
   SA-6:

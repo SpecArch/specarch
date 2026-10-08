@@ -119,13 +119,17 @@ func CheckNamed(path string) []Diagnostic {
 }
 
 // withoutEchoes drops a diagnostic that only repeats a schema error: one at
-// the same path, or inside a key the schema refused.
+// the same path, or inside a key the schema refused. A missing key is
+// reported at the object that lacks it, so it says nothing wrong about what
+// the object does hold; it makes no echo of the other errors there.
 func withoutEchoes(ds []Diagnostic) []Diagnostic {
 	schemaAt := map[string]bool{}
 	var refused []string
 	for _, d := range ds {
 		if d.Rule == RuleSchema {
-			schemaAt[d.Path] = true
+			if !strings.HasSuffix(d.Message, " is missing; add it here") {
+				schemaAt[d.Path] = true
+			}
 			if strings.Contains(d.Message, "is not a key this object can have") {
 				refused = append(refused, d.Path+"/")
 			}

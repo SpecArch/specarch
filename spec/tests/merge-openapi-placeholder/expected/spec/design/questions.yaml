@@ -49,27 +49,34 @@ questions:
     decidedBy: system-owner
     why: A route table names the permission a route checks and not what it is for.
   Q-8:
+    question: 'Which role grants each permission: loans.read, loans.write, members.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.read', '#/permissions/loans.write', '#/permissions/members.write']
+    decidedBy: system-owner
+    why: A route table names the permission a route checks and not who holds it.
+  Q-9:
     question: What does GET /health do, and what does it answer? The document gives no summary.
     kind: decision
     priority: must
     blocks: ['#/paths/~1health/get/summary']
     decidedBy: system-owner
     why: An operation needs a summary and its responses, and the document does not give them.
-  Q-9:
+  Q-10:
     question: Which permission does GET /health check? The document gives it no security.
     kind: decision
     priority: must
     blocks: ['#/paths/~1health/get/permission']
     decidedBy: system-owner
     why: A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.
-  Q-10:
+  Q-11:
     question: Which permission does GET /hello check? The document gives it no security.
     kind: decision
     priority: must
     blocks: ['#/paths/~1hello/get/permission']
     decidedBy: system-owner
     why: A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.
-  Q-11:
+  Q-12:
     question: 'Undocumented, from code: is operation lendBook (POST /loans) meant to be part of the system? The code has it at examples/lending-desk/sources/code POST /loans, and no document mentions it.'
     kind: decision
     priority: must
@@ -79,7 +86,7 @@ questions:
     why: Only the code has it, and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found.
     cites:
       - {source: code, clause: examples/lending-desk/sources/code POST /loans, says: POST /loans checks loans.write; its handler is LendBook.}
-  Q-12:
+  Q-13:
     question: 'Undocumented, from code: is operation returnBook (POST /loans/{loanId}/return) meant to be part of the system? The code has it at examples/lending-desk/sources/code POST /loans/{loanId}/return, and no document mentions it.'
     kind: decision
     priority: must
@@ -89,7 +96,7 @@ questions:
     why: Only the code has it, and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found.
     cites:
       - {source: code, clause: 'examples/lending-desk/sources/code POST /loans/{loanId}/return', says: 'POST /loans/{loanId}/return checks loans.write; its handler is ReturnBook.'}
-  Q-13:
+  Q-14:
     question: 'Undocumented, from code: is operation registerMember (POST /members) meant to be part of the system? The code has it at examples/lending-desk/sources/code POST /members, and no document mentions it.'
     kind: decision
     priority: must
@@ -99,7 +106,7 @@ questions:
     why: Only the code has it, and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found.
     cites:
       - {source: code, clause: examples/lending-desk/sources/code POST /members, says: POST /members checks members.write; its handler is RegisterMember.}
-  Q-14:
+  Q-15:
     question: 'Undocumented, from code: is operation listMemberLoans (GET /members/{cardNumber}/loans) meant to be part of the system? The code has it at examples/lending-desk/sources/code GET /members/{cardNumber}/loans, and no document mentions it.'
     kind: decision
     priority: must

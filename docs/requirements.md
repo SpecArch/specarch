@@ -702,7 +702,7 @@ Kind: functional; priority: must; status: accepted; verified by test; refines NE
 Acceptance criteria:
 
 - An operation, command or page without a permission is a schema error.
-- A permission no role grants is reported.
+- A permission no role grants is reported, also when it has no description; only a must question that blocks the permission itself covers it.
 
 ### SA-6
 

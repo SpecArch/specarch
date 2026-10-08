@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.2.0/schema/specarch-implementation-0.1.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.3.0/schema/specarch-implementation-0.1.schema.json
 specarchImplementation: "0.1"
 
 info:

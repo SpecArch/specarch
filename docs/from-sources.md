@@ -28,7 +28,7 @@ that every run of the agent and every reviewer sees the same rules.
 
 With Go 1.26 or later, install by release tag:
 
-    go install github.com/SpecArch/specarch/cmd/specarch@v0.2.0
+    go install github.com/SpecArch/specarch/cmd/specarch@v0.3.0
 
 or by commit, when what is needed is newer than the last tag:
 

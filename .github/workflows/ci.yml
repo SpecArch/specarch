@@ -28,7 +28,12 @@ jobs:
       - name: Validate SpecArch's own specification and every example
         run: go run ./cmd/specarch validate spec examples
       - name: Generated documents are current
-        run: for target in techspec requirements testplan traceability deployment commissioning questions; do go run ./cmd/specarch document $target --check spec examples || exit 1; done
+        # examples/lending-desk is a partial specification written from
+        # sources and configures only the four documents an owner reads
+        # while questions are open (docs/from-sources.md, section 4).
+        run: |
+          for target in techspec requirements testplan traceability deployment commissioning questions; do go run ./cmd/specarch document $target --check spec examples/library-lending || exit 1; done
+          for target in techspec requirements traceability questions; do go run ./cmd/specarch document $target --check examples/lending-desk || exit 1; done
 
   swift:
     runs-on: macos-latest

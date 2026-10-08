@@ -289,6 +289,22 @@ paths:
               schema: { $ref: "#/entities/FeeWaiverRequest" }
       satisfies: [LIB-8]
 
+  /fee-waivers:
+    get:
+      operationId: listFeeWaivers
+      summary: List the requests to waive a late fee that wait for a desk supervisor
+      permission: fees.approve
+      listOf:
+        entity: FeeWaiverRequest
+        pageSize: { default: 20, maximum: 100 }
+      responses:
+        "200":
+          description: The waiting requests.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/FeeWaiverRequest" } }
+      satisfies: [LIB-8]
+
   /fee-waivers/{waiverId}/waive:
     parameters:
       - { name: waiverId, in: path, required: true, schema: { type: string, format: uuid } }

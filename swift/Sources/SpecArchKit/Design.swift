@@ -203,6 +203,7 @@ extension Checker {
         checkPageEvents(d)
         checkFlows(d)
         checkPageStates(d)
+        checkMakerChecker(d)
         checkCompactColumns(d)
         checkAccessibility(d)
         checkTheme(d)

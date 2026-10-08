@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.1.schema.json
+pages:
+  fee-waivers-inbox:
+    kind: list
+    title: Fee waivers to approve
+    route: /fee-waivers
+    entity: FeeWaiverRequest
+    permission: fees.approve
+    source: listFeeWaivers
+    inbox: { workflow: fee-waiver, step: approve }
+    columns: [loanId, amount, reason]
+    states:
+      empty: { message: No request waits for approval. }
+    satisfies: [LIB-8]

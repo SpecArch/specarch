@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: fee-waiver-form
+level: system
+scenario: red
+covers: [denied without fees.request]
+given: a desk supervisor, who holds fees.approve and not fees.request
+when: the page fee-waiver-form is opened
+then: it is not shown
+verifies: [LIB-8]

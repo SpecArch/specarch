@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.1.schema.json
+channels:
+  fee.waivers:
+    description: The end of each request to waive a late fee, approved or refused, for the librarian who asked.
+    satisfies: [LIB-8]
+    messages:
+      FeeWaiverDecided:
+        summary: A request to waive a late fee was approved or refused.
+        payload: { $ref: "#/entities/FeeWaiverRequest" }
+        satisfies: [LIB-8]

@@ -193,6 +193,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkPageEvents(d)
 	c.checkFlows(d)
 	c.checkPageStates(d)
+	c.checkMakerChecker(d)
 	c.checkCompactColumns(d)
 	c.checkAccessibility(d)
 	c.checkTheme(d)

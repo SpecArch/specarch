@@ -670,9 +670,29 @@ func (d *design) pageSubject(p source.Pair) *subject {
 		s.red("not found "+m[1], frequent, "no record has that "+m[1], open+" for that "+m[1], "it says the record was not found")
 	}
 	d.stateCases(s, p.Value, open)
+	d.pendingCase(s, p.Value)
 	childRowCases(s, p.Value)
 	d.elementCases(s, p.Value, open)
 	return s
+}
+
+// pendingCase is the case of a form that submits to a workflow's trigger:
+// it is answered 202 and shows the message that the request waits. A
+// task page has it already, as its case for the 202 answer.
+func (d *design) pendingCase(s *subject, pg *yaml.Node) {
+	wf := d.workflowTriggers()[source.Str(source.Child(pg, "submit"))]
+	if wf == "" || source.Str(source.Child(pg, "kind")) != "form" {
+		return
+	}
+	then := "it is answered 202 and the request waits for approval in workflow " + wf
+	ev := pendingEvent(pg)
+	if nav := source.Str(source.Child(ev, "navigate")); nav != "" {
+		then += ", leads to the page " + nav
+	}
+	if m := source.Str(source.Child(ev, "message")); m != "" {
+		then += ", saying: " + m
+	}
+	s.cases = append(s.cases, derivedCase{name: "sent for approval", scenario: "golden", given: "...", when: "the form is submitted with every field valid", then: then, frequency: frequent})
 }
 
 // childRowCases are the cases of a form's child rows: one row past the

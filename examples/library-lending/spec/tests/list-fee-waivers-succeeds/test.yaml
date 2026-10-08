@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: listFeeWaivers
+level: system
+scenario: golden
+given: a desk supervisor, and one request waiting at approve
+when: listFeeWaivers is called
+then: it answers 200 with that request
+verifies: [LIB-8]

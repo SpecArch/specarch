@@ -455,7 +455,7 @@ func runtime(d *doc, root *yaml.Node) {
 		d.heading(3, "Workflow "+w.Key.Value)
 		d.para(str(w.Value, "description"))
 		d.explain(w.Value)
-		workflowDetails(d, w.Value)
+		workflowDetails(d, root, w.Key.Value, w.Value)
 		d.block(workflowFlowchart(w.Value))
 	}
 	for _, c := range cmds {
@@ -1293,8 +1293,9 @@ func roleCombinations(root *yaml.Node, perms []string, cardinality int) [][]stri
 }
 
 // workflowDetails writes what starts a workflow, where its request waits,
-// and the four-eyes rule every approval keeps.
-func workflowDetails(d *doc, w *yaml.Node) {
+// the four-eyes rule every approval keeps, the pages that ask for it and
+// list what waits, and the messages it publishes when it ends.
+func workflowDetails(d *doc, root *yaml.Node, name string, w *yaml.Node) {
 	text := "Starts when " + str(w, "trigger") + " accepts a request and answers 202; the request waits as a " + str(w, "subject") + "."
 	var approvals []string
 	for _, st := range items(w, "steps") {
@@ -1308,6 +1309,25 @@ func workflowDetails(d *doc, w *yaml.Node) {
 			order = ", in that order,"
 		}
 		text += " It is approved at " + joinAnd(approvals) + order + " and a refusal ends it. The person who made the request never approves it."
+	}
+	var asks, inboxes []string
+	for _, p := range pairs(root, "pages") {
+		kind := str(p.Value, "kind")
+		if str(p.Value, "submit") == str(w, "trigger") && (kind == "form" || kind == "task") {
+			asks = append(asks, p.Key.Value)
+		}
+		if ib := get(p.Value, "inbox"); ib != nil && str(ib, "workflow") == name {
+			inboxes = append(inboxes, fmt.Sprintf("%s (%s)", p.Key.Value, str(ib, "step")))
+		}
+	}
+	if len(asks) > 0 {
+		text += " It is asked for on " + joinAnd(asks) + ", which says the request waits."
+	}
+	if len(inboxes) > 0 {
+		text += " What waits is listed on " + joinAnd(inboxes) + "."
+	}
+	if emits := strs(w, "emits"); len(emits) > 0 {
+		text += " When it ends it publishes " + joinAnd(emits) + "."
 	}
 	d.para(text)
 }

@@ -1,0 +1,12 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.1.schema.json
+pages:
+  fee-waiver-form:
+    kind: form
+    title: Ask to waive a late fee
+    route: /loans/{loanId}/fee-waiver
+    entity: FeeWaiverRequest
+    permission: fees.request
+    submit: requestFeeWaiver
+    fields: [amount, reason]
+    onSubmitted: { navigate: loans-list, message: Sent for approval. A desk supervisor answers within three days. }
+    satisfies: [LIB-8]

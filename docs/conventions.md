@@ -779,6 +779,46 @@ steps of one name (`workflow`); an approval's permission must be declared
 pool and loops are outside the subset; a workflow that needs one is
 written with a question.
 
+### Maker-checker on a page
+
+A form or task page that submits to a workflow's trigger makes the
+request, and its submit is answered 202: accepted, and waiting for
+approval. The page acts on that answer, a form with its `onSubmitted` and
+a task under `onSubmitted."202"`, and the event carries the message the
+person reads, which is the page's pending state:
+
+    fee-waiver-form:
+      kind: form
+      entity: FeeWaiverRequest
+      submit: requestFeeWaiver
+      onSubmitted: { navigate: loans-list, message: Sent for approval. A desk supervisor answers within three days. }
+
+A list page may be the inbox of an approval step, listing the requests
+that wait there:
+
+    fee-waivers-inbox:
+      kind: list
+      entity: FeeWaiverRequest
+      permission: fees.approve
+      source: listFeeWaivers
+      inbox: { workflow: fee-waiver, step: approve }
+
+The inbox lists the workflow's `subject` and checks the step's
+`permission`, so it opens to whoever may approve and to nobody else. A
+workflow names the channel messages it publishes when it ends, approved or
+refused, under `emits`, as an operation does, so a page waiting on it
+knows how the end is announced.
+
+The validator refuses a page submitting to a trigger with no event for
+the 202 answer or no message in it, and an inbox on a page that is not a
+list, naming no workflow or no approval step of it, listing another entity
+than the subject or checking another permission than the step's
+(`workflow`); a workflow's message that no channel declares is `emits`. A
+form that makes a request gets the derived case `sent for approval`, its
+202 answer with the message shown; a task page has it as its case for
+the 202 answer. Someone without the step's permission is refused the
+inbox by the page's own `denied` case, so it lists nothing to them.
+
 ### Page events
 
 A page raises events: a form is submitted, a row of a list is selected,

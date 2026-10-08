@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: fee-waivers-inbox
+level: system
+scenario: red
+covers: [denied with expired session]
+given: a desk supervisor whose session has expired
+when: the page fee-waivers-inbox is opened
+then: it is refused as not signed in
+verifies: [LIB-8]

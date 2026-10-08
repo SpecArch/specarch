@@ -2619,12 +2619,15 @@ let designSchemaJSON = #"""
           }
         },
         "onSubmitted": {
-          "description": "For a form: where a successful submission leads. For a task: what each success the submit operation answers leads to, keyed by its response status.",
+          "description": "For a form: where a successful submission leads. For a task: what each success the submit operation answers leads to, keyed by its response status. A page that submits to a workflow's trigger acts on the 202 answer, a form with its one event and a task under 202, with the message that says the request waits for approval: the page's pending state.",
           "type": "object"
         },
         "onSelect": {
           "description": "For a list: where selecting a row leads.",
           "$ref": "#/$defs/pageEvent"
+        },
+        "inbox": {
+          "$ref": "#/$defs/inbox"
         },
         "pickers": {
           "description": "For a form: the fields that hold the key of another entity's record, keyed by field, each picked from a list of that record. The field is the via of a many-to-one relation of the page's entity, which names the record's entity.",
@@ -2878,6 +2881,29 @@ let designSchemaJSON = #"""
       },
       "additionalProperties": false
     },
+    "inbox": {
+      "description": "SpecArch keyword. For a list: the workflow and approval step it is the inbox of, listing the requests that wait there. The list shows the workflow's subject and checks the step's permission.",
+      "type": "object",
+      "properties": {
+        "workflow": {
+          "description": "The workflow, by its name under workflows.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "step": {
+          "description": "The approval step of that workflow whose requests the list shows.",
+          "$ref": "#/$defs/memberName"
+        }
+      },
+      "required": [
+        "workflow",
+        "step"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
     "statusEvents": {
       "description": "SpecArch keyword. What a task page does on each success its submit operation answers, keyed by the response status, each one the operation declares. A problem the operation answers is shown under the page's failed states, not here.",
       "type": "object",
@@ -3010,6 +3036,16 @@ let designSchemaJSON = #"""
             "$ref": "#/$defs/workflowStep"
           },
           "minItems": 1
+        },
+        "emits": {
+          "description": "The channel messages the workflow publishes when it ends, approved or refused, as channel/Message, so a page waiting on it knows how the end is announced.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*/[A-Z][A-Za-z0-9]*$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
         },
         "satisfies": {
           "$ref": "#/$defs/satisfies"

@@ -18,7 +18,8 @@ commands:
       diagram for each entity with a state field, a sequence diagram for
       each operation and command, a flowchart of the pages, a flowchart
       of each workflow's steps with each deadline on the edge it takes,
-      and a permissions table. Chapter 2 comes from the constraints and
+      beside the pages that ask for it, its inbox and the messages it
+      publishes when it ends, and a permissions table. Chapter 2 comes from the constraints and
       assumptions, chapter 7 from the deployment and commissioning stages
       and from each implementation file, chapter 12 from the glossary, and
       chapter 13 from the needs and requirements, with the traceability

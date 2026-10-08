@@ -583,6 +583,7 @@ extension Design {
             s.red("not found " + param, frequent, "no record has that " + param, open + " for that " + param, "it says the record was not found")
         }
         stateCases(s, p.value, open)
+        pendingCase(s, p.value)
         childRowCases(s, p.value)
         elementCases(s, p.value, open)
         return s

@@ -56,8 +56,8 @@ func TestExample(t *testing.T) {
 			t.Fatalf("diagnostics: %v", resp.Diagnostics)
 		}
 	}
-	if len(resp.Files) != 6 {
-		t.Fatalf("want six files, got %d", len(resp.Files))
+	if len(resp.Files) != 8 {
+		t.Fatalf("want eight files, got %d", len(resp.Files))
 	}
 	for _, f := range resp.Files {
 		want, err := os.ReadFile(filepath.Join("../../examples/library-lending/web", f.Path))

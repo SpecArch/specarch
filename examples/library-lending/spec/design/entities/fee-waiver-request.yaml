@@ -5,9 +5,9 @@ entities:
     type: object
     properties:
       id: { type: string, format: uuid, readOnly: true }
-      loanId: { type: string, format: uuid }
-      amount: { type: string, format: decimal, precision: 10, scale: 2 }
-      reason: { type: string, minLength: 1, maxLength: 500 }
+      loanId: { type: string, format: uuid, title: Loan }
+      amount: { type: string, format: decimal, precision: 10, scale: 2, title: Amount to waive }
+      reason: { type: string, minLength: 1, maxLength: 500, title: Reason }
     required: [id, loanId, amount, reason]
     primaryKey: [id]
     relations:

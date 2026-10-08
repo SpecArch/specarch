@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: fee-waivers-inbox
+level: system
+scenario: golden
+given: a desk supervisor, and two requests to waive a late fee waiting at approve
+when: the page fee-waivers-inbox is opened
+then: it lists both requests with their loan, amount and reason
+verifies: [LIB-8]

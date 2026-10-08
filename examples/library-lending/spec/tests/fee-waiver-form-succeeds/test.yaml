@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: fee-waiver-form
+level: system
+scenario: golden
+given: a librarian, and a loan with a late fee of 3.50
+when: the page fee-waiver-form is opened for that loan
+then: it shows the amount and the reason to fill in
+verifies: [LIB-8]

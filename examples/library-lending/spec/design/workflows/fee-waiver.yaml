@@ -14,5 +14,6 @@ workflows:
       - name: waive
         kind: operation
         operation: waiveFee
+    emits: [fee.waivers/FeeWaiverDecided]
     satisfies: [LIB-8]
     why: Three days, because a supervisor is at the desk every working day and a member asking about a fee should have an answer within the week.

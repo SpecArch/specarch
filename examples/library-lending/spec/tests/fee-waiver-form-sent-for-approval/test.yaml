@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: fee-waiver-form
+level: system
+scenario: golden
+covers: [sent for approval]
+given: a librarian, and a loan with a late fee of 3.50
+when: the form is filled in with amount 3.50 and the reason "The book drop was closed for repairs." and sent
+then: requestFeeWaiver answers 202, the page leads to loans-list and says "Sent for approval. A desk supervisor answers within three days.", and the fee still stands
+verifies: [LIB-8]

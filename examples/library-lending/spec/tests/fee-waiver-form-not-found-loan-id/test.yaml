@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: fee-waiver-form
+level: system
+scenario: red
+covers: [not found loanId]
+given: a librarian, and no loan with the id in the route
+when: the page fee-waiver-form is opened for that id
+then: it says the loan was not found
+verifies: [LIB-8]

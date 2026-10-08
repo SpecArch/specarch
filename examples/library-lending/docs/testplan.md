@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 140 design tests, 39 golden and 100 red, about 36 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 151 design tests, 43 golden and 107 red, about 39 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.1.0 of the specification: 140 design tests, 39 golden and 100 red, abo
 | Level | Design tests |
 |---|---|
 | acceptance | 9 |
-| system | 131 |
+| system | 142 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -357,6 +357,74 @@ Scenario: red; level: acceptance; covers requester approves own request; verifie
 
 **Insight:** Drafted by specarch derive, since the four-eyes rule holds on every approval, then completed by hand; it is the one case the workflow exists for.
 
+### Page fee-waiver-form
+
+#### fee-waiver-form-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session; verifies LIB-8.
+
+- Given: a librarian whose session has expired
+- When: the page fee-waiver-form is opened
+- Then: it is refused as not signed in
+
+#### fee-waiver-form-denied-without-fees-request
+
+Scenario: red; level: system; covers denied without fees.request; verifies LIB-8.
+
+- Given: a desk supervisor, who holds fees.approve and not fees.request
+- When: the page fee-waiver-form is opened
+- Then: it is not shown
+
+#### fee-waiver-form-not-found-loan-id
+
+Scenario: red; level: system; covers not found loanId; verifies LIB-8.
+
+- Given: a librarian, and no loan with the id in the route
+- When: the page fee-waiver-form is opened for that id
+- Then: it says the loan was not found
+
+#### fee-waiver-form-sent-for-approval
+
+Scenario: golden; level: system; covers sent for approval; verifies LIB-8.
+
+- Given: a librarian, and a loan with a late fee of 3.50
+- When: the form is filled in with amount 3.50 and the reason "The book drop was closed for repairs." and sent
+- Then: requestFeeWaiver answers 202, the page leads to loans-list and says "Sent for approval. A desk supervisor answers within three days.", and the fee still stands
+
+#### fee-waiver-form-succeeds
+
+Scenario: golden; level: system; verifies LIB-8.
+
+- Given: a librarian, and a loan with a late fee of 3.50
+- When: the page fee-waiver-form is opened for that loan
+- Then: it shows the amount and the reason to fill in
+
+### Page fee-waivers-inbox
+
+#### fee-waivers-inbox-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session; verifies LIB-8.
+
+- Given: a desk supervisor whose session has expired
+- When: the page fee-waivers-inbox is opened
+- Then: it is refused as not signed in
+
+#### fee-waivers-inbox-denied-without-fees-approve
+
+Scenario: red; level: system; covers denied without fees.approve; verifies LIB-8.
+
+- Given: a librarian, who asked for a waiting request and does not hold fees.approve
+- When: the page fee-waivers-inbox is opened
+- Then: it is not shown, so the librarian sees no request to approve, their own included
+
+#### fee-waivers-inbox-succeeds
+
+Scenario: golden; level: system; verifies LIB-8.
+
+- Given: a desk supervisor, and two requests to waive a late fee waiting at approve
+- When: the page fee-waivers-inbox is opened
+- Then: it lists both requests with their loan, amount and reason
+
 ### Requirement LIB-3
 
 #### fees-block-lending
@@ -500,6 +568,32 @@ Scenario: red; level: system; covers not found memberId, response 404.
 - Given: a librarian
 - When: lendCopies is called with a memberId no member has
 - Then: it answers 404 and no loan is created
+
+### Operation listFeeWaivers
+
+#### list-fee-waivers-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session; verifies LIB-8.
+
+- Given: a desk supervisor whose session has expired
+- When: listFeeWaivers is called
+- Then: it is refused as not signed in
+
+#### list-fee-waivers-denied-without-fees-approve
+
+Scenario: red; level: system; covers denied without fees.approve; verifies LIB-8.
+
+- Given: a librarian, who does not hold fees.approve
+- When: listFeeWaivers is called
+- Then: it is refused as not allowed
+
+#### list-fee-waivers-succeeds
+
+Scenario: golden; level: system; verifies LIB-8.
+
+- Given: a desk supervisor, and one request waiting at approve
+- When: listFeeWaivers is called
+- Then: it answers 200 with that request
 
 ### Operation listLoans
 
@@ -1266,7 +1360,7 @@ stateDiagram-v2
 
 ## 4. Derived cases left out
 
-51 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+54 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1297,7 +1391,10 @@ stateDiagram-v2
 | operation requestFeeWaiver | reason of 1 character | golden | occasional case, and operation requestFeeWaiver satisfies no requirement with a harm |
 | operation requestFeeWaiver | reason longer than 500 characters | red | occasional case, and operation requestFeeWaiver satisfies no requirement with a harm |
 | operation requestFeeWaiver | reason of 500 characters | golden | occasional case, and operation requestFeeWaiver satisfies no requirement with a harm |
+| operation listFeeWaivers | page beyond last | golden | occasional case, and operation listFeeWaivers satisfies no requirement with a harm |
+| operation listFeeWaivers | page size above 100 | red | occasional case, and operation listFeeWaivers satisfies no requirement with a harm |
 | job markOverdue | an item fails every try | red | occasional case, and job markOverdue satisfies no requirement with a harm |
+| page fee-waivers-inbox | empty | golden | occasional case, and page fee-waivers-inbox satisfies no requirement with a harm |
 | page loan-form | fails with lending-refused | red | occasional case, and page loan-form satisfies no requirement with a harm |
 | page loans-list | empty | golden | occasional case, and page loans-list satisfies no requirement with a harm |
 | page loans-list | filtered empty | golden | occasional case, and page loans-list satisfies no requirement with a harm |

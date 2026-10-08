@@ -1,0 +1,181 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+entities:
+  Waiver:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      note: { type: string, maxLength: 200, title: Note }
+    primaryKey: [id]
+    satisfies: [CASE-1]
+  Note:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      text: { type: string, maxLength: 200, title: Text }
+    primaryKey: [id]
+    satisfies: [CASE-1]
+channels:
+  waivers:
+    description: The end of each waiver.
+    messages:
+      WaiverDecided: { summary: A waiver was approved or refused., payload: { $ref: "#/entities/Waiver" } }
+    satisfies: [CASE-1]
+workflows:
+  waiver:
+    description: A waiver is approved before it is granted.
+    trigger: askWaiver
+    subject: Waiver
+    steps:
+      - name: approve
+        kind: approval
+        approvers: [boss]
+        permission: waivers.approve
+        deadline: P3D
+        onDeadline: refuse
+      - name: grant
+        kind: operation
+        operation: grantWaiver
+    emits: [waivers/WaiverDecided, waivers/WaiverGranted]
+    satisfies: [CASE-1]
+paths:
+  /waivers:
+    get:
+      operationId: listWaivers
+      summary: The waivers
+      permission: waivers.approve
+      listOf: { entity: Waiver, pageSize: { default: 20, maximum: 100 } }
+      responses:
+        "200":
+          description: The waivers.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Waiver" } }
+      satisfies: [CASE-1]
+    post:
+      operationId: askWaiver
+      summary: Ask for a waiver
+      permission: waivers.ask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note: { type: string, maxLength: 200 }
+              required: [note]
+      responses:
+        "202": { description: The request waits for approval. }
+      satisfies: [CASE-1]
+  /waivers/{waiverId}/grant:
+    parameters:
+      - { name: waiverId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: grantWaiver
+      summary: Grant a waiver
+      permission: waivers.approve
+      responses:
+        "200": { description: The waiver is granted. }
+      satisfies: [CASE-1]
+  /notes:
+    get:
+      operationId: listNotes
+      summary: The notes
+      permission: waivers.approve
+      listOf: { entity: Note, pageSize: { default: 20, maximum: 100 } }
+      responses:
+        "200":
+          description: The notes.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Note" } }
+      satisfies: [CASE-1]
+pages:
+  ask-form:
+    kind: form
+    title: Ask for a waiver
+    route: /waivers/new
+    entity: Waiver
+    permission: waivers.ask
+    submit: askWaiver
+    fields: [note]
+    satisfies: [CASE-1]
+  ask-quietly:
+    kind: form
+    title: Ask for a waiver quietly
+    route: /waivers/quiet
+    entity: Waiver
+    permission: waivers.ask
+    submit: askWaiver
+    fields: [note]
+    onSubmitted: { navigate: inbox }
+    satisfies: [CASE-1]
+  ask-task:
+    kind: task
+    title: Ask for a waiver as a task
+    route: /waivers/ask
+    permission: waivers.ask
+    submit: askWaiver
+    fields: [note]
+    onSubmitted:
+      "202": { navigate: inbox }
+    satisfies: [CASE-1]
+  inbox:
+    kind: list
+    title: Waivers to approve
+    route: /inbox
+    entity: Waiver
+    permission: waivers.ask
+    source: listWaivers
+    inbox: { workflow: waiver, step: approve }
+    columns: [note]
+    satisfies: [CASE-1]
+  notes-inbox:
+    kind: list
+    title: Notes to approve
+    route: /notes
+    entity: Note
+    permission: waivers.approve
+    source: listNotes
+    inbox: { workflow: waiver, step: approve }
+    columns: [text]
+    satisfies: [CASE-1]
+  grant-inbox:
+    kind: list
+    title: Waivers to grant
+    route: /grants
+    entity: Waiver
+    permission: waivers.approve
+    source: listWaivers
+    inbox: { workflow: waiver, step: grant }
+    columns: [note]
+    satisfies: [CASE-1]
+  lost-inbox:
+    kind: list
+    title: Waivers lost
+    route: /lost
+    entity: Waiver
+    permission: waivers.approve
+    source: listWaivers
+    inbox: { workflow: waivers, step: approve }
+    columns: [note]
+    satisfies: [CASE-1]
+  waiver-view:
+    kind: view
+    title: A waiver
+    route: /waivers/{waiverId}
+    entity: Waiver
+    permission: waivers.approve
+    source: listWaivers
+    inbox: { workflow: waiver, step: approve }
+    fields: [note]
+    satisfies: [CASE-1]
+permissions:
+  waivers.ask: { description: Ask for a waiver. }
+  waivers.approve: { description: Approve a waiver. }
+roles:
+  desk: { description: The desk., permissions: [waivers.ask] }
+  boss: { description: The boss., permissions: [waivers.approve] }

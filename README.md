@@ -85,7 +85,7 @@ commissioning runs and approvals). The same schema gives editors
 validation and completion through `yaml-language-server`: put this on the
 first line of a root file and most editors pick it up.
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.3.0/schema/specarch-design-0.1.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.4.0/schema/specarch-design-0.1.schema.json
 
 ## The rules SpecArch serves
 
@@ -158,7 +158,7 @@ idioms each implementation file uses. It has two builds from
 the same design.
 The Go build has every verb. With Go 1.26 or later:
 
-    go install github.com/SpecArch/specarch/cmd/specarch@v0.3.0
+    go install github.com/SpecArch/specarch/cmd/specarch@v0.4.0
 
 or, from a clone of this repository:
 
@@ -171,13 +171,13 @@ OpenAPI 3.1 document of a specification, `specarch-gen-sql`, which
 Server, Oracle or MariaDB, and `specarch-gen-tests-go`, which `specarch
 generate tests` runs to write its Go tests, and `specarch-gen-go-dxlib`,
 which `specarch generate go-dxlib` runs to write the tables, handlers, seeds
-and tasks of a Go service on dxlib. They are in no release yet, so
-install them from a commit or a clone:
+and tasks of a Go service on dxlib. Install them at the same tag as
+`specarch`:
 
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@<commit>
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@<commit>
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@<commit>
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@<commit>
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v0.4.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v0.4.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@v0.4.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v0.4.0
 
 The Swift build, for macOS, has the validate and version verbs and gives
 the same output. With Swift 6:

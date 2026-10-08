@@ -1,0 +1,7 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: deactivateMember
+level: system
+scenario: golden
+given: a librarian and an active member
+when: "deactivateMember is called for that member with the reason \"Moved away.\""
+then: "it answers 200 with the member inactive, and the reason is kept with the record"

@@ -661,6 +661,15 @@ func crossCutting(d *doc, root *yaml.Node) {
 			}
 		}
 		d.explainRows(rowsOf(pages))
+		if rows := elementRows(root, pages); len(rows) > 0 {
+			d.para("The elements of each page that pick, offer, hide or check something:")
+			d.line("| Page | Element | What it does |")
+			d.line("|---|---|---|")
+			for _, r := range rows {
+				d.line("%s", r)
+			}
+			d.blank()
+		}
 		if len(stateRows) > 0 {
 			d.para("What each page shows when it is empty or fails; while it loads or submits, the stack draws its own:")
 			d.line("| Page | State | Message |")
@@ -1272,4 +1281,72 @@ func workflowDetails(d *doc, w *yaml.Node) {
 		text += " It is approved at " + joinAnd(approvals) + order + " and a refusal ends it. The person who made the request never approves it."
 	}
 	d.para(text)
+}
+
+// elementRows are the rows of the table of page elements: each picker,
+// each action offered by a condition or asking for a reason, each field
+// read-only or hidden, each check across a form's fields, and each field
+// entered twice.
+func elementRows(root *yaml.Node, pages []source.Pair) []string {
+	var rows []string
+	row := func(page, element, text string) {
+		rows = append(rows, fmt.Sprintf("| %s | %s | %s |", page, cell(element), cell(text)))
+	}
+	for _, p := range pages {
+		name, pg := p.Key.Value, p.Value
+		ent := get(get(root, "entities"), str(pg, "entity"))
+		for _, pk := range pairs(pg, "pickers") {
+			text := "picked from " + str(pk.Value, "source")
+			for _, r := range pairs(ent, "relations") {
+				if str(r.Value, "kind") == "many-to-one" && str(r.Value, "via") == pk.Key.Value {
+					text = "a " + str(r.Value, "target") + ", through the relation " + r.Key.Value + ", " + text
+				}
+			}
+			text += ", showing " + strings.Join(strs(pk.Value, "shows"), ", ")
+			var fills []string
+			for _, f := range pairs(pk.Value, "fills") {
+				fills = append(fills, f.Key.Value+" from "+f.Value.Value)
+			}
+			if len(fills) > 0 {
+				text += "; fills " + strings.Join(fills, ", ")
+			}
+			row(name, "picker "+pk.Key.Value, text)
+		}
+		for _, a := range items(pg, "actions") {
+			var parts []string
+			if w := str(a, "when"); w != "" {
+				parts = append(parts, "offered while `"+w+"`")
+			}
+			if r := str(a, "reason"); r != "" {
+				parts = append(parts, "its confirmation asks for a reason, sent as "+r)
+			}
+			if len(parts) > 0 {
+				row(name, "action "+str(a, "label"), strings.Join(parts, "; "))
+			}
+		}
+		for _, f := range pairs(pg, "fieldConditions") {
+			var parts []string
+			if get(f.Value, "readOnly") != nil {
+				parts = append(parts, "read-only")
+			}
+			if w := str(f.Value, "readOnlyWhen"); w != "" {
+				parts = append(parts, "read-only while `"+w+"`")
+			}
+			if w := str(f.Value, "hiddenWhen"); w != "" {
+				parts = append(parts, "hidden while `"+w+"`")
+			}
+			row(name, "field "+f.Key.Value, strings.Join(parts, "; "))
+		}
+		for _, c := range pairs(pg, "checks") {
+			text := "`" + str(c.Value, "expression") + "`, or it is not sent: " + str(c.Value, "message")
+			if f := str(c.Value, "field"); f != "" {
+				text += " (beside " + f + ")"
+			}
+			row(name, "check "+c.Key.Value, text)
+		}
+		for _, f := range strs(pg, "enteredTwice") {
+			row(name, "field "+f, "entered twice; the second entry is compared and never sent")
+		}
+	}
+	return rows
 }

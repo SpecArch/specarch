@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.1.schema.json
+enums:
+  MemberStatus:
+    type: string
+    enum: [active, inactive]
+    valueDescriptions:
+      active: may borrow
+      inactive: deactivated at the desk, and borrows nothing more

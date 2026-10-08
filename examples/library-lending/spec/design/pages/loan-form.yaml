@@ -8,6 +8,9 @@ pages:
     permission: loans.create
     submit: createLoan
     fields: [memberId, bookId]
+    pickers:
+      memberId: { source: listMembers, shows: [cardNumber, fullName] }
+      bookId: { source: listBooks, shows: [title, author, copiesAvailable] }
     states:
       failed:
         lending-refused: { message: "This member cannot borrow now: the loan limit is reached, fees are outstanding, or no copy is available." }

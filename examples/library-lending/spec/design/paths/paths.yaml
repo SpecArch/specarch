@@ -10,6 +10,9 @@ paths:
           in: query
           description: Free-text search over title and author.
           schema: { type: string, maxLength: 200 }
+      listOf:
+        entity: Book
+        pageSize: { default: 20, maximum: 100 }
       responses:
         "200":
           description: Matching books.
@@ -138,6 +141,30 @@ paths:
         "404": { description: No such member., problem: member-not-found }
         "409": { description: "Loan limit reached, fees outstanding, or no copy available.", problem: lending-refused }
       satisfies: [LIB-3]
+
+  /members/{memberId}/deactivate:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: deactivateMember
+      summary: Deactivate a member, who then borrows nothing more
+      permission: members.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string, minLength: 1, maxLength: 500, description: "Why the member is deactivated, kept with the record." }
+              required: [reason]
+      responses:
+        "200":
+          description: The member, inactive.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+        "404": { description: No such member., problem: member-not-found }
 
   /loans:
     get:

@@ -1,0 +1,24 @@
+arguments: [derive, project]
+exitStatus: 0
+standardOutput: |
+  project/tests/list-members-succeeds/test.yaml
+  project/tests/deactivate-member-succeeds/test.yaml
+  project/tests/deactivate-member-missing-reason/test.yaml
+  project/tests/deactivate-member-member-id-not-a-valid-uuid/test.yaml
+  project/tests/deactivate-member-not-found-member-id/test.yaml
+  project/tests/create-loan-succeeds/test.yaml
+  project/tests/create-loan-missing-member-id/test.yaml
+  project/tests/create-loan-missing-lent-on/test.yaml
+  project/tests/create-loan-missing-due-on/test.yaml
+  project/tests/create-loan-missing-pin/test.yaml
+  project/tests/create-loan-due-on-not-a-valid-date/test.yaml
+  project/tests/create-loan-lent-on-not-a-valid-date/test.yaml
+  project/tests/create-loan-member-id-not-a-valid-uuid/test.yaml
+  project/tests/create-loan-not-found-member-id/test.yaml
+  project/tests/loan-form-picker-member-id-finds-nothing/test.yaml
+  project/tests/loan-form-violates-due-after-lent/test.yaml
+  project/tests/loan-form-pin-entered-twice-differently/test.yaml
+  project/tests/members-list-succeeds/test.yaml
+  project/tests/members-list-deactivate-not-offered/test.yaml
+  project/tests/members-list-deactivate-without-a-reason/test.yaml
+  project/tests/desk-1-acceptance-1/test.yaml

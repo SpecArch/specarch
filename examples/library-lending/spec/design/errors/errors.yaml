@@ -11,7 +11,7 @@ errors:
   lending-refused:
     status: 409
     title: The copy cannot be lent
-    condition: The member holds the most open loans their tier allows, has outstanding fees, or the book has no copy available.
+    condition: The member is inactive, holds the most open loans their tier allows or has outstanding fees, or the book has no copy available.
   loan-closed:
     status: 409
     title: The loan is already closed

@@ -1,0 +1,7 @@
+page: loan-form
+level: system
+scenario: golden
+given: "an active member"
+when: "the member is picked, the dates and the pin are entered, and the form is submitted"
+then: "the copy is lent"
+verifies: [DESK-1]

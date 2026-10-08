@@ -7,7 +7,7 @@ import {
   MEMBERS_LIST_FILTERED, MEMBERS_LIST_PAGED, MEMBERS_LIST_LOADED, MEMBERS_LIST_FAILED,
 } from "./events.js";
 
-const columns = ["cardNumber", "fullName", "email", "tier", "outstandingFees"];
+const columns = ["cardNumber", "fullName", "email", "tier", "status", "outstandingFees"];
 const pageSize = 20;
 
 const messages = {

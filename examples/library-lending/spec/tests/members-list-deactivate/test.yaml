@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: members-list
+level: system
+scenario: red
+covers: [Deactivate not offered, Deactivate without a reason]
+given: a librarian, an active member and an inactive member
+when: "the page members-list is opened, and Deactivate is confirmed for the active member with no reason"
+then: "it offers Deactivate for the active member only, and sends nothing until a reason is given"

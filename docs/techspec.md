@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 47 requirements, 3 entities, 12 commands, 7 algorithms, 275 tests, 57 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 47 requirements, 3 entities, 12 commands, 7 algorithms, 277 tests, 58 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -277,6 +277,9 @@ Primary key: path.
 | Rule | accessibility | once the specification names its accessibility target, a field a page shows has no title, or two actions of a page share a label |
 | Rule | theme | a design token has no type, a type SpecArch does not take, or a value not of its type, an alias names no token or one of another type or leads back to itself, a mode gives a token that does not exist, or a pair of colours is translucent or has less contrast than WCAG 2.2 asks of its use |
 | Rule | workflow | a workflow's trigger is not an operation or does not answer 202, its subject is not an entity, an approver is not a role or does not grant the approval's permission, an approval's permission is the trigger's, a role grants both the trigger's and an approval's permission while a separation-of-duties set holds the pair, an approval's deadline is zero, an operation step names no operation, an escalation does not name a later approval step, or two steps share a name |
+| Rule | picker | a picker is on a page that is not a form, or for a field the form does not show or that no many-to-one relation of its entity holds; its source is not an operationId of the specification, or not an operation whose listOf names the relation's target, or a role that may open the form may not call it; it shows a field the target lacks; or it fills a field the form does not show from a field the target lacks or of another type |
+| Rule | action | an action's when is on a form that loads no record, or its reason is on an action that runs no operation or names no property of the operation's request body, one the body does not require, or one that is not a string |
+| Rule | form_field | a page's fieldConditions name a field it does not show, make a field read-only on a page that is not a form, or give readOnly and readOnlyWhen together; its checks or enteredTwice are on a page that is not a form, or a check's field or a field entered twice is not one the form shows; or a check's message is not a full sentence |
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
@@ -3813,6 +3816,43 @@ otherwise is read as giving none of them and prints a line per key.
 
 **Insight:** The folders from git, not a printed table, because in a file-system router the tracked folders are the route table: nothing registers a route in code, so a reader of the tree reads exactly what is served, and git's list of tracked files gives the same order on every machine. Two folders giving one route are refused because Next.js refuses to build such a tree; the surface is broken, not partly unread. A catch-all segment is left out as the router reader leaves a wildcard out, since an OpenAPI path template, and a page's route, hold one whole parameter per segment. The schema file in the subset that is also JSON5, because that is the form ADR-051's generator writes and its comparison of hand-built screens reads, so a generated page and an extracted one are read the same way, and JSON5 is a published grammar whose values are exactly JSON's, so no TypeScript compiler, and no dependency, is needed to read it; a file outside it is reported and its content asked for, never guessed from code. The design's own keywords as the keys read, because they are the only names SpecArch knows without the ui-components idiom that would map a library's names, and a key read under a wrong name is worse than one asked for. source and submit are only named in a question because the operations they name are the router's and this tree holds none, and a reference to an operation the tree does not hold is an error. The entity by name with empty fields, because a page's fields must be its entity's, and the meta-model's way to write an element known only by name is an empty mapping blocked by a must question (docs/conventions.md, Open questions). The permission is always asked when no schema names it, because the folders do not say who may open a page, and a page open to everyone is the screen counterpart of an open endpoint. Merge treats an empty mapping as not given because that is what it means: the tree knew the name and nothing else, and the tree that gives the content, such as the database's types, answers what was asked.
 
+### ADR-058: A page's elements are maps keyed by the field they are about beside its fields, a picker goes through a many-to-one relation, and a page is its own mode
+
+Status: accepted, 2026-10-09.
+
+Context: Back-office screens need a field picked from another entity's
+records, row actions offered only in some states, a confirmation
+that asks for a reason, fields read-only or hidden by mode or by a
+condition, rules across a form's fields, and a field typed twice.
+A page lists its fields as names, which every check, the techspec
+and the UI generator read as names. The word lookup already names
+how an encrypted field is found by a hash of it.
+
+Decision: A form names its pickers under pickers, keyed by the field: the
+list operation it reads (source), the fields of the record it shows
+and the fields of the form it fills from the record. The record's
+entity is the target of the many-to-one relation whose via is the
+field, and the source must be an operation whose listOf names it.
+An action may give when, an expression over the record it acts on,
+and an operation's action with confirm may give reason, a string
+property its request body requires. A form or a view names
+fieldConditions keyed by field: readOnly, readOnlyWhen and
+hiddenWhen. A form names checks, keyed in kebab case, each an
+expression over the fields it shows with a message, and enteredTwice.
+There is no mode keyword: a form without source creates, a form with
+one edits, and a view shows, so a field hidden in one mode is a field
+that page does not list, and one read-only in it is readOnly there.
+
+Consequences: fields, columns and sections stay lists of names, and every reader
+of them is unchanged. Each element has its rule (picker, action,
+form_field, and the expression rules) and its derived cases: a
+picker that finds nothing, an action its when withholds, a missing
+reason, a check broken in each way it can be, and a field entered
+twice differently. The UI generators read the same keys for every
+stack.
+
+**Insight:** Maps keyed by the field, as a page's failed states are keyed by problem type, add what a field needs without a second way to list fields: a list item that may be a name or an object would be two ways to say one thing. The picker goes through the relation because the relation already says which entity the key points at; naming the entity again on the page could disagree with it. Its source must declare listOf because a picker pages and searches a list, which is what listOf promises, and an operation answering a bare array of the entity promises neither. pickers rather than lookups, because one word for two things is the ambiguity the Low IQ Tax forbids. The expressions use the subset already fixed for checks, as CEL is chosen for the reasons under Expressions in docs/conventions.md, and must give true or false, never null, so a missing value never offers or hides by accident. A mode keyword is left out because SpecArch's pages are each one mode already, and a list of modes on a field would be a second way to say which page shows it.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -3825,6 +3865,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | approve-writes-record | command approve | system | golden | a specification without open questions, a configured requirements document that is current, and a stakeholder owner | approve is run with --by owner and a date | it writes records/approvals/1.0.0.yaml with the role, the date, the document and the digest of the files, and exits 0 |
 | derive-invalid-spec | command derive | system | red | a specification whose operation names a permission that is not declared | derive is run | it prints the error, writes nothing and exits 1 |
 | derive-keeps-existing | command derive | system | golden | the same specification, with a test folder already named as the missing-name draft would be | derive is run | it keeps that folder as it is, says so on standard error, writes the other drafts and exits 0 |
+| derive-page-elements | command derive | system | golden | a specification whose form picks a member, checks a date against another and has a pin entered twice, and whose list offers Deactivate only to an active member with a reason, both pages satisfying a requirement with a harm | derive is run | it writes, among the operations' and the requirement's drafts, a test for the picker finding nothing, the check broken, the pin entered twice differently, Deactivate not offered and Deactivate without a reason, lists them and exits 0 |
 | derive-root-tests | command derive | system | red | a specification that keeps its tests in specarch.yaml | derive is run | it says each derived test needs a folder under tests/, writes nothing and exits 2 |
 | derive-skips-blocked | command derive | system | golden | the same specification with a must question that blocks the operation's path | derive is run | it writes only the requirement's acceptance draft, names the operation's drafts it left out and the question on standard error, and exits 0 |
 | derive-usage-error | command derive | system | red | no folder | derive is run with no arguments | it prints how to use it and exits 2 |
@@ -4017,6 +4058,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-origin-tracked | command validate | system | golden | a specification that tracks origin, with one requirement and one entity that carry none | validate is run | it warns origin_missing for each of them, and exits 0 |
 | validate-owned-by-unknown | command validate | system | red | an implementation file whose mappings mark one entity as owned by a misspelt stakeholder and another as owned by an empty name | validate is run | it reports stakeholder with the nearest stakeholder's name, and schema for the empty name, and exits 1 |
 | validate-page | command validate | system | red | a navigate action to a page that does not exist | validate is run | it reports page and exits 1 |
+| validate-page-elements-unresolved | command validate | system | red | a form with pickers whose source lists another entity, whose fields are not the target's or not the form's, of another type, for a field no relation holds or the form does not show, and one whose list a role that may open the form cannot read; field conditions on a list, on a view as read-only, on a field not shown, read-only twice, and naming a field a creating form does not show; checks and fields entered twice on a view, a check that is not true or false with a message that is not a sentence, and one naming a field the form does not show; and actions with when on a creating form, a misspelt enum value, a when that is not true or false or does not parse, and a reason that the body does not require, that is not a string, that is not in the body, on a navigate action, or without confirm | validate is run | it reports picker ten times, form_field nine times, action five times, an expression error five times and a missing confirm once, and exits 1 |
 | validate-page-events | command validate | system | red | pages whose events lead to a page that does not exist, to a page without its route parameter and with one it does not have, from a field the entity lacks, an onSubmitted on a view, a then on an action that navigates, and a message that is not a sentence; besides a list's onSelect and an operation's then with only a message, which are right | validate is run | it reports flow seven times, and exits 1 |
 | validate-page-states | command validate | system | red | pages with complete states, and pages whose states leave out a list's empty state, name a filtered empty state on a list without filters and an empty state on a form, give a message that is not a sentence, name a problem type the page cannot meet, leave one it can meet without a message or a default, and put a field on a view or one the form does not show | validate is run | it reports state ten times, and exits 1 |
 | validate-path-parameter | command validate | system | red | a path with {itemId} and no path parameter for it | validate is run | it reports path_parameter and exits 1 |
@@ -4307,7 +4349,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-25 | commands diff | tests diff-classifies-changes; tests diff-invalid-spec; tests diff-lists-changes; tests diff-no-release; tests diff-not-covered; tests diff-tracker-unknown; tests diff-usage-error; tests diff-version-step |
 | SA-26 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-releases |
 | SA-27 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
-| SA-28 | commands derive; decisions ADR-055 | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-root-tests; tests derive-skips-blocked; tests derive-usage-error; tests derive-writes-drafts |
+| SA-28 | commands derive; decisions ADR-055 | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-page-elements; tests derive-root-tests; tests derive-skips-blocked; tests derive-usage-error; tests derive-writes-drafts |
 | SA-29 | enums Rule; commands validate; decisions ADR-021 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
 | SA-30 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests gaps-outline-not-read; tests validate-mapping-origin |
 | SA-31 | commands generate; decisions ADR-041 | tests generate-stack-fallback; tests generate-stack-plugin; tests generate-tests-dart; tests generate-tests-framework-refused; tests generate-tests-go; tests generate-tests-swift |
@@ -4321,7 +4363,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-39 | decisions ADR-031 | tests generate-openapi-dxlib |
 | SA-40 | decisions ADR-032 | tests generate-go-dxlib |
 | SA-41 | enums Rule; decisions ADR-033 | tests validate-views; tests validate-views-valid |
-| SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056 | tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-pages; tests validate-theme |
+| SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058 | tests derive-page-elements; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-pages; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
 | SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-openapi-not-openapi; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-route-twice; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests gaps-outline-not-read |
 | SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-pages-field-by-name; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-source-differs; tests merge-tree-invalid; tests validate-source-given-outside |

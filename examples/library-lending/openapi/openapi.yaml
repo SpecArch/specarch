@@ -21,15 +21,47 @@ paths:
           schema:
             type: string
             maxLength: 200
+        - name: page
+          in: query
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+            default: 20
       responses:
         "200":
           description: Matching books.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Book'
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Book'
+                  totalItems:
+                    type: integer
+                    format: int64
+                    minimum: 0
+                    maximum: 9007199254740991
+                  totalPages:
+                    type: integer
+                    format: int64
+                    minimum: 0
+                    maximum: 9007199254740991
+                required:
+                  - items
+                  - totalItems
+                  - totalPages
       security: []
       x-specarch-permission: public
       x-specarch-satisfies:
@@ -367,6 +399,48 @@ paths:
       security:
         - bearerAuth: []
       x-specarch-permission: members.read
+  /members/{memberId}/deactivate:
+    parameters:
+      - name: memberId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: deactivateMember
+      summary: Deactivate a member, who then borrows nothing more
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: Why the member is deactivated, kept with the record.
+                  minLength: 1
+                  maxLength: 500
+              required:
+                - reason
+      responses:
+        "200":
+          description: The member, inactive.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
+        "404":
+          description: No such member.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: member-not-found
+      security:
+        - bearerAuth: []
+      x-specarch-permission: members.write
   /members/{memberId}/loans:
     parameters:
       - name: memberId
@@ -630,6 +704,8 @@ components:
           readOnly: true
           x-specarch-precision: 10
           x-specarch-scale: 2
+        status:
+          $ref: '#/components/schemas/MemberStatus'
         tier:
           $ref: '#/components/schemas/MembershipTier'
         createdAt:
@@ -656,11 +732,20 @@ components:
         - fullName
         - email
         - tier
+        - status
         - joinedOn
         - membershipEndsOn
         - outstandingFees
       x-specarch-audited: true
       x-specarch-deletion: soft
+    MemberStatus:
+      type: string
+      enum:
+        - active
+        - inactive
+      x-specarch-valueDescriptions:
+        active: may borrow
+        inactive: deactivated at the desk, and borrows nothing more
     MembershipTier:
       type: string
       enum:
@@ -708,7 +793,7 @@ components:
     lending-refused:
       status: 409
       title: The copy cannot be lent
-      condition: The member holds the most open loans their tier allows, has outstanding fees, or the book has no copy available.
+      condition: The member is inactive, holds the most open loans their tier allows or has outstanding fees, or the book has no copy available.
     loan-closed:
       status: 409
       title: The loan is already closed

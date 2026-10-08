@@ -7,11 +7,14 @@ pages:
     entity: Member
     permission: members.read
     source: listMembers
-    columns: [cardNumber, fullName, email, tier, outstandingFees]
+    columns: [cardNumber, fullName, email, tier, status, outstandingFees]
     filters: [tier]
     states:
       empty: { message: No members yet. Register the first one. }
       filteredEmpty: { message: No member is in this tier. }
+      failed:
+        member-not-found: { message: "This member is no longer on record, so nothing changed." }
     onSelect: { navigate: member-view, with: { memberId: id } }
     actions:
       - { label: New member, kind: navigate, target: member-form, permission: members.write }
+      - { label: Deactivate, kind: operation, target: deactivateMember, permission: members.write, when: 'status == "active"', confirm: "Deactivate this member? They will borrow nothing more.", reason: reason, then: { message: The member is deactivated. } }

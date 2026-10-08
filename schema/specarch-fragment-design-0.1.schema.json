@@ -1919,6 +1919,42 @@
           "description": "For a list: where selecting a row leads.",
           "$ref": "#/$defs/pageEvent"
         },
+        "pickers": {
+          "description": "For a form: the fields that hold the key of another entity's record, keyed by field, each picked from a list of that record. The field is the via of a many-to-one relation of the page's entity, which names the record's entity.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/picker"
+          },
+          "minProperties": 1
+        },
+        "fieldConditions": {
+          "description": "For a form or a view: when a field it shows is read-only or hidden, keyed by field. Which mode a page is in, create, edit or view, is the page itself: a form without source creates, a form with one edits, and a view shows.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/fieldCondition"
+          },
+          "minProperties": 1
+        },
+        "checks": {
+          "description": "For a form: rules across its fields, checked before it is sent, keyed in kebab case.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/formCheck"
+          },
+          "minProperties": 1
+        },
+        "enteredTwice": {
+          "description": "For a form: fields a person types twice, so a mistake shows before it is sent. The second entry is compared and never sent.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
         "states": {
           "$ref": "#/$defs/pageStates"
         },
@@ -2063,6 +2099,15 @@
           "description": "Question asked before an operation runs.",
           "type": "string"
         },
+        "reason": {
+          "description": "For an operation with confirm: the property of its request body that carries the reason the person gives in the confirmation, a string the body requires.",
+          "$ref": "#/$defs/memberName"
+        },
+        "when": {
+          "description": "An expression over the fields of the record the action is on, a row of a list or the record a view or an edit form shows, in the expression subset; the action is offered only while it is true.",
+          "type": "string",
+          "minLength": 1
+        },
         "then": {
           "description": "For an operation: where it leads once it succeeds.",
           "$ref": "#/$defs/pageEvent"
@@ -2073,6 +2118,11 @@
         "kind",
         "target"
       ],
+      "dependentRequired": {
+        "reason": [
+          "confirm"
+        ]
+      },
       "propertyNames": {
         "not": {
           "$ref": "#/$defs/stackSpecificKey"
@@ -2465,6 +2515,93 @@
         }
       },
       "required": [
+        "message"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "picker": {
+      "description": "SpecArch keyword. A field picked from a list of the records it may hold the key of.",
+      "type": "object",
+      "properties": {
+        "source": {
+          "description": "operationId of the list the record is picked from, an operation whose listOf names the relation's target.",
+          "$ref": "#/$defs/memberName"
+        },
+        "shows": {
+          "description": "The fields of the picked record a person reads to choose it, in order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "fills": {
+          "description": "Other fields of the form set from the picked record: the form's field, then the record's field of the same type.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minProperties": 1
+        }
+      },
+      "required": [
+        "source",
+        "shows"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "fieldCondition": {
+      "description": "SpecArch keyword. When a field a page shows is read-only or hidden. Each expression is over the fields of the record, in the expression subset.",
+      "type": "object",
+      "properties": {
+        "readOnly": {
+          "description": "For a form: the field is shown and never changed on this page.",
+          "const": true
+        },
+        "readOnlyWhen": {
+          "description": "For a form: the field is shown and not changed while this is true.",
+          "type": "string",
+          "minLength": 1
+        },
+        "hiddenWhen": {
+          "description": "The field is not shown while this is true.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "minProperties": 1,
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "formCheck": {
+      "description": "SpecArch keyword. A rule across a form's fields, an expression over the fields it shows that must be true before it is sent.",
+      "type": "object",
+      "properties": {
+        "expression": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "description": "A full sentence the person reads when the rule does not hold.",
+          "type": "string",
+          "minLength": 1
+        },
+        "field": {
+          "description": "The field the message shows beside.",
+          "$ref": "#/$defs/memberName"
+        }
+      },
+      "required": [
+        "expression",
         "message"
       ],
       "patternProperties": {

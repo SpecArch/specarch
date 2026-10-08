@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 133 design tests, 38 golden and 94 red, about 35 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 140 design tests, 39 golden and 100 red, about 36 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.1.0 of the specification: 133 design tests, 38 golden and 94 red, abou
 | Level | Design tests |
 |---|---|
 | acceptance | 9 |
-| system | 124 |
+| system | 131 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -264,6 +264,48 @@ Scenario: red; level: system; covers fullName shorter than 1 character, fullName
 - Given: a librarian
 - When: createMember is called with an empty fullName and with a 201-character one
 - Then: both are refused as invalid input
+
+### Operation deactivateMember
+
+#### deactivate-member
+
+Scenario: golden; level: system.
+
+- Given: a librarian and an active member
+- When: deactivateMember is called for that member with the reason "Moved away."
+- Then: it answers 200 with the member inactive, and the reason is kept with the record
+
+#### deactivate-member-bad-input
+
+Scenario: red; level: system; covers memberId not a valid uuid, missing reason.
+
+- Given: a librarian
+- When: deactivateMember is called with memberId abc, and again for an active member without a reason
+- Then: each call is refused as invalid input, and the member stays active
+
+#### deactivate-member-denied
+
+Scenario: red; level: system; covers denied without members.write.
+
+- Given: a caller holding only the member role
+- When: deactivateMember is called
+- Then: it is refused as not allowed, and the member stays active
+
+#### deactivate-member-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session.
+
+- Given: a librarian whose session expired after half an hour without a request
+- When: deactivateMember is called for an active member
+- Then: it is refused as not signed in, and nothing changes
+
+#### deactivate-member-not-found
+
+Scenario: red; level: system; covers not found memberId, response 404.
+
+- Given: a librarian and no member with a given id
+- When: deactivateMember is called with that id
+- Then: it answers 404
 
 ### Workflow fee-waiver
 
@@ -581,6 +623,14 @@ Scenario: red; level: system; covers denied with expired session.
 - When: the page loan-form is opened
 - Then: it is not shown, and the sign-in page is shown instead
 
+#### loan-form-picks-nothing
+
+Scenario: red; level: system; covers picker memberId finds nothing, picker bookId finds nothing.
+
+- Given: a librarian, and no member or book matching what is typed
+- When: a member and then a book are looked for on the page loan-form
+- Then: each picker says nothing matches, and the field stays empty
+
 #### loan-form-shown
 
 Scenario: golden; level: system.
@@ -834,6 +884,14 @@ Scenario: golden; level: system.
 - Then: it shows the member and offers Lend a book
 
 ### Page members-list
+
+#### members-list-deactivate
+
+Scenario: red; level: system; covers Deactivate not offered, Deactivate without a reason.
+
+- Given: a librarian, an active member and an inactive member
+- When: the page members-list is opened, and Deactivate is confirmed for the active member with no reason
+- Then: it offers Deactivate for the active member only, and sends nothing until a reason is given
 
 #### members-list-denied
 
@@ -1208,10 +1266,12 @@ stateDiagram-v2
 
 ## 4. Derived cases left out
 
-44 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+51 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
+| operation listBooks | page beyond last | golden | occasional case, and operation listBooks satisfies no requirement with a harm |
+| operation listBooks | page size above 100 | red | occasional case, and operation listBooks satisfies no requirement with a harm |
 | operation signIn | password shorter than 8 characters | red | occasional case, and operation signIn satisfies no requirement with a harm |
 | operation signIn | password of 8 characters | golden | occasional case, and operation signIn satisfies no requirement with a harm |
 | operation signIn | password longer than 200 characters | red | occasional case, and operation signIn satisfies no requirement with a harm |
@@ -1222,6 +1282,10 @@ stateDiagram-v2
 | operation listMembers | page size above 100 | red | occasional case, and operation listMembers satisfies no requirement with a harm |
 | operation listMembers | sort by a field not sortable | red | occasional case, and operation listMembers satisfies no requirement with a harm |
 | operation getMember | deleted Member read | red | occasional case, and operation getMember satisfies no requirement with a harm |
+| operation deactivateMember | reason shorter than 1 character | red | occasional case, and operation deactivateMember satisfies no requirement with a harm |
+| operation deactivateMember | reason of 1 character | golden | occasional case, and operation deactivateMember satisfies no requirement with a harm |
+| operation deactivateMember | reason longer than 500 characters | red | occasional case, and operation deactivateMember satisfies no requirement with a harm |
+| operation deactivateMember | reason of 500 characters | golden | occasional case, and operation deactivateMember satisfies no requirement with a harm |
 | operation listLoans | page beyond last | golden | occasional case, and operation listLoans satisfies no requirement with a harm |
 | operation listLoans | page size above 100 | red | occasional case, and operation listLoans satisfies no requirement with a harm |
 | operation listLoans | sort by a field not sortable | red | occasional case, and operation listLoans satisfies no requirement with a harm |
@@ -1243,6 +1307,7 @@ stateDiagram-v2
 | page member-view | fails with member-not-found | red | occasional case, and page member-view satisfies no requirement with a harm |
 | page members-list | empty | golden | occasional case, and page members-list satisfies no requirement with a harm |
 | page members-list | filtered empty | golden | occasional case, and page members-list satisfies no requirement with a harm |
+| page members-list | fails with member-not-found | red | occasional case, and page members-list satisfies no requirement with a harm |
 | Loan state machine | open to overdue to returned | golden | no transition on the path satisfies a requirement with a harm |
 | Loan state machine | open to overdue to lost | golden | no transition on the path satisfies a requirement with a harm |
 | Loan state machine | open to lost | golden | no transition on the path satisfies a requirement with a harm |

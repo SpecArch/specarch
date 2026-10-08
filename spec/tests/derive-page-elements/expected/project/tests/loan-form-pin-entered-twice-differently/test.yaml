@@ -1,0 +1,10 @@
+page: loan-form
+level: system
+scenario: red
+covers: [pin entered twice differently]
+given: "..."
+when: "the form is submitted with two different entries of pin"
+then: "it is not sent, and says the two entries differ"
+verifies: [DESK-1]
+origin: inferred
+why: "Written by specarch derive: page loan-form is at stake in a requirement that names a harm, so its cases are written. A draft: complete the given, when and then, and remove what does not hold."

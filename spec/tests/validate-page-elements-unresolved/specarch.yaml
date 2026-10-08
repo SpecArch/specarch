@@ -1,0 +1,176 @@
+specarch: "0.1"
+info: { title: Lending desk, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+enums:
+  MemberStatus: { type: string, enum: [active, inactive] }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      cardNumber: { type: string, maxLength: 8 }
+      fullName: { type: string, minLength: 1, maxLength: 200 }
+      status: { $ref: "#/enums/MemberStatus" }
+    required: [id, cardNumber, fullName, status]
+    primaryKey: [id]
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      memberId: { type: string, format: uuid }
+      bookId: { type: string, format: uuid }
+      notes: { type: string, maxLength: 500 }
+      lentOn: { type: string, format: date }
+      returnedOn: { type: string, format: date }
+      status: { type: string, enum: [open, returned] }
+    required: [id, memberId, bookId, notes, lentOn, returnedOn, status]
+    primaryKey: [id]
+    relations:
+      member: { target: Member, kind: many-to-one, via: memberId }
+permissions:
+  members.read: { description: See members. }
+  members.write: { description: Change members. }
+  loans.create: { description: Lend a copy. }
+roles:
+  desk: { description: The desk., permissions: [members.read, members.write, loans.create] }
+  clerk: { description: A clerk who lends but does not see members., permissions: [loans.create] }
+paths:
+  /members:
+    get:
+      operationId: listMembers
+      summary: The members
+      permission: members.read
+      listOf: { entity: Member, pageSize: { default: 20, maximum: 100 } }
+      responses:
+        "200":
+          description: The members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+  /members/{memberId}:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getMember
+      summary: One member
+      permission: members.read
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+  /members/{memberId}/deactivate:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: deactivateMember
+      summary: Deactivate a member
+      permission: members.write
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string, maxLength: 500 }
+                note: { type: string, maxLength: 500 }
+                count: { type: integer, format: int32 }
+              required: [reason, count]
+      responses:
+        "204": { description: Deactivated. }
+  /loans:
+    get:
+      operationId: listLoans
+      summary: The loans
+      permission: loans.create
+      listOf: { entity: Loan, pageSize: { default: 20, maximum: 100 } }
+      responses:
+        "200":
+          description: The loans.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Loan" } }
+    post:
+      operationId: createLoan
+      summary: Lend a copy
+      permission: loans.create
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Loan" }
+      responses:
+        "201":
+          description: The loan.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Loan" }
+pages:
+  loan-form:
+    kind: form
+    title: Lend a copy
+    route: /loans/new
+    entity: Loan
+    permission: loans.create
+    submit: createLoan
+    fields: [memberId, bookId, notes, lentOn, returnedOn]
+    pickers:
+      memberId:
+        source: listLoans
+        shows: [fullName, nickname]
+        fills: { notes: fullName, lentOn: fullName, memberId: id, dueOn: id, returnedOn: joinedOn }
+      bookId: { source: listBooks, shows: [title] }
+      dueOn: { source: listMembers, shows: [fullName] }
+    fieldConditions:
+      notes: { readOnly: true, readOnlyWhen: 'notes == ""' }
+      lentOn: { hiddenWhen: 'status == "open"' }
+      ghost: { hiddenWhen: "true" }
+    checks:
+      returned-after-lent: { expression: returnedOn >= lentOn, message: A copy cannot come back before it went out., field: dueOn }
+      sized: { expression: size(notes), message: too long }
+    enteredTwice: [notes, pin]
+    actions:
+      - { label: Clear, kind: operation, target: deactivateMember, when: "true" }
+  loan-again:
+    kind: form
+    title: Lend again
+    route: /loans/again
+    entity: Loan
+    permission: loans.create
+    submit: createLoan
+    fields: [memberId, bookId]
+    pickers:
+      memberId: { source: listMembers, shows: [cardNumber, fullName] }
+  member-view:
+    kind: view
+    title: Member
+    route: /members/{memberId}
+    entity: Member
+    permission: members.read
+    source: getMember
+    fields: [cardNumber, fullName]
+    pickers:
+      fullName: { source: listMembers, shows: [fullName] }
+    fieldConditions:
+      fullName: { readOnly: true, hiddenWhen: 'status == "inactive"' }
+    checks:
+      named: { expression: size(fullName) > 0, message: A member has a name. }
+    enteredTwice: [fullName]
+  members-list:
+    kind: list
+    title: Members
+    route: /members
+    entity: Member
+    permission: members.read
+    source: listMembers
+    columns: [cardNumber, fullName, status]
+    fieldConditions:
+      fullName: { hiddenWhen: "true" }
+    actions:
+      - { label: Deactivate, kind: operation, target: deactivateMember, when: 'status == "actve"', confirm: "Deactivate this member?", reason: reason }
+      - { label: Retire, kind: operation, target: deactivateMember, when: status, confirm: "Retire this member?", reason: note }
+      - { label: Count, kind: operation, target: deactivateMember, when: "status == ", confirm: "Count?", reason: count }
+      - { label: Explain, kind: operation, target: deactivateMember, confirm: "Explain?", reason: why }
+      - { label: Open, kind: navigate, target: member-view, confirm: "Open?", reason: reason }
+      - { label: Quiet, kind: operation, target: deactivateMember, reason: reason }

@@ -226,6 +226,19 @@ or pixels, and whether the columns become a stacked row, is the stack's.
 SpecArch names one class, compact, because both platforms agree on it and
 a design that names three classes would be negotiating with the stack.
 
+### Page elements
+
+A back-office form picks a member from a list rather than taking an
+identifier typed by hand, and a list offers Deactivate only on a row
+that is active. The design says both, and the rest of a screen's
+elements, as maps keyed by the field they are about, beside the page's
+fields: `pickers`, `fieldConditions`, `checks` and `enteredTwice`, and
+`when` and `reason` on an action (`docs/conventions.md`, Page elements).
+Each picker goes through a relation the entity declares, and each
+condition is an expression in the subset the checks use, so a stack
+reads the same rule the server applies. Whether a picker is a combo box,
+a dialog or a search page is the stack's.
+
 ### Accessibility
 
 The design names the target once:

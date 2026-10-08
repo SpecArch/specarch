@@ -654,6 +654,7 @@ func (d *design) pageSubject(p source.Pair) *subject {
 	}
 	d.stateCases(s, p.Value, open)
 	childRowCases(s, p.Value)
+	d.elementCases(s, p.Value, open)
 	return s
 }
 

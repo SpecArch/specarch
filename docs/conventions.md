@@ -934,6 +934,59 @@ relation are records of its join entity. A maximum gives the page the
 derived case `<relation> with more than <maximum> rows`. Whether rows are
 edited inline or in a dialog is the stack's.
 
+### Page elements
+
+A form picks a field that holds another record's key from a list of
+those records, says when a field is read-only or hidden, checks rules
+across its fields, and asks for a field twice; an action is offered only
+in some states and may ask for a reason:
+
+    loan-form:
+      kind: form
+      entity: Loan
+      fields: [memberId, bookId, lentOn, dueOn, pin]
+      pickers:
+        memberId: { source: listMembers, shows: [cardNumber, fullName] }
+      fieldConditions:
+        dueOn: { readOnlyWhen: 'lentOn == dueOn' }
+      checks:
+        due-after-lent: { expression: dueOn > lentOn, message: A copy is due after the day it is lent., field: dueOn }
+      enteredTwice: [pin]
+    members-list:
+      kind: list
+      actions:
+        - { label: Deactivate, kind: operation, target: deactivateMember, when: 'status == "active"', confirm: "Deactivate this member?", reason: reason }
+
+- `pickers` are a form's, keyed by a field it shows. The record's entity
+  is the target of the many-to-one relation of the page's entity whose
+  `via` is the field; `source` is an operation whose `listOf` names that
+  target; `shows` are the target's fields a person reads to choose;
+  `fills` sets other fields of the form from the chosen record, each
+  from a field of the same type. Every role that may open the form may
+  also call the source (`picker`).
+- `when` on an action is an expression over the record it acts on: a
+  row of a list, or the record a view or an edit form shows. A form
+  without `source` creates a record, so its actions have no `when`.
+- `reason` on an action that runs an operation and has `confirm` names
+  the property of the operation's request body that carries the reason
+  typed in the confirmation, a string the body requires (`action`).
+- `fieldConditions` are a form's or a view's, keyed by a field it shows:
+  `readOnly`, `readOnlyWhen` and `hiddenWhen`. Every field of a view is
+  read-only already. A page is one mode: a form without `source`
+  creates, a form with one edits, and a view shows; a field hidden in a
+  mode is one that page does not list.
+- `checks` are a form's, keyed in kebab case, each an `expression` over
+  the fields it shows, a `message` in a full sentence and the `field` it
+  shows beside. `enteredTwice` names fields a person types twice; the
+  second entry is compared and never sent.
+
+Each expression is in the subset under Expressions and gives true or
+false, never null. On a form that creates a record it names the fields
+the form shows, and elsewhere the entity's fields. The misuses are
+`picker`, `action` and `form_field`; an expression that does not parse,
+names what it cannot or has the wrong type is an expression error. The
+techspec lists every element of every page.
+
 ### Accessibility
 
 The specification names its target once, in the design:
@@ -1226,6 +1279,11 @@ mistake:
 | an acceptance criterion of a requirement | `acceptance <N>` | golden | occasional |
 | a path of a state machine | `<state> to <state> to ...` | golden | occasional |
 | a transition | `from wrong state` | red | frequent |
+| a picker of a form | `picker <field> finds nothing` | red | occasional |
+| an action with `when` | `<label> not offered` | red | occasional |
+| an action with `reason` | `<label> without a reason` | red | frequent |
+| a check of a form | `violates <check>`, or one per way it can be false | red | frequent |
+| a field entered twice | `<field> entered twice differently` | red | frequent |
 
 A check constraint whose expression joins clauses with `&&` or `||` is a
 decision table (ISO/IEC/IEEE 29119-4, 5.2.6): one red case per way it can

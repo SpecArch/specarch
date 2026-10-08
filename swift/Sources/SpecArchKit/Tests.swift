@@ -568,6 +568,7 @@ extension Design {
         }
         stateCases(s, p.value, open)
         childRowCases(s, p.value)
+        elementCases(s, p.value, open)
         return s
     }
 

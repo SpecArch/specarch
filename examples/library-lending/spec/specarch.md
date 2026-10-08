@@ -80,6 +80,7 @@ erDiagram
     string fullName
     string email
     MembershipTier tier
+    MemberStatus status
     date joinedOn
     date membershipEndsOn
     decimal outstandingFees

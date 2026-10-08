@@ -204,6 +204,7 @@ extension Checker {
         checkTheme(d)
         checkSections(d)
         checkChildRows(d)
+        checkPageElements(d)
         checkDecisions(d)
         checkAccess(d)
         checkSeparationOfDuties(d)

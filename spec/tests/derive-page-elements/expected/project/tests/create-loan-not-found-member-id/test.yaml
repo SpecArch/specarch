@@ -1,0 +1,9 @@
+operation: createLoan
+level: system
+scenario: red
+covers: [not found memberId]
+given: "no Member has that memberId"
+when: "createLoan is called with that memberId"
+then: "it is refused as not found"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

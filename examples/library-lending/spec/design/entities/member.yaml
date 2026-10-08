@@ -22,6 +22,7 @@ entities:
         lookup: hash
         description: Encrypted at rest, and found by a salted hash of it, since it must stay unique.
       tier: { title: Tier, $ref: "#/enums/MembershipTier" }
+      status: { title: Status, $ref: "#/enums/MemberStatus", default: active }
       joinedOn: { title: Joined on, type: string, format: date, readOnly: true }
       membershipEndsOn:
         title: Membership ends on
@@ -37,7 +38,7 @@ entities:
         scale: 2
         description: Sum of unpaid late fees and replacement charges, in the library's currency.
         readOnly: true
-    required: [id, cardNumber, fullName, email, tier, joinedOn, membershipEndsOn, outstandingFees]
+    required: [id, cardNumber, fullName, email, tier, status, joinedOn, membershipEndsOn, outstandingFees]
     primaryKey: [id]
     validity: { from: joinedOn, until: membershipEndsOn }
     audited: true

@@ -193,6 +193,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkTheme(d)
 	c.checkSections(d)
 	c.checkChildRows(d)
+	c.checkPageElements(d)
 	c.checkDecisions(d)
 	c.checkAccess(d)
 	c.checkSeparationOfDuties(d)

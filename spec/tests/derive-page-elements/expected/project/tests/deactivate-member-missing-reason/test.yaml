@@ -1,0 +1,9 @@
+operation: deactivateMember
+level: system
+scenario: red
+covers: [missing reason]
+given: "..."
+when: "deactivateMember is called without reason"
+then: "it is refused"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

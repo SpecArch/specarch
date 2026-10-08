@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: deactivateMember
+level: system
+scenario: red
+covers: [denied without members.write]
+given: a caller holding only the member role
+when: deactivateMember is called
+then: it is refused as not allowed, and the member stays active

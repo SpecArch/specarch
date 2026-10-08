@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: deactivateMember
+level: system
+scenario: red
+covers: [memberId not a valid uuid, missing reason]
+given: a librarian
+when: "deactivateMember is called with memberId abc, and again for an active member without a reason"
+then: each call is refused as invalid input, and the member stays active

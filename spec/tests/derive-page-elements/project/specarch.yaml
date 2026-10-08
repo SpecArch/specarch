@@ -1,0 +1,109 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [tests]
+stakeholders:
+  owner: { description: The product owner. }
+requirements:
+  DESK-1:
+    statement: A clerk shall lend a copy only to a member who may borrow, and stop lending to a member who leaves.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A member who left is offered no loan.]
+    harm: [money]
+enums:
+  MemberStatus: { type: string, enum: [active, inactive] }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      fullName: { type: string, minLength: 1, maxLength: 200 }
+      status: { $ref: "#/enums/MemberStatus" }
+    required: [id, fullName, status]
+    primaryKey: [id]
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      memberId: { type: string, format: uuid }
+      lentOn: { type: string, format: date }
+      dueOn: { type: string, format: date }
+      pin: { type: string, maxLength: 8 }
+    required: [id, memberId, lentOn, dueOn, pin]
+    primaryKey: [id]
+    relations:
+      member: { target: Member, kind: many-to-one, via: memberId }
+permissions:
+  public: { description: Everyone. }
+paths:
+  /members:
+    get:
+      operationId: listMembers
+      summary: The members
+      permission: public
+      listOf: { entity: Member, pageSize: { default: 20, maximum: 100 } }
+      responses:
+        "200":
+          description: The members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+  /members/{memberId}/deactivate:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: deactivateMember
+      summary: Deactivate a member
+      permission: public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string, maxLength: 500 }
+              required: [reason]
+      responses:
+        "204": { description: Deactivated. }
+  /loans:
+    post:
+      operationId: createLoan
+      summary: Lend a copy
+      permission: public
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Loan" }
+      responses:
+        "201":
+          description: The loan.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Loan" }
+pages:
+  loan-form:
+    kind: form
+    title: Lend a copy
+    route: /loans/new
+    entity: Loan
+    permission: public
+    submit: createLoan
+    fields: [memberId, lentOn, dueOn, pin]
+    pickers:
+      memberId: { source: listMembers, shows: [fullName] }
+    checks:
+      due-after-lent: { expression: dueOn > lentOn, message: A copy is due after the day it is lent., field: dueOn }
+    enteredTwice: [pin]
+    satisfies: [DESK-1]
+  members-list:
+    kind: list
+    title: Members
+    route: /members
+    entity: Member
+    permission: public
+    source: listMembers
+    columns: [fullName, status]
+    actions:
+      - { label: Deactivate, kind: operation, target: deactivateMember, when: 'status == "active"', confirm: "Deactivate this member?", reason: reason }
+    satisfies: [DESK-1]

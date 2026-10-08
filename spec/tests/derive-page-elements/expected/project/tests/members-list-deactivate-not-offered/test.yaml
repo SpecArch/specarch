@@ -1,0 +1,10 @@
+page: members-list
+level: system
+scenario: red
+covers: [Deactivate not offered]
+given: "a record for which status == \"active\" is false"
+when: "the page members-list is opened"
+then: "it does not offer Deactivate for that record"
+verifies: [DESK-1]
+origin: inferred
+why: "Written by specarch derive: page members-list is at stake in a requirement that names a harm, so its cases are written. A draft: complete the given, when and then, and remove what does not hold."

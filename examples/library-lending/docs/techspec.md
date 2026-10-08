@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 8 requirements, 4 entities, 12 HTTP operations, 2 channels, 1 dependency, 7 pages, 1 flow, 1 workflow, 1 algorithm, 133 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 8 requirements, 4 entities, 13 HTTP operations, 2 channels, 1 dependency, 7 pages, 1 flow, 1 workflow, 1 algorithm, 140 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -56,6 +56,7 @@ The interfaces the system offers, as its clients see them.
 | POST /members | createMember | Register a new member | members.write |
 | GET /members/{memberId} | getMember | One member with their loans | members.read |
 | POST /members/{memberId}/loans | lendCopies | Lend several copies to a member at once | loans.create |
+| POST /members/{memberId}/deactivate | deactivateMember | Deactivate a member, who then borrows nothing more | members.write |
 | GET /loans | listLoans | List loans | loans.read |
 | POST /loans | createLoan | Lend a copy to a member | loans.create |
 | POST /loans/{loanId}/return | returnLoan | Record the return of a copy | loans.return |
@@ -120,6 +121,7 @@ erDiagram
     string fullName
     string email
     MembershipTier tier
+    MemberStatus status
     date joinedOn
     date membershipEndsOn
     decimal outstandingFees
@@ -206,6 +208,7 @@ A person with a library card.
 | fullName | string | yes | at least 1 character, at most 200 characters |   |
 | email | string | yes | at most 320 characters, a valid email | Encrypted at rest, and found by a salted hash of it, since it must stay unique. |
 | tier | MembershipTier | yes |   |   |
+| status | MemberStatus | yes |   |   |
 | joinedOn | date | yes | set by the system |   |
 | membershipEndsOn | date | yes | set by the system | The last day the card is valid; set a year after joining and moved on by each renewal. |
 | outstandingFees | decimal(10, 2) | yes | set by the system | Sum of unpaid late fees and replacement charges, in the library's currency. |
@@ -235,6 +238,8 @@ Deletion is soft: a deleted record keeps a deleted flag set by the system, is no
 | LoanStatus | overdue | the due date has passed and the copy is still out |
 | LoanStatus | returned | the copy is back on the shelf |
 | LoanStatus | lost | the member reported the copy lost; the replacement cost was charged |
+| MemberStatus | active | may borrow |
+| MemberStatus | inactive | deactivated at the desk, and borrows nothing more |
 | MembershipTier | standard | up to 3 open loans, 21-day loan period |
 | MembershipTier | extended | up to 6 open loans, 28-day loan period |
 
@@ -262,12 +267,14 @@ Every refusal is an RFC 9457 problem document of one of these types; each operat
 |---|---|---|---|
 | email-taken | 409 | Email address already registered | A member with the same email address exists. |
 | member-not-found | 404 | No such member | No member has the id in the path. |
-| lending-refused | 409 | The copy cannot be lent | The member holds the most open loans their tier allows, has outstanding fees, or the book has no copy available. |
+| lending-refused | 409 | The copy cannot be lent | The member is inactive, holds the most open loans their tier allows or has outstanding fees, or the book has no copy available. |
 | loan-closed | 409 | The loan is already closed | The loan was returned or reported lost before. |
 | fee-ledger-unavailable | 503 | The fee ledger is unavailable | The fee ledger failed or did not answer in time, and the loan stays as it was. |
 | sign-in-refused | 401 | Sign-in refused | No one has the email address, or the password does not match it. |
 
 ### listBooks (GET /books)
+
+Lists Book a page at a time, 20 records by default, at most 100 a page. A request outside these is refused, not ignored (the paginated-list idiom).
 
 ```mermaid
 sequenceDiagram
@@ -343,6 +350,18 @@ sequenceDiagram
   participant S as Library Lending
   C->>S: POST /members/{memberId}/loans
   S-->>C: 201 object
+```
+
+### deactivateMember (POST /members/{memberId}/deactivate)
+
+Refuses with 404 member-not-found.
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant S as Library Lending
+  C->>S: POST /members/{memberId}/deactivate
+  S-->>C: 200 Member
 ```
 
 ### listLoans (GET /loans)
@@ -785,6 +804,8 @@ flowchart LR
   member_view -->|"Lend a book"| loan_form
   members_list -->|"select"| member_view
   members_list -->|"New member"| member_form
+  op_deactivateMember(["deactivateMember"])
+  members_list -.->|"Deactivate"| op_deactivateMember
   op_signIn(["signIn"])
   sign_in -.->|"submit"| op_signIn
   op_signIn -->|"200"| members_list
@@ -806,8 +827,16 @@ The menu, each entry shown to who may open its page:
 | member-form | form | /members/new | Member | members.write | fullName, email, tier |
 | member-loans | form | /members/{memberId}/loans | Member | loans.create | membershipEndsOn, outstandingFees; Loans, rows of loans: bookId, dueOn, at most 6, the loaded rows locked |
 | member-view | view | /members/{memberId} | Member | members.read | Member: cardNumber, fullName, email, tier; Membership: joinedOn, membershipEndsOn, outstandingFees |
-| members-list | list | /members | Member | members.read | cardNumber, fullName, email, tier, outstandingFees |
+| members-list | list | /members | Member | members.read | cardNumber, fullName, email, tier, status, outstandingFees |
 | sign-in | task | /sign-in | none; submits to signIn | public | email, password |
+
+The elements of each page that pick, offer, hide or check something:
+
+| Page | Element | What it does |
+|---|---|---|
+| loan-form | picker memberId | a Member, through the relation member, picked from listMembers, showing cardNumber, fullName |
+| loan-form | picker bookId | a Book, through the relation book, picked from listBooks, showing title, author, copiesAvailable |
+| members-list | action Deactivate | offered while `status == "active"`; its confirmation asks for a reason, sent as reason |
 
 What each page shows when it is empty or fails; while it loads or submits, the stack draws its own:
 
@@ -824,6 +853,7 @@ What each page shows when it is empty or fails; while it loads or submits, the s
 | member-view | failed: member-not-found | There is no member with this card. |
 | members-list | empty | No members yet. Register the first one. |
 | members-list | filtered empty | No member is in this tier. |
+| members-list | failed: member-not-found | This member is no longer on record, so nothing changed. |
 | sign-in | failed: sign-in-refused, beside password | The email address or the password is wrong. |
 
 ### Flow lend-a-copy
@@ -968,6 +998,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | create-loan-repeated-with-the-same-idempotency-key | operation createLoan | system | golden | a loan was created for a member and a book under an Idempotency-Key, and the client never saw the answer | createLoan is called again with the same Idempotency-Key, member and book | it answers 201 with the loan already created, no second loan exists, and the book's copies available are unchanged |
 | create-loan-request-larger-than-1024-bytes | operation createLoan | system | red | a librarian at the desk | createLoan is called with a body larger than 1024 bytes | it is refused as too large and no loan is created |
 | create-member-denied-with-expired-session | operation createMember | system | red | a librarian whose session expired after half an hour without a request | createMember is called | it is refused as not signed in, and nothing changes |
+| deactivate-member | operation deactivateMember | system | golden | a librarian and an active member | deactivateMember is called for that member with the reason "Moved away." | it answers 200 with the member inactive, and the reason is kept with the record |
+| deactivate-member-bad-input | operation deactivateMember | system | red | a librarian | deactivateMember is called with memberId abc, and again for an active member without a reason | each call is refused as invalid input, and the member stays active |
+| deactivate-member-denied | operation deactivateMember | system | red | a caller holding only the member role | deactivateMember is called | it is refused as not allowed, and the member stays active |
+| deactivate-member-denied-with-expired-session | operation deactivateMember | system | red | a librarian whose session expired after half an hour without a request | deactivateMember is called for an active member | it is refused as not signed in, and nothing changes |
+| deactivate-member-not-found | operation deactivateMember | system | red | a librarian and no member with a given id | deactivateMember is called with that id | it answers 404 |
 | fee-waiver | workflow fee-waiver | acceptance | golden | a librarian, a desk supervisor, and a loan with a late fee of 3.50 | the librarian asks for the fee to be waived and the desk supervisor approves the request | requestFeeWaiver answers 202, waiveFee is called once, the late fee is 0.00, and the request ends approved |
 | fee-waiver-approval-without-permission | workflow fee-waiver | acceptance | red | a request to waive a fee, and a second librarian, who does not hold fees.approve | the second librarian approves it | it is refused as not allowed, and the request still waits for a desk supervisor |
 | fee-waiver-deadline-passes | workflow fee-waiver | acceptance | red | a request to waive a fee, waiting for a desk supervisor | three days pass with no answer | the request ends refused, waiveFee is not called, and the fee still stands |
@@ -1005,6 +1040,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | loan-due-on-loan-day | Loan constraint loan_due_after_loaned | system | red | a loan made on 2026-10-07 | it is saved due on 2026-10-07 | it is refused |
 | loan-form-denied | page loan-form | system | red | a caller holding only the member role | the page loan-form is opened | it is not shown |
 | loan-form-denied-with-expired-session | page loan-form | system | red | a librarian whose session expired after half an hour without a request | the page loan-form is opened | it is not shown, and the sign-in page is shown instead |
+| loan-form-picks-nothing | page loan-form | system | red | a librarian, and no member or book matching what is typed | a member and then a book are looked for on the page loan-form | each picker says nothing matches, and the field stays empty |
 | loan-form-shown | page loan-form | system | golden | a librarian | the page loan-form is filled in and sent | the copy is lent |
 | loan-lent-and-returned | Loan state machine | system | golden | a Loan that is open | returnLoan happens before the due date | the Loan ends returned, with no late fee |
 | loan-overdue-only-from-open | Loan open to overdue | system | red | a returned loan due last week | the nightly job runs | the loan stays returned |
@@ -1034,6 +1070,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | member-view-denied-with-expired-session | page member-view | system | red | a librarian whose session expired after half an hour without a request | the page member-view is opened | it is not shown, and the sign-in page is shown instead |
 | member-view-not-found | page member-view | system | red | a librarian | the page member-view is opened for an id no member has | it says the member was not found |
 | member-view-shown | page member-view | system | golden | a librarian and a member | the page member-view is opened for that member | it shows the member and offers Lend a book |
+| members-list-deactivate | page members-list | system | red | a librarian, an active member and an inactive member | the page members-list is opened, and Deactivate is confirmed for the active member with no reason | it offers Deactivate for the active member only, and sends nothing until a reason is given |
 | members-list-denied | page members-list | system | red | a caller holding only the member role | the page members-list is opened | it is not shown |
 | members-list-denied-with-expired-session | page members-list | system | red | a librarian whose session expired after half an hour without a request | the page members-list is opened | it is not shown, and the sign-in page is shown instead |
 | members-list-shown | page members-list | system | golden | a librarian | the page members-list is opened | it lists members with card number, name, email, tier and fees |

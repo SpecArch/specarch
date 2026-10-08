@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 275 design tests, 103 golden and 172 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 277 design tests, 104 golden and 173 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 271 |
+| system | 273 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -90,6 +90,14 @@ Scenario: golden; level: system; verifies SA-28.
 - Given: the same specification, with a test folder already named as the missing-name draft would be
 - When: derive is run
 - Then: it keeps that folder as it is, says so on standard error, writes the other drafts and exits 0
+
+#### derive-page-elements
+
+Scenario: golden; level: system; verifies SA-28, SA-42.
+
+- Given: a specification whose form picks a member, checks a date against another and has a pin entered twice, and whose list offers Deactivate only to an active member with a reason, both pages satisfying a requirement with a harm
+- When: derive is run
+- Then: it writes, among the operations' and the requirement's drafts, a test for the picker finding nothing, the check broken, the pin entered twice differently, Deactivate not offered and Deactivate without a reason, lists them and exits 0
 
 #### derive-root-tests
 
@@ -1646,6 +1654,14 @@ Scenario: red; level: system; covers exit 1.
 - Given: a navigate action to a page that does not exist
 - When: validate is run
 - Then: it reports page and exits 1
+
+#### validate-page-elements-unresolved
+
+Scenario: red; level: system; covers exit 1; verifies SA-42.
+
+- Given: a form with pickers whose source lists another entity, whose fields are not the target's or not the form's, of another type, for a field no relation holds or the form does not show, and one whose list a role that may open the form cannot read; field conditions on a list, on a view as read-only, on a field not shown, read-only twice, and naming a field a creating form does not show; checks and fields entered twice on a view, a check that is not true or false with a message that is not a sentence, and one naming a field the form does not show; and actions with when on a creating form, a misspelt enum value, a when that is not true or false or does not parse, and a reason that the body does not require, that is not a string, that is not in the body, on a navigate action, or without confirm
+- When: validate is run
+- Then: it reports picker ten times, form_field nine times, action five times, an expression error five times and a missing confirm once, and exits 1
 
 #### validate-page-events
 

@@ -147,6 +147,9 @@ entities:
         precision: 10
         scale: 2
         type: string
+      status:
+        $ref: '#/enums/MemberStatus'
+        default: active
       tier:
         $ref: '#/enums/MembershipTier'
     relations:
@@ -160,6 +163,7 @@ entities:
       - fullName
       - email
       - tier
+      - status
       - joinedOn
       - membershipEndsOn
       - outstandingFees
@@ -170,6 +174,11 @@ enums:
       - overdue
       - returned
       - lost
+    type: string
+  MemberStatus:
+    enum:
+      - active
+      - inactive
     type: string
   MembershipTier:
     enum:

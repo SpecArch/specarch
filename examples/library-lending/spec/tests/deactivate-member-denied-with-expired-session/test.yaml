@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: deactivateMember
+level: system
+scenario: red
+covers: [denied with expired session]
+given: a librarian whose session expired after half an hour without a request
+when: deactivateMember is called for an active member
+then: it is refused as not signed in, and nothing changes

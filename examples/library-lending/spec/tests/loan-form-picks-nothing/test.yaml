@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: loan-form
+level: system
+scenario: red
+covers: [picker memberId finds nothing, picker bookId finds nothing]
+given: a librarian, and no member or book matching what is typed
+when: a member and then a book are looked for on the page loan-form
+then: "each picker says nothing matches, and the field stays empty"

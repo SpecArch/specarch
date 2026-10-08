@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-058:
+    title: A page's elements are maps keyed by the field they are about beside its fields, a picker goes through a many-to-one relation, and a page is its own mode
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Back-office screens need a field picked from another entity's
+      records, row actions offered only in some states, a confirmation
+      that asks for a reason, fields read-only or hidden by mode or by a
+      condition, rules across a form's fields, and a field typed twice.
+      A page lists its fields as names, which every check, the techspec
+      and the UI generator read as names. The word lookup already names
+      how an encrypted field is found by a hash of it.
+    decision: |
+      A form names its pickers under pickers, keyed by the field: the
+      list operation it reads (source), the fields of the record it shows
+      and the fields of the form it fills from the record. The record's
+      entity is the target of the many-to-one relation whose via is the
+      field, and the source must be an operation whose listOf names it.
+      An action may give when, an expression over the record it acts on,
+      and an operation's action with confirm may give reason, a string
+      property its request body requires. A form or a view names
+      fieldConditions keyed by field: readOnly, readOnlyWhen and
+      hiddenWhen. A form names checks, keyed in kebab case, each an
+      expression over the fields it shows with a message, and enteredTwice.
+      There is no mode keyword: a form without source creates, a form with
+      one edits, and a view shows, so a field hidden in one mode is a field
+      that page does not list, and one read-only in it is readOnly there.
+    consequences: |
+      fields, columns and sections stay lists of names, and every reader
+      of them is unchanged. Each element has its rule (picker, action,
+      form_field, and the expression rules) and its derived cases: a
+      picker that finds nothing, an action its when withholds, a missing
+      reason, a check broken in each way it can be, and a field entered
+      twice differently. The UI generators read the same keys for every
+      stack.
+    why: |
+      Maps keyed by the field, as a page's failed states are keyed by
+      problem type, add what a field needs without a second way to list
+      fields: a list item that may be a name or an object would be two
+      ways to say one thing. The picker goes through the relation because
+      the relation already says which entity the key points at; naming
+      the entity again on the page could disagree with it. Its source must
+      declare listOf because a picker pages and searches a list, which is
+      what listOf promises, and an operation answering a bare array of the
+      entity promises neither. pickers rather than lookups, because one
+      word for two things is the ambiguity the Low IQ Tax forbids. The
+      expressions use the subset already fixed for checks, as CEL is
+      chosen for the reasons under Expressions in docs/conventions.md, and
+      must give true or false, never null, so a missing value never offers
+      or hides by accident. A mode keyword is left out because SpecArch's
+      pages are each one mode already, and a list of modes on a field would
+      be a second way to say which page shows it.
+    satisfies: [SA-42]

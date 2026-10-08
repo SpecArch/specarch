@@ -22,6 +22,13 @@ const fixture = "../../spec/tests/generate-go-dxlib/project"
 // settings as specarch passes them.
 func generate(t *testing.T) genopenapi.Response {
 	t.Helper()
+	return generateWith(t, func(map[string]any) {})
+}
+
+// generateWith runs the generator on the fixture after a change to its
+// specification.
+func generateWith(t *testing.T, change func(specification map[string]any)) genopenapi.Response {
+	t.Helper()
 	s := spec.Load(fixture)
 	if len(s.Problems) > 0 {
 		t.Fatalf("the fixture does not load: %v", s.Problems)
@@ -38,6 +45,7 @@ func generate(t *testing.T) genopenapi.Response {
 	}
 	content := source.ValueOf(root).(map[string]any)
 	settings := content["targets"].(map[string]any)["go-dxlib"].(map[string]any)["settings"]
+	change(s.Value.(map[string]any))
 	data, err := json.Marshal(map[string]any{"specarch": "0.1", "target": "go-dxlib", "root": filepath.ToSlash(s.RootFile),
 		"specification": s.Value, "output": filepath.Join(fixture, "..", "testdata"),
 		"implementations": []any{map[string]any{"file": impl.Path, "content": content, "settings": settings, "idioms": idioms}}})
@@ -124,5 +132,53 @@ func TestCompiles(t *testing.T) {
 	vet.Dir = dir
 	if out, err := vet.CombinedOutput(); err != nil {
 		t.Fatalf("the file does not compile against dxlib: %v\n%s", err, out)
+	}
+}
+
+// TestListView pages a list over a view through the table's list view, and
+// refuses two views of one entity.
+func TestListView(t *testing.T) {
+	listOf := func(sp map[string]any) map[string]any {
+		for _, item := range sp["paths"].(map[string]any) {
+			for _, op := range item.(map[string]any) {
+				if m, ok := op.(map[string]any); !ok {
+					continue // the path item's parameters
+				} else if l, ok := m["listOf"].(map[string]any); ok {
+					return l
+				}
+			}
+		}
+		t.Fatal("the fixture has no list")
+		return nil
+	}
+	resp := generateWith(t, func(sp map[string]any) {
+		sp["views"] = map[string]any{"BookRow": map[string]any{"from": "Book", "properties": map[string]any{}}}
+		l := listOf(sp)
+		delete(l, "entity")
+		l["view"] = "BookRow"
+	})
+	if len(resp.Files) != 1 || !strings.Contains(resp.Files[0].Content, `"book", "book", "book_row", "", "id",`) {
+		t.Errorf("the table does not page through book_row: %v\n%v", resp.Diagnostics, resp.Files)
+	}
+	resp = generateWith(t, func(sp map[string]any) {
+		sp["views"] = map[string]any{"BookRow": map[string]any{"from": "Book"}, "ShelfRow": map[string]any{"from": "Book"}}
+		l := listOf(sp)
+		delete(l, "entity")
+		l["view"] = "BookRow"
+		sp["paths"].(map[string]any)["/shelf-books"] = map[string]any{"get": map[string]any{"operationId": "listShelfBooks", "permission": "public",
+			"listOf":    map[string]any{"view": "ShelfRow", "pageSize": map[string]any{"default": json.Number("20"), "maximum": json.Number("100")}},
+			"responses": map[string]any{"200": map[string]any{"description": "The books."}}}}
+	})
+	if len(resp.Diagnostics) != 1 || !strings.Contains(resp.Diagnostics[0].Message, "pages through one list view") {
+		t.Errorf("two views of one entity should be refused once, got %v", resp.Diagnostics)
+	}
+	resp = generateWith(t, func(sp map[string]any) {
+		sp["views"] = map[string]any{"BookRow": map[string]any{"from": "Book"}}
+		sp["paths"].(map[string]any)["/shelf-books"] = map[string]any{"get": map[string]any{"operationId": "listShelfBooks", "permission": "public",
+			"listOf": map[string]any{"view": "BookRow", "pageSize": map[string]any{"default": json.Number("20"), "maximum": json.Number("100")}},
+			"responses": map[string]any{"200": map[string]any{"description": "The books."}}}}
+	})
+	if len(resp.Diagnostics) != 1 || !strings.Contains(resp.Diagnostics[0].Message, "through itself and through the view BookRow") && !strings.Contains(resp.Diagnostics[0].Message, "through the view BookRow and through itself") {
+		t.Errorf("a list of Book and a list of its view should be refused, got %v", resp.Diagnostics)
 	}
 }

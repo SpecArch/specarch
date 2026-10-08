@@ -1808,7 +1808,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-107 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+111 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1841,13 +1841,16 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-36 | acceptance 1 | golden | SA-36 names no harm |
 | requirement SA-36 | acceptance 2 | golden | SA-36 names no harm |
 | requirement SA-36 | acceptance 3 | golden | SA-36 names no harm |
+| requirement SA-36 | acceptance 4 | golden | SA-36 names no harm |
 | requirement SA-37 | acceptance 1 | golden | SA-37 names no harm |
 | requirement SA-37 | acceptance 2 | golden | SA-37 names no harm |
 | requirement SA-37 | acceptance 3 | golden | SA-37 names no harm |
 | requirement SA-37 | acceptance 4 | golden | SA-37 names no harm |
+| requirement SA-37 | acceptance 5 | golden | SA-37 names no harm |
 | requirement SA-38 | acceptance 1 | golden | SA-38 names no harm |
 | requirement SA-38 | acceptance 2 | golden | SA-38 names no harm |
 | requirement SA-38 | acceptance 3 | golden | SA-38 names no harm |
+| requirement SA-38 | acceptance 4 | golden | SA-38 names no harm |
 | requirement SA-39 | acceptance 1 | golden | SA-39 names no harm |
 | requirement SA-39 | acceptance 2 | golden | SA-39 names no harm |
 | requirement SA-39 | acceptance 3 | golden | SA-39 names no harm |
@@ -1855,6 +1858,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-40 | acceptance 2 | golden | SA-40 names no harm |
 | requirement SA-40 | acceptance 3 | golden | SA-40 names no harm |
 | requirement SA-40 | acceptance 4 | golden | SA-40 names no harm |
+| requirement SA-40 | acceptance 5 | golden | SA-40 names no harm |
 | requirement SA-41 | acceptance 1 | golden | SA-41 names no harm |
 | requirement SA-41 | acceptance 2 | golden | SA-41 names no harm |
 | requirement SA-41 | acceptance 3 | golden | SA-41 names no harm |

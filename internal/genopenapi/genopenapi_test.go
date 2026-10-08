@@ -145,3 +145,98 @@ func TestListByPost(t *testing.T) {
 		t.Errorf("want one diagnostic about the body, got %v", resp.Diagnostics)
 	}
 }
+
+// withViews adds a view of loans with their member's name and a view of
+// members with their loans counted, and lists loans through the first.
+func withViews(r *Request) {
+	r.Specification["views"] = map[string]any{
+		"LoanRow": map[string]any{"from": "Loan", "description": "A loan as the desk's list shows it.", "properties": map[string]any{
+			"memberName": map[string]any{"path": "member.fullName"},
+			"memberTier": map[string]any{"path": "member.tier"}}},
+		"MemberRow": map[string]any{"from": "Member", "properties": map[string]any{"openLoans": map[string]any{"count": "loans"}}},
+	}
+	get := r.Specification["paths"].(map[string]any)["/loans"].(map[string]any)["get"].(map[string]any)
+	l := get["listOf"].(map[string]any)
+	delete(l, "entity")
+	l["view"] = "LoanRow"
+	l["sortable"] = []any{"dueOn", "memberName"}
+	for _, resp := range get["responses"].(map[string]any) {
+		for _, c := range resp.(map[string]any)["content"].(map[string]any) {
+			if s := c.(map[string]any)["schema"].(map[string]any); s["items"] != nil {
+				s["items"] = map[string]any{"$ref": "#/views/LoanRow"}
+			}
+		}
+	}
+}
+
+// TestViews writes a view as a read-only schema of its entity's fields and
+// the ones it adds, and lets a list sort by an added field.
+func TestViews(t *testing.T) {
+	r := request(t, "../../examples/library-lending/spec")
+	withViews(r)
+	loan := r.Specification["entities"].(map[string]any)["Loan"].(map[string]any)
+	var req []any
+	for _, f := range loan["required"].([]any) {
+		if f != "memberId" {
+			req = append(req, f)
+		}
+	}
+	loan["required"] = req
+	resp := Generate(r)
+	if len(resp.Diagnostics) > 0 {
+		t.Fatalf("diagnostics: %v", resp.Diagnostics)
+	}
+	var doc map[string]any
+	if err := yaml.Unmarshal([]byte(resp.Files[0].Content), &doc); err != nil {
+		t.Fatal(err)
+	}
+	row := at(t, doc, "components", "schemas", "LoanRow")
+	if at(t, row, "readOnly") != true || at(t, row, "x-specarch-view", "from") != "Loan" || at(t, row, "properties", "dueOn") == nil {
+		t.Errorf("LoanRow is not a read-only view of Loan with its fields: %v", row)
+	}
+	name := at(t, row, "properties", "memberName")
+	if at(t, name, "readOnly") != true || at(t, name, "maxLength") != 200 || at(t, name, "type", 1) != "null" {
+		t.Errorf("memberName should be read-only text of 200 that may be null, since memberId may be left out: %v", name)
+	}
+	if at(t, row, "properties", "memberTier", "enum") == nil {
+		t.Errorf("memberTier should carry its enum's values: %v", at(t, row, "properties", "memberTier"))
+	}
+	if at(t, row, "properties", "memberTier", "type", 1) != "null" {
+		t.Error("memberTier may be null, as memberId may be left out")
+	}
+
+	// A path to a field its entity does not require may be null too.
+	r = request(t, "../../examples/library-lending/spec")
+	withViews(r)
+	r.Specification["views"].(map[string]any)["LoanRow"].(map[string]any)["properties"].(map[string]any)["memberNote"] = map[string]any{"path": "member.membershipEndsOn"}
+	member := r.Specification["entities"].(map[string]any)["Member"].(map[string]any)
+	var mreq []any
+	for _, f := range member["required"].([]any) {
+		if f != "membershipEndsOn" {
+			mreq = append(mreq, f)
+		}
+	}
+	member["required"] = mreq
+	resp2 := Generate(r)
+	var doc2 map[string]any
+	if err := yaml.Unmarshal([]byte(resp2.Files[0].Content), &doc2); err != nil {
+		t.Fatal(err)
+	}
+	if at(t, doc2, "components", "schemas", "LoanRow", "properties", "memberName", "type") != "string" {
+		t.Error("memberName may not be null when its relation and field are required")
+	}
+	if at(t, doc2, "components", "schemas", "LoanRow", "properties", "memberNote", "type", 1) != "null" {
+		t.Error("memberNote reads a field Member does not require, so it may be null")
+	}
+
+	count := at(t, doc, "components", "schemas", "MemberRow", "properties", "openLoans")
+	if at(t, count, "format") != "int64" || at(t, count, "minimum") != 0 {
+		t.Errorf("openLoans should be a 64-bit count: %v", count)
+	}
+	if !strings.Contains(resp.Files[0].Content, "- -memberName") {
+		t.Error("listLoans cannot sort by memberName")
+	}
+	if at(t, doc, "paths", "/loans", "get", "responses", "200", "content", "application/json", "schema", "properties", "items", "items", "$ref") != "#/components/schemas/LoanRow" {
+		t.Error("listLoans does not answer LoanRow")
+	}
+}

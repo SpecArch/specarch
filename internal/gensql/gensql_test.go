@@ -275,3 +275,144 @@ func TestUnwritableCheck(t *testing.T) {
 		t.Errorf("want one diagnostic about the function, got %v", resp.Diagnostics)
 	}
 }
+
+// withViews adds a view of loans with their member's name and book's
+// title, and a view of members with their loans counted.
+func withViews(r *Request) {
+	r.Specification["views"] = map[string]any{
+		"LoanRow": map[string]any{"from": "Loan", "properties": map[string]any{
+			"memberName": map[string]any{"path": "member.fullName"},
+			"bookTitle":  map[string]any{"path": "book.title"}}},
+		"MemberRow": map[string]any{"from": "Member", "properties": map[string]any{
+			"openLoans": map[string]any{"count": "loans"}}},
+	}
+}
+
+// TestViews writes each view after the tables, on each dialect: the
+// entity's columns, a LEFT JOIN per relation a path follows, and a count
+// in a subquery.
+func TestViews(t *testing.T) {
+	want := map[string][]string{
+		"postgresql": {"CREATE VIEW loan_row AS\nSELECT\n    t0.id,", "    t2.full_name AS member_name\nFROM loans t0\n    LEFT JOIN books t1 ON t1.id = t0.book_id\n    LEFT JOIN members t2 ON t2.id = t0.member_id;",
+			"t1.title AS book_title,", "t0.is_deleted,", "t0.email_hash,", "(SELECT COUNT(*) FROM loans c WHERE c.member_id = t0.id) AS open_loans\nFROM members t0;"},
+		"sqlserver": {"EXEC('CREATE VIEW loan_row AS", "(SELECT COUNT_BIG(*) FROM loans c WHERE c.member_id = t0.id) AS open_loans\nFROM members t0');"},
+		"oracle":    {"FROM loans t0\n    LEFT JOIN books t1 ON t1.id = t0.book_id"},
+		"mariadb":   {"CREATE VIEW member_row AS"},
+	}
+	for dialect, lines := range want {
+		r := request(t, dialect)
+		withViews(r)
+		sql := migration(t, r)
+		for _, l := range lines {
+			if !strings.Contains(sql, l) {
+				t.Errorf("%s: the migration has no %q:\n%s", dialect, l, sql)
+			}
+		}
+		if strings.Index(sql, "CREATE VIEW") < strings.LastIndex(sql, "FOREIGN KEY") {
+			t.Errorf("%s: a view is created before the foreign keys", dialect)
+		}
+	}
+}
+
+// TestViewCountsSoftDeleted leaves softly deleted records out of a count.
+func TestViewCountsSoftDeleted(t *testing.T) {
+	r := request(t, "postgresql")
+	withViews(r)
+	r.Specification["entities"].(map[string]any)["Loan"].(map[string]any)["deletion"] = "soft"
+	if sql := migration(t, r); !strings.Contains(sql, "WHERE c.member_id = t0.id AND c.is_deleted = false)") {
+		t.Errorf("the count does not leave out deleted loans:\n%s", sql)
+	}
+}
+
+// TestDifferViews drops and creates a view again around a change of an
+// entity it reads, and leaves it alone otherwise.
+func TestDifferViews(t *testing.T) {
+	first := Generate(func() *Request { r := request(t, "postgresql"); withViews(r); return r }())
+	snap := File{Path: SnapshotName, Content: file(first, SnapshotName)}
+	if !strings.Contains(snap.Content, "views:") {
+		t.Fatalf("the snapshot has no views:\n%s", snap.Content)
+	}
+	r := request(t, "postgresql", snap, File{Path: "0001_expand.sql", Content: "..."})
+	withViews(r)
+	bookProps(r.Specification["entities"].(map[string]any))["edition"] = map[string]any{"type": "string", "maxLength": json.Number("40")}
+	exp := file(Generate(r), "0002_expand.sql")
+	if !strings.HasPrefix(strings.SplitN(exp, "\n", 3)[2], "DROP VIEW loan_row;") || !strings.Contains(exp, "t1.title AS book_title") || strings.Contains(exp, "member_row") {
+		t.Errorf("0002_expand.sql should drop and create loan_row, which reads books, and only it:\n%s", exp)
+	}
+
+	r = request(t, "postgresql", snap, File{Path: "0001_expand.sql", Content: "..."})
+	withViews(r)
+	r.Implementations[0].Settings = map[string]any{"destructive": true}
+	m := r.Specification["entities"].(map[string]any)["Member"].(map[string]any)
+	m["properties"].(map[string]any)["fullName"].(map[string]any)["maxLength"] = json.Number("100")
+	resp := Generate(r)
+	con := file(resp, "0003_contract.sql")
+	if !strings.Contains(con, "DROP VIEW loan_row;\n\nDROP VIEW member_row;\n\nALTER TABLE members ALTER COLUMN full_name TYPE VARCHAR(100);") || !strings.HasSuffix(con, "FROM members t0;\n") {
+		t.Errorf("0003_contract.sql should drop the views reading members, narrow the column and create them again:\n%s%v", con, resp.Diagnostics)
+	}
+}
+
+// TestDifferViewsEnum makes a view again when an enum of a field it reads
+// changes, since PostgreSQL refuses to widen a column a view reads.
+func TestDifferViewsEnum(t *testing.T) {
+	first := Generate(func() *Request { r := request(t, "postgresql"); withViews(r); return r }())
+	snap := File{Path: SnapshotName, Content: file(first, SnapshotName)}
+	r := request(t, "postgresql", snap, File{Path: "0001_expand.sql", Content: "..."})
+	withViews(r)
+	status := r.Specification["enums"].(map[string]any)["LoanStatus"].(map[string]any)
+	status["enum"] = append(status["enum"].([]any), "returned-damaged-beyond-repair")
+	exp := file(Generate(r), "0002_expand.sql")
+	drop, alter := strings.Index(exp, "DROP VIEW loan_row;"), strings.Index(exp, "ALTER COLUMN status TYPE")
+	if drop < 0 || alter < 0 || drop > alter || strings.Index(exp, "CREATE VIEW loan_row") < alter {
+		t.Errorf("loan_row should be dropped before status widens and made again after:\n%s", exp)
+	}
+}
+
+// TestViewRefusals refuses an added field named like an audit column, a
+// path to a field that is only written, and a join entity with two
+// relations to one side; and counts through a join entity on SQL Server,
+// leaving out softly deleted records.
+func TestViewRefusals(t *testing.T) {
+	refused := func(change func(r *Request), want string) {
+		t.Helper()
+		r := request(t, "postgresql")
+		withViews(r)
+		change(r)
+		resp := Generate(r)
+		if len(resp.Diagnostics) != 1 || !strings.Contains(resp.Diagnostics[0].Message, want) {
+			t.Errorf("want one diagnostic with %q, got %v", want, resp.Diagnostics)
+		}
+	}
+	views := func(r *Request) map[string]any { return r.Specification["views"].(map[string]any) }
+	entities := func(r *Request) map[string]any { return r.Specification["entities"].(map[string]any) }
+	refused(func(r *Request) {
+		views(r)["MemberRow"].(map[string]any)["properties"].(map[string]any)["createdAt"] = map[string]any{"count": "loans"}
+	}, "an audit, deleted or hash column")
+	refused(func(r *Request) {
+		entities(r)["Member"].(map[string]any)["properties"].(map[string]any)["fullName"].(map[string]any)["writeOnly"] = true
+	}, "written and never read")
+
+	shelving := func(r *Request, extra bool) {
+		rels := map[string]any{"book": map[string]any{"target": "Book", "kind": "many-to-one", "via": "bookId"},
+			"member": map[string]any{"target": "Member", "kind": "many-to-one", "via": "memberId"}}
+		if extra {
+			rels["sponsor"] = map[string]any{"target": "Member", "kind": "many-to-one", "via": "sponsorId"}
+		}
+		entities(r)["Shelving"] = map[string]any{"properties": map[string]any{
+			"bookId": map[string]any{"type": "string", "format": "uuid"}, "memberId": map[string]any{"type": "string", "format": "uuid"},
+			"sponsorId": map[string]any{"type": "string", "format": "uuid"}},
+			"required": []any{"bookId", "memberId", "sponsorId"}, "primaryKey": []any{"bookId", "memberId"}, "relations": rels}
+		entities(r)["Member"].(map[string]any)["relations"].(map[string]any)["shelved"] = map[string]any{"target": "Book", "kind": "many-to-many", "via": "Shelving"}
+		views(r)["MemberRow"].(map[string]any)["properties"].(map[string]any)["shelvedBooks"] = map[string]any{"count": "shelved"}
+	}
+	refused(func(r *Request) { shelving(r, true) }, "exactly one many-to-one relation")
+
+	r := request(t, "sqlserver")
+	withViews(r)
+	shelving(r, false)
+	entities(r)["Book"].(map[string]any)["deletion"] = "soft"
+	sql := migration(t, r)
+	if !strings.Contains(sql, "(SELECT COUNT_BIG(*) FROM shelving c INNER JOIN books r ON r.id = c.book_id WHERE c.member_id = t0.id AND r.is_deleted = 0) AS shelved_books") {
+		t.Errorf("the count through Shelving is wrong:\n%s", sql)
+	}
+}

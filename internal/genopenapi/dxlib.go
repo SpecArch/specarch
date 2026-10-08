@@ -367,6 +367,7 @@ func (g *gen) generateDxlib(r *Request) Response {
 		add(n, "x-dxlib-type", str("string"))
 		add(schemas, name, n)
 	}
+	viewSchemas := map[string]*yaml.Node{}
 	for _, name := range sortedKeys(obj(g.spec["entities"])) {
 		e := obj(obj(g.spec["entities"])[name])
 		props := obj(e["properties"])
@@ -391,6 +392,35 @@ func (g *gen) generateDxlib(r *Request) Response {
 			}
 		}
 		schemas.Content = append(schemas.Content, str(name), g.dxSchema(map[string]any{"type": "object", "description": e["description"], "properties": withAudit, "required": e["required"]}, "/entities/"+name))
+		// A view of the entity is its fields and the fields the view adds.
+		for _, vn := range sortedKeys(obj(g.spec["views"])) {
+			v := obj(obj(g.spec["views"])[vn])
+			if text(v["from"]) != name {
+				continue
+			}
+			extra, added := g.viewAdded(vn)
+			all := map[string]any{}
+			for k, f := range withAudit {
+				all[k] = f
+			}
+			for k, f := range extra {
+				all[k] = f
+			}
+			// A field that may be null is not required in the dxlib
+			// dialect; the entity's schema warns about it once.
+			var req []any
+			for _, r := range append(append([]any{}, list(e["required"])...), added...) {
+				if !nullable(obj(all[text(r)])) {
+					req = append(req, r)
+				}
+			}
+			viewSchemas[vn] = g.dxSchema(map[string]any{"type": "object", "description": v["description"], "properties": all, "required": req}, "/views/"+vn)
+		}
+	}
+	for _, vn := range sortedKeys(obj(g.spec["views"])) {
+		if n := viewSchemas[vn]; n != nil {
+			add(schemas, vn, n)
+		}
 	}
 	add(comps, "schemas", schemas)
 	if errs := obj(g.spec["errors"]); len(errs) > 0 {
@@ -550,11 +580,10 @@ func uniqueSorted(items []any) []any {
 func (g *gen) dxListParameters(at string, l, props map[string]any) bool {
 	names, ok := g.idiomNames("paginated-list", "parameters", "dxlib")
 	if !ok {
-		g.diags = append(g.diags, g.problem(at+"/listOf", "the operation lists %s, but the paginated-list idiom has no dxlib rendering here; keep the shipped idiom, or override its dxlib part", text(l["entity"])))
+		g.diags = append(g.diags, g.problem(at+"/listOf", "the operation lists %s, but the paginated-list idiom has no dxlib rendering here; keep the shipped idiom, or override its dxlib part", subjectName(l)))
 		return false
 	}
-	entity := obj(obj(g.spec["entities"])[text(l["entity"])])
-	fields := obj(entity["properties"])
+	_, fields, entity := g.listSubject(l)
 	if len(list(l["searchable"])) > 0 {
 		props[names["search"]] = map[string]any{"type": "string", "description": "Free text, matched against " + joinList(list(l["searchable"])) + "."}
 	}

@@ -169,6 +169,13 @@ func Generate(r *Request) Response {
 	for _, fk := range fks {
 		b.WriteString("\n" + fk + ";\n")
 	}
+	views := g.createViews()
+	if len(g.diags) > 0 {
+		return Response{Files: []File{}, Diagnostics: g.diags}
+	}
+	for _, v := range views {
+		b.WriteString("\n" + v + ";\n")
+	}
 	return Response{Files: []File{{Path: "0001_expand.sql", Content: b.String()}, {Path: SnapshotName, Content: snapshot}}, Diagnostics: []Diagnostic{}}
 }
 
@@ -266,6 +273,13 @@ func (g *gen) snapshot() string {
 		enums[name] = keep(obj0(e), map[string]any{"type": true, "enum": true})
 	}
 	s := map[string]any{"dialect": g.dialect, "typeRendering": g.version, "entities": entities, "enums": enums, "mappings": tableMappings(g.impl)}
+	if views := obj0(g.spec["views"]); len(views) > 0 {
+		kept := map[string]any{}
+		for name, v := range views {
+			kept[name] = keep(obj0(v), viewKeys)
+		}
+		s["views"] = kept // only when there are views, so a schema without any keeps its snapshot
+	}
 	var b bytes.Buffer
 	enc := yaml.NewEncoder(&b)
 	enc.SetIndent(2)
@@ -338,7 +352,7 @@ func plainValues(v any) any {
 func tableMappings(impl Implementation) map[string]any {
 	out := map[string]any{}
 	for k, v := range obj0(impl.Content["mappings"]) {
-		if strings.HasPrefix(k, "#/entities/") {
+		if strings.HasPrefix(k, "#/entities/") || strings.HasPrefix(k, "#/views/") {
 			out[k] = text(obj0(v)["target"])
 		}
 	}

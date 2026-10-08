@@ -142,3 +142,36 @@ func main() {
 		t.Fatalf("dxlib's reader refuses the document: %v\n%s", err, out)
 	}
 }
+
+// TestDxlibViews writes a view in the dxlib dialect, after the entities,
+// and a list over it sorts by the view's fields.
+func TestDxlibViews(t *testing.T) {
+	r := request(t, "../../examples/library-lending/spec")
+	withViews(r)
+	r.Implementations[0].Content["targets"].(map[string]any)["openapi"].(map[string]any)["dialect"] = "dxlib"
+	paths := r.Specification["paths"].(map[string]any)
+	delete(paths["/books"].(map[string]any), "get") // bare lists, which dxlib does not answer
+	delete(paths["/members"].(map[string]any), "get")
+	resp := Generate(r)
+	for _, d := range resp.Diagnostics {
+		if strings.HasPrefix(d.Path, "/views/") {
+			t.Errorf("a view should add no diagnostic of its own: %v", d)
+		}
+	}
+	if len(resp.Files) != 1 {
+		t.Fatalf("no document: %v", resp.Diagnostics)
+	}
+	var doc map[string]any
+	if err := yaml.Unmarshal([]byte(resp.Files[0].Content), &doc); err != nil {
+		t.Fatal(err)
+	}
+	if at(t, doc, "components", "schemas", "LoanRow", "properties", "member_name", "x-dxlib-type") == nil {
+		t.Errorf("LoanRow has no member_name: %v", at(t, doc, "components", "schemas", "LoanRow"))
+	}
+	if at(t, doc, "components", "schemas", "MemberRow", "properties", "open_loans", "x-dxlib-type") != "int64zp" {
+		t.Errorf("open_loans should be dxlib's int64zp: %v", at(t, doc, "components", "schemas", "MemberRow", "properties", "open_loans"))
+	}
+	if !strings.Contains(resp.Files[0].Content, "member_name") || !strings.Contains(resp.Files[0].Content, "/listLoans") {
+		t.Error("listLoans does not sort by member_name")
+	}
+}

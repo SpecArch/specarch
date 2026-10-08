@@ -73,6 +73,27 @@ func (g *gen) diff(prevText string) *steps {
 	for _, fk := range fks {
 		s.add(fk)
 	}
+	drop, create := g.staleViews(prev, cur)
+	var creates []string
+	for _, name := range create {
+		if stmt := g.createView(name); stmt != "" {
+			creates = append(creates, stmt)
+		}
+	}
+	if len(g.diags) > 0 {
+		return s
+	}
+	// A view is dropped before the statements and created after them, in
+	// the expand file, and again around a contract file, whose statements
+	// may change a column the view reads.
+	s.expand = append(append(drop, s.expand...), creates...)
+	if len(s.contract) > 0 && len(creates) > 0 {
+		var dropNew []string
+		for _, name := range create {
+			dropNew = append(dropNew, "DROP VIEW "+viewName(name, cm))
+		}
+		s.contract = append(append(dropNew, s.contract...), creates...)
+	}
 	return s
 }
 

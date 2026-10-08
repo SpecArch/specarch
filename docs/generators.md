@@ -141,7 +141,14 @@ no scheme. A response that names a problem type answers
 type in `x-specarch-problem`; the catalogue is `x-specarch-problems`. A
 list takes the names of the paginated-list idiom that applies: query
 parameters on a GET, properties of an inline request body on another
-method, and the answer wrapped in the idiom's envelope.
+method, and the answer wrapped in the idiom's envelope. A view is a
+read-only schema of its own, marked `x-specarch-view` with the entity it
+reads from: that entity's fields and the ones the view adds, each added
+one read-only. A path has the type of the field it ends in, with null
+allowed when a relation on the way may have no record or the field is
+not required, and a count is a
+64-bit integer of at least 0. A list over a view filters and sorts by the
+view's fields.
 
 With `dialect: dxlib` on the target, the document is the one dxlib's OpenAPI
 reader binds. Every operation is a POST at `/<operationId>` with all of its
@@ -166,8 +173,14 @@ target, in the package its `package` setting names (`service` when none)
 for the database its `databaseNameId` setting names, which it needs. The
 file holds a dxlib table per entity, a DXTable when the entity is audited
 or softly deleted and a DXRawTable otherwise, with the search, order and
-filter fields its lists allow; `Register`, binding each handler to its
-`operationId`; and per operation a request struct with a `Has` flag per
+filter fields its lists allow. When an entity is listed through a view,
+the table pages through that view as its list view, named as
+`specarch-gen-sql` names it; dxlib then reads the table by key and counts
+through the view too, which works because a view carries every field of
+its entity. An entity listed through two views, or both directly and
+through a view, is refused. The file also
+holds `Register`, binding each handler to its `operationId`, and per
+operation a request struct with a `Has` flag per
 field, read through dxlib's typed getters, the field's design default
 taken when the value is not given (dxlib reads a null and a left-out
 parameter alike, so `Has` is false for both), a check of every constraint the
@@ -225,6 +238,24 @@ which the `sql` target's settings must allow with `destructive: true`;
 a change the differ cannot tell from a rewrite (a new type, a new key, a
 new default, a new required column without a default) is refused with
 what to do by hand.
+
+Each view becomes a SQL view, created after the tables and their foreign
+keys. It lists its entity's columns by name, joins each relation a path
+follows with a `LEFT JOIN`, so a record with no related record is still
+listed, and counts a relation to many in a subquery that leaves out softly
+deleted records (`COUNT_BIG` on SQL Server, whose `COUNT` is 32 bits). On
+SQL Server the statement runs through `EXEC`, because `CREATE VIEW` must
+be the first statement of a batch. A view's column list is fixed when it
+is created, and PostgreSQL refuses to change the type of a column a view
+reads, so a migration that changes a view, an entity it reads or an enum
+of a field it reads drops that view first and creates it again last, in
+the expand migration and again around a contract one. A view holds no
+rows, so this never needs `destructive: true`; on MariaDB, Oracle, and SQL
+Server outside a transaction, the view is missing while the migration
+runs, and a list through it fails until the migration ends. An added
+field named like an audit, deleted or hash column, a path that ends in a
+field only written, and a many-to-many count whose join entity has more
+than one relation to either side are refused.
 
 Migrations are new files only. The emitter keeps a snapshot of the spec as it
 stood after the last generated migration, diffs the current spec against it,

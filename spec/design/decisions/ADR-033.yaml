@@ -35,9 +35,22 @@ decisions:
       fields it may filter and sort by, and a generator writes the view
       from the relations, so the join follows them. Carrying the entity's
       fields keeps its key, so a read by identifier and the deleted filter
-      work through the view, as dxlib needs. A view of many rows per record,
-      or one joined over a to-many relation, cannot be said; it waits for a
-      real specification that needs one.
+      work through the view, as dxlib needs; dxlib reads a table through one
+      list view, so every list of an entity names the same view, or none
+      does. In SQL a view's column list is fixed when it is created, and
+      PostgreSQL refuses to change the type of a column a view reads, so a
+      migration that changes a view, an entity it reads or an enum of a
+      field it reads drops the view first and creates it again last, in the
+      expand migration and again around a contract one. A view holds no
+      rows, so dropping it loses nothing and belongs with the steps that
+      only add; on an engine whose DDL does not run in a transaction the
+      view is missing while the migration runs. A path reads a related
+      record even when it is softly deleted, so a deleted member's name
+      still shows on a loan, while a count leaves deleted records out. An
+      added field may not take the name of an audit, deleted or hash
+      column, and a path may not end in a field that is only written. A
+      view of many rows per record, or one joined over a to-many relation,
+      cannot be said; it waits for a real specification that needs one.
     why: |
       Paths only through relations that lead to one record keep one row per
       record, which is what a list pages through; a to-many hop would repeat

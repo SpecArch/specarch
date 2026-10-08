@@ -369,6 +369,10 @@ func (g *gen) components() *yaml.Node {
 	for k := range entities {
 		names = append(names, k)
 	}
+	views := obj(g.spec["views"])
+	for k := range views {
+		names = append(names, k)
+	}
 	sort.Strings(names)
 	for _, name := range names {
 		if e, ok := enums[name].(map[string]any); ok {
@@ -389,13 +393,29 @@ func (g *gen) components() *yaml.Node {
 			continue
 		}
 		e := obj(entities[name])
+		description := text(e["description"])
+		ps := obj(e["properties"])
+		var added []any
+		if v, ok := views[name].(map[string]any); ok {
+			// A view is its entity's fields and the fields it adds.
+			e = obj(entities[text(v["from"])])
+			description = text(v["description"])
+			extra, names := g.viewAdded(name)
+			all := map[string]any{}
+			for k, f := range obj(e["properties"]) {
+				all[k] = f
+			}
+			for k, f := range extra {
+				all[k] = f
+			}
+			ps, added = all, names
+		}
 		n := mapping()
 		add(n, "type", str("object"))
-		if d := text(e["description"]); d != "" {
-			add(n, "description", str(d))
+		if description != "" {
+			add(n, "description", str(description))
 		}
 		props := mapping()
-		ps := obj(e["properties"])
 		for _, p := range sortedKeys(ps) {
 			add(props, p, g.schema(obj(ps[p])))
 		}
@@ -412,8 +432,12 @@ func (g *gen) components() *yaml.Node {
 			}
 		}
 		add(n, "properties", props)
-		if req := list(e["required"]); len(req) > 0 {
+		if req := append(append([]any{}, list(e["required"])...), added...); len(req) > 0 {
 			add(n, "required", plain(req))
+		}
+		if v, ok := views[name].(map[string]any); ok {
+			add(n, "readOnly", boolean(true))
+			add(n, "x-specarch-view", plain(map[string]any{"from": v["from"]}))
 		}
 		if e["audited"] == true {
 			add(n, "x-specarch-audited", boolean(true))
@@ -496,11 +520,10 @@ func problemSchema() *yaml.Node {
 func (g *gen) expandList(path, method string, l map[string]any, params *yaml.Node, body **yaml.Node, responses *yaml.Node) {
 	at := "/paths/" + strings.NewReplacer("~", "~0", "/", "~1").Replace(path) + "/" + method + "/listOf"
 	if !g.listNames() {
-		g.diags = append(g.diags, g.problem(at, "the operation lists %s, but the implementation file excludes the paginated-list idiom, and the standard dialect has no other way to page; keep the idiom, or override it", text(l["entity"])))
+		g.diags = append(g.diags, g.problem(at, "the operation lists %s, but the implementation file excludes the paginated-list idiom, and the standard dialect has no other way to page; keep the idiom, or override it", subjectName(l)))
 		return
 	}
-	entity := obj(obj(g.spec["entities"])[text(l["entity"])])
-	fields := obj(entity["properties"])
+	_, fields, _ := g.listSubject(l)
 	parts := []struct {
 		name   string
 		schema *yaml.Node
@@ -604,7 +627,7 @@ func (g *gen) expandList(path, method string, l map[string]any, params *yaml.Nod
 				s = child(mts[0].value, "schema")
 			}
 			if s == nil || child(s, "$ref") != nil || child(s, "properties") == nil {
-				g.diags = append(g.diags, g.problem(at, "the operation lists %s by %s, so its paging goes in the request body, which is not an inline object with properties; make the body an object, or list by GET", text(l["entity"]), strings.ToUpper(method)))
+				g.diags = append(g.diags, g.problem(at, "the operation lists %s by %s, so its paging goes in the request body, which is not an inline object with properties; make the body an object, or list by GET", subjectName(l), strings.ToUpper(method)))
 				return
 			}
 			props = child(s, "properties")

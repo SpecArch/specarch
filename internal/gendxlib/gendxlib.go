@@ -103,6 +103,8 @@ type gen struct {
 	imports                  map[string]bool
 	w                        *strings.Builder
 	search, sort, filter     map[string][]string // per entity, from the lists over it
+	listView                 map[string]string   // per entity, the view its lists page through, "-" for none
+	mixed                    map[string]bool     // entities listed in two ways, reported once
 	patterns                 [][2]string         // the regexp variables the checks use: name, pattern
 }
 
@@ -136,12 +138,27 @@ func (g *gen) response(files []genopenapi.File) genopenapi.Response {
 // filter by, as dxlib's table whitelists.
 func (g *gen) collectLists() {
 	g.search, g.sort, g.filter = map[string][]string{}, map[string][]string{}, map[string][]string{}
+	g.listView, g.mixed = map[string]string{}, map[string]bool{}
 	for _, o := range g.operations() {
 		l := obj(o.node["listOf"])
 		if l == nil {
 			continue
 		}
-		e := text(l["entity"])
+		e := g.listEntity(l)
+		// A dxlib table pages through one list view, and reads by key and
+		// counts through it too, so every list of an entity names the same
+		// view, or none does.
+		v := text(l["view"])
+		if v == "" {
+			v = "-" // listed directly
+		}
+		if prev, seen := g.listView[e]; seen && prev != v && !g.mixed[e] {
+			g.mixed[e] = true
+			g.problem("error", "/paths/"+strings.NewReplacer("~", "~0", "/", "~1").Replace(o.path)+"/"+o.method+"/listOf", "%s is listed through %s and through %s, and a dxlib table pages through one list view, which it also reads by key and counts through; list %s the same way everywhere", e, through(prev), through(v), e)
+		}
+		if _, seen := g.listView[e]; !seen {
+			g.listView[e] = v
+		}
 		g.search[e] = union(g.search[e], wires(list(l["searchable"])))
 		g.sort[e] = union(g.sort[e], wires(list(l["sortable"])))
 		g.filter[e] = union(g.filter[e], wires(list(l["filterable"])))
@@ -207,11 +224,47 @@ func (g *gen) tables() {
 		if hasEncrypted(e) {
 			g.problem("warning", "/entities/"+n, "%s has a field encrypted at rest; its encryption keys are the service's, so the table's EncryptionKeyDefs is left empty", n)
 		}
-		g.line("\t%s: tables.%s(%q, %q, %q, \"\", \"\", %q, \"\", \"\", nil, [][]string{%s}, []string{%s}, []string{%s}, []string{%s}),",
-			n, ctor, g.db, g.tableName(n), snakeName(n), uid, strings.Join(uniques, ", "), quoteAll(g.search[n]), quoteAll(g.sort[n]), quoteAll(g.filter[n]))
+		view := ""
+		if v := g.listView[n]; v != "" && v != "-" {
+			view = g.viewName(v)
+		}
+		g.line("\t%s: tables.%s(%q, %q, %q, %q, \"\", %q, \"\", \"\", nil, [][]string{%s}, []string{%s}, []string{%s}, []string{%s}),",
+			n, ctor, g.db, g.tableName(n), snakeName(n), view, uid, strings.Join(uniques, ", "), quoteAll(g.search[n]), quoteAll(g.sort[n]), quoteAll(g.filter[n]))
 	}
 	g.line("}")
 	g.line("")
+}
+
+// through names how a list reads its entity, for a diagnostic.
+func through(view string) string {
+	if view == "-" {
+		return "itself"
+	}
+	return "the view " + view
+}
+
+// listEntity is the entity a list pages through, itself or the one its
+// view reads from.
+func (g *gen) listEntity(l map[string]any) string {
+	if v := text(l["view"]); v != "" {
+		return text(obj(obj(g.spec["views"])[v])["from"])
+	}
+	return text(l["entity"])
+}
+
+// viewName follows specarch-gen-sql's rule: the mapping's view, or the
+// view's name in snake case.
+func (g *gen) viewName(view string) string {
+	target := text(obj(g.mappings["#/views/"+view])["target"])
+	if rest, ok := strings.CutPrefix(target, "view "); ok {
+		if i := strings.IndexAny(rest, " ,"); i >= 0 {
+			rest = rest[:i]
+		}
+		if rest != "" {
+			return rest
+		}
+	}
+	return snakeName(view)
 }
 
 // tableName follows specarch-gen-sql's rule: the mapping's table, or the
@@ -444,7 +497,7 @@ func (g *gen) operation(o operation) {
 // a create, a read by key, or "" for one whose body the service writes.
 func (g *gen) kind(o operation) (string, string) {
 	if l := obj(o.node["listOf"]); l != nil {
-		return "list", text(l["entity"])
+		return "list", g.listEntity(l)
 	}
 	entity := responseEntity(o.node)
 	if entity == "" {

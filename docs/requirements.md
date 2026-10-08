@@ -234,6 +234,7 @@ Acceptance criteria:
 
 - The document of the library lending example parses, is OpenAPI 3.1.0, pages its list of loans by the idiom's names in the idiom's envelope, answers its refusals with RFC 9457 problem documents naming their types, carries an audited entity's audit fields as read-only, and carries SpecArch's own keywords as x-specarch- extensions.
 - A list by a method other than GET takes its paging in its request body, and a body that is a reference to an entity is reported.
+- Each view is a read-only schema under components, its entity's fields and the ones it adds, a path with the type of the field it ends in and null allowed when a relation on the way may have no record or the field is not required, a count as a 64-bit integer; a list over a view filters and sorts by the view's fields, in both dialects.
 - Each implementation file in a plug-in's request carries the idioms it uses, with the content of the idiom that applies and the project's override.
 
 **Insight:** The server interface of a Go service is written by a standard OpenAPI generator in strict mode, so the document is where the design reaches the code; written by hand, it drifts from the design on the first change.
@@ -250,6 +251,7 @@ Acceptance criteria:
 - A key or unique text column without a maxLength of at most 255, and a check whose function SQL is not given, are refused.
 - A second run on an unchanged schema answers only the snapshot.
 - Each plug-in request carries the files already in the output folder.
+- Each view becomes a SQL view after the tables and their foreign keys, listing its entity's columns, joining each relation a path follows with a LEFT JOIN, and counting a relation to many in a subquery that leaves out softly deleted records, with a 64-bit count on every dialect; on SQL Server the statement runs through EXEC, since CREATE VIEW must start a batch. An added field named like an audit, deleted or hash column, and a path ending in a field only written, are refused.
 
 **Insight:** The schema is where a design reaches the data, and four engines read one design four ways; the rows say each way once, and the migration written from them cannot drift from the design.
 
@@ -264,6 +266,7 @@ Acceptance criteria:
 - A new nullable column, a wider text column, a new table with its foreign key, and a new enum value are written in the next expand migration, and the earlier migrations are left as they are.
 - A dropped column, a narrower column and a removed enum value are refused until destructive is true in the sql target's settings, and then written in a contract migration of their own.
 - A new required column without a default, a changed type, a changed key and a changed default are refused with what to do instead.
+- A view that changed, or that reads an entity or an enum that changed, is dropped at the top of the expand migration and created at its end, and again around a contract migration; a view that came is created and one that went is dropped, in the expand migration, since a view holds no rows.
 
 **Insight:** A migration that has run on a database is history; writing the next one from the design, and refusing what could lose data unless it is asked for, is the expand and contract pattern kept honest by the tool.
 
@@ -290,6 +293,7 @@ Kind: functional; priority: should; status: accepted; verified by test; refines 
 Acceptance criteria:
 
 - Each entity is a dxlib table, a DXTable when audited or softly deleted and a DXRawTable otherwise, with the search, order and filter fields its lists allow.
+- An entity listed through a view pages through it as the table's list view, named as specarch-gen-sql names the view; an entity listed through two views, or both directly and through a view, is refused, since dxlib reads a table through one list view.
 - Each operation has a handler registered by its operationId that reads every parameter with dxlib's typed getters, checks every constraint the dxlib dialect lists as unenforced, and runs dxlib's standard list, create or read operation where the design gives one, and otherwise calls a body the service writes.
 - Each permission and role is a seed row, public excluded, each menu entry is a menu item, and each job that repeats at an interval is a dxlib task calling a job function the service writes; any other job is reported and left out.
 - The file compiles against dxlib, where a dxlib checkout is at hand.

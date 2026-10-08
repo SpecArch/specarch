@@ -1,0 +1,142 @@
+specarch: "0.1"
+info: { title: Member desk, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      fullName: { type: string, minLength: 1, maxLength: 200 }
+    required: [id, fullName]
+    primaryKey: [id]
+permissions:
+  members.read: { description: See members. }
+  members.write: { description: Register and remove members. }
+roles:
+  desk: { description: The desk., permissions: [members.read, members.write] }
+  reader: { description: Reads members only., permissions: [members.read] }
+paths:
+  /members:
+    get:
+      operationId: listMembers
+      summary: The members
+      permission: members.read
+      responses:
+        "200":
+          description: The members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+    post:
+      operationId: createMember
+      summary: Register a member
+      permission: members.write
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Member" }
+      responses:
+        "201":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+  /members/{memberId}:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getMember
+      summary: One member
+      permission: members.read
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+    delete:
+      operationId: removeMember
+      summary: Remove a member
+      permission: members.write
+      responses:
+        "204": { description: Removed. }
+pages:
+  members-list:
+    kind: list
+    title: Members
+    route: /members
+    entity: Member
+    permission: members.read
+    source: listMembers
+    columns: [fullName]
+    onSelect: { navigate: member-view, with: { memberId: id } }
+  member-form:
+    kind: form
+    title: Register member
+    route: /members/new
+    entity: Member
+    permission: members.write
+    submit: createMember
+    fields: [fullName]
+    onSubmitted: { navigate: member-view, with: { memberId: id }, message: The member is registered. }
+  member-view:
+    kind: view
+    title: Member
+    route: /members/{memberId}
+    entity: Member
+    permission: members.read
+    source: getMember
+    fields: [fullName]
+    actions:
+      - { label: Register another, kind: navigate, target: member-form, permission: members.write }
+flows:
+  register-a-member:
+    description: The desk registers a member and sees the record.
+    actor: desk
+    steps:
+      - { page: member-form, event: submitted }
+      - { page: member-view, event: action, action: Register another }
+      - { page: member-form, event: submitted }
+  by-a-clerk:
+    description: A role that does not exist.
+    actor: clerk
+    steps:
+      - { page: members-list, event: select }
+      - { page: member-view, event: action, action: Register another }
+  to-nowhere:
+    description: A step on a page that does not exist.
+    actor: desk
+    steps:
+      - { page: members-list, event: select }
+      - { page: member-veiw, event: select }
+  reader-registers:
+    description: A reader may not open the form.
+    actor: reader
+    steps:
+      - { page: members-list, event: select }
+      - { page: member-view, event: action, action: Register another }
+      - { page: member-form, event: submitted }
+  wrong-events:
+    description: Events a page does not raise, and one that leads elsewhere.
+    actor: desk
+    steps:
+      - { page: member-view, event: select }
+      - { page: members-list, event: select }
+      - { page: member-form, event: submitted }
+      - { page: members-list, event: action, action: Remove }
+tests:
+  register-a-member-succeeds:
+    flow: register-a-member
+    scenario: golden
+    level: acceptance
+    given: "a member of the desk"
+    when: "they go through member-form, member-view, member-form"
+    then: "each step leads to the next, and the last completes"
+  walk-a-flow-that-is-not-there:
+    flow: register-twice
+    scenario: golden
+    level: system
+    given: "..."
+    when: "..."
+    then: "..."

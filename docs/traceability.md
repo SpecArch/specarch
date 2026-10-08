@@ -63,7 +63,7 @@ Version 0.5.0-dev of the specification: 9 needs, 42 requirements, and 0 gaps. Ea
 | SA-39 | NEED-2 | decisions ADR-031 | tests generate-openapi-dxlib |
 | SA-40 | NEED-2 | decisions ADR-032 | tests generate-go-dxlib |
 | SA-41 | NEED-2 | enums Rule; decisions ADR-033 | tests validate-views; tests validate-views-valid |
-| SA-42 | NEED-2 | decisions ADR-034 | tests validate-page-events |
+| SA-42 | NEED-2 | decisions ADR-034 | tests validate-flows; tests validate-page-events |
 
 ## 3. Gaps
 

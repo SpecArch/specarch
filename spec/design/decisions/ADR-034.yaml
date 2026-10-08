@@ -26,14 +26,21 @@ decisions:
       parameter missing or not the target's, and a field the entity lacks
       are refused (flow). IFML's concepts are taken and its diagram notation
       is not: the events are written on the page that raises them. The
-      techspec's screen-flow diagram draws every event. This decision is D3
-      of docs/ui-design.md and waits for the owner to confirm or veto it.
+      techspec's screen-flow diagram draws every event. A flow, under
+      flows, is a task a person does across pages: its actor, a role that
+      must be allowed to open every page on the way, and its steps, each a
+      page and the event on it (select, submitted, or an action by its
+      label) that leads to the next step's page; it is drawn as its steps
+      and is a test subject. This decision is D3 of docs/ui-design.md and
+      waits for the owner to confirm or veto it.
     consequences: |
       A reviewer reads where each step leads from the page itself and sees
       it drawn, and a generator writes the navigation instead of guessing
       it. A failed submission stays on its page; what it shows there is the
-      page's failed state, a decision of its own. Named flows across pages
-      build on these events.
+      page's failed state, a decision of its own. A flow is checked against
+      the events, so a renamed action or a changed navigation that breaks a
+      task is caught where the task is written down, and an acceptance test
+      walks it.
     why: |
       Writing an event on the page that raises it keeps one place for it,
       as an action already is. Taking the route parameters from the

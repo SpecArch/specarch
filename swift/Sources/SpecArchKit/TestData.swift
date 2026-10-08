@@ -17,6 +17,8 @@ private func testKindOf(_ t: YNode) -> (kind: String, label: String) {
         let v = str(t.child(k))
         if !v.isEmpty { return (k, k + " " + v) }
     }
+    let flow = str(t.child("flow"))
+    if !flow.isEmpty { return ("screenFlow", "flow " + flow) }
     let ent = str(t.child("entity"))
     if ent.isEmpty { return ("", "") }
     if t.child("constraint") != nil { return ("constraint", ent + " constraint " + str(t.child("constraint"))) }

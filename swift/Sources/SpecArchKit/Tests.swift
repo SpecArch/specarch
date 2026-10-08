@@ -201,6 +201,7 @@ extension Design {
         for p in pairs(root.child("commands")) { out.append(withHarm(commandSubject(p), p.value)) }
         for p in pairs(root.child("jobs")) { out.append(withHarm(jobSubject(p), p.value)) }
         for p in pairs(root.child("pages")) { out.append(withHarm(pageSubject(p), p.value)) }
+        for p in pairs(root.child("flows")) { out.append(withHarm(screenFlowSubject(p), p.value)) }
         for e in pairs(root.child("entities")) {
             for c in pairs(e.value.child("constraints")) { out.append(withHarm(constraintSubject(e.key.value, c), c.value)) }
             for (i, t) in items(e.value.child("transitions")).enumerated() { out.append(withHarm(transitionSubject(e.key.value, i, t), t)) }
@@ -496,6 +497,15 @@ extension Design {
 
     /// A job's tests: it runs, it runs twice over the same records without a
     /// second effect, its dependencies fail, and an item fails every time.
+    /// A flow as a test subject: its golden case walks the steps.
+    func screenFlowSubject(_ p: Pair) -> Subject {
+        let name = p.key.value
+        let s = Subject(label: "flow " + name, node: p.key, path: pointer("flows", name), yamlKey: "flow: " + name, name: name)
+        let pages = items(p.value.child("steps")).map { str($0.child("page")) }
+        s.success = golden("a " + str(p.value.child("actor")), "they go through " + pages.joined(separator: ", "), "each step leads to the next, and the last completes")
+        return s
+    }
+
     func jobSubject(_ p: Pair) -> Subject {
         let name = p.key.value
         let s = Subject(label: "job " + name, node: p.key, path: pointer("jobs", name), yamlKey: "job: " + name, name: kebab(name))
@@ -582,6 +592,7 @@ func testSubjectKey(_ t: YNode) -> String {
     if let v = t.child("command"), !v.str.isEmpty { return "command: " + v.str }
     if let v = t.child("page"), !v.str.isEmpty { return "page: " + v.str }
     if let v = t.child("job"), !v.str.isEmpty { return "job: " + v.str }
+    if let v = t.child("flow"), !v.str.isEmpty { return "flow: " + v.str }
     if let v = t.child("requirement"), !v.str.isEmpty { return "requirement: " + v.str }
     let ent = str(t.child("entity"))
     if ent.isEmpty { return "" }
@@ -648,7 +659,7 @@ extension Checker {
             }
             guard let s = byKey[key] else {
                 add(p.key, pointer(base), .testSubject,
-                    "test \(name) is about \(key.replacingOccurrences(of: ": ", with: " ")), which is not in the specification; name an operationId, command, page, job, requirement with acceptance criteria, entity with a state machine, or an entity's constraint or transition that exists")
+                    "test \(name) is about \(key.replacingOccurrences(of: ": ", with: " ")), which is not in the specification; name an operationId, command, page, job, flow, requirement with acceptance criteria, entity with a state machine, or an entity's constraint or transition that exists")
                 continue
             }
             let id = ObjectIdentifier(s)

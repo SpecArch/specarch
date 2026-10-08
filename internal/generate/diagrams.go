@@ -362,3 +362,32 @@ func region(root *yaml.Node, what string) (string, error) {
 	}
 	return out, err
 }
+
+// flowFlowchart draws a flow as its steps: each page, and the event on it
+// that leads to the next.
+func flowFlowchart(flow *yaml.Node) string {
+	steps := items(flow, "steps")
+	if len(steps) == 0 {
+		return ""
+	}
+	var b strings.Builder
+	b.WriteString("flowchart LR\n")
+	for i, st := range steps {
+		fmt.Fprintf(&b, "  s%d[\"%s\"]\n", i, mermaidText(str(st, "page")))
+	}
+	for i := 0; i+1 < len(steps); i++ {
+		event := str(steps[i], "event")
+		if event == "action" {
+			event = str(steps[i], "action")
+		}
+		fmt.Fprintf(&b, "  s%d -->|\"%s\"| s%d\n", i, mermaidText(event), i+1)
+	}
+	if last := steps[len(steps)-1]; str(last, "event") != "" {
+		event := str(last, "event")
+		if event == "action" {
+			event = str(last, "action")
+		}
+		fmt.Fprintf(&b, "  s%d -->|\"%s\"| done((\"done\"))\n", len(steps)-1, mermaidText(event))
+	}
+	return fence(b.String())
+}

@@ -402,6 +402,7 @@ redefined.
 | `emits`, `algorithm` | SpecArch | links from an operation to its events and its computation |
 | `pages`, `kind`, `route`, `entity`, `source`, `submit`, `columns`, `fields`, `filters`, `actions` | SpecArch | UI page definitions |
 | `onSubmitted`, `onSelect`, `then`, `navigate`, `with`, `message` | SpecArch, after the events and navigation flows of OMG IFML 1.0 | where an event of a page leads, and the status message it carries (WCAG 2.2, 4.1.3) |
+| `flows`, `actor`, `steps`, `event`, `action` | SpecArch, after IFML's navigation flows | a task a person does across pages, step by step |
 | `algorithms`, `inputs`, `output`, `formula`, `examples` (of an algorithm), `pseudocode` | SpecArch | IEEE 1016 algorithm viewpoint, made testable |
 | `decisions` and the ADR fields | SpecArch, after Michael Nygard's record | the common ADR shape: context, decision, consequences, plus `why` |
 | `tests`, `scenario`, `level`, `given`, `when`, `then`, `covers`, `notApplicable` | SpecArch, after ISO/IEC/IEEE 29119 and Gherkin | design tests; the levels are 29119-1's; given, when and then are the Gherkin words, without Gherkin's file format |
@@ -654,6 +655,24 @@ focus (WCAG 2.2, 4.1.3). An event with only a message stays on the page.
 Every rule here is `flow`. The concepts are IFML's events and navigation
 flows; its diagram notation is not used, and the techspec draws the
 screen flow from the pages.
+
+A flow is a task a person does across pages, under `flows`, keyed in
+kebab case:
+
+    lend-a-copy:
+      description: A librarian finds the member at the desk, opens their record and lends them a copy.
+      actor: librarian
+      steps:
+        - { page: members-list, event: select }
+        - { page: member-view, event: action, action: Lend a book }
+        - { page: loan-form, event: submitted }
+
+The `actor` is a role, and it must be allowed to open every page on the
+way. Each step is a page and the `event` on it: `select`, `submitted`, or
+`action` with the action's label. Every event but the last must lead to
+the next step's page (`flow`). The techspec draws each flow as its steps.
+A test names a flow as its subject with `flow: <name>`; its golden case
+walks the steps.
 
 ### Views
 

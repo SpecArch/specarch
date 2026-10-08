@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 98 design tests, 30 golden and 67 red, about 27 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 100 design tests, 31 golden and 68 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -10,7 +10,7 @@ Version 0.1.0 of the specification: 98 design tests, 30 golden and 67 red, about
 
 | Level | Design tests |
 |---|---|
-| acceptance | 2 |
+| acceptance | 4 |
 | system | 96 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
@@ -324,6 +324,32 @@ Scenario: red; level: system; covers not found memberId, response 404.
 - Given: a librarian and no member with a given id
 - When: getMember is called with that id
 - Then: it answers 404
+
+### Other
+
+#### lend-a-copy-at-the-desk
+
+Scenario: golden; level: acceptance; verifies LIB-7.
+
+- Given: a librarian at the desk, and a member with no loans and no fees
+- When: the librarian selects the member in the members list, chooses Lend a book on their record, and submits the loan form for an available copy
+- Then: the member's record opens again with the new loan and the message that the copy is lent
+
+**Origin:** inferred.
+
+**Insight:** Drafted from the flow's success path and completed by hand; the desk task of LIB-7 is this flow.
+
+#### lend-a-copy-limit-reached
+
+Scenario: red; level: acceptance; verifies LIB-7.
+
+- Given: a librarian at the desk, and a member who has reached the loan limit of their tier
+- When: the librarian goes through the flow and submits the loan form
+- Then: the form stays open and says the loan is refused, and no loan is recorded
+
+**Origin:** inferred.
+
+**Insight:** The flow's last step calls createLoan, whose refusal lending-refused is the failure a librarian meets most at the desk.
 
 ### Operation listLoans
 

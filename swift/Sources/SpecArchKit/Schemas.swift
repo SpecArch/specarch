@@ -238,6 +238,16 @@ let designSchemaJSON = #"""
         "$ref": "#/$defs/menuItem"
       }
     },
+    "flows": {
+      "description": "SpecArch keyword, after the navigation flows of OMG's IFML. Tasks a person does across pages, keyed by kebab-case name: who does it and each step, a page and the event on it that leads to the next step's page. A flow is a test subject.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/flow"
+      }
+    },
     "algorithms": {
       "description": "SpecArch keyword. Computations that must be specified before they are written by hand, keyed by camelCase name.",
       "type": "object",
@@ -2570,6 +2580,106 @@ let designSchemaJSON = #"""
       },
       "additionalProperties": false
     },
+    "flow": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "actor": {
+          "description": "The role that does the task; it must be allowed to open every page on the way.",
+          "$ref": "#/$defs/roleName"
+        },
+        "steps": {
+          "description": "The pages in order, each with the event that leads to the next one's page.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/flowStep"
+          },
+          "minItems": 2
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description",
+        "actor",
+        "steps"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "flowStep": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "description": "The page of the step.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "event": {
+          "description": "What the person does on it: selects a row of a list, submits a form, or takes an action.",
+          "type": "string",
+          "enum": [
+            "select",
+            "submitted",
+            "action"
+          ]
+        },
+        "action": {
+          "description": "For event action: the label of the action.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "page",
+        "event"
+      ],
+      "if": {
+        "properties": {
+          "event": {
+            "const": "action"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "action"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "action"
+          ]
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
     "algorithm": {
       "description": "SpecArch keyword. All three of formula, examples and pseudocode are required; the examples become test cases.",
       "type": "object",
@@ -3076,6 +3186,11 @@ let designSchemaJSON = #"""
           "description": "The job the test is about.",
           "$ref": "#/$defs/memberName"
         },
+        "flow": {
+          "description": "The flow the test walks.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
         "requirement": {
           "description": "The requirement whose acceptance criteria the test shows met: its cases are 'acceptance 1', 'acceptance 2' and so on, one per criterion, and the test is usually level acceptance.",
           "$ref": "#/$defs/idKey"
@@ -3281,6 +3396,11 @@ let designSchemaJSON = #"""
         {
           "required": [
             "job"
+          ]
+        },
+        {
+          "required": [
+            "flow"
           ]
         },
         {

@@ -1,0 +1,9 @@
+flow: lend-a-copy
+level: acceptance
+scenario: red
+given: a librarian at the desk, and a member who has reached the loan limit of their tier
+when: the librarian goes through the flow and submits the loan form
+then: the form stays open and says the loan is refused, and no loan is recorded
+verifies: [LIB-7]
+origin: inferred
+why: The flow's last step calls createLoan, whose refusal lending-refused is the failure a librarian meets most at the desk.

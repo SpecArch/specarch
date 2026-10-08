@@ -23,7 +23,7 @@ Version 0.1.0 of the specification: 4 needs, 7 requirements, and 0 gaps. Each re
 | LIB-4 |   | NEED-4 | entities Loan transitions 1; entities Loan; paths /loans/{loanId}/return post; channels loan.overdue; channels loan.overdue messages LoanOverdue; jobs markOverdue; configuration notificationChannelUrl | tests loan-becomes-overdue; tests mark-overdue-runs-twice; tests mark-overdue-succeeds; monitors overdue-notices-sent |
 | LIB-5 |   | NEED-2 | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; configuration dailyRate | tests loan-lent-and-returned; tests return-late; checks lend-and-return |
 | LIB-6 |   | NEED-3 | roles member; session | checks member-sees-own-loans |
-| LIB-7 |   | NEED-1 | pages loan-form; pages member-form | checks lend-and-return; monitors catalogue-latency |
+| LIB-7 |   | NEED-1 | pages loan-form; pages member-form; flows lend-a-copy | tests lend-a-copy-at-the-desk; tests lend-a-copy-limit-reached; checks lend-and-return; monitors catalogue-latency |
 
 ## 3. Gaps
 

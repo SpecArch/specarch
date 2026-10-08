@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 7 requirements, 3 entities, 8 HTTP operations, 2 channels, 1 dependency, 5 pages, 1 algorithm, 98 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 7 requirements, 3 entities, 8 HTTP operations, 2 channels, 1 dependency, 5 pages, 1 flow, 1 algorithm, 100 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -680,6 +680,20 @@ The menu, each entry shown to who may open its page:
 | member-view | view | /members/{memberId} | Member | members.read | cardNumber, fullName, email, tier, joinedOn, membershipEndsOn, outstandingFees |
 | members-list | list | /members | Member | members.read | cardNumber, fullName, email, tier, outstandingFees |
 
+### Flow lend-a-copy
+
+A librarian finds the member at the desk, opens their record and lends them a copy. Done by librarian.
+
+```mermaid
+flowchart LR
+  s0["members-list"]
+  s1["member-view"]
+  s2["loan-form"]
+  s0 -->|"select"| s1
+  s1 -->|"Lend a book"| s2
+  s2 -->|"submitted"| done(("done"))
+```
+
 ### Algorithm lateFee
 
 Fee charged when a copy comes back after its due date. A flat daily rate,
@@ -764,6 +778,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | fees-block-lending | requirement LIB-3 | acceptance | golden | a member who owes a late fee | the librarian lends them a copy | A member with outstanding fees is refused a loan with 409. |
 | get-member-denied-with-expired-session | operation getMember | system | red | a librarian whose session expired after half an hour without a request | getMember is called for a member that exists | it is refused as not signed in, and nothing changes |
 | lend-a-copy | operation createLoan | system | golden | a standard-tier member with no loans and no fees, and a book with one copy available | createLoan is called for them | an open loan due in 21 days is created, the book has no copy available, and LoanCreated is published |
+| lend-a-copy-at-the-desk |   | acceptance | golden | a librarian at the desk, and a member with no loans and no fees | the librarian selects the member in the members list, chooses Lend a book on their record, and submits the loan form for an available copy | the member's record opens again with the new loan and the message that the copy is lent |
+| lend-a-copy-limit-reached |   | acceptance | red | a librarian at the desk, and a member who has reached the loan limit of their tier | the librarian goes through the flow and submits the loan form | the form stays open and says the loan is refused, and no loan is recorded |
 | lend-bad-ids | operation createLoan | system | red | a librarian | createLoan is called with memberId abc and again with bookId abc | both are refused as invalid input |
 | lend-denied | operation createLoan | system | red | a caller holding only the member role | createLoan is called | it is refused as not allowed |
 | lend-event-not-delivered | operation createLoan | system | red | the loan.lifecycle channel is unavailable | createLoan is called | no loan is created and the call fails, so a loan never exists without its event |
@@ -853,6 +869,14 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on create-loan-request-larger-than-1024-bytes:** Derived from the body limit on createLoan, then completed by hand; a lending request holds two ids, so anything near the limit is not a lending request.
 
+**Origin on lend-a-copy-at-the-desk:** inferred.
+
+**Insight on lend-a-copy-at-the-desk:** Drafted from the flow's success path and completed by hand; the desk task of LIB-7 is this flow.
+
+**Origin on lend-a-copy-limit-reached:** inferred.
+
+**Insight on lend-a-copy-limit-reached:** The flow's last step calls createLoan, whose refusal lending-refused is the failure a librarian meets most at the desk.
+
 **Origin on mark-overdue-runs-twice:** inferred.
 
 **Insight on mark-overdue-runs-twice:** Drafted by specarch derive, since a job that runs twice is a case nobody tries by hand, then completed by hand; a member must not be told twice.
@@ -921,7 +945,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | LIB-4 |   | entities Loan transitions 1; entities Loan; paths /loans/{loanId}/return post; channels loan.overdue; channels loan.overdue messages LoanOverdue; jobs markOverdue; configuration notificationChannelUrl | tests loan-becomes-overdue; tests mark-overdue-runs-twice; tests mark-overdue-succeeds; monitors overdue-notices-sent |
 | LIB-5 |   | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; configuration dailyRate | tests loan-lent-and-returned; tests return-late; checks lend-and-return |
 | LIB-6 |   | roles member; session | checks member-sees-own-loans |
-| LIB-7 |   | pages loan-form; pages member-form | checks lend-and-return; monitors catalogue-latency |
+| LIB-7 |   | pages loan-form; pages member-form; flows lend-a-copy | tests lend-a-copy-at-the-desk; tests lend-a-copy-limit-reached; checks lend-and-return; monitors catalogue-latency |
 
 ## Sources
 

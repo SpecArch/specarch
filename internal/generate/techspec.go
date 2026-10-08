@@ -127,6 +127,7 @@ func contents(root *yaml.Node) string {
 	count(len(pairs(root, "channels")), "channel", "channels")
 	count(len(pairs(root, "dependencies")), "dependency", "dependencies")
 	count(len(pairs(root, "pages")), "page", "pages")
+	count(len(pairs(root, "flows")), "flow", "flows")
 	count(len(pairs(root, "algorithms")), "algorithm", "algorithms")
 	count(len(pairs(root, "tests")), "test", "tests")
 	count(len(pairs(root, "decisions")), "decision", "decisions")
@@ -593,6 +594,12 @@ func crossCutting(d *doc, root *yaml.Node) {
 		}
 		d.blank()
 		d.explainRows(rowsOf(pages))
+	}
+	for _, f := range pairs(root, "flows") {
+		d.heading(3, "Flow "+f.Key.Value)
+		d.para(str(f.Value, "description") + " Done by " + str(f.Value, "actor") + ".")
+		d.block(flowFlowchart(f.Value))
+		d.explain(f.Value)
 	}
 	for _, a := range algs {
 		d.heading(3, "Algorithm "+a.Key.Value)

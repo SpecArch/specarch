@@ -185,6 +185,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkSession(d)
 	c.checkPages(d)
 	c.checkPageEvents(d)
+	c.checkFlows(d)
 	c.checkDecisions(d)
 	c.checkAccess(d)
 	c.checkExpressions(d)

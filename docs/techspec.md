@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.5.0-dev of the specification: 42 requirements, 3 entities, 11 commands, 6 algorithms, 219 tests, 34 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.5.0-dev of the specification: 42 requirements, 3 entities, 11 commands, 6 algorithms, 220 tests, 34 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -2522,14 +2522,21 @@ action that does not raise it, a page that does not exist, a route
 parameter missing or not the target's, and a field the entity lacks
 are refused (flow). IFML's concepts are taken and its diagram notation
 is not: the events are written on the page that raises them. The
-techspec's screen-flow diagram draws every event. This decision is D3
-of docs/ui-design.md and waits for the owner to confirm or veto it.
+techspec's screen-flow diagram draws every event. A flow, under
+flows, is a task a person does across pages: its actor, a role that
+must be allowed to open every page on the way, and its steps, each a
+page and the event on it (select, submitted, or an action by its
+label) that leads to the next step's page; it is drawn as its steps
+and is a test subject. This decision is D3 of docs/ui-design.md and
+waits for the owner to confirm or veto it.
 
 Consequences: A reviewer reads where each step leads from the page itself and sees
 it drawn, and a generator writes the navigation instead of guessing
 it. A failed submission stays on its page; what it shows there is the
-page's failed state, a decision of its own. Named flows across pages
-build on these events.
+page's failed state, a decision of its own. A flow is checked against
+the events, so a renamed action or a changed navigation that breaks a
+task is caught where the task is written down, and an acceptance test
+walks it.
 
 **Insight:** Writing an event on the page that raises it keeps one place for it, as an action already is. Taking the route parameters from the entity's fields makes each navigation checkable: a target page cannot be opened without the parameter its route needs, and a misspelt field is caught before a screen is built. A message rather than a free callback keeps the design free of a stack's notification component, which the generator chooses.
 
@@ -2659,6 +2666,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-field | command validate | system | red | a primary key naming a field that does not exist | validate is run | it reports field and exits 1 |
 | validate-file-kind-name | command validate | system | red | a file whose name ends in neither SpecArch suffix, given by name | validate is run | it reports file_kind and exits 1 |
 | validate-file-kind-root | command validate | system | red | a file named as a design file that starts with specarchImplementation | validate is run | it reports file_kind and exits 1 |
+| validate-flows | command validate | system | red | a flow that is right and a test that walks it; flows by a role that does not exist, through a page that does not exist, by a role that may not open a page on the way, and with events a page does not raise or that lead elsewhere; and a test of a flow that does not exist | validate is run | it reports flow eight times and test_subject once, warns that the flows lack tests, and exits 1 |
 | validate-folder-search | command validate | system | golden | a folder holding a design file two levels down and a text file | validate is run on the folder | it finds and checks the design file, ignores the text file, and exits 0 |
 | validate-formula-output-scale | command validate | system | red | a formula whose decimal result has no fixed scale and is not rounded | validate is run | it reports expression_type asking for round and exits 1 |
 | validate-fragment-given-by-name | command validate | system | red | a file of a tree given by name instead of the tree's folder | validate is run on it | it reports file_kind naming the folder to run on and exits 1 |
@@ -2809,7 +2817,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-39 | specarch generate openapi shall write, for an openapi target of the dxlib dialect, the document dxlib's OpenAPI reader binds, saying only what dxlib's server enforces and listing on each field what it does not. | functional | should | accepted | test | Every operation is a POST at /<operationId> with all of its parameters in one JSON body, carries its endpoint type and its privileges, and answers a refusal with dxlib's error body named by its problem type and a list in dxlib's list envelope. Every field carries its dxlib type, no field carries a constraint dxlib's validator does not apply, and each such constraint is listed under x-specarch-unenforced on the field. dxlib's own reader reads and validates the document, where a dxlib checkout is at hand. | NEED-2 |
 | SA-40 | specarch generate go-dxlib shall write, for a go-dxlib target, one Go file a service on dxlib compiles beside its own code, holding the tables, a handler per operation, the privileges, roles and menu as data, and a task per repeating job. | functional | should | accepted | test | Each entity is a dxlib table, a DXTable when audited or softly deleted and a DXRawTable otherwise, with the search, order and filter fields its lists allow. An entity listed through a view pages through it as the table's list view, named as specarch-gen-sql names the view; an entity listed through two views, or both directly and through a view, is refused, since dxlib reads a table through one list view. Each operation has a handler registered by its operationId that reads every parameter with dxlib's typed getters, checks every constraint the dxlib dialect lists as unenforced, and runs dxlib's standard list, create or read operation where the design gives one, and otherwise calls a body the service writes. Each permission and role is a seed row, public excluded, each menu entry is a menu item, and each job that repeats at an interval is a dxlib task calling a job function the service writes; any other job is reported and left out. The file compiles against dxlib, where a dxlib checkout is at hand. | NEED-2 |
 | SA-41 | A specification shall declare a read model under views, an entity's row with fields read through its relations and counts of its related records added, which is never written, and specarch validate shall check every path, count and use of a view. | functional | should | accepted | test | A view names the entity it reads from, and adds properties that are either a path through many-to-one or one-to-one relations ending in a field, or a count of a one-to-many or many-to-many relation; it carries every field of its entity besides. A path through a relation that does not exist or does not lead to one record, a count of a relation that does not lead to many, a property that repeats a field of the entity, and a view named like an entity are refused (view). A list may read from a view, with its whitelists naming the view's fields; a view under a request body is refused, since a view is never written. The techspec shows each view with the source and the type of every added property. | NEED-2 |
-| SA-42 | A specification shall define the behaviour, structure and rules of a user interface without naming a stack, the events of a page and where each leads among them, and specarch validate shall check them. | functional | should | accepted | test | A form's onSubmitted, a list's onSelect and an operation action's then lead to a page with exactly that page's route parameters, each from a field of the page's entity, and may carry a message; an event on a page or action that does not raise it, a page that does not exist, a route parameter missing or not the target's, and a field the entity lacks are refused (flow). The techspec's screen-flow diagram draws every event. | NEED-2 |
+| SA-42 | A specification shall define the behaviour, structure and rules of a user interface without naming a stack, the events of a page and where each leads among them, and specarch validate shall check them. | functional | should | accepted | test | A form's onSubmitted, a list's onSelect and an operation action's then lead to a page with exactly that page's route parameters, each from a field of the page's entity, and may carry a message; an event on a page or action that does not raise it, a page that does not exist, a route parameter missing or not the target's, and a field the entity lacks are refused (flow). A flow names a task across pages, its actor and its steps, each a page and the event on it that leads to the next step's page; an actor that is not a role or may not open a page on the way, a page that does not exist, an event the page does not raise and an event that leads elsewhere are refused (flow). A test may name a flow as its subject. The techspec's screen-flow diagram draws every event, and each flow is drawn as its steps. | NEED-2 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -2970,7 +2978,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-39 | decisions ADR-031 | tests generate-openapi-dxlib |
 | SA-40 | decisions ADR-032 | tests generate-go-dxlib |
 | SA-41 | enums Rule; decisions ADR-033 | tests validate-views; tests validate-views-valid |
-| SA-42 | decisions ADR-034 | tests validate-page-events |
+| SA-42 | decisions ADR-034 | tests validate-flows; tests validate-page-events |
 
 ## Sources
 

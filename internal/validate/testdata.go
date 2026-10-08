@@ -67,6 +67,9 @@ func testKindOf(t *yaml.Node) (kind, label string) {
 			return k, k + " " + v
 		}
 	}
+	if v := source.Str(source.Child(t, "flow")); v != "" {
+		return "screenFlow", "flow " + v
+	}
 	ent := source.Str(source.Child(t, "entity"))
 	switch {
 	case ent == "":

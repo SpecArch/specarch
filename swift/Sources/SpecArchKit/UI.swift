@@ -60,3 +60,75 @@ extension Checker {
         }
     }
 }
+
+/// The page an event of a page leads to, or "" when it leads nowhere or the
+/// page does not raise it; raised says whether it does.
+func eventTarget(_ pg: YNode, _ event: String, _ action: String) -> (target: String, raised: Bool) {
+    switch event {
+    case "select":
+        let n = pg.child("onSelect")
+        return (str(n?.child("navigate")), n != nil)
+    case "submitted":
+        return (str(pg.child("onSubmitted")?.child("navigate")), str(pg.child("kind")) == "form")
+    case "action":
+        for a in items(pg.child("actions")) where str(a.child("label")) == action {
+            if str(a.child("kind")) == "navigate" { return (str(a.child("target")), true) }
+            return (str(a.child("then")?.child("navigate")), true)
+        }
+    default:
+        break
+    }
+    return ("", false)
+}
+
+/// The event of a step as a sentence names it.
+func stepEvent(_ step: YNode) -> String {
+    let e = str(step.child("event"))
+    return e == "action" ? "the action " + str(step.child("action")) : e
+}
+
+extension Checker {
+    /// Checks each flow: that its actor is a role that may open every page
+    /// on the way, that each page exists and raises the step's event, and
+    /// that each event leads to the next step's page.
+    func checkFlows(_ d: Design) {
+        for f in pairs(d.root.child("flows")) {
+            let name = f.key.value
+            let actorNode = f.value.child("actor")
+            let actor = str(actorNode)
+            let role = d.roles[actor]
+            if let actorNode, role == nil {
+                add(actorNode, pointer("flows", name, "actor"), .flow, "\(actor) is not a role of the specification\(suggest(actor, d.roles))")
+            }
+            var granted: Set<String> = ["public"]
+            for p in items(role?.child("permissions")) { granted.insert(p.value) }
+            let steps = items(f.value.child("steps"))
+            for (i, step) in steps.enumerated() {
+                let at = ["flows", name, "steps", "\(i)"]
+                let pageNode = step.child("page")
+                guard let pg = d.pages[str(pageNode)] else {
+                    add(pageNode, pointer(at + ["page"]), .flow, "\(str(pageNode)) is not a page of the specification\(suggest(str(pageNode), d.pages))")
+                    continue
+                }
+                let perm = str(pg.child("permission"))
+                if role != nil && !granted.contains(perm) {
+                    add(pageNode, pointer(at + ["page"]), .flow, "\(actor) cannot open \(str(pageNode)), which needs \(perm); grant it to the role, or give the flow another actor")
+                }
+                let event = str(step.child("event"))
+                let (target, raised) = eventTarget(pg, event, str(step.child("action")))
+                if !raised {
+                    let what = ["select": "has no onSelect", "submitted": "is not a form", "action": "has no action labelled " + str(step.child("action"))][event] ?? ""
+                    add(step.child("event"), pointer(at + ["event"]), .flow, "page \(str(pageNode)) \(what), so it does not raise \(stepEvent(step))")
+                    continue
+                }
+                if i + 1 < steps.count {
+                    let next = str(steps[i + 1].child("page"))
+                    if target != next {
+                        let leads = target.isEmpty ? "leads nowhere" : "leads to " + target
+                        add(step.child("event"), pointer(at + ["event"]), .flow, "\(stepEvent(step)) on page \(str(pageNode)) \(leads), and the next step is on \(next); make the event lead there, or correct the steps")
+                    }
+                }
+            }
+        }
+    }
+}

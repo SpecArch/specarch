@@ -1,0 +1,9 @@
+flows:
+  lend-a-copy:
+    description: A librarian finds the member at the desk, opens their record and lends them a copy.
+    actor: librarian
+    steps:
+      - { page: members-list, event: select }
+      - { page: member-view, event: action, action: Lend a book }
+      - { page: loan-form, event: submitted }
+    satisfies: [LIB-7]

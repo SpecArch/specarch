@@ -1,0 +1,9 @@
+flow: lend-a-copy
+level: acceptance
+scenario: golden
+given: a librarian at the desk, and a member with no loans and no fees
+when: the librarian selects the member in the members list, chooses Lend a book on their record, and submits the loan form for an available copy
+then: the member's record opens again with the new loan and the message that the copy is lent
+verifies: [LIB-7]
+origin: inferred
+why: Drafted from the flow's success path and completed by hand; the desk task of LIB-7 is this flow.

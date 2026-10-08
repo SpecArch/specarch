@@ -1,0 +1,52 @@
+permissions:
+  copies.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'router GET /branches/{branchCode}/copies', says: 'GET /branches/{branchCode}/copies checks copies.read.'}
+  copies.write:
+    origin: stated
+    cites:
+      - {source: code, clause: 'router DELETE /branches/{branchCode}/copies', says: 'DELETE /branches/{branchCode}/copies, PUT /copies/{copyId} and PATCH /copies/{copyId} check copies.write.'}
+paths:
+  /branches/{branchCode}/copies:
+    parameters:
+      - {name: branchCode, in: path, required: true}
+    get:
+      operationId: listCopies
+      permission: copies.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'router GET /branches/{branchCode}/copies', says: 'GET /branches/{branchCode}/copies checks copies.read; its handler is ListCopies.'}
+    delete:
+      operationId: clearShelf
+      permission: copies.write
+      origin: stated
+      cites:
+        - {source: code, clause: 'router DELETE /branches/{branchCode}/copies', says: 'DELETE /branches/{branchCode}/copies checks copies.write; its handler is ClearShelf.'}
+  /copies:
+    post:
+      operationId: addCopy
+      origin: stated
+      cites:
+        - {source: code, clause: router POST /copies, says: 'POST /copies checks Copies:Write; its handler is AddCopy.'}
+  /copies/{copyId}:
+    parameters:
+      - {name: copyId, in: path, required: true}
+    put:
+      operationId: putCopiesByCopyId
+      permission: copies.write
+      origin: stated
+      cites:
+        - {source: code, clause: 'router PUT /copies/{copyId}', says: 'PUT /copies/{copyId} checks copies.write; its handler is SaveCopy.'}
+    patch:
+      operationId: patchCopiesByCopyId
+      permission: copies.write
+      origin: stated
+      cites:
+        - {source: code, clause: 'router PATCH /copies/{copyId}', says: 'PATCH /copies/{copyId} checks copies.write; its handler is SaveCopy.'}
+  /health:
+    get:
+      operationId: health
+      origin: stated
+      cites:
+        - {source: code, clause: router GET /health, says: GET /health checks no permission; its handler is Health.}

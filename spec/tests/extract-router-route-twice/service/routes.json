@@ -1,0 +1,15 @@
+{
+    "routeTable": 1,
+    "path": "router",
+    "commit": "2ddae4f53139c036e8b99477922186064bdb4d6f",
+    "routes": [
+        {"method": "GET", "path": "/branches/{branchCode}/copies", "permission": "copies.read", "handler": "ListCopies"},
+        {"method": "DELETE", "path": "/branches/{branchCode}/copies", "permission": "copies.write", "handler": "ClearShelf"},
+        {"method": "GET", "path": "/health", "permission": null, "handler": "Health"},
+        {"method": "GET", "path": "/health", "permission": null, "handler": "Health"},
+        {"method": "PUT", "path": "/copies/{copyId}", "permission": "copies.write", "handler": "SaveCopy"},
+        {"method": "PATCH", "path": "/copies/{copyId}", "permission": "copies.write", "handler": "SaveCopy"},
+        {"method": "GET", "path": "/files/{path...}", "permission": "files.read", "handler": "ServeFile"},
+        {"method": "POST", "path": "/copies", "permission": "Copies:Write", "handler": "AddCopy"}
+    ]
+}

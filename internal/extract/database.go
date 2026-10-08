@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -104,37 +103,12 @@ func Database(dumpPath, out, key string) (*Result, error) {
 	if c.Catalogue != "postgresql" {
 		return nil, refuse("%s is not a catalogue dump of tools/catalogue/catalogue.sql: its catalogue is %q, not postgresql", dumpPath, c.Catalogue)
 	}
-	if !fullHash.MatchString(c.Commit) {
-		return nil, refuse("%s names no full commit hash it was made from (commit: %q)", dumpPath, c.Commit)
-	}
-	if c.Path == "" {
-		return nil, refuse("%s names no path it was made from", dumpPath)
-	}
-	dumpRead, err := Open([]string{dumpPath})
+	r, dumpName, err := openDump(dumpPath, c.Path, c.Commit, "tools/catalogue/dump-catalogue.sh")
 	if err != nil {
 		return nil, err
 	}
-	made := filepath.Join(dumpRead.Repository.Root, filepath.FromSlash(c.Path))
-	if _, err := os.Stat(made); err != nil {
-		return nil, refuse("%s was made from %s, which is not in the repository", dumpRead.Paths[0], c.Path)
-	}
-	r, err := Open([]string{dumpPath, made})
-	if err != nil {
-		return nil, err
-	}
-	if !r.Exists(c.Commit) {
-		return nil, refuse("%s was made at commit %s, which is not in the repository's history", dumpRead.Paths[0], c.Commit)
-	}
-	last, err := r.LastChange(c.Path)
-	if err != nil {
-		return nil, err
-	}
-	if last != c.Commit {
-		return nil, refuse("%s is stale: it was made at commit %s, and %s was last changed at commit %s; run tools/catalogue/dump-catalogue.sh again and commit the dump", dumpRead.Paths[0], c.Commit, c.Path, last)
-	}
-	r.Commit = c.Commit
 	res := &Result{Tree: newTree()}
-	res.say("commit %s: the last change to %s, as the dump %s names it", r.Commit, c.Path, dumpRead.Paths[0])
+	res.say("commit %s: the last change to %s, as the dump %s names it", r.Commit, c.Path, dumpName)
 	d := &dbReader{c: &c, key: key, clause: c.Path, res: res, enums: map[string][]string{}, entities: map[string]string{}}
 	for _, e := range c.Enums {
 		d.enums[e.Name] = e.Values
@@ -157,7 +131,7 @@ func Database(dumpPath, out, key string) (*Result, error) {
 	for name, n := range d.entityFiles {
 		res.Tree.put(name, n)
 	}
-	description := fmt.Sprintf("The tables of the database that the migrations in %s make, read from the catalogue dump %s, made at commit %s. Every entity cites its table; what the catalogue does not say is a question.\n", c.Path, dumpRead.Paths[0], r.Commit)
+	description := fmt.Sprintf("The tables of the database that the migrations in %s make, read from the catalogue dump %s, made at commit %s. Every entity cites its table; what the catalogue does not say is a question.\n", c.Path, dumpName, r.Commit)
 	res.Tree.put("specarch.yaml", rootFile("Database of "+c.Path, description, stages, mapping(key, src)))
 	return res, nil
 }

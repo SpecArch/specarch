@@ -1,0 +1,78 @@
+questions:
+  Q-1:
+    question: 'What values does each path parameter of /branches/{branchCode}/copies take: branchCode?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1branches~1{branchCode}~1copies/parameters/0/schema']
+    decidedBy: system-owner
+    why: A route table names a path's parameters and not the values they take.
+  Q-2:
+    question: What does GET /branches/{branchCode}/copies do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1branches~1{branchCode}~1copies/get/summary', '#/paths/~1branches~1{branchCode}~1copies/get/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  Q-3:
+    question: What does DELETE /branches/{branchCode}/copies do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1branches~1{branchCode}~1copies/delete/summary', '#/paths/~1branches~1{branchCode}~1copies/delete/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  Q-4:
+    question: What does POST /copies do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1copies/post/summary', '#/paths/~1copies/post/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  Q-5:
+    question: POST /copies checks Copies:Write, which is not a permission name. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1copies/post/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  Q-6:
+    question: 'What values does each path parameter of /copies/{copyId} take: copyId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1copies~1{copyId}/parameters/0/schema']
+    decidedBy: system-owner
+    why: A route table names a path's parameters and not the values they take.
+  Q-7:
+    question: What does PUT /copies/{copyId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1copies~1{copyId}/put/summary', '#/paths/~1copies~1{copyId}/put/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  Q-8:
+    question: What does PATCH /copies/{copyId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1copies~1{copyId}/patch/summary', '#/paths/~1copies~1{copyId}/patch/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  Q-9:
+    question: What does GET /health do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1health/get/summary', '#/paths/~1health/get/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  Q-10:
+    question: GET /health checks no permission that the route table names. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1health/get/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  Q-11:
+    question: 'What does each permission allow: copies.read, copies.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/copies.read/description', '#/permissions/copies.write/description']
+    decidedBy: system-owner
+    why: A route table names the permission a route checks and not what it is for.

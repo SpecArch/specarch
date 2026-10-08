@@ -35,7 +35,7 @@ sources:
   desk-code:
     kind: code
     title: The lending desk service
-    edition: 7fdf7f6ef8b19f6d288058d822dcdd737e03c145
+    edition: 1711bb0985356e46178489d92ef30a788bc21db7
     author: The desk team
     url: ../sources/code
     clauses:

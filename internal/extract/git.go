@@ -194,3 +194,44 @@ func hasOrHave(n int) string {
 	}
 	return "have"
 }
+
+// openDump checks a dump made from code, such as a catalogue or a route
+// table: it names a full commit hash and the path it was made from, that
+// path is in the dump's own repository, nothing under either is left
+// uncommitted, and the commit is the last change to the path, so the dump
+// is not stale. script names what makes the dump again. It returns the
+// read, with the dump's commit as its commit, and the dump's path from the
+// repository's root.
+func openDump(dumpPath, madeFrom, commit, script string) (*Read, string, error) {
+	if !fullHash.MatchString(commit) {
+		return nil, "", refuse("%s names no full commit hash it was made from (commit: %q)", dumpPath, commit)
+	}
+	if madeFrom == "" {
+		return nil, "", refuse("%s names no path it was made from", dumpPath)
+	}
+	dumpRead, err := Open([]string{dumpPath})
+	if err != nil {
+		return nil, "", err
+	}
+	name := dumpRead.Paths[0]
+	made := filepath.Join(dumpRead.Repository.Root, filepath.FromSlash(madeFrom))
+	if _, err := os.Stat(made); err != nil {
+		return nil, "", refuse("%s was made from %s, which is not in the repository", name, madeFrom)
+	}
+	r, err := Open([]string{dumpPath, made})
+	if err != nil {
+		return nil, "", err
+	}
+	if !r.Exists(commit) {
+		return nil, "", refuse("%s was made at commit %s, which is not in the repository's history", name, commit)
+	}
+	last, err := r.LastChange(madeFrom)
+	if err != nil {
+		return nil, "", err
+	}
+	if last != commit {
+		return nil, "", refuse("%s is stale: it was made at commit %s, and %s was last changed at commit %s; run %s again and commit the dump", name, commit, madeFrom, last, script)
+	}
+	r.Commit = commit
+	return r, name, nil
+}

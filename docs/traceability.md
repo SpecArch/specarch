@@ -65,7 +65,7 @@ Version 0.5.0-dev of the specification: 9 needs, 44 requirements, and 0 gaps. Ea
 | SA-41 | NEED-2 | enums Rule; decisions ADR-033 | tests validate-views; tests validate-views-valid |
 | SA-42 | NEED-2 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039 | tests validate-accessibility; tests validate-compact-columns; tests validate-flows; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-theme |
 | SA-43 | NEED-2 | decisions ADR-040 | tests generate-ui |
-| SA-44 | NEED-8 | commands extract; decisions ADR-043 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-exit-1; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests gaps-outline-not-read |
+| SA-44 | NEED-8 | commands extract; decisions ADR-043; decisions ADR-044 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-exit-1; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests gaps-outline-not-read |
 
 ## 3. Gaps
 

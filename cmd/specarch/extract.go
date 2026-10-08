@@ -12,7 +12,7 @@ import (
 
 // extractSources are the surfaces this build reads, in the order the usage
 // text lists them.
-var extractSources = []string{"outline", "database"}
+var extractSources = []string{"outline", "database", "router"}
 
 var sourceKey = regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
 
@@ -58,7 +58,7 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		offered = offered || s == source
 	}
 	if !offered {
-		fmt.Fprintf(stderr, "specarch extract: this build does not read the source %s; it reads %s, and the others are built in the steps of docs/extraction.md\n", source, strings.Join(extractSources, " and "))
+		fmt.Fprintf(stderr, "specarch extract: this build does not read the source %s; it reads %s, and the others are built in the steps of docs/extraction.md\n", source, sourceList())
 		return 2
 	}
 	switch {
@@ -74,6 +74,9 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case source == "database" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract database reads one catalogue dump, and was given %d paths\n", len(paths))
 		return 2
+	case source == "router" && len(paths) != 1:
+		fmt.Fprintf(stderr, "specarch extract router reads one route table, and was given %d paths\n", len(paths))
+		return 2
 	}
 	var res *extract.Result
 	var err error
@@ -82,6 +85,8 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		res, err = extract.Outline(paths, out, key)
 	case "database":
 		res, err = extract.Database(paths[0], out, key)
+	case "router":
+		res, err = extract.Router(paths[0], out, key)
 	}
 	if err != nil {
 		var refusal *extract.Refusal
@@ -100,4 +105,13 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stdout, line)
 	}
 	return 0
+}
+
+// sourceList names the sources this build reads, as a sentence lists them.
+func sourceList() string {
+	n := len(extractSources)
+	if n == 1 {
+		return extractSources[0]
+	}
+	return strings.Join(extractSources[:n-1], ", ") + " and " + extractSources[n-1]
 }

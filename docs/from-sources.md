@@ -18,8 +18,9 @@ the loan period on purpose.
 This is step 1 of bringing an existing system in, done by an agent by hand
 with the toolchain checking each step. `specarch extract`, the verb that
 reads the sources mechanically, is built one reader at a time: the
-`database` reader writes the entities from a catalogue dump, and the
-`outline` reader records a surface no reader reads yet, so it shows as
+`database` reader writes the entities from a catalogue dump, the
+`router` reader the operations and permissions from a route table the
+router prints, and the `outline` reader records a surface no reader reads yet, so it shows as
 not read. `docs/extraction.md` is the method behind it and
 `docs/refinement.md` the design of origin, questions and approval.
 
@@ -357,9 +358,9 @@ with the pinned version and checksum filled in:
 
 ## 6. Not built yet
 
-- `specarch extract` for documents, routes, OpenAPI, permissions and
-  pages, and `specarch merge`: the agent reads those surfaces by hand and
-  merges the database reader's tree into the specification, following
+- `specarch extract` for documents, OpenAPI, permissions and pages, and
+  `specarch merge`: the agent reads those surfaces by hand and merges the
+  database and router readers' trees into the specification, following
   section 3.2.
 - `specarch decide`: the agent writes the decision record by hand.
 - `specarch gaps --json`: the dispatcher reads the text.

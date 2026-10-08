@@ -1,0 +1,16 @@
+arguments: [extract, router, --out, spec, service/routes.json]
+repository:
+  folder: service
+  commits:
+    - [router]
+    - [routes.json]
+exitStatus: 0
+standardOutput: |
+  commit 2ddae4f53139c036e8b99477922186064bdb4d6f: the last change to router, as the route table routes.json names it
+  counted 8 routes (2 with no permission): every entry of the route table's list, which holds every route the router registered
+  wrote 6 operations on 4 paths, 2 permissions and 11 questions: one operation per method and path pair the meta-model holds, one permission per name a route checks, and one question per thing the route table does not say
+  not held: route HEAD /health: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out
+  not held: route GET /files/{path...}: the segment "{path...}" is neither a fixed word nor one whole parameter written {name}, and an OpenAPI path template holds only those; left out
+  not held: route POST /copies: its permission "Copies:Write" is not a permission name, which is lower-case words joined by dots; asked for instead
+  not held: route PUT /copies/{copyId}: its handler SaveCopy serves more than one route; the operation is named putCopiesByCopyId
+  not held: route PATCH /copies/{copyId}: its handler SaveCopy serves more than one route; the operation is named patchCopiesByCopyId

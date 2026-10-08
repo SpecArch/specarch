@@ -1,0 +1,76 @@
+decisions:
+  ADR-044:
+    title: The router reader reads a route table in a format SpecArch defines, printed by the project's own router, and asks for everything a route table does not say
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      The second reader of specarch extract reads the endpoints. The
+      authoritative source is the router the running system builds, not
+      the files that declare routes, since a route registered in a loop,
+      behind a setting or by a library shows only once the router is
+      built. Routers differ in how they write a path parameter (:id,
+      {id}, <id>), in where the permission check sits (a middleware, a
+      wrapper, a field of the route) and in whether they register HEAD and
+      OPTIONS by themselves, so SpecArch cannot read them all, while every
+      project can print its own.
+    decision: |
+      SpecArch defines the route table, a JSON object holding the version
+      of the format (routeTable: 1), the path of the folder the router is
+      built from, the commit that last changed it, and every registered
+      route as an object of exactly four keys: method, in capitals; path,
+      starting with /, each parameter written {name}; permission, the one
+      permission the route checks, or null when it checks none; and
+      handler, the name of the function that answers it. A key missing or
+      a key more is refused, and so is a method and path pair listed
+      twice. The project prints the routes with a printer of its own;
+      tools/routes/dump-routes.sh runs it in the router's folder, refuses
+      a folder with changes not committed, and adds the version, the path
+      and the commit. The dump is committed beside the code and is stale,
+      as a catalogue dump is, once that folder changes.
+      Each held route becomes one operation under its path, in the order
+      of the paths and then get, post, put, patch, delete, named after its
+      handler with the first letter in lower case; a handler serving more
+      than one route, or a name that cannot be an operationId, gives each
+      of its operations the method and the path's words instead, with a
+      line. A path's parameters are written once on the path, in: path and
+      required, and one must question asks the values they take. Every
+      permission a route checks is declared, citing the routes that check
+      it, and one must question asks what each allows. Each operation has
+      a must question for its summary and responses, and one more for its
+      permission when the route checks none or checks a name the
+      meta-model cannot hold. HEAD, OPTIONS and any other method, and a
+      path whose segment is neither a fixed word nor one whole parameter,
+      such as a wildcard, are left out with a line.
+    consequences: |
+      A project adds a printer once, usually a flag of its server or a
+      small program beside it that builds the router as the server does;
+      the lending desk's is cmd/routetable. A route that checks more than
+      one permission has no form in the route table, as an operation has
+      one permission; its printer stops on it rather than choosing one. A
+      change anywhere in the router's folder makes the dump stale, so the
+      printer is run again after each change, as the catalogue is after
+      each migration.
+    why: |
+      A table the router prints, because only routes actually registered
+      appear in it (ADR-042), and a printer of the project's own, because
+      it knows its router's path syntax and where its permission check
+      sits, which SpecArch would otherwise have to guess per library. JSON,
+      as the catalogue dump is, so any language can print it with its
+      standard library. {name} for a parameter, because it is the path
+      templating of OpenAPI that the meta-model's paths follow, so the path
+      is written as printed. null for no permission, and the key required,
+      because a route that checks none and a printer that forgot to say
+      are different facts, and an open endpoint is the one a reader must
+      not miss; for the same reason such a route is a must question and
+      is never written as public. Exactly four keys, because a key the
+      reader did not know would be dropped without a word. HEAD and
+      OPTIONS left out, because a path item holds the five methods the
+      meta-model generates, and most routers answer HEAD as GET without
+      a body (RFC 9110, 9.3.2) and OPTIONS by themselves. The handler's
+      name, because it is what the code calls the operation; the method
+      and path when it is shared, because an operationId names one
+      operation (OpenAPI 3.1, 4.8.10). The router's folder as the path the
+      dump is made from, rather than one file, because a router is built
+      from the folder's code, and a change to any of it can change the
+      routes.
+    satisfies: [SA-44]

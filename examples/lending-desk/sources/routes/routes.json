@@ -1,0 +1,11 @@
+{
+    "routeTable": 1,
+    "path": "examples/lending-desk/sources/code",
+    "commit": "1711bb0985356e46178489d92ef30a788bc21db7",
+    "routes": [
+        {"method":"POST","path":"/members","permission":"members.write","handler":"RegisterMember"},
+        {"method":"POST","path":"/loans","permission":"loans.write","handler":"LendBook"},
+        {"method":"POST","path":"/loans/{loanId}/return","permission":"loans.write","handler":"ReturnBook"},
+        {"method":"GET","path":"/members/{cardNumber}/loans","permission":"loans.read","handler":"ListMemberLoans"}
+    ]
+}

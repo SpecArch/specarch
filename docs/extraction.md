@@ -49,7 +49,7 @@ project's repository. `specarch extract <source>`, the verb that goes from
 existing code or documents to a specification, is designed in
 `spec/design/commands/extract.yaml` and built one reader at a time in the
 steps of "Building extract" below. The Go build reads the sources
-`outline` and `database`; a source not built yet is answered with status
+`outline`, `database` and `router`; a source not built yet is answered with status
 2, and the Swift build has no extract verb.
 
 ## Building extract
@@ -133,11 +133,23 @@ Steps, in order:
    `examples/lending-desk/sources/catalogue/catalogue.json`. Conformance
    cases build a throwaway git repository with a fixed author, committer
    and dates, so the hashes they record never change.
-3. The router reader, `extract router`: one operation per method and
-   path pair, with its path parameters and the permission it checks, from
-   a route table the running router prints, so that only routes actually
-   registered appear. SpecArch defines the route table's format, as it
-   ships the catalogue query. Done when the lending desk's four routes
+3. Built. The router reader, `extract router`: one operation per method
+   and path pair, with its path parameters and the permission it checks,
+   from a route table the running router prints, so that only routes
+   actually registered appear. SpecArch defines the route table's format
+   (ADR-044): a JSON object with the version of the format, the router's
+   folder, the commit that last changed it, and every route as its
+   method, its path with each parameter written `{name}`, the one
+   permission it checks or null, and its handler's name. The project
+   prints the routes with a printer of its own, which builds the router
+   as the server does; `tools/routes/dump-routes.sh` runs it in a
+   committed folder and adds the version, the path and the commit. An
+   operation is named after its handler; its summary, its responses, its
+   path parameters' values and its permission's description are must
+   questions, and so is a route that checks no permission. HEAD,
+   OPTIONS and a path with a wildcard print a line. The lending desk's
+   printer is `cmd/routetable`, and its dump is
+   `examples/lending-desk/sources/routes/routes.json`; its four routes
    come out as four operations with their parameters and permissions,
    validated and byte-identical.
 4. `specarch merge`, with the priority rule above, written into

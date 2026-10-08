@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.5.0-dev of the specification: 236 design tests, 82 golden and 154 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.5.0-dev of the specification: 239 design tests, 83 golden and 156 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 232 |
+| system | 235 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -514,6 +514,30 @@ Scenario: golden; level: system; verifies SA-44.
 - Given: a repository holding a folder of workflow definitions, which no reader reads yet, one of them a TypeScript file that says it is generated from the others
 - When: extract outline is run on the folder with a source key
 - Then: it writes a root that lists every tracked file as a clause of that source at the commit, and no element; it names the commit, counts the files, reports the generated file, and exits 0
+
+#### extract-router-route-twice
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: a route table that lists the same method and path pair twice
+- When: extract router is run on the route table
+- Then: it refuses the route table, naming the route listed twice, writes nothing and exits 1
+
+#### extract-router-stale-table
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: a route table printed at the commit that added the router's routes, and a later commit that adds a file to the router's folder
+- When: extract router is run on the route table
+- Then: it refuses the route table as stale, naming both commits, writes nothing and exits 1
+
+#### extract-router-writes-tree
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository whose first commit holds a router's folder and whose second holds the route table printed from it, naming the first; the table has two methods on one path, a path with a parameter, a route with no permission, a HEAD route, a path with a wildcard, a handler serving two routes and a permission that is not a permission name
+- When: extract router is run on the route table
+- Then: it writes one operation per held method and path pair with its path parameters and permission, one permission per name a route checks, a question for each operation's summary and responses, each path's parameter values, the permissions' descriptions and every route without a usable permission, names the commit, counts the routes, prints a line for the HEAD route, the wildcard, the permission name and the shared handler, and exits 0
 
 #### extract-usage-error
 
@@ -1953,7 +1977,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-130 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+131 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2072,6 +2096,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-44 | acceptance 2 | golden | SA-44 names no harm |
 | requirement SA-44 | acceptance 3 | golden | SA-44 names no harm |
 | requirement SA-44 | acceptance 4 | golden | SA-44 names no harm |
+| requirement SA-44 | acceptance 5 | golden | SA-44 names no harm |
 | requirement SA-1 | acceptance 1 | golden | SA-1 names no harm |
 | requirement SA-1 | acceptance 2 | golden | SA-1 names no harm |
 | requirement SA-2 | acceptance 1 | golden | SA-2 names no harm |

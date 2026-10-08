@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.5.0-dev of the specification: 44 requirements, 3 entities, 11 commands, 6 algorithms, 236 tests, 43 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.5.0-dev of the specification: 44 requirements, 3 entities, 11 commands, 6 algorithms, 239 tests, 44 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -61,7 +61,7 @@ The interfaces the system offers, as its clients see them.
 | derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, or there is no release record for the new version; 2: usage error, a path that could not be read, or a specification with errors |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder, or a file that could not be read or written |
-| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a path with changes not committed, untracked files, a shallow clone, or a path outside a git repository; 2: usage error, a source this build does not offer, or a path that could not be read or written |
+| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a path with changes not committed, untracked files, a shallow clone, or a path outside a git repository; 2: usage error, a source this build does not offer, or a path that could not be read or written |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open; 1: at least one must or should question is open; 2: usage error, a path that could not be read, or a specification with errors |
 | generate | Write code or data from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads, the specification is not approved, the plug-in reported an error, or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written |
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
@@ -549,6 +549,15 @@ The sources this build reads:
   nullability, default, primary key, foreign keys as relations, and
   unique and check constraints. A check the expression subset can say
   is written as its expression.
+- `router`: a route table, written by `tools/routes/dump-routes.sh`
+  around the project's own route printer, which builds the router as
+  the server does and prints every route it registered: its method,
+  its path with each parameter written `{name}`, the one permission
+  it checks or null, and its handler. Each route becomes an operation
+  under its path, named after its handler, with the path's
+  parameters and the permission it checks; every permission checked
+  is declared. A route that checks no permission is a must question,
+  never written as public.
 
 Every reader follows these rules:
 
@@ -559,8 +568,10 @@ Every reader follows these rules:
   the repository's root.
 - Every element is `origin: stated` and cites where it was read.
   What the surface does not say is a question, never a value: a
-  constraint's message, which no catalogue holds, and a check the
-  expression subset cannot say. A tree with a question also declares
+  constraint's message, which no catalogue holds, a check the
+  expression subset cannot say, and an operation's summary and
+  responses, a path parameter's values and a permission's
+  description, which no route table holds. A tree with a question also declares
   the stakeholder `system-owner`, inferred, for the question to name.
 - The commit read is the newest of the commits that last changed each
   path read, so a commit elsewhere leaves the output as it was. Git
@@ -583,8 +594,8 @@ Every reader follows these rules:
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
-| `<source>` | string | yes | The surface to read: `outline` or `database`. |
-| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump. |
+| `<source>` | string | yes | The surface to read: `outline`, `database` or `router`. |
+| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table. |
 | `--out` | string | yes | The folder the specification is written into; it becomes the specification's root folder. |
 | `--source-key` | string |   | The key of the code source in the written tree. |
 
@@ -962,7 +973,7 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/diff, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
-| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline and database readers, the translation of SQL checks into the expression subset, and the tree writer. |   |
+| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database and router readers, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer. |   |
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
 | cmd/specarch-gen-sql | The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk. | #/commands/generate |
@@ -999,7 +1010,7 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | #/commands/version | main.runVersion |   |
 | #/commands/document | main.runDocument |   |
 | #/commands/generate | main.runGenerate | Refuses through main.gate while a question blocks what the target reads or the approval is missing or void; then runs the plug-in with main.runPlugin; the request and answer are the pluginRequest and pluginResponse structs. |
-| #/commands/extract | main.runExtract | Runs the reader of the source, extract.Outline or extract.Database, after extract.Commit has named the commit read and refused what no commit names; extract.Tree writes the tree from ordered YAML nodes. |
+| #/commands/extract | main.runExtract | Runs the reader of the source, extract.Outline, extract.Database or extract.Router, after extract.Open has named the commit read and refused what no commit names; extract.Tree writes the tree from ordered YAML nodes. |
 | #/commands/derive | main.runDerive | Writes validate.Drafts, the drafts of the cases the warnings name. |
 | #/commands/idioms | main.runIdioms | Prints validate.IdiomUses, the idioms each implementation file resolves to. |
 | #/commands/idioms diff | main.runIdiomsDiff |   |
@@ -2937,6 +2948,59 @@ constraints, which is the record of what the catalogue does not say.
 
 **Insight:** A singular form is a guess, and it breaks on names English does not inflect by rule; the table's own name is what the catalogue states, and the plan's check (regenerate and compare) passes with it. A bigint as text, because an integer carried in JSON needs bounds inside 2^53, and the catalogue states no such bound; inventing one would be a value the source does not say. A must question for each message, because the schema requires one and the catalogue has none, and a question is the one licence for a required key to be missing. The expression is checked by the validator's own checker before it is written, so a check that reads well in SQL but means something else in the subset, a date plus a number, is asked about instead of written wrong. The stakeholder system-owner, because a question names who decides, and a reader cannot know the role.
 
+### ADR-044: The router reader reads a route table in a format SpecArch defines, printed by the project's own router, and asks for everything a route table does not say
+
+Status: accepted, 2026-10-08.
+
+Context: The second reader of specarch extract reads the endpoints. The
+authoritative source is the router the running system builds, not
+the files that declare routes, since a route registered in a loop,
+behind a setting or by a library shows only once the router is
+built. Routers differ in how they write a path parameter (:id,
+{id}, <id>), in where the permission check sits (a middleware, a
+wrapper, a field of the route) and in whether they register HEAD and
+OPTIONS by themselves, so SpecArch cannot read them all, while every
+project can print its own.
+
+Decision: SpecArch defines the route table, a JSON object holding the version
+of the format (routeTable: 1), the path of the folder the router is
+built from, the commit that last changed it, and every registered
+route as an object of exactly four keys: method, in capitals; path,
+starting with /, each parameter written {name}; permission, the one
+permission the route checks, or null when it checks none; and
+handler, the name of the function that answers it. A key missing or
+a key more is refused, and so is a method and path pair listed
+twice. The project prints the routes with a printer of its own;
+tools/routes/dump-routes.sh runs it in the router's folder, refuses
+a folder with changes not committed, and adds the version, the path
+and the commit. The dump is committed beside the code and is stale,
+as a catalogue dump is, once that folder changes.
+Each held route becomes one operation under its path, in the order
+of the paths and then get, post, put, patch, delete, named after its
+handler with the first letter in lower case; a handler serving more
+than one route, or a name that cannot be an operationId, gives each
+of its operations the method and the path's words instead, with a
+line. A path's parameters are written once on the path, in: path and
+required, and one must question asks the values they take. Every
+permission a route checks is declared, citing the routes that check
+it, and one must question asks what each allows. Each operation has
+a must question for its summary and responses, and one more for its
+permission when the route checks none or checks a name the
+meta-model cannot hold. HEAD, OPTIONS and any other method, and a
+path whose segment is neither a fixed word nor one whole parameter,
+such as a wildcard, are left out with a line.
+
+Consequences: A project adds a printer once, usually a flag of its server or a
+small program beside it that builds the router as the server does;
+the lending desk's is cmd/routetable. A route that checks more than
+one permission has no form in the route table, as an operation has
+one permission; its printer stops on it rather than choosing one. A
+change anywhere in the router's folder makes the dump stale, so the
+printer is run again after each change, as the catalogue is after
+each migration.
+
+**Insight:** A table the router prints, because only routes actually registered appear in it (ADR-042), and a printer of the project's own, because it knows its router's path syntax and where its permission check sits, which SpecArch would otherwise have to guess per library. JSON, as the catalogue dump is, so any language can print it with its standard library. {name} for a parameter, because it is the path templating of OpenAPI that the meta-model's paths follow, so the path is written as printed. null for no permission, and the key required, because a route that checks none and a printer that forgot to say are different facts, and an open endpoint is the one a reader must not miss; for the same reason such a route is a must question and is never written as public. Exactly four keys, because a key the reader did not know would be dropped without a word. HEAD and OPTIONS left out, because a path item holds the five methods the meta-model generates, and most routers answer HEAD as GET without a body (RFC 9110, 9.3.2) and OPTIONS by themselves. The handler's name, because it is what the code calls the operation; the method and path when it is shared, because an operationId names one operation (OpenAPI 3.1, 4.8.10). The router's folder as the path the dump is made from, rather than one file, because a router is built from the folder's code, and a change to any of it can change the routes.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -3001,6 +3065,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-outline-shallow-clone | command extract | system | red | a clone of depth 1 of a repository with two commits | extract outline is run on a folder of it | it refuses the shallow clone, whose history cannot name the last change to a path, writes nothing and exits 1 |
 | extract-outline-uncommitted | command extract | system | red | a folder whose files are committed, one of them changed since and not committed | extract outline is run on the folder | it refuses, naming the changed file, since no commit names what would be read; it writes nothing and exits 1 |
 | extract-outline-writes-clauses | command extract | system | golden | a repository holding a folder of workflow definitions, which no reader reads yet, one of them a TypeScript file that says it is generated from the others | extract outline is run on the folder with a source key | it writes a root that lists every tracked file as a clause of that source at the commit, and no element; it names the commit, counts the files, reports the generated file, and exits 0 |
+| extract-router-route-twice | command extract | system | red | a route table that lists the same method and path pair twice | extract router is run on the route table | it refuses the route table, naming the route listed twice, writes nothing and exits 1 |
+| extract-router-stale-table | command extract | system | red | a route table printed at the commit that added the router's routes, and a later commit that adds a file to the router's folder | extract router is run on the route table | it refuses the route table as stale, naming both commits, writes nothing and exits 1 |
+| extract-router-writes-tree | command extract | system | golden | a repository whose first commit holds a router's folder and whose second holds the route table printed from it, naming the first; the table has two methods on one path, a path with a parameter, a route with no permission, a HEAD route, a path with a wildcard, a handler serving two routes and a permission that is not a permission name | extract router is run on the route table | it writes one operation per held method and path pair with its path parameters and permission, one permission per name a route checks, a question for each operation's summary and responses, each path's parameter values, the permissions' descriptions and every route without a usable permission, names the commit, counts the routes, prints a line for the HEAD route, the wildcard, the permission name and the shared handler, and exits 0 |
 | extract-usage-error | command extract | system | red | no source | extract is run without arguments | it prints how to use it and exits 2 |
 | gaps-coverage | command gaps | system | golden | a specification that tracks origin, built from a manual and from code that both list their clauses; one clause of each is cited by nothing, one citation names a clause outside the outline, and the implementation file's mapping cites the code | gaps is run | it shows, per source, the elements each clause produced, counts the clauses that produced nothing, names the citation outside the outline, and exits 0 |
 | gaps-invalid-spec | command gaps | system | red | a specification with an error | gaps is run | it prints the error and exits 2, since the questions of an invalid specification cannot be trusted |
@@ -3250,7 +3317,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-19 | specarch gaps shall list the open questions by stage with what each blocks and who decides, and shall say for every document and code target whether it is ready, a draft or waiting; the same text shall be the document target questions, and every other document shall mark the open questions about its elements. | functional | must | accepted | test | A specification with two must questions in two stages prints them under their stages, lists the missing keys of a blocked element, and exits 1. A specification without open questions prints that it has none and exits 0. A requirements document whose requirement a question blocks starts with a Draft notice and shows the question under the requirement. | NEED-8, NEED-3 |
 | SA-20 | specarch generate shall refuse to run a target while a must or should question blocks a section it reads, and shall refuse without a record that a stakeholder read the current documents and approved the specification's files as they are, unless --unapproved is given; specarch approve shall write that record only when the documents on disk are current. | functional | must | accepted | test | generate on a specification with an approval record whose digest matches writes its files; after one byte of one file changes it refuses, and runs with --unapproved. approve refuses while a configured document differs from what the specification generates, and writes records/approvals/<version>.yaml once the documents are current. | NEED-8 |
 | SA-30 | A specification built from existing documents and existing code shall cite each element to the document section or the code file and line it came from, mappings of an implementation file included, and specarch gaps shall show for every source that lists its outline which elements each section or file produced and which produced nothing. | functional | must | accepted | test | A mapping stated without a citation is reported as origin_citation, and one inferred without a reason as origin_reason, in both builds. gaps on a specification whose manual and code list their clauses prints, per source, the elements under each clause, the count of clauses that produced nothing, and every citation that names a clause outside the outline. | NEED-8 |
-| SA-44 | specarch extract shall read one surface of an existing system into a specification tree in which every element carries its origin and cites where it was read, name the commit it read, refuse a source no commit names, and give byte-identical output for the same sources at the same commit. | functional | must | accepted | test | extract database on a committed catalogue dump writes a tree that validate accepts with no errors, and a second run writes the same bytes. A column type the meta-model cannot hold is printed as a line naming it. A dump older than the last change to the path it was made from, a path with changes not committed and a shallow clone are each refused with status 1. extract outline on a folder writes a source listing its files as clauses, and gaps on that tree lists each of them as producing nothing. | NEED-8 |
+| SA-44 | specarch extract shall read one surface of an existing system into a specification tree in which every element carries its origin and cites where it was read, name the commit it read, refuse a source no commit names, and give byte-identical output for the same sources at the same commit. | functional | must | accepted | test | extract database on a committed catalogue dump writes a tree that validate accepts with no errors, and a second run writes the same bytes. A column type the meta-model cannot hold is printed as a line naming it. A dump older than the last change to the path it was made from, a path with changes not committed and a shallow clone are each refused with status 1. extract outline on a folder writes a source listing its files as clauses, and gaps on that tree lists each of them as producing nothing. extract router on a committed route table writes one operation per method and path pair, with its path parameters and the permission it checks, that validate accepts with no errors, and a route that checks no permission is a must question. | NEED-8 |
 | SA-1 | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. | functional | must | accepted | test | A file that breaks the schema is reported with rule schema, its file, line and YAML path. A file that passes the schema and every other rule produces no output and status 0. | NEED-1 |
 | SA-2 | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. | functional | must | accepted | test | A misspelt relation target, enum, operation, page, algorithm, decision, requirement, need, stakeholder, source or environment is reported with its own rule, naming the file and line of the reference. A name defined in two files of the specification is reported with both files. | NEED-1, NEED-4 |
 | SA-3 | Every check constraint and formula shall parse and type-check in the fixed expression language. | functional | must | accepted | test | An expression outside the subset is refused with a message naming the construct. An expression that mixes types without a written conversion is refused with the conversion to write. | NEED-1 |
@@ -3399,7 +3466,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-41 | enums Rule; decisions ADR-033 | tests validate-views; tests validate-views-valid |
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039 | tests validate-accessibility; tests validate-compact-columns; tests validate-flows; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
-| SA-44 | commands extract; decisions ADR-043 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-exit-1; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests gaps-outline-not-read |
+| SA-44 | commands extract; decisions ADR-043; decisions ADR-044 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-exit-1; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests gaps-outline-not-read |
 
 ## Sources
 

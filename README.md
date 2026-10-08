@@ -145,7 +145,7 @@ a defect in the roadmap, not an accepted state.
 | `docs/roadmap.md` | document targets, code targets, sync gates, first real projects, the next meta-model |
 | `docs/meta-model-0.2.md` | meta-model 0.2: separation of duties, workflows, task pages and page elements, value objects, missing tests as errors, and the steps that build them |
 | `examples/library-lending/` | a small complete example: a specification with every stage in `spec/`, its document in `docs/` |
-| `examples/lending-desk/` | a partial specification written from a desk manual and a small Go service that disagree, by `docs/from-sources.md` |
+| `examples/lending-desk/` | a partial specification written from a desk manual and a small Go service that disagree, by `docs/from-sources.md`, and `extract.sh`, which reads the same sources with every reader and merges them |
 
 ## Installing and running
 

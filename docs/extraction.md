@@ -280,12 +280,23 @@ Steps, in order:
    page with a schema file: its three pages come out with the parameter
    and that page's fields, validated and byte-identical, and merged with
    the database tree the entity's question is answered; CI repeats it.
-10. The whole example: `examples/lending-desk/` extracted end to end by a
-    script, with a personal column the manual has and the database does
-    not, and a route the code serves without a permission that the
-    manual does not mention, both listed by `specarch gaps` as `must`
-    questions. CI runs the script twice and compares. A release tag after
-    this step.
+10. Built. The whole example: `examples/lending-desk/extract.sh <out folder>`
+    runs every reader on the example's sources, each into a tree of its
+    own: the manual, the OpenAPI document, the catalogue, the route table,
+    the permission table and the app folder. It merges the trees in that
+    order, validates the result and writes its gaps, each step's output
+    beside the trees.
+    It works inside the out folder and names what it writes relative to
+    it, so two out folders side by side get the same bytes. The manual's
+    table of a member's details has a phone number, personal, that the
+    members table does not; the router serves `GET /members/{cardNumber}`,
+    which checks no permission and which neither the manual nor the
+    OpenAPI document mentions. `specarch gaps` lists the phone number as
+    a `must` question citing clause 2 and the members table, and the
+    route as two: the router's, on its permission, and the merge's,
+    undocumented, from code. The merged specification validates with no
+    errors, and CI runs the script twice and compares the folders. A
+    release tag after this step.
 
 Not a step yet: a reader for workflow definitions. Meta-model 0.1 has no
 object for a workflow (`flows` are a person's navigation across pages);

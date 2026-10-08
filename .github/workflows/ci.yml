@@ -43,13 +43,17 @@ jobs:
           go run ./cmd/specarch validate "$RUNNER_TEMP/routes-one"
       - name: The lending desk's database and routes merge the same twice, validate and give their gaps
         # gaps exits 1 while a must or should question is open, which is
-        # the normal state of a specification read from sources.
+        # the normal state of a specification read from sources. Twelve:
+        # what each of the five routes does, the values of the three
+        # paths' parameters, what the permissions allow and which role
+        # grants each, the members route that checks no permission, and
+        # the loans table's message.
         run: |
           for run in one two; do go run ./cmd/specarch merge --out "$RUNNER_TEMP/merged-$run" "$RUNNER_TEMP/one" "$RUNNER_TEMP/routes-one" > "$RUNNER_TEMP/merged-$run.txt" || exit 1; done
           diff -r "$RUNNER_TEMP/merged-one" "$RUNNER_TEMP/merged-two" && cmp "$RUNNER_TEMP/merged-one.txt" "$RUNNER_TEMP/merged-two.txt"
           go run ./cmd/specarch validate "$RUNNER_TEMP/merged-one"
           status=0; go run ./cmd/specarch gaps "$RUNNER_TEMP/merged-one" > "$RUNNER_TEMP/gaps.txt" || status=$?
-          test "$status" -eq 1 && grep -q '9 open questions (9 must' "$RUNNER_TEMP/gaps.txt"
+          test "$status" -eq 1 && grep -q '12 open questions (12 must' "$RUNNER_TEMP/gaps.txt"
       - name: The lending desk's manual extracts the same twice, and merged with the code gives the loan period as one must question
         # The manual says 21 days at clause 3.3; the loans table checks 14.
         run: |
@@ -118,6 +122,19 @@ jobs:
           grep -q '^    Loan:$' "$RUNNER_TEMP/owned-one/openapi/openapi.yaml"
           status=0; go run ./cmd/specarch gaps examples/lending-desk > "$RUNNER_TEMP/owned-gaps.txt" || status=$?
           test "$status" -eq 1 && grep -q '#/entities/Book' "$RUNNER_TEMP/owned-gaps.txt"
+      - name: The lending desk extracts end to end the same twice, and gaps lists the phone number and the open member route as must questions
+        # The manual has a personal phone number the members table does not;
+        # the router serves GET /members/{cardNumber} with no permission,
+        # and no document mentions it.
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          go build -o "$RUNNER_TEMP/bin/specarch" ./cmd/specarch
+          for run in one two; do SPECARCH="$RUNNER_TEMP/bin/specarch" examples/lending-desk/extract.sh "$RUNNER_TEMP/desk-$run" || exit 1; done
+          diff -r "$RUNNER_TEMP/desk-one" "$RUNNER_TEMP/desk-two"
+          grep -q ': 0 errors,' "$RUNNER_TEMP/desk-one/validate.txt"
+          grep -F -B2 'Not built yet. The documents have field phoneNumber of entity Members' "$RUNNER_TEMP/desk-one/gaps.txt" | grep -q '(must, decision)'
+          grep -F -B2 'Undocumented, from code: is operation showMember (GET /members/{cardNumber})' "$RUNNER_TEMP/desk-one/gaps.txt" | grep -q '(must, decision)'
+          grep -F -B2 'GET /members/{cardNumber} checks no permission' "$RUNNER_TEMP/desk-one/gaps.txt" | grep -q '(must, decision)'
       - name: Generated documents are current
         # examples/lending-desk is a partial specification written from
         # sources and configures only the four documents an owner reads

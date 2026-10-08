@@ -13,7 +13,11 @@ grows towards complete.
 desk manual (`sources/manual.md`), the Go service it describes
 (`sources/code/`), the specification written from both (`spec/`) and the
 documents made from it (`docs/`). The service and the manual disagree on
-the loan period on purpose.
+purpose: on the loan period, on a member's phone number, which only the
+manual has, and on `GET /members/{cardNumber}`, which only the service
+serves, checking no permission. `extract.sh` reads the same sources with
+every reader of `specarch extract` and merges them, the mechanical
+counterpart of this procedure.
 
 This is step 1 of bringing an existing system in, done by an agent by hand
 with the toolchain checking each step. `specarch extract`, the verb that

@@ -393,6 +393,10 @@ the owner's pick (D9), for list pages first (ADR-040).
 6. After the owner's pick, the first UI generator, written against the
    hand-built screen it must reproduce.
 
+A second web generator, TypeScript on Next.js and Carbon, with the
+components as the `ui-components` idiom, is designed and planned in
+`docs/ui-nextjs-carbon.md`.
+
 ## Left out
 
 The owner's applications are referred to only as the place hand-built

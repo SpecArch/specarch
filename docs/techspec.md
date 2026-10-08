@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.5.0-dev of the specification: 46 requirements, 3 entities, 12 commands, 6 algorithms, 263 tests, 50 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.5.0-dev of the specification: 46 requirements, 3 entities, 12 commands, 6 algorithms, 263 tests, 51 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -3451,6 +3451,59 @@ reads the check before trusting the table.
 
 **Insight:** A table the project prints, and not a reader of seed SQL or of the check's code, because only the project knows where its running check reads the grants: tables filled by seeds, a migration, a configuration file or a service, in any language, and a printer that runs the check's own query reads exactly that, as the route printer builds the router as the server does. The gates are declared by the printer for the same reason; a reader of the code would see one language's way of writing a guard and miss the others, and the owner chose a declaration the project keeps beside its check over a reader that knows one language. A gate is a must question and not a value, because the meta-model has no element for a check a setting switches off, and a check that fails open is a security question: whether an empty setting is ever meant to let everyone through is the owner's to say. It blocks the roles, which grant nothing while it is off. The same question asked by two readers is asked once, because two open questions on one key make the owner answer twice and can be answered differently. A grant nothing checks is reported by the merge, because only the merge sees the roles and the operations together; it is a line and not a question, since such a grant lets no one do anything the code does, but it is either left over from code that was removed or guards something the routes do not show, and a reviewer should look.
 
+### ADR-051: A second web generator writes Next.js and Carbon screens from a TypeScript implementation file, drawing each page through a ui-components idiom a project overrides
+
+Status: proposed, 2026-10-09.
+
+Context: A project whose web screens are built by hand on the Next.js app
+router and IBM's Carbon design system asked SpecArch to generate
+them, so that a generated screen is the same as one built by hand.
+Its own screens are drawn by a component library of its own, which
+cannot be named here. The one UI generator writes plain JavaScript
+and refuses any other framework (ADR-040). docs/ui-design.md keeps
+components out of the design and names a ui-components idiom for
+them, but the idiom schema has no such concern, and an idiom's
+stacks are only a file's language and its SQL dialects. Several
+keywords the screens need (a page with no entity, a lookup, child
+rows, a rule across fields, an action offered by the row's state, a
+confirmation with a reason, an approval) are not in the design yet.
+
+Decision: The web front end on Next.js and Carbon is built by a plug-in of
+its own, specarch-gen-ui-typescript, for a ui target of platform
+web and framework nextjs-carbon in an implementation file whose
+language is TypeScript; specarch-gen-ui stays as it is. Per page it
+writes a schema file that holds data only, one object literal typed
+with satisfies, and a page.tsx that builds the schema with the
+translator, hands it to the component and maps the page's events to
+routes. A behaviour data cannot say is a hook the schema imports
+from a file the generator never writes, so an unwritten hook fails
+tsc. Per application it writes the menu and the route guard from
+one permission, the strings, the server routes and the theme. What
+draws each page kind and field type is the ui-components idiom, a
+new concern, whose shipped rendering is plain Carbon and which a
+project overrides to render through its own library. The design
+keywords the screens lack are meta-model 0.2's; this generator is
+built in the steps of docs/ui-nextjs-carbon.md, each waiting for the
+0.2 step it needs. It writes no package.json, lock file or
+configuration, and its output is byte-identical for the same input.
+
+Consequences: The example's web application builds with public packages only,
+and a second build through a stub of a fictional library shows the
+override at work, so no project's names enter this repository. A
+project whose schema shape the idiom's names cannot say installs a
+plug-in of its own ahead of the shipped one, which the plug-in
+lookup already allows. The front end's implementation file is a
+deliverable of its own, so one specification drives a front end and
+a service, and ownedBy in that file leaves out what the front end
+does not build. Which stack an idiom names, the event bus, the
+acceptance against a screen built by hand, how a project's own
+library is licensed, the password rules, a server route that pages,
+the comparison with screens built by hand and the dependencies the
+scan found are questions for the owner, Q1 to Q10 of the document;
+this decision is proposed until they are answered.
+
+**Insight:** A plug-in of its own, because the two web stacks share only what the design says, and a second framework inside the plain JavaScript generator would be a second generator in one file. The framework, not the language, decides the components, so it is the stack the idiom renders, as a SQL dialect is. An idiom for the components, because the mechanism already ships, lists and overrides parts with their reasons, and keeps the project's library out of SpecArch. Data in the schema file and logic in a hand-written hook, because the generator must never touch a hand-written file, and the compiler is the cheapest check that every hook exists. The menu and the guard from one permission, because a menu entry that opens a page its reader is refused is reported as a broken feature, and two places that read one keyword cannot drift apart. The design keywords in 0.2 and not here, because a design keyword is checked by the validator in both builds, which is meta-model work.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -3916,7 +3969,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-11 | enums Rule; entities SpecFile; commands extract; commands validate; decisions ADR-010; decisions ADR-042; decisions ADR-048; decisions ADR-049; decisions ADR-050 | tests merge-documents-days; tests merge-openapi-placeholder; tests merge-openapi-unserved; tests validate-duplicate-name-across-files; tests validate-layout-folder-missing; tests validate-layout-not-a-stage; tests validate-layout-section-folder-in-root; tests validate-layout-section-in-root; tests validate-layout-section-in-wrong-stage; tests validate-layout-stack-mismatch; tests validate-layout-stage-not-listed; tests validate-layout-subfolder-section; tests validate-layout-test-without-file; tests validate-tree-valid; checks checks-the-examples |
 | SA-12 | enums Rule; commands validate; decisions ADR-011; decisions ADR-014 | tests validate-deployment-valid; tests validate-monitor-environment; tests validate-monitor-not-declared; tests validate-monitor-valid; tests validate-need-rejected; tests validate-requirements-only; tests validate-secret-in-deployment; tests validate-secret-value; tests validate-traceability-warnings |
 | SA-13 | enums Rule; commands validate; decisions ADR-012 | tests document-citation-unknown-source; tests validate-cites; tests validate-source |
-| SA-14 | enums GeneratorTarget; commands generate; decisions ADR-013 | tests generate-no-plugin; tests generate-plugin-path-outside; tests generate-with-plugin |
+| SA-14 | enums GeneratorTarget; commands generate; decisions ADR-013; decisions ADR-051 | tests generate-no-plugin; tests generate-plugin-path-outside; tests generate-with-plugin |
 | SA-15 | commands document; decisions ADR-015 | tests document-writes-requirements |
 | SA-16 | enums DocumentTarget; commands document; decisions ADR-016 | tests document-testplan-state-machine; tests document-writes-commissioning; tests document-writes-deployment; tests document-writes-requirements; tests document-writes-testplan; tests document-writes-traceability |
 | SA-17 | enums Rule; commands validate; decisions ADR-017 | tests validate-question-answered; tests validate-question-block; tests validate-question-covers-missing; tests validate-question-should-not-covering; tests validate-question-stage |

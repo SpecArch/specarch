@@ -107,7 +107,10 @@ difference. The rules and the pattern each target follows are in
    sections, compact columns, the accessibility target and the theme. Built
    for the web: `specarch-gen-ui` writes list pages in plain JavaScript
    (ADR-040). Next for it: forms, views, navigation between pages, and the
-   first real project's screen to check it against. SwiftUI follows.
+   first real project's screen to check it against. Planned for the web
+   on Next.js and Carbon, for a project whose screens are built there:
+   `specarch-gen-ui-typescript`, in the steps of `docs/ui-nextjs-carbon.md`,
+   with the components as an idiom a project overrides. SwiftUI follows.
 5. Other DSL formats on request, limited to what that DSL can execute:
    a concept the target cannot represent is reported, not silently omitted.
 6. Tests from the specification. The specification gives the business cases:

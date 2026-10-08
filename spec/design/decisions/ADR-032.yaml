@@ -1,0 +1,37 @@
+decisions:
+  ADR-032:
+    title: specarch-gen-go-dxlib writes one file of glue and leaves the bodies to the service
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      A service on dxlib registers a handler per operationId, reads each
+      parameter through a typed getter, and keeps a table object per
+      entity. Most of that follows from the design and the dxlib document;
+      the business logic of an operation does not. The schema itself is
+      already written by specarch-gen-sql.
+    decision: |
+      The go-dxlib target writes one file, specarch_dxlib.go, in the package
+      its settings name, for the database its settings name; a target
+      without databaseNameId is refused. The file holds a table per entity,
+      Register binding every handler, and per operation a request struct
+      with a Has flag per field, a reader using dxlib's getters, a check of
+      every constraint the dxlib dialect lists as unenforced, and the
+      handler. A list runs the table's paging list after checking the page
+      size, a create inserts the given fields with a new identifier and the
+      audit fields and answers the stored row, and a read by identifier
+      answers the row or a not-found refusal. Any other operation calls
+      body<Operation>, which the service writes. Permissions, roles and the
+      menu are data for the service to seed; a job that repeats at an
+      interval is a task calling job<Name>, which the service writes. No
+      model types and no schema are written.
+    consequences: |
+      A missing body or job function is a compile error in the service,
+      which is where it is noticed. Encryption keys, scheduled and consuming
+      jobs, and the seeding itself stay the service's, and the generator
+      warns where a design asks for them. A constraint the generator cannot
+      check in Go is reported as a warning.
+    why: |
+      Generated glue beside hand-written bodies keeps regeneration safe: the
+      file is replaced whole and never edited. specarch-gen-sql already owns
+      the schema, so writing it here would give two sources for one table.
+    satisfies: [SA-40]

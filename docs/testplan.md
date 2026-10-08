@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.4.0-dev of the specification: 215 design tests, 73 golden and 141 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.4.0-dev of the specification: 216 design tests, 74 golden and 141 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.4.0-dev of the specification: 215 design tests, 73 golden and 141 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 211 |
+| system | 212 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -25,6 +25,7 @@ Framework: go test. Run: `go test ./...`.
 | shipped-idioms | unit | tests of this implementation only | `go test ./internal/validate` |
 | generated-sql | unit | tests of this implementation only | `go test ./internal/gensql` |
 | generated-openapi | unit | tests of this implementation only | `go test ./internal/genopenapi` |
+| generated-go-dxlib | unit | tests of this implementation only | `go test ./internal/gendxlib` |
 | generated-tests | unit | tests of this implementation only | `go test ./internal/gentests` |
 | expressions | unit | tests of this implementation only | `go test ./internal/expr` |
 
@@ -524,6 +525,14 @@ Scenario: red; level: system; covers usage error, exit 2.
 - Then: it prints how to use it and exits 2
 
 ### Command generate
+
+#### generate-go-dxlib
+
+Scenario: golden; level: system; verifies SA-40.
+
+- Given: the specification of generate-openapi-dxlib plus a job run every hour, and an implementation file with a go-dxlib target naming the package and the database; specarch-gen-go-dxlib built from this repository on PATH
+- When: generate go-dxlib is run with --unapproved
+- Then: it writes one Go file for dxlib: the tables, the handlers registered by operationId that read every parameter with dxlib's getters, check the constraints dxlib does not enforce, and run the standard list, create and read operations, the privilege, role and menu seeds, and the job registered as a task, and exits 0
 
 #### generate-no-plugin
 
@@ -1783,7 +1792,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-99 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+103 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1826,6 +1835,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-39 | acceptance 1 | golden | SA-39 names no harm |
 | requirement SA-39 | acceptance 2 | golden | SA-39 names no harm |
 | requirement SA-39 | acceptance 3 | golden | SA-39 names no harm |
+| requirement SA-40 | acceptance 1 | golden | SA-40 names no harm |
+| requirement SA-40 | acceptance 2 | golden | SA-40 names no harm |
+| requirement SA-40 | acceptance 3 | golden | SA-40 names no harm |
+| requirement SA-40 | acceptance 4 | golden | SA-40 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

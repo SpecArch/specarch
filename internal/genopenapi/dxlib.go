@@ -187,12 +187,21 @@ func (g *gen) dxSchema(f map[string]any, at string) *yaml.Node {
 	}
 	if props, ok := f["properties"].(map[string]any); ok {
 		pn := mapping()
-		for _, p := range sortedKeys(props) {
-			add(pn, p, g.dxSchema(obj(props[p]), at+"/properties/"+p))
+		byWire := map[string]string{}
+		for p := range props {
+			byWire[Wire(p)] = p
+		}
+		for _, w := range sortedKeys(toAny(byWire)) {
+			p := byWire[w]
+			add(pn, w, g.dxSchema(obj(props[p]), at+"/properties/"+p))
 		}
 		add(n, "properties", pn)
 		if req := list(f["required"]); len(req) > 0 {
-			add(n, "required", plain(req))
+			var wires []any
+			for _, r := range req {
+				wires = append(wires, Wire(text(r)))
+			}
+			add(n, "required", plain(uniqueSorted(wires)))
 		}
 	}
 	add(n, "x-dxlib-type", str(t))
@@ -206,6 +215,37 @@ func (g *gen) dxSchema(f map[string]any, at string) *yaml.Node {
 	}
 	return n
 }
+
+// Wire is a field's name in the dxlib dialect: its column name, the field's
+// name in snake case, since dxlib's standard operations take a parameter's
+// name as the column it reads or writes.
+func Wire(name string) string {
+	var b strings.Builder
+	rs := []rune(name)
+	for i, r := range rs {
+		if r >= 'A' && r <= 'Z' {
+			if i > 0 && (rs[i-1] >= 'a' && rs[i-1] <= 'z' || rs[i-1] >= '0' && rs[i-1] <= '9' || i+1 < len(rs) && rs[i+1] >= 'a' && rs[i+1] <= 'z' && rs[i-1] >= 'A' && rs[i-1] <= 'Z') {
+				b.WriteByte('_')
+			}
+			b.WriteRune(r + 'a' - 'A')
+			continue
+		}
+		b.WriteRune(r)
+	}
+	return b.String()
+}
+
+func toAny(m map[string]string) map[string]any {
+	out := map[string]any{}
+	for k, v := range m {
+		out[k] = v
+	}
+	return out
+}
+
+// DXType is the dxlib parameter type of a field, or "" with the reason it
+// has none; the go-dxlib generator reads it so the two agree.
+func DXType(f map[string]any) (string, string) { return dxType(f, nil) }
 
 // Unenforced lists the constraints of a field that dxlib's validator does
 // not apply, as "key: value", in a fixed order. go-dxlib checks them in
@@ -316,12 +356,19 @@ func (g *gen) generateDxlib(r *Request) Response {
 			withAudit[k] = v
 		}
 		if e["audited"] == true {
-			for _, f := range auditFields {
-				fm := map[string]any{"type": "string", "description": f.description}
-				if f.format != "" {
-					fm["format"] = f.format
+			names, _ := g.idiomNames("audit-fields", "columns", "any")
+			for _, a := range []struct{ key, format, description string }{
+				{"createdAt", "date-time", "When the record was created; set by the system."}, {"createdBy", "", "Who created the record; set by the system."},
+				{"createdByName", "", "The name of who created the record; set by the system."}, {"lastModifiedAt", "date-time", "When the record was last changed; set by the system."},
+				{"lastModifiedBy", "", "Who last changed the record; set by the system."}, {"lastModifiedByName", "", "The name of who last changed the record; set by the system."}} {
+				if names[a.key] == "" {
+					continue
 				}
-				withAudit[f.name] = fm
+				fm := map[string]any{"type": "string", "description": a.description}
+				if a.format != "" {
+					fm["format"] = a.format
+				}
+				withAudit[names[a.key]] = fm
 			}
 		}
 		schemas.Content = append(schemas.Content, str(name), g.dxSchema(map[string]any{"type": "object", "description": e["description"], "properties": withAudit, "required": e["required"]}, "/entities/"+name))
@@ -443,6 +490,14 @@ func (g *gen) dxOperation(path, method string, op, item map[string]any) *yaml.No
 	return n
 }
 
+func wires(names []any) []any {
+	out := make([]any, len(names))
+	for i, n := range names {
+		out[i] = Wire(text(n))
+	}
+	return out
+}
+
 func withKey(m map[string]any, k string, v any) map[string]any {
 	out := map[string]any{}
 	for key, val := range m {
@@ -492,7 +547,7 @@ func (g *gen) dxListParameters(at string, l, props map[string]any) bool {
 	if f := list(l["sortable"]); len(f) > 0 {
 		props[names["sort"]] = map[string]any{"type": "array", "items": map[string]any{"type": "object",
 			"properties": map[string]any{
-				names["sortField"]:     map[string]any{"type": "string", "enum": f},
+				names["sortField"]:     map[string]any{"type": "string", "enum": wires(f)},
 				names["sortDirection"]: map[string]any{"type": "string", "enum": []any{"asc", "desc"}}},
 			"required": []any{names["sortField"], names["sortDirection"]}}}
 	}

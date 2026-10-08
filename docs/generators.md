@@ -156,7 +156,35 @@ the dxlib names and envelope of the paginated-list idiom. Two limits are
 dxlib's to lift: its validator does not apply JSON Schema's bounds, and its
 routes carry no method.
 
-Server code is not SpecArch's job. A standard OpenAPI code generator for the
+## Go for dxlib
+
+`specarch-gen-go-dxlib` writes `specarch_dxlib.go` for the `go-dxlib`
+target, in the package its `package` setting names (`service` when none)
+for the database its `databaseNameId` setting names, which it needs. The
+file holds a dxlib table per entity, a DXTable when the entity is audited
+or softly deleted and a DXRawTable otherwise, with the search, order and
+filter fields its lists allow; `Register`, binding each handler to its
+`operationId`; and per operation a request struct with a `Has` flag per
+field, read through dxlib's typed getters, a check of every constraint the
+dxlib dialect lists as unenforced, and the handler. A list checks the page
+size and runs the table's paging list, a create inserts the given fields
+with a new identifier and the audit fields and answers the stored row with
+201, and a read by identifier answers the row or the entity's not-found
+refusal. Any other operation calls `body<Operation>`, and each job that
+repeats at an interval becomes a task in `RegisterTasks` calling
+`job<Name>`; the service writes both, and the compiler names what is
+missing. Permissions, roles and the menu are `Privileges`, `Roles` and
+`MenuItems`, data for the service to seed, `public` left out. Wire names
+are snake_case, as in the dxlib dialect, because dxlib's standard
+operations take a parameter's name as its column's.
+
+The file holds no data model, since `specarch-gen-sql` writes the schema.
+Encryption keys, scheduled and consuming jobs, and the seeding stay the
+service's, and the generator warns where a design asks for them.
+
+## Server code on other stacks
+
+For a stack without a SpecArch generator, a standard OpenAPI code generator for the
 stack turns the document into a typed server interface with request and
 response types, and hand-written handlers implement that interface. The
 compiler then refuses a handler whose signature does not match the spec. Use

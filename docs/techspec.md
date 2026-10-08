@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.4.0-dev of the specification: 39 requirements, 3 entities, 11 commands, 6 algorithms, 215 tests, 31 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.4.0-dev of the specification: 40 requirements, 3 entities, 11 commands, 6 algorithms, 216 tests, 32 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -916,7 +916,9 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | internal/gensql | The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect and a snapshot of the schema. |   |
 | internal/typerows | Matches a field to a row of a type rendering, for the validator and the generators alike. |   |
 | cmd/specarch-gen-openapi | The plug-in behind generate openapi. Reads the request on standard input, answers the OpenAPI document on standard output, and never touches the disk. | #/commands/generate |
-| internal/genopenapi | The OpenAPI 3.1 document in the standard dialect, the design field for field, with the problem catalogue and lists paged through the paginated-list idiom. |   |
+| internal/genopenapi | The OpenAPI 3.1 document in the standard dialect, the design field for field, with the problem catalogue and lists paged through the paginated-list idiom; and in the dxlib dialect, what dxlib's reader binds. |   |
+| cmd/specarch-gen-go-dxlib | The plug-in behind generate go-dxlib. Reads the request on standard input, answers the Go file on standard output, and never touches the disk. | #/commands/generate |
+| internal/gendxlib | The Go file of a service on dxlib, its tables, handlers, seeds and tasks, read from the design through the dxlib dialect's names and types. |   |
 | cmd/specarch-gen-tests-go | The plug-in behind generate tests for a Go implementation file. Reads the request on standard input, answers the Go test file on standard output, and never touches the disk. | #/commands/generate |
 | internal/gentests | The Go tests a specification implies, as the plug-in writes them. One file per specification, with the Harness interface the project implements beside it; design tests become tests through it, worked examples unit tests of the algorithm's mapping. |   |
 | internal/semver | Semantic Versioning 2.0.0 versions, their precedence, and the step one needs from another, with the step before 1.0.0; the release rules and diff measure a release with it. |   |
@@ -1000,6 +1002,7 @@ Stand-ins: None. Every test runs the real program on real files.
 | shipped-idioms | unit | tests of this implementation only | `go test ./internal/validate` |
 | generated-sql | unit | tests of this implementation only | `go test ./internal/gensql` |
 | generated-openapi | unit | tests of this implementation only | `go test ./internal/genopenapi` |
+| generated-go-dxlib | unit | tests of this implementation only | `go test ./internal/gendxlib` |
 | generated-tests | unit | tests of this implementation only | `go test ./internal/gentests` |
 | expressions | unit | tests of this implementation only | `go test ./internal/expr` |
 
@@ -2370,7 +2373,9 @@ Decision: The openapi target takes dialect: dxlib, a value of the dialect key,
 and so a stack of the implementation file, which is how the idioms'
 dxlib renderings are found. In that dialect every operation is a POST
 at /<operationId> with every parameter, path, query and body, in one
-JSON body: dxlib's own command convention. A field keeps only what
+JSON body: dxlib's own command convention. Every name on the wire, a
+parameter's or a field's, is written in snake_case, since dxlib's
+standard operations take a parameter's name as its column's. A field keeps only what
 dxlib's validator applies, carries its dxlib type in x-dxlib-type, and
 lists every other constraint in x-specarch-unenforced, which the
 reader skips as it skips any extension not its own. A field may be
@@ -2395,7 +2400,40 @@ different outputs are run as one group and refused; a second dialect
 for the same service needs a second specification folder or the
 grouping to change.
 
-**Insight:** A uniform POST is dxlib's own convention, needs no path parameters read by a middleware, and avoids the boolean query parameter dxlib cannot read. Listing what is not enforced, instead of dropping it, keeps the document from promising less than the design asks and the server from claiming more than it does.
+**Insight:** A uniform POST is dxlib's own convention, needs no path parameters read by a middleware, and avoids the boolean query parameter dxlib cannot read. snake_case names let the standard list, create and read operations work on the request as it arrives. Listing what is not enforced, instead of dropping it, keeps the document from promising less than the design asks and the server from claiming more than it does.
+
+### ADR-032: specarch-gen-go-dxlib writes one file of glue and leaves the bodies to the service
+
+Status: accepted, 2026-10-08.
+
+Context: A service on dxlib registers a handler per operationId, reads each
+parameter through a typed getter, and keeps a table object per
+entity. Most of that follows from the design and the dxlib document;
+the business logic of an operation does not. The schema itself is
+already written by specarch-gen-sql.
+
+Decision: The go-dxlib target writes one file, specarch_dxlib.go, in the package
+its settings name, for the database its settings name; a target
+without databaseNameId is refused. The file holds a table per entity,
+Register binding every handler, and per operation a request struct
+with a Has flag per field, a reader using dxlib's getters, a check of
+every constraint the dxlib dialect lists as unenforced, and the
+handler. A list runs the table's paging list after checking the page
+size, a create inserts the given fields with a new identifier and the
+audit fields and answers the stored row, and a read by identifier
+answers the row or a not-found refusal. Any other operation calls
+body<Operation>, which the service writes. Permissions, roles and the
+menu are data for the service to seed; a job that repeats at an
+interval is a task calling job<Name>, which the service writes. No
+model types and no schema are written.
+
+Consequences: A missing body or job function is a compile error in the service,
+which is where it is noticed. Encryption keys, scheduled and consuming
+jobs, and the seeding itself stay the service's, and the generator
+warns where a design asks for them. A constraint the generator cannot
+check in Go is reported as a warning.
+
+**Insight:** Generated glue beside hand-written bodies keeps regeneration safe: the file is replaced whole and never edited. specarch-gen-sql already owns the schema, so writing it here would give two sources for one table.
 
 ## 10. Quality requirements
 
@@ -2462,6 +2500,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | gaps-lists-questions | command gaps | system | red | a specification that tracks origin, with two must questions in two stages, one of them blocking an entity that is only a name, a could question, and an implementation file whose code target echo reads only the requirements | gaps is run | it prints the questions by stage with the missing keys of the blocked entity, the elements by origin, and the outputs with what each waits on, and exits 1 |
 | gaps-none | command gaps | system | golden | a specification without open questions and without an approval | gaps is run | it prints that there is no open question, that every document is ready and that code generation waits on the approval, and exits 0 |
 | gaps-usage-error | command gaps | system | red | no folder | gaps is run without arguments | it prints how to use it and exits 2 |
+| generate-go-dxlib | command generate | system | golden | the specification of generate-openapi-dxlib plus a job run every hour, and an implementation file with a go-dxlib target naming the package and the database; specarch-gen-go-dxlib built from this repository on PATH | generate go-dxlib is run with --unapproved | it writes one Go file for dxlib: the tables, the handlers registered by operationId that read every parameter with dxlib's getters, check the constraints dxlib does not enforce, and run the standard list, create and read operations, the privilege, role and menu seeds, and the job registered as a task, and exits 0 |
 | generate-no-plugin | command generate | system | red | a target this build does not have and no specarch-gen-openapi on PATH | generate openapi is run | it says there is no generator for the target and exits 2 |
 | generate-openapi | command generate | system | golden | a specification with an enum, an audited entity, a problem catalogue and a list of the entity with search, filter, sort and a page size, and an implementation file in Go whose openapi target names a security scheme; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes openapi.yaml, OpenAPI 3.1.0, with the list paged by the paginated-list names in its envelope, the 404 as a problem document, the audit fields read-only and the security scheme on the operation, and exits 0 |
 | generate-openapi-dxlib | command generate | system | golden | a specification with a list, a create with limits, a read by id answering a problem, an audited and softly deleted entity, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes the document dxlib binds: one POST per operation at /<operationId> with every parameter in its JSON body, a dxlib type on every field and the constraints dxlib does not enforce listed as unenforced, privileges, dxlib's error body and list envelope, and no security scheme, and exits 0 |
@@ -2667,6 +2706,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-37 | specarch generate sql shall write, through a plug-in, the forward migrations of a specification's schema in PostgreSQL, SQL Server, Oracle or MariaDB, every column type through the type-rendering idiom of the target's dialect, with a snapshot of the schema beside them, and shall refuse what the dialect cannot hold. | functional | must | accepted | test | The library lending example renders on each dialect with the type-rendering rows, Oracle text as VARCHAR2 with character semantics and wider text as CLOB, an encrypted field as its ciphertext type with a hash column the unique constraint is on, the enum and boolean checks, the audit and deleted columns, the check constraints translated, and ON DELETE as the dialect writes it. A key or unique text column without a maxLength of at most 255, and a check whose function SQL is not given, are refused. A second run on an unchanged schema answers only the snapshot. Each plug-in request carries the files already in the output folder. | NEED-2 |
 | SA-38 | specarch generate sql shall write the migration of what changed since the last snapshot as new files only, what only adds in an expand migration and what can lose data in a contract migration of its own that the target's settings must allow, and shall refuse a change it cannot tell from a rewrite. | functional | must | accepted | test | A new nullable column, a wider text column, a new table with its foreign key, and a new enum value are written in the next expand migration, and the earlier migrations are left as they are. A dropped column, a narrower column and a removed enum value are refused until destructive is true in the sql target's settings, and then written in a contract migration of their own. A new required column without a default, a changed type, a changed key and a changed default are refused with what to do instead. | NEED-2 |
 | SA-39 | specarch generate openapi shall write, for an openapi target of the dxlib dialect, the document dxlib's OpenAPI reader binds, saying only what dxlib's server enforces and listing on each field what it does not. | functional | should | accepted | test | Every operation is a POST at /<operationId> with all of its parameters in one JSON body, carries its endpoint type and its privileges, and answers a refusal with dxlib's error body named by its problem type and a list in dxlib's list envelope. Every field carries its dxlib type, no field carries a constraint dxlib's validator does not apply, and each such constraint is listed under x-specarch-unenforced on the field. dxlib's own reader reads and validates the document, where a dxlib checkout is at hand. | NEED-2 |
+| SA-40 | specarch generate go-dxlib shall write, for a go-dxlib target, one Go file a service on dxlib compiles beside its own code, holding the tables, a handler per operation, the privileges, roles and menu as data, and a task per repeating job. | functional | should | accepted | test | Each entity is a dxlib table, a DXTable when audited or softly deleted and a DXRawTable otherwise, with the search, order and filter fields its lists allow. Each operation has a handler registered by its operationId that reads every parameter with dxlib's typed getters, checks every constraint the dxlib dialect lists as unenforced, and runs dxlib's standard list, create or read operation where the design gives one, and otherwise calls a body the service writes. Each permission and role is a seed row, public excluded, each menu entry is a menu item, and each job that repeats at an interval is a dxlib task calling a job function the service writes; any other job is reported and left out. The file compiles against dxlib, where a dxlib checkout is at hand. | NEED-2 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -2731,6 +2771,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-38:** A migration that has run on a database is history; writing the next one from the design, and refusing what could lose data unless it is asked for, is the expand and contract pattern kept honest by the tool.
 
 **Insight on SA-39:** A service on dxlib binds its handlers to the document at start, so the document is the route table; written from the design, the route table cannot drift from it, and the list of unenforced constraints says where the service checks what the library does not.
+
+**Insight on SA-40:** The handlers, tables and seeds of a dxlib service follow from its design and its dxlib document; written by hand they drift from both, and the constraints dxlib does not enforce are easy to miss.
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
@@ -2819,6 +2861,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-37 | decisions ADR-029 | tests generate-sql |
 | SA-38 | decisions ADR-030 | tests generate-sql-expand |
 | SA-39 | decisions ADR-031 | tests generate-openapi-dxlib |
+| SA-40 | decisions ADR-032 | tests generate-go-dxlib |
 
 ## Sources
 

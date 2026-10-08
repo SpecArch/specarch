@@ -14,7 +14,9 @@ decisions:
       and so a stack of the implementation file, which is how the idioms'
       dxlib renderings are found. In that dialect every operation is a POST
       at /<operationId> with every parameter, path, query and body, in one
-      JSON body: dxlib's own command convention. A field keeps only what
+      JSON body: dxlib's own command convention. Every name on the wire, a
+      parameter's or a field's, is written in snake_case, since dxlib's
+      standard operations take a parameter's name as its column's. A field keeps only what
       dxlib's validator applies, carries its dxlib type in x-dxlib-type, and
       lists every other constraint in x-specarch-unenforced, which the
       reader skips as it skips any extension not its own. A field may be
@@ -41,7 +43,8 @@ decisions:
     why: |
       A uniform POST is dxlib's own convention, needs no path parameters
       read by a middleware, and avoids the boolean query parameter dxlib
-      cannot read. Listing what is not enforced, instead of dropping it,
+      cannot read. snake_case names let the standard list, create and read
+      operations work on the request as it arrives. Listing what is not enforced, instead of dropping it,
       keeps the document from promising less than the design asks and the
       server from claiming more than it does.
     satisfies: [SA-39]

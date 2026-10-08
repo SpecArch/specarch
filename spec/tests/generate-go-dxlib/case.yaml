@@ -1,0 +1,4 @@
+arguments: [generate, go-dxlib, --unapproved, project]
+exitStatus: 0
+standardOutput: ""
+plugins: [go-dxlib]

@@ -1,0 +1,10 @@
+specarchImplementation: "0.1"
+info: { title: Catalogue on dxlib, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+targets:
+  openapi: { output: ../../../out, dialect: dxlib }
+  go-dxlib:
+    # testdata keeps the recorded Go file out of the repository's own build.
+    output: ../../../testdata
+    settings: { package: catalogue, databaseNameId: catalogue }

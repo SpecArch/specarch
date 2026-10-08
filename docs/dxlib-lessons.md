@@ -476,26 +476,27 @@ drifts from the document.
 
 go-dxlib makes dxlib and dxlib_module the runtime. The implementation file
 says `stack: Go` with dxlib among its `libraries`, and a generator,
-`specarch-gen-go-dxlib`, emits what a dxlib service declares by hand today:
+`specarch-gen-go-dxlib`, with the openapi target's dxlib dialect, emits what
+a dxlib service declares by hand today:
 
 - the OpenAPI document in dxlib's dialect, which dxlib binds at start to
   handlers registered by `operationId`; a handler missing from the document
   or a document operation without a handler stops the process, which is the
   route-table gate of `docs/sync-gates.md` for free;
-- the data model as `models.NewModelDBTable` declarations, so dxlib renders
-  the DDL for all four engines, or the DDL itself through the
-  `type-rendering` idiom;
+- no data model: `specarch-gen-sql` writes the DDL through the
+  `type-rendering` idiom, so a `models.NewModelDBTable` declaration would be
+  a second source for one table;
 - the `tables.NewDXTableSimple` declarations with the search, sort and filter
   whitelists from `listOf`, the unique groups from the constraints, and the
   audit and soft-delete kind from the entity flags;
-- one handler stub per operation that calls the library's standard
-  operation where there is one (`RequestSearchPagingList`,
-  `RequestCreateWithValidation`, `RequestReadByUid`, `RequestEdit`,
-  `RequestSoftDelete`) and a typed accessor for its parameters, leaving the
-  body for the handler of an operation with an algorithm;
+- one handler per operation with a typed request read through dxlib's
+  getters and a check of every constraint dxlib does not enforce, which runs
+  the table's standard list, create or read where the design gives one and
+  otherwise calls a body the service writes;
 - the privilege and role seed rows for `dxlib_module`'s user management from
   `permissions` and `roles`, and the menu item rows from `menus`;
-- a task per job.
+- a task per job that repeats at an interval, calling a job function the
+  service writes.
 
 ### What dxlib cannot take as it stands
 
@@ -637,7 +638,8 @@ where it adds a rule, and the conformance cases; the generators are Go only.
 6. The `dialect: dxlib` setting on the openapi target, and
    `specarch-gen-go-dxlib`, against the notification service as the real
    project, when the owner decides that service's specification goes ahead.
-   Built: the dialect, whose document dxlib's own reader reads.
+   Built: the dialect, whose document dxlib's own reader reads, and the
+   generator, whose file compiles against dxlib.
 7. Reported to dxlib's own queue, not done here: enforce the JSON Schema
    bounds in the parameter validator and accept them in the OpenAPI reader;
    route by method and URI; add `money` to the parameter registry; answer

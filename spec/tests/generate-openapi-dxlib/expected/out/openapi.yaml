@@ -15,7 +15,7 @@ paths:
             schema:
               type: object
               properties:
-                contactEmail:
+                contact_email:
                   type: string
                   format: email
                   x-dxlib-type: email
@@ -71,13 +71,13 @@ paths:
             schema:
               type: object
               properties:
-                bookId:
+                book_id:
                   type: string
                   x-dxlib-type: string
                   x-specarch-unenforced:
                     - 'format: uuid'
               required:
-                - bookId
+                - book_id
               x-dxlib-type: json
       responses:
         "200":
@@ -150,8 +150,8 @@ paths:
                           - pages
                         x-dxlib-type: string
                     required:
-                      - field_name
                       - direction
+                      - field_name
                     x-dxlib-type: json
                   x-dxlib-type: array-json-template
                 page_index:
@@ -216,33 +216,41 @@ components:
     Book:
       type: object
       properties:
-        contactEmail:
+        contact_email:
           type: string
           format: email
           x-dxlib-type: email
           x-specarch-sensitivity: personal
-        createdAt:
+        created_at:
           type: string
           format: date-time
           description: When the record was created; set by the system.
           x-dxlib-type: iso8601
-        createdBy:
+        created_by_user_id:
           type: string
           description: Who created the record; set by the system.
+          x-dxlib-type: string
+        created_by_user_nameid:
+          type: string
+          description: The name of who created the record; set by the system.
           x-dxlib-type: string
         id:
           type: string
           x-dxlib-type: string
           x-specarch-unenforced:
             - 'format: uuid'
-        lastModifiedAt:
+        last_modified_at:
           type: string
           format: date-time
           description: When the record was last changed; set by the system.
           x-dxlib-type: iso8601
-        lastModifiedBy:
+        last_modified_by_user_id:
           type: string
           description: Who last changed the record; set by the system.
+          x-dxlib-type: string
+        last_modified_by_user_nameid:
+          type: string
+          description: The name of who last changed the record; set by the system.
           x-dxlib-type: string
         pages:
           type: integer
@@ -266,10 +274,10 @@ components:
             - 'maxLength: 300'
       required:
         - id
-        - title
-        - shelf
         - pages
         - price
+        - shelf
+        - title
       x-dxlib-type: json
   x-specarch-problems:
     book-not-found:

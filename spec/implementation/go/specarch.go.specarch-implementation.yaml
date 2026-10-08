@@ -82,7 +82,12 @@ layout:
     description: The plug-in behind generate openapi. Reads the request on standard input, answers the OpenAPI document on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
   internal/genopenapi:
-    description: The OpenAPI 3.1 document in the standard dialect, the design field for field, with the problem catalogue and lists paged through the paginated-list idiom.
+    description: The OpenAPI 3.1 document in the standard dialect, the design field for field, with the problem catalogue and lists paged through the paginated-list idiom; and in the dxlib dialect, what dxlib's reader binds.
+  cmd/specarch-gen-go-dxlib:
+    description: The plug-in behind generate go-dxlib. Reads the request on standard input, answers the Go file on standard output, and never touches the disk.
+    implements: ["#/commands/generate"]
+  internal/gendxlib:
+    description: The Go file of a service on dxlib, its tables, handlers, seeds and tasks, read from the design through the dxlib dialect's names and types.
   cmd/specarch-gen-tests-go:
     description: The plug-in behind generate tests for a Go implementation file. Reads the request on standard input, answers the Go test file on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
@@ -224,6 +229,12 @@ testing:
     generated-openapi:
       description: Generates the library lending example's OpenAPI document and checks it parses, pages its list through the idiom, answers its refusals with problem documents and carries the audit fields; that a list by POST takes its paging in the body; and the dxlib dialect's document, which dxlib's own reader reads and validates when SPECARCH_DXLIB names a dxlib checkout, as on the owner's Mac, and is skipped without one, as in CI.
       run: go test ./internal/genopenapi
+      level: unit
+      implementationOnly: true
+      ci: true
+    generated-go-dxlib:
+      description: Generates the dxlib fixture's Go file and checks it holds the tables, the handlers with their standard operations and checks, the seeds without public and the task; and compiles it against dxlib beside stub bodies and jobs when SPECARCH_DXLIB names a dxlib checkout, and is skipped without one, as in CI.
+      run: go test ./internal/gendxlib
       level: unit
       implementationOnly: true
       ci: true

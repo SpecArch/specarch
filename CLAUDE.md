@@ -7,13 +7,21 @@ Standing rules for agents working in this repository.
 Every item appends to that day's file in `history/` (`history/YYYY-MM-DD.md`)
 in the same commit as its work: what changed and why, the owner's decisions,
 commit hashes, handoffs processed and deleted, what was left out on purpose,
-and open questions. Summary first, newest last, plain words. The file is
-public: run the de-ai skill on it.
+and open questions. Summary first, newest last, plain words.
 
 Design files, schemas, docs and the README carry no change log: no
 "previously", "changed from", "updated on" or "new in". They always read as
 the current truth; how they got there belongs only in `history/` and git.
 Version numbers stay.
+
+## No de-ai pass, and no AI traces
+
+No de-ai pass is run on anything in this repository: not on the history,
+the docs, the README, commit messages or reports. This overrides the
+global instruction to invoke the de-ai skill on prose. The rule against
+AI traces still holds in full: no `Co-Authored-By` line naming the
+assistant, no "Generated with" footer, and no model name or reference to
+the assistant or the session in files, commits or pull requests.
 
 ## Public repository
 

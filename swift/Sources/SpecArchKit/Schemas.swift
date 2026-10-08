@@ -187,6 +187,16 @@ let designSchemaJSON = #"""
         "$ref": "#/$defs/dependency"
       }
     },
+    "jobs": {
+      "description": "SpecArch keyword. The work the system does on its own, keyed by camelCase name.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/memberName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/job"
+      }
+    },
     "errors": {
       "description": "SpecArch keyword. The catalogue of problem types the operations answer with, keyed by kebab-case name. Every 4xx and 5xx response is an RFC 9457 problem document and names its type under problem.",
       "type": "object",
@@ -206,6 +216,16 @@ let designSchemaJSON = #"""
       },
       "additionalProperties": {
         "$ref": "#/$defs/page"
+      }
+    },
+    "menus": {
+      "description": "SpecArch keyword. The navigation: a tree of entries whose leaves name pages, keyed by camelCase name. A leaf is shown to who has the page's permission.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/memberName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/menuItem"
       }
     },
     "algorithms": {
@@ -2996,6 +3016,10 @@ let designSchemaJSON = #"""
           "type": "string",
           "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
         },
+        "job": {
+          "description": "The job the test is about.",
+          "$ref": "#/$defs/memberName"
+        },
         "requirement": {
           "description": "The requirement whose acceptance criteria the test shows met: its cases are 'acceptance 1', 'acceptance 2' and so on, one per criterion, and the test is usually level acceptance.",
           "$ref": "#/$defs/idKey"
@@ -3196,6 +3220,11 @@ let designSchemaJSON = #"""
         {
           "required": [
             "page"
+          ]
+        },
+        {
+          "required": [
+            "job"
           ]
         },
         {
@@ -3862,6 +3891,173 @@ let designSchemaJSON = #"""
         "status",
         "title",
         "condition"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "job": {
+      "description": "SpecArch keyword. Work the system does on its own: on a schedule, at an interval, or for each message it consumes. It acts as a role, reads and writes entities, may call dependencies and publish messages, and retries a failed item a bounded number of times.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "trigger": {
+          "description": "What starts the job: exactly one of schedule, a cron expression of five fields in UTC; every, a duration between runs; consumes, the channel/Message it handles one at a time.",
+          "type": "object",
+          "properties": {
+            "schedule": {
+              "type": "string",
+              "pattern": "^\\S+( \\S+){4}$"
+            },
+            "every": {
+              "$ref": "#/$defs/duration"
+            },
+            "consumes": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*/[A-Z][A-Za-z0-9]*$"
+            }
+          },
+          "minProperties": 1,
+          "maxProperties": 1,
+          "additionalProperties": false
+        },
+        "role": {
+          "description": "The role the job acts as; its permissions are what the job may do.",
+          "$ref": "#/$defs/roleName"
+        },
+        "reads": {
+          "description": "The entities the job reads.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/typeName"
+          },
+          "uniqueItems": true
+        },
+        "writes": {
+          "description": "The entities the job writes.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/typeName"
+          },
+          "uniqueItems": true
+        },
+        "calls": {
+          "description": "The dependencies the job calls.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "uniqueItems": true
+        },
+        "emits": {
+          "description": "The messages the job publishes, as channel/Message.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*/[A-Z][A-Za-z0-9]*$"
+          },
+          "uniqueItems": true
+        },
+        "retries": {
+          "description": "How often a failed item is tried again, and what becomes of it after the last try: deadLetter keeps it apart for a person, discard drops it.",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            },
+            "then": {
+              "type": "string",
+              "enum": [
+                "deadLetter",
+                "discard"
+              ]
+            }
+          },
+          "required": [
+            "limit",
+            "then"
+          ],
+          "additionalProperties": false
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description",
+        "trigger",
+        "role"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "menuItem": {
+      "description": "SpecArch keyword. One entry of a menu: a leaf that opens a page, or a group of entries.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "page": {
+          "description": "The page the entry opens; it is shown to who may open the page.",
+          "type": "string",
+          "minLength": 1
+        },
+        "items": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/menuItem"
+          },
+          "minProperties": 1
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "page"
+          ]
+        },
+        {
+          "required": [
+            "items"
+          ]
+        }
       ],
       "propertyNames": {
         "not": {

@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "an hourly job that acts as a role, reads and writes an entity, publishes a message, calls a dependency and retries an item three times, a test of it, a requirement with a harm it satisfies, and a menu over a page"
+when: "validate is run"
+then: "it reports no error, counts the job's test as covering it, warns that no test covers runs twice, the dependency failing or timing out, and an item failing every try, among the others, and exits 0"
+verifies: [SA-35]

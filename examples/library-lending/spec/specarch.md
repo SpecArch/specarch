@@ -126,15 +126,15 @@ file.
 ## 8. Cross-cutting concepts
 
 <!-- specarch:generate permissions -->
-| Permission | librarian | member | public |
-|---|---|---|---|
-| members.read | yes | | |
-| members.write | yes | | |
-| catalogue.read | yes | yes | |
-| loans.read | yes | yes | |
-| loans.create | yes | | |
-| loans.return | yes | | |
-| public | | | everyone |
+| Permission | librarian | member | scheduler | public |
+|---|---|---|---|---|
+| members.read | yes | | | |
+| members.write | yes | | | |
+| catalogue.read | yes | yes | | |
+| loans.read | yes | yes | yes | |
+| loans.create | yes | | | |
+| loans.return | yes | | | |
+| public | | | | everyone |
 <!-- specarch:end -->
 
 A member holding `loans.read` sees only loans where `memberId` is their own.

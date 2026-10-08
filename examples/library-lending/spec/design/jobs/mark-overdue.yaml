@@ -1,0 +1,11 @@
+jobs:
+  markOverdue:
+    description: Every night, finds the open loans past their due date, marks each overdue, and publishes LoanOverdue for it, so the member is told.
+    trigger: { schedule: "0 2 * * *" }
+    role: scheduler
+    reads: [Loan]
+    writes: [Loan]
+    emits: [loan.overdue/LoanOverdue]
+    retries: { limit: 3, then: deadLetter }
+    satisfies: [LIB-4]
+    why: Overnight, when no one is at the desk, so a loan is overdue from the first morning after its due date.

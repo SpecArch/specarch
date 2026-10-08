@@ -1,0 +1,37 @@
+decisions:
+  ADR-026:
+    title: Jobs are design and a subject of tests; menus are a tree of pages
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      The dxlib study found background work that runs once or on a loop, a
+      queue drained with retries and a dead-letter state, and menus that
+      place pages in a tree. The design had no word for either, so a job's
+      tests and a page's place were left to the code.
+    decision: |
+      jobs is a design section. A job has a description, a trigger that is
+      exactly one of schedule (five cron fields, in UTC), every (a duration)
+      or consumes (a channel and message), the role it acts as, the
+      entities it reads and writes, the dependencies it calls, the messages
+      it emits, and retries with a limit and what follows the last try,
+      deadLetter or discard. A test may name a job as its subject. A job
+      gets the cases runs twice, which is critical on its own, dependency
+      fails and dependency times out for each dependency it calls, and an
+      item fails every try when it retries. menus is a design section: a
+      tree of entries, each a title with a page or with entries of its own.
+    consequences: |
+      A job's dependency cases reuse the calls and dependencies of item
+      024, and runs twice is the job's side of what idempotencyKey is for
+      an operation; neither keyword is defined again. A job acts as a role,
+      so what it may do is the role's permissions; whether its writes stay
+      inside them is not checked yet. A cron expression is checked for its
+      five fields and nothing more, since checking its values would need a
+      library in both builds. A menu entry is shown to who may open its
+      page, which the techspec says and nothing needs to check. The
+      meta-model stays at 0.1.
+    why: |
+      A trigger is one of three, because a job that both runs hourly and
+      consumes a queue is two jobs. Runs twice is critical on its own as a
+      concurrent write is: a scheduler that fires twice, or a message
+      delivered twice, is what happens in production and never by hand.
+    satisfies: [SA-35]

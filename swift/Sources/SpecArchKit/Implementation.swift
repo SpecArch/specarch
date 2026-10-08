@@ -13,7 +13,7 @@ let designKeys: Set<String> = [
     "properties", "primaryKey", "stateField", "messages", "payload",
     "calls", "idempotencyKey", "guard", "validity",
     "sensitivity", "atRest", "lookup", "audited", "deletion",
-    "listOf", "limits", "problem", "errors",
+    "listOf", "limits", "problem", "errors", "jobs", "menus",
 ]
 
 /// The implementation file's maps whose keys the author chooses (a folder,

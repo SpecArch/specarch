@@ -95,6 +95,8 @@ enums:
       - list_of
       - limits
       - problem
+      - job
+      - menu
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: the file is not well-formed YAML
@@ -186,4 +188,6 @@ enums:
       list_of: "a listOf names an entity the specification does not have or a field the entity does not have, puts an encrypted field in searchable or sortable or in filterable without lookup hash, or has a default page size above its maximum"
       limits: "a rate's time is zero, or its burst is below its requests"
       problem: "a response names a problem type not under errors, or one of another status, or the specification declares errors and a 4xx or 5xx response names none"
+      job: "a job acts as a role the specification does not have, reads or writes an entity it does not have, or consumes a message no channel declares"
+      menu: "a menu entry opens a page the specification does not have"
     satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29]

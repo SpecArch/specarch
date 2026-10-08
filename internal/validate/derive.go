@@ -136,6 +136,9 @@ func (d *design) subjects() []*subject {
 	for _, p := range source.Pairs(source.Child(d.root, "commands")) {
 		out = append(out, d.withHarm(d.commandSubject(p), p.Value))
 	}
+	for _, p := range source.Pairs(source.Child(d.root, "jobs")) {
+		out = append(out, d.withHarm(d.jobSubject(p), p.Value))
+	}
 	for _, p := range source.Pairs(source.Child(d.root, "pages")) {
 		out = append(out, d.withHarm(d.pageSubject(p), p.Value))
 	}

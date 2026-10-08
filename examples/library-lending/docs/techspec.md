@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 7 requirements, 3 entities, 8 HTTP operations, 2 channels, 1 dependency, 5 pages, 1 algorithm, 96 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 7 requirements, 3 entities, 8 HTTP operations, 2 channels, 1 dependency, 5 pages, 1 algorithm, 98 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -358,6 +358,14 @@ sequenceDiagram
   S-->>C: 200 Loan
 ```
 
+### Job markOverdue
+
+Every night, finds the open loans past their due date, marks each overdue, and publishes LoanOverdue for it, so the member is told.
+
+**Insight:** Overnight, when no one is at the desk, so a loan is overdue from the first morning after its due date.
+
+Runs on the schedule `0 2 * * *` (UTC), as the role scheduler. Reads Loan. Writes Loan. Publishes loan.overdue/LoanOverdue. A failed item is tried 3 times, then set aside for a person. Running it twice over the same records changes nothing a second time.
+
 ## 7. Deployment and implementation
 
 ### Environments
@@ -595,15 +603,15 @@ The entity fields that are not public, and the ones encrypted at rest. A persona
 
 Access is fail-closed: every operation, command and page names the one permission it needs, and only the roles below grant one.
 
-| Permission | librarian | member | public |
-|---|---|---|---|
-| members.read | yes | | |
-| members.write | yes | | |
-| catalogue.read | yes | yes | |
-| loans.read | yes | yes | |
-| loans.create | yes | | |
-| loans.return | yes | | |
-| public | | | everyone |
+| Permission | librarian | member | scheduler | public |
+|---|---|---|---|---|
+| members.read | yes | | | |
+| members.write | yes | | | |
+| catalogue.read | yes | yes | | |
+| loans.read | yes | yes | yes | |
+| loans.create | yes | | | |
+| loans.return | yes | | | |
+| public | | | | everyone |
 
 **Insight on member:** The row-level rule, a member sees only loans whose memberId is their own, is not in the meta-model yet; the service enforces it and this role is where it is written down.
 
@@ -633,6 +641,15 @@ flowchart LR
   member_view -->|"Lend a book"| loan_form
   members_list -->|"New member"| member_form
 ```
+
+The menu, each entry shown to who may open its page:
+
+- Members
+  - All members: page members-list, members.read
+  - Register a member: page member-form, members.write
+- Loans
+  - All loans: page loans-list, loans.read
+  - Lend a copy: page loan-form, loans.create
 
 | Page | Kind | Route | Entity | Permission | Shows |
 |---|---|---|---|---|---|
@@ -755,6 +772,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | loans-list-denied | page loans-list | system | red | a caller holding no role | the page loans-list is opened | it is not shown |
 | loans-list-denied-with-expired-session | page loans-list | system | red | a librarian whose session expired after half an hour without a request | the page loans-list is opened | it is not shown, and the sign-in page is shown instead |
 | loans-list-shown | page loans-list | system | golden | a librarian and some loans | the page loans-list is opened | it lists the loans with their due dates, states and fees |
+| mark-overdue-runs-twice | job markOverdue | system | golden | the job markOverdue has run and marked a loan overdue | it runs again the same night | the loan stays overdue, and no second LoanOverdue is published for it |
+| mark-overdue-succeeds | job markOverdue | system | golden | an open loan whose due date was yesterday, and an open loan due today | the job markOverdue runs | the loan due yesterday is overdue and LoanOverdue is published for it; the loan due today stays open |
 | member-card-number-once | Member constraint member_card_number_unique | system | golden | no member with card number 00000001 | a member with that card number is saved | it is saved |
 | member-card-number-twice | Member constraint member_card_number_unique | system | red | a member with card number 00000001 | another member with that card number is saved | it is refused |
 | member-email-once | Member constraint member_email_unique | system | golden | no member with ana@example.org | a member with that address is saved | it is saved |
@@ -813,6 +832,14 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on create-loan-request-larger-than-1024-bytes:** Derived from the body limit on createLoan, then completed by hand; a lending request holds two ids, so anything near the limit is not a lending request.
 
+**Origin on mark-overdue-runs-twice:** inferred.
+
+**Insight on mark-overdue-runs-twice:** Drafted by specarch derive, since a job that runs twice is a case nobody tries by hand, then completed by hand; a member must not be told twice.
+
+**Origin on mark-overdue-succeeds:** inferred.
+
+**Insight on mark-overdue-succeeds:** Drafted by specarch derive from the job's success path, then completed by hand from the acceptance criterion of LIB-4; the loan due today shows the job does not run a day early.
+
 ## 12. Glossary
 
 | Term | Meaning |
@@ -870,7 +897,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | LIB-1 |   | entities Member constraints member_card_number_unique; entities Member; paths /members post | tests register-member; tests register-member-email-taken; checks lend-and-return; checks migrated-members |
 | LIB-2 |   | entities Book; permissions public; paths /books get | tests browse-catalogue; checks service-answers |
 | LIB-3 | money | entities Loan; paths /loans post; migrations add-membership-tier | tests create-loan-rate-exceeded; tests create-loan-repeated-with-the-same-idempotency-key; tests create-loan-request-larger-than-1024-bytes; tests fees-block-lending; tests lend-a-copy; tests lend-limit-reached; tests lending-limit-accepted; checks lend-and-return |
-| LIB-4 |   | entities Loan transitions 1; entities Loan; paths /loans/{loanId}/return post; channels loan.overdue; channels loan.overdue messages LoanOverdue; configuration notificationChannelUrl | tests loan-becomes-overdue; monitors overdue-notices-sent |
+| LIB-4 |   | entities Loan transitions 1; entities Loan; paths /loans/{loanId}/return post; channels loan.overdue; channels loan.overdue messages LoanOverdue; jobs markOverdue; configuration notificationChannelUrl | tests loan-becomes-overdue; tests mark-overdue-runs-twice; tests mark-overdue-succeeds; monitors overdue-notices-sent |
 | LIB-5 |   | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; configuration dailyRate | tests loan-lent-and-returned; tests return-late; checks lend-and-return |
 | LIB-6 |   | roles member; session | checks member-sees-own-loans |
 | LIB-7 |   | pages loan-form; pages member-form | checks lend-and-return; monitors catalogue-latency |

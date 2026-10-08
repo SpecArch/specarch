@@ -189,6 +189,8 @@ extension Checker {
         checkOperations(d)
         checkCommands(d)
         checkDependencies(d)
+        checkJobs(d)
+        checkMenus(d)
         checkSession(d)
         checkPages(d)
         checkDecisions(d)

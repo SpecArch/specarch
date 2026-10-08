@@ -1,0 +1,71 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.], harm: [money] }
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+    primaryKey: [id]
+    satisfies: [CASE-1]
+channels:
+  loan.overdue:
+    messages:
+      LoanOverdue:
+        summary: A loan is overdue
+        payload: { type: object, properties: { loanId: { type: string, format: uuid } } }
+dependencies:
+  mailer: { description: Sends the reminder mail., timeout: PT10S }
+jobs:
+  chaseOverdue:
+    description: Finds loans past their due date, marks them overdue and mails the member.
+    trigger: { every: PT1H }
+    role: desk
+    reads: [Loan]
+    writes: [Loan]
+    emits: [loan.overdue/LoanOverdue]
+    calls: [mailer]
+    retries: { limit: 3, then: deadLetter }
+    satisfies: [CASE-1]
+pages:
+  loans-list:
+    title: Loans
+    kind: list
+    route: /loans
+    entity: Loan
+    source: listLoans
+    permission: loans.read
+    columns: [id]
+    satisfies: [CASE-1]
+menus:
+  lending:
+    title: Lending
+    items:
+      loans: { title: Loans, page: loans-list }
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: The loans
+      permission: loans.read
+      responses:
+        "200":
+          description: The loans.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Loan" } }
+      satisfies: [CASE-1]
+permissions:
+  loans.read: { description: See loans. }
+roles:
+  desk: { description: The desk., permissions: [loans.read] }
+tests:
+  chase-overdue-marks-loans:
+    job: chaseOverdue
+    level: system
+    scenario: golden
+    given: a loan past its due date
+    when: the job chaseOverdue runs
+    then: the loan is overdue and LoanOverdue is published
+    verifies: [CASE-1]

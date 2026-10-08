@@ -102,6 +102,8 @@ const (
 	RuleListOf                 Rule = "list_of"
 	RuleLimits                 Rule = "limits"
 	RuleProblem                Rule = "problem"
+	RuleJob                    Rule = "job"
+	RuleMenu                   Rule = "menu"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -196,6 +198,8 @@ var Rules = []Rule{
 	RuleListOf,
 	RuleLimits,
 	RuleProblem,
+	RuleJob,
+	RuleMenu,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

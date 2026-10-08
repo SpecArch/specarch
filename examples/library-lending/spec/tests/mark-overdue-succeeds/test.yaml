@@ -1,0 +1,9 @@
+job: markOverdue
+level: system
+scenario: golden
+given: an open loan whose due date was yesterday, and an open loan due today
+when: the job markOverdue runs
+then: the loan due yesterday is overdue and LoanOverdue is published for it; the loan due today stays open
+verifies: [LIB-4]
+origin: inferred
+why: Drafted by specarch derive from the job's success path, then completed by hand from the acceptance criterion of LIB-4; the loan due today shows the job does not run a day early.

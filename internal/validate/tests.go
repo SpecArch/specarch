@@ -26,6 +26,9 @@ func testSubjectKey(t *yaml.Node) string {
 	if v := source.Str(source.Child(t, "page")); v != "" {
 		return "page: " + v
 	}
+	if v := source.Str(source.Child(t, "job")); v != "" {
+		return "job: " + v
+	}
 	if v := source.Str(source.Child(t, "requirement")); v != "" {
 		return "requirement: " + v
 	}
@@ -70,7 +73,7 @@ func (c *checker) checkTests(d *design) {
 			continue
 		}
 		if s == nil {
-			c.add(p.Key, source.Pointer(base...), RuleTestSubject, "test %s is about %s, which is not in the specification; name an operationId, command, page, requirement with acceptance criteria, entity with a state machine, or an entity's constraint or transition that exists", name, strings.ReplaceAll(key, ": ", " "))
+			c.add(p.Key, source.Pointer(base...), RuleTestSubject, "test %s is about %s, which is not in the specification; name an operationId, command, page, job, requirement with acceptance criteria, entity with a state machine, or an entity's constraint or transition that exists", name, strings.ReplaceAll(key, ": ", " "))
 			continue
 		}
 		scenario := source.Str(source.Child(t, "scenario"))

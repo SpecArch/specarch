@@ -411,11 +411,13 @@ with a validator rule or a generator that reads it.
 5. **Background jobs.** dxlib runs a task once or forever with a delay, and
    the notification service drains a queue with retries and a dead-letter
    state. Already a 0.2 candidate in `docs/roadmap.md`; dxlib confirms the
-   shape. Proposed: `jobs`, each with a `trigger` (a schedule in cron form,
-   an interval, or a channel it consumes), what it `reads` and `writes`,
-   its `permission` (a job acts as a role), `retries` with a limit and a
-   dead-letter outcome, and `satisfies`. The sequence diagram and the
-   derived cases (`job runs twice`, `dependency fails`) follow.
+   shape. Built: `jobs`, each with a `trigger` (a schedule in cron form,
+   an interval, or a channel it consumes), the `role` it acts as, what it
+   `reads` and `writes`, the dependencies it `calls` and what it `emits`,
+   `retries` with a limit and a dead-letter or discard outcome, and
+   `satisfies`. A job is a subject of tests, with the cases `runs twice`,
+   `dependency fails` and `dependency times out`, and `an item fails every
+   try`.
 6. **The error body.** dxlib answers every refusal with one JSON shape and
    one upper-case code; its status codes are its own (422 for every
    validation failure, 409 for a bad credential). The shape is design: a
@@ -436,9 +438,10 @@ with a validator rule or a generator that reads it.
    will carry it as an extension, and the runtime through the `rate-limit`
    idiom.
 8. **Navigation.** A menu item in dxlib is a page's place in a tree, with
-   the privilege that shows it. Proposed: `menus`, a tree whose leaves name
-   pages; the validator checks every leaf is a page and inherits its
-   permission; the pages flowchart gains the tree.
+   the privilege that shows it. Built: `menus`, a tree whose leaves name
+   pages; the validator checks every leaf is a page (`menu`), and a leaf is
+   shown to who may open its page; the techspec lists the tree under the
+   pages.
 9. **Identifiers.** dxlib keeps an internal integer key, a public opaque id
    that cannot be enumerated, a human-readable name id and a version tag on
    most rows. Which of these a client sees is design; their generation is an

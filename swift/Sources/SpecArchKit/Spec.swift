@@ -24,7 +24,7 @@ public let sections: [String: String] = [
     "stakeholders": "requirements", "needs": "requirements", "requirements": "requirements",
     "glossary": "requirements", "assumptions": "requirements", "constraints": "requirements",
     "enums": "design", "entities": "design", "permissions": "design", "roles": "design", "session": "design", "paths": "design",
-    "commands": "design", "channels": "design", "dependencies": "design", "errors": "design", "pages": "design", "algorithms": "design", "decisions": "design",
+    "commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "errors": "design", "pages": "design", "menus": "design", "algorithms": "design", "decisions": "design",
     "tests": "tests",
     "environments": "deployment", "configuration": "deployment", "release": "deployment",
     "rollback": "deployment", "migrations": "deployment",
@@ -36,7 +36,7 @@ public let sections: [String: String] = [
 /// questions last.
 let sectionOrder = [
     "stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
-    "enums", "entities", "permissions", "roles", "session", "paths", "commands", "channels", "dependencies", "errors", "pages", "algorithms",
+    "enums", "entities", "permissions", "roles", "session", "paths", "commands", "channels", "dependencies", "jobs", "errors", "pages", "menus", "algorithms",
     "tests", "decisions",
     "environments", "configuration", "release", "rollback", "migrations",
     "checks", "signoff",

@@ -199,6 +199,7 @@ extension Design {
         var out: [Subject] = []
         for o in opList where !o.id.isEmpty { out.append(withHarm(operationSubject(o), o.node)) }
         for p in pairs(root.child("commands")) { out.append(withHarm(commandSubject(p), p.value)) }
+        for p in pairs(root.child("jobs")) { out.append(withHarm(jobSubject(p), p.value)) }
         for p in pairs(root.child("pages")) { out.append(withHarm(pageSubject(p), p.value)) }
         for e in pairs(root.child("entities")) {
             for c in pairs(e.value.child("constraints")) { out.append(withHarm(constraintSubject(e.key.value, c), c.value)) }
@@ -493,6 +494,34 @@ extension Design {
         return s
     }
 
+    /// A job's tests: it runs, it runs twice over the same records without a
+    /// second effect, its dependencies fail, and an item fails every time.
+    func jobSubject(_ p: Pair) -> Subject {
+        let name = p.key.value
+        let s = Subject(label: "job " + name, node: p.key, path: pointer("jobs", name), yamlKey: "job: " + name, name: kebab(name))
+        var run = "the job " + name + " runs"
+        var again = "it runs again over the same records"
+        let m = str(p.value.child("trigger")?.child("consumes"))
+        if !m.isEmpty {
+            run = "a " + m + " arrives for the job " + name
+            again = "the same " + m + " arrives again"
+        }
+        s.success = golden("...", run, "it completes")
+        s.cases.append(DerivedCase(name: "runs twice", scenario: "golden", given: "the job " + name + " has run", when: again,
+                                   then: "nothing changes a second time", frequency: rare, critical: true))
+        for e in items(p.value.child("calls")) {
+            guard let dep = dependencies[e.value] else { continue }
+            s.byNature("dependency fails " + e.value, e.value + " answers with an error", run, "...")
+            s.byNature("dependency times out " + e.value, e.value + " does not answer within " + str(dep.child("timeout")), run, "...")
+        }
+        if let r = p.value.child("retries") {
+            let limit = str(r.child("limit"))
+            let then = str(r.child("then")) == "discard" ? "after " + limit + " tries the item is dropped" : "after " + limit + " tries the item is set aside for a person"
+            s.red("an item fails every try", occasional, "an item that fails every time it is tried", run, then)
+        }
+        return s
+    }
+
     func pageSubject(_ p: Pair) -> Subject {
         let name = p.key.value
         let s = Subject(label: "page " + name, node: p.key, path: pointer("pages", name), yamlKey: "page: " + name, name: name)
@@ -552,6 +581,7 @@ func testSubjectKey(_ t: YNode) -> String {
     if let v = t.child("operation"), !v.str.isEmpty { return "operation: " + v.str }
     if let v = t.child("command"), !v.str.isEmpty { return "command: " + v.str }
     if let v = t.child("page"), !v.str.isEmpty { return "page: " + v.str }
+    if let v = t.child("job"), !v.str.isEmpty { return "job: " + v.str }
     if let v = t.child("requirement"), !v.str.isEmpty { return "requirement: " + v.str }
     let ent = str(t.child("entity"))
     if ent.isEmpty { return "" }
@@ -618,7 +648,7 @@ extension Checker {
             }
             guard let s = byKey[key] else {
                 add(p.key, pointer(base), .testSubject,
-                    "test \(name) is about \(key.replacingOccurrences(of: ": ", with: " ")), which is not in the specification; name an operationId, command, page, requirement with acceptance criteria, entity with a state machine, or an entity's constraint or transition that exists")
+                    "test \(name) is about \(key.replacingOccurrences(of: ": ", with: " ")), which is not in the specification; name an operationId, command, page, job, requirement with acceptance criteria, entity with a state machine, or an entity's constraint or transition that exists")
                 continue
             }
             let id = ObjectIdentifier(s)

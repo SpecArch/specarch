@@ -7,3 +7,6 @@ roles:
     permissions: [catalogue.read, loans.read]
     satisfies: [LIB-6]
     why: The row-level rule, a member sees only loans whose memberId is their own, is not in the meta-model yet; the service enforces it and this role is where it is written down.
+  scheduler:
+    description: The system itself, running the nightly jobs; no person signs in as it.
+    permissions: [loans.read]

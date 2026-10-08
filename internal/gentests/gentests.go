@@ -620,7 +620,7 @@ func (g *gen) kind(field map[string]any, v any) string {
 }
 
 func subjectOf(t map[string]any) string {
-	for _, k := range []string{"operation", "command", "page", "requirement"} {
+	for _, k := range []string{"operation", "command", "page", "job", "requirement"} {
 		if v := str(t, k); v != "" {
 			return k + " " + v
 		}

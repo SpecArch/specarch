@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.4.0-dev of the specification: 209 design tests, 68 golden and 140 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.4.0-dev of the specification: 211 design tests, 69 golden and 141 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.4.0-dev of the specification: 209 design tests, 68 golden and 140 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 205 |
+| system | 207 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1065,6 +1065,22 @@ Scenario: golden; level: system; verifies SA-34.
 - When: validate is run
 - Then: it reports no error, warns that no test covers the cases page beyond last, page size above the maximum, sort and filter outside the lists, a request too large and too many requests, among the others, and exits 0
 
+#### validate-jobs-menus
+
+Scenario: red; level: system; covers exit 1; verifies SA-35.
+
+- Given: a job that acts as a role the specification lacks, reads an entity it lacks, consumes a message no channel declares, publishes another, and calls an undeclared dependency, and a menu whose leaf opens a page that does not exist
+- When: validate is run
+- Then: it reports job three times, emits, dependency and menu once each, and exits 1
+
+#### validate-jobs-menus-valid
+
+Scenario: golden; level: system; verifies SA-35.
+
+- Given: an hourly job that acts as a role, reads and writes an entity, publishes a message, calls a dependency and retries an item three times, a test of it, a requirement with a harm it satisfies, and a menu over a page
+- When: validate is run
+- Then: it reports no error, counts the job's test as covering it, warns that no test covers runs twice, the dependency failing or timing out, and an item failing every try, among the others, and exits 0
+
 #### validate-layout-folder-missing
 
 Scenario: red; level: system; covers exit 1; verifies SA-11.
@@ -1733,7 +1749,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-83 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+85 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1761,6 +1777,8 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-34 | acceptance 2 | golden | SA-34 names no harm |
 | requirement SA-34 | acceptance 3 | golden | SA-34 names no harm |
 | requirement SA-34 | acceptance 4 | golden | SA-34 names no harm |
+| requirement SA-35 | acceptance 1 | golden | SA-35 names no harm |
+| requirement SA-35 | acceptance 2 | golden | SA-35 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

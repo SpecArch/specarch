@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 96 design tests, 28 golden and 67 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 98 design tests, 30 golden and 67 red, about 27 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.1.0 of the specification: 96 design tests, 28 golden and 67 red, about
 | Level | Design tests |
 |---|---|
 | acceptance | 2 |
-| system | 94 |
+| system | 96 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -519,6 +519,32 @@ Scenario: golden; level: system.
 - When: the page loans-list is opened
 - Then: it lists the loans with their due dates, states and fees
 
+### Job markOverdue
+
+#### mark-overdue-runs-twice
+
+Scenario: golden; level: system; covers runs twice; verifies LIB-4.
+
+- Given: the job markOverdue has run and marked a loan overdue
+- When: it runs again the same night
+- Then: the loan stays overdue, and no second LoanOverdue is published for it
+
+**Origin:** inferred.
+
+**Insight:** Drafted by specarch derive, since a job that runs twice is a case nobody tries by hand, then completed by hand; a member must not be told twice.
+
+#### mark-overdue-succeeds
+
+Scenario: golden; level: system; verifies LIB-4.
+
+- Given: an open loan whose due date was yesterday, and an open loan due today
+- When: the job markOverdue runs
+- Then: the loan due yesterday is overdue and LoanOverdue is published for it; the loan due today stays open
+
+**Origin:** inferred.
+
+**Insight:** Drafted by specarch derive from the job's success path, then completed by hand from the acceptance criterion of LIB-4; the loan due today shows the job does not run a day early.
+
 ### Member constraint member_card_number_unique
 
 #### member-card-number-once
@@ -870,7 +896,7 @@ stateDiagram-v2
 
 ## 4. Derived cases left out
 
-20 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+21 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -883,6 +909,7 @@ stateDiagram-v2
 | operation returnLoan | response 503 | red | occasional case, and operation returnLoan satisfies no requirement with a harm |
 | operation reportLost | guard precondition fails | red | occasional case, and operation reportLost satisfies no requirement with a harm |
 | operation reportLost | response 503 | red | occasional case, and operation reportLost satisfies no requirement with a harm |
+| job markOverdue | an item fails every try | red | occasional case, and job markOverdue satisfies no requirement with a harm |
 | Loan state machine | open to overdue to returned | golden | no transition on the path satisfies a requirement with a harm |
 | Loan state machine | open to overdue to lost | golden | no transition on the path satisfies a requirement with a harm |
 | Loan state machine | open to lost | golden | no transition on the path satisfies a requirement with a harm |

@@ -197,11 +197,13 @@ Other known candidates:
 - sets and lists in the expression language, so a rule over many objects
   (every permission granted by some role) can be a formula rather than a
   count;
-- background jobs and schedules;
-- the keywords `docs/dxlib-lessons.md` found needed: the sensitivity of a
-  field, encryption at rest, audited entities and soft delete, list
-  operations, a problem catalogue for error responses, limits on an
-  operation, menus, and a read model;
+- a read model (`views`), the last keyword `docs/dxlib-lessons.md` found
+  needed;
+- built: background jobs and schedules (`jobs`), and the other keywords
+  `docs/dxlib-lessons.md` found needed: the sensitivity of a field,
+  encryption at rest, audited entities and soft delete, list operations,
+  a problem catalogue for error responses, limits on an operation, and
+  menus;
 - configuration and settings as a first-class concept;
 - built: the concepts the red paths of `docs/test-generation.md` needed,
   `dependencies` with a time limit per call, `idempotencyKey`, `validity`

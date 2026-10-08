@@ -1,0 +1,10 @@
+job: markOverdue
+level: system
+scenario: golden
+covers: [runs twice]
+given: the job markOverdue has run and marked a loan overdue
+when: it runs again the same night
+then: the loan stays overdue, and no second LoanOverdue is published for it
+verifies: [LIB-4]
+origin: inferred
+why: Drafted by specarch derive, since a job that runs twice is a case nobody tries by hand, then completed by hand; a member must not be told twice.

@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"go.yaml.in/yaml/v3"
+
+	"github.com/SpecArch/specarch/internal/source"
 )
 
 // CompanionName is the hand-written explanation beside a specification's
@@ -346,7 +348,8 @@ func runtime(d *doc, root *yaml.Node) {
 	}
 	ops := operations(root)
 	cmds := pairs(root, "commands")
-	if len(states)+len(ops)+len(cmds) == 0 {
+	jobs := pairs(root, "jobs")
+	if len(states)+len(ops)+len(cmds)+len(jobs) == 0 {
 		return
 	}
 	d.heading(2, "6. Runtime view")
@@ -377,6 +380,12 @@ func runtime(d *doc, root *yaml.Node) {
 		d.explain(o.node)
 		operationDetails(d, root, o.node)
 		d.block(operationSequence(root, o))
+	}
+	for _, j := range jobs {
+		d.heading(3, "Job "+j.Key.Value)
+		d.para(str(j.Value, "description"))
+		d.explain(j.Value)
+		jobDetails(d, root, j.Value)
 	}
 	for _, c := range cmds {
 		d.heading(3, "Command "+c.Key.Value)
@@ -539,6 +548,11 @@ func crossCutting(d *doc, root *yaml.Node) {
 	if len(pages) > 0 {
 		d.heading(3, "Pages")
 		d.block(pagesFlowchart(root))
+		if menus := pairs(root, "menus"); len(menus) > 0 {
+			d.para("The menu, each entry shown to who may open its page:")
+			menuList(d, root, menus, "")
+			d.blank()
+		}
 		d.line("| Page | Kind | Route | Entity | Permission | Shows |")
 		d.line("|---|---|---|---|---|---|")
 		for _, p := range pages {
@@ -636,7 +650,7 @@ func qualityTests(d *doc, root *yaml.Node) {
 }
 
 func testSubject(t *yaml.Node) string {
-	for _, k := range []string{"operation", "command", "page"} {
+	for _, k := range []string{"operation", "command", "page", "job"} {
 		if v := str(t, k); v != "" {
 			return k + " " + v
 		}
@@ -811,4 +825,57 @@ func sensitiveFields(root *yaml.Node) [][3]string {
 		}
 	}
 	return out
+}
+
+// jobDetails writes what starts a job, what it acts as, reads, writes,
+// calls and publishes, and how it retries.
+func jobDetails(d *doc, root *yaml.Node, j *yaml.Node) {
+	trigger := get(j, "trigger")
+	var start string
+	switch {
+	case str(trigger, "schedule") != "":
+		start = "on the schedule `" + str(trigger, "schedule") + "` (UTC)"
+	case str(trigger, "every") != "":
+		start = "every " + str(trigger, "every")
+	default:
+		start = "for each " + str(trigger, "consumes") + " it consumes"
+	}
+	text := "Runs " + start + ", as the role " + str(j, "role") + "."
+	if r := strs(j, "reads"); len(r) > 0 {
+		text += " Reads " + joinAnd(r) + "."
+	}
+	if w := strs(j, "writes"); len(w) > 0 {
+		text += " Writes " + joinAnd(w) + "."
+	}
+	if calls := strs(j, "calls"); len(calls) > 0 {
+		var parts []string
+		for _, c := range calls {
+			parts = append(parts, fmt.Sprintf("%s (within %s)", c, str(get(get(root, "dependencies"), c), "timeout")))
+		}
+		text += " Calls " + joinAnd(parts) + "."
+	}
+	if e := strs(j, "emits"); len(e) > 0 {
+		text += " Publishes " + joinAnd(e) + "."
+	}
+	if r := get(j, "retries"); r != nil {
+		after := "set aside for a person"
+		if str(r, "then") == "discard" {
+			after = "dropped"
+		}
+		text += " A failed item is tried " + str(r, "limit") + " times, then " + after + "."
+	}
+	d.para(text + " Running it twice over the same records changes nothing a second time.")
+}
+
+// menuList writes the menu tree as a nested list.
+func menuList(d *doc, root *yaml.Node, items []source.Pair, indent string) {
+	for _, m := range items {
+		if page := str(m.Value, "page"); page != "" {
+			perm := str(get(get(root, "pages"), page), "permission")
+			d.line("%s- %s: page %s, %s", indent, str(m.Value, "title"), page, perm)
+			continue
+		}
+		d.line("%s- %s", indent, str(m.Value, "title"))
+		menuList(d, root, pairs(m.Value, "items"), indent+"  ")
+	}
 }

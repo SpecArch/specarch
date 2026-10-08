@@ -93,6 +93,8 @@ public enum Rule: String, CaseIterable, Sendable {
     case listOf = "list_of"
     case limits = "limits"
     case problem = "problem"
+    case job = "job"
+    case menu = "menu"
 }
 
 /// Whether a diagnostic makes the file invalid.

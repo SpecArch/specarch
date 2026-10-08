@@ -29,3 +29,14 @@ requirements:
       - source: rfc-9457
         clause: "3"
         says: "A problem details object carries a type URI that identifies the problem type, a short human-readable title, and the HTTP status code; a client branches on the type."
+  SA-35:
+    statement: A specification shall be able to declare the jobs the system runs on its own, with what starts each, the role it acts as, what it reads, writes, calls and publishes, and how it retries, and the menus that lead to its pages; specarch validate shall check each against the design, and a job shall be a subject of tests with the cases it implies.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A job acting as a role the specification lacks, reading or writing an entity it lacks, or consuming a message no channel declares is reported as job; a menu entry opening a page that does not exist is reported as menu.
+      - A test may name a job as its subject, and a job gets the cases runs twice, a dependency failing or timing out for each it calls, and an item failing every try when it retries.
+    verification: test
+    needs: [NEED-1, NEED-5]
+    why: What runs at night or on a queue is the part of a system nobody watches, and the part a test plan forgets; written in the design, its tests follow from it like an operation's.

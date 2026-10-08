@@ -1,0 +1,11 @@
+menus:
+  members:
+    title: Members
+    items:
+      list: { title: All members, page: members-list }
+      register: { title: Register a member, page: member-form }
+  loans:
+    title: Loans
+    items:
+      list: { title: All loans, page: loans-list }
+      lend: { title: Lend a copy, page: loan-form }

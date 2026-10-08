@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.4.0-dev of the specification: 34 requirements, 3 entities, 11 commands, 6 algorithms, 209 tests, 25 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.4.0-dev of the specification: 35 requirements, 3 entities, 11 commands, 6 algorithms, 211 tests, 26 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -267,6 +267,8 @@ Primary key: path.
 | Rule | list_of | a listOf names an entity the specification does not have or a field the entity does not have, puts an encrypted field in searchable or sortable or in filterable without lookup hash, or has a default page size above its maximum |
 | Rule | limits | a rate's time is zero, or its burst is below its requests |
 | Rule | problem | a response names a problem type not under errors, or one of another status, or the specification declares errors and a 4xx or 5xx response names none |
+| Rule | job | a job acts as a role the specification does not have, reads or writes an entity it does not have, or consumes a message no channel declares |
+| Rule | menu | a menu entry opens a page the specification does not have |
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
@@ -2162,6 +2164,38 @@ stays at 0.1.
 
 **Note:** From RFC 9457, Problem Details for HTTP APIs, 2023, clause 3: A problem details object carries a type URI that identifies the problem type, a short human-readable title, and the HTTP status code. <https://www.rfc-editor.org/rfc/rfc9457>
 
+### ADR-026: Jobs are design and a subject of tests; menus are a tree of pages
+
+Status: accepted, 2026-10-08.
+
+Context: The dxlib study found background work that runs once or on a loop, a
+queue drained with retries and a dead-letter state, and menus that
+place pages in a tree. The design had no word for either, so a job's
+tests and a page's place were left to the code.
+
+Decision: jobs is a design section. A job has a description, a trigger that is
+exactly one of schedule (five cron fields, in UTC), every (a duration)
+or consumes (a channel and message), the role it acts as, the
+entities it reads and writes, the dependencies it calls, the messages
+it emits, and retries with a limit and what follows the last try,
+deadLetter or discard. A test may name a job as its subject. A job
+gets the cases runs twice, which is critical on its own, dependency
+fails and dependency times out for each dependency it calls, and an
+item fails every try when it retries. menus is a design section: a
+tree of entries, each a title with a page or with entries of its own.
+
+Consequences: A job's dependency cases reuse the calls and dependencies of item
+024, and runs twice is the job's side of what idempotencyKey is for
+an operation; neither keyword is defined again. A job acts as a role,
+so what it may do is the role's permissions; whether its writes stay
+inside them is not checked yet. A cron expression is checked for its
+five fields and nothing more, since checking its values would need a
+library in both builds. A menu entry is shown to who may open its
+page, which the techspec says and nothing needs to check. The
+meta-model stays at 0.1.
+
+**Insight:** A trigger is one of three, because a job that both runs hourly and consumes a queue is two jobs. Runs twice is critical on its own as a concurrent write is: a scheduler that fires twice, or a message delivered twice, is what happens in production and never by hand.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -2294,6 +2328,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-incident-link | command validate | system | golden | a resolved incident that names no defect and no change and gives no noChange reason | validate is run | it warns with incident_link and exits 0, since the record is still valid |
 | validate-interface-problems | command validate | system | red | a list naming a field its entity lacks, an encrypted field to sort by and one to filter by without a hash, and a default page above the maximum; a rate over no time with a burst below it; a catalogue of problem types, a response naming an unknown type, one naming a type of another status, and a 4xx response naming none | validate is run | it reports list_of four times, limits twice and problem three times, and exits 1 |
 | validate-interface-valid | command validate | system | golden | a list with search, filter and sort fields and a page size, a body size limit and a rate, a catalogue of problem types named by every 4xx response, and a requirement with a harm the operations satisfy | validate is run | it reports no error, warns that no test covers the cases page beyond last, page size above the maximum, sort and filter outside the lists, a request too large and too many requests, among the others, and exits 0 |
+| validate-jobs-menus | command validate | system | red | a job that acts as a role the specification lacks, reads an entity it lacks, consumes a message no channel declares, publishes another, and calls an undeclared dependency, and a menu whose leaf opens a page that does not exist | validate is run | it reports job three times, emits, dependency and menu once each, and exits 1 |
+| validate-jobs-menus-valid | command validate | system | golden | an hourly job that acts as a role, reads and writes an entity, publishes a message, calls a dependency and retries an item three times, a test of it, a requirement with a harm it satisfies, and a menu over a page | validate is run | it reports no error, counts the job's test as covering it, warns that no test covers runs twice, the dependency failing or timing out, and an item failing every try, among the others, and exits 0 |
 | validate-layout-folder-missing | command validate | system | red | stages that list deployment with no deployment/ folder | validate is run | it reports layout at stages and exits 1 |
 | validate-layout-not-a-stage | command validate | system | red | a docs/ folder beside specarch.yaml | validate is run | it reports layout naming the stage folders there are and exits 1 |
 | validate-layout-records-in-spec | command validate | system | red | a records folder inside the specification's folder | validate is run | it reports layout, saying the folder belongs beside the specification's folder, and exits 1 |
@@ -2421,6 +2457,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-22 | specarch document shall list in the test plan, under Derived cases left out, every derived case of rank other that no test covers, with its subject and the reason it was left out, and shall show each requirement's harm in the traceability matrix once a requirement names one. | functional | must | accepted | test | The test plan of a specification with an uncovered boundary case on a subject with no harm has a row for that case, and the row is gone once a test covers it. The traceability matrix of a specification with a requirement that names a harm has a Harm column, and one without has none. | NEED-9, NEED-3 |
 | SA-33 | A specification shall be able to say how sensitive a field is, that it is encrypted at rest and how it is still found, and that an entity is audited or deleted softly, and specarch validate shall check each against the design and derive the cases a soft delete implies. | functional | must | accepted | test | A credential field that a response can carry and that is not writeOnly is reported as sensitivity_exposed; a personal field in the response of a public operation is warned about. A lookup on a field that is not encrypted, and an encrypted key or unique field without lookup hash, are reported as at_rest. An audited entity that declares createdAt, createdBy, lastModifiedAt or lastModifiedBy, and one with soft deletion that declares deleted, is reported as audited. A list of an entity with soft deletion gets the case deleted record not listed, and a read by id the case deleted record read, answered as not found. | NEED-1, NEED-2 |
 | SA-34 | A specification shall be able to say that an operation answers a page of an entity's records with the fields it searches, filters and sorts by and its page size, the limits a client keeps to, and the catalogue of problem types its refusals answer with, and specarch validate shall check each against the design and derive the cases each implies. | functional | must | accepted | test | A list naming a field its entity lacks, an encrypted field to search or sort by or to filter by without a hash, or a default page above the maximum is reported as list_of. A rate over no time, or with a burst below its requests, is reported as limits. A response naming a problem type that is not under errors or has another status, and a 4xx or 5xx response that names none once errors exist, is reported as problem. A list gets the cases page beyond last, page size above the maximum, and sort and filter outside the lists; a limit gets request too large and rate exceeded. | NEED-1, NEED-2 |
+| SA-35 | A specification shall be able to declare the jobs the system runs on its own, with what starts each, the role it acts as, what it reads, writes, calls and publishes, and how it retries, and the menus that lead to its pages; specarch validate shall check each against the design, and a job shall be a subject of tests with the cases it implies. | functional | must | accepted | test | A job acting as a role the specification lacks, reading or writing an entity it lacks, or consuming a message no channel declares is reported as job; a menu entry opening a page that does not exist is reported as menu. A test may name a job as its subject, and a job gets the cases runs twice, a dependency failing or timing out for each it calls, and an item failing every try when it retries. | NEED-1, NEED-5 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -2475,6 +2512,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-34:** Which fields a client may filter and sort by, how large a page or a request may be, and what a refusal looks like are part of the interface; a client that guesses them is refused, and a tester who does not know them misses the cases at their edges.
 
 **Note on SA-34:** From RFC 9457, Problem Details for HTTP APIs, 2023, clause 3: A problem details object carries a type URI that identifies the problem type, a short human-readable title, and the HTTP status code; a client branches on the type. <https://www.rfc-editor.org/rfc/rfc9457>
+
+**Insight on SA-35:** What runs at night or on a queue is the part of a system nobody watches, and the part a test plan forgets; written in the design, its tests follow from it like an operation's.
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
@@ -2558,6 +2597,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-32 | commands idioms; commands idioms diff; decisions ADR-023 | tests idioms-diff; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems |
 | SA-33 | decisions ADR-024 | tests validate-stored-data; tests validate-stored-data-valid |
 | SA-34 | decisions ADR-025 | tests validate-interface-problems; tests validate-interface-valid |
+| SA-35 | decisions ADR-026 | tests validate-jobs-menus; tests validate-jobs-menus-valid |
 
 ## Sources
 

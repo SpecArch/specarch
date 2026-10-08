@@ -272,8 +272,8 @@ folder and only the first four are in the root file.
 5. `permissions`, `roles`, `session`
 6. `paths`
 7. `commands`
-8. `channels`, `dependencies`, `errors`
-9. `pages`
+8. `channels`, `dependencies`, `jobs`, `errors`
+9. `pages`, `menus`
 10. `algorithms`
 11. `tests`
 12. `decisions`
@@ -386,6 +386,8 @@ redefined.
 | `sensitivity`, `atRest`, `lookup`, `audited`, `deletion` | SpecArch | how sensitive a field is and how it is stored, and what the system keeps about each record of an entity |
 | `listOf`, `searchable`, `filterable`, `sortable`, `pageSize` | SpecArch | a list's whitelists and page size, which a client must know |
 | `limits`, `maxRequestBytes`, `rate`, `requests`, `per`, `burst` | SpecArch | the request size and rate a client keeps to |
+| `jobs`, `trigger`, `schedule`, `every`, `consumes`, `role`, `retries`, `limit`, `then` | SpecArch | work the system does on its own; a schedule is the five fields of cron, in UTC |
+| `menus`, `title`, `page`, `items` | SpecArch | the navigation: a tree whose leaves open pages |
 | `errors`, `status`, `title`, `condition`, `type`, `problem` | RFC 9457, Problem Details for HTTP APIs | the catalogue of problem types; `condition` is SpecArch's, the standard's other members are the document's own at run time |
 | a duration (`timeout`, `idleTimeout`, `absoluteTimeout`) | ISO 8601, the form JSON Schema's `format: duration` names | days, hours, minutes and seconds only (`PT5S`, `P1DT12H`): weeks, months and years depend on the calendar, so a limit written in them would not mean the same every day |
 | `emits`, `algorithm` | SpecArch | links from an operation to its events and its computation |
@@ -592,6 +594,32 @@ answered. A response names its type under `problem`, of its own status.
 Once the catalogue exists, every 4xx and 5xx response names one
 (`problem`), so a client can branch on the type without parsing a message.
 
+### Jobs and menus
+
+Work the system does on its own is a job, under `jobs`:
+
+    markOverdue:
+      description: Marks open loans past their due date overdue, and tells the member.
+      trigger: { schedule: "0 2 * * *" }
+      role: scheduler
+      reads: [Loan]
+      writes: [Loan]
+      emits: [loan.overdue/LoanOverdue]
+      retries: { limit: 3, then: deadLetter }
+
+The `trigger` is exactly one of `schedule`, the five fields of cron in UTC,
+`every`, a duration, or `consumes`, a `channel/Message`. The job acts as a
+`role`; it may also `calls` dependencies. The role, the entities and the
+consumed message must exist (`job`); emitted messages and called
+dependencies are checked as an operation's are (`emits`, `dependency`). A
+test names a job as its subject with `job: <name>`. A job gets the cases
+`runs twice`, critical on its own, the dependency cases for what it calls,
+and `an item fails every try` when it retries.
+
+`menus` is the navigation, a tree of entries, each a `title` with a `page`
+or with `items` of its own. Every page an entry opens must exist (`menu`).
+An entry is shown to who may open its page.
+
 ### Secrets
 
 A setting under `configuration` says whether it is a `secret`. A secret's
@@ -686,7 +714,7 @@ the tests of its own code (unit and integration suites, fixtures, mocks,
 performance targets, platforms).
 
 A design test is about one subject: an `operation`, a `command`, a `page`,
-a `requirement`, or an `entity`, with one of its `constraint`s or
+a `job`, a `requirement`, or an `entity`, with one of its `constraint`s or
 `transition`s or alone for its state machine. It has a
 `level`, `system` (the test exercises the system through its interfaces as a
 client would) or `acceptance` (it shows a stakeholder that a requirement is
@@ -764,6 +792,9 @@ mistake:
 | an operation with `listOf` | `page size above <maximum>`; with `sortable`, `sort by a field not sortable`; with `filterable`, `filter by a field not filterable` | red | occasional |
 | an operation with `limits.maxRequestBytes` | `request larger than <n> bytes` | red | occasional |
 | an operation with `limits.rate` | `rate exceeded` | red | occasional |
+| a job | `runs twice` | golden | critical on its own |
+| a job that calls a dependency | `dependency fails <name>`, `dependency times out <name>` | red | critical on its own |
+| a job with `retries` | `an item fails every try` | red | occasional |
 | a `session`, for every permission other than `public` | `denied with expired session` | red | frequent |
 | a `guard` with a precondition | `guard precondition fails` | red | occasional |
 | a `guard` | `concurrent write` | red | rare |

@@ -1,0 +1,52 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+    primaryKey: [id]
+    satisfies: [CASE-1]
+jobs:
+  chaseOverdue:
+    description: Finds loans past their due date.
+    trigger: { consumes: loan.due/LoanDue }
+    role: night-shift
+    reads: [Loans]
+    emits: [loan.overdue/LoanOverdue]
+    calls: [mailer]
+    satisfies: [CASE-1]
+pages:
+  loans-list:
+    title: Loans
+    kind: list
+    route: /loans
+    entity: Loan
+    source: listLoans
+    permission: loans.read
+    columns: [id]
+    satisfies: [CASE-1]
+menus:
+  lending:
+    title: Lending
+    items:
+      loans: { title: Loans, page: loan-list }
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: The loans
+      permission: loans.read
+      responses:
+        "200":
+          description: The loans.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Loan" } }
+      satisfies: [CASE-1]
+permissions:
+  loans.read: { description: See loans. }
+roles:
+  desk: { description: The desk., permissions: [loans.read] }

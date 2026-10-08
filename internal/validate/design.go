@@ -177,6 +177,8 @@ func (c *checker) checkDesign(d *design) {
 	c.checkOperations(d)
 	c.checkCommands(d)
 	c.checkDependencies(d)
+	c.checkJobs(d)
+	c.checkMenus(d)
 	c.checkSession(d)
 	c.checkPages(d)
 	c.checkDecisions(d)

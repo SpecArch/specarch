@@ -49,7 +49,7 @@ project's repository. `specarch extract <source>`, the verb that goes from
 existing code or documents to a specification, is designed in
 `spec/design/commands/extract.yaml` and built one reader at a time in the
 steps of "Building extract" below. The Go build reads the sources
-`outline`, `database`, `router`, `documents` and `openapi`, and `specarch merge` joins their trees; a source not built yet is answered with status
+`outline`, `database`, `router`, `documents`, `openapi` and `permissions`, and `specarch merge` joins their trees; a source not built yet is answered with status
 2, and the Swift build has no extract or merge verb.
 
 ## Building extract
@@ -165,7 +165,7 @@ Steps, in order:
    different commits become one, at the newest commit, once git shows
    every path each tree read unchanged up to it. The database and router
    trees of the lending desk merge into one specification at commit
-   1711bb0 with the readers' eight questions, which validates with no
+   1334b2b with the readers' eight questions, which validates with no
    errors, `specarch gaps` reads, and a second run writes byte for byte;
    CI repeats it. A release tag after this step lets the first project
    use the database and router readers.
@@ -232,14 +232,29 @@ Steps, in order:
    `/loans/{loanId}/renew`, validated and byte-identical; CI repeats it.
    A sample document whose paths the router serves none of is reported
    as a placeholder.
-8. The permissions reader, `extract permissions`: roles and the
+8. Built. The permissions reader, `extract permissions`: roles and the
    permissions each grants, from the tables and seed scripts the running
-   check reads. A check that runs only when a setting is present, and so
-   passes everything when the setting is empty, is reported. The lending
-   desk's roles move from a Go map to a roles table and a seed script.
-   Done when its one role and three permissions come out validated and
+   check reads (ADR-050). SpecArch defines the permission table's format,
+   as it does the route table's: the version of the format, the folder
+   the check is built from, the commit that last changed it, every grant
+   as a role and a permission, and every check that runs only when a
+   setting is present, and so passes everything when the setting is
+   empty, by the check's name and the setting's. The project's own
+   printer reads the grants where the running check reads them and
+   declares those checks; `tools/permissions/dump-permissions.sh` runs it
+   in a committed folder and adds the version, the path and the commit.
+   Each role and each permission granted is written, their descriptions
+   must questions, and each declared check prints a line and is a `must`
+   question. `specarch merge` asks a question two trees ask only once, and
+   reports a permission a role grants that no operation, command or page
+   checks. The lending desk's roles move from a Go map to a roles table
+   and a seed script, which its check reads with `lending/grants.sql`;
+   its printer, `cmd/permissiontable/print.sh`, runs the migrations and
+   the seeds in a disposable PostgreSQL under Podman and runs that query,
+   and its dump is `examples/lending-desk/sources/permissions/permissions.json`.
+   Its one role and three permissions come out validated and
    byte-identical, and a seed that grants a permission no route checks is
-   reported.
+   reported by the merge; CI repeats both.
 9. The pages reader, `extract pages`, for a file-system router tree such
    as an `app/` folder: one page per folder that holds a page file, with
    dynamic segments as parameters and route groups recognised; and where

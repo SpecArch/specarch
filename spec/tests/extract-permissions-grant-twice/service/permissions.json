@@ -1,0 +1,10 @@
+{
+    "permissionTable": 1,
+    "path": "access",
+    "commit": "91577cff0fdaa5365ab992c1a63461487b4ff941",
+    "grants": [
+        {"role": "desk-staff", "permission": "loans.read"},
+        {"role": "desk-staff", "permission": "loans.read"}
+    ],
+    "gates": []
+}

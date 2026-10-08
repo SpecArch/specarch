@@ -1,0 +1,8 @@
+arguments: [extract, permissions, --out, spec, service/permissions.json]
+repository:
+  folder: service
+  commits:
+    - [access]
+    - [permissions.json]
+exitStatus: 1
+standardOutput: ""

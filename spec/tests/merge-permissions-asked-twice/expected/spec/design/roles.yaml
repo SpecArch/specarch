@@ -1,0 +1,6 @@
+roles:
+  desk-staff:
+    permissions: [loans.read, loans.write, members.write]
+    origin: stated
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/code role desk-staff, says: 'desk-staff grants loans.read, loans.write and members.write.'}

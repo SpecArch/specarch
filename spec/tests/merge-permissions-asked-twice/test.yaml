@@ -1,0 +1,7 @@
+command: merge
+level: system
+scenario: golden
+given: "the tree the router's route table gives and the tree of a permission table, each asking with must what the same three permissions allow"
+when: "merge is run on the two trees"
+then: "it keeps the router's question, leaves out the permission table's as asked twice, naming the question that asks it, and exits 0"
+verifies: [SA-45]

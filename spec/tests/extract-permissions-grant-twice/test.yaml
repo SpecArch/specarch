@@ -1,0 +1,8 @@
+command: extract
+level: system
+scenario: red
+covers: [exit 1]
+given: "a permission table that lists one role granting one permission twice"
+when: "extract permissions is run on the permission table"
+then: "it refuses the table, naming the grant listed twice, writes nothing and exits 1"
+verifies: [SA-44]

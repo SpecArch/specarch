@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.4.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: Lending desk routes
+  version: 0.1.0
+  description: |
+    The routes the lending desk router registers. Every operation cites its route; what the route table does not say is a question.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 1711bb0985356e46178489d92ef30a788bc21db7
+    url: https://example.invalid/lending-desk.git
+    clauses:
+      - {clause: examples/lending-desk/sources/code, title: The routes the router built from here registers}

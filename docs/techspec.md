@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.5.0-dev of the specification: 46 requirements, 3 entities, 12 commands, 6 algorithms, 259 tests, 49 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.5.0-dev of the specification: 46 requirements, 3 entities, 12 commands, 6 algorithms, 263 tests, 50 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -61,7 +61,7 @@ The interfaces the system offers, as its clients see them.
 | derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, or there is no release record for the new version; 2: usage error, a path that could not be read, or a specification with errors |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder, or a file that could not be read or written |
-| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, or a file that is not an OpenAPI 3.0 or 3.1 document; 2: usage error, a source this build does not offer, or a path that could not be read or written |
+| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, or a file that is not an OpenAPI 3.0 or 3.1 document; 2: usage error, a source this build does not offer, or a path that could not be read or written |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open; 1: at least one must or should question is open; 2: usage error, a path that could not be read, or a specification with errors |
 | generate | Write code or data from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads, the specification is not approved, the plug-in reported an error, or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written |
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
@@ -613,6 +613,22 @@ The sources this build reads:
   scheme is not a permission, and so is an integer or number with no
   width; a missing summary or responses is a must question too. The
   edition is the commit that last changed the file.
+- `permissions`: a permission table, written by
+  `tools/permissions/dump-permissions.sh` around the project's own
+  permission printer, which reads the grants where the running
+  check reads them, such as the tables the seed scripts fill and not
+  a policy file the check never loads, and prints every role and
+  permission it grants, and every check that runs only when a
+  setting is present, by the check's name and the setting's. Each
+  role becomes a role granting its permissions in the order of
+  their names, citing the permission table, and every permission
+  granted is declared. A role whose name is not kebab-case, a
+  permission whose name is not lower-case words joined by dots, and
+  a grant of public, which is open to everyone and granted by no
+  role, print a line and are left out, and so is a role left with
+  nothing to grant. Each such check prints a line and is a must
+  question blocking the roles, since while the setting is empty the
+  check lets every request through and nothing says so.
 
 Every reader follows these rules:
 
@@ -627,7 +643,8 @@ Every reader follows these rules:
   constraint's message, which no catalogue holds, a check the
   expression subset cannot say, and an operation's summary and
   responses, a path parameter's values and a permission's
-  description, which no route table holds. A tree with a question also declares
+  description, which no route table holds, and a role's
+  description, which no permission table holds. A tree with a question also declares
   the stakeholder `system-owner`, inferred, for the question to name.
 - The commit read is the newest of the commits that last changed each
   path read, so a commit elsewhere leaves the output as it was. Git
@@ -650,8 +667,8 @@ Every reader follows these rules:
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
-| `<source>` | string | yes | The surface to read: `outline`, `database`, `router`, `documents` or `openapi`. |
-| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document. |
+| `<source>` | string | yes | The surface to read: `outline`, `database`, `router`, `documents`, `openapi` or `permissions`. |
+| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table. |
 | `--out` | string | yes | The folder the specification is written into; it becomes the specification's root folder. |
 | `--source-key` | string |   | The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given. |
 
@@ -934,6 +951,15 @@ refused.
   is left out, since that tree answers it and the element cites
   both; a question that blocks a stage, an element or a key no tree
   gives is kept (ADR-049).
+- A question of a tree whose every blocked key a question kept
+  before it blocks, with the same priority, is left out, since both
+  ask the same thing, such as a permission's description that the
+  router and the permissions reader each ask for (ADR-050).
+- Where the code side has operations, a permission a role grants
+  and no operation, command or page checks is reported with the
+  roles that grant it, since a grant nothing checks is either left
+  from code that was removed or guards something the routes do not
+  show (ADR-050).
 - The questions of the trees are numbered again, Q-1 upward, in the
   order the trees are given, and the merge's own questions follow.
   Every element keeps the file its first tree wrote it in.
@@ -955,7 +981,9 @@ source joined from several trees, naming the edition taken; one line
 counting the elements written and those found in more than one
 tree; one line per requirement joined to a check that gives the
 same number of days; one line per question of a tree that another
-tree answers; one line per placeholder source; and one line per
+tree answers or a question kept before it asks; one line per
+placeholder source; one line per permission granted and checked by
+nothing; and one line per
 question the merge asked, naming what it blocks and why.
 
 Standard error: A usage message on a usage error, and the reason a tree could not be merged.
@@ -1137,7 +1165,7 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
-| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents and OpenAPI readers, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers left out, and a placeholder source reported. |   |
+| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI and permissions readers, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers or a question kept before it asks left out, a placeholder source reported, and a permission granted and checked by nothing reported. |   |
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
 | cmd/specarch-gen-sql | The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk. | #/commands/generate |
@@ -3383,6 +3411,46 @@ are not camelCase wait for the meta-model to hold them.
 
 **Insight:** A document source, because an OpenAPI file is written by people about the system and can drift from it, as the manual can, and the merge compares the documents side with the code side; read as code, a path the router does not serve would join the specification unasked. No OpenAPI library, because the reader takes a subset of the format that yaml/v3, already a dependency, parses in both notations, and a library would add a dependency to check every release for this subset alone. OpenAPI 3.0's nullable, example and boolean exclusive bounds are rewritten in the 3.1 form, which is JSON Schema's and the meta-model's, since they say the same thing. A schema with properties and no type is written as an object, and one with items as an array, because JSON Schema applies those keywords only to that type, so the type is read from the document and not guessed. A component schema is an entity only when one of its properties can be held, since an entity needs a property, and a reference to one that is not is written in place rather than left pointing at nothing. A security scheme is not a permission: it says how a caller proves who it is, and scopes are a scheme's own, so the permission is asked, never derived, and never written as public, for the reason the router reader gives. An integer with no width is asked because the meta-model refuses one, and choosing int32 or int64 for the document would be a guess. A property whose name is not camelCase is left out rather than renamed, because a renamed property would generate a document that differs from the contract clients use; the meta-model has no name on the wire yet. A question another tree answers is left out because the element then cites the tree that gives the key, which is the row "agree" of docs/from-sources.md, section 3.2, and an open question beside the value would ask what the specification already states. The placeholder is reported and not dropped, because the plan gives the refusal to the route-table gate, and a reviewer needs the not-built questions to tell a placeholder from a contract the code has not caught up with.
 
+### ADR-050: extract permissions reads a permission table the project's own printer writes, with the checks it declares a setting switches off, and merge reports a grant nothing checks
+
+Status: accepted, 2026-10-09.
+
+Context: Step 8 of docs/extraction.md, Building extract, reads roles and the
+permissions each grants from the tables and seed scripts the
+running check reads, and reports a check that runs only when a
+setting is present, so that it lets every request through while
+the setting is empty. In one system the authorisation library's
+adapter was a stub and the real grants lived in tables seed scripts
+filled; a reader of the policy file would have written a model that
+does not exist. The grants are data, while whether a check reads a
+setting is in code, and the meta-model has no element for such a
+check. The router reader and this reader each declare the
+permissions they meet, each asking for their descriptions.
+
+Decision: extract permissions reads a permission table in a format SpecArch
+defines, as it does the route table: a JSON object with the version
+of the format, the folder the check is built from, the commit that
+last changed it, every grant as a role and a permission, and every
+gate as the name of a check and of the setting it needs.
+tools/permissions/dump-permissions.sh runs the project's own
+printer in that committed folder and adds the version, the path and
+the commit. Each role becomes a role, each permission granted a
+permission, citing the table; their descriptions are must
+questions. Each gate prints a line and is a must question blocking
+the roles. merge leaves out a question whose every blocked key a
+question kept before it blocks with the same priority, and, where
+the code side has operations, prints a line for each permission a
+role grants that no operation, command or page checks.
+
+Consequences: The lending desk's roles move from a Go map to a roles table filled
+by a seed script, read by its check with lending/grants.sql, which
+its printer runs against a disposable database. A project whose
+check is switched off by an empty setting says so in its printer,
+and a check that is not declared is not found: a reviewer still
+reads the check before trusting the table.
+
+**Insight:** A table the project prints, and not a reader of seed SQL or of the check's code, because only the project knows where its running check reads the grants: tables filled by seeds, a migration, a configuration file or a service, in any language, and a printer that runs the check's own query reads exactly that, as the route printer builds the router as the server does. The gates are declared by the printer for the same reason; a reader of the code would see one language's way of writing a guard and miss the others, and the owner chose a declaration the project keeps beside its check over a reader that knows one language. A gate is a must question and not a value, because the meta-model has no element for a check a setting switches off, and a check that fails open is a security question: whether an empty setting is ever meant to let everyone through is the owner's to say. It blocks the roles, which grant nothing while it is off. The same question asked by two readers is asked once, because two open questions on one key make the owner answer twice and can be answered differently. A grant nothing checks is reported by the merge, because only the merge sees the roles and the operations together; it is a line and not a question, since such a grant lets no one do anything the code does, but it is either left over from code that was removed or guards something the routes do not show, and a reviewer should look.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -3445,12 +3513,14 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-documents-not-markdown | command extract | system | red | a handbook kept as plain text rather than Markdown | extract documents is run on it | it says this build reads Markdown documents, writes nothing and exits 1 |
 | extract-documents-writes-tree | command extract | system | golden | a repository holding a Markdown handbook with numbered headings and paragraphs, sentences with shall, must, should, a number of days and a time of day, a commitment that names its subject only as it, two tables of fields, one with a sensitivity column and one whose sensitivity a sentence gives for one field, a field of a type the meta-model does not hold, a table of another header and a code block | extract documents is run on the handbook | it writes the outline as clauses at the commit read, one requirement per commitment citing its clause, the fields of each table as an entity with the sensitivity the document gives, and a question for the commitment it cannot place, the requirements' kind, each entity's primary key and the sensitivity not given, prints a line for the type, the table and the code block it does not hold, and exits 0 |
 | extract-exit-1 | command extract | system | red | a file that is not a catalogue dump | extract database is run on it | it says the file is not a catalogue dump, writes nothing and exits 1 |
-| extract-not-offered | command extract | system | red | a source this build does not read yet | extract permissions is run on a seed script | it names the sources it reads, writes nothing and exits 2 |
+| extract-not-offered | command extract | system | red | a source this build does not read yet | extract workflows is run on a workflow definition | it names the sources it reads, writes nothing and exits 2 |
 | extract-openapi-not-openapi | command extract | system | red | a committed Swagger 2.0 document, which names no openapi version | extract openapi is run on it | it says the file is not an OpenAPI 3.0 or 3.1 document, writes nothing and exits 1 |
 | extract-openapi-writes-tree | command extract | system | golden | a repository holding an OpenAPI 3.0 document with two paths, a path-level parameter by reference, a template parameter it does not declare, a request body by reference, an operationId that is not camelCase, an operation with no summary and one with no security, a head method, a cookie parameter, a response range, an extension, an object schema with an int64 and a float without bounds, a nullable field, a snake_case property and an allOf, a string enum and an array schema named in lower case | extract openapi is run on the document | it writes each operation under its path citing its pointer, the object schema as an entity and the enum as an enum, 3.0's nullable and boolean exclusive bound in the 3.1 form, a question for the missing summary, each permission, the undeclared parameter's values, the primary key and the widths, prints a line for everything it leaves out, and exits 0 |
 | extract-outline-shallow-clone | command extract | system | red | a clone of depth 1 of a repository with two commits | extract outline is run on a folder of it | it refuses the shallow clone, whose history cannot name the last change to a path, writes nothing and exits 1 |
 | extract-outline-uncommitted | command extract | system | red | a folder whose files are committed, one of them changed since and not committed | extract outline is run on the folder | it refuses, naming the changed file, since no commit names what would be read; it writes nothing and exits 1 |
 | extract-outline-writes-clauses | command extract | system | golden | a repository holding a folder of workflow definitions, which no reader reads yet, one of them a TypeScript file that says it is generated from the others | extract outline is run on the folder with a source key | it writes a root that lists every tracked file as a clause of that source at the commit, and no element; it names the commit, counts the files, reports the generated file, and exits 0 |
+| extract-permissions-grant-twice | command extract | system | red | a permission table that lists one role granting one permission twice | extract permissions is run on the permission table | it refuses the table, naming the grant listed twice, writes nothing and exits 1 |
+| extract-permissions-writes-tree | command extract | system | golden | a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it, naming the first; the table has two roles sharing a permission, a grant of public, a role whose name is not kebab-case, a role whose one permission is not a permission name, and a check that runs only when a setting is present | extract permissions is run on the permission table | it writes each role with the permissions it grants in the order of their names and every permission granted, a question for the roles' and the permissions' descriptions and one for the check a setting switches off, names the commit, counts the grants and gates, prints a line for the gate, the grant of public, the role's name, the permission's name and the role left with nothing, and exits 0 |
 | extract-router-route-twice | command extract | system | red | a route table that lists the same method and path pair twice | extract router is run on the route table | it refuses the route table, naming the route listed twice, writes nothing and exits 1 |
 | extract-router-stale-table | command extract | system | red | a route table printed at the commit that added the router's routes, and a later commit that adds a file to the router's folder | extract router is run on the route table | it refuses the route table as stale, naming both commits, writes nothing and exits 1 |
 | extract-router-writes-tree | command extract | system | golden | a repository whose first commit holds a router's folder and whose second holds the route table printed from it, naming the first; the table has two methods on one path, a path with a parameter, a route with no permission, a HEAD route, a path with a wildcard, a handler serving two routes and a permission that is not a permission name | extract router is run on the route table | it writes one operation per held method and path pair with its path parameters and permission, one permission per name a route checks, a question for each operation's summary and responses, each path's parameter values, the permissions' descriptions and every route without a usable permission, names the commit, counts the routes, prints a line for the HEAD route, the wildcard, the permission name and the shared handler, and exits 0 |
@@ -3495,6 +3565,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | merge-openapi-placeholder | command merge | system | golden | the tree the router's route table gives, and the tree of a sample OpenAPI document a service template ships, none of whose paths the router serves | merge is run on the two trees | it reports the sample as a placeholder with the number of its paths, still asks whether each of its operations is to be built and whether each route is meant to exist, and exits 0 |
 | merge-openapi-unserved | command merge | system | golden | the tree an OpenAPI document gives, with the four operations the router serves and one more, and the tree the router's route table gives | merge is run on the two trees | the router's questions about summaries, responses and path parameters, and the document's questions about the permissions the router names, are left out as answered, the operation the router does not serve is one must question that names its path, and it exits 0 |
 | merge-path-changed | command merge | system | red | a repository whose first commit adds a migration, whose second adds another and whose third the router, a database tree read at the first and a router tree read at the third | merge is run on the two trees | it refuses them, saying the migrations changed at the second commit, after the first the database tree read them at, writes nothing and exits 1 |
+| merge-permissions-asked-twice | command merge | system | golden | the tree the router's route table gives and the tree of a permission table, each asking with must what the same three permissions allow | merge is run on the two trees | it keeps the router's question, leaves out the permission table's as asked twice, naming the question that asks it, and exits 0 |
+| merge-permissions-unchecked | command merge | system | golden | the tree the router's route table gives, and the tree of a permission table whose one role grants the three permissions the routes check and a fourth that no route checks | merge is run on the two trees | it reports the permission no operation, command or page checks with the role that grants it, keeps it in the merged specification, and exits 0 |
 | merge-source-differs | command merge | system | red | two trees that both declare the source code, at two different urls | merge is run on the two trees | it refuses them, naming the source and what differs, writes nothing and exits 1 |
 | merge-tree-invalid | command merge | system | red | two trees, the second of which has an entity without its properties, which validate reports | merge is run on the two trees | it refuses the second tree, saying validate reports errors in it, writes nothing and exits 1 |
 | merge-usage-error | command merge | system | red | one tree | merge is run on it alone | it says merge needs at least two trees, prints how to use it and exits 2 |
@@ -3841,7 +3913,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-8 | entities GeneratedFile; commands document; commands generate; algorithms markersWellFormed | tests document-entity-diagram; tests document-two-implementations; tests document-writes-techspec |
 | SA-9 | enums DocumentKind; enums Rule; commands validate; decisions ADR-001; decisions ADR-002; decisions ADR-007 | tests validate-design-key; tests validate-stack-key |
 | SA-10 | enums Rule; commands validate | tests validate-deployment-environment-missing; tests validate-design-ref; tests validate-implements; tests validate-setting; tests validate-tree-valid |
-| SA-11 | enums Rule; entities SpecFile; commands extract; commands validate; decisions ADR-010; decisions ADR-042; decisions ADR-048; decisions ADR-049 | tests merge-documents-days; tests merge-openapi-placeholder; tests merge-openapi-unserved; tests validate-duplicate-name-across-files; tests validate-layout-folder-missing; tests validate-layout-not-a-stage; tests validate-layout-section-folder-in-root; tests validate-layout-section-in-root; tests validate-layout-section-in-wrong-stage; tests validate-layout-stack-mismatch; tests validate-layout-stage-not-listed; tests validate-layout-subfolder-section; tests validate-layout-test-without-file; tests validate-tree-valid; checks checks-the-examples |
+| SA-11 | enums Rule; entities SpecFile; commands extract; commands validate; decisions ADR-010; decisions ADR-042; decisions ADR-048; decisions ADR-049; decisions ADR-050 | tests merge-documents-days; tests merge-openapi-placeholder; tests merge-openapi-unserved; tests validate-duplicate-name-across-files; tests validate-layout-folder-missing; tests validate-layout-not-a-stage; tests validate-layout-section-folder-in-root; tests validate-layout-section-in-root; tests validate-layout-section-in-wrong-stage; tests validate-layout-stack-mismatch; tests validate-layout-stage-not-listed; tests validate-layout-subfolder-section; tests validate-layout-test-without-file; tests validate-tree-valid; checks checks-the-examples |
 | SA-12 | enums Rule; commands validate; decisions ADR-011; decisions ADR-014 | tests validate-deployment-valid; tests validate-monitor-environment; tests validate-monitor-not-declared; tests validate-monitor-valid; tests validate-need-rejected; tests validate-requirements-only; tests validate-secret-in-deployment; tests validate-secret-value; tests validate-traceability-warnings |
 | SA-13 | enums Rule; commands validate; decisions ADR-012 | tests document-citation-unknown-source; tests validate-cites; tests validate-source |
 | SA-14 | enums GeneratorTarget; commands generate; decisions ADR-013 | tests generate-no-plugin; tests generate-plugin-path-outside; tests generate-with-plugin |
@@ -3874,8 +3946,8 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-41 | enums Rule; decisions ADR-033 | tests validate-views; tests validate-views-valid |
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039 | tests validate-accessibility; tests validate-compact-columns; tests validate-flows; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
-| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-openapi-not-openapi; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests gaps-outline-not-read |
-| SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-path-changed; tests merge-source-differs; tests merge-tree-invalid; tests validate-source-given-outside |
+| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-openapi-not-openapi; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests gaps-outline-not-read |
+| SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-source-differs; tests merge-tree-invalid; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-owned-by-unknown |
 
 ## Sources

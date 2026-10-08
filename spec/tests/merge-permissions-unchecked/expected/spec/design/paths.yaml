@@ -1,0 +1,49 @@
+permissions:
+  loans.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'examples/lending-desk/sources/code GET /members/{cardNumber}/loans', says: 'GET /members/{cardNumber}/loans checks loans.read.'}
+      - {source: code, clause: examples/lending-desk/sources/code role desk-staff, says: desk-staff grants loans.read.}
+  loans.write:
+    origin: stated
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/code POST /loans, says: 'POST /loans and POST /loans/{loanId}/return check loans.write.'}
+      - {source: code, clause: examples/lending-desk/sources/code role desk-staff, says: desk-staff grants loans.write.}
+  members.write:
+    origin: stated
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/code POST /members, says: POST /members checks members.write.}
+      - {source: code, clause: examples/lending-desk/sources/code role desk-staff, says: desk-staff grants members.write.}
+paths:
+  /loans:
+    post:
+      operationId: lendBook
+      permission: loans.write
+      origin: stated
+      cites:
+        - {source: code, clause: examples/lending-desk/sources/code POST /loans, says: POST /loans checks loans.write; its handler is LendBook.}
+  /loans/{loanId}/return:
+    parameters:
+      - {name: loanId, in: path, required: true}
+    post:
+      operationId: returnBook
+      permission: loans.write
+      origin: stated
+      cites:
+        - {source: code, clause: 'examples/lending-desk/sources/code POST /loans/{loanId}/return', says: 'POST /loans/{loanId}/return checks loans.write; its handler is ReturnBook.'}
+  /members:
+    post:
+      operationId: registerMember
+      permission: members.write
+      origin: stated
+      cites:
+        - {source: code, clause: examples/lending-desk/sources/code POST /members, says: POST /members checks members.write; its handler is RegisterMember.}
+  /members/{cardNumber}/loans:
+    parameters:
+      - {name: cardNumber, in: path, required: true}
+    get:
+      operationId: listMemberLoans
+      permission: loans.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'examples/lending-desk/sources/code GET /members/{cardNumber}/loans', says: 'GET /members/{cardNumber}/loans checks loans.read; its handler is ListMemberLoans.'}

@@ -76,7 +76,7 @@ roles:
     origin: stated
     cites:
       - { source: desk-manual, clause: "2.2", says: "Desk staff register new members." }
-      - { source: desk-code, clause: "lending/roles.go:6", says: "desk-staff grants members.write, loans.write and loans.read." }
+      - { source: desk-code, clause: "seeds/001_roles.sql:3", says: "desk-staff grants members.write, loans.write and loans.read." }
 
 paths:
   /members:

@@ -1,0 +1,63 @@
+decisions:
+  ADR-050:
+    title: extract permissions reads a permission table the project's own printer writes, with the checks it declares a setting switches off, and merge reports a grant nothing checks
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Step 8 of docs/extraction.md, Building extract, reads roles and the
+      permissions each grants from the tables and seed scripts the
+      running check reads, and reports a check that runs only when a
+      setting is present, so that it lets every request through while
+      the setting is empty. In one system the authorisation library's
+      adapter was a stub and the real grants lived in tables seed scripts
+      filled; a reader of the policy file would have written a model that
+      does not exist. The grants are data, while whether a check reads a
+      setting is in code, and the meta-model has no element for such a
+      check. The router reader and this reader each declare the
+      permissions they meet, each asking for their descriptions.
+    decision: |
+      extract permissions reads a permission table in a format SpecArch
+      defines, as it does the route table: a JSON object with the version
+      of the format, the folder the check is built from, the commit that
+      last changed it, every grant as a role and a permission, and every
+      gate as the name of a check and of the setting it needs.
+      tools/permissions/dump-permissions.sh runs the project's own
+      printer in that committed folder and adds the version, the path and
+      the commit. Each role becomes a role, each permission granted a
+      permission, citing the table; their descriptions are must
+      questions. Each gate prints a line and is a must question blocking
+      the roles. merge leaves out a question whose every blocked key a
+      question kept before it blocks with the same priority, and, where
+      the code side has operations, prints a line for each permission a
+      role grants that no operation, command or page checks.
+    why: |
+      A table the project prints, and not a reader of seed SQL or of the
+      check's code, because only the project knows where its running
+      check reads the grants: tables filled by seeds, a migration, a
+      configuration file or a service, in any language, and a printer
+      that runs the check's own query reads exactly that, as the route
+      printer builds the router as the server does. The gates are
+      declared by the printer for the same reason; a reader of the code
+      would see one language's way of writing a guard and miss the
+      others, and the owner chose a declaration the project keeps beside
+      its check over a reader that knows one language. A gate is a must
+      question and not a value, because the meta-model has no element
+      for a check a setting switches off, and a check that fails open is
+      a security question: whether an empty setting is ever meant to let
+      everyone through is the owner's to say. It blocks the roles, which
+      grant nothing while it is off. The same question asked by two
+      readers is asked once, because two open questions on one key make
+      the owner answer twice and can be answered differently. A grant
+      nothing checks is reported by the merge, because only the merge
+      sees the roles and the operations together; it is a line and not a
+      question, since such a grant lets no one do anything the code does,
+      but it is either left over from code that was removed or guards
+      something the routes do not show, and a reviewer should look.
+    consequences: |
+      The lending desk's roles move from a Go map to a roles table filled
+      by a seed script, read by its check with lending/grants.sql, which
+      its printer runs against a disposable database. A project whose
+      check is switched off by an empty setting says so in its printer,
+      and a check that is not declared is not found: a reviewer still
+      reads the check before trusting the table.
+    satisfies: [SA-11, SA-44, SA-45]

@@ -1,0 +1,7 @@
+command: merge
+level: system
+scenario: golden
+given: "the tree the router's route table gives, and the tree of a permission table whose one role grants the three permissions the routes check and a fourth that no route checks"
+when: "merge is run on the two trees"
+then: "it reports the permission no operation, command or page checks with the role that grants it, keeps it in the merged specification, and exits 0"
+verifies: [SA-45]

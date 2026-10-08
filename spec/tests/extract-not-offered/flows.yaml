@@ -1,0 +1,3 @@
+flows:
+  lend-book:
+    steps: [check-member, check-book, record-loan]

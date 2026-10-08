@@ -3,5 +3,5 @@ level: system
 scenario: red
 covers: [exit 2]
 given: "a source this build does not read yet"
-when: "extract permissions is run on a seed script"
+when: "extract workflows is run on a workflow definition"
 then: "it names the sources it reads, writes nothing and exits 2"

@@ -1,0 +1,11 @@
+permissions:
+  fines.waive:
+    origin: stated
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/code role desk-staff, says: desk-staff grants fines.waive.}
+roles:
+  desk-staff:
+    permissions: [fines.waive, loans.read, loans.write, members.write]
+    origin: stated
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/code role desk-staff, says: 'desk-staff grants fines.waive, loans.read, loans.write and members.write.'}

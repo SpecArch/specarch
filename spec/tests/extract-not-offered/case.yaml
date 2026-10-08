@@ -1,3 +1,3 @@
-arguments: [extract, permissions, --out, spec, seed.sql]
+arguments: [extract, workflows, --out, spec, flows.yaml]
 exitStatus: 2
 standardOutput: ""

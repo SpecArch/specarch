@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.5.0-dev of the specification: 259 design tests, 94 golden and 165 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.5.0-dev of the specification: 263 design tests, 97 golden and 166 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 255 |
+| system | 259 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -504,7 +504,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 Scenario: red; level: system; covers exit 2.
 
 - Given: a source this build does not read yet
-- When: extract permissions is run on a seed script
+- When: extract workflows is run on a workflow definition
 - Then: it names the sources it reads, writes nothing and exits 2
 
 #### extract-openapi-not-openapi
@@ -546,6 +546,22 @@ Scenario: golden; level: system; verifies SA-44.
 - Given: a repository holding a folder of workflow definitions, which no reader reads yet, one of them a TypeScript file that says it is generated from the others
 - When: extract outline is run on the folder with a source key
 - Then: it writes a root that lists every tracked file as a clause of that source at the commit, and no element; it names the commit, counts the files, reports the generated file, and exits 0
+
+#### extract-permissions-grant-twice
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: a permission table that lists one role granting one permission twice
+- When: extract permissions is run on the permission table
+- Then: it refuses the table, naming the grant listed twice, writes nothing and exits 1
+
+#### extract-permissions-writes-tree
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it, naming the first; the table has two roles sharing a permission, a grant of public, a role whose name is not kebab-case, a role whose one permission is not a permission name, and a check that runs only when a setting is present
+- When: extract permissions is run on the permission table
+- Then: it writes each role with the permissions it grants in the order of their names and every permission granted, a question for the roles' and the permissions' descriptions and one for the check a setting switches off, names the commit, counts the grants and gates, prints a line for the gate, the grant of public, the role's name, the permission's name and the role left with nothing, and exits 0
 
 #### extract-router-route-twice
 
@@ -908,6 +924,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-45.
 - Given: a repository whose first commit adds a migration, whose second adds another and whose third the router, a database tree read at the first and a router tree read at the third
 - When: merge is run on the two trees
 - Then: it refuses them, saying the migrations changed at the second commit, after the first the database tree read them at, writes nothing and exits 1
+
+#### merge-permissions-asked-twice
+
+Scenario: golden; level: system; verifies SA-45.
+
+- Given: the tree the router's route table gives and the tree of a permission table, each asking with must what the same three permissions allow
+- When: merge is run on the two trees
+- Then: it keeps the router's question, leaves out the permission table's as asked twice, naming the question that asks it, and exits 0
+
+#### merge-permissions-unchecked
+
+Scenario: golden; level: system; verifies SA-45.
+
+- Given: the tree the router's route table gives, and the tree of a permission table whose one role grants the three permissions the routes check and a fourth that no route checks
+- When: merge is run on the two trees
+- Then: it reports the permission no operation, command or page checks with the role that grants it, keeps it in the merged specification, and exits 0
 
 #### merge-source-differs
 

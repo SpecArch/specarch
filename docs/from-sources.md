@@ -20,7 +20,8 @@ with the toolchain checking each step. `specarch extract`, the verb that
 reads the sources mechanically, is built one reader at a time: the
 `database` reader writes the entities from a catalogue dump, the
 `router` reader the operations and permissions from a route table the
-router prints, and the `outline` reader records a surface no reader reads yet, so it shows as
+router prints, the `permissions` reader the roles from a permission table
+the project's printer writes, and the `outline` reader records a surface no reader reads yet, so it shows as
 not read. `specarch merge` joins the readers' trees, and a tree written
 from the documents, by the rules of section 3.2. `docs/extraction.md` is the method behind it and
 `docs/refinement.md` the design of origin, questions and approval.
@@ -394,9 +395,9 @@ with the pinned version and checksum filled in:
 
 ## 6. Not built yet
 
-- `specarch extract` for documents, OpenAPI, permissions and pages: the
-  agent reads those surfaces by hand into a tree of their own and merges
-  it with the database and router readers' trees with `specarch merge`.
+- `specarch extract` for pages: the agent reads that surface by hand into
+  a tree of its own and merges it with the readers' trees with
+  `specarch merge`.
 - `specarch decide`: the agent writes the decision record by hand.
 - `specarch gaps --json`: the dispatcher reads the text.
 - A validator rule for a citation outside its source's clauses: `gaps`

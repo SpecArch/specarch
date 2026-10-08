@@ -37,10 +37,10 @@ mappings:
       - { source: desk-code, clause: "migrations/001_init.sql:11", says: "CREATE TABLE loans." }
       - { source: desk-code, clause: "lending/model.go:26", says: "type Loan." }
   "#/roles/desk-staff":
-    target: lending.Roles, the seed of the roles table
+    target: table role_permissions, filled by seeds/001_roles.sql
     origin: stated
     cites:
-      - { source: desk-code, clause: "lending/roles.go:6", says: "The desk-staff row." }
+      - { source: desk-code, clause: "seeds/001_roles.sql:1", says: "The desk-staff row." }
   "#/paths/~1members/post":
     target: lending.Server.RegisterMember
     origin: stated

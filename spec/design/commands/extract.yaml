@@ -88,6 +88,22 @@ commands:
         scheme is not a permission, and so is an integer or number with no
         width; a missing summary or responses is a must question too. The
         edition is the commit that last changed the file.
+      - `permissions`: a permission table, written by
+        `tools/permissions/dump-permissions.sh` around the project's own
+        permission printer, which reads the grants where the running
+        check reads them, such as the tables the seed scripts fill and not
+        a policy file the check never loads, and prints every role and
+        permission it grants, and every check that runs only when a
+        setting is present, by the check's name and the setting's. Each
+        role becomes a role granting its permissions in the order of
+        their names, citing the permission table, and every permission
+        granted is declared. A role whose name is not kebab-case, a
+        permission whose name is not lower-case words joined by dots, and
+        a grant of public, which is open to everyone and granted by no
+        role, print a line and are left out, and so is a role left with
+        nothing to grant. Each such check prints a line and is a must
+        question blocking the roles, since while the setting is empty the
+        check lets every request through and nothing says so.
 
       Every reader follows these rules:
 
@@ -102,7 +118,8 @@ commands:
         constraint's message, which no catalogue holds, a check the
         expression subset cannot say, and an operation's summary and
         responses, a path parameter's values and a permission's
-        description, which no route table holds. A tree with a question also declares
+        description, which no route table holds, and a role's
+        description, which no permission table holds. A tree with a question also declares
         the stakeholder `system-owner`, inferred, for the question to name.
       - The commit read is the newest of the commits that last changed each
         path read, so a commit elsewhere leaves the output as it was. Git
@@ -123,11 +140,11 @@ commands:
     permission: public
     arguments:
       - name: source
-        description: "The surface to read: `outline`, `database`, `router`, `documents` or `openapi`."
+        description: "The surface to read: `outline`, `database`, `router`, `documents`, `openapi` or `permissions`."
         required: true
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
       - name: paths
-        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document."
+        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table."
         required: true
         repeatable: true
         schema: { type: string }
@@ -151,7 +168,7 @@ commands:
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written
-      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, or a file that is not an OpenAPI 3.0 or 3.1 document"
+      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, or a file that is not an OpenAPI 3.0 or 3.1 document"
       "2": usage error, a source this build does not offer, or a path that could not be read or written
     satisfies: [SA-11, SA-44]
     why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

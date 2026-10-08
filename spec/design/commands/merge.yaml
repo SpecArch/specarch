@@ -63,6 +63,15 @@ commands:
         is left out, since that tree answers it and the element cites
         both; a question that blocks a stage, an element or a key no tree
         gives is kept (ADR-049).
+      - A question of a tree whose every blocked key a question kept
+        before it blocks, with the same priority, is left out, since both
+        ask the same thing, such as a permission's description that the
+        router and the permissions reader each ask for (ADR-050).
+      - Where the code side has operations, a permission a role grants
+        and no operation, command or page checks is reported with the
+        roles that grant it, since a grant nothing checks is either left
+        from code that was removed or guards something the routes do not
+        show (ADR-050).
       - The questions of the trees are numbered again, Q-1 upward, in the
         order the trees are given, and the merge's own questions follow.
         Every element keeps the file its first tree wrote it in.
@@ -89,7 +98,9 @@ commands:
       counting the elements written and those found in more than one
       tree; one line per requirement joined to a check that gives the
       same number of days; one line per question of a tree that another
-      tree answers; one line per placeholder source; and one line per
+      tree answers or a question kept before it asks; one line per
+      placeholder source; one line per permission granted and checked by
+      nothing; and one line per
       question the merge asked, naming what it blocks and why.
     standardError: A usage message on a usage error, and the reason a tree could not be merged.
     exitCodes:

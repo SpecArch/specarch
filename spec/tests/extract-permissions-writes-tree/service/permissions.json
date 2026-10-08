@@ -1,0 +1,16 @@
+{
+    "permissionTable": 1,
+    "path": "access",
+    "commit": "91577cff0fdaa5365ab992c1a63461487b4ff941",
+    "grants": [
+        {"role": "desk-staff", "permission": "loans.write"},
+        {"role": "desk-staff", "permission": "loans.read"},
+        {"role": "auditor", "permission": "loans.read"},
+        {"role": "auditor", "permission": "public"},
+        {"role": "Branch_Manager", "permission": "loans.write"},
+        {"role": "kiosk", "permission": "Loans:Read"}
+    ],
+    "gates": [
+        {"check": "RequireAPIKey", "setting": "DESK_API_KEY"}
+    ]
+}

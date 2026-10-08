@@ -153,7 +153,7 @@ goes from the specification to a document, `approve` records that the
 documents were read and the specification is approved, `generate` from
 the approved specification to code, `extract` from one surface of
 existing code or documents to a specification (its outline, database,
-router, Markdown documents and OpenAPI readers are built; the others follow, as `docs/extraction.md` lists), `merge` joins the
+router, Markdown documents, OpenAPI and permissions readers are built; the others follow, as `docs/extraction.md` lists), `merge` joins the
 trees extract writes into one, and `diff` compares two versions of a
 specification and checks the release between them, and `derive` writes a
 draft test for every derived case no test covers, and `idioms` lists the

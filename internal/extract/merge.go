@@ -92,7 +92,56 @@ func Merge(specs []*spec.Spec, out string) (*Result, error) {
 	asked += m.sideQuestions()
 	asked += m.quantityQuestions()
 	m.placeholders()
+	m.unchecked()
 	return m.write(asked)
+}
+
+// unchecked reports, where the code side has operations, every permission
+// a role grants that no operation, command or page checks (ADR-050).
+func (m *merger) unchecked() {
+	served := false
+	for _, ptr := range m.order {
+		e := m.elements[ptr]
+		served = served || (e.section == "paths" && m.onSide(e, codeSide))
+	}
+	if !served {
+		return
+	}
+	checked := map[string]bool{}
+	grantedBy := map[string][]string{}
+	var granted []string
+	for _, ptr := range m.order {
+		e := m.elements[ptr]
+		switch e.section {
+		case "paths":
+			op := source.Child(m.entries["paths/"+e.tokens[1]], e.tokens[2])
+			checked[source.Str(source.Child(op, "permission"))] = true
+		case "commands":
+			checked[source.Str(source.Child(m.entries["commands/"+e.tokens[1]], "permission"))] = true
+		case "pages":
+			pg := m.entries["pages/"+e.tokens[1]]
+			checked[source.Str(source.Child(pg, "permission"))] = true
+			for _, a := range source.Items(source.Child(pg, "actions")) {
+				checked[source.Str(source.Child(a, "permission"))] = true
+			}
+		case "roles":
+			for _, p := range source.Items(source.Child(m.entries["roles/"+e.tokens[1]], "permissions")) {
+				if grantedBy[p.Value] == nil {
+					granted = append(granted, p.Value)
+				}
+				grantedBy[p.Value] = append(grantedBy[p.Value], e.tokens[1])
+			}
+		}
+	}
+	sort.Strings(granted)
+	for _, p := range granted {
+		if !checked[p] {
+			roles := grantedBy[p]
+			sort.Strings(roles)
+			m.res.say("unchecked: the permission %s, which %s %s, is checked by no operation, command or page; it is left from code that was removed, or guards something the routes do not show",
+				p, joinAnd(roles), grantOrGrants(len(roles)))
+		}
+	}
 }
 
 // placeholders reports a documents-side source whose operations share no
@@ -746,8 +795,11 @@ func itemNamed(n *yaml.Node, name string) *yaml.Node {
 // treeQuestions takes every tree's questions, in the order the trees are
 // given, with their pointers following the merged lists. A question whose
 // every blocked key another tree gives is left out: that tree answers it
-// (ADR-049).
+// (ADR-049). So is one whose every blocked key a question kept before it
+// blocks with the same priority: both ask the same thing (ADR-050).
 func (m *merger) treeQuestions() {
+	type asker struct{ key, dir, priority string }
+	asked := map[string]asker{} // a pointer a kept question blocks -> that question
 	for ti, t := range m.trees {
 		for _, p := range source.Pairs(source.Child(t.s.Root, spec.QuestionsSection)) {
 			q := copyNode(p.Value)
@@ -777,6 +829,31 @@ func (m *merger) treeQuestions() {
 				}
 				m.res.say("answered: %s of %s, on %s, is left out; %s %s it", p.Key.Value, t.s.Dir, strings.Join(ptrs, ", "), joinAnd(givers), giveOrGives(len(givers)))
 				continue
+			}
+			priority := source.Str(source.Child(q, "priority"))
+			var by *asker
+			for _, b := range blocks {
+				a, ok := asked[b.Value]
+				if !ok || a.priority != priority || !strings.HasPrefix(b.Value, "#/") {
+					by = nil
+					break
+				}
+				if by == nil {
+					by = &a
+				}
+			}
+			if by != nil {
+				var ptrs []string
+				for _, b := range blocks {
+					ptrs = append(ptrs, b.Value)
+				}
+				m.res.say("asked twice: %s of %s, on %s, is left out; %s of %s asks it", p.Key.Value, t.s.Dir, strings.Join(ptrs, ", "), by.key, by.dir)
+				continue
+			}
+			for _, b := range blocks {
+				if _, ok := asked[b.Value]; !ok {
+					asked[b.Value] = asker{p.Key.Value, t.s.Dir, priority}
+				}
 			}
 			file := fileOf(t, p.Key, "")
 			if file == "/.yaml" {

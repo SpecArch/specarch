@@ -188,6 +188,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkFlows(d)
 	c.checkPageStates(d)
 	c.checkCompactColumns(d)
+	c.checkAccessibility(d)
 	c.checkDecisions(d)
 	c.checkAccess(d)
 	c.checkExpressions(d)

@@ -248,6 +248,36 @@ let designSchemaJSON = #"""
         "$ref": "#/$defs/flow"
       }
     },
+    "accessibility": {
+      "description": "SpecArch keyword. The accessibility the user interface conforms to, by the standard and its level. With it, the validator checks what the design decides: a title for every field a page shows and a distinct label for every action of a page.",
+      "type": "object",
+      "properties": {
+        "standard": {
+          "description": "WCAG 2.2, the W3C Recommendation of October 2023.",
+          "type": "string",
+          "enum": [
+            "WCAG 2.2"
+          ]
+        },
+        "level": {
+          "description": "The conformance level; AA is what most laws ask for.",
+          "type": "string",
+          "enum": [
+            "A",
+            "AA",
+            "AAA"
+          ]
+        }
+      },
+      "required": [
+        "standard",
+        "level"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
     "algorithms": {
       "description": "SpecArch keyword. Computations that must be specified before they are written by hand, keyed by camelCase name.",
       "type": "object",
@@ -1063,6 +1093,11 @@ let designSchemaJSON = #"""
               }
             }
           ]
+        },
+        "title": {
+          "description": "JSON Schema's title: the label a person reads for the field, on a page and in a document.",
+          "type": "string",
+          "minLength": 1
         },
         "description": {
           "$ref": "#/$defs/markdown"

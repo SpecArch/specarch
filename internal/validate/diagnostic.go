@@ -107,6 +107,7 @@ const (
 	RuleView                   Rule = "view"
 	RuleFlow                   Rule = "flow"
 	RuleState                  Rule = "state"
+	RuleAccessibility          Rule = "accessibility"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -206,6 +207,7 @@ var Rules = []Rule{
 	RuleView,
 	RuleFlow,
 	RuleState,
+	RuleAccessibility,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

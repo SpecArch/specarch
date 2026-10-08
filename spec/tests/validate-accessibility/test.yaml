@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification that names WCAG 2.2 at level AA, whose pages show a field with a title and two without one, and a page with two actions of the same label"
+when: "validate is run"
+then: "it reports accessibility for each field without a title, naming the pages that show it, and for the second action, and exits 1"
+verifies: [SA-42]

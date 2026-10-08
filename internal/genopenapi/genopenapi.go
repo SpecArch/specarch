@@ -309,7 +309,7 @@ func (g *gen) responses(rs map[string]any) *yaml.Node {
 
 // schemaKeys are the JSON Schema keywords a field carries over, in the
 // order they are written.
-var schemaKeys = []string{"type", "format", "description", "enum", "const", "default", "examples",
+var schemaKeys = []string{"type", "format", "title", "description", "enum", "const", "default", "examples",
 	"minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf",
 	"minLength", "maxLength", "pattern", "minItems", "maxItems", "uniqueItems", "readOnly", "writeOnly", "deprecated"}
 

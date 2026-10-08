@@ -372,9 +372,11 @@ components:
         bookId:
           type: string
           format: uuid
+          title: Book
         dueOn:
           type: string
           format: date
+          title: Due on
           readOnly: true
         id:
           type: string
@@ -383,6 +385,7 @@ components:
         lateFee:
           type: string
           format: decimal
+          title: Late fee
           description: Computed by the lateFee algorithm when the copy is returned; zero until then.
           readOnly: true
           x-specarch-precision: 10
@@ -390,10 +393,12 @@ components:
         loanedAt:
           type: string
           format: date-time
+          title: Lent at
           readOnly: true
         memberId:
           type: string
           format: uuid
+          title: Member
         returnedAt:
           type:
             - string
@@ -428,12 +433,14 @@ components:
       properties:
         cardNumber:
           type: string
+          title: Card number
           description: Printed on the card; assigned when the member joins.
           maxLength: 8
           pattern: ^[0-9]{8}$
         email:
           type: string
           format: email
+          title: Email address
           description: Encrypted at rest, and found by a salted hash of it, since it must stay unique.
           maxLength: 320
           x-specarch-sensitivity: personal
@@ -441,6 +448,7 @@ components:
           x-specarch-lookup: hash
         fullName:
           type: string
+          title: Full name
           minLength: 1
           maxLength: 200
           x-specarch-sensitivity: personal
@@ -451,15 +459,18 @@ components:
         joinedOn:
           type: string
           format: date
+          title: Joined on
           readOnly: true
         membershipEndsOn:
           type: string
           format: date
+          title: Membership ends on
           description: The last day the card is valid; set a year after joining and moved on by each renewal.
           readOnly: true
         outstandingFees:
           type: string
           format: decimal
+          title: Outstanding fees
           description: Sum of unpaid late fees and replacement charges, in the library's currency.
           readOnly: true
           x-specarch-precision: 10

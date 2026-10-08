@@ -175,7 +175,7 @@ func TestListView(t *testing.T) {
 	resp = generateWith(t, func(sp map[string]any) {
 		sp["views"] = map[string]any{"BookRow": map[string]any{"from": "Book"}}
 		sp["paths"].(map[string]any)["/shelf-books"] = map[string]any{"get": map[string]any{"operationId": "listShelfBooks", "permission": "public",
-			"listOf": map[string]any{"view": "BookRow", "pageSize": map[string]any{"default": json.Number("20"), "maximum": json.Number("100")}},
+			"listOf":    map[string]any{"view": "BookRow", "pageSize": map[string]any{"default": json.Number("20"), "maximum": json.Number("100")}},
 			"responses": map[string]any{"200": map[string]any{"description": "The books."}}}}
 	})
 	if len(resp.Diagnostics) != 1 || !strings.Contains(resp.Diagnostics[0].Message, "through itself and through the view BookRow") && !strings.Contains(resp.Diagnostics[0].Message, "through the view BookRow and through itself") {

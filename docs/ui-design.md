@@ -223,15 +223,15 @@ a design that names three classes would be negotiating with the stack.
 
 ### Accessibility
 
-The root of the specification names the target once:
+The design names the target once:
 
     accessibility: { standard: WCAG 2.2, level: AA }
 
 With a target, the validator checks what the design decides (`accessibility`):
 
-- every field shown on a page has a label: its `title`, or its name made
-  readable when it has none, and a warning for a name that reads badly
-  (`memberId` reads "Member id");
+- every field shown on a page has a label: its `title`, JSON Schema's own
+  keyword (a name made readable would be a guess, and a guess is not a
+  label);
 - every action has a label, and no two actions of a page share one, so a
   screen reader can tell them apart (4.1.2);
 - the contrast of every pair of colour tokens the theme declares as text
@@ -239,9 +239,10 @@ With a target, the validator checks what the design decides (`accessibility`):
   parts (1.4.3, 1.4.11), computed by WCAG's own formula for relative
   luminance;
 - a state is never told by colour alone: a status column whose enum has a
-  colour token per value also has its text (1.4.1);
-- every failed state of a form names the field it is about when the
-  problem is about one (3.3.1).
+  colour token per value also has its text (1.4.1).
+
+Whether a problem is about one field the validator cannot tell, so a
+failed state names its `field` when the analyst knows it.
 
 What it cannot check (a target size on the screen, the focus order as
 built, the names a component library gives) is the generator's to honour
@@ -346,7 +347,7 @@ before it.
 | D3 | Events and flows after IFML: `onSubmitted`, `onSelect` and an action's `then`, each with `navigate`, `with` and `message`; `flows` as named tasks across pages, each a test subject | confirm |
 | D4 | `sections` replaces `fields` on a form or view when fields are grouped, and its order is the focus order | confirm |
 | D5 | One screen class, compact, with `compactColumns`; the stack sets its size | confirm |
-| D6 | `accessibility: { standard: WCAG 2.2, level: AA }` at the root turns on the checks listed above; without it they are warnings | confirm |
+| D6 | `accessibility: { standard: WCAG 2.2, level: AA }` in the design turns on the checks listed above; without it nothing is checked | confirm |
 | D7 | The theme is `design/theme.yaml` in the Design Tokens Community Group format, `$type` and `$value` kept, with `modes` and `pairs` as SpecArch's | confirm |
 | D8 | No wireframe images in the documents; the structure table and the diagrams instead | confirm |
 | D9 | The first UI generator is SwiftUI, against a hand-built screen of an existing app; the web one follows | the owner picks |

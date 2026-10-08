@@ -43,7 +43,7 @@ var Sections = map[string]string{
 	"stakeholders": "requirements", "needs": "requirements", "requirements": "requirements",
 	"glossary": "requirements", "assumptions": "requirements", "constraints": "requirements",
 	"enums": "design", "entities": "design", "views": "design", "permissions": "design", "roles": "design", "session": "design", "paths": "design",
-	"commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "errors": "design", "pages": "design", "menus": "design", "flows": "design", "algorithms": "design", "decisions": "design",
+	"commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "errors": "design", "pages": "design", "menus": "design", "flows": "design", "accessibility": "design", "algorithms": "design", "decisions": "design",
 	"tests":        "tests",
 	"environments": "deployment", "configuration": "deployment", "release": "deployment",
 	"rollback": "deployment", "migrations": "deployment",
@@ -55,7 +55,7 @@ var Sections = map[string]string{
 // docs/conventions.md: life-cycle order, the questions last.
 var sectionOrder = []string{
 	"stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
-	"enums", "entities", "views", "permissions", "roles", "session", "paths", "commands", "channels", "dependencies", "jobs", "errors", "pages", "menus", "flows", "algorithms",
+	"enums", "entities", "views", "permissions", "roles", "session", "paths", "commands", "channels", "dependencies", "jobs", "errors", "pages", "menus", "flows", "accessibility", "algorithms",
 	"tests", "decisions",
 	"environments", "configuration", "release", "rollback", "migrations",
 	"checks", "signoff",
@@ -65,7 +65,7 @@ var sectionOrder = []string{
 
 // singleSections hold one object, not a map of named objects, so they
 // cannot be split across files.
-var singleSections = map[string]bool{"release": true, "rollback": true, "signoff": true}
+var singleSections = map[string]bool{"release": true, "rollback": true, "signoff": true, "accessibility": true}
 
 // rootOnly are the keys that live only in the root file.
 var rootOnly = map[string]bool{"specarch": true, "info": true, "stages": true, "sources": true}

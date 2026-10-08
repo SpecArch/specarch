@@ -199,6 +199,7 @@ extension Checker {
         checkFlows(d)
         checkPageStates(d)
         checkCompactColumns(d)
+        checkAccessibility(d)
         checkDecisions(d)
         checkAccess(d)
         checkExpressions(d)

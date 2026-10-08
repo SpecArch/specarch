@@ -630,6 +630,9 @@ func crossCutting(d *doc, root *yaml.Node) {
 		d.block(flowFlowchart(f.Value))
 		d.explain(f.Value)
 	}
+	if a := get(root, "accessibility"); a != nil {
+		accessibilityTable(d, a)
+	}
 	for _, a := range algs {
 		d.heading(3, "Algorithm "+a.Key.Value)
 		d.para(str(a.Value, "description"))
@@ -961,4 +964,40 @@ func viewPathField(root *yaml.Node, entity, path string) (*yaml.Node, bool) {
 		cur = get(get(root, "entities"), str(rel, "target"))
 	}
 	return get(get(cur, "properties"), hops[len(hops)-1]), optional
+}
+
+// wcagCriteria are the WCAG 2.2 success criteria a user interface built
+// from a specification meets, with who meets each: the design, checked by
+// the validator or not, the generator, or a person.
+var wcagCriteria = []struct{ id, name, level, who, how string }{
+	{"1.1.1", "Non-text content", "A", "a person", "an image's text alternative is written where the image is chosen"},
+	{"1.3.1", "Info and relationships", "A", "the generator", "a page's title, its labels and its order become the stack's headings and labelled controls"},
+	{"1.4.1", "Use of color", "A", "the generator", "a state or a value is shown in text as well as in colour"},
+	{"1.4.3", "Contrast (minimum)", "AA", "the generator", "the stack's own colours, which a person checks"},
+	{"2.1.1", "Keyboard", "A", "the generator", "every action and field is reachable without a pointer"},
+	{"2.4.3", "Focus order", "A", "the design", "the order of a page's fields and columns is its focus order"},
+	{"2.4.6", "Headings and labels", "AA", "the design, checked", "every page has a title, every field it shows a title, and every action a label of its own"},
+	{"2.5.8", "Target size (minimum)", "AA", "the generator", "every control is at least 24 by 24 CSS pixels"},
+	{"3.2.3", "Consistent navigation", "AA", "the design", "the menu is one tree, the same on every page"},
+	{"3.3.1", "Error identification", "A", "the design, checked", "every failed state a page declares is a message in a full sentence, beside the field it is about"},
+	{"3.3.2", "Labels or instructions", "A", "the design, checked", "every field a page shows has a title"},
+	{"4.1.2", "Name, role, value", "A", "the design, checked, and the generator", "every action has a label of its own; the generator gives each control its role"},
+	{"4.1.3", "Status messages", "AA", "the design and the generator", "every event's message and every state is text, which the generator announces without moving focus"},
+}
+
+// accessibilityTable lists the criteria of the target's level and who
+// meets each.
+func accessibilityTable(d *doc, a *yaml.Node) {
+	level := str(a, "level")
+	d.heading(3, "Accessibility")
+	d.para("The user interface conforms to " + str(a, "standard") + " at level " + level + ". What the design decides is in the specification, and the validator checks what it can; the rest is the generator's to build and a person's to check at commissioning.")
+	d.line("| Criterion | Level | Met by | How |")
+	d.line("|---|---|---|---|")
+	for _, c := range wcagCriteria {
+		if len(c.level) > len(level) {
+			continue
+		}
+		d.line("| %s %s | %s | %s | %s |", c.id, c.name, c.level, c.who, c.how)
+	}
+	d.blank()
 }

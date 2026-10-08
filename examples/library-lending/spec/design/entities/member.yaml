@@ -5,12 +5,14 @@ entities:
     properties:
       id: { type: string, format: uuid, readOnly: true }
       cardNumber:
+        title: Card number
         type: string
         pattern: "^[0-9]{8}$"
         maxLength: 8
         description: Printed on the card; assigned when the member joins.
-      fullName: { type: string, minLength: 1, maxLength: 200, sensitivity: personal }
+      fullName: { title: Full name, type: string, minLength: 1, maxLength: 200, sensitivity: personal }
       email:
+        title: Email address
         type: string
         format: email
         maxLength: 320
@@ -18,14 +20,16 @@ entities:
         atRest: encrypted
         lookup: hash
         description: Encrypted at rest, and found by a salted hash of it, since it must stay unique.
-      tier: { $ref: "#/enums/MembershipTier" }
-      joinedOn: { type: string, format: date, readOnly: true }
+      tier: { title: Tier, $ref: "#/enums/MembershipTier" }
+      joinedOn: { title: Joined on, type: string, format: date, readOnly: true }
       membershipEndsOn:
+        title: Membership ends on
         type: string
         format: date
         readOnly: true
         description: The last day the card is valid; set a year after joining and moved on by each renewal.
       outstandingFees:
+        title: Outstanding fees
         type: string
         format: decimal
         precision: 10

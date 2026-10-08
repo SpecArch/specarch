@@ -338,3 +338,50 @@ func (c *checker) checkCompactColumns(d *design) {
 		}
 	}
 }
+
+// checkAccessibility checks, once the specification names its target,
+// what the design decides of it: every field a page shows has a title, its
+// label (WCAG 2.2, 3.3.2 and 2.4.6), and no two actions of a page share a
+// label, so each has a name of its own (4.1.2).
+func (c *checker) checkAccessibility(d *design) {
+	if source.Child(d.root, "accessibility") == nil {
+		return
+	}
+	shownOn := map[string][]string{} // "Entity.field" to the pages that show it
+	var order []string
+	for _, p := range source.Pairs(source.Child(d.root, "pages")) {
+		name, pg := p.Key.Value, p.Value
+		ent := source.Str(source.Child(pg, "entity"))
+		for _, key := range []string{"columns", "fields"} {
+			for _, f := range source.Items(source.Child(pg, key)) {
+				k := ent + "." + f.Value
+				if len(shownOn[k]) == 0 {
+					order = append(order, k)
+				}
+				if l := shownOn[k]; len(l) == 0 || l[len(l)-1] != name {
+					shownOn[k] = append(l, name)
+				}
+			}
+		}
+		seen := map[string]bool{}
+		for i, a := range source.Items(source.Child(pg, "actions")) {
+			l := source.Child(a, "label")
+			if l == nil {
+				continue
+			}
+			if seen[l.Value] {
+				c.add(l, source.Pointer("pages", name, "actions", fmt.Sprint(i), "label"), RuleAccessibility, "%s has two actions labelled %s, which a screen reader cannot tell apart (WCAG 2.2, 4.1.2); give each its own label", name, l.Value)
+			}
+			seen[l.Value] = true
+		}
+	}
+	for _, k := range order {
+		ent, field, _ := strings.Cut(k, ".")
+		f := fieldsOf(d.entities[ent])[field]
+		if f == nil || source.Child(f, "title") != nil {
+			continue
+		}
+		key := source.Key(source.Child(d.entities[ent], "properties"), field)
+		c.add(key, source.Pointer("entities", ent, "properties", field), RuleAccessibility, "%s.%s is shown on %s and has no title, the label a person reads beside it (WCAG 2.2, 3.3.2 and 2.4.6); give it a title", ent, field, strings.Join(shownOn[k], ", "))
+	}
+}

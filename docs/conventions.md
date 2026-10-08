@@ -373,7 +373,7 @@ redefined.
 | Keyword | Origin | Notes |
 |---|---|---|
 | `info`, `paths`, `parameters`, `requestBody`, `responses`, `content`, `operationId`, `summary`, `deprecated` | OpenAPI 3 | bounded subset: `in` is path, query or header; no callbacks, links or servers |
-| `type`, `properties`, `required`, `enum`, `const`, `format`, `default`, `examples`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`, `minLength`, `maxLength`, `pattern`, `items`, `minItems`, `maxItems`, `uniqueItems`, `readOnly`, `writeOnly`, `$ref` | JSON Schema 2020-12 | `$ref` is restricted to `#/entities/X`, `#/enums/X` and `#/views/X`; nullability is written `type: [string, "null"]` as JSON Schema does |
+| `type`, `title`, `properties`, `required`, `enum`, `const`, `format`, `default`, `examples`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`, `minLength`, `maxLength`, `pattern`, `items`, `minItems`, `maxItems`, `uniqueItems`, `readOnly`, `writeOnly`, `$ref` | JSON Schema 2020-12 | `$ref` is restricted to `#/entities/X`, `#/enums/X` and `#/views/X`; nullability is written `type: [string, "null"]` as JSON Schema does |
 | `channels`, `messages`, `payload` | AsyncAPI | one level: channel, messages, payload; no servers, bindings or operations objects |
 | `x-*` | OpenAPI convention | allowed in every object, ignored by validation |
 | `stages`, `sources` | SpecArch | the root file's list of stage folders and its registry of cited sources |
@@ -405,6 +405,7 @@ redefined.
 | `flows`, `actor`, `steps`, `event`, `action` | SpecArch, after IFML's navigation flows | a task a person does across pages, step by step |
 | `states`, `empty`, `filteredEmpty`, `failed`, `message`, `field` | SpecArch | what a page shows when it is empty or fails |
 | `compactColumns` | SpecArch, after the compact size class of Apple's Human Interface Guidelines and Material Design 3 | the columns a list keeps on a compact screen |
+| `accessibility`, `standard`, `level` | WCAG 2.2 | the accessibility the user interface conforms to |
 | `algorithms`, `inputs`, `output`, `formula`, `examples` (of an algorithm), `pseudocode` | SpecArch | IEEE 1016 algorithm viewpoint, made testable |
 | `decisions` and the ADR fields | SpecArch, after Michael Nygard's record | the common ADR shape: context, decision, consequences, plus `why` |
 | `tests`, `scenario`, `level`, `given`, `when`, `then`, `covers`, `notApplicable` | SpecArch, after ISO/IEC/IEEE 29119 and Gherkin | design tests; the levels are 29119-1's; given, when and then are the Gherkin words, without Gherkin's file format |
@@ -721,6 +722,19 @@ A list says which of its columns a compact screen keeps, in order:
 Each must be one of the list's columns, and only a list has them
 (`page`). How small compact is, and how a compact row is laid out, are the
 stack's.
+
+### Accessibility
+
+The specification names its target once, in the design:
+
+    accessibility: { standard: WCAG 2.2, level: AA }
+
+With it, every field a page shows has a `title`, JSON Schema's keyword,
+which is the label a person reads beside it (WCAG 2.2, 3.3.2 and 2.4.6),
+and no two actions of a page share a label (4.1.2); both are
+`accessibility`. Without it, neither is checked. The techspec lists every
+criterion of the level and whether the design, the generator or a person
+meets it.
 
 ### Views
 

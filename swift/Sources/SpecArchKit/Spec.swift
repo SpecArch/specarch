@@ -24,7 +24,7 @@ public let sections: [String: String] = [
     "stakeholders": "requirements", "needs": "requirements", "requirements": "requirements",
     "glossary": "requirements", "assumptions": "requirements", "constraints": "requirements",
     "enums": "design", "entities": "design", "views": "design", "permissions": "design", "roles": "design", "session": "design", "paths": "design",
-    "commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "errors": "design", "pages": "design", "menus": "design", "flows": "design", "algorithms": "design", "decisions": "design",
+    "commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "errors": "design", "pages": "design", "menus": "design", "flows": "design", "accessibility": "design", "algorithms": "design", "decisions": "design",
     "tests": "tests",
     "environments": "deployment", "configuration": "deployment", "release": "deployment",
     "rollback": "deployment", "migrations": "deployment",
@@ -36,7 +36,7 @@ public let sections: [String: String] = [
 /// questions last.
 let sectionOrder = [
     "stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
-    "enums", "entities", "views", "permissions", "roles", "session", "paths", "commands", "channels", "dependencies", "jobs", "errors", "pages", "menus", "flows", "algorithms",
+    "enums", "entities", "views", "permissions", "roles", "session", "paths", "commands", "channels", "dependencies", "jobs", "errors", "pages", "menus", "flows", "accessibility", "algorithms",
     "tests", "decisions",
     "environments", "configuration", "release", "rollback", "migrations",
     "checks", "signoff",
@@ -46,7 +46,7 @@ let sectionOrder = [
 
 /// Sections that hold one object, not a map of named objects, so they
 /// cannot be split across files.
-let singleSections: Set<String> = ["release", "rollback", "signoff"]
+let singleSections: Set<String> = ["release", "rollback", "signoff", "accessibility"]
 
 /// The keys that live only in the root file.
 let rootOnly: Set<String> = ["specarch", "info", "stages", "sources"]

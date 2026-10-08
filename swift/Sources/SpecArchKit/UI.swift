@@ -249,3 +249,43 @@ extension Checker {
         }
     }
 }
+
+extension Checker {
+    /// Checks, once the specification names its target, what the design
+    /// decides of it: every field a page shows has a title, its label (WCAG
+    /// 2.2, 3.3.2 and 2.4.6), and no two actions of a page share a label, so
+    /// each has a name of its own (4.1.2).
+    func checkAccessibility(_ d: Design) {
+        guard d.root.child("accessibility") != nil else { return }
+        var shownOn: [String: [String]] = [:]
+        var order: [String] = []
+        for p in pairs(d.root.child("pages")) {
+            let name = p.key.value, pg = p.value
+            let ent = str(pg.child("entity"))
+            for key in ["columns", "fields"] {
+                for f in items(pg.child(key)) {
+                    let k = ent + "." + f.value
+                    let l = shownOn[k] ?? []
+                    if l.isEmpty { order.append(k) }
+                    if l.last != name { shownOn[k] = l + [name] }
+                }
+            }
+            var seen = Set<String>()
+            for (i, a) in items(pg.child("actions")).enumerated() {
+                guard let l = a.child("label") else { continue }
+                if seen.contains(l.value) {
+                    add(l, pointer("pages", name, "actions", "\(i)", "label"), .accessibility, "\(name) has two actions labelled \(l.value), which a screen reader cannot tell apart (WCAG 2.2, 4.1.2); give each its own label")
+                }
+                seen.insert(l.value)
+            }
+        }
+        for k in order {
+            let parts = k.split(separator: ".", maxSplits: 1).map(String.init)
+            guard parts.count == 2 else { continue }
+            let (ent, field) = (parts[0], parts[1])
+            guard let f = fieldsOf(d.entities[ent])[field], f.child("title") == nil else { continue }
+            let key = d.entities[ent]?.child("properties")?.key(field)
+            add(key, pointer("entities", ent, "properties", field), .accessibility, "\(ent).\(field) is shown on \((shownOn[k] ?? []).joined(separator: ", ")) and has no title, the label a person reads beside it (WCAG 2.2, 3.3.2 and 2.4.6); give it a title")
+        }
+    }
+}

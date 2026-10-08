@@ -1,0 +1,57 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.1 }
+stakeholders:
+  owner: { description: The product owner. }
+requirements:
+  CASE-1:
+    statement: The catalogue shall be printed on request.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [Running catalogue prints every book.]
+permissions:
+  public: { description: Anyone may run it. }
+commands:
+  catalogue:
+    summary: Print the catalogue
+    permission: public
+    standardOutput: One line per book.
+    exitCodes:
+      "0": printed
+    satisfies: [CASE-1]
+tests:
+  catalogue-prints:
+    command: catalogue
+    level: system
+    scenario: golden
+    given: a library with two books
+    when: catalogue is run
+    then: it prints two lines and exits 0
+    verifies: [CASE-1]
+  catalogue-usage-error:
+    command: catalogue
+    level: system
+    scenario: red
+    covers: [usage error]
+    given: a library
+    when: catalogue is run with an argument it does not accept
+    then: it prints how to use it and exits with the usage status
+    verifies: [CASE-1]
+environments:
+  production: { description: The live system. }
+checks:
+  catalogue-answers:
+    kind: smoke
+    description: The installed command prints the catalogue.
+    environment: production
+    steps:
+      - name: Print
+        action: Run catalogue on the installed system.
+        check: It prints the catalogue.
+    verifies: [CASE-1]
+monitors:
+  catalogue-runs:
+    description: Whether the nightly catalogue print finishes.
+    environment: production
+    objective: Every night's print finishes before opening time.
+    verifies: [CASE-1]

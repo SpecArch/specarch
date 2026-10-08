@@ -1,0 +1,5 @@
+arguments: [validate, project]
+exitStatus: 1
+standardOutput: |
+  records/releases/0.1.1.yaml:3: error: /version: release_bump: 0.1.1 includes CR-1, whose impact is major, so it needs a minor step from 0.1.0; release it as 0.2.0
+  records/releases/1.0.1.yaml:3: error: /version: release_bump: 1.0.1 includes CR-2, whose impact is minor, so it needs a minor step from 1.0.0; release it as 1.1.0

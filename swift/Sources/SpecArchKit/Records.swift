@@ -63,16 +63,20 @@ func checkRecords(_ s: Spec, _ d: Design) -> [Diagnostic] {
         }
     }
     let rc = RecordChecks(d: d, set: set)
-    var out: [Diagnostic] = []
+    for r in recs where !r.kind.isEmpty {
+        rc.check(r)
+    }
+    let rootChecker = Checker(file: s.rootPath, files: s.files)
+    rc.checkReleases(recs, rootChecker)
+    var out = rootChecker.diags
     for r in recs {
-        if !r.kind.isEmpty { rc.check(r) }
         out += withoutEchoes(r.c.diags)
     }
     return out
 }
 
 /// What a reference into the specification finds.
-private enum Resolution {
+enum Resolution {
     case missing
     case found    // a requirement, or an element a pointer reaches
     case retired  // a requirement whose status is retired
@@ -81,11 +85,11 @@ private enum Resolution {
 
 private let openChange: Set<String> = ["proposed", "analysed", "approved"]
 
-private func prefixOf(_ id: String) -> String {
+func prefixOf(_ id: String) -> String {
     String(id.split(separator: "-", maxSplits: 1, omittingEmptySubsequences: false).first ?? "")
 }
 
-private struct RecordChecks {
+struct RecordChecks {
     let d: Design
     let set: [String: [String: Record]]
 

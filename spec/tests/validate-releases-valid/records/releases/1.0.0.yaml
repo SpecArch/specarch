@@ -1,0 +1,5 @@
+specarchRecord: "0.1"
+kind: release
+version: 1.0.0
+status: planned
+includes: [CR-2]

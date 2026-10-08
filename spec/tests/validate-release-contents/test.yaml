@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a released release that includes an approved change and a confirmed defect, a released change its release does not include, and a released change that names a planned release"
+when: "validate is run"
+then: "it reports release_contents at each and exits 1"
+verifies: [SA-24]

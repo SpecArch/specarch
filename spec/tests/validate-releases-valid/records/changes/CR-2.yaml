@@ -1,0 +1,14 @@
+specarchRecord: "0.1"
+kind: change
+id: CR-2
+title: Print the catalogue by author
+raisedBy: owner
+raised: "2026-10-09"
+phase: production
+type: perfective
+urgency: normal
+reason: Readers look for books by author.
+affects: { changes: [CASE-1] }
+impact: minor
+decision: { by: owner, date: "2026-10-10", outcome: approved, why: It helps readers. }
+status: approved

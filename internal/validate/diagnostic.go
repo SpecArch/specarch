@@ -70,6 +70,9 @@ const (
 	RuleDefectDuplicate        Rule = "defect_duplicate"
 	RuleIncidentLink           Rule = "incident_link"
 	RuleCommissioningRecord    Rule = "commissioning_record"
+	RuleReleaseContents        Rule = "release_contents"
+	RuleReleaseBump            Rule = "release_bump"
+	RuleReleaseVersion         Rule = "release_version"
 	RuleNeedUnrefined          Rule = "need_unrefined"
 	RuleAcceptanceMissing      Rule = "acceptance_missing"
 	RuleRequirementUnsatisfied Rule = "requirement_unsatisfied"
@@ -143,6 +146,9 @@ var Rules = []Rule{
 	RuleDefectDuplicate,
 	RuleIncidentLink,
 	RuleCommissioningRecord,
+	RuleReleaseContents,
+	RuleReleaseBump,
+	RuleReleaseVersion,
 	RuleNeedUnrefined,
 	RuleAcceptanceMissing,
 	RuleRequirementUnsatisfied,

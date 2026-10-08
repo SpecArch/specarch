@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "info.version 1.1.0-dev with no planned release 1.1.0, and a release whose specificationVersion is not its version"
+when: "validate is run"
+then: "it reports release_version at info.version and at the specificationVersion, and exits 1"
+verifies: [SA-24]

@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "releases 0.1.0 and 0.2.0, the second with a major change, a planned 1.0.0, and info.version 1.0.0-dev"
+when: "validate is run"
+then: "the minor step is enough before 1.0.0, the pre-release matches the planned release, it prints nothing and exits 0"
+verifies: [SA-24]

@@ -63,6 +63,9 @@ enums:
       - defect_duplicate
       - incident_link
       - commissioning_record
+      - release_contents
+      - release_bump
+      - release_version
       - need_unrefined
       - acceptance_missing
       - requirement_unsatisfied
@@ -133,6 +136,9 @@ enums:
       defect_duplicate: a duplicate defect names no defect, one that does not exist, or one that is itself a duplicate
       incident_link: a resolved incident links to no defect or change and gives no `noChange` reason (a warning)
       commissioning_record: a commissioning record's results name a check that does not exist, or its version is not a release's
+      release_contents: a released release includes a change that is not implemented or released or a defect that is not fixed or released, or a released change or defect and the release it names disagree
+      release_bump: a released version steps from the previous released version by less than the largest impact of what it includes
+      release_version: info.version is neither the newest released version nor a later pre-release of a planned release, or a release's specificationVersion is not its version
       need_unrefined: no requirement refines a need whose status is not rejected (a warning)
       acceptance_missing: a requirement has no acceptance criteria (a warning)
       requirement_unsatisfied: the specification has a design and no element of it satisfies a requirement (a warning)
@@ -144,4 +150,4 @@ enums:
       origin_reason: an element whose origin is inferred has no why
       origin_decision: an element whose origin is decided names no decision, or a decision that does not exist or is not accepted, or is a decision itself; or decidedIn is set without origin decided
       origin_missing: the specification tracks origin and an element of a section carries none (a warning)
-    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23]
+    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24]

@@ -12,7 +12,7 @@ info:
 
 implements:
   file: ../../specarch.yaml
-  version: 0.1.0
+  version: 0.3.0-dev
 
 stack:
   language: { name: Swift, version: "6.0", description: Swift 6 language mode with strict concurrency checking. }

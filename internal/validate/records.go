@@ -85,11 +85,15 @@ func checkRecords(s *spec.Spec, d *design) []Diagnostic {
 		}
 	}
 	rc := &recordChecks{d: d, set: set}
-	var out []Diagnostic
 	for _, r := range recs {
 		if r.kind != "" {
 			rc.check(r)
 		}
+	}
+	rootChecker := &checker{file: s.RootFile, files: s.Files}
+	rc.checkReleases(recs, rootChecker)
+	out := rootChecker.diags
+	for _, r := range recs {
 		out = append(out, withoutEchoes(r.c.diags)...)
 	}
 	return out

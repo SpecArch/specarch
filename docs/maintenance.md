@@ -5,8 +5,8 @@ system keeps changing: a stakeholder asks for something new, someone finds
 a defect, a release goes out, the live system misbehaves. This document is
 the design of how SpecArch records that life, during development and in
 production, without turning the specification into a change log. The
-operation stage and the records with their rules are built; the release
-rules, the diff verb and the two documents are not yet, and the
+operation stage, the records with their rules and the release rules are
+built; the diff verb and the two documents are not yet, and the
 implementation items are listed at the end.
 
 The processes come from ISO/IEC/IEEE 12207:2017: configuration management
@@ -180,6 +180,19 @@ fields of every entity and enum they carry.
 | `minor` | something is added to the public interface and nothing a client relies on changes (rule 7) |
 | `patch` | nothing in the public interface changes: a defect fix, or a change inside the system (rule 6) |
 
+Before 1.0.0 the step for a `major` change is the minor number: 0.3.0
+after 0.2.x. SemVer rule 4 says that in major version zero anything may
+change at any time, so the standard itself asks for no step there, and a
+rule that asked for none would check nothing for a young system. The
+minor number is the step Cargo and npm's caret ranges already treat as
+breaking under 1.0.0, so a client that pins `^0.2` is protected the way
+`^1.2` protects one after 1.0.0. A `minor` or `patch` change before 1.0.0
+needs the patch step.
+
+Versions are ordered by SemVer's precedence (rule 11): major, minor and
+patch as numbers, and a version with a pre-release tag below the same
+version without one.
+
 A release record holds `version` (its file name), `status` (planned,
 released or withdrawn), the `date`, the change requests and defects it
 `includes`, the `specificationVersion` (`info.version` at release, equal to
@@ -253,9 +266,9 @@ error unless it says warning.
 | `change_decision` | a change that is approved, implemented or released has a `decision` with outcome approved; a rejected one has outcome rejected |
 | `defect_test` | a fixed or released defect names a `test` that verifies a requirement the defect violates, or whose subject (its operation, command, page or entity) is the element a violated `#/` pointer points into |
 | `defect_duplicate` | a duplicate names a defect that exists and is not itself a duplicate |
-| `release_contents` | a released release includes only changes that are implemented or released and defects that are fixed or released; a change or defect with status released names a release that includes it, and the other way round |
-| `release_bump` | a released version is greater than the previous released version by at least the largest `impact` of what it includes, a defect counting as patch |
-| `release_version` | `info.version` is the newest released version, or the version of a planned release with a pre-release tag |
+| `release_contents` | a released release includes only changes that are implemented or released and defects that are fixed or released; a change or defect with status released names a released release that includes it, and one that a released release includes and whose status is released names that release |
+| `release_bump` | a released version steps from the previous released version by at least the largest `impact` of what it includes, a defect counting as patch, with the step before 1.0.0 as above; withdrawn and planned releases are left out, and so is an ID of a tracker, whose impact the validator cannot read |
+| `release_version` | once a release is released, `info.version` is the newest released version, or a later version with a pre-release tag whose release is planned; and a release's `specificationVersion` is its `version` |
 | `incident_link` | a resolved incident links to a defect or a change, or says `noChange` (warning) |
 | `commissioning_record` | a commissioning record's results name checks that exist, and its version is a release's |
 

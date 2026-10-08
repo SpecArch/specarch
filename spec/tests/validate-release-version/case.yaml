@@ -1,0 +1,5 @@
+arguments: [validate, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:2: error: /info/version: release_version: info.version is 1.1.0-dev, a pre-release, but there is no planned release 1.1.0 after 1.0.0; add records/releases/1.1.0.yaml with status planned, or set info.version to 1.0.0
+  records/releases/1.0.0.yaml:6: error: /specificationVersion: release_version: the specification's version at a release is the release's version; set it to 1.0.0

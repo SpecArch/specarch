@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "0.1.1 after 0.1.0 with a major change, and 1.0.1 after 1.0.0 with a minor change"
+when: "validate is run"
+then: "it reports release_bump at both, naming 0.2.0 and 1.1.0, and exits 1"
+verifies: [SA-24]

@@ -3,7 +3,7 @@ specarch: "0.1"
 
 info:
   title: SpecArch toolchain
-  version: 0.1.0
+  version: 0.3.0-dev
   description: |
     The `specarch` command: it validates SpecArch specifications and makes
     documents and code from them. This folder is the specification, with no
@@ -106,6 +106,12 @@ sources:
     edition: "1.26"
     author: The Go project
     url: https://go.dev/doc/
+  semver:
+    kind: standard
+    title: Semantic Versioning
+    edition: "2.0.0"
+    author: The Semantic Versioning project
+    url: https://semver.org/spec/v2.0.0.html
   ecma-262:
     kind: standard
     title: ECMA-262, ECMAScript language specification, the Number type

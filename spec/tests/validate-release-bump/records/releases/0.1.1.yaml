@@ -1,0 +1,6 @@
+specarchRecord: "0.1"
+kind: release
+version: 0.1.1
+status: released
+date: "2026-10-08"
+includes: [CR-1]

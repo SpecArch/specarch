@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.3.0-dev of the specification: 24 requirements, 3 entities, 7 commands, 6 algorithms, 164 tests, 20 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.3.0-dev of the specification: 25 requirements, 3 entities, 8 commands, 6 algorithms, 172 tests, 20 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -58,6 +58,7 @@ The interfaces the system offers, as its clients see them.
 | Command | Summary | Permission | Exit statuses |
 |---|---|---|---|
 | approve | Record that the documents were read and the specification is approved | public | 0: the approval was recorded; 1: refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current; 2: usage error, or a file that could not be read or written |
+| diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, or there is no release record for the new version; 2: usage error, a path that could not be read, or a specification with errors |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder, or a file that could not be read or written |
 | extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects; 2: usage error, a source this build does not offer, or a path that could not be read or written |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open; 1: at least one must or should question is open; 2: usage error, a path that could not be read, or a specification with errors |
@@ -294,6 +295,53 @@ sequenceDiagram
   P->>F: read {paths}
   P->>F: read <output>/<target>.md
   P->>F: write records/approvals/<version>.yaml
+  P-->>U: exit status 0, 1, 2
+```
+
+### Command diff
+
+Validates both specifications first and prints nothing but the
+errors of one that has them. Then lists every element added, changed
+or removed between them, one line each in pointer order, as
+`<impact> <added|changed|removed> <pointer>`, with the change that
+decided the impact of a changed element of the public interface
+after it. The impact follows Semantic Versioning: an element inside
+the system is patch whatever happens to it; on the public interface
+an addition is minor, a removal major, and a change the largest of
+its changes, a change that cannot be shown safe counting as major.
+
+Then it checks the release of the new version, read from the
+records beside the new folder: that its version steps from the old
+one by at least the largest impact (version), and that a change
+request or defect it includes names every element in the list
+(covered). Each failed check is one line starting `error:`; an
+element the records cannot be shown to name because the release
+includes an ID kept in a tracker is a line starting `warning:`.
+
+**Insight:** The validator sees one version at a time, so it can check what a release record says but not whether the specification changed the way the record says. Only a comparison of the two versions can tell that a release called minor removed an operation, or that an element changed with no change request behind it.
+
+**Note:** From Semantic Versioning, 2.0.0, clause rules 6 to 8: The patch version steps for fixes that keep the interface, the minor version for additions that keep it, and the major version for changes that break it. <https://semver.org/spec/v2.0.0.html>
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<old>` | string | yes | The folder of the earlier specification, normally the previous release's tag checked out on its own. |
+| `<new>` | string | yes | The folder of the later specification, normally the working tree. |
+
+Reads `{old}`: The earlier specification; `{new}`: The later specification; `records/ beside {new}`: The release record of the new version and the change and defect records it includes.
+
+Standard output: The errors of an invalid specification, one line each; otherwise the change list, then one line per failed check.
+
+Standard error: A usage message on a usage error, and the reason on an unreadable path.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: diff <old> <new>
+  P->>F: read {old}
+  P->>F: read {new}
+  P->>F: read records/ beside {new}
   P-->>U: exit status 0, 1, 2
 ```
 
@@ -696,10 +744,12 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 
 | Path | Holds | Implements |
 |---|---|---|
-| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
+| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/diff, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
+| internal/semver | Semantic Versioning 2.0.0 versions, their precedence, and the step one needs from another, with the step before 1.0.0; the release rules and diff measure a release with it. |   |
+| internal/diff | Compares two merged specifications element by element, finds the public interface, and classifies each difference by the version step it needs. |   |
 | internal/approval | The approval record beside a specification, its digest of the specification's files, and where a version's approval stands against the files now. |   |
 | internal/expr | The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals. |   |
 | internal/generate | The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents; questions writes the open questions and what they hold up, the text gaps prints. Every one renders why as an Insight, each citation as a Note, an element's origin as an Origin line and the open questions about it as Open question paragraphs. | #/algorithms/markersWellFormed |
@@ -720,6 +770,7 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | #/commands/document | main.runDocument |   |
 | #/commands/generate | main.runGenerate | Refuses through main.gate while a question blocks what the target reads or the approval is missing or void; then runs the plug-in with main.runPlugin; the request and answer are the pluginRequest and pluginResponse structs. |
 | #/commands/extract | main.runExtract | Answers with status 2 until it is built. |
+| #/commands/diff | main.runDiff | Lists diff.Compare's changes, then checks the release record beside the new folder. |
 | #/enums/DocumentTarget | main.documentTargets |   |
 | #/enums/GeneratorTarget | main.builtGenerators | Empty; every target is a plug-in. |
 | #/entities/GeneratedFile | main.planned | A path and the content a target wants there; --check compares it with the disk. |
@@ -837,7 +888,7 @@ From the implementation file version 0.1.0.
 A second implementation of the specification in `spec/`, for macOS,
 built from the same specification as the Go one. It offers the validate
 and version commands and passes the same conformance cases; the
-documents, the generators, gaps and approve are built in Go only.
+documents, the generators, gaps, approve and diff are built in Go only.
 
 Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin/arm64, darwin/amd64.
 
@@ -871,6 +922,7 @@ Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin
 | #/commands/approve | SpecArchKit.run | Exits 2: the record is written by the Go build only. |
 | #/commands/generate | SpecArchKit.run | Exits 2: this build runs no generator. |
 | #/commands/extract | SpecArchKit.run | Exits 2, as the Go build does until it is built. |
+| #/commands/diff | SpecArchKit.run | Exits 2: the comparison of two versions is built in Go only; the release rules are in this build. |
 | #/algorithms/exitStatus | the end of SpecArchKit.runValidate |   |
 | #/algorithms/workedExampleHolds | SpecArchKit.Checker.checkExample |   |
 | #/algorithms/permissionGranted | SpecArchKit.Checker.checkAccess |   |
@@ -1754,6 +1806,14 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | approve-writes-record | command approve | system | golden | a specification without open questions, a configured requirements document that is current, and a stakeholder owner | approve is run with --by owner and a date | it writes records/approvals/1.0.0.yaml with the role, the date, the document and the digest of the files, and exits 0 |
 | diagnostic-line-from-one | Diagnostic constraint diagnostic_line_positive | system | golden | a problem on the first line of a file | the diagnostic is made | its line is 1 |
 | diagnostic-line-zero | Diagnostic constraint diagnostic_line_positive | system | red | a problem found before any line was read | a diagnostic with line 0 is made | it is refused; a problem about the whole file is reported on line 1 |
+| diff-classifies-changes | command diff | system | golden | a new version that drops an enum value, requires a field it did not, and adds an optional query parameter, released as 2.0.0 by a major change naming them | diff is run | the enum and the entity are major with the reason, the operation minor, the major step passes, and it exits 0 |
+| diff-invalid-spec | command diff | system | red | a new version whose operation names a permission that is not declared | diff is run | it prints the error, compares nothing and exits 2 |
+| diff-lists-changes | command diff | system | golden | a new version that adds an operation and an optional field, rewords a requirement and an entity's description, and a planned release 1.1.0 whose change names each | diff is run on the old and the new folder | it lists the three elements as minor with the field that decided, minor and patch, finds the minor step enough and every element named, and exits 0 |
+| diff-no-release | command diff | system | red | a new version 1.1.0 with no release record beside it | diff is run | it lists the change, reports version for the missing record and exits 1 |
+| diff-not-covered | command diff | system | red | a release whose only change names the entity, while the requirement changed too | diff is run | it reports covered for the requirement and exits 1 |
+| diff-tracker-unknown | command diff | system | golden | a release that includes only TRK-4, an ID of a declared change-set | diff is run | the changed element is a covered warning, since the tracker may name it, and it exits 0 |
+| diff-usage-error | command diff | system | red | one folder | diff is run with only the old folder | it prints how to use it and exits 2 |
+| diff-version-step | command diff | system | red | a new version that removes a value from a public enum, released as 1.0.1 | diff is run | it lists the enum as major and reports version, naming 2.0.0, and exits 1 |
 | document-check-current | command document | system | golden | output that matches the design file | document techspec is run with --check | it writes nothing, prints nothing and exits 0 |
 | document-check-differs | command document | system | red | a generated file edited by hand | document techspec is run with --check | it names the file that differs, writes nothing and exits 1 |
 | document-check-missing | command document | system | red | no generated output yet | document techspec is run with --check | it names the missing file and exits 1 |
@@ -1959,6 +2019,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-12 | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. | functional | must | accepted | test | A specification with only a requirements stage validates with no error. A requirement no design element satisfies, a requirement no test, check or monitor verifies, and a need no requirement refines are reported as warnings once the later stage exists. | NEED-5 |
 | SA-23 | The validator shall check the records kept beside a specification (change requests, defects, releases, incidents, commissioning runs and approvals) against their schema and against the specification they point into, without the specification pointing back at them. | functional | must | accepted | test | A record whose file name is not its ID or version, or that sits in another kind's folder, is reported as record_name. A record naming a role, requirement, pointer, test, environment or monitor the specification does not have is reported as record_ref, unless the ID falls in a declared change-set or defect-set. An implemented change whose additions are not in the specification, a change approved without a decision, a fixed defect without a test that shows the fix, a duplicate of a duplicate, and a commissioning run naming a check that does not exist are each reported under their rule. A resolved incident that leads to no defect and no change, and says nothing in noChange, is reported as a warning. | NEED-5 |
 | SA-24 | The system's version shall be the specification's info.version under Semantic Versioning 2.0.0, and the validator shall check each released version against the release before it and against what it includes. | functional | must | accepted | test | A released release that includes a change still approved, or a released change whose release does not include it, is reported as release_contents. A release that includes a major change but steps only the minor number after 1.0.0, or only the patch number before it, is reported as release_bump. An info.version that is not the newest released version, and not a later pre-release whose release is planned, is reported as release_version. | NEED-5 |
+| SA-25 | The toolchain shall compare two versions of a specification, list what was added, changed and removed with the version step each needs, and check the release of the later version against that list. | functional | must | accepted | test | Two versions that differ in one operation, one entity and one requirement are listed as three lines, each with its impact. A release that steps less than the largest change, or that includes no change request or defect naming a changed element, is reported and the command exits 1. An invalid specification on either side is refused with its errors and exit status 2. | NEED-5 |
 | SA-13 | Every element of a specification, at every stage, may carry a rationale (why) and citations of declared sources (cites), and the validator shall check that every citation names a declared source. | functional | must | accepted | test | An element with why and cites validates, and a citation of a source that is not declared is reported as source. | NEED-6 |
 | SA-17 | A specification shall be able to say what it does not yet know as an open question that names what is asked, who decides, what it blocks and how urgent it is; and the validator shall accept a required key missing exactly where a must question says it is unknown, and nowhere else. | functional | must | accepted | test | An entity written as an empty mapping and blocked by a must question validates with no error, and its missing keys are listed under the question by specarch gaps. The same entity without the question is reported with the missing keys. A question whose blocks names nothing in the specification, whose decider is not a stakeholder, or which sits in another stage's folder, is reported. An accepted decision that answers a question still present is reported. | NEED-8 |
 | SA-18 | Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision. | functional | must | accepted | test | An element with origin stated and no citation, one with origin inferred and no why, and one with origin decided naming no decision or a proposed one, are each reported. When the root file says the specification tracks origin, every element of a section without one is reported as a warning. | NEED-8 |
@@ -2002,6 +2063,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-24:** A version number is a promise to everyone who depends on the system; one that steps less than its contents say breaks a client that trusted it.
 
 **Note on SA-24:** From Semantic Versioning, 2.0.0, clause rules 4, 6 to 9 and 11: A major version zero is for initial development; patch, minor and major versions step for fixes, additions and incompatible changes; a pre-release version is marked with a hyphen; precedence compares major, minor and patch numerically, and a pre-release ranks below its normal version. <https://semver.org/spec/v2.0.0.html>
+
+**Insight on SA-25:** A release record says what a release carries; only a comparison of the two versions shows whether the specification changed that way.
 
 **Note on SA-13:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.8: Rationale and source are attributes every requirement should carry. <https://www.iso.org/standard/72089.html>
 
@@ -2047,6 +2110,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-22 | commands document; decisions ADR-020 | tests document-testplan-left-out; tests document-traceability-harm; tests document-writes-traceability |
 | SA-23 | enums Rule; commands validate | tests validate-change-applied; tests validate-change-decision; tests validate-commissioning-record; tests validate-defect-duplicate; tests validate-defect-test; tests validate-incident-link; tests validate-layout-records-in-spec; tests validate-record-name; tests validate-record-ref; tests validate-record-schema; tests validate-record-tracker; tests validate-records-valid |
 | SA-24 | enums Rule; commands validate | tests validate-release-bump; tests validate-release-contents; tests validate-release-version; tests validate-releases-valid |
+| SA-25 | commands diff | tests diff-classifies-changes; tests diff-invalid-spec; tests diff-lists-changes; tests diff-no-release; tests diff-not-covered; tests diff-tracker-unknown; tests diff-usage-error; tests diff-version-step |
 
 ## Sources
 

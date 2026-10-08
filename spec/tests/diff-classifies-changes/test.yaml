@@ -1,0 +1,7 @@
+command: diff
+level: system
+scenario: golden
+given: "a new version that drops an enum value, requires a field it did not, and adds an optional query parameter, released as 2.0.0 by a major change naming them"
+when: "diff is run"
+then: "the enum and the entity are major with the reason, the operation minor, the major step passes, and it exits 0"
+verifies: [SA-25]

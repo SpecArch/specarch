@@ -1,0 +1,6 @@
+arguments: [diff, old/spec, new/spec]
+exitStatus: 0
+standardOutput: |
+  major changed #/entities/Item: now requires colour
+  major changed #/enums/Colour: loses the value green
+  minor changed #/paths/~1items/get: parameters is added

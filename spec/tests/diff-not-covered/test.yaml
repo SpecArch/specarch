@@ -1,0 +1,8 @@
+command: diff
+level: system
+scenario: red
+covers: [exit 1]
+given: "a release whose only change names the entity, while the requirement changed too"
+when: "diff is run"
+then: "it reports covered for the requirement and exits 1"
+verifies: [SA-25]

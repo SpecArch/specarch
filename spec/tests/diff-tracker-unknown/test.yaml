@@ -1,0 +1,7 @@
+command: diff
+level: system
+scenario: golden
+given: "a release that includes only TRK-4, an ID of a declared change-set"
+when: "diff is run"
+then: "the changed element is a covered warning, since the tracker may name it, and it exits 0"
+verifies: [SA-25]

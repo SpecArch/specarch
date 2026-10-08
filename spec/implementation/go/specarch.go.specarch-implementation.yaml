@@ -62,13 +62,17 @@ libraries:
 layout:
   cmd/specarch:
     description: The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status.
-    implements: ["#/commands/validate", "#/commands/gaps", "#/commands/document", "#/commands/approve", "#/commands/generate", "#/commands/extract", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
+    implements: ["#/commands/validate", "#/commands/gaps", "#/commands/document", "#/commands/approve", "#/commands/generate", "#/commands/extract", "#/commands/diff", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
   schema:
     description: The JSON Schemas, embedded into the binary from the files editors use.
   internal/source:
     description: Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys.
   internal/spec:
     description: Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems.
+  internal/semver:
+    description: Semantic Versioning 2.0.0 versions, their precedence, and the step one needs from another, with the step before 1.0.0; the release rules and diff measure a release with it.
+  internal/diff:
+    description: Compares two merged specifications element by element, finds the public interface, and classifies each difference by the version step it needs.
   internal/approval:
     description: The approval record beside a specification, its digest of the specification's files, and where a version's approval stands against the files now.
   internal/expr:
@@ -92,6 +96,7 @@ mappings:
   "#/commands/document": { target: main.runDocument }
   "#/commands/generate": { target: main.runGenerate, description: "Refuses through main.gate while a question blocks what the target reads or the approval is missing or void; then runs the plug-in with main.runPlugin; the request and answer are the pluginRequest and pluginResponse structs." }
   "#/commands/extract": { target: main.runExtract, description: Answers with status 2 until it is built. }
+  "#/commands/diff": { target: main.runDiff, description: "Lists diff.Compare's changes, then checks the release record beside the new folder." }
   "#/enums/DocumentTarget": { target: main.documentTargets }
   "#/enums/GeneratorTarget": { target: main.builtGenerators, description: Empty; every target is a plug-in. }
   "#/entities/GeneratedFile": { target: main.planned, description: "A path and the content a target wants there; --check compares it with the disk." }

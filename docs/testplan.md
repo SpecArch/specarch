@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.3.0-dev of the specification: 164 design tests, 46 golden and 117 red, about 8 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.3.0-dev of the specification: 172 design tests, 49 golden and 122 red, about 9 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.3.0-dev of the specification: 164 design tests, 46 golden and 117 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 160 |
+| system | 168 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -86,6 +86,72 @@ Scenario: red; level: system; covers violates diagnostic_line_positive.
 - Given: a problem found before any line was read
 - When: a diagnostic with line 0 is made
 - Then: it is refused; a problem about the whole file is reported on line 1
+
+### Command diff
+
+#### diff-classifies-changes
+
+Scenario: golden; level: system; verifies SA-25.
+
+- Given: a new version that drops an enum value, requires a field it did not, and adds an optional query parameter, released as 2.0.0 by a major change naming them
+- When: diff is run
+- Then: the enum and the entity are major with the reason, the operation minor, the major step passes, and it exits 0
+
+#### diff-invalid-spec
+
+Scenario: red; level: system; covers exit 2; verifies SA-25.
+
+- Given: a new version whose operation names a permission that is not declared
+- When: diff is run
+- Then: it prints the error, compares nothing and exits 2
+
+#### diff-lists-changes
+
+Scenario: golden; level: system; verifies SA-25.
+
+- Given: a new version that adds an operation and an optional field, rewords a requirement and an entity's description, and a planned release 1.1.0 whose change names each
+- When: diff is run on the old and the new folder
+- Then: it lists the three elements as minor with the field that decided, minor and patch, finds the minor step enough and every element named, and exits 0
+
+#### diff-no-release
+
+Scenario: red; level: system; covers exit 1; verifies SA-25.
+
+- Given: a new version 1.1.0 with no release record beside it
+- When: diff is run
+- Then: it lists the change, reports version for the missing record and exits 1
+
+#### diff-not-covered
+
+Scenario: red; level: system; covers exit 1; verifies SA-25.
+
+- Given: a release whose only change names the entity, while the requirement changed too
+- When: diff is run
+- Then: it reports covered for the requirement and exits 1
+
+#### diff-tracker-unknown
+
+Scenario: golden; level: system; verifies SA-25.
+
+- Given: a release that includes only TRK-4, an ID of a declared change-set
+- When: diff is run
+- Then: the changed element is a covered warning, since the tracker may name it, and it exits 0
+
+#### diff-usage-error
+
+Scenario: red; level: system; covers usage error; verifies SA-25.
+
+- Given: one folder
+- When: diff is run with only the old folder
+- Then: it prints how to use it and exits 2
+
+#### diff-version-step
+
+Scenario: red; level: system; covers exit 1; verifies SA-25.
+
+- Given: a new version that removes a value from a public enum, released as 1.0.1
+- When: diff is run
+- Then: it lists the enum as major and reports version, naming 2.0.0, and exits 1
 
 ### Command document
 

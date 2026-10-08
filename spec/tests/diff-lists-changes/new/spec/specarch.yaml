@@ -1,0 +1,53 @@
+specarch: "0.1"
+info: { title: Case, version: 1.1.0-dev }
+stakeholders:
+  owner: { description: The product owner. }
+requirements:
+  CASE-1:
+    statement: Staff shall list every item on the shelf.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [Listing answers every item.]
+enums:
+  Colour:
+    type: string
+    enum: [red, green]
+entities:
+  Item:
+    type: object
+    description: One thing kept on a shelf.
+    properties:
+      id: { type: string, format: uuid }
+      name: { type: string, minLength: 1, maxLength: 40 }
+      colour: { $ref: "#/enums/Colour" }
+      weight: { type: integer, format: int32, minimum: 0, maximum: 100000 }
+    required: [id, name]
+    primaryKey: [id]
+permissions:
+  items.read: { description: See the items. }
+roles:
+  clerk: { description: Staff., permissions: [items.read] }
+paths:
+  /items:
+    get:
+      operationId: listItems
+      summary: List the items
+      permission: items.read
+      satisfies: [CASE-1]
+      responses:
+        "200":
+          description: The items.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Item" } }
+  /items/{itemId}:
+    get:
+      operationId: showItem
+      summary: Show one item
+      permission: items.read
+      satisfies: [CASE-1]
+      parameters:
+        - { name: itemId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200": { description: The item. }

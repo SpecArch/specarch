@@ -1,0 +1,8 @@
+command: diff
+level: system
+scenario: red
+covers: [exit 1]
+given: "a new version 1.1.0 with no release record beside it"
+when: "diff is run"
+then: "it lists the change, reports version for the missing record and exits 1"
+verifies: [SA-25]

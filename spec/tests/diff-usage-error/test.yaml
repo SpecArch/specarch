@@ -1,0 +1,8 @@
+command: diff
+level: system
+scenario: red
+covers: [usage error]
+given: "one folder"
+when: "diff is run with only the old folder"
+then: "it prints how to use it and exits 2"
+verifies: [SA-25]

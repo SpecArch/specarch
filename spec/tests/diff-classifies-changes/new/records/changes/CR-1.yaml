@@ -1,0 +1,14 @@
+specarchRecord: "0.1"
+kind: change
+id: CR-1
+title: Show what each item weighs
+raisedBy: owner
+raised: "2026-10-09"
+phase: production
+type: additive
+urgency: normal
+reason: Staff need the weight to post an item.
+affects: { changes: ["#/enums/Colour", "#/entities/Item", "#/paths/~1items/get"] }
+impact: major
+decision: { by: owner, date: "2026-10-10", outcome: approved, why: Posting needs it. }
+status: approved

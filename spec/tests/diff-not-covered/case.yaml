@@ -1,0 +1,6 @@
+arguments: [diff, old/spec, new/spec]
+exitStatus: 1
+standardOutput: |
+  minor changed #/entities/Item: properties/weight is added
+  patch changed #/requirements/CASE-1
+  error: covered: #/requirements/CASE-1 is changed, but no change request or defect release 1.1.0 includes names it; name it in the affects of one, or include the one that does

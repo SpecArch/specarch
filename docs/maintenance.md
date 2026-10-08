@@ -5,9 +5,9 @@ system keeps changing: a stakeholder asks for something new, someone finds
 a defect, a release goes out, the live system misbehaves. This document is
 the design of how SpecArch records that life, during development and in
 production, without turning the specification into a change log. The
-operation stage, the records with their rules and the release rules are
-built; the diff verb and the two documents are not yet, and the
-implementation items are listed at the end.
+operation stage, the records with their rules, the release rules and the
+diff verb are built; the two documents are not yet, and the implementation
+items are listed at the end.
 
 The processes come from ISO/IEC/IEEE 12207:2017: configuration management
 (6.3.5), operation (6.4.12) and maintenance (6.4.13). Versions follow
@@ -207,13 +207,79 @@ same commit that sets the record to released.
 
 Version N+1 relates to version N through two things. The release record of
 N+1 says what it carries. Git holds both specifications, one tag per
-release, and a later verb, `specarch diff <old> <new>`, compares them: it
-lists what was added, changed and removed, classifies each by the table
-above, and checks that the release's version step is at least as large as
-the largest change, and that every changed element is named in the
-`affects` of a change request or the `violates` of a defect the release
-includes. The validator, which sees one version at a time, cannot make
-either check; the diff verb can, which is why it is its own item.
+release, and `specarch diff <old> <new>` compares them: it lists what was
+added, changed and removed, classifies each by the table above, and checks
+that the release's version step is at least as large as the largest
+change, and that every changed element is named in the `affects` of a
+change request or the `violates` of a defect the release includes. The
+validator, which sees one version at a time, cannot make either check.
+
+### The diff verb
+
+`specarch diff <old> <new>` takes two specification folders. The old one
+is normally the previous release's tag checked out on its own
+(`git worktree add ../v1.4.0 v1.4.0`), the new one the working tree. Both
+are validated first, and a specification with errors is refused with its
+errors, as `gaps` refuses one. The records read are the new one's: the
+`records/` beside the new folder. The release is the record of the new
+`info.version` with any pre-release tag dropped, so `1.5.0-dev` is checked
+against `records/releases/1.5.0.yaml`, and the step is measured from the
+old `info.version`.
+
+What is compared is one element at a time: each named object of a section
+(`#/entities/Loan`, `#/requirements/LIB-5`, `#/tests/borrow-limit`), each
+operation (`#/paths/~1loans/post`), each source, and the sections that
+are one object (`#/release`, `#/rollback`, `#/signoff`). `info`, `stages`
+and `specarch` are not compared: the version always changes, and the
+stages are layout.
+
+The public interface of the table above is, element by element: every
+operation, command, channel and setting; the `route` of every page; and
+every entity and enum one of those reaches through `$ref`, directly or
+through another entity. Every other element is inside the system, so any
+change to it is `patch`.
+
+A public element that is added is `minor` and one that is removed is
+`major`. A public element that changes takes the largest impact of its
+changes, each found by these rules, in this order:
+
+| Change | Impact |
+|---|---|
+| a descriptive key: `description`, `summary`, `title`, `why`, `cites`, `examples`, `satisfies`, `verifies`, `origin`, `decidedIn`, or one starting `x-` | `patch` |
+| a value added to an `enum` list, or a name removed from a `required` list | `minor` |
+| a value removed from an `enum` list, or a name added to a `required` list | `major` |
+| in a list whose items each have a `name` (parameters, arguments, options), an item added | `minor`, or `major` when it has `required: true` |
+| in such a list, an item removed | `major` |
+| a key added | `minor`, or `major` when the key is `required` and its value is not false |
+| a key removed | `major` |
+| any other value or list that differs | `major` |
+
+The last row is cautious on purpose. A schema bound that moves, such as a
+`maxLength` that grows, keeps old clients working when it bounds what they
+send and breaks them when it bounds what they receive, and the diff
+cannot tell which side of the interface a schema is on. A change it cannot
+show to be safe is called `major`, with the reason printed, so a person
+decides; calling it `minor` would let a breaking release through unseen.
+
+Standard output is the change list, one line per element in pointer
+order, `<impact> <added|changed|removed> <pointer>`, followed for a
+changed public element by the change that decided its impact; then one
+line per failed check, starting `error:`. The checks:
+
+- `version`: the release's version is after the old one, and steps from
+  it by at least the largest impact in the list, with the step before
+  1.0.0 as above; the line names the version to release instead.
+- `covered`: every element in the list is named by an entry of the
+  `affects` of a change request, or of the `violates` of a defect, that
+  the release includes. An entry names an element when one of the two
+  pointers is a prefix of the other, and a requirement ID names
+  `#/requirements/<ID>`. When the release includes an ID kept in a
+  tracker, whose `affects` the diff cannot read, an element no record
+  names is printed as a `warning:` line instead of an error.
+
+The exit status is 0 when every check passes, 1 when one fails or there is
+no release record for the new version, and 2 on a usage error, a folder
+that cannot be read, or a specification with errors.
 
 ## Operation
 

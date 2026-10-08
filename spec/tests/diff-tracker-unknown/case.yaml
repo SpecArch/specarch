@@ -1,0 +1,7 @@
+arguments: [diff, old/spec, new/spec]
+exitStatus: 0
+standardOutput: |
+  patch changed #/requirements/CASE-1
+  patch added #/sources/tracker
+  warning: covered: #/requirements/CASE-1 is changed and no record release 1.0.1 includes names it; TRK-4, kept in a tracker, may
+  warning: covered: #/sources/tracker is added and no record release 1.0.1 includes names it; TRK-4, kept in a tracker, may

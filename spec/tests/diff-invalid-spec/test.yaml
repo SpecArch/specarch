@@ -1,0 +1,8 @@
+command: diff
+level: system
+scenario: red
+covers: [exit 2]
+given: "a new version whose operation names a permission that is not declared"
+when: "diff is run"
+then: "it prints the error, compares nothing and exits 2"
+verifies: [SA-25]

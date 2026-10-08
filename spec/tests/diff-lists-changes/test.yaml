@@ -1,0 +1,7 @@
+command: diff
+level: system
+scenario: golden
+given: "a new version that adds an operation and an optional field, rewords a requirement and an entity's description, and a planned release 1.1.0 whose change names each"
+when: "diff is run on the old and the new folder"
+then: "it lists the three elements as minor with the field that decided, minor and patch, finds the minor step enough and every element named, and exits 0"
+verifies: [SA-25]

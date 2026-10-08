@@ -1,0 +1,6 @@
+arguments: [diff, old/spec, new/spec]
+exitStatus: 0
+standardOutput: |
+  minor changed #/entities/Item: properties/weight is added
+  minor added #/paths/~1items~1{itemId}/get
+  patch changed #/requirements/CASE-1

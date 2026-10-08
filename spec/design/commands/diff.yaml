@@ -1,0 +1,52 @@
+commands:
+  diff:
+    summary: Compare two versions of a specification and check the release between them
+    description: |
+      Validates both specifications first and prints nothing but the
+      errors of one that has them. Then lists every element added, changed
+      or removed between them, one line each in pointer order, as
+      `<impact> <added|changed|removed> <pointer>`, with the change that
+      decided the impact of a changed element of the public interface
+      after it. The impact follows Semantic Versioning: an element inside
+      the system is patch whatever happens to it; on the public interface
+      an addition is minor, a removal major, and a change the largest of
+      its changes, a change that cannot be shown safe counting as major.
+
+      Then it checks the release of the new version, read from the
+      records beside the new folder: that its version steps from the old
+      one by at least the largest impact (version), and that a change
+      request or defect it includes names every element in the list
+      (covered). Each failed check is one line starting `error:`; an
+      element the records cannot be shown to name because the release
+      includes an ID kept in a tracker is a line starting `warning:`.
+    permission: public
+    arguments:
+      - name: old
+        description: The folder of the earlier specification, normally the previous release's tag checked out on its own.
+        required: true
+        schema: { type: string }
+      - name: new
+        description: The folder of the later specification, normally the working tree.
+        required: true
+        schema: { type: string }
+    reads:
+      - { path: "{old}", description: The earlier specification. }
+      - { path: "{new}", description: The later specification. }
+      - { path: "records/ beside {new}", description: "The release record of the new version and the change and defect records it includes." }
+    standardOutput: The errors of an invalid specification, one line each; otherwise the change list, then one line per failed check.
+    standardError: A usage message on a usage error, and the reason on an unreadable path.
+    exitCodes:
+      "0": every check passes
+      "1": a check fails, or there is no release record for the new version
+      "2": usage error, a path that could not be read, or a specification with errors
+    satisfies: [SA-25]
+    why: |
+      The validator sees one version at a time, so it can check what a
+      release record says but not whether the specification changed the
+      way the record says. Only a comparison of the two versions can tell
+      that a release called minor removed an operation, or that an element
+      changed with no change request behind it.
+    cites:
+      - source: semver
+        clause: "rules 6 to 8"
+        says: "The patch version steps for fixes that keep the interface, the minor version for additions that keep it, and the major version for changes that break it."

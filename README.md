@@ -145,7 +145,9 @@ checks, `gaps` lists the open questions and what they hold up, `document`
 goes from the specification to a document, `approve` records that the
 documents were read and the specification is approved, `generate` from
 the approved specification to code, `extract` (designed, built later) from
-existing code to a specification. It has two builds from the same design.
+existing code to a specification, and `diff` compares two versions of a
+specification and checks the release between them. It has two builds from
+the same design.
 The Go build has every verb. With Go 1.26 or later:
 
     go install github.com/SpecArch/specarch/cmd/specarch@v0.2.0

@@ -1,0 +1,5 @@
+arguments: [diff, old/spec, new/spec]
+exitStatus: 1
+standardOutput: |
+  major changed #/enums/Colour: loses the value green
+  error: version: 1.0.0 to 1.0.1 is a patch step, but #/enums/Colour needs a major step; release it as 2.0.0

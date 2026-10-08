@@ -1,0 +1,8 @@
+command: diff
+level: system
+scenario: red
+covers: [exit 1]
+given: "a new version that removes a value from a public enum, released as 1.0.1"
+when: "diff is run"
+then: "it lists the enum as major and reports version, naming 2.0.0, and exits 1"
+verifies: [SA-25]

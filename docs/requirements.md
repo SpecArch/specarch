@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.3.0-dev of the specification: 5 stakeholders, 9 needs and 24 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.3.0-dev of the specification: 5 stakeholders, 9 needs and 25 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 ## 1. Purpose and scope
 
@@ -35,7 +35,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-7, SA-8, SA-16, SA-19 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
-| NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-16, SA-12, SA-23, SA-24 |
+| NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-16, SA-12, SA-23, SA-24, SA-25 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-17, SA-18, SA-19, SA-20 |
@@ -56,6 +56,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-12 | functional | must | accepted | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. |
 | SA-23 | functional | must | accepted | The validator shall check the records kept beside a specification (change requests, defects, releases, incidents, commissioning runs and approvals) against their schema and against the specification they point into, without the specification pointing back at them. |
 | SA-24 | functional | must | accepted | The system's version shall be the specification's info.version under Semantic Versioning 2.0.0, and the validator shall check each released version against the release before it and against what it includes. |
+| SA-25 | functional | must | accepted | The toolchain shall compare two versions of a specification, list what was added, changed and removed with the version step each needs, and check the release of the later version against that list. |
 | SA-13 | functional | must | accepted | Every element of a specification, at every stage, may carry a rationale (why) and citations of declared sources (cites), and the validator shall check that every citation names a declared source. |
 | SA-17 | functional | must | accepted | A specification shall be able to say what it does not yet know as an open question that names what is asked, who decides, what it blocks and how urgent it is; and the validator shall accept a required key missing exactly where a must question says it is unknown, and nowhere else. |
 | SA-18 | functional | must | accepted | Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision. |
@@ -226,6 +227,20 @@ Acceptance criteria:
 **Insight:** A version number is a promise to everyone who depends on the system; one that steps less than its contents say breaks a client that trusted it.
 
 **Note:** From Semantic Versioning, 2.0.0, clause rules 4, 6 to 9 and 11: A major version zero is for initial development; patch, minor and major versions step for fixes, additions and incompatible changes; a pre-release version is marked with a hyphen; precedence compares major, minor and patch numerically, and a pre-release ranks below its normal version. <https://semver.org/spec/v2.0.0.html>
+
+### SA-25
+
+The toolchain shall compare two versions of a specification, list what was added, changed and removed with the version step each needs, and check the release of the later version against that list.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-5.
+
+Acceptance criteria:
+
+- Two versions that differ in one operation, one entity and one requirement are listed as three lines, each with its impact.
+- A release that steps less than the largest change, or that includes no change request or defect naming a changed element, is reported and the command exits 1.
+- An invalid specification on either side is refused with its errors and exit status 2.
+
+**Insight:** A release record says what a release carries; only a comparison of the two versions shows whether the specification changed that way.
 
 ### SA-13
 

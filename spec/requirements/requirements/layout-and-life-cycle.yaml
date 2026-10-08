@@ -60,6 +60,18 @@ requirements:
       - source: semver
         clause: "rules 4, 6 to 9 and 11"
         says: "A major version zero is for initial development; patch, minor and major versions step for fixes, additions and incompatible changes; a pre-release version is marked with a hyphen; precedence compares major, minor and patch numerically, and a pre-release ranks below its normal version."
+  SA-25:
+    statement: The toolchain shall compare two versions of a specification, list what was added, changed and removed with the version step each needs, and check the release of the later version against that list.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - Two versions that differ in one operation, one entity and one requirement are listed as three lines, each with its impact.
+      - A release that steps less than the largest change, or that includes no change request or defect naming a changed element, is reported and the command exits 1.
+      - An invalid specification on either side is refused with its errors and exit status 2.
+    verification: test
+    needs: [NEED-5]
+    why: A release record says what a release carries; only a comparison of the two versions shows whether the specification changed that way.
   SA-13:
     statement: Every element of a specification, at every stage, may carry a rationale (why) and citations of declared sources (cites), and the validator shall check that every citation names a declared source.
     kind: functional

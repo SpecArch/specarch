@@ -4,7 +4,7 @@
     ],
     "views": [
     ],
-    "commit": "7fdf7f6ef8b19f6d288058d822dcdd737e03c145",
+    "commit": "1334b2b8b7306a6539c9ec22abf4403ba28517af",
     "tables": [
         {
             "name": "books",
@@ -221,6 +221,108 @@
                     ],
                     "onDelete": null,
                     "definition": "PRIMARY KEY (card_number)",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                }
+            ]
+        },
+        {
+            "name": "role_permissions",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "role",
+                    "type": "character varying(40)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "permission",
+                    "type": "character varying(80)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                }
+            ],
+            "comment": null,
+            "indexes": [
+                {
+                    "name": "role_permissions_pkey",
+                    "unique": true,
+                    "primary": true,
+                    "definition": "CREATE UNIQUE INDEX role_permissions_pkey ON public.role_permissions USING btree (role, permission)",
+                    "backsConstraint": true
+                }
+            ],
+            "constraints": [
+                {
+                    "kind": "primary",
+                    "name": "role_permissions_pkey",
+                    "columns": [
+                        "role",
+                        "permission"
+                    ],
+                    "onDelete": null,
+                    "definition": "PRIMARY KEY (role, permission)",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                },
+                {
+                    "kind": "foreign",
+                    "name": "role_permissions_role_fkey",
+                    "columns": [
+                        "role"
+                    ],
+                    "onDelete": "no action",
+                    "definition": "FOREIGN KEY (role) REFERENCES roles(name)",
+                    "referencesTable": "roles",
+                    "referencesSchema": "public",
+                    "referencesColumns": [
+                        "name"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "roles",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "name",
+                    "type": "character varying(40)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                }
+            ],
+            "comment": null,
+            "indexes": [
+                {
+                    "name": "roles_pkey",
+                    "unique": true,
+                    "primary": true,
+                    "definition": "CREATE UNIQUE INDEX roles_pkey ON public.roles USING btree (name)",
+                    "backsConstraint": true
+                }
+            ],
+            "constraints": [
+                {
+                    "kind": "primary",
+                    "name": "roles_pkey",
+                    "columns": [
+                        "name"
+                    ],
+                    "onDelete": null,
+                    "definition": "PRIMARY KEY (name)",
                     "referencesTable": null,
                     "referencesSchema": null,
                     "referencesColumns": null

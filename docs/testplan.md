@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.4.0-dev of the specification: 214 design tests, 72 golden and 141 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.4.0-dev of the specification: 215 design tests, 73 golden and 141 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.4.0-dev of the specification: 214 design tests, 72 golden and 141 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 210 |
+| system | 211 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -540,6 +540,14 @@ Scenario: golden; level: system; verifies SA-36.
 - Given: a specification with an enum, an audited entity, a problem catalogue and a list of the entity with search, filter, sort and a page size, and an implementation file in Go whose openapi target names a security scheme; specarch-gen-openapi built from this repository on PATH
 - When: generate openapi is run with --unapproved
 - Then: it writes openapi.yaml, OpenAPI 3.1.0, with the list paged by the paginated-list names in its envelope, the 404 as a problem document, the audit fields read-only and the security scheme on the operation, and exits 0
+
+#### generate-openapi-dxlib
+
+Scenario: golden; level: system; verifies SA-39.
+
+- Given: a specification with a list, a create with limits, a read by id answering a problem, an audited and softly deleted entity, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved
+- Then: it writes the document dxlib binds: one POST per operation at /<operationId> with every parameter in its JSON body, a dxlib type on every field and the constraints dxlib does not enforce listed as unenforced, privileges, dxlib's error body and list envelope, and no security scheme, and exits 0
 
 #### generate-plugin-path-outside
 
@@ -1775,7 +1783,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-96 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+99 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1815,6 +1823,9 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-38 | acceptance 1 | golden | SA-38 names no harm |
 | requirement SA-38 | acceptance 2 | golden | SA-38 names no harm |
 | requirement SA-38 | acceptance 3 | golden | SA-38 names no harm |
+| requirement SA-39 | acceptance 1 | golden | SA-39 names no harm |
+| requirement SA-39 | acceptance 2 | golden | SA-39 names no harm |
+| requirement SA-39 | acceptance 3 | golden | SA-39 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

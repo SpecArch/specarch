@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.4.0-dev of the specification: 38 requirements, 3 entities, 11 commands, 6 algorithms, 214 tests, 30 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.4.0-dev of the specification: 39 requirements, 3 entities, 11 commands, 6 algorithms, 215 tests, 31 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -1011,7 +1011,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 |---|---|---|---|
 | audit-fields | 1.1.0 | shipped |   |
 | authorization-check | 1.0.0 | shipped |   |
-| error-response | 1.0.0 | shipped |   |
+| error-response | 1.1.0 | shipped |   |
 | identifiers | 1.1.0 | shipped |   |
 | migrations | 1.0.0 | shipped |   |
 | type-rendering | 1.2.0 | shipped |   |
@@ -1157,7 +1157,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | Idiom | Version | Applies as | Parts the project replaces |
 |---|---|---|---|
 | audit-fields | 1.1.0 | shipped |   |
-| error-response | 1.0.0 | shipped |   |
+| error-response | 1.1.0 | shipped |   |
 | identifiers | 1.1.0 | shipped |   |
 | type-rendering | 1.2.0 | shipped |   |
 
@@ -2250,8 +2250,7 @@ with their content and the override.
 
 Consequences: A plug-in renders through an override without touching the disk. The
 standard dialect is the absence of a dialect on the openapi target;
-a dxlib dialect needs the stacks of an implementation file to leave
-out a dialect that is not a SQL one. The document is not checked
+the dxlib dialect is ADR-031's. The document is not checked
 against an OpenAPI validator yet, which would be a new dependency;
 the test parses it back and checks its parts. Server code is the
 standard generator's.
@@ -2357,6 +2356,47 @@ add, so it is written as two releases, as docs/generators.md says.
 
 **Insight:** Splitting the files by whether they can lose data is the expand and contract pattern: the expand file can run while the old code still reads the table, and the contract file only after the code moved on. A setting rather than a flag, because the plug-in protocol carries settings and no flags.
 
+### ADR-031: The dxlib dialect is a stack, and its document says only what dxlib enforces
+
+Status: accepted, 2026-10-08.
+
+Context: A service on dxlib binds its handlers to an OpenAPI document at start,
+and dxlib's reader refuses whatever its server would not enforce. Two
+things in a design do not fit as they are: dxlib routes by the URI
+alone, so a path holds one method, and its validator applies few of
+JSON Schema's bounds, so a maxLength or a pattern is refused.
+
+Decision: The openapi target takes dialect: dxlib, a value of the dialect key,
+and so a stack of the implementation file, which is how the idioms'
+dxlib renderings are found. In that dialect every operation is a POST
+at /<operationId> with every parameter, path, query and body, in one
+JSON body: dxlib's own command convention. A field keeps only what
+dxlib's validator applies, carries its dxlib type in x-dxlib-type, and
+lists every other constraint in x-specarch-unenforced, which the
+reader skips as it skips any extension not its own. A field may be
+left out by being absent from required, and may be null by a type
+list with null; dxlib's nullable types are not used. A sensitive text
+field is a protected string. Permissions become x-dxlib-privileges,
+and a public operation has none, which dxlib reads as no privilege
+check. No security scheme is written, since the reader refuses one it
+cannot enforce. A refusal answers dxlib's error body, named by its
+problem type, and a list takes the dxlib names and envelope of the
+paginated-list idiom. A response that is a bare list is refused, since
+dxlib answers an object.
+
+Consequences: The document dxlib binds is not the design's paths: the route-table
+gate compares dxlib's document with dxlib's registrations, which agree
+by construction. The unenforced constraints are the go-dxlib
+generator's to check in the handler, until dxlib's validator enforces
+JSON Schema's bounds, which is dxlib's item. dxlib carries money as
+NUMERIC(23,4), at least as wide as a design's decimal of that size.
+Two implementation files of one stack that name one target with
+different outputs are run as one group and refused; a second dialect
+for the same service needs a second specification folder or the
+grouping to change.
+
+**Insight:** A uniform POST is dxlib's own convention, needs no path parameters read by a middleware, and avoids the boolean query parameter dxlib cannot read. Listing what is not enforced, instead of dropping it, keeps the document from promising less than the design asks and the server from claiming more than it does.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -2424,6 +2464,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | gaps-usage-error | command gaps | system | red | no folder | gaps is run without arguments | it prints how to use it and exits 2 |
 | generate-no-plugin | command generate | system | red | a target this build does not have and no specarch-gen-openapi on PATH | generate openapi is run | it says there is no generator for the target and exits 2 |
 | generate-openapi | command generate | system | golden | a specification with an enum, an audited entity, a problem catalogue and a list of the entity with search, filter, sort and a page size, and an implementation file in Go whose openapi target names a security scheme; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes openapi.yaml, OpenAPI 3.1.0, with the list paged by the paginated-list names in its envelope, the 404 as a problem document, the audit fields read-only and the security scheme on the operation, and exits 0 |
+| generate-openapi-dxlib | command generate | system | golden | a specification with a list, a create with limits, a read by id answering a problem, an audited and softly deleted entity, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes the document dxlib binds: one POST per operation at /<operationId> with every parameter in its JSON body, a dxlib type on every field and the constraints dxlib does not enforce listed as unenforced, privileges, dxlib's error body and list envelope, and no security scheme, and exits 0 |
 | generate-plugin-path-outside | command generate | system | red | a plug-in that answers a path outside the output folder | generate escape is run | it refuses the path, writes nothing and exits 2 |
 | generate-plugin-reports-error | command generate | system | red | a plug-in that answers an error diagnostic | generate strict is run | it prints the diagnostic, writes nothing and exits 1 |
 | generate-refuses-open-question | command generate | system | red | a specification with a must question that blocks an entity, and specarch-gen-echo on PATH | generate echo is run | it refuses because the question blocks what the target reads, writes nothing and exits 1 |
@@ -2625,6 +2666,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-36 | specarch generate openapi shall write, through a plug-in, the OpenAPI 3.1 document of a specification in the standard dialect, with the problem catalogue as the error responses and every list expanded through the paginated-list idiom that applies, so that a standard OpenAPI code generator can write the server interface from it. | functional | must | accepted | test | The document of the library lending example parses, is OpenAPI 3.1.0, pages its list of loans by the idiom's names in the idiom's envelope, answers its refusals with RFC 9457 problem documents naming their types, carries an audited entity's audit fields as read-only, and carries SpecArch's own keywords as x-specarch- extensions. A list by a method other than GET takes its paging in its request body, and a body that is a reference to an entity is reported. Each implementation file in a plug-in's request carries the idioms it uses, with the content of the idiom that applies and the project's override. | NEED-2, NEED-3 |
 | SA-37 | specarch generate sql shall write, through a plug-in, the forward migrations of a specification's schema in PostgreSQL, SQL Server, Oracle or MariaDB, every column type through the type-rendering idiom of the target's dialect, with a snapshot of the schema beside them, and shall refuse what the dialect cannot hold. | functional | must | accepted | test | The library lending example renders on each dialect with the type-rendering rows, Oracle text as VARCHAR2 with character semantics and wider text as CLOB, an encrypted field as its ciphertext type with a hash column the unique constraint is on, the enum and boolean checks, the audit and deleted columns, the check constraints translated, and ON DELETE as the dialect writes it. A key or unique text column without a maxLength of at most 255, and a check whose function SQL is not given, are refused. A second run on an unchanged schema answers only the snapshot. Each plug-in request carries the files already in the output folder. | NEED-2 |
 | SA-38 | specarch generate sql shall write the migration of what changed since the last snapshot as new files only, what only adds in an expand migration and what can lose data in a contract migration of its own that the target's settings must allow, and shall refuse a change it cannot tell from a rewrite. | functional | must | accepted | test | A new nullable column, a wider text column, a new table with its foreign key, and a new enum value are written in the next expand migration, and the earlier migrations are left as they are. A dropped column, a narrower column and a removed enum value are refused until destructive is true in the sql target's settings, and then written in a contract migration of their own. A new required column without a default, a changed type, a changed key and a changed default are refused with what to do instead. | NEED-2 |
+| SA-39 | specarch generate openapi shall write, for an openapi target of the dxlib dialect, the document dxlib's OpenAPI reader binds, saying only what dxlib's server enforces and listing on each field what it does not. | functional | should | accepted | test | Every operation is a POST at /<operationId> with all of its parameters in one JSON body, carries its endpoint type and its privileges, and answers a refusal with dxlib's error body named by its problem type and a list in dxlib's list envelope. Every field carries its dxlib type, no field carries a constraint dxlib's validator does not apply, and each such constraint is listed under x-specarch-unenforced on the field. dxlib's own reader reads and validates the document, where a dxlib checkout is at hand. | NEED-2 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -2687,6 +2729,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-37:** The schema is where a design reaches the data, and four engines read one design four ways; the rows say each way once, and the migration written from them cannot drift from the design.
 
 **Insight on SA-38:** A migration that has run on a database is history; writing the next one from the design, and refusing what could lose data unless it is asked for, is the expand and contract pattern kept honest by the tool.
+
+**Insight on SA-39:** A service on dxlib binds its handlers to the document at start, so the document is the route table; written from the design, the route table cannot drift from it, and the list of unenforced constraints says where the service checks what the library does not.
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
@@ -2774,6 +2818,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-36 | decisions ADR-027 | tests generate-openapi |
 | SA-37 | decisions ADR-029 | tests generate-sql |
 | SA-38 | decisions ADR-030 | tests generate-sql-expand |
+| SA-39 | decisions ADR-031 | tests generate-openapi-dxlib |
 
 ## Sources
 

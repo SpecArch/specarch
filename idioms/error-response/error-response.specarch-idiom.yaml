@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: error-response
-version: 1.0.0
+version: 1.1.0
 concern: error-response
-stacks: [go, any]
+stacks: [go, any, dxlib]
 reads: [errors]
 description: How a refusal is answered, from the design's catalogue of problem types.
 why: A client branches on a problem's type, never on its message, so the type and its status are fixed by the design and every refusal has one shape.
@@ -34,6 +34,12 @@ parts:
         code: |
           { "type": "<the type's URI, or about:blank>", "title": "<the type's title>",
             "status": 409, "detail": "<this occurrence>", "instance": "<this request>" }
+      dxlib:
+        names: { status: status, statusCode: status_code, reason: reason, reasonMessage: reason_message }
+        code: |
+          { "status": "<the status text>", "status_code": 409, "reason": "<the problem type's name>",
+            "reason_message": "<this occurrence>" }
+        why: dxlib answers every refusal in this shape today; the problem type's name goes in reason until the runtime answers with a problem document.
       go:
         code: |
           One function writes every problem document from the catalogue's

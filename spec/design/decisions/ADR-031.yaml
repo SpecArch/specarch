@@ -1,0 +1,47 @@
+decisions:
+  ADR-031:
+    title: The dxlib dialect is a stack, and its document says only what dxlib enforces
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      A service on dxlib binds its handlers to an OpenAPI document at start,
+      and dxlib's reader refuses whatever its server would not enforce. Two
+      things in a design do not fit as they are: dxlib routes by the URI
+      alone, so a path holds one method, and its validator applies few of
+      JSON Schema's bounds, so a maxLength or a pattern is refused.
+    decision: |
+      The openapi target takes dialect: dxlib, a value of the dialect key,
+      and so a stack of the implementation file, which is how the idioms'
+      dxlib renderings are found. In that dialect every operation is a POST
+      at /<operationId> with every parameter, path, query and body, in one
+      JSON body: dxlib's own command convention. A field keeps only what
+      dxlib's validator applies, carries its dxlib type in x-dxlib-type, and
+      lists every other constraint in x-specarch-unenforced, which the
+      reader skips as it skips any extension not its own. A field may be
+      left out by being absent from required, and may be null by a type
+      list with null; dxlib's nullable types are not used. A sensitive text
+      field is a protected string. Permissions become x-dxlib-privileges,
+      and a public operation has none, which dxlib reads as no privilege
+      check. No security scheme is written, since the reader refuses one it
+      cannot enforce. A refusal answers dxlib's error body, named by its
+      problem type, and a list takes the dxlib names and envelope of the
+      paginated-list idiom. A response that is a bare list is refused, since
+      dxlib answers an object.
+    consequences: |
+      The document dxlib binds is not the design's paths: the route-table
+      gate compares dxlib's document with dxlib's registrations, which agree
+      by construction. The unenforced constraints are the go-dxlib
+      generator's to check in the handler, until dxlib's validator enforces
+      JSON Schema's bounds, which is dxlib's item. dxlib carries money as
+      NUMERIC(23,4), at least as wide as a design's decimal of that size.
+      Two implementation files of one stack that name one target with
+      different outputs are run as one group and refused; a second dialect
+      for the same service needs a second specification folder or the
+      grouping to change.
+    why: |
+      A uniform POST is dxlib's own convention, needs no path parameters
+      read by a middleware, and avoids the boolean query parameter dxlib
+      cannot read. Listing what is not enforced, instead of dropping it,
+      keeps the document from promising less than the design asks and the
+      server from claiming more than it does.
+    satisfies: [SA-39]

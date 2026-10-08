@@ -442,13 +442,14 @@
           "type": "string"
         },
         "dialect": {
-          "description": "For the sql target: the database dialect, which is also a stack of the implementation file for its idioms. The default is postgresql.",
+          "description": "The dialect the target writes, which is also a stack of the implementation file for its idioms: for the sql target a database dialect, postgresql by default; for the openapi target dxlib, the document dxlib binds, when the service runs on dxlib. Without it the openapi target writes standard OpenAPI.",
           "type": "string",
           "enum": [
             "postgresql",
             "sqlserver",
             "oracle",
-            "mariadb"
+            "mariadb",
+            "dxlib"
           ],
           "default": "postgresql"
         },

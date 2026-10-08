@@ -113,6 +113,11 @@ func Generate(r *Request) Response {
 			g.idioms = impl.Idioms
 		}
 	}
+	for _, impl := range r.Implementations {
+		if text(obj(obj(impl.Content["targets"])[r.Target])["dialect"]) == "dxlib" {
+			return g.generateDxlib(r)
+		}
+	}
 	doc := mapping()
 	add(doc, "openapi", str("3.1.0"))
 	info := mapping()

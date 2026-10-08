@@ -637,6 +637,7 @@ where it adds a rule, and the conformance cases; the generators are Go only.
 6. The `dialect: dxlib` setting on the openapi target, and
    `specarch-gen-go-dxlib`, against the notification service as the real
    project, when the owner decides that service's specification goes ahead.
+   Built: the dialect, whose document dxlib's own reader reads.
 7. Reported to dxlib's own queue, not done here: enforce the JSON Schema
    bounds in the parameter validator and accept them in the OpenAPI reader;
    route by method and URI; add `money` to the parameter registry; answer

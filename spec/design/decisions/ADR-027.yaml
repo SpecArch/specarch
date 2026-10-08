@@ -33,8 +33,7 @@ decisions:
     consequences: |
       A plug-in renders through an override without touching the disk. The
       standard dialect is the absence of a dialect on the openapi target;
-      a dxlib dialect needs the stacks of an implementation file to leave
-      out a dialect that is not a SQL one. The document is not checked
+      the dxlib dialect is ADR-031's. The document is not checked
       against an OpenAPI validator yet, which would be a new dependency;
       the test parses it back and checks its parts. Server code is the
       standard generator's.

@@ -222,7 +222,7 @@ testing:
       implementationOnly: true
       ci: true
     generated-openapi:
-      description: Generates the library lending example's OpenAPI document and checks it parses, pages its list through the idiom, answers its refusals with problem documents and carries the audit fields; and that a list by POST takes its paging in the body.
+      description: Generates the library lending example's OpenAPI document and checks it parses, pages its list through the idiom, answers its refusals with problem documents and carries the audit fields; that a list by POST takes its paging in the body; and the dxlib dialect's document, which dxlib's own reader reads and validates when SPECARCH_DXLIB names a dxlib checkout, as on the owner's Mac, and is skipped without one, as in CI.
       run: go test ./internal/genopenapi
       level: unit
       implementationOnly: true

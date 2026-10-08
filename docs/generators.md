@@ -143,6 +143,19 @@ list takes the names of the paginated-list idiom that applies: query
 parameters on a GET, properties of an inline request body on another
 method, and the answer wrapped in the idiom's envelope.
 
+With `dialect: dxlib` on the target, the document is the one dxlib's OpenAPI
+reader binds. Every operation is a POST at `/<operationId>` with all of its
+parameters in one JSON body, dxlib's own command convention, since dxlib
+routes by the URI alone. A field carries its dxlib type in `x-dxlib-type`
+and keeps only the constraints dxlib's validator applies; the others, a
+`maxLength`, a `pattern`, a `maximum`, a format dxlib does not know, are
+listed in `x-specarch-unenforced` on the field, for the go-dxlib handler to
+check. Permissions are `x-dxlib-privileges`, no security scheme is written,
+a refusal is dxlib's error body named by its problem type, and a list uses
+the dxlib names and envelope of the paginated-list idiom. Two limits are
+dxlib's to lift: its validator does not apply JSON Schema's bounds, and its
+routes carry no method.
+
 Server code is not SpecArch's job. A standard OpenAPI code generator for the
 stack turns the document into a typed server interface with request and
 response types, and hand-written handlers implement that interface. The

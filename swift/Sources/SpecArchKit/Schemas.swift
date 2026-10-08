@@ -4518,13 +4518,14 @@ let implementationSchemaJSON = #"""
           "type": "string"
         },
         "dialect": {
-          "description": "For the sql target: the database dialect, which is also a stack of the implementation file for its idioms. The default is postgresql.",
+          "description": "The dialect the target writes, which is also a stack of the implementation file for its idioms: for the sql target a database dialect, postgresql by default; for the openapi target dxlib, the document dxlib binds, when the service runs on dxlib. Without it the openapi target writes standard OpenAPI.",
           "type": "string",
           "enum": [
             "postgresql",
             "sqlserver",
             "oracle",
-            "mariadb"
+            "mariadb",
+            "dxlib"
           ],
           "default": "postgresql"
         },
@@ -6585,9 +6586,9 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: error-response
-version: 1.0.0
+version: 1.1.0
 concern: error-response
-stacks: [go, any]
+stacks: [go, any, dxlib]
 reads: [errors]
 description: How a refusal is answered, from the design's catalogue of problem types.
 why: A client branches on a problem's type, never on its message, so the type and its status are fixed by the design and every refusal has one shape.
@@ -6618,6 +6619,12 @@ parts:
         code: |
           { "type": "<the type's URI, or about:blank>", "title": "<the type's title>",
             "status": 409, "detail": "<this occurrence>", "instance": "<this request>" }
+      dxlib:
+        names: { status: status, statusCode: status_code, reason: reason, reasonMessage: reason_message }
+        code: |
+          { "status": "<the status text>", "status_code": 409, "reason": "<the problem type's name>",
+            "reason_message": "<this occurrence>" }
+        why: dxlib answers every refusal in this shape today; the problem type's name goes in reason until the runtime answers with a problem document.
       go:
         code: |
           One function writes every problem document from the catalogue's
@@ -6685,9 +6692,9 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: paginated-list
-version: 1.0.0
+version: 1.1.0
 concern: list-operations
-stacks: [any]
+stacks: [any, dxlib]
 reads: [listOf]
 description: |
   How an operation that lists an entity takes its search, filter, sort and
@@ -6734,6 +6741,15 @@ parts:
           descending. page counts from 1. pageSize has the default and the
           maximum of listOf.
         why: Plain words a client developer reads without a glossary; the deepObject style is the one OpenAPI defines for an object in a query.
+      dxlib:
+        names: { search: search_text, filter: filter_key_values, sort: order_by, sortField: field_name, sortDirection: direction, page: page_index, pageSize: row_per_page, includeDeleted: is_include_deleted }
+        code: |
+          Every list is a POST with a JSON body. search_text is free text;
+          filter_key_values an object of the filterable fields; order_by a
+          list of {field_name, direction}, direction asc or desc; page_index
+          counts from 0; row_per_page is the page size; is_include_deleted
+          asks for softly deleted records too. These are the names dxlib's
+          tables package reads in RequestSearchPagingList.
   envelope:
     description: The answer's shape.
     stack:
@@ -6742,6 +6758,10 @@ parts:
         code: |
           { "items": [ ... ], "totalItems": 0, "totalPages": 0 }
         why: The records under one name, so the envelope can grow without breaking a client, and both totals, so a client can draw the pages without counting.
+      dxlib:
+        names: { items: list.rows, totalItems: list.total_rows, totalPages: list.total_page }
+        code: |
+          { "list": { "rows": [ ... ], "total_rows": 0, "total_page": 0 } }
 
 tests:
   - { case: page beyond last, scenario: golden, then: an empty page with the true totals }

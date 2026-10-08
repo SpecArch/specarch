@@ -566,11 +566,11 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | background-jobs | 1.0.0 | shipped |   |
 | configuration-and-secrets | 1.0.0 | shipped |   |
 | encrypted-column | 1.1.0 | shipped |   |
-| error-response | 1.0.0 | shipped |   |
+| error-response | 1.1.0 | shipped |   |
 | health-endpoint | 1.0.0 | shipped |   |
 | identifiers | 1.1.0 | shipped |   |
 | migrations | 1.0.0 | shipped |   |
-| paginated-list | 1.0.0 | shipped |   |
+| paginated-list | 1.1.0 | shipped |   |
 | pii-in-logs | 1.0.0 | shipped |   |
 | request-validation | 1.0.0 | shipped |   |
 | soft-delete | 1.1.0 | shipped |   |

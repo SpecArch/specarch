@@ -77,3 +77,15 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: A migration that has run on a database is history; writing the next one from the design, and refusing what could lose data unless it is asked for, is the expand and contract pattern kept honest by the tool.
+  SA-39:
+    statement: specarch generate openapi shall write, for an openapi target of the dxlib dialect, the document dxlib's OpenAPI reader binds, saying only what dxlib's server enforces and listing on each field what it does not.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - Every operation is a POST at /<operationId> with all of its parameters in one JSON body, carries its endpoint type and its privileges, and answers a refusal with dxlib's error body named by its problem type and a list in dxlib's list envelope.
+      - Every field carries its dxlib type, no field carries a constraint dxlib's validator does not apply, and each such constraint is listed under x-specarch-unenforced on the field.
+      - dxlib's own reader reads and validates the document, where a dxlib checkout is at hand.
+    verification: test
+    needs: [NEED-2]
+    why: A service on dxlib binds its handlers to the document at start, so the document is the route table; written from the design, the route table cannot drift from it, and the list of unenforced constraints says where the service checks what the library does not.

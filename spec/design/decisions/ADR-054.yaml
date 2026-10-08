@@ -1,0 +1,51 @@
+decisions:
+  ADR-054:
+    title: A request that finishes after people approve it is a workflow, its own object named workflows, with a sequential subset of BPMN 2.0 and a four-eyes rule on every approval
+    status: proposed
+    date: "2026-10-09"
+    context: |
+      Administrative changes in a real system ran as approval workflows in
+      an external engine: an approval assigned to a role, a deadline, then
+      a call back into the service. The roadmap named this a workflow
+      binding of trigger, form schema and steps, under the name flows; but
+      flows already names a person's navigation across pages (ADR-034). A
+      requirement such as "the approver of an access change is not the
+      person who asked for it" could not be checked against anything.
+    decision: |
+      workflows holds named workflows, each with a trigger operation that
+      answers 202, a subject entity that holds the request while it waits,
+      and steps in order. An approval step names its approver roles, the
+      permission it checks, a deadline and what the deadline does (refuse,
+      or escalate to a later approval); an operation step names the
+      operation called once every approval before it has passed. The
+      trigger's request body is the workflow's form. The person who made a
+      request never approves it, on every approval step, with no switch.
+      The validator checks the references, the 202 answer, that each
+      approval's roles grant its permission, that the trigger's permission
+      is not the approval's, and the separation-of-duties sets (workflow).
+      The derived cases are the approved path, a refusal at each approval,
+      each deadline passing, the requester approving their own request
+      (critical) and an approval by someone without its permission.
+    consequences: |
+      A workflow is a test subject and a diagram in the technical
+      specification, and the workflows reader of specarch extract has an
+      object to write. Parallel approvals, a number out of a pool and loops
+      are written with a question until a real workflow asks for them.
+    why: |
+      A name of its own, because renaming the built flows would break every
+      file that uses them, and one word for two things is the ambiguity the
+      Low IQ Tax forbids. BPMN 2.0 is the standard for these processes and
+      the format external engines read, so its meanings are taken: an
+      approval is a user task with its potential owners, an operation step
+      a service task, a deadline a timer on the user task; only the
+      sequential subset is taken, because every real workflow read so far
+      is one, and the reader of step 12 maps BPMN's elements onto it one to
+      one. The trigger's body is the form, because a second schema for the
+      same request would be two ways to say it. 202 is required because
+      RFC 9110 gives it the meaning "accepted for processing, not
+      completed", which is what a page must tell the person. The four-eyes
+      rule has no switch and needs no expression over the caller, so it
+      does not wait for 0.3; whether the requester and the approver are
+      the same person is known only when the workflow runs, so it is a
+      derived critical test rather than a validator check.
+    satisfies: [SA-5, SA-21]

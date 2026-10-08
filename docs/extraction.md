@@ -271,9 +271,10 @@ Steps, in order:
     this step.
 
 Not a step yet: a reader for workflow definitions. Meta-model 0.1 has no
-object for a workflow binding (`flows` are a person's navigation across
-pages); the workflow object is a 0.2 item, and until it exists the
-outline reader records the workflow sources as not read.
+object for a workflow (`flows` are a person's navigation across pages);
+`workflows` is a 0.2 item, and until it exists the outline reader records
+the workflow sources as not read. The reader, for BPMN 2.0 XML, is step 12
+of `docs/meta-model-0.2.md`, after the workflow object and step 10 here.
 
 ## What goes wrong
 
@@ -317,22 +318,22 @@ A new role and its permissions, a backfill, a correction: each was run by
 hand against production at some point. They are safer emitted from the spec
 as a guarded script, with preconditions that raise, a dry run by default,
 postconditions that check exact counts and no effect on a second run. That
-emitter waits on the `guard` concept in meta-model 0.2.
+emitter reads the `guard` on an operation or a command.
 
 ## What extraction asked of the meta-model
 
-Extracting real systems asks for four concepts. Meta-model 0.1 has one of
-them; the other three are 0.2 items, because a keyword that no tool checks is
-a defect, and only the validator or an emitter can check them.
+Extracting real systems asked for four concepts, each one that only the
+validator or an emitter can check, because a keyword that no tool checks
+is a defect.
 
-- Trace, in 0.1: every named object carries `satisfies`, the requirements
+- Trace, built: every named object carries `satisfies`, the requirements
   it meets, and every test `verifies`. Fields, parameters, responses,
   actions and worked examples trace through the object that holds them.
-- Guard, 0.2: preconditions and postconditions on a data change, with exact
-  expected counts. A new top-level object; its emitter is the guarded script
-  above.
-- Separation of duties, 0.2: sets of permissions that one holder must never
-  have together. The schema holds the shape; the validator checks that no
-  role grants two of them.
-- Flow, 0.2: a workflow binding (trigger, form schema, steps) as an object
-  of its own, not an annotation on an endpoint.
+- Guard, built: a precondition and an exact record count on a data change,
+  on an operation or a command; its emitter is the guarded script above.
+- Separation of duties, meta-model 0.2: sets of permissions that one
+  holder must never have together; the validator checks that no role
+  grants them (`docs/meta-model-0.2.md`, step 1).
+- Workflows, meta-model 0.2: a request that finishes after people approve
+  it (trigger, form, steps) as an object of its own, not an annotation on
+  an endpoint (`docs/meta-model-0.2.md`, step 3).

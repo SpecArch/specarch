@@ -248,8 +248,8 @@ derivable:
   lost and open to overdue to lost. State transition coverage (6.2.8) at
   0-switch is every valid transition exercised once, which these paths
   reach, plus every invalid move from a state, which `from wrong state`
-  already covers. A flow whose steps are not transitions of one entity
-  waits for the `flows` concept of meta-model 0.2.
+  already covers. A process whose steps are not transitions of one entity
+  waits for `workflows`, step 3 of `docs/meta-model-0.2.md`.
 
 A check constraint with `&&` or `||` is a decision table (29119-4, 5.2.6):
 one red case per way the expression can be false, each clause of an `&&`

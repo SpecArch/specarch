@@ -1,0 +1,42 @@
+decisions:
+  ADR-053:
+    title: Separation of duties is a set of permissions with a cardinality, after the static separation of duty of ANSI RBAC, and the validator checks it against each role
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      A system that lets one person both start and approve a change, or
+      lend and write off the same loss, has no control against fraud or
+      error. Extraction found such rules written only in prose. A
+      specification grants permissions through roles; which person holds
+      which role is data the specification does not hold.
+    decision: |
+      separationOfDuties holds named sets, each with a description, two or
+      more declared permissions, none of them public, and a cardinality, 2
+      when left out and never below 2: no holder may reach that many of
+      the set. The validator refuses a role that grants cardinality or
+      more of a set (separation_of_duties). The technical specification
+      lists, for every set, the combinations of roles that together reach
+      it, as roles never to be given to one person. A workflow's approval
+      uses the same sets: when the trigger's permission and the approval's
+      are in one set, no role may grant both.
+    consequences: |
+      A role that breaks a set is refused before anything is generated.
+      One person holding two roles that each grant part of a set is not
+      caught by the validator; the techspec's list is what a reviewer of
+      role assignments checks it against, and a role-assignment check at
+      run time is the system's.
+    why: |
+      ANSI INCITS 359, the RBAC standard, states static separation of duty
+      as a set and a number n of at least 2: no user is assigned n or more
+      of the set. It is stated over roles there, because RBAC assigns
+      roles to users; a SpecArch specification declares permissions and
+      the roles that grant them, and the conflict is between duties, so
+      the set is of permissions and the check is per role. The
+      cardinality is kept, rather than always two, because a set of three
+      duties of which any two are safe together is a different rule from
+      one where every pair conflicts, and the standard keeps it for that
+      reason. public is refused in a set because everyone holds it, so the
+      set could never be kept. The cross-role combinations are listed and
+      not checked because the assignment of roles to people is run-time
+      data; listing them puts the rule where an assignment is reviewed.
+    satisfies: [SA-5]

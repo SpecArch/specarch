@@ -1,0 +1,57 @@
+decisions:
+  ADR-052:
+    title: Meta-model 0.2 is built in twelve steps of additions, and the version moves only with the last, which turns a missing test into an error
+    status: proposed
+    date: "2026-10-09"
+    context: |
+      Extracting real systems and the first request for generated screens
+      found what meta-model 0.1 cannot say: permissions one holder must
+      never have together, approval workflows, pages not about an entity,
+      the page elements of a back-office screen, data passed around but
+      not stored, a unique rule with a condition, an element served only
+      behind a setting, a requirement's target release, and wire names
+      that are not camelCase. The roadmap also listed missing test
+      scenarios as errors, and candidates whose need was not yet shown.
+    decision: |
+      docs/meta-model-0.2.md is the plan. Steps 1 to 10 add separation of
+      duties, task pages, workflows, maker-checker on a page, the page
+      elements, child rows, value objects, the smaller keywords, a name on
+      the wire and a schema per fragment file, each an addition to the one
+      design schema that a 0.1 file may use. Step 11 makes a derived case
+      no test covers an error in a file that says 0.2 and moves every tree
+      in the repository to 0.2. Step 12 is the workflows reader of
+      specarch extract. Left out of 0.2: row-level permissions, gates by
+      client identity, and token formats, which wait for 0.3 and a caller
+      that an expression can name; a fixed expression grammar; golden
+      tests of unbuilt commands, already settled; interfaces beyond HTTP,
+      messaging and the command line; sets and lists in expressions; seed
+      data per profile; and more than one deliverable per specification.
+      The guard is built and stays as it is; its postcondition belongs to
+      the guarded scripts generator. 0.2 says what a page can hold, and a
+      UI generator how a stack draws it.
+    consequences: |
+      Every new keyword can be used as soon as its step lands, by the
+      examples and by the extracted trees, without a version change.
+      The repository's trees are migrated once, in step 11, after every
+      keyword has brought its derived cases. A UI generator step that
+      needs a new page word waits for the 0.2 step that gives it, and is
+      named against it.
+    why: |
+      A keyword added to the meta-model has never moved the version:
+      views, jobs, guards and the UI keywords were additions no existing
+      file breaks on, as ADR-021, ADR-024 and ADR-026 recorded. Semantic
+      Versioning says a version changes for what breaks its users, and
+      only the missing-test rule makes a valid file invalid, so it alone
+      moves the version, and it goes last so that the migration runs once
+      over every derived case. A candidate is taken only when a real
+      system or a real request asked for it, which is the roadmap's rule
+      for the meta-model; the caller concepts are left together because
+      each needs the same new thing in the expression language, and
+      designing it three times would give three ways to name the caller.
+      The fixed grammar is left out because the table of the subset and
+      the conformance cases both builds pass already fix it, and a grammar
+      beside them would be a second definition. The boundary between the
+      meta-model and the UI generators keeps a stack's drawing out of the
+      design, which is the split of docs/conventions.md, The interface
+      boundary.
+    satisfies: [SA-1, SA-12]

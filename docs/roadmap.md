@@ -129,7 +129,8 @@ difference. The rules and the pattern each target follows are in
    deployment notes give the operations guide its checklist.
 8. Guarded operational scripts for data changes on live systems:
    preconditions, dry run by default, postconditions with exact counts,
-   idempotent. Waits on the `guard` concept in meta-model 0.2.
+   idempotent. Emitted from the `guard` on an operation or a command,
+   which is built.
 
 "Any language or framework" means any stack that has a generator written for
 it. Generators are added one stack at a time, driven by the real projects
@@ -178,51 +179,46 @@ specification must be importable by both.
 
 ## 5. Meta-model 0.2
 
-Driven by the gaps found in step 4. Extraction of existing systems has
-already asked for three concepts, and they go first. Each is a new object
-that only the validator CLI or an emitter can enforce, which is why they wait
-for 0.2 rather than being written into 0.1 unchecked:
+Driven by the gaps found in step 4 and by the first request for generated
+screens. `docs/meta-model-0.2.md` is the plan: what is taken, what waits
+and why, and the steps that build it, each with what done looks like.
+Taken, in the order they are built:
 
-- `guard`: built, as a precondition and an exact record count checked with
-  a data change on an operation or a command; the input to generator 8;
 - `separationOfDuties`: sets of permissions one holder must never have
-  together; the validator checks that no role grants two of them;
-- `flows`: a workflow binding (trigger, form schema, steps) as an object of
-  its own, not an annotation on an endpoint.
+  together; the validator checks that no role grants them;
+- task pages, a page that submits to an operation without loading a
+  record (sign-in, a second factor);
+- `workflows`: a request that finishes after people approve it (trigger,
+  form, approval and operation steps, deadlines), as an object of its own,
+  not an annotation on an endpoint; `flows` remains a person's navigation
+  across pages;
+- the page elements of a back-office screen: lookup fields, row actions
+  that depend on the row, a confirmation with a reason, a field's mode,
+  checks across fields, child rows, and maker-checker on a page;
+- value objects, `schemas`: data passed around but not stored;
+- a unique constraint with a condition, an element served only behind a
+  setting, a requirement's target release, and a name on the wire;
+- a schema per fragment file;
+- missing test scenarios as errors, the one change that breaks a 0.1 file
+  and so the one that moves the version, built last;
+- the workflows reader of `specarch extract`, after the workflow object.
 
-- missing test scenarios as errors: in 0.1 the validator warns for every
-  derived case no test covers; in 0.2 that becomes an error, once real
-  specifications show the derivation is right.
+Built before 0.2 and kept in 0.1, since none breaks an existing file:
+`guard`, the input to generator 8, whose postcondition is the generated
+script's to check; a read model (`views`); background jobs and schedules
+(`jobs`) and the other keywords `docs/dxlib-lessons.md` found needed: the
+sensitivity of a field, encryption at rest, audited entities and soft
+delete, list operations, a problem catalogue for error responses, limits
+on an operation, and menus; and the concepts the red paths of
+`docs/test-generation.md` needed, `dependencies` with a time limit per
+call, `idempotencyKey`, `validity` on an entity and `session`.
 
-Other known candidates:
-
-- row-level permissions (a member sees only their own loans);
-- a schema per fragment file, so an editor can validate one file of a tree
-  on its own;
-- missing golden tests of a designed but unbuilt command, so the validator
-  stops warning about `extract` without a test that cannot run;
-- a fixed expression grammar;
-- interfaces beyond HTTP, messaging and the command line, which 0.1 has:
-  gRPC, file exchange, a Bluetooth or serial protocol, a menu-bar UI;
-- value objects: data that is passed around but not stored and has no
-  identity (a diagnostic, a request summary), which 0.1 writes as entities
-  with a made-up key;
-- sets and lists in the expression language, so a rule over many objects
-  (every permission granted by some role) can be a formula rather than a
-  count;
-- built: a read model (`views`), an entity's row with fields read through
-  its relations and counts added, never written;
-- built: background jobs and schedules (`jobs`), and the other keywords
-  `docs/dxlib-lessons.md` found needed: the sensitivity of a field,
-  encryption at rest, audited entities and soft delete, list operations,
-  a problem catalogue for error responses, limits on an operation, and
-  menus;
-- configuration and settings as a first-class concept;
-- built: the concepts the red paths of `docs/test-generation.md` needed,
-  `dependencies` with a time limit per call, `idempotencyKey`, `validity`
-  on an entity, `session`, and the guard above, each with its derived
-  cases; a postcondition on a guard, which a test cannot set up from
-  outside, is still open.
+Waiting for 0.3, around the caller as something an expression can name:
+row-level permissions (a member sees only their own loans), gates by
+client identity or a signed request, and token formats. Not planned until
+a project asks: interfaces beyond HTTP, messaging and the command line;
+sets and lists in the expression language; seed data per profile; more
+than one deliverable per specification.
 
 ## 6. Changes, defects, releases and operation
 

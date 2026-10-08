@@ -1,0 +1,44 @@
+decisions:
+  ADR-056:
+    title: A page not about an entity is a task page that submits to an operation, and the elements of a back-office form are page keywords in the design
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Sign-in, a second factor, a password reset and an e-mail
+      confirmation show no record of an entity, and pages require one. A
+      request for generated back-office screens listed what every screen
+      does that the design cannot say: lookup fields, row actions that
+      depend on the row, a confirmation with a reason, fields read-only or
+      hidden by mode, checks across fields, child rows, and a write that
+      waits for approval.
+    decision: |
+      A page of kind task has no entity and no source; it submits to an
+      operation, its fields are properties of that operation's request
+      body and include every required one, and onSubmitted is keyed by the
+      response status it acts on, each declared by the operation. The
+      other elements are page keywords: a lookup on a field held through a
+      relation, when on an action as an expression over the row, a
+      confirmation with a named reason property, a field's mode and
+      condition, checks across a form's fields and a field entered twice
+      to confirm it, child rows of a relation, and a page that submits to a
+      workflow's trigger acting on its 202 answer, with an inbox list for
+      an approval step. Each comes with its validator rule and derived
+      cases, in steps 2 and 4 to 6 of docs/meta-model-0.2.md.
+    consequences: |
+      Screens a generator writes can carry these elements from the
+      specification, and each is tested from it. A UI generator renders
+      them in its own components and waits for the 0.2 step that gives it
+      the word it needs.
+    why: |
+      A kind of its own rather than an optional entity on a form, because a
+      form loads and writes a record of its entity and a task page does
+      neither, and a page with an optional entity would mean two things.
+      The fields come from the request body so that the validation the
+      person sees is the one the server applies, written once. onSubmitted
+      by status, because a sign-in leads to a different page when a second
+      factor is due, and the operation's declared responses are the only
+      list of answers a page can rely on. The other elements are design
+      and not stack because each states behaviour a tester can check (what
+      is offered, what is refused, what is sent), the test of
+      docs/ui-design.md for what belongs in a specification.
+    satisfies: [SA-42]

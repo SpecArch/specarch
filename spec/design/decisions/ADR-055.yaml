@@ -1,0 +1,37 @@
+decisions:
+  ADR-055:
+    title: Meta-model 0.2 turns a derived case no test covers into an error, except where an open question holds up its subject, and reads 0.1 files with warnings until 1.0
+    status: proposed
+    date: "2026-10-09"
+    context: |
+      In 0.1 the validator warns for every derived case no test covers,
+      and specarch derive writes the missing tests as drafts, leaving out
+      a subject that an open must or should question holds up. The roadmap
+      planned making the warning an error once real specifications showed
+      the derivation is right. Trees written by specarch extract carry
+      warnings of this kind, and a specification written outside this
+      repository against 0.1 has hundreds of requirements.
+    decision: |
+      In a file that says specarch "0.2", a derived case no test covers is
+      an error. A subject held up by an open must or should question keeps
+      a warning, since what its test would check is not decided and derive
+      does not write it. A file that says "0.1" keeps the warnings and gets
+      one warning that 0.1 is read until 1.0. specarch extract and merge
+      write 0.2 trees and run the derivation into them. The design schema
+      is published as specarch-design-0.2, accepting both versions.
+    consequences: |
+      A 0.2 specification cannot leave a derived case untested by
+      accident; it writes the test or a question. Specifications written
+      against 0.1 keep validating as they did and see the warning, until
+      their owners migrate them by running derive and changing the line.
+    why: |
+      An error only where the file says 0.2, because the version line is
+      the file's promise of which rules it is written against, and
+      Semantic Versioning keeps an existing user's file valid unless it
+      asks for the change. The exception for a held-up subject follows
+      SA-28: derive never writes a test for one, so an error there would
+      ask for a test nobody can write until the question is answered.
+      Extract runs the derivation because its done lines ask for no errors
+      on its output, and the drafts are what a reviewer edits rather than
+      a list of warnings to type up by hand.
+    satisfies: [SA-1, SA-21, SA-28]

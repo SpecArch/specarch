@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.5.0-dev of the specification: 46 requirements, 3 entities, 12 commands, 6 algorithms, 263 tests, 51 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.5.0-dev of the specification: 46 requirements, 3 entities, 12 commands, 6 algorithms, 263 tests, 56 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -3504,6 +3504,166 @@ this decision is proposed until they are answered.
 
 **Insight:** A plug-in of its own, because the two web stacks share only what the design says, and a second framework inside the plain JavaScript generator would be a second generator in one file. The framework, not the language, decides the components, so it is the stack the idiom renders, as a SQL dialect is. An idiom for the components, because the mechanism already ships, lists and overrides parts with their reasons, and keeps the project's library out of SpecArch. Data in the schema file and logic in a hand-written hook, because the generator must never touch a hand-written file, and the compiler is the cheapest check that every hook exists. The menu and the guard from one permission, because a menu entry that opens a page its reader is refused is reported as a broken feature, and two places that read one keyword cannot drift apart. The design keywords in 0.2 and not here, because a design keyword is checked by the validator in both builds, which is meta-model work.
 
+### ADR-052: Meta-model 0.2 is built in twelve steps of additions, and the version moves only with the last, which turns a missing test into an error
+
+Status: proposed, 2026-10-09.
+
+Context: Extracting real systems and the first request for generated screens
+found what meta-model 0.1 cannot say: permissions one holder must
+never have together, approval workflows, pages not about an entity,
+the page elements of a back-office screen, data passed around but
+not stored, a unique rule with a condition, an element served only
+behind a setting, a requirement's target release, and wire names
+that are not camelCase. The roadmap also listed missing test
+scenarios as errors, and candidates whose need was not yet shown.
+
+Decision: docs/meta-model-0.2.md is the plan. Steps 1 to 10 add separation of
+duties, task pages, workflows, maker-checker on a page, the page
+elements, child rows, value objects, the smaller keywords, a name on
+the wire and a schema per fragment file, each an addition to the one
+design schema that a 0.1 file may use. Step 11 makes a derived case
+no test covers an error in a file that says 0.2 and moves every tree
+in the repository to 0.2. Step 12 is the workflows reader of
+specarch extract. Left out of 0.2: row-level permissions, gates by
+client identity, and token formats, which wait for 0.3 and a caller
+that an expression can name; a fixed expression grammar; golden
+tests of unbuilt commands, already settled; interfaces beyond HTTP,
+messaging and the command line; sets and lists in expressions; seed
+data per profile; and more than one deliverable per specification.
+The guard is built and stays as it is; its postcondition belongs to
+the guarded scripts generator. 0.2 says what a page can hold, and a
+UI generator how a stack draws it.
+
+Consequences: Every new keyword can be used as soon as its step lands, by the
+examples and by the extracted trees, without a version change.
+The repository's trees are migrated once, in step 11, after every
+keyword has brought its derived cases. A UI generator step that
+needs a new page word waits for the 0.2 step that gives it, and is
+named against it.
+
+**Insight:** A keyword added to the meta-model has never moved the version: views, jobs, guards and the UI keywords were additions no existing file breaks on, as ADR-021, ADR-024 and ADR-026 recorded. Semantic Versioning says a version changes for what breaks its users, and only the missing-test rule makes a valid file invalid, so it alone moves the version, and it goes last so that the migration runs once over every derived case. A candidate is taken only when a real system or a real request asked for it, which is the roadmap's rule for the meta-model; the caller concepts are left together because each needs the same new thing in the expression language, and designing it three times would give three ways to name the caller. The fixed grammar is left out because the table of the subset and the conformance cases both builds pass already fix it, and a grammar beside them would be a second definition. The boundary between the meta-model and the UI generators keeps a stack's drawing out of the design, which is the split of docs/conventions.md, The interface boundary.
+
+### ADR-053: Separation of duties is a set of permissions with a cardinality, after the static separation of duty of ANSI RBAC, and the validator checks it against each role
+
+Status: accepted, 2026-10-09.
+
+Context: A system that lets one person both start and approve a change, or
+lend and write off the same loss, has no control against fraud or
+error. Extraction found such rules written only in prose. A
+specification grants permissions through roles; which person holds
+which role is data the specification does not hold.
+
+Decision: separationOfDuties holds named sets, each with a description, two or
+more declared permissions, none of them public, and a cardinality, 2
+when left out and never below 2: no holder may reach that many of
+the set. The validator refuses a role that grants cardinality or
+more of a set (separation_of_duties). The technical specification
+lists, for every set, the combinations of roles that together reach
+it, as roles never to be given to one person. A workflow's approval
+uses the same sets: when the trigger's permission and the approval's
+are in one set, no role may grant both.
+
+Consequences: A role that breaks a set is refused before anything is generated.
+One person holding two roles that each grant part of a set is not
+caught by the validator; the techspec's list is what a reviewer of
+role assignments checks it against, and a role-assignment check at
+run time is the system's.
+
+**Insight:** ANSI INCITS 359, the RBAC standard, states static separation of duty as a set and a number n of at least 2: no user is assigned n or more of the set. It is stated over roles there, because RBAC assigns roles to users; a SpecArch specification declares permissions and the roles that grant them, and the conflict is between duties, so the set is of permissions and the check is per role. The cardinality is kept, rather than always two, because a set of three duties of which any two are safe together is a different rule from one where every pair conflicts, and the standard keeps it for that reason. public is refused in a set because everyone holds it, so the set could never be kept. The cross-role combinations are listed and not checked because the assignment of roles to people is run-time data; listing them puts the rule where an assignment is reviewed.
+
+### ADR-054: A request that finishes after people approve it is a workflow, its own object named workflows, with a sequential subset of BPMN 2.0 and a four-eyes rule on every approval
+
+Status: proposed, 2026-10-09.
+
+Context: Administrative changes in a real system ran as approval workflows in
+an external engine: an approval assigned to a role, a deadline, then
+a call back into the service. The roadmap named this a workflow
+binding of trigger, form schema and steps, under the name flows; but
+flows already names a person's navigation across pages (ADR-034). A
+requirement such as "the approver of an access change is not the
+person who asked for it" could not be checked against anything.
+
+Decision: workflows holds named workflows, each with a trigger operation that
+answers 202, a subject entity that holds the request while it waits,
+and steps in order. An approval step names its approver roles, the
+permission it checks, a deadline and what the deadline does (refuse,
+or escalate to a later approval); an operation step names the
+operation called once every approval before it has passed. The
+trigger's request body is the workflow's form. The person who made a
+request never approves it, on every approval step, with no switch.
+The validator checks the references, the 202 answer, that each
+approval's roles grant its permission, that the trigger's permission
+is not the approval's, and the separation-of-duties sets (workflow).
+The derived cases are the approved path, a refusal at each approval,
+each deadline passing, the requester approving their own request
+(critical) and an approval by someone without its permission.
+
+Consequences: A workflow is a test subject and a diagram in the technical
+specification, and the workflows reader of specarch extract has an
+object to write. Parallel approvals, a number out of a pool and loops
+are written with a question until a real workflow asks for them.
+
+**Insight:** A name of its own, because renaming the built flows would break every file that uses them, and one word for two things is the ambiguity the Low IQ Tax forbids. BPMN 2.0 is the standard for these processes and the format external engines read, so its meanings are taken: an approval is a user task with its potential owners, an operation step a service task, a deadline a timer on the user task; only the sequential subset is taken, because every real workflow read so far is one, and the reader of step 12 maps BPMN's elements onto it one to one. The trigger's body is the form, because a second schema for the same request would be two ways to say it. 202 is required because RFC 9110 gives it the meaning "accepted for processing, not completed", which is what a page must tell the person. The four-eyes rule has no switch and needs no expression over the caller, so it does not wait for 0.3; whether the requester and the approver are the same person is known only when the workflow runs, so it is a derived critical test rather than a validator check.
+
+### ADR-055: Meta-model 0.2 turns a derived case no test covers into an error, except where an open question holds up its subject, and reads 0.1 files with warnings until 1.0
+
+Status: proposed, 2026-10-09.
+
+Context: In 0.1 the validator warns for every derived case no test covers,
+and specarch derive writes the missing tests as drafts, leaving out
+a subject that an open must or should question holds up. The roadmap
+planned making the warning an error once real specifications showed
+the derivation is right. Trees written by specarch extract carry
+warnings of this kind, and a specification written outside this
+repository against 0.1 has hundreds of requirements.
+
+Decision: In a file that says specarch "0.2", a derived case no test covers is
+an error. A subject held up by an open must or should question keeps
+a warning, since what its test would check is not decided and derive
+does not write it. A file that says "0.1" keeps the warnings and gets
+one warning that 0.1 is read until 1.0. specarch extract and merge
+write 0.2 trees and run the derivation into them. The design schema
+is published as specarch-design-0.2, accepting both versions.
+
+Consequences: A 0.2 specification cannot leave a derived case untested by
+accident; it writes the test or a question. Specifications written
+against 0.1 keep validating as they did and see the warning, until
+their owners migrate them by running derive and changing the line.
+
+**Insight:** An error only where the file says 0.2, because the version line is the file's promise of which rules it is written against, and Semantic Versioning keeps an existing user's file valid unless it asks for the change. The exception for a held-up subject follows SA-28: derive never writes a test for one, so an error there would ask for a test nobody can write until the question is answered. Extract runs the derivation because its done lines ask for no errors on its output, and the drafts are what a reviewer edits rather than a list of warnings to type up by hand.
+
+### ADR-056: A page not about an entity is a task page that submits to an operation, and the elements of a back-office form are page keywords in the design
+
+Status: accepted, 2026-10-09.
+
+Context: Sign-in, a second factor, a password reset and an e-mail
+confirmation show no record of an entity, and pages require one. A
+request for generated back-office screens listed what every screen
+does that the design cannot say: lookup fields, row actions that
+depend on the row, a confirmation with a reason, fields read-only or
+hidden by mode, checks across fields, child rows, and a write that
+waits for approval.
+
+Decision: A page of kind task has no entity and no source; it submits to an
+operation, its fields are properties of that operation's request
+body and include every required one, and onSubmitted is keyed by the
+response status it acts on, each declared by the operation. The
+other elements are page keywords: a lookup on a field held through a
+relation, when on an action as an expression over the row, a
+confirmation with a named reason property, a field's mode and
+condition, checks across a form's fields and a field entered twice
+to confirm it, child rows of a relation, and a page that submits to a
+workflow's trigger acting on its 202 answer, with an inbox list for
+an approval step. Each comes with its validator rule and derived
+cases, in steps 2 and 4 to 6 of docs/meta-model-0.2.md.
+
+Consequences: Screens a generator writes can carry these elements from the
+specification, and each is tested from it. A UI generator renders
+them in its own components and waits for the 0.2 step that gives it
+the word it needs.
+
+**Insight:** A kind of its own rather than an optional entity on a form, because a form loads and writes a record of its entity and a task page does neither, and a page with an optional entity would mean two things. The fields come from the request body so that the validation the person sees is the one the server applies, written once. onSubmitted by status, because a sign-in leads to a different page when a second factor is due, and the operation's declared responses are the only list of answers a page can rely on. The other elements are design and not stack because each states behaviour a tester can check (what is offered, what is refused, what is sent), the test of docs/ui-design.md for what belongs in a specification.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -3956,18 +4116,18 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 
 | Requirement | Satisfied by | Verified by |
 |---|---|---|
-| SA-1 | enums DocumentKind; entities SpecFile; commands validate; decisions ADR-003; decisions ADR-006; decisions ADR-007; decisions ADR-009 | tests validate-schema-name-form; tests validate-schema-untyped-integer; tests validate-valid-design; checks checks-the-examples; monitors main-stays-green |
+| SA-1 | enums DocumentKind; entities SpecFile; commands validate; decisions ADR-003; decisions ADR-006; decisions ADR-007; decisions ADR-009; decisions ADR-052; decisions ADR-055 | tests validate-schema-name-form; tests validate-schema-untyped-integer; tests validate-valid-design; checks checks-the-examples; monitors main-stays-green |
 | SA-2 | enums Rule; commands validate; algorithms referenceResolves | tests validate-duplicate-name-across-files; tests validate-environment; tests validate-need; tests validate-ref-type; tests validate-relation-target; tests validate-requirement-set; tests validate-stakeholder |
 | SA-3 | enums Rule; commands validate; decisions ADR-004; decisions ADR-047 | tests validate-expression-date-days; tests validate-expression-date-number; tests validate-expression-in-stage-file; tests validate-expression-syntax; tests validate-expression-type |
 | SA-4 | enums Rule; commands validate; algorithms workedExampleHolds; decisions ADR-004 | tests validate-example-mismatch |
-| SA-5 | enums Rule; commands validate; algorithms permissionGranted; decisions ADR-006 | tests validate-permission-undeclared; tests validate-permission-ungranted; tests validate-schema-operation-without-permission |
+| SA-5 | enums Rule; commands validate; algorithms permissionGranted; decisions ADR-006; decisions ADR-053; decisions ADR-054 | tests validate-permission-undeclared; tests validate-permission-ungranted; tests validate-schema-operation-without-permission |
 | SA-6 | enums Rule; enums Severity; entities Diagnostic; commands validate; algorithms exitStatus; decisions ADR-005; decisions ADR-008 | tests validate-usage-error; tests validate-yaml-syntax; tests version-prints-versions; checks installs-and-answers |
 | SA-7 | enums DocumentTarget; enums GeneratorTarget; entities GeneratedFile; commands document; commands generate; algorithms checkStatus; decisions ADR-013 | tests document-check-differs; tests document-two-implementations; tests document-writes-techspec; tests generate-plugin-path-outside; tests generate-with-plugin; checks checks-the-examples; monitors main-stays-green |
 | SA-8 | entities GeneratedFile; commands document; commands generate; algorithms markersWellFormed | tests document-entity-diagram; tests document-two-implementations; tests document-writes-techspec |
 | SA-9 | enums DocumentKind; enums Rule; commands validate; decisions ADR-001; decisions ADR-002; decisions ADR-007 | tests validate-design-key; tests validate-stack-key |
 | SA-10 | enums Rule; commands validate | tests validate-deployment-environment-missing; tests validate-design-ref; tests validate-implements; tests validate-setting; tests validate-tree-valid |
 | SA-11 | enums Rule; entities SpecFile; commands extract; commands validate; decisions ADR-010; decisions ADR-042; decisions ADR-048; decisions ADR-049; decisions ADR-050 | tests merge-documents-days; tests merge-openapi-placeholder; tests merge-openapi-unserved; tests validate-duplicate-name-across-files; tests validate-layout-folder-missing; tests validate-layout-not-a-stage; tests validate-layout-section-folder-in-root; tests validate-layout-section-in-root; tests validate-layout-section-in-wrong-stage; tests validate-layout-stack-mismatch; tests validate-layout-stage-not-listed; tests validate-layout-subfolder-section; tests validate-layout-test-without-file; tests validate-tree-valid; checks checks-the-examples |
-| SA-12 | enums Rule; commands validate; decisions ADR-011; decisions ADR-014 | tests validate-deployment-valid; tests validate-monitor-environment; tests validate-monitor-not-declared; tests validate-monitor-valid; tests validate-need-rejected; tests validate-requirements-only; tests validate-secret-in-deployment; tests validate-secret-value; tests validate-traceability-warnings |
+| SA-12 | enums Rule; commands validate; decisions ADR-011; decisions ADR-014; decisions ADR-052 | tests validate-deployment-valid; tests validate-monitor-environment; tests validate-monitor-not-declared; tests validate-monitor-valid; tests validate-need-rejected; tests validate-requirements-only; tests validate-secret-in-deployment; tests validate-secret-value; tests validate-traceability-warnings |
 | SA-13 | enums Rule; commands validate; decisions ADR-012 | tests document-citation-unknown-source; tests validate-cites; tests validate-source |
 | SA-14 | enums GeneratorTarget; commands generate; decisions ADR-013; decisions ADR-051 | tests generate-no-plugin; tests generate-plugin-path-outside; tests generate-with-plugin |
 | SA-15 | commands document; decisions ADR-015 | tests document-writes-requirements |
@@ -3976,14 +4136,14 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-18 | enums Rule; commands validate; decisions ADR-018 | tests document-draft-notice; tests validate-origin; tests validate-origin-tracked |
 | SA-19 | enums DocumentTarget; commands document; commands gaps | tests document-draft-notice; tests document-writes-questions; tests gaps-lists-questions; tests gaps-none |
 | SA-20 | commands approve; commands generate; decisions ADR-019 | tests approve-refuses-open-question; tests approve-refuses-stale-document; tests approve-writes-record; tests generate-refuses-open-question; tests generate-refuses-unapproved; tests generate-unapproved |
-| SA-21 | commands validate; decisions ADR-020 | tests validate-derived-acceptance; tests validate-derived-cases-harm; tests validate-derived-cases-listed; tests validate-derived-cases-mistakes; tests validate-derived-decision-table; tests validate-derived-flow; tests validate-schema-harm-unknown; tests validate-test-subject-no-state-machine |
+| SA-21 | commands validate; decisions ADR-020; decisions ADR-054; decisions ADR-055 | tests validate-derived-acceptance; tests validate-derived-cases-harm; tests validate-derived-cases-listed; tests validate-derived-cases-mistakes; tests validate-derived-decision-table; tests validate-derived-flow; tests validate-schema-harm-unknown; tests validate-test-subject-no-state-machine |
 | SA-22 | commands document; decisions ADR-020 | tests document-testplan-left-out; tests document-traceability-harm; tests document-writes-traceability |
 | SA-23 | enums Rule; commands validate | tests validate-change-applied; tests validate-change-decision; tests validate-commissioning-record; tests validate-defect-duplicate; tests validate-defect-test; tests validate-incident-link; tests validate-layout-records-in-spec; tests validate-record-name; tests validate-record-ref; tests validate-record-schema; tests validate-record-tracker; tests validate-records-valid |
 | SA-24 | enums Rule; commands validate | tests validate-release-bump; tests validate-release-contents; tests validate-release-version; tests validate-releases-valid |
 | SA-25 | commands diff | tests diff-classifies-changes; tests diff-invalid-spec; tests diff-lists-changes; tests diff-no-release; tests diff-not-covered; tests diff-tracker-unknown; tests diff-usage-error; tests diff-version-step |
 | SA-26 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-releases |
 | SA-27 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
-| SA-28 | commands derive | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-root-tests; tests derive-skips-blocked; tests derive-usage-error; tests derive-writes-drafts |
+| SA-28 | commands derive; decisions ADR-055 | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-root-tests; tests derive-skips-blocked; tests derive-usage-error; tests derive-writes-drafts |
 | SA-29 | enums Rule; commands validate; decisions ADR-021 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
 | SA-30 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests gaps-outline-not-read; tests validate-mapping-origin |
 | SA-31 | commands generate; decisions ADR-041 | tests generate-stack-fallback; tests generate-stack-plugin; tests generate-tests-dart; tests generate-tests-framework-refused; tests generate-tests-go; tests generate-tests-swift |
@@ -3997,7 +4157,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-39 | decisions ADR-031 | tests generate-openapi-dxlib |
 | SA-40 | decisions ADR-032 | tests generate-go-dxlib |
 | SA-41 | enums Rule; decisions ADR-033 | tests validate-views; tests validate-views-valid |
-| SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039 | tests validate-accessibility; tests validate-compact-columns; tests validate-flows; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-theme |
+| SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056 | tests validate-accessibility; tests validate-compact-columns; tests validate-flows; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
 | SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-openapi-not-openapi; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests gaps-outline-not-read |
 | SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-source-differs; tests merge-tree-invalid; tests validate-source-given-outside |

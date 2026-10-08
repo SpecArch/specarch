@@ -2474,6 +2474,14 @@ let designSchemaJSON = #"""
           "minItems": 1,
           "uniqueItems": true
         },
+        "sections": {
+          "description": "For a form or a view, in place of fields: its fields in groups, each with a title, in the order a person reads them, which is the focus order (WCAG 2.2, 2.4.3). How groups sit on a screen is the stack's.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/pageSection"
+          },
+          "minItems": 1
+        },
         "filters": {
           "description": "For a list: fields the user can filter on.",
           "type": "array",
@@ -2548,7 +2556,6 @@ let designSchemaJSON = #"""
           },
           "then": {
             "required": [
-              "fields",
               "submit"
             ]
           }
@@ -2563,7 +2570,6 @@ let designSchemaJSON = #"""
           },
           "then": {
             "required": [
-              "fields",
               "source"
             ]
           }
@@ -2805,6 +2811,32 @@ let designSchemaJSON = #"""
       },
       "required": [
         "message"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "pageSection": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "description": "The heading of the group.",
+          "type": "string",
+          "minLength": 1
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "title",
+        "fields"
       ],
       "patternProperties": {
         "^x-": {}

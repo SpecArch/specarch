@@ -6,7 +6,9 @@ pages:
     entity: Member
     permission: members.read
     source: getMember
-    fields: [cardNumber, fullName, email, tier, joinedOn, membershipEndsOn, outstandingFees]
+    sections:
+      - { title: Member, fields: [cardNumber, fullName, email, tier] }
+      - { title: Membership, fields: [joinedOn, membershipEndsOn, outstandingFees] }
     states:
       failed:
         member-not-found: { message: There is no member with this card. }

@@ -677,7 +677,7 @@ The menu, each entry shown to who may open its page:
 | loan-form | form | /loans/new | Loan | loans.create | memberId, bookId |
 | loans-list | list | /loans | Loan | loans.read | memberId, bookId, loanedAt, dueOn, status, lateFee; on a compact screen memberId, dueOn, status |
 | member-form | form | /members/new | Member | members.write | fullName, email, tier |
-| member-view | view | /members/{memberId} | Member | members.read | cardNumber, fullName, email, tier, joinedOn, membershipEndsOn, outstandingFees |
+| member-view | view | /members/{memberId} | Member | members.read | Member: cardNumber, fullName, email, tier; Membership: joinedOn, membershipEndsOn, outstandingFees |
 | members-list | list | /members | Member | members.read | cardNumber, fullName, email, tier, outstandingFees |
 
 What each page shows when it is empty or fails; while it loads or submits, the stack draws its own:

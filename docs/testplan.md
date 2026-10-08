@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.5.0-dev of the specification: 224 design tests, 75 golden and 148 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.5.0-dev of the specification: 225 design tests, 75 golden and 149 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.5.0-dev of the specification: 224 design tests, 75 golden and 148 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 220 |
+| system | 221 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1596,6 +1596,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-12.
 - When: validate is run
 - Then: it reports secret_value and exits 1
 
+#### validate-sections
+
+Scenario: red; level: system; covers exit 1; verifies SA-42.
+
+- Given: a list with sections, a view whose sections show a field twice and one its entity lacks, a form that gives both fields and sections, and a view that gives neither
+- When: validate is run
+- Then: it reports page four times and field once, and exits 1
+
 #### validate-session
 
 Scenario: red; level: system; covers exit 1; verifies SA-29.
@@ -1856,7 +1864,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-118 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+119 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1918,6 +1926,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-42 | acceptance 5 | golden | SA-42 names no harm |
 | requirement SA-42 | acceptance 6 | golden | SA-42 names no harm |
 | requirement SA-42 | acceptance 7 | golden | SA-42 names no harm |
+| requirement SA-42 | acceptance 8 | golden | SA-42 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

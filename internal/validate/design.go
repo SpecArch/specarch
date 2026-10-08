@@ -190,6 +190,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkCompactColumns(d)
 	c.checkAccessibility(d)
 	c.checkTheme(d)
+	c.checkSections(d)
 	c.checkDecisions(d)
 	c.checkAccess(d)
 	c.checkExpressions(d)
@@ -557,6 +558,9 @@ func (c *checker) checkPages(d *design) {
 			fields := fieldsOf(d.entities[ent])
 			c.checkFieldList(source.Child(pg, "columns"), append(base, "columns"), fields, ent, "a column")
 			c.checkFieldList(source.Child(pg, "fields"), append(base, "fields"), fields, ent, "shown on this page")
+			for i, sec := range source.Items(source.Child(pg, "sections")) {
+				c.checkFieldList(source.Child(sec, "fields"), append(base, "sections", fmt.Sprint(i), "fields"), fields, ent, "shown on this page")
+			}
 			c.checkFieldList(source.Child(pg, "filters"), append(base, "filters"), fields, ent, "a filter")
 		}
 		for _, key := range []string{"source", "submit"} {

@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a list with sections, a view whose sections show a field twice and one its entity lacks, a form that gives both fields and sections, and a view that gives neither"
+when: "validate is run"
+then: "it reports page four times and field once, and exits 1"
+verifies: [SA-42]

@@ -201,7 +201,7 @@ extension Checker {
             }
             let (problems, by) = d.pageProblems(pg)
             let failed = states.child("failed")
-            let fields = Set(items(pg.child("fields")).map { $0.value })
+            let fields = Set(pageFields(pg).map { $0.value })
             var named: [String: YNode] = [:]
             for kv in pairs(failed) {
                 let at = base + ["failed", kv.key.value]
@@ -262,8 +262,8 @@ extension Checker {
         for p in pairs(d.root.child("pages")) {
             let name = p.key.value, pg = p.value
             let ent = str(pg.child("entity"))
-            for key in ["columns", "fields"] {
-                for f in items(pg.child(key)) {
+            for list in [items(pg.child("columns")), pageFields(pg)] {
+                for f in list {
                     let k = ent + "." + f.value
                     let l = shownOn[k] ?? []
                     if l.isEmpty { order.append(k) }
@@ -286,6 +286,51 @@ extension Checker {
             guard let f = fieldsOf(d.entities[ent])[field], f.child("title") == nil else { continue }
             let key = d.entities[ent]?.child("properties")?.key(field)
             add(key, pointer("entities", ent, "properties", field), .accessibility, "\(ent).\(field) is shown on \((shownOn[k] ?? []).joined(separator: ", ")) and has no title, the label a person reads beside it (WCAG 2.2, 3.3.2 and 2.4.6); give it a title")
+        }
+    }
+}
+
+/// The fields a form or a view shows, in order: its fields, or the fields
+/// of its sections one after another.
+func pageFields(_ pg: YNode) -> [YNode] {
+    if let f = pg.child("fields") { return items(f) }
+    return items(pg.child("sections")).flatMap { items($0.child("fields")) }
+}
+
+extension Checker {
+    /// Checks that a form or a view gives its fields once, in fields or in
+    /// sections, that no field is in two sections, and that a list, which
+    /// shows columns, has no sections.
+    func checkSections(_ d: Design) {
+        for p in pairs(d.root.child("pages")) {
+            let name = p.key.value, pg = p.value
+            let kind = str(pg.child("kind"))
+            let secsNode = pg.child("sections")
+            if kind == "form" || kind == "view" {
+                let fields = pg.child("fields")
+                if fields == nil && secsNode == nil {
+                    add(p.key, pointer("pages", name), .page, "\(name) is a \(kind) and shows no field; give its fields, or its sections")
+                } else if fields != nil && secsNode != nil {
+                    add(pg.key("sections"), pointer("pages", name, "sections"), .page, "\(name) gives both fields and sections; name its fields once, in fields or in sections")
+                    continue
+                }
+            }
+            guard let secs = secsNode else { continue }
+            if kind == "list" {
+                add(pg.key("sections"), pointer("pages", name, "sections"), .page, "\(name) is a list, which shows columns, and sections group the fields of a form or a view; leave them out")
+                continue
+            }
+            var inSection: [String: String] = [:]
+            for (i, sec) in items(secs).enumerated() {
+                let title = str(sec.child("title"))
+                for (j, f) in items(sec.child("fields")).enumerated() {
+                    if let other = inSection[f.value] {
+                        add(f, pointer("pages", name, "sections", "\(i)", "fields", "\(j)"), .page, "\(f.value) is in the section \(other) already, and a field is shown once; leave it out of \(title)")
+                        continue
+                    }
+                    inSection[f.value] = title
+                }
+            }
         }
     }
 }

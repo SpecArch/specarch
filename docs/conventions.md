@@ -404,6 +404,7 @@ redefined.
 | `onSubmitted`, `onSelect`, `then`, `navigate`, `with`, `message` | SpecArch, after the events and navigation flows of OMG IFML 1.0 | where an event of a page leads, and the status message it carries (WCAG 2.2, 4.1.3) |
 | `flows`, `actor`, `steps`, `event`, `action` | SpecArch, after IFML's navigation flows | a task a person does across pages, step by step |
 | `states`, `empty`, `filteredEmpty`, `failed`, `message`, `field` | SpecArch | what a page shows when it is empty or fails |
+| `sections`, `title`, `fields` | SpecArch | a form's or a view's fields in titled groups, in reading order |
 | `compactColumns` | SpecArch, after the compact size class of Apple's Human Interface Guidelines and Material Design 3 | the columns a list keeps on a compact screen |
 | `accessibility`, `standard`, `level` | WCAG 2.2 | the accessibility the user interface conforms to |
 | `theme`, `tokens`, `$type`, `$value`, `$description`, `colorSpace`, `components`, `alpha`, `hex`, `unit` | W3C Design Tokens Community Group, Format Module 2025.10 | the visual design as design tokens |
@@ -712,6 +713,22 @@ A page without `states` shows what its stack shows. Once a page has
 `filteredEmpty`, every problem type has a message or there is a
 `default`, and nothing else is named (`state`). Each state is a derived
 case of the page: `empty`, `filtered empty`, and `fails with <problem>`.
+
+### Sections
+
+A form or a view gives its fields once: as `fields`, or as `sections`,
+each a `title` and its `fields`, in the order a person reads them, which
+is the focus order (WCAG 2.2, 2.4.3):
+
+    member-view:
+      kind: view
+      sections:
+        - { title: Member, fields: [cardNumber, fullName, email, tier] }
+        - { title: Membership, fields: [joinedOn, membershipEndsOn, outstandingFees] }
+
+A page with neither or both, a field in two sections, and sections on a
+list are refused (`page`). Where the sections sit on a screen is the
+stack's.
 
 ### Compact screens
 

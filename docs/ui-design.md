@@ -202,7 +202,9 @@ the order is the focus order (WCAG 2.4.3):
         - { title: Member, fields: [cardNumber, fullName, email, tier] }
         - { title: Membership, fields: [joinedOn, membershipEndsOn, outstandingFees] }
 
-`sections` replaces `fields` on the page, so there is one way to say it.
+A page gives its fields once, as `fields` or as `sections`, never both,
+so there is one way to say each page and every existing page stays
+valid.
 A page says nothing of columns, widths or positions: a section is a
 group, and how groups sit on a screen is a stack's decision.
 
@@ -357,7 +359,7 @@ before it.
 | D1 | The design says structure, behaviour and rules; geometry, components and animation are a stack's | confirm |
 | D2 | A page's states are the named set loading, content, empty, filtered empty, submitting and failed, with failed per problem type; a page does not declare its own state machine; states are optional, and complete once given | confirm |
 | D3 | Events and flows after IFML: `onSubmitted`, `onSelect` and an action's `then`, each with `navigate`, `with` and `message`; `flows` as named tasks across pages, each a test subject | confirm |
-| D4 | `sections` replaces `fields` on a form or view when fields are grouped, and its order is the focus order | confirm |
+| D4 | A form or view gives its fields once, as `fields` or as titled `sections`, and the order is the focus order | confirm |
 | D5 | One screen class, compact, with `compactColumns`; the stack sets its size | confirm |
 | D6 | `accessibility: { standard: WCAG 2.2, level: AA }` in the design turns on the checks listed above; without it nothing is checked | confirm |
 | D7 | The theme is `design/theme.yaml` in the Design Tokens Community Group format, `$type` and `$value` kept, srgb colours only, with `modes` and `pairs` as SpecArch's | confirm |

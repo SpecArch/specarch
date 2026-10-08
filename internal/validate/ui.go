@@ -271,7 +271,7 @@ func (c *checker) checkPageStates(d *design) {
 		problems, by := d.pageProblems(pg)
 		failed := source.Child(states, "failed")
 		fields := map[string]bool{}
-		for _, f := range source.Items(source.Child(pg, "fields")) {
+		for _, f := range pageFields(pg) {
 			fields[f.Value] = true
 		}
 		named := map[string]*yaml.Node{}
@@ -352,8 +352,8 @@ func (c *checker) checkAccessibility(d *design) {
 	for _, p := range source.Pairs(source.Child(d.root, "pages")) {
 		name, pg := p.Key.Value, p.Value
 		ent := source.Str(source.Child(pg, "entity"))
-		for _, key := range []string{"columns", "fields"} {
-			for _, f := range source.Items(source.Child(pg, key)) {
+		for _, list := range [][]*yaml.Node{source.Items(source.Child(pg, "columns")), pageFields(pg)} {
+			for _, f := range list {
 				k := ent + "." + f.Value
 				if len(shownOn[k]) == 0 {
 					order = append(order, k)
@@ -383,5 +383,56 @@ func (c *checker) checkAccessibility(d *design) {
 		}
 		key := source.Key(source.Child(d.entities[ent], "properties"), field)
 		c.add(key, source.Pointer("entities", ent, "properties", field), RuleAccessibility, "%s.%s is shown on %s and has no title, the label a person reads beside it (WCAG 2.2, 3.3.2 and 2.4.6); give it a title", ent, field, strings.Join(shownOn[k], ", "))
+	}
+}
+
+// pageFields are the fields a form or a view shows, in order: its fields,
+// or the fields of its sections one after another.
+func pageFields(pg *yaml.Node) []*yaml.Node {
+	if f := source.Child(pg, "fields"); f != nil {
+		return source.Items(f)
+	}
+	var out []*yaml.Node
+	for _, sec := range source.Items(source.Child(pg, "sections")) {
+		out = append(out, source.Items(source.Child(sec, "fields"))...)
+	}
+	return out
+}
+
+// checkSections checks that a form or a view gives its fields once, in
+// fields or in sections, that no field is in two sections, and that a list,
+// which shows columns, has no sections.
+func (c *checker) checkSections(d *design) {
+	for _, p := range source.Pairs(source.Child(d.root, "pages")) {
+		name, pg := p.Key.Value, p.Value
+		secs := source.Child(pg, "sections")
+		kind := source.Str(source.Child(pg, "kind"))
+		if kind == "form" || kind == "view" {
+			switch fields := source.Child(pg, "fields"); {
+			case fields == nil && secs == nil:
+				c.add(p.Key, source.Pointer("pages", name), RulePage, "%s is a %s and shows no field; give its fields, or its sections", name, kind)
+			case fields != nil && secs != nil:
+				c.add(source.Key(pg, "sections"), source.Pointer("pages", name, "sections"), RulePage, "%s gives both fields and sections; name its fields once, in fields or in sections", name)
+				continue
+			}
+		}
+		if secs == nil {
+			continue
+		}
+		if kind == "list" {
+			c.add(source.Key(pg, "sections"), source.Pointer("pages", name, "sections"), RulePage, "%s is a list, which shows columns, and sections group the fields of a form or a view; leave them out", name)
+			continue
+		}
+		in := map[string]string{}
+		for i, sec := range source.Items(secs) {
+			title := source.Str(source.Child(sec, "title"))
+			for j, f := range source.Items(source.Child(sec, "fields")) {
+				if other, ok := in[f.Value]; ok {
+					c.add(f, source.Pointer("pages", name, "sections", fmt.Sprint(i), "fields", fmt.Sprint(j)), RulePage, "%s is in the section %s already, and a field is shown once; leave it out of %s", f.Value, other, title)
+					continue
+				}
+				in[f.Value] = title
+			}
+		}
 	}
 }

@@ -201,6 +201,7 @@ extension Checker {
         checkCompactColumns(d)
         checkAccessibility(d)
         checkTheme(d)
+        checkSections(d)
         checkDecisions(d)
         checkAccess(d)
         checkExpressions(d)
@@ -555,6 +556,9 @@ extension Checker {
                 let fields = fieldsOf(d.entities[ent])
                 checkFieldList(pg.child("columns"), base + ["columns"], fields, ent, "a column")
                 checkFieldList(pg.child("fields"), base + ["fields"], fields, ent, "shown on this page")
+                for (i, sec) in items(pg.child("sections")).enumerated() {
+                    checkFieldList(sec.child("fields"), base + ["sections", "\(i)", "fields"], fields, ent, "shown on this page")
+                }
                 checkFieldList(pg.child("filters"), base + ["filters"], fields, ent, "a filter")
             }
             for key in ["source", "submit"] {

@@ -594,6 +594,13 @@ func crossCutting(d *doc, root *yaml.Node) {
 				shows = strs(p.Value, "fields")
 			}
 			text := strings.Join(shows, ", ")
+			var groups []string
+			for _, sec := range items(p.Value, "sections") {
+				groups = append(groups, str(sec, "title")+": "+strings.Join(strs(sec, "fields"), ", "))
+			}
+			if len(groups) > 0 {
+				text = strings.Join(groups, "; ")
+			}
 			if compact := strs(p.Value, "compactColumns"); len(compact) > 0 {
 				text += "; on a compact screen " + strings.Join(compact, ", ")
 			}

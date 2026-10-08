@@ -1,0 +1,31 @@
+decisions:
+  ADR-039:
+    title: A form or a view groups its fields in titled sections, whose order is the focus order
+    status: proposed
+    date: "2026-10-08"
+    context: |
+      A form or a view with more than a handful of fields groups them: a
+      member's identity apart from their membership. Which fields belong
+      together, and in what order a person reads them, is a design decision;
+      where the groups sit on a screen is the stack's. WCAG 2.2 asks that
+      focus move in an order that keeps meaning (2.4.3) and that headings
+      describe what they head (2.4.6).
+    decision: |
+      A form or a view gives its fields once: as fields, a flat list, or as
+      sections, each a title and its fields, in reading order, which is the
+      focus order. Neither, both, a field in two sections, a field the
+      entity lacks and sections on a list are refused (page, field). A page
+      says nothing of columns, widths or positions. This decision is D4 of
+      docs/ui-design.md and waits for the owner to confirm or veto it.
+    consequences: |
+      An owner reviews the grouping and the order of every form and view in
+      the techspec, and a generator draws a heading per section. Every
+      check that reads a page's fields reads them from either form, so a
+      page can move from fields to sections without anything else changing.
+    why: |
+      Keeping fields for a short page and sections for a grouped one, with
+      exactly one allowed, keeps one way to say each thing on a page while
+      leaving every existing page valid. The check is the validator's
+      rather than the schema's, because the schema's message for a choice
+      of two cannot name what is wrong here.
+    satisfies: [SA-42]

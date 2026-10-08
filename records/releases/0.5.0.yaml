@@ -1,4 +1,7 @@
 specarchRecord: "0.1"
 kind: release
 version: 0.5.0
-status: planned
+status: released
+date: "2026-10-09"
+specificationVersion: 0.5.0
+implementations: { go: 0.1.0, swift: 0.1.0 }

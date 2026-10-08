@@ -85,7 +85,7 @@ commissioning runs and approvals). The same schema gives editors
 validation and completion through `yaml-language-server`: put this on the
 first line of a root file and most editors pick it up.
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.4.0/schema/specarch-design-0.1.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
 
 ## The rules SpecArch serves
 
@@ -163,33 +163,34 @@ idioms each implementation file uses. It has two builds from
 the same design.
 The Go build has every verb. With Go 1.26 or later:
 
-    go install github.com/SpecArch/specarch/cmd/specarch@v0.4.0
+    go install github.com/SpecArch/specarch/cmd/specarch@v0.5.0
 
 or, from a clone of this repository:
 
     go install ./cmd/specarch
 
-Code targets are plug-ins on PATH. This repository has four:
+Code targets are plug-ins on PATH. This repository has seven:
 `specarch-gen-openapi`, which `specarch generate openapi` runs to write the
 OpenAPI 3.1 document of a specification, `specarch-gen-sql`, which
 `specarch generate sql` runs to write its migrations in PostgreSQL, SQL
-Server, Oracle or MariaDB, and `specarch-gen-tests-go`, which `specarch
-generate tests` runs to write its Go tests, and `specarch-gen-go-dxlib`,
-which `specarch generate go-dxlib` runs to write the tables, handlers, seeds
-and tasks of a Go service on dxlib. Three more are in no release yet, so
-they are installed from a commit or a clone
-(`go install github.com/SpecArch/specarch/cmd/<name>@<commit>`):
-`specarch-gen-ui`, which `specarch generate ui` runs to write list pages for
-the web in plain JavaScript, and `specarch-gen-tests-swift` and
+Server, Oracle or MariaDB, `specarch-gen-tests-go`, which `specarch
+generate tests` runs to write its Go tests, `specarch-gen-tests-swift` and
 `specarch-gen-tests-dart`, which `specarch generate tests` runs instead of
 the Go one for an implementation file in Swift (Swift Testing) or in Dart
-(`package:test` or `flutter_test`, so a Flutter app too).
-Install the four at the same tag as `specarch`:
+(`package:test` or `flutter_test`, so a Flutter app too),
+`specarch-gen-go-dxlib`, which `specarch generate go-dxlib` runs to write
+the tables, handlers, seeds and tasks of a Go service on dxlib, and
+`specarch-gen-ui`, which `specarch generate ui` runs to write list pages
+for the web in plain JavaScript. Install them at the same tag as
+`specarch`:
 
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v0.4.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v0.4.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@v0.4.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v0.4.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v0.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v0.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@v0.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-swift@v0.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-dart@v0.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v0.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v0.5.0
 
 The Swift build, for macOS, has the validate and version verbs and gives
 the same output. With Swift 6:

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.4.0/schema/specarch-design-0.1.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
 specarch: "0.1"
 info:
   title: Lending desk routes

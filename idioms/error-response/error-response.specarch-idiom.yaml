@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: error-response
+version: 1.0.0
+concern: error-response
+stacks: [go, any]
+reads: [errors]
+description: How a refusal is answered, from the design's catalogue of problem types.
+why: A client branches on a problem's type, never on its message, so the type and its status are fixed by the design and every refusal has one shape.
+sources:
+  rfc-9457:
+    kind: standard
+    title: RFC 9457, Problem Details for HTTP APIs
+    edition: "2023"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc9457
+contract:
+  problem-document:
+    statement: Every 4xx and 5xx response is an application/problem+json document of a type from the catalogue, with its status.
+    check: document
+    cites:
+      - { source: rfc-9457, clause: "3", says: "A problem details object carries type, title, status, detail and instance." }
+  every-refusal-typed:
+    statement: Once the catalogue exists, every 4xx and 5xx response of the design names its type.
+    check: schema
+  validation-lists-fields:
+    statement: A validation problem lists each failing field with its reason.
+    check: guidance
+parts:
+  shape:
+    description: The body of a refusal.
+    stack:
+      any:
+        code: |
+          { "type": "<the type's URI, or about:blank>", "title": "<the type's title>",
+            "status": 409, "detail": "<this occurrence>", "instance": "<this request>" }
+      go:
+        code: |
+          One function writes every problem document from the catalogue's
+          name, setting Content-Type to application/problem+json. A library
+          that answers in its own shape ({status, status_code, reason,
+          reason_message} in dxlib) has its shape rendered from the problem
+          until the runtime answers with a problem document.

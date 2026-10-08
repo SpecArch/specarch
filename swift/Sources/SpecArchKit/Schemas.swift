@@ -6416,6 +6416,254 @@ let idiomSchemaJSON = #"""
 
 /// The shipped idioms, by their path under idioms/, as idioms/embed.go embeds them.
 let shippedIdiomFiles: [(path: String, text: String)] = [
+    ("idioms/audit-fields/audit-fields.specarch-idiom.yaml", #"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: audit-fields
+version: 1.0.0
+concern: audit-fields
+stacks: [go]
+reads: [audited]
+description: The columns an audited entity carries and who sets them.
+why: Who changed a record and when is only worth having if no caller can set it.
+contract:
+  columns:
+    statement: An audited entity's table carries the creation and last-change time and user columns.
+    check: document
+  set-by-system:
+    statement: The library sets the columns, and a caller's values for them are overwritten.
+    check: guidance
+parts:
+  columns:
+    description: The column names, by the design's field names.
+    stack:
+      go:
+        names: { createdAt: created_at, createdBy: created_by_user_id, createdByName: created_by_user_nameid, lastModifiedAt: last_modified_at, lastModifiedBy: last_modified_by_user_id, lastModifiedByName: last_modified_by_user_nameid }
+        code: |
+          Set in the table layer on every insert and update from the
+          session's user, as dxlib's tables/tables_table.go does; the user's
+          name id is kept beside the id, so a row still says who changed it
+          after the user is gone.
+"""#),
+    ("idioms/authorization/authorization-check.specarch-idiom.yaml", #"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: authorization-check
+version: 1.0.0
+concern: authorization
+stacks: [go]
+reads: [permissions]
+description: Where the permission an operation names is checked, and what a caller without it is told.
+why: Access is fail-closed in the design; the code has to be fail-closed in the same place every time.
+contract:
+  denied-case:
+    statement: A caller without the operation's permission is refused, and that case is tested.
+    check: test
+  order:
+    statement: The check runs after authentication and before the handler; an unauthenticated caller gets 401, an authenticated one without the permission 403.
+    check: guidance
+  fail-closed:
+    statement: An operation whose permission is not known to the check is refused, never let through.
+    check: guidance
+parts:
+  middleware:
+    description: Where the check sits.
+    stack:
+      go:
+        code: |
+          A middleware reads the caller's session, then the permission the
+          generated document names in x-specarch-permission, and asks the
+          role store whether a role of the caller grants it. dxlib does this
+          in the session middleware of dxlib_module's self module, against
+          an endpoint's Privileges.
+"""#),
+    ("idioms/background-jobs/background-jobs.specarch-idiom.yaml", #"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: background-jobs
+version: 1.0.0
+concern: background-jobs
+stacks: [go]
+reads: [jobs]
+description: How a job runs, stops and retries.
+why: A job runs when no one is watching, so it must be safe to run twice and must say when it gives up.
+contract:
+  cases:
+    statement: A job's derived cases, runs twice and its dependencies failing, are tested.
+    check: test
+  lifecycle:
+    statement: A job runs once or repeats with a delay, stops on shutdown, retries a failed item a bounded number of times, and then sets it aside or drops it as the design says.
+    check: guidance
+parts:
+  runner:
+    description: The runner.
+    stack:
+      go:
+        names: { once: once, repeat: always, delay: after_delay_sec }
+        code: |
+          A task with once or always and a delay, as dxlib's task package
+          has; a queue is drained in a loop that marks each item done,
+          retried or dead, as the notification module does.
+"""#),
+    ("idioms/configuration/configuration-and-secrets.specarch-idiom.yaml", #"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: configuration-and-secrets
+version: 1.0.0
+concern: configuration
+stacks: [go]
+reads: [configuration]
+description: How settings and secrets reach a process.
+why: A secret in a file is a secret in every copy of the file.
+contract:
+  no-secret-value:
+    statement: No secret's value is written in any file of the specification or the implementation.
+    check: schema
+  secret-from-vault:
+    statement: A secret is read from a vault into locked memory and resolved only where it is used.
+    check: guidance
+parts:
+  settings:
+    description: Where settings and secrets come from.
+    stack:
+      go:
+        code: |
+          Settings come from a file and the environment, the environment
+          winning; a setting marked secret is read from a vault into locked
+          memory and handed out only where it is used, as dxlib's
+          configuration (with SensitiveDataKey), secure_memory and vault
+          packages do.
+"""#),
+    ("idioms/encryption/encrypted-column.specarch-idiom.yaml", #"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: encrypted-column
+version: 1.0.0
+concern: encryption
+stacks: [go]
+reads: [atRest]
+description: How a field encrypted at rest is stored and still found.
+why: Encryption in the engine keeps the plain value out of backups and dumps; a hash beside it keeps the field usable as a key.
+contract:
+  rendered-or-refused:
+    statement: A field encrypted at rest renders through this idiom on every SQL dialect of the implementation, or generation fails.
+    check: document
+  key-in-memory:
+    statement: The encryption runs in the engine with a session key from locked memory, and a salted hash is kept beside a field looked up by hash.
+    check: guidance
+parts:
+  column:
+    description: The encrypted column and its hash.
+    stack:
+      go:
+        names: { hashSuffix: _hash }
+        code: |
+          The column holds the ciphertext from the engine's own function
+          with the session key; a field with lookup hash gets a companion
+          column, its name and _hash, holding a salted hash used for
+          equality and uniqueness. dxlib's EncryptionColumnDef with
+          HashFieldName, and the per-dialect expressions of
+          databases/db/encryption_expression.go, do this.
+"""#),
+    ("idioms/error-response/error-response.specarch-idiom.yaml", #"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: error-response
+version: 1.0.0
+concern: error-response
+stacks: [go, any]
+reads: [errors]
+description: How a refusal is answered, from the design's catalogue of problem types.
+why: A client branches on a problem's type, never on its message, so the type and its status are fixed by the design and every refusal has one shape.
+sources:
+  rfc-9457:
+    kind: standard
+    title: RFC 9457, Problem Details for HTTP APIs
+    edition: "2023"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc9457
+contract:
+  problem-document:
+    statement: Every 4xx and 5xx response is an application/problem+json document of a type from the catalogue, with its status.
+    check: document
+    cites:
+      - { source: rfc-9457, clause: "3", says: "A problem details object carries type, title, status, detail and instance." }
+  every-refusal-typed:
+    statement: Once the catalogue exists, every 4xx and 5xx response of the design names its type.
+    check: schema
+  validation-lists-fields:
+    statement: A validation problem lists each failing field with its reason.
+    check: guidance
+parts:
+  shape:
+    description: The body of a refusal.
+    stack:
+      any:
+        code: |
+          { "type": "<the type's URI, or about:blank>", "title": "<the type's title>",
+            "status": 409, "detail": "<this occurrence>", "instance": "<this request>" }
+      go:
+        code: |
+          One function writes every problem document from the catalogue's
+          name, setting Content-Type to application/problem+json. A library
+          that answers in its own shape ({status, status_code, reason,
+          reason_message} in dxlib) has its shape rendered from the problem
+          until the runtime answers with a problem document.
+"""#),
+    ("idioms/health/health-endpoint.specarch-idiom.yaml", #"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: health-endpoint
+version: 1.0.0
+concern: health
+stacks: [go]
+reads: [paths]
+description: How a monitor asks a service whether it is up.
+why: A monitor needs one cheap request that touches nothing and says which build answered.
+contract:
+  ping:
+    statement: A public operation answers the service's name and version.
+    check: guidance
+parts:
+  ping:
+    description: The operation.
+    stack:
+      go:
+        code: GET /ping, public, answering the name and version, as dxlib_module's oam module does.
+"""#),
+    ("idioms/identifiers/identifiers.specarch-idiom.yaml", #"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: identifiers
+version: 1.0.0
+concern: identifiers
+stacks: [go]
+reads: [entities]
+description: The keys a record carries and which of them leave the service.
+why: An integer key is fast and must never be guessable from outside; an opaque id is safe to show and slow to index; a record often needs both.
+contract:
+  columns:
+    statement: A table carries the internal key and, when the design exposes one, the public id, under the idiom's column names.
+    check: document
+  internal-key-stays-in:
+    statement: The internal integer key never leaves the service.
+    check: guidance
+  public-id:
+    statement: A public id is opaque, at most 255 characters, and cannot be enumerated.
+    check: guidance
+parts:
+  columns:
+    description: The key columns.
+    stack:
+      go:
+        names: { internalKey: id, publicId: uid, nameId: nameid, versionTag: utag }
+        code: |
+          id is a 64-bit generated key; uid is the hexadecimal microsecond
+          time followed by a UUID, generated in the application or by the
+          engine, so it sorts roughly by creation and cannot be guessed;
+          nameid is an optional unique human-readable id; utag an optional
+          version tag for optimistic writes.
+"""#),
     ("idioms/list-operations/paginated-list.specarch-idiom.yaml", #"""
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
@@ -6484,11 +6732,185 @@ tests:
   - { case: sort by a field not sortable, scenario: red, then: it is refused }
   - { case: filter by a field not filterable, scenario: red, then: it is refused }
 """#),
+    ("idioms/migrations/migrations.specarch-idiom.yaml", #"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: migrations
+version: 1.0.0
+concern: migrations
+stacks: [go]
+reads: [entities]
+description: How a schema change reaches a database.
+why: A migration that edits an older one changes history that other databases already ran.
+contract:
+  new-files-only:
+    statement: A change is a new migration file; a destructive step is in a file of its own.
+    check: document
+  model-is-source:
+    statement: The model is the source and the DDL is derived from it.
+    check: guidance
+parts:
+  files:
+    description: The migration files.
+    stack:
+      go:
+        code: |
+          The DDL is derived from the model (models.ModelDBTable and
+          CreateDDL in dxlib), and a snapshot of the model beside the
+          generated SQL shows what changed since the last migration.
+"""#),
+    ("idioms/pii-logging/pii-in-logs.specarch-idiom.yaml", #"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: pii-in-logs
+version: 1.0.0
+concern: pii-logging
+stacks: [go]
+reads: [sensitivity]
+description: How a personal or secret value is kept out of logs and out of the answers it does not belong in.
+why: A log is read by more people than the data it records, and is kept longer.
+contract:
+  credential-not-answered:
+    statement: A credential field never appears in a response unless it is writeOnly.
+    check: schema
+  masked-in-logs:
+    statement: Every personal field is masked by its rule in every log line, request dump and response dump; credential headers are masked whole.
+    check: guidance
+parts:
+  masks:
+    description: The mask rule per kind of value.
+    stack:
+      go:
+        names: { partial: MaskPartial, email: MaskEmail, initials: MaskInitials, location: MaskLocation, dump: MaskForLog }
+        code: |
+          partial keeps a few characters at the front and the back; an email
+          keeps two characters of each part; a name keeps the first letter
+          of each word; a location is rounded to two decimals. Every dump of
+          a request or a response goes through MaskForLog, which applies
+          the rule of each field's sensitivity. These are the rules of
+          dxlib's utils/utils.go.
+"""#),
+    ("idioms/request-validation/request-validation.specarch-idiom.yaml", #"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: request-validation
+version: 1.0.0
+concern: request-validation
+stacks: [go, any]
+reads: [paths]
+description: |
+  How a request is checked before its handler runs: every bound, format,
+  enum and required field of the design, with one refusal per failing
+  field, and how a field that may be left out differs from one that may be
+  null.
+why: |
+  A handler that receives only valid input has one job. Checking in one
+  place, from the design, means no handler forgets a bound and every
+  refusal looks the same.
+contract:
+  constraints-in-document:
+    statement: Every bound, format, enum and required field of the design is in the emitted interface document, so the generated server checks it.
+    check: document
+  red-cases:
+    statement: Every boundary of a field has its derived red case, just outside the limit, and its golden case on it.
+    check: test
+  refusal-names-field:
+    statement: A refusal names the path of each failing field, such as customer.email.
+    check: guidance
+  absent-and-null:
+    statement: A field that may be left out (required false) and a field whose value may be null (a type list with null) are told apart, and a handler never reads one as the other.
+    check: guidance
+parts:
+  validation:
+    description: Where and in what order the checks run.
+    stack:
+      go:
+        code: |
+          Before the handler runs, in this order: a required field is
+          present; its value has the declared type (a JSON number for an
+          integer arrives as a float without a fraction or as a string of
+          digits, since a query string carries only strings); it is inside
+          its bounds, matches its format and pattern, and is one of its enum
+          values; the children of an object are checked the same way. The
+          generated strict server of oapi-codegen does the shape, and a
+          middleware the rest, from the OpenAPI document.
+        why: dxlib checks the same list in api/api_endpoint_request.go before a handler is called, and its services have relied on it for years.
+  absence-and-null:
+    description: How a field that may be left out and a field that may be null are held.
+    stack:
+      go:
+        code: |
+          Left out only (required false, not nullable): the plain Go type,
+          with a presence flag or an accessor the request layer sets, such
+          as Has(name); the zero value never stands for "not given". Null
+          only (required, a type list with null): a pointer. Both: a pointer
+          and the presence flag. A library type named nullable-X for a
+          request parameter, as dxlib's are, means "may be left out", so its
+          plain int32 is right and needs no pointer.
+        why: In a REST request, absence and null are two different things a client can send; a pointer alone cannot say which one it was.
+"""#),
+    ("idioms/soft-delete/soft-delete.specarch-idiom.yaml", #"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: soft-delete
+version: 1.0.0
+concern: soft-delete
+stacks: [go]
+reads: [deletion]
+description: How a softly deleted record is kept and hidden.
+why: A delete that can be undone keeps the record for audit and recovery, and must still look like a delete to every caller.
+contract:
+  column:
+    statement: The table carries a boolean deleted column, false by default.
+    check: document
+  hidden:
+    statement: A deleted record is not listed and reads as not found.
+    check: test
+  hard-delete-separate:
+    statement: A hard delete is a separate operation with its own permission.
+    check: guidance
+parts:
+  column:
+    description: The flag and the filter.
+    stack:
+      go:
+        names: { deleted: is_deleted, softDelete: RequestSoftDelete, hardDelete: RequestHardDelete }
+        code: |
+          Every list and read adds is_deleted = false unless the caller asks
+          for deleted records and may see them; the delete operation sets
+          the flag, as dxlib's RequestSoftDelete does beside
+          RequestHardDelete.
+"""#),
+    ("idioms/transactions/transactions.specarch-idiom.yaml", #"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: transactions
+version: 1.0.0
+concern: transactions
+stacks: [go]
+reads: [paths]
+description: How a change is made all or nothing.
+why: Half a change is worse than none, because nothing records that it happened.
+contract:
+  one-per-change:
+    statement: One transaction per operation that changes data, with its audit entry inside it, rolled back on any error.
+    check: guidance
+parts:
+  transaction:
+    description: The transaction and its forms.
+    stack:
+      go:
+        code: |
+          Begin with the database's transaction (DXDatabaseTx through
+          TransactionBegin in dxlib), use the Tx forms of insert, update and
+          delete, and commit only when the handler returns without an
+          error; a panic or an error rolls back.
+"""#),
     ("idioms/type-rendering/type-rendering.specarch-idiom.yaml", #"""
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: type-rendering
-version: 1.0.0
+version: 1.1.0
 concern: type-rendering
 stacks: [go, postgresql, sqlserver, oracle, mariadb, any]
 reads: [entities]
@@ -6741,6 +7163,22 @@ parts:
           and the 65 of MariaDB. The currency is a field of its own, or fixed
           by the design, never part of the type.
         why: Large amounts with an exact fraction overflow a 64-bit integer of minor units once the fraction is kept, and a double loses digits; a decimal of declared precision holds both on every stack.
+      go:
+        libraries:
+          github.com/shopspring/decimal:
+            version: v1.4.0
+            licence: MIT
+            purpose: Exact decimal arithmetic for money.
+        code: |
+          A money field is a decimal.Decimal. It is read with
+          decimal.NewFromString from the JSON string, never through a
+          float64, and written back as a string, which is the library's
+          default JSON form. Arithmetic stays in decimal.Decimal (Add, Sub,
+          Mul, and Round or RoundBank to the field's scale before storing);
+          converting to float64 or int64 on the way is the mistake this
+          rendering exists to prevent. At the database driver, the value
+          goes in and out as the NUMERIC text, not as a float.
+        why: This is how dxlib carries money, with the same library, because Go's built-in number types cannot hold a large amount of a currency with many zeros and an exact fraction at once.
 
   absence-and-null:
     description: A field left out of a request against a field whose value is null.

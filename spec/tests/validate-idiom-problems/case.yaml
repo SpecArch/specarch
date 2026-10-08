@@ -1,13 +1,13 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |+
-  implementation/go/case.go.specarch-implementation.yaml:6: error: /targets/sql/dialect: idiom_contract: type-rendering 1.0.0 has no oracle row in its types part for #/entities/Payment/properties/amount (string, format decimal, precision 50); add one in an override of the part, or exclude the idiom with the reason
+  implementation/go/case.go.specarch-implementation.yaml:6: error: /targets/sql/dialect: idiom_contract: type-rendering 1.1.0 has no oracle row in its types part for #/entities/Payment/properties/amount (string, format decimal, precision 50); add one in an override of the part, or exclude the idiom with the reason
   implementation/go/case.go.specarch-implementation.yaml:8: error: /idioms/type-rendring: idiom_unknown: type-rendring is not an idiom SpecArch ships nor one in this file's idioms folder; did you mean type-rendering?
   implementation/go/case.go.specarch-implementation.yaml:9: error: /idioms/house-style: idiom_override_reason: house-style is excluded without why; say what the project does instead
   implementation/go/idioms/notes.yaml:1: error: /: layout: a file in idioms/ is an idiom named <name>.specarch-idiom.yaml; rename it, or move it out of the folder
   implementation/go/idioms/type-rendering.specarch-idiom.yaml:5: error: /overrides: idiom_override_reason: the override of type-rendering has no why; say why the project renders it differently
   implementation/go/idioms/type-rendering.specarch-idiom.yaml:5: error: /overrides/parts/1: idiom_part_unknown: type-rendering has no part colours; use one of absence-and-null, money, types, wire
-  implementation/go/idioms/type-rendering.specarch-idiom.yaml:5: warning: /overrides/version: idiom_version_behind: copied from type-rendering 0.9.0, and SpecArch now ships 1.0.0; compare them with specarch idioms diff type-rendering, then move to it, or set staysBehind: true and say why
+  implementation/go/idioms/type-rendering.specarch-idiom.yaml:5: warning: /overrides/version: idiom_version_behind: copied from type-rendering 0.9.0, and SpecArch now ships 1.1.0; compare them with specarch idioms diff type-rendering, then move to it, or set staysBehind: true and say why
   implementation/go/idioms/type-rendering.specarch-idiom.yaml:7: error: /contract/every-field-rendered: idiom_contract: every-field-rendered is a contract statement of type-rendering, which an override may not change; keep it as shipped, or exclude the idiom and write the project's own
   implementation/go/idioms/type-rendering.specarch-idiom.yaml:14: error: /parts/types/stack/swift: idiom_stack: swift is not a stack of the implementation file; it renders any, go, oracle
   implementation/go/idioms/type-rendering.specarch-idiom.yaml:17: error: /parts/money: idiom_part_unknown: the part money is not listed under overrides.parts; list it, or remove it so the shipped one applies

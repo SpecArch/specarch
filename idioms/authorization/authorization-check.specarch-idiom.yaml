@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: authorization-check
+version: 1.0.0
+concern: authorization
+stacks: [go]
+reads: [permissions]
+description: Where the permission an operation names is checked, and what a caller without it is told.
+why: Access is fail-closed in the design; the code has to be fail-closed in the same place every time.
+contract:
+  denied-case:
+    statement: A caller without the operation's permission is refused, and that case is tested.
+    check: test
+  order:
+    statement: The check runs after authentication and before the handler; an unauthenticated caller gets 401, an authenticated one without the permission 403.
+    check: guidance
+  fail-closed:
+    statement: An operation whose permission is not known to the check is refused, never let through.
+    check: guidance
+parts:
+  middleware:
+    description: Where the check sits.
+    stack:
+      go:
+        code: |
+          A middleware reads the caller's session, then the permission the
+          generated document names in x-specarch-permission, and asks the
+          role store whether a role of the caller grants it. dxlib does this
+          in the session middleware of dxlib_module's self module, against
+          an endpoint's Privileges.

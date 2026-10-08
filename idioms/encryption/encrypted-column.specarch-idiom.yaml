@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: encrypted-column
+version: 1.0.0
+concern: encryption
+stacks: [go]
+reads: [atRest]
+description: How a field encrypted at rest is stored and still found.
+why: Encryption in the engine keeps the plain value out of backups and dumps; a hash beside it keeps the field usable as a key.
+contract:
+  rendered-or-refused:
+    statement: A field encrypted at rest renders through this idiom on every SQL dialect of the implementation, or generation fails.
+    check: document
+  key-in-memory:
+    statement: The encryption runs in the engine with a session key from locked memory, and a salted hash is kept beside a field looked up by hash.
+    check: guidance
+parts:
+  column:
+    description: The encrypted column and its hash.
+    stack:
+      go:
+        names: { hashSuffix: _hash }
+        code: |
+          The column holds the ciphertext from the engine's own function
+          with the session key; a field with lookup hash gets a companion
+          column, its name and _hash, holding a salted hash used for
+          equality and uniqueness. dxlib's EncryptionColumnDef with
+          HashFieldName, and the per-dialect expressions of
+          databases/db/encryption_expression.go, do this.

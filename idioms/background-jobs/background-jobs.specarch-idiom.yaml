@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: background-jobs
+version: 1.0.0
+concern: background-jobs
+stacks: [go]
+reads: [jobs]
+description: How a job runs, stops and retries.
+why: A job runs when no one is watching, so it must be safe to run twice and must say when it gives up.
+contract:
+  cases:
+    statement: A job's derived cases, runs twice and its dependencies failing, are tested.
+    check: test
+  lifecycle:
+    statement: A job runs once or repeats with a delay, stops on shutdown, retries a failed item a bounded number of times, and then sets it aside or drops it as the design says.
+    check: guidance
+parts:
+  runner:
+    description: The runner.
+    stack:
+      go:
+        names: { once: once, repeat: always, delay: after_delay_sec }
+        code: |
+          A task with once or always and a delay, as dxlib's task package
+          has; a queue is drained in a loop that marks each item done,
+          retried or dead, as the notification module does.

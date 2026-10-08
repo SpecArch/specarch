@@ -626,8 +626,9 @@ where it adds a rule, and the conformance cases; the generators are Go only.
 3. Built: `specarch-gen-openapi`, standard dialect, with the problem
    catalogue as the error responses and `listOf` expanded through the
    `paginated-list` idiom.
-4. The first Go idioms written from dxlib (`docs/idioms.md`, section "The
-   first set"), stack-neutral contract first, Go rendering second.
+4. Built: the first Go idioms written from dxlib (`docs/idioms.md`,
+   section "The first set"), stack-neutral contract first, Go rendering
+   second.
 5. `specarch-gen-sql` through `type-rendering`, four dialects, new-file
    migrations with the destructive step in its own file, indexes from the
    entity mapping's settings, encrypted columns through their idiom.

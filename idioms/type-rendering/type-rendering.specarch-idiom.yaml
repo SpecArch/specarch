@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: type-rendering
-version: 1.0.0
+version: 1.1.0
 concern: type-rendering
 stacks: [go, postgresql, sqlserver, oracle, mariadb, any]
 reads: [entities]
@@ -254,6 +254,22 @@ parts:
           and the 65 of MariaDB. The currency is a field of its own, or fixed
           by the design, never part of the type.
         why: Large amounts with an exact fraction overflow a 64-bit integer of minor units once the fraction is kept, and a double loses digits; a decimal of declared precision holds both on every stack.
+      go:
+        libraries:
+          github.com/shopspring/decimal:
+            version: v1.4.0
+            licence: MIT
+            purpose: Exact decimal arithmetic for money.
+        code: |
+          A money field is a decimal.Decimal. It is read with
+          decimal.NewFromString from the JSON string, never through a
+          float64, and written back as a string, which is the library's
+          default JSON form. Arithmetic stays in decimal.Decimal (Add, Sub,
+          Mul, and Round or RoundBank to the field's scale before storing);
+          converting to float64 or int64 on the way is the mistake this
+          rendering exists to prevent. At the database driver, the value
+          goes in and out as the NUMERIC text, not as a float.
+        why: This is how dxlib carries money, with the same library, because Go's built-in number types cannot hold a large amount of a currency with many zeros and an exact fraction at once.
 
   absence-and-null:
     description: A field left out of a request against a field whose value is null.

@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: audit-fields
+version: 1.0.0
+concern: audit-fields
+stacks: [go]
+reads: [audited]
+description: The columns an audited entity carries and who sets them.
+why: Who changed a record and when is only worth having if no caller can set it.
+contract:
+  columns:
+    statement: An audited entity's table carries the creation and last-change time and user columns.
+    check: document
+  set-by-system:
+    statement: The library sets the columns, and a caller's values for them are overwritten.
+    check: guidance
+parts:
+  columns:
+    description: The column names, by the design's field names.
+    stack:
+      go:
+        names: { createdAt: created_at, createdBy: created_by_user_id, createdByName: created_by_user_nameid, lastModifiedAt: last_modified_at, lastModifiedBy: last_modified_by_user_id, lastModifiedByName: last_modified_by_user_nameid }
+        code: |
+          Set in the table layer on every insert and update from the
+          session's user, as dxlib's tables/tables_table.go does; the user's
+          name id is kept beside the id, so a row still says who changed it
+          after the user is gone.

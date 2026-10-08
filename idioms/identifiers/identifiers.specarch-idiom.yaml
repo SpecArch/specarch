@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: identifiers
+version: 1.0.0
+concern: identifiers
+stacks: [go]
+reads: [entities]
+description: The keys a record carries and which of them leave the service.
+why: An integer key is fast and must never be guessable from outside; an opaque id is safe to show and slow to index; a record often needs both.
+contract:
+  columns:
+    statement: A table carries the internal key and, when the design exposes one, the public id, under the idiom's column names.
+    check: document
+  internal-key-stays-in:
+    statement: The internal integer key never leaves the service.
+    check: guidance
+  public-id:
+    statement: A public id is opaque, at most 255 characters, and cannot be enumerated.
+    check: guidance
+parts:
+  columns:
+    description: The key columns.
+    stack:
+      go:
+        names: { internalKey: id, publicId: uid, nameId: nameid, versionTag: utag }
+        code: |
+          id is a 64-bit generated key; uid is the hexadecimal microsecond
+          time followed by a UUID, generated in the application or by the
+          engine, so it sorts roughly by creation and cannot be guessed;
+          nameid is an optional unique human-readable id; utag an optional
+          version tag for optimistic writes.

@@ -1,0 +1,32 @@
+decisions:
+  ADR-028:
+    title: An idiom's statement says what checks it today, or that it is guidance
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      The first set of idioms, written from dxlib, holds statements of three
+      kinds: some a rule of the validator or a derived case already checks,
+      some only a generator that does not exist yet can check, and some no
+      tool can check from the design.
+    decision: |
+      A statement is marked schema only when a validator rule checks it
+      (sensitivity_exposed, secret_value, problem, idiom_contract), test
+      only when a derived case covers it, document when a generator's
+      --check covers it, and guidance otherwise. A document statement about
+      a table's columns waits for specarch-gen-sql and says so in
+      docs/idioms.md. The health endpoint is guidance, since which
+      operation answers a health check cannot be told from the design.
+      Money in Go is decimal.Decimal from github.com/shopspring/decimal,
+      read from and written to its JSON string, never through a float, and
+      a request field that may be left out is a plain Go type with a
+      presence flag, not a pointer.
+    consequences: |
+      The shipped set is fifteen idioms, each with a Go rendering; Swift and
+      Dart renderings come with the first project on each stack.
+      type-rendering moves to 1.1.0 for its Go money rendering, so an
+      override copied from 1.0.0 is warned about.
+    why: |
+      A statement marked checked that nothing checks is the "written but not
+      enforced" state the README refuses; marking it for what it is keeps
+      the reader from trusting a gate that is not there.
+    satisfies: [SA-32]

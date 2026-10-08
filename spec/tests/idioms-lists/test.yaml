@@ -3,5 +3,5 @@ level: system
 scenario: golden
 given: "a specification with one implementation file in Go with an Oracle sql target, whose override of type-rendering replaces its types part, with the reason"
 when: "idioms is run"
-then: "it prints the file's path and type-rendering as overridden by the file, copied from 1.0.0, replacing types, with the reason, and exits 0"
+then: "it prints the file's path and type-rendering as overridden by the file, copied from 1.1.0, replacing types, with the reason, and exits 0"
 verifies: [SA-32]

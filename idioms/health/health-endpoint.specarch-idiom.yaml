@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: health-endpoint
+version: 1.0.0
+concern: health
+stacks: [go]
+reads: [paths]
+description: How a monitor asks a service whether it is up.
+why: A monitor needs one cheap request that touches nothing and says which build answered.
+contract:
+  ping:
+    statement: A public operation answers the service's name and version.
+    check: guidance
+parts:
+  ping:
+    description: The operation.
+    stack:
+      go:
+        code: GET /ping, public, answering the name and version, as dxlib_module's oam module does.

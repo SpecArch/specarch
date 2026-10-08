@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: request-validation
+version: 1.0.0
+concern: request-validation
+stacks: [go, any]
+reads: [paths]
+description: |
+  How a request is checked before its handler runs: every bound, format,
+  enum and required field of the design, with one refusal per failing
+  field, and how a field that may be left out differs from one that may be
+  null.
+why: |
+  A handler that receives only valid input has one job. Checking in one
+  place, from the design, means no handler forgets a bound and every
+  refusal looks the same.
+contract:
+  constraints-in-document:
+    statement: Every bound, format, enum and required field of the design is in the emitted interface document, so the generated server checks it.
+    check: document
+  red-cases:
+    statement: Every boundary of a field has its derived red case, just outside the limit, and its golden case on it.
+    check: test
+  refusal-names-field:
+    statement: A refusal names the path of each failing field, such as customer.email.
+    check: guidance
+  absent-and-null:
+    statement: A field that may be left out (required false) and a field whose value may be null (a type list with null) are told apart, and a handler never reads one as the other.
+    check: guidance
+parts:
+  validation:
+    description: Where and in what order the checks run.
+    stack:
+      go:
+        code: |
+          Before the handler runs, in this order: a required field is
+          present; its value has the declared type (a JSON number for an
+          integer arrives as a float without a fraction or as a string of
+          digits, since a query string carries only strings); it is inside
+          its bounds, matches its format and pattern, and is one of its enum
+          values; the children of an object are checked the same way. The
+          generated strict server of oapi-codegen does the shape, and a
+          middleware the rest, from the OpenAPI document.
+        why: dxlib checks the same list in api/api_endpoint_request.go before a handler is called, and its services have relied on it for years.
+  absence-and-null:
+    description: How a field that may be left out and a field that may be null are held.
+    stack:
+      go:
+        code: |
+          Left out only (required false, not nullable): the plain Go type,
+          with a presence flag or an accessor the request layer sets, such
+          as Has(name); the zero value never stands for "not given". Null
+          only (required, a type list with null): a pointer. Both: a pointer
+          and the presence flag. A library type named nullable-X for a
+          request parameter, as dxlib's are, means "may be left out", so its
+          plain int32 is right and needs no pointer.
+        why: In a REST request, absence and null are two different things a client can send; a pointer alone cannot say which one it was.

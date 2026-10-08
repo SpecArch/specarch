@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: soft-delete
+version: 1.0.0
+concern: soft-delete
+stacks: [go]
+reads: [deletion]
+description: How a softly deleted record is kept and hidden.
+why: A delete that can be undone keeps the record for audit and recovery, and must still look like a delete to every caller.
+contract:
+  column:
+    statement: The table carries a boolean deleted column, false by default.
+    check: document
+  hidden:
+    statement: A deleted record is not listed and reads as not found.
+    check: test
+  hard-delete-separate:
+    statement: A hard delete is a separate operation with its own permission.
+    check: guidance
+parts:
+  column:
+    description: The flag and the filter.
+    stack:
+      go:
+        names: { deleted: is_deleted, softDelete: RequestSoftDelete, hardDelete: RequestHardDelete }
+        code: |
+          Every list and read adds is_deleted = false unless the caller asks
+          for deleted records and may see them; the delete operation sets
+          the flag, as dxlib's RequestSoftDelete does beside
+          RequestHardDelete.

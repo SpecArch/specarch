@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: pii-in-logs
+version: 1.0.0
+concern: pii-logging
+stacks: [go]
+reads: [sensitivity]
+description: How a personal or secret value is kept out of logs and out of the answers it does not belong in.
+why: A log is read by more people than the data it records, and is kept longer.
+contract:
+  credential-not-answered:
+    statement: A credential field never appears in a response unless it is writeOnly.
+    check: schema
+  masked-in-logs:
+    statement: Every personal field is masked by its rule in every log line, request dump and response dump; credential headers are masked whole.
+    check: guidance
+parts:
+  masks:
+    description: The mask rule per kind of value.
+    stack:
+      go:
+        names: { partial: MaskPartial, email: MaskEmail, initials: MaskInitials, location: MaskLocation, dump: MaskForLog }
+        code: |
+          partial keeps a few characters at the front and the back; an email
+          keeps two characters of each part; a name keeps the first letter
+          of each word; a location is rounded to two decimals. Every dump of
+          a request or a response goes through MaskForLog, which applies
+          the rule of each field's sensitivity. These are the rules of
+          dxlib's utils/utils.go.

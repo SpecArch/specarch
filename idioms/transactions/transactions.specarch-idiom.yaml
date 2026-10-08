@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: transactions
+version: 1.0.0
+concern: transactions
+stacks: [go]
+reads: [paths]
+description: How a change is made all or nothing.
+why: Half a change is worse than none, because nothing records that it happened.
+contract:
+  one-per-change:
+    statement: One transaction per operation that changes data, with its audit entry inside it, rolled back on any error.
+    check: guidance
+parts:
+  transaction:
+    description: The transaction and its forms.
+    stack:
+      go:
+        code: |
+          Begin with the database's transaction (DXDatabaseTx through
+          TransactionBegin in dxlib), use the Tx forms of insert, update and
+          delete, and commit only when the handler returns without an
+          error; a panic or an error rolls back.

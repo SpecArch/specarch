@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: migrations
+version: 1.0.0
+concern: migrations
+stacks: [go]
+reads: [entities]
+description: How a schema change reaches a database.
+why: A migration that edits an older one changes history that other databases already ran.
+contract:
+  new-files-only:
+    statement: A change is a new migration file; a destructive step is in a file of its own.
+    check: document
+  model-is-source:
+    statement: The model is the source and the DDL is derived from it.
+    check: guidance
+parts:
+  files:
+    description: The migration files.
+    stack:
+      go:
+        code: |
+          The DDL is derived from the model (models.ModelDBTable and
+          CreateDDL in dxlib), and a snapshot of the model beside the
+          generated SQL shows what changed since the last migration.

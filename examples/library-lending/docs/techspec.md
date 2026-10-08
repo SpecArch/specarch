@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 7 requirements, 3 entities, 9 HTTP operations, 2 channels, 1 dependency, 6 pages, 1 flow, 1 algorithm, 114 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 7 requirements, 3 entities, 10 HTTP operations, 2 channels, 1 dependency, 7 pages, 1 flow, 1 algorithm, 119 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -51,6 +51,7 @@ The interfaces the system offers, as its clients see them.
 | Method and path | Operation | Summary | Permission |
 |---|---|---|---|
 | GET /books | listBooks | Browse the catalogue | public |
+| POST /sessions | signIn | Sign in with an email address and a password | public |
 | GET /members | listMembers | List members | members.read |
 | POST /members | createMember | Register a new member | members.write |
 | GET /members/{memberId} | getMember | One member with their loans | members.read |
@@ -238,6 +239,7 @@ Every refusal is an RFC 9457 problem document of one of these types; each operat
 | lending-refused | 409 | The copy cannot be lent | The member holds the most open loans their tier allows, has outstanding fees, or the book has no copy available. |
 | loan-closed | 409 | The loan is already closed | The loan was returned or reported lost before. |
 | fee-ledger-unavailable | 503 | The fee ledger is unavailable | The fee ledger failed or did not answer in time, and the loan stays as it was. |
+| sign-in-refused | 401 | Sign-in refused | No one has the email address, or the password does not match it. |
 
 ### listBooks (GET /books)
 
@@ -247,6 +249,22 @@ sequenceDiagram
   participant S as Library Lending
   C->>S: GET /books
   S-->>C: 200 list of Book
+```
+
+### signIn (POST /sessions)
+
+Opens a session for the member or librarian the email address
+belongs to. The answer does not say whether the address or the
+password was wrong.
+
+Refuses with 401 sign-in-refused.
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant S as Library Lending
+  C->>S: POST /sessions
+  S-->>C: 200 
 ```
 
 ### listMembers (GET /members)
@@ -677,6 +695,7 @@ flowchart LR
   member_loans["Lend copies (form)"]
   member_view["Member (view)"]
   members_list["Members (list)"]
+  sign_in["Sign in (task)"]
   op_createLoan(["createLoan"])
   loan_form -.->|"submit"| op_createLoan
   op_createLoan -->|"submitted"| member_view
@@ -693,6 +712,9 @@ flowchart LR
   member_view -->|"Lend a book"| loan_form
   members_list -->|"select"| member_view
   members_list -->|"New member"| member_form
+  op_signIn(["signIn"])
+  sign_in -.->|"submit"| op_signIn
+  op_signIn -->|"200"| members_list
 ```
 
 The menu, each entry shown to who may open its page:
@@ -712,6 +734,7 @@ The menu, each entry shown to who may open its page:
 | member-loans | form | /members/{memberId}/loans | Member | loans.create | membershipEndsOn, outstandingFees; Loans, rows of loans: bookId, dueOn, at most 6, the loaded rows locked |
 | member-view | view | /members/{memberId} | Member | members.read | Member: cardNumber, fullName, email, tier; Membership: joinedOn, membershipEndsOn, outstandingFees |
 | members-list | list | /members | Member | members.read | cardNumber, fullName, email, tier, outstandingFees |
+| sign-in | task | /sign-in | none; submits to signIn | public | email, password |
 
 What each page shows when it is empty or fails; while it loads or submits, the stack draws its own:
 
@@ -728,6 +751,7 @@ What each page shows when it is empty or fails; while it loads or submits, the s
 | member-view | failed: member-not-found | There is no member with this card. |
 | members-list | empty | No members yet. Register the first one. |
 | members-list | filtered empty | No member is in this tier. |
+| sign-in | failed: sign-in-refused, beside password | The email address or the password is wrong. |
 
 ### Flow lend-a-copy
 
@@ -970,6 +994,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | show-member-bad-id | operation getMember | system | red | a librarian | getMember is called with memberId abc | it is refused as invalid input |
 | show-member-denied | operation getMember | system | red | a caller holding only the member role | getMember is called | it is refused as not allowed |
 | show-member-not-found | operation getMember | system | red | a librarian and no member with a given id | getMember is called with that id | it answers 404 |
+| sign-in-bad-email | operation signIn | system | red | any caller | signIn is called with an email that is not an email address | it is refused as invalid input |
+| sign-in-missing-field | operation signIn | system | red | any caller | signIn is called without email and again without password | both are refused as invalid input |
+| sign-in-page | page sign-in | system | golden | a librarian who is not signed in | the page sign-in is submitted with their email address and password | it leads to the page members-list, saying that they are signed in |
+| sign-in-page-refused | page sign-in | system | red | a librarian who types a wrong password | the page sign-in is submitted | it shows beside the password: The email address or the password is wrong. |
+| sign-in-succeeds | operation signIn | system | golden | a member whose password is the one they chose | signIn is called with their email address and that password | it answers 200 and their session starts |
 
 **Origin on create-loan-rate-exceeded:** inferred.
 

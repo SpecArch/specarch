@@ -1,0 +1,22 @@
+questions:
+  Q-1:
+    question: For the page at /members, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/members/kind', '#/pages/members/title', '#/pages/members/entity', '#/pages/members/source', '#/pages/members/submit', '#/pages/members/columns']
+    decidedBy: system-owner
+    why: The folders name a page's route and not what it shows.
+  Q-2:
+    question: Which permission does the page at /members check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/members/permission']
+    decidedBy: system-owner
+    why: The folders name a page's route and not who may open it, and a page open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  Q-3:
+    question: For the page at /sign-in, what is the operation it submits to? Its schema names signIn as the operation it submits to, which only the router's tree holds.
+    kind: decision
+    priority: must
+    blocks: ['#/pages/sign-in/submit']
+    decidedBy: system-owner
+    why: The folders name a page's route, and its schema does not give these, or names operations this tree does not hold.

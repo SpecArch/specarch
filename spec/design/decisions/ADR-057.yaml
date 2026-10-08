@@ -42,7 +42,10 @@ decisions:
       show, each an empty mapping, and a must question blocks its primary
       key and each field. What no schema gives, and the permission of
       every page, is a must question, and so are each permission's
-      description and the role that grants it. merge takes an element the asking
+      description and the role that grants it, except public, the
+      meta-model's own word for open to everyone, which is declared as
+      that. A schema whose kind is task gives a task page, with no entity;
+      an entity it names is left out with a line. merge takes an element the asking
       tree writes only as an empty mapping as one it does not give, so a
       tree that gives it with content answers the question.
     why: |
@@ -83,7 +86,5 @@ decisions:
       route group, a dynamic segment and one page with a schema file, so
       that its route table and catalogue, which name the code folder, do
       not go stale. A schema whose component library names its keys
-      otherwise is read as giving none of them and prints a line per key;
-      a page that submits without loading a record, which 0.1 cannot
-      hold, has its entity asked for.
+      otherwise is read as giving none of them and prints a line per key.
     satisfies: [SA-11, SA-44, SA-45]

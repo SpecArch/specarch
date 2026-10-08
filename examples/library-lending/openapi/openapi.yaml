@@ -436,6 +436,46 @@ paths:
       x-specarch-permission: loans.create
       x-specarch-satisfies:
         - LIB-3
+  /sessions:
+    post:
+      operationId: signIn
+      summary: Sign in with an email address and a password
+      description: |
+        Opens a session for the member or librarian the email address
+        belongs to. The answer does not say whether the address or the
+        password was wrong.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  title: Email address
+                password:
+                  type: string
+                  title: Password
+                  minLength: 8
+                  maxLength: 200
+                  writeOnly: true
+              required:
+                - email
+                - password
+      responses:
+        "200":
+          description: Signed in; the session starts.
+        "401":
+          description: The email address or the password is wrong.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: sign-in-refused
+      security: []
+      x-specarch-permission: public
 components:
   schemas:
     Book:
@@ -677,3 +717,7 @@ components:
       status: 404
       title: No such member
       condition: No member has the id in the path.
+    sign-in-refused:
+      status: 401
+      title: Sign-in refused
+      condition: No one has the email address, or the password does not match it.

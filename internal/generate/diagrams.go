@@ -252,7 +252,13 @@ func pagesFlowchart(root *yaml.Node) string {
 		if submit := str(p.Value, "submit"); submit != "" {
 			o := op(submit)
 			fmt.Fprintf(&b, "  %s -.->|\"submit\"| %s\n", from, o)
-			if nav := str(get(p.Value, "onSubmitted"), "navigate"); nav != "" {
+			if str(p.Value, "kind") == "task" {
+				for _, kv := range pairs(p.Value, "onSubmitted") {
+					if nav := str(kv.Value, "navigate"); nav != "" {
+						fmt.Fprintf(&b, "  %s -->|\"%s\"| %s\n", o, kv.Key.Value, mermaidID(nav))
+					}
+				}
+			} else if nav := str(get(p.Value, "onSubmitted"), "navigate"); nav != "" {
 				fmt.Fprintf(&b, "  %s -->|\"submitted\"| %s\n", o, mermaidID(nav))
 			}
 		}

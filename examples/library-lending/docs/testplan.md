@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 114 design tests, 33 golden and 80 red, about 30 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 119 design tests, 35 golden and 83 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.1.0 of the specification: 114 design tests, 33 golden and 80 red, abou
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 110 |
+| system | 115 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1011,6 +1011,50 @@ Scenario: red; level: system; covers not found loanId, loanId not a valid uuid.
 - When: returnLoan is called with an id no loan has and again with abc
 - Then: the first is refused as not found and the second as invalid input
 
+### Operation signIn
+
+#### sign-in-bad-email
+
+Scenario: red; level: system; covers email not a valid email.
+
+- Given: any caller
+- When: signIn is called with an email that is not an email address
+- Then: it is refused as invalid input
+
+#### sign-in-missing-field
+
+Scenario: red; level: system; covers missing email, missing password.
+
+- Given: any caller
+- When: signIn is called without email and again without password
+- Then: both are refused as invalid input
+
+#### sign-in-succeeds
+
+Scenario: golden; level: system.
+
+- Given: a member whose password is the one they chose
+- When: signIn is called with their email address and that password
+- Then: it answers 200 and their session starts
+
+### Page sign-in
+
+#### sign-in-page
+
+Scenario: golden; level: system.
+
+- Given: a librarian who is not signed in
+- When: the page sign-in is submitted with their email address and password
+- Then: it leads to the page members-list, saying that they are signed in
+
+#### sign-in-page-refused
+
+Scenario: red; level: system; covers fails with sign-in-refused.
+
+- Given: a librarian who types a wrong password
+- When: the page sign-in is submitted
+- Then: it shows beside the password: The email address or the password is wrong.
+
 ## 3. State machines
 
 Each entity with a state field is a state machine. A path runs from a state no move reaches to one no move leaves; a test about the entity alone walks one, and names it under covers. A path with no test is listed under the derived cases left out, or warned about when it moves through a transition that satisfies a requirement with a harm.
@@ -1038,10 +1082,15 @@ stateDiagram-v2
 
 ## 4. Derived cases left out
 
-33 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+38 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
+| operation signIn | password shorter than 8 characters | red | occasional case, and operation signIn satisfies no requirement with a harm |
+| operation signIn | password of 8 characters | golden | occasional case, and operation signIn satisfies no requirement with a harm |
+| operation signIn | password longer than 200 characters | red | occasional case, and operation signIn satisfies no requirement with a harm |
+| operation signIn | password of 200 characters | golden | occasional case, and operation signIn satisfies no requirement with a harm |
+| operation signIn | response 401 | red | occasional case, and operation signIn satisfies no requirement with a harm |
 | operation listMembers | deleted Member not listed | golden | occasional case, and operation listMembers satisfies no requirement with a harm |
 | operation listMembers | page beyond last | golden | occasional case, and operation listMembers satisfies no requirement with a harm |
 | operation listMembers | page size above 100 | red | occasional case, and operation listMembers satisfies no requirement with a harm |

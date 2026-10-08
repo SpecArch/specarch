@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.1.schema.json
+pages:
+  sign-in:
+    kind: task
+    title: Sign in
+    route: /sign-in
+    permission: public
+    submit: signIn
+    fields: [email, password]
+    states:
+      failed:
+        sign-in-refused: { message: The email address or the password is wrong., field: password }
+    onSubmitted:
+      "200": { navigate: members-list, message: You are signed in. }

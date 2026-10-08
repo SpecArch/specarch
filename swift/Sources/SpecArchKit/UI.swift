@@ -7,19 +7,24 @@ extension Checker {
     /// Checks each event of a page: that it is raised by a page or an action
     /// of the kind that has it, that the page it leads to exists, and that
     /// with gives exactly the route parameters of that page from fields of
-    /// the page's entity.
+    /// the page's entity, or, on a task page, from properties of the body of
+    /// the response the event follows.
     func checkPageEvents(_ d: Design) {
         for p in pairs(d.root.child("pages")) {
             let name = p.key.value, pg = p.value
             let kind = str(pg.child("kind"))
             let fields = fieldsOf(d.entities[str(pg.child("entity"))])
-            for e in [("onSubmitted", "form", "a form is submitted"), ("onSelect", "list", "a row of a list is selected")] {
+            for e in [("onSubmitted", "form", "a form or a task is submitted"), ("onSelect", "list", "a row of a list is selected")] {
                 guard let n = pg.child(e.0) else { continue }
+                if e.0 == "onSubmitted" && kind == "task" {
+                    checkStatusEvents(d, name, pg, n)
+                    continue
+                }
                 if kind != e.1 {
                     add(pg.key(e.0), pointer("pages", name, e.0), .flow, "\(name) is a \(kind) page, and \(e.0) is raised when \(e.2); leave it out")
                     continue
                 }
-                checkEvent(d, n, ["pages", name, e.0], fields)
+                checkEvent(d, n, ["pages", name, e.0], fields, "a field of the page's entity")
             }
             for (i, a) in items(pg.child("actions")).enumerated() {
                 guard let n = a.child("then") else { continue }
@@ -27,14 +32,76 @@ extension Checker {
                     add(a.key("then"), pointer("pages", name, "actions", "\(i)", "then"), .flow, "the action \(str(a.child("label"))) navigates already, and then follows an operation; leave it out")
                     continue
                 }
-                checkEvent(d, n, ["pages", name, "actions", "\(i)", "then"], fields)
+                checkEvent(d, n, ["pages", name, "actions", "\(i)", "then"], fields, "a field of the page's entity")
             }
         }
     }
 
+    /// Checks a task page's onSubmitted: each status is one its submit
+    /// operation answers, and each event leads where the body of that
+    /// response can take it.
+    func checkStatusEvents(_ d: Design, _ name: String, _ pg: YNode, _ events: YNode) {
+        let submit = str(pg.child("submit"))
+        for kv in pairs(events) {
+            let base = ["pages", name, "onSubmitted", kv.key.value]
+            guard let op = d.operations[submit]?.node else { continue } // the page check reports the operation
+            guard let r = op.child("responses")?.child(kv.key.value) else {
+                let declared = pairs(op.child("responses")).map { $0.key.value }.filter { $0.hasPrefix("2") }
+                let answers = declared.isEmpty ? "it declares no success" : "it answers " + declared.joined(separator: " and ")
+                add(kv.key, pointer(base), .page, "\(submit) does not answer \(kv.key.value), so \(name) cannot act on it; \(answers)")
+                continue
+            }
+            checkEvent(d, kv.value, base, d.responseBodyFields(r), "a property of the body of the " + kv.key.value + " response")
+        }
+    }
+
+    /// Checks what a task page holds: no entity and no source, since it
+    /// loads no record; no columns or filters, which belong to a list; fields
+    /// that are properties of the submit operation's request body; and every
+    /// property the body requires among them.
+    func checkTaskPage(_ d: Design, _ name: String, _ pg: YNode) {
+        let base = ["pages", name]
+        for (key, why) in [
+            ("entity", "it submits to an operation and shows no record of an entity"),
+            ("source", "it submits to an operation without loading a record"),
+            ("columns", "a list shows columns, and a task shows fields"),
+            ("filters", "a list is filtered, and a task shows fields"),
+        ] where pg.child(key) != nil {
+            add(pg.key(key), pointer(base + [key]), .page, "\(name) is a task page, and \(why); leave \(key) out")
+        }
+        let submit = str(pg.child("submit"))
+        guard let op = d.operations[submit]?.node else { return } // the schema asks for submit, and the reference check reports one that does not exist
+        if pairs(op.child("requestBody")?.child("content")).isEmpty {
+            add(pg.child("submit"), pointer(base + ["submit"]), .page, "\(submit) takes no request body, and a task page's fields are properties of the body it sends; submit to an operation that takes one")
+            return
+        }
+        let (props, required) = d.requestFields(op)
+        var shown = Set<String>()
+        for (i, f) in items(pg.child("fields")).enumerated() {
+            shown.insert(f.value)
+            if props[f.value] == nil {
+                add(f, pointer(base + ["fields", "\(i)"]), .page, "\(f.value) is not a property of the request body of \(submit), which \(name) submits to\(suggest(f.value, props))")
+            }
+        }
+        for (i, sec) in items(pg.child("sections")).enumerated() {
+            for (j, f) in items(sec.child("fields")).enumerated() {
+                shown.insert(f.value)
+                if props[f.value] == nil {
+                    add(f, pointer(base + ["sections", "\(i)", "fields", "\(j)"]), .page, "\(f.value) is not a property of the request body of \(submit), which \(name) submits to\(suggest(f.value, props))")
+                }
+            }
+        }
+        let missing = required.filter { !shown.contains($0) }
+        if !missing.isEmpty && !shown.isEmpty {
+            let it = missing.count == 1 ? "it" : "them"
+            add(pg.key("fields") ?? pg.key("sections"), pointer(base), .page, "\(name) submits to \(submit), whose request body requires \(missing.joined(separator: " and ")); show \(it) on the page, since the request cannot succeed without \(it)")
+        }
+    }
+
     /// Checks where one event leads, and that its message is a full
-    /// sentence.
-    func checkEvent(_ d: Design, _ ev: YNode, _ base: [String], _ fields: [String: YNode]) {
+    /// sentence; the route parameters it gives come from fields, which from
+    /// names.
+    func checkEvent(_ d: Design, _ ev: YNode, _ base: [String], _ fields: [String: YNode], _ from: String) {
         if let m = ev.child("message"), !sentence(m.value) {
             add(m, pointer(base + ["message"]), .flow, "the message is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one")
         }
@@ -55,34 +122,48 @@ extension Checker {
                 continue
             }
             if fields[kv.value.value] == nil {
-                add(kv.value, pointer(base + ["with", kv.key.value]), .flow, "\(kv.value.value) is not a field of the page's entity\(suggest(kv.value.value, fields))")
+                add(kv.value, pointer(base + ["with", kv.key.value]), .flow, "\(kv.value.value) is not \(from)\(suggest(kv.value.value, fields))")
             }
         }
         let missing = params.filter { !given.contains($0) }
         if !missing.isEmpty {
-            add(with ?? nav, pointer(base + ["navigate"]), .flow, "page \(nav.value) needs the route parameter \(missing.joined(separator: " and ")); give it under with, from a field of the page's entity")
+            add(with ?? nav, pointer(base + ["navigate"]), .flow, "page \(nav.value) needs the route parameter \(missing.joined(separator: " and ")); give it under with, from \(from)")
         }
     }
 }
 
-/// The page an event of a page leads to, or "" when it leads nowhere or the
-/// page does not raise it; raised says whether it does.
-func eventTarget(_ pg: YNode, _ event: String, _ action: String) -> (target: String, raised: Bool) {
+/// The pages an event of a page leads to: one, or on a task page one per
+/// status it acts on, and none when it leads nowhere or the page does not
+/// raise it; raised says whether it does.
+func eventTargets(_ pg: YNode, _ event: String, _ action: String) -> (targets: [String], raised: Bool) {
+    func one(_ t: String) -> [String] { t.isEmpty ? [] : [t] }
     switch event {
     case "select":
         let n = pg.child("onSelect")
-        return (str(n?.child("navigate")), n != nil)
+        return (one(str(n?.child("navigate"))), n != nil)
     case "submitted":
-        return (str(pg.child("onSubmitted")?.child("navigate")), str(pg.child("kind")) == "form")
+        switch str(pg.child("kind")) {
+        case "form":
+            return (one(str(pg.child("onSubmitted")?.child("navigate"))), true)
+        case "task":
+            var targets: [String] = []
+            for kv in pairs(pg.child("onSubmitted")) {
+                let t = str(kv.value.child("navigate"))
+                if !t.isEmpty && !targets.contains(t) { targets.append(t) }
+            }
+            return (targets, true)
+        default:
+            break
+        }
     case "action":
         for a in items(pg.child("actions")) where str(a.child("label")) == action {
-            if str(a.child("kind")) == "navigate" { return (str(a.child("target")), true) }
-            return (str(a.child("then")?.child("navigate")), true)
+            if str(a.child("kind")) == "navigate" { return (one(str(a.child("target"))), true) }
+            return (one(str(a.child("then")?.child("navigate"))), true)
         }
     default:
         break
     }
-    return ("", false)
+    return ([], false)
 }
 
 /// The event of a step as a sentence names it.
@@ -126,16 +207,16 @@ extension Checker {
                         add(step.child("action"), pointer(at + ["action"]), .flow, "\(actor) cannot take the action \(str(step.child("action"))), which needs \(aperm); grant it to the role, or give the flow another actor")
                     }
                 }
-                let (target, raised) = eventTarget(pg, event, str(step.child("action")))
+                let (targets, raised) = eventTargets(pg, event, str(step.child("action")))
                 if !raised {
-                    let what = ["select": "has no onSelect", "submitted": "is not a form", "action": "has no action labelled " + str(step.child("action"))][event] ?? ""
+                    let what = ["select": "has no onSelect", "submitted": "is not a form or a task", "action": "has no action labelled " + str(step.child("action"))][event] ?? ""
                     add(step.child("event"), pointer(at + ["event"]), .flow, "page \(str(pageNode)) \(what), so it does not raise \(stepEvent(step))")
                     continue
                 }
                 if i + 1 < steps.count {
                     let next = str(steps[i + 1].child("page"))
-                    if target != next && d.pages[next] != nil {
-                        let leads = target.isEmpty ? "leads nowhere" : "leads to " + target
+                    if !targets.contains(next) && d.pages[next] != nil {
+                        let leads = targets.isEmpty ? "leads nowhere" : "leads to " + targets.joined(separator: " or ")
                         add(step.child("event"), pointer(at + ["event"]), .flow, "\(stepEvent(step)) on page \(str(pageNode)) \(leads), and the next step is on \(next); make the event lead there, or correct the steps")
                     }
                 }
@@ -227,10 +308,10 @@ extension Checker {
                 }
                 message(kv.value, at)
                 if let f = kv.value.child("field") {
-                    if kind != "form" {
-                        add(f, pointer(at + ["field"]), .state, "field is for a form, which shows a problem beside the field it is about; \(name) is a \(kind)")
+                    if kind != "form" && kind != "task" {
+                        add(f, pointer(at + ["field"]), .state, "field is for a form or a task, which shows a problem beside the field it is about; \(name) is a \(kind)")
                     } else if !fields.contains(f.value) {
-                        add(f, pointer(at + ["field"]), .state, "\(f.value) is not a field the form \(name) shows")
+                        add(f, pointer(at + ["field"]), .state, "\(f.value) is not a field the \(kind) \(name) shows")
                     }
                 }
             }
@@ -330,7 +411,7 @@ extension Checker {
             let name = p.key.value, pg = p.value
             let kind = str(pg.child("kind"))
             let secsNode = pg.child("sections")
-            if kind == "form" || kind == "view" {
+            if kind == "form" || kind == "view" || kind == "task" {
                 let fields = pg.child("fields")
                 if fields == nil && secsNode == nil {
                     add(p.key, pointer("pages", name), .page, "\(name) is a \(kind) and shows no field; give its fields, or its sections")

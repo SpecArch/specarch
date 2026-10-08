@@ -554,7 +554,9 @@ func (c *checker) checkPages(d *design) {
 		base := []string{"pages", name}
 		entNode := source.Child(pg, "entity")
 		ent := source.Str(entNode)
-		if ent != "" && d.entities[ent] == nil {
+		if source.Str(source.Child(pg, "kind")) == "task" {
+			c.checkTaskPage(d, name, pg)
+		} else if ent != "" && d.entities[ent] == nil {
 			c.add(entNode, source.Pointer(append(base, "entity")...), RuleRefType, "%s is not an entity of the specification%s", ent, suggest(ent, d.entities))
 		} else if ent != "" {
 			fields := fieldsOf(d.entities[ent])

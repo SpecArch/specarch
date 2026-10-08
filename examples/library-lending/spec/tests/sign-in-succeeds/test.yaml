@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: signIn
+level: system
+scenario: golden
+given: a member whose password is the one they chose
+when: signIn is called with their email address and that password
+then: it answers 200 and their session starts
+expect: { status: 200 }

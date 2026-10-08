@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository whose app folder holds a page with no schema, and a sign-in page whose schema says it is a task that is open to everyone, names the operation it submits to and its fields, and names an entity besides"
+when: "extract pages is run on the app folder"
+then: "it writes the sign-in page as a task with its fields and no entity, prints a line for the entity it leaves out, declares public without asking what it allows, asks only for the operation it submits to, and exits 0"
+verifies: [SA-44]

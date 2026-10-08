@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: signIn
+level: system
+scenario: red
+covers: [missing email, missing password]
+given: any caller
+when: signIn is called without email and again without password
+then: both are refused as invalid input

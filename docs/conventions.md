@@ -454,7 +454,7 @@ redefined.
 | `errors`, `status`, `title`, `condition`, `type`, `problem` | RFC 9457, Problem Details for HTTP APIs | the catalogue of problem types; `condition` is SpecArch's, the standard's other members are the document's own at run time |
 | a duration (`timeout`, `idleTimeout`, `absoluteTimeout`) | ISO 8601, the form JSON Schema's `format: duration` names | days, hours, minutes and seconds only (`PT5S`, `P1DT12H`): weeks, months and years depend on the calendar, so a limit written in them would not mean the same every day |
 | `emits`, `algorithm` | SpecArch | links from an operation to its events and its computation |
-| `pages`, `kind`, `route`, `entity`, `source`, `submit`, `columns`, `fields`, `filters`, `actions` | SpecArch | UI page definitions |
+| `pages`, `kind`, `route`, `entity`, `source`, `submit`, `columns`, `fields`, `filters`, `actions` | SpecArch | UI page definitions; a page of kind `task` submits to an operation without loading a record |
 | `onSubmitted`, `onSelect`, `then`, `navigate`, `with`, `message` | SpecArch, after the events and navigation flows of OMG IFML 1.0 | where an event of a page leads, and the status message it carries (WCAG 2.2, 4.1.3) |
 | `flows`, `actor`, `steps`, `event`, `action` | SpecArch, after IFML's navigation flows | a task a person does across pages, step by step |
 | `states`, `empty`, `filteredEmpty`, `failed`, `message`, `field` | SpecArch | what a page shows when it is empty or fails |
@@ -759,6 +759,44 @@ way and to take every action a step names. Each step is a page and the `event` o
 the next step's page (`flow`). The techspec draws each flow as its steps.
 A test names a flow as its subject with `flow: <name>`; its golden case
 walks the steps.
+
+### Task pages
+
+A page of kind `task` submits to an operation without loading a record:
+sign-in, a second factor, a password reset, a confirmation of an e-mail
+address.
+
+    sign-in:
+      kind: task
+      title: Sign in
+      route: /sign-in
+      permission: public
+      submit: signIn
+      fields: [email, password]
+      onSubmitted:
+        "200": { navigate: home }
+        "202": { navigate: second-factor, with: { challengeId: challengeId } }
+
+A task page has no `entity`, `source`, `columns` or `filters`. Its
+`fields`, or the fields of its `sections`, are properties of the submit
+operation's request body, and every property the body requires is among
+them; an operation that takes no body cannot be a task's (`page`). So the
+rules a person sees are the body's, written once, in the operation.
+
+`onSubmitted` is keyed by the success status the page acts on, each one
+the operation declares (`page`), and each event is a page event as above,
+whose `with` takes the route parameters of the page it leads to from
+properties of that response's body (`flow`). A problem the operation
+answers is shown under the page's failed states, which may name the field
+it is about. In a flow, a `submitted` step on a task page leads on when
+any of its answers leads to the next step's page.
+
+The derived cases are one per answer: the first success the operation
+declares is the golden case, each other success is a golden case
+`answered <status>`, and each problem type is a red case `fails with
+<problem>`. A public task page has no denied cases and no expired
+session. The techspec draws each answer as an edge labelled with its
+status.
 
 ### Page states
 

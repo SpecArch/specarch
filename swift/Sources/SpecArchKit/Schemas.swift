@@ -2477,7 +2477,7 @@ let designSchemaJSON = #"""
       "additionalProperties": false
     },
     "page": {
-      "description": "SpecArch keyword. A screen of one of three kinds. Generators map it onto the target project's component library.",
+      "description": "SpecArch keyword. A screen of one of four kinds: a list, a form or a view of an entity's records, or a task that submits to an operation without loading a record. Generators map it onto the target project's component library.",
       "type": "object",
       "properties": {
         "kind": {
@@ -2485,7 +2485,8 @@ let designSchemaJSON = #"""
           "enum": [
             "list",
             "form",
-            "view"
+            "view",
+            "task"
           ]
         },
         "title": {
@@ -2501,6 +2502,7 @@ let designSchemaJSON = #"""
           "pattern": "^/"
         },
         "entity": {
+          "description": "The entity whose records a list, form or view shows. A task page shows none and leaves it out.",
           "$ref": "#/$defs/typeName"
         },
         "permission": {
@@ -2512,7 +2514,7 @@ let designSchemaJSON = #"""
           "$ref": "#/$defs/memberName"
         },
         "submit": {
-          "description": "For a form: operationId that receives it.",
+          "description": "For a form or a task: operationId that receives it. A task's fields are properties of its request body.",
           "$ref": "#/$defs/memberName"
         },
         "columns": {
@@ -2534,7 +2536,7 @@ let designSchemaJSON = #"""
           "uniqueItems": true
         },
         "fields": {
-          "description": "For a form or view: fields shown, in order.",
+          "description": "For a form or view: fields of its entity shown, in order. For a task: properties of the submit operation's request body, every required one among them.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/memberName"
@@ -2573,8 +2575,8 @@ let designSchemaJSON = #"""
           }
         },
         "onSubmitted": {
-          "description": "For a form: where a successful submission leads.",
-          "$ref": "#/$defs/pageEvent"
+          "description": "For a form: where a successful submission leads. For a task: what each success the submit operation answers leads to, keyed by its response status.",
+          "type": "object"
         },
         "onSelect": {
           "description": "For a list: where selecting a row leads.",
@@ -2603,7 +2605,6 @@ let designSchemaJSON = #"""
         "kind",
         "title",
         "route",
-        "entity",
         "permission"
       ],
       "allOf": [
@@ -2618,8 +2619,14 @@ let designSchemaJSON = #"""
           "then": {
             "required": [
               "columns",
-              "source"
-            ]
+              "source",
+              "entity"
+            ],
+            "properties": {
+              "onSubmitted": {
+                "$ref": "#/$defs/pageEvent"
+              }
+            }
           }
         },
         {
@@ -2632,8 +2639,14 @@ let designSchemaJSON = #"""
           },
           "then": {
             "required": [
-              "submit"
-            ]
+              "submit",
+              "entity"
+            ],
+            "properties": {
+              "onSubmitted": {
+                "$ref": "#/$defs/pageEvent"
+              }
+            }
           }
         },
         {
@@ -2646,8 +2659,33 @@ let designSchemaJSON = #"""
           },
           "then": {
             "required": [
-              "source"
-            ]
+              "source",
+              "entity"
+            ],
+            "properties": {
+              "onSubmitted": {
+                "$ref": "#/$defs/pageEvent"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "task"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "submit"
+            ],
+            "properties": {
+              "onSubmitted": {
+                "$ref": "#/$defs/statusEvents"
+              }
+            }
           }
         }
       ],
@@ -2718,7 +2756,7 @@ let designSchemaJSON = #"""
           "minLength": 1
         },
         "with": {
-          "description": "The route parameters of the page navigated to, each from a field of this page's entity: the record submitted, selected or acted on.",
+          "description": "The route parameters of the page navigated to, each from a field of this page's entity: the record submitted, selected or acted on. On a task page, each from a property of the body of the response the event follows.",
           "type": "object",
           "additionalProperties": {
             "$ref": "#/$defs/memberName"
@@ -2741,6 +2779,17 @@ let designSchemaJSON = #"""
         "^x-": {}
       },
       "additionalProperties": false
+    },
+    "statusEvents": {
+      "description": "SpecArch keyword. What a task page does on each success its submit operation answers, keyed by the response status, each one the operation declares. A problem the operation answers is shown under the page's failed states, not here.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^2[0-9][0-9]$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/pageEvent"
+      },
+      "minProperties": 1
     },
     "flow": {
       "type": "object",

@@ -20,3 +20,7 @@ errors:
     status: 503
     title: The fee ledger is unavailable
     condition: The fee ledger failed or did not answer in time, and the loan stays as it was.
+  sign-in-refused:
+    status: 401
+    title: Sign-in refused
+    condition: No one has the email address, or the password does not match it.

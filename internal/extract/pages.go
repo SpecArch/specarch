@@ -25,7 +25,7 @@ var (
 	typeWord   = regexp.MustCompile(`^[A-Z][A-Za-z0-9]*$`)
 	memberWord = regexp.MustCompile(`^[a-z][A-Za-z0-9]*$`)
 	paramName  = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
-	pageKind   = map[string]bool{"list": true, "form": true, "view": true}
+	pageKind   = map[string]bool{"list": true, "form": true, "view": true, "task": true}
 )
 
 // The schema keys read as the page keywords of the same name, and the two
@@ -36,7 +36,7 @@ var (
 	fieldLists  = []string{"columns", "compactColumns", "fields", "filters"}
 	keyForKinds = map[string][]string{
 		"columns": {"list"}, "compactColumns": {"list"}, "filters": {"list"},
-		"fields": {"form", "view"}, "sections": {"form", "view"},
+		"fields": {"form", "view", "task"}, "sections": {"form", "view", "task"},
 	}
 )
 
@@ -334,7 +334,7 @@ func (rd *pageReader) readSchema(pg *page) error {
 			}
 			switch {
 			case k == "kind" && !pageKind[s]:
-				rd.gap("%s: the kind %q is not list, form or view; asked for instead", where, s)
+				rd.gap("%s: the kind %q is not list, form, view or task; asked for instead", where, s)
 			case k == "entity" && !typeWord.MatchString(s):
 				rd.gap("%s: the entity %q is not PascalCase, which an entity's name is; asked for instead", where, s)
 			case k == "permission" && !permissionWord.MatchString(s):
@@ -379,6 +379,17 @@ func (rd *pageReader) readSchema(pg *page) error {
 // settle drops what a page of its kind cannot hold and what contradicts
 // another key, each with a line.
 func (rd *pageReader) settle(pg *page) {
+	if pg.kind == "task" && pg.entity != "" {
+		rd.gap("%s: entity %s is for a list, a form or a view, and the page is a task, which submits without loading a record; left out", pg.schema, pg.entity)
+		pg.entity = ""
+		var read []string
+		for _, k := range pg.read {
+			if k != "entity" {
+				read = append(read, k)
+			}
+		}
+		pg.read = read
+	}
 	for _, k := range []string{"columns", "compactColumns", "filters", "fields", "sections"} {
 		has := pg.lists[k] != nil || k == "sections" && pg.sections != nil
 		if !has || pg.kind == "" || contains(keyForKinds[k], pg.kind) {
@@ -546,7 +557,7 @@ func (rd *pageReader) write() {
 				}
 			}
 		}
-		if pg.permission != "" && pg.permission != "public" {
+		if pg.permission != "" {
 			permissionCites[pg.permission] = append(permissionCites[pg.permission], pg)
 		}
 		rd.askContent(pg)
@@ -572,18 +583,18 @@ func (rd *pageReader) askContent(pg *page) {
 		what = append(what, w)
 	}
 	if pg.kind == "" {
-		add("kind", "its kind (list, form or view)")
+		add("kind", "its kind (list, form, view or task)")
 	}
 	if pg.title == "" {
 		add("title", "its title")
 	}
-	if pg.entity == "" {
+	if pg.entity == "" && pg.kind != "task" {
 		add("entity", "the entity it shows")
 	}
 	if pg.kind == "" || pg.kind == "list" || pg.kind == "view" {
 		add("source", "the operation it reads")
 	}
-	if pg.kind == "" || pg.kind == "form" {
+	if pg.kind == "" || pg.kind == "form" || pg.kind == "task" {
 		add("submit", "the operation it submits to")
 	}
 	if (pg.kind == "" || pg.kind == "list") && pg.lists["columns"] == nil {
@@ -661,20 +672,29 @@ func (rd *pageReader) writePermissions(cites map[string][]*page) {
 	}
 	sort.Strings(names)
 	rd.permissions = &yaml.Node{Kind: yaml.MappingNode}
-	var blocks, grants []string
+	var blocks, grants, asked []string
 	for _, n := range names {
 		var routes []string
 		for _, pg := range cites[n] {
 			routes = append(routes, pg.route)
 		}
 		first := cites[n][0]
-		set(rd.permissions, n, mapping(
-			"origin", "stated",
-			"cites", []*yaml.Node{citation(rd.key, first.schema, fmt.Sprintf("The page at %s %s %s.", joinAnd(routes), checkOrChecks(len(routes)), n))},
-		))
+		cite := []*yaml.Node{citation(rd.key, first.schema, fmt.Sprintf("The page at %s %s %s.", joinAnd(routes), checkOrChecks(len(routes)), n))}
+		if n == "public" {
+			// public is the meta-model's own word for open to everyone, so
+			// what it allows is known and no role grants it.
+			set(rd.permissions, n, mapping("description", "Open to everyone, signed in or not.", "origin", "stated", "cites", cite))
+			continue
+		}
+		set(rd.permissions, n, mapping("origin", "stated", "cites", cite))
 		blocks = append(blocks, "#/permissions/"+escapeToken(n)+"/description")
 		grants = append(grants, "#/permissions/"+escapeToken(n))
+		asked = append(asked, n)
 	}
+	if len(asked) == 0 {
+		return
+	}
+	names = asked
 	rd.question(
 		fmt.Sprintf("What does each permission allow: %s?", strings.Join(names, ", ")),
 		blocks,

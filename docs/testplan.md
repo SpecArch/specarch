@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 271 design tests, 101 golden and 170 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 273 design tests, 102 golden and 171 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 267 |
+| system | 269 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -554,6 +554,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 - Given: a repository whose app folder holds two route groups, each with a page in a folder of the same name, so that both give one route
 - When: extract pages is run on the app folder
 - Then: it refuses the folder, naming both page files and the route, writes nothing, and exits 1
+
+#### extract-pages-task
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository whose app folder holds a page with no schema, and a sign-in page whose schema says it is a task that is open to everyone, names the operation it submits to and its fields, and names an entity besides
+- When: extract pages is run on the app folder
+- Then: it writes the sign-in page as a task with its fields and no entity, prints a line for the entity it leaves out, declares public without asking what it allows, asks only for the operation it submits to, and exits 0
 
 #### extract-pages-writes-tree
 
@@ -2055,6 +2063,14 @@ Scenario: red; level: system; covers exit 1.
 - When: validate is run
 - Then: it reports suite and exits 1
 
+#### validate-task-pages
+
+Scenario: red; level: system; covers exit 1; verifies SA-42.
+
+- Given: a task page that names an entity and a source and shows a field its operation's body does not have, one that leaves out a property the body requires and acts on a status its operation does not answer and takes a route parameter from a property the response's body does not have, and a flow whose next step is not where any answer of a task page leads
+- When: validate is run
+- Then: it reports page five times and flow twice, lists a golden case for each success the submit operation answers, and exits 1
+
 #### validate-test-case
 
 Scenario: red; level: system; covers exit 1.
@@ -2235,7 +2251,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-140 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+141 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2300,6 +2316,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-42 | acceptance 6 | golden | SA-42 names no harm |
 | requirement SA-42 | acceptance 7 | golden | SA-42 names no harm |
 | requirement SA-42 | acceptance 8 | golden | SA-42 names no harm |
+| requirement SA-42 | acceptance 9 | golden | SA-42 names no harm |
 | requirement SA-43 | acceptance 1 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 2 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 3 | golden | SA-43 names no harm |

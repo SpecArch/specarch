@@ -18,6 +18,29 @@ paths:
               schema: { type: array, items: { $ref: "#/entities/Book" } }
       satisfies: [LIB-2]
 
+  /sessions:
+    post:
+      operationId: signIn
+      summary: Sign in with an email address and a password
+      description: |
+        Opens a session for the member or librarian the email address
+        belongs to. The answer does not say whether the address or the
+        password was wrong.
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email, title: Email address }
+                password: { type: string, minLength: 8, maxLength: 200, title: Password, writeOnly: true }
+              required: [email, password]
+      responses:
+        "200": { description: Signed in; the session starts. }
+        "401": { description: The email address or the password is wrong., problem: sign-in-refused }
+
   /members:
     get:
       operationId: listMembers

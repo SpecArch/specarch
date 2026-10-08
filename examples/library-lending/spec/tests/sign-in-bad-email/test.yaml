@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: signIn
+level: system
+scenario: red
+covers: [email not a valid email]
+given: any caller
+when: signIn is called with an email that is not an email address
+then: it is refused as invalid input

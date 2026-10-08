@@ -35,4 +35,4 @@ standardOutput: |+
   specarch.yaml:122: warning: /pages/member-card: test_golden_missing: page member-card has no golden scenario; add one under tests, for example member-card-succeeds: { page: member-card, scenario: golden, given: "a caller with members.read", when: "the page member-card is opened for a record that exists", then: "it shows the page" }
   specarch.yaml:131: error: /pages/member-card/states/failed: state: member-card can fail with member-not-found (from getMember); give each a message under failed, or a default for the rest
   specarch.yaml:132: error: /pages/member-card/states/failed/email-taken: state: email-taken is not a problem type an operation of member-card answers; use one of member-not-found
-  specarch.yaml:132: error: /pages/member-card/states/failed/email-taken/field: state: field is for a form, which shows a problem beside the field it is about; member-card is a view
+  specarch.yaml:132: error: /pages/member-card/states/failed/email-taken/field: state: field is for a form or a task, which shows a problem beside the field it is about; member-card is a view

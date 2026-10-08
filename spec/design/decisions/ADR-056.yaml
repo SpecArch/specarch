@@ -16,7 +16,13 @@ decisions:
       A page of kind task has no entity and no source; it submits to an
       operation, its fields are properties of that operation's request
       body and include every required one, and onSubmitted is keyed by the
-      response status it acts on, each declared by the operation. The
+      success status it acts on, each declared by the operation, with the
+      route parameters of the page it leads to taken from the body of that
+      response. A problem the operation answers is shown under the page's
+      failed states. A flow's step that submits a task page leads on when
+      any of its answers leads to the next step's page. Its derived cases
+      are one golden case per success the operation answers and one red
+      case per problem type. The
       other elements are page keywords: a lookup on a field held through a
       relation, when on an action as an expression over the row, a
       confirmation with a named reason property, a field's mode and
@@ -38,7 +44,11 @@ decisions:
       person sees is the one the server applies, written once. onSubmitted
       by status, because a sign-in leads to a different page when a second
       factor is due, and the operation's declared responses are the only
-      list of answers a page can rely on. The other elements are design
+      list of answers a page can rely on. Only successes are keyed there,
+      because a problem's message already has its place under failed, and a
+      second place would be two ways to say one thing. A flow step goes on
+      when any answer leads on, because which answer comes is the server's
+      and a flow is one path a person takes through them. The other elements are design
       and not stack because each states behaviour a tester can check (what
       is offered, what is refused, what is sent), the test of
       docs/ui-design.md for what belongs in a specification.

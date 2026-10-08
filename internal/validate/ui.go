@@ -25,22 +25,27 @@ func routeParams(route string) []string {
 // checkPageEvents checks each event of a page: that it is raised by a page
 // or an action of the kind that has it, that the page it leads to exists,
 // and that with gives exactly the route parameters of that page from
-// fields of the page's entity.
+// fields of the page's entity, or, on a task page, from properties of the
+// body of the response the event follows.
 func (c *checker) checkPageEvents(d *design) {
 	for _, p := range source.Pairs(source.Child(d.root, "pages")) {
 		name, pg := p.Key.Value, p.Value
 		kind := source.Str(source.Child(pg, "kind"))
 		fields := fieldsOf(d.entities[source.Str(source.Child(pg, "entity"))])
-		for _, e := range []struct{ key, kind, what string }{{"onSubmitted", "form", "a form is submitted"}, {"onSelect", "list", "a row of a list is selected"}} {
+		for _, e := range []struct{ key, kind, what string }{{"onSubmitted", "form", "a form or a task is submitted"}, {"onSelect", "list", "a row of a list is selected"}} {
 			n := source.Child(pg, e.key)
 			if n == nil {
 				continue
 			}
-			if kind != e.kind {
+			switch {
+			case e.key == "onSubmitted" && kind == "task":
+				c.checkStatusEvents(d, name, pg, n)
+				continue
+			case kind != e.kind:
 				c.add(source.Key(pg, e.key), source.Pointer("pages", name, e.key), RuleFlow, "%s is a %s page, and %s is raised when %s; leave it out", name, kind, e.key, e.what)
 				continue
 			}
-			c.checkEvent(d, n, []string{"pages", name, e.key}, fields)
+			c.checkEvent(d, n, []string{"pages", name, e.key}, fields, "a field of the page's entity")
 		}
 		for i, a := range source.Items(source.Child(pg, "actions")) {
 			n := source.Child(a, "then")
@@ -51,14 +56,120 @@ func (c *checker) checkPageEvents(d *design) {
 				c.add(source.Key(a, "then"), source.Pointer("pages", name, "actions", fmt.Sprint(i), "then"), RuleFlow, "the action %s navigates already, and then follows an operation; leave it out", source.Str(source.Child(a, "label")))
 				continue
 			}
-			c.checkEvent(d, n, []string{"pages", name, "actions", fmt.Sprint(i), "then"}, fields)
+			c.checkEvent(d, n, []string{"pages", name, "actions", fmt.Sprint(i), "then"}, fields, "a field of the page's entity")
 		}
 	}
 }
 
+// checkStatusEvents checks a task page's onSubmitted: each status is one
+// its submit operation answers, and each event leads where the body of
+// that response can take it.
+func (c *checker) checkStatusEvents(d *design, name string, pg, events *yaml.Node) {
+	op := d.operations[source.Str(source.Child(pg, "submit"))].node
+	for _, kv := range source.Pairs(events) {
+		base := []string{"pages", name, "onSubmitted", kv.Key.Value}
+		if op == nil {
+			continue // the page check reports the operation
+		}
+		r := source.Child(source.Child(op, "responses"), kv.Key.Value)
+		if r == nil {
+			var declared []string
+			for _, rp := range source.Pairs(source.Child(op, "responses")) {
+				if strings.HasPrefix(rp.Key.Value, "2") {
+					declared = append(declared, rp.Key.Value)
+				}
+			}
+			answers := "it declares no success"
+			if len(declared) > 0 {
+				answers = "it answers " + strings.Join(declared, " and ")
+			}
+			c.add(kv.Key, source.Pointer(base...), RulePage, "%s does not answer %s, so %s cannot act on it; %s", source.Str(source.Child(pg, "submit")), kv.Key.Value, name, answers)
+			continue
+		}
+		c.checkEvent(d, kv.Value, base, d.responseBodyFields(r), "a property of the body of the "+kv.Key.Value+" response")
+	}
+}
+
+// responseBodyFields are the properties of one response's body: an
+// entity's fields when it returns one record of it, or the properties of
+// an object it declares inline. A list has none an event can take.
+func (d *design) responseBodyFields(r *yaml.Node) map[string]*yaml.Node {
+	fields := map[string]*yaml.Node{}
+	for _, ct := range source.Pairs(source.Child(r, "content")) {
+		schema := source.Child(ct.Value, "schema")
+		if ref := source.Str(source.Child(schema, "$ref")); strings.HasPrefix(ref, "#/entities/") {
+			for k, v := range fieldsOf(d.entities[strings.TrimPrefix(ref, "#/entities/")]) {
+				fields[k] = v
+			}
+			continue
+		}
+		for _, p := range source.Pairs(source.Child(schema, "properties")) {
+			fields[p.Key.Value] = p.Value
+		}
+	}
+	return fields
+}
+
+// checkTaskPage checks what a task page holds: no entity and no source,
+// since it loads no record; no columns or filters, which belong to a list;
+// fields that are properties of the submit operation's request body; and
+// every property the body requires among them.
+func (c *checker) checkTaskPage(d *design, name string, pg *yaml.Node) {
+	base := []string{"pages", name}
+	for _, k := range []struct{ key, why string }{
+		{"entity", "it submits to an operation and shows no record of an entity"},
+		{"source", "it submits to an operation without loading a record"},
+		{"columns", "a list shows columns, and a task shows fields"},
+		{"filters", "a list is filtered, and a task shows fields"},
+	} {
+		if source.Child(pg, k.key) != nil {
+			c.add(source.Key(pg, k.key), source.Pointer(append(base, k.key)...), RulePage, "%s is a task page, and %s; leave %s out", name, k.why, k.key)
+		}
+	}
+	submit := source.Str(source.Child(pg, "submit"))
+	op := d.operations[submit].node
+	if op == nil {
+		return // the schema asks for submit, and the reference check reports one that does not exist
+	}
+	if len(source.Pairs(source.Child(source.Child(op, "requestBody"), "content"))) == 0 {
+		c.add(source.Child(pg, "submit"), source.Pointer(append(base, "submit")...), RulePage, "%s takes no request body, and a task page's fields are properties of the body it sends; submit to an operation that takes one", submit)
+		return
+	}
+	props, required := d.requestFields(op)
+	shown := map[string]bool{}
+	for i, f := range source.Items(source.Child(pg, "fields")) {
+		shown[f.Value] = true
+		if props[f.Value] == nil {
+			c.add(f, source.Pointer(append(base, "fields", fmt.Sprint(i))...), RulePage, "%s is not a property of the request body of %s, which %s submits to%s", f.Value, submit, name, suggest(f.Value, props))
+		}
+	}
+	for i, sec := range source.Items(source.Child(pg, "sections")) {
+		for j, f := range source.Items(source.Child(sec, "fields")) {
+			shown[f.Value] = true
+			if props[f.Value] == nil {
+				c.add(f, source.Pointer(append(base, "sections", fmt.Sprint(i), "fields", fmt.Sprint(j))...), RulePage, "%s is not a property of the request body of %s, which %s submits to%s", f.Value, submit, name, suggest(f.Value, props))
+			}
+		}
+	}
+	var missing []string
+	for _, r := range required {
+		if !shown[r] {
+			missing = append(missing, r)
+		}
+	}
+	if len(missing) > 0 && len(shown) > 0 {
+		at := source.Key(pg, "fields")
+		if at == nil {
+			at = source.Key(pg, "sections")
+		}
+		c.add(at, source.Pointer(base...), RulePage, "%s submits to %s, whose request body requires %s; show %s on the page, since the request cannot succeed without %s", name, submit, strings.Join(missing, " and "), map[bool]string{true: "it", false: "them"}[len(missing) == 1], map[bool]string{true: "it", false: "them"}[len(missing) == 1])
+	}
+}
+
 // checkEvent checks where one event leads, and that its message is a full
-// sentence.
-func (c *checker) checkEvent(d *design, ev *yaml.Node, base []string, fields map[string]*yaml.Node) {
+// sentence; the route parameters it gives come from fields, which from
+// names.
+func (c *checker) checkEvent(d *design, ev *yaml.Node, base []string, fields map[string]*yaml.Node, from string) {
 	if m := source.Child(ev, "message"); m != nil && !sentence(m.Value) {
 		c.add(m, source.Pointer(append(base, "message")...), RuleFlow, "the message is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one")
 	}
@@ -85,7 +196,7 @@ func (c *checker) checkEvent(d *design, ev *yaml.Node, base []string, fields map
 			continue
 		}
 		if fields[kv.Value.Value] == nil {
-			c.add(kv.Value, source.Pointer(append(base, "with", kv.Key.Value)...), RuleFlow, "%s is not a field of the page's entity%s", kv.Value.Value, suggest(kv.Value.Value, fields))
+			c.add(kv.Value, source.Pointer(append(base, "with", kv.Key.Value)...), RuleFlow, "%s is not %s%s", kv.Value.Value, from, suggest(kv.Value.Value, fields))
 		}
 	}
 	var missing []string
@@ -99,31 +210,48 @@ func (c *checker) checkEvent(d *design, ev *yaml.Node, base []string, fields map
 		if at == nil {
 			at = nav
 		}
-		c.add(at, source.Pointer(append(base, "navigate")...), RuleFlow, "page %s needs the route parameter %s; give it under with, from a field of the page's entity", nav.Value, strings.Join(missing, " and "))
+		c.add(at, source.Pointer(append(base, "navigate")...), RuleFlow, "page %s needs the route parameter %s; give it under with, from %s", nav.Value, strings.Join(missing, " and "), from)
 	}
 }
 
-// eventTarget is the page an event of a page leads to, or "" when it
-// leads nowhere or the page does not raise it; raised says whether it does.
-func eventTarget(pg *yaml.Node, event, action string) (target string, raised bool) {
+// eventTargets are the pages an event of a page leads to: one, or on a
+// task page one per status it acts on, and none when it leads nowhere or
+// the page does not raise it; raised says whether it does.
+func eventTargets(pg *yaml.Node, event, action string) (targets []string, raised bool) {
+	one := func(t string) []string {
+		if t == "" {
+			return nil
+		}
+		return []string{t}
+	}
 	switch event {
 	case "select":
 		n := source.Child(pg, "onSelect")
-		return source.Str(source.Child(n, "navigate")), n != nil
+		return one(source.Str(source.Child(n, "navigate"))), n != nil
 	case "submitted":
-		return source.Str(source.Child(source.Child(pg, "onSubmitted"), "navigate")), source.Str(source.Child(pg, "kind")) == "form"
+		switch source.Str(source.Child(pg, "kind")) {
+		case "form":
+			return one(source.Str(source.Child(source.Child(pg, "onSubmitted"), "navigate"))), true
+		case "task":
+			for _, kv := range source.Pairs(source.Child(pg, "onSubmitted")) {
+				if t := source.Str(source.Child(kv.Value, "navigate")); t != "" && !contains(targets, t) {
+					targets = append(targets, t)
+				}
+			}
+			return targets, true
+		}
 	case "action":
 		for _, a := range source.Items(source.Child(pg, "actions")) {
 			if source.Str(source.Child(a, "label")) != action {
 				continue
 			}
 			if source.Str(source.Child(a, "kind")) == "navigate" {
-				return source.Str(source.Child(a, "target")), true
+				return one(source.Str(source.Child(a, "target"))), true
 			}
-			return source.Str(source.Child(source.Child(a, "then"), "navigate")), true
+			return one(source.Str(source.Child(source.Child(a, "then"), "navigate"))), true
 		}
 	}
-	return "", false
+	return nil, false
 }
 
 // stepEvent names the event of a step as a sentence does.
@@ -174,18 +302,18 @@ func (c *checker) checkFlows(d *design) {
 					break
 				}
 			}
-			target, raised := eventTarget(pg, event, source.Str(source.Child(step, "action")))
+			targets, raised := eventTargets(pg, event, source.Str(source.Child(step, "action")))
 			if !raised {
-				what := map[string]string{"select": "has no onSelect", "submitted": "is not a form", "action": "has no action labelled " + source.Str(source.Child(step, "action"))}[event]
+				what := map[string]string{"select": "has no onSelect", "submitted": "is not a form or a task", "action": "has no action labelled " + source.Str(source.Child(step, "action"))}[event]
 				c.add(source.Child(step, "event"), source.Pointer(append(at, "event")...), RuleFlow, "page %s %s, so it does not raise %s", pageNode.Value, what, stepEvent(step))
 				continue
 			}
 			if i+1 < len(steps) {
 				next := source.Str(source.Child(steps[i+1], "page"))
-				if target != next && d.pages[next] != nil {
+				if !contains(targets, next) && d.pages[next] != nil {
 					leads := "leads nowhere"
-					if target != "" {
-						leads = "leads to " + target
+					if len(targets) > 0 {
+						leads = "leads to " + strings.Join(targets, " or ")
 					}
 					c.add(source.Child(step, "event"), source.Pointer(append(at, "event")...), RuleFlow, "%s on page %s %s, and the next step is on %s; make the event lead there, or correct the steps", stepEvent(step), pageNode.Value, leads, next)
 				}
@@ -308,10 +436,10 @@ func (c *checker) checkPageStates(d *design) {
 			message(kv.Value, at)
 			if f := source.Child(kv.Value, "field"); f != nil {
 				switch {
-				case kind != "form":
-					c.add(f, source.Pointer(append(at, "field")...), RuleState, "field is for a form, which shows a problem beside the field it is about; %s is a %s", name, kind)
+				case kind != "form" && kind != "task":
+					c.add(f, source.Pointer(append(at, "field")...), RuleState, "field is for a form or a task, which shows a problem beside the field it is about; %s is a %s", name, kind)
 				case !fields[f.Value]:
-					c.add(f, source.Pointer(append(at, "field")...), RuleState, "%s is not a field the form %s shows", f.Value, name)
+					c.add(f, source.Pointer(append(at, "field")...), RuleState, "%s is not a field the %s %s shows", f.Value, kind, name)
 				}
 			}
 		}
@@ -440,7 +568,7 @@ func (c *checker) checkSections(d *design) {
 		name, pg := p.Key.Value, p.Value
 		secs := source.Child(pg, "sections")
 		kind := source.Str(source.Child(pg, "kind"))
-		if kind == "form" || kind == "view" {
+		if kind == "form" || kind == "view" || kind == "task" {
 			switch fields := source.Child(pg, "fields"); {
 			case fields == nil && secs == nil:
 				c.add(p.Key, source.Pointer("pages", name), RulePage, "%s is a %s and shows no field; give its fields, or its sections", name, kind)

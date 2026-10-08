@@ -1,0 +1,110 @@
+specarch: "0.1"
+info: { title: Sign-in desk, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      email: { type: string, format: email, maxLength: 254 }
+    required: [id, email]
+    primaryKey: [id]
+errors:
+  sign-in-refused: { status: 401, title: Sign-in refused, condition: the email address or the password is wrong }
+permissions:
+  members.read: { description: See members. }
+  public: { description: Open to everyone. }
+roles:
+  desk: { description: The desk., permissions: [members.read] }
+paths:
+  /sessions:
+    post:
+      operationId: signIn
+      summary: Sign in
+      permission: public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email, maxLength: 254 }
+                password: { type: string, minLength: 8, maxLength: 200, writeOnly: true }
+              required: [email, password]
+      responses:
+        "200": { description: Signed in. }
+        "202":
+          description: A second factor is due.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  challengeId: { type: string, format: uuid }
+                required: [challengeId]
+        "401": { description: The email address or the password is wrong., problem: sign-in-refused }
+  /members:
+    get:
+      operationId: listMembers
+      summary: The members
+      permission: members.read
+      responses:
+        "200":
+          description: The members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+pages:
+  sign-in:
+    kind: task
+    title: Sign in
+    route: /sign-in
+    permission: public
+    submit: signIn
+    fields: [email, password]
+    onSubmitted:
+      "200": { navigate: members-list }
+      "202": { navigate: second-factor, with: { challengeId: challengeId } }
+  second-factor:
+    kind: task
+    title: Second factor
+    route: /sign-in/{challengeId}
+    permission: public
+    submit: signIn
+    fields: [email]
+    onSubmitted:
+      "201": { navigate: members-list }
+      "202": { navigate: second-factor, with: { challengeId: token } }
+  sign-in-as-member:
+    kind: task
+    title: Sign in as a member
+    route: /members/sign-in
+    entity: Member
+    source: listMembers
+    permission: public
+    submit: signIn
+    fields: [email, password, remember]
+  members-list:
+    kind: list
+    title: Members
+    route: /members
+    entity: Member
+    permission: members.read
+    source: listMembers
+    columns: [email]
+    actions:
+      - { label: Sign out, kind: navigate, target: sign-in }
+flows:
+  sign-in-to-members:
+    description: A librarian signs in and sees the members.
+    actor: desk
+    steps:
+      - { page: sign-in, event: submitted }
+      - { page: members-list, event: action, action: Sign out }
+  sign-in-as-a-member:
+    description: A member signs in on the members' page.
+    actor: desk
+    steps:
+      - { page: sign-in, event: submitted }
+      - { page: sign-in-as-member, event: submitted }

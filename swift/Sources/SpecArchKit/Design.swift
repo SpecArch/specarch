@@ -552,7 +552,9 @@ extension Checker {
             let base = ["pages", name]
             let entNode = pg.child("entity")
             let ent = str(entNode)
-            if !ent.isEmpty && d.entities[ent] == nil {
+            if str(pg.child("kind")) == "task" {
+                checkTaskPage(d, name, pg)
+            } else if !ent.isEmpty && d.entities[ent] == nil {
                 add(entNode, pointer(base + ["entity"]), .refType, "\(ent) is not an entity of the specification\(suggest(ent, d.entities))")
             } else if !ent.isEmpty {
                 let fields = fieldsOf(d.entities[ent])

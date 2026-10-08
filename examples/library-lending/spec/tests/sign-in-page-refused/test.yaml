@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: sign-in
+level: system
+scenario: red
+covers: [fails with sign-in-refused]
+given: a librarian who types a wrong password
+when: the page sign-in is submitted
+then: "it shows beside the password: The email address or the password is wrong."

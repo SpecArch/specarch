@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: Pages of app
+  version: 0.1.0
+  description: |
+    The pages the file-system router rooted at app serves, read from the folders git tracks there at commit ee4f6342de804f093d1b404468f447f9a11a1901, with the content of each page that has a schema file from that file. Every page cites its page file; what the folders and the schemas do not say is a question.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: ee4f6342de804f093d1b404468f447f9a11a1901
+    url: ../site
+    clauses:
+      - {clause: app/members/page.tsx, title: The page file of /members}
+      - {clause: app/sign-in/page.schema.ts, title: The schema of the page at /sign-in}
+      - {clause: app/sign-in/page.tsx, title: The page file of /sign-in}

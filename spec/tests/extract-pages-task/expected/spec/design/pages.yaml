@@ -1,0 +1,22 @@
+permissions:
+  public:
+    description: Open to everyone, signed in or not.
+    origin: stated
+    cites:
+      - {source: code, clause: app/sign-in/page.schema.ts, says: The page at /sign-in checks public.}
+pages:
+  members:
+    route: /members
+    origin: stated
+    cites:
+      - {source: code, clause: app/members/page.tsx, says: 'The folder members holds page.tsx, so the router serves a page at /members.'}
+  sign-in:
+    kind: task
+    title: Sign in
+    route: /sign-in
+    permission: public
+    fields: [email, password]
+    origin: stated
+    cites:
+      - {source: code, clause: app/sign-in/page.tsx, says: 'The folder sign-in holds page.tsx, so the router serves a page at /sign-in.'}
+      - {source: code, clause: app/sign-in/page.schema.ts, says: 'The page''s schema gives its kind, title, permission, submit and fields.'}

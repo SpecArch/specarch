@@ -7,7 +7,7 @@ questions:
     decidedBy: system-owner
     why: The folders name a page's route, and its schema does not give these, or names operations this tree does not hold.
   Q-2:
-    question: For the page at /orders/{orderId}, what are its kind (list, form or view), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    question: For the page at /orders/{orderId}, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
     kind: decision
     priority: must
     blocks: ['#/pages/orders-by-order-id/kind', '#/pages/orders-by-order-id/title', '#/pages/orders-by-order-id/entity', '#/pages/orders-by-order-id/source', '#/pages/orders-by-order-id/submit', '#/pages/orders-by-order-id/columns']
@@ -21,7 +21,7 @@ questions:
     decidedBy: system-owner
     why: The folders name a page's route and not who may open it, and a page open to everyone is how an open screen is usually found, so it is asked, never assumed.
   Q-4:
-    question: For the page at /, what are its kind (list, form or view), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    question: For the page at /, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
     kind: decision
     priority: must
     blocks: ['#/pages/root/kind', '#/pages/root/title', '#/pages/root/entity', '#/pages/root/source', '#/pages/root/submit', '#/pages/root/columns']
@@ -35,7 +35,7 @@ questions:
     decidedBy: system-owner
     why: The folders name a page's route and not who may open it, and a page open to everyone is how an open screen is usually found, so it is asked, never assumed.
   Q-6:
-    question: For the page at /status, what are its kind (list, form or view), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    question: For the page at /status, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
     kind: decision
     priority: must
     blocks: ['#/pages/status/kind', '#/pages/status/title', '#/pages/status/entity', '#/pages/status/source', '#/pages/status/submit', '#/pages/status/columns']

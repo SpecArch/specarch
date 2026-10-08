@@ -628,7 +628,11 @@ func crossCutting(d *doc, root *yaml.Node) {
 				text += "; on a compact screen " + strings.Join(compact, ", ")
 			}
 			text += childRowsText(p.Value)
-			d.line("| %s | %s | %s | %s | %s | %s |", p.Key.Value, str(p.Value, "kind"), cell(str(p.Value, "route")), str(p.Value, "entity"), str(p.Value, "permission"), cell(text))
+			entity := str(p.Value, "entity")
+			if str(p.Value, "kind") == "task" {
+				entity = "none; submits to " + str(p.Value, "submit")
+			}
+			d.line("| %s | %s | %s | %s | %s | %s |", p.Key.Value, str(p.Value, "kind"), cell(str(p.Value, "route")), cell(entity), str(p.Value, "permission"), cell(text))
 		}
 		d.blank()
 		var stateRows []string

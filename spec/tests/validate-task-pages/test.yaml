@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a task page that names an entity and a source and shows a field its operation's body does not have, one that leaves out a property the body requires and acts on a status its operation does not answer and takes a route parameter from a property the response's body does not have, and a flow whose next step is not where any answer of a task page leads"
+when: "validate is run"
+then: "it reports page five times and flow twice, lists a golden case for each success the submit operation answers, and exits 1"
+verifies: [SA-42]

@@ -641,6 +641,11 @@ func (d *design) pageSubject(p source.Pair) *subject {
 		s.success.when = open + " for a record that exists"
 	}
 	d.denied(s, source.Str(source.Child(p.Value, "permission")), open)
+	if source.Str(source.Child(p.Value, "kind")) == "task" {
+		d.answerCases(s, p.Value)
+		d.stateCases(s, p.Value, open)
+		return s
+	}
 	for _, m := range pathParam.FindAllStringSubmatch(source.Str(source.Child(p.Value, "route")), -1) {
 		s.red("not found "+m[1], frequent, "no record has that "+m[1], open+" for that "+m[1], "it says the record was not found")
 	}
@@ -664,12 +669,44 @@ func childRowCases(s *subject, pg *yaml.Node) {
 	}
 }
 
+// answerCases are a task page's cases, one per success its submit
+// operation answers: the first is the page's golden case, and each other
+// is a golden case of its own. What the page does on each is its
+// onSubmitted for that status, or nothing, and it stays.
+func (d *design) answerCases(s *subject, pg *yaml.Node) {
+	submitted := "the page " + s.name + " is submitted with every field valid"
+	first := true
+	for _, r := range source.Pairs(source.Child(d.operations[source.Str(source.Child(pg, "submit"))].node, "responses")) {
+		status := r.Key.Value
+		if !strings.HasPrefix(status, "2") {
+			continue
+		}
+		then := "it is answered " + status + " and stays on the page"
+		if ev := source.Child(source.Child(pg, "onSubmitted"), status); ev != nil {
+			then = "it is answered " + status
+			if nav := source.Str(source.Child(ev, "navigate")); nav != "" {
+				then += " and leads to the page " + nav
+			}
+			if m := source.Str(source.Child(ev, "message")); m != "" {
+				then += ", saying: " + m
+			}
+		}
+		if first {
+			s.success.when, s.success.then = submitted, then
+			first = false
+			continue
+		}
+		s.cases = append(s.cases, derivedCase{name: "answered " + status, scenario: "golden", given: "...", when: submitted, then: then, frequency: frequent})
+	}
+}
+
 // stateCases are the cases of a page's states, when it declares them: its
 // empty and filtered empty states, and each problem type it can meet,
 // showing its own message or the default.
 func (d *design) stateCases(s *subject, pg *yaml.Node, open string) {
 	states := source.Child(pg, "states")
-	if states == nil {
+	task := source.Str(source.Child(pg, "kind")) == "task"
+	if states == nil && !task {
 		return
 	}
 	shows := func(st *yaml.Node) string { return "it shows: " + source.Str(source.Child(st, "message")) }
@@ -692,11 +729,19 @@ func (d *design) stateCases(s *subject, pg *yaml.Node, open string) {
 		if st == nil {
 			st = source.Child(failed, "default")
 		}
-		if st == nil {
+		then := ""
+		switch {
+		case st != nil:
+			then = shows(st)
+		case task && states == nil:
+			then = "it shows the problem " + pr // a task page has a case per answer, states or not
+		default:
 			continue // the state check reports it
 		}
 		when := open
 		switch id := by[pr]; {
+		case id == source.Str(source.Child(pg, "submit")) && task:
+			when = "the page is submitted"
 		case id == source.Str(source.Child(pg, "submit")):
 			when = "the form is submitted"
 		case id != source.Str(source.Child(pg, "source")):
@@ -706,7 +751,7 @@ func (d *design) stateCases(s *subject, pg *yaml.Node, open string) {
 		if given == "" {
 			given = "..."
 		}
-		s.red("fails with "+pr, occasional, given, when, shows(st))
+		s.red("fails with "+pr, occasional, given, when, then)
 	}
 }
 

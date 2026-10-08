@@ -411,6 +411,23 @@ extension Design {
         return (fields, required)
     }
 
+    /// The properties of one response's body: an entity's fields when it
+    /// returns one record of it, or the properties of an object it declares
+    /// inline. A list has none an event can take.
+    func responseBodyFields(_ r: YNode) -> [String: YNode] {
+        var fields: [String: YNode] = [:]
+        for ct in pairs(r.child("content")) {
+            let schema = ct.value.child("schema")
+            let ref = str(child(schema, "$ref"))
+            if ref.hasPrefix("#/entities/") {
+                for (k, v) in fieldsOf(entities[String(ref.dropFirst("#/entities/".count))]) { fields[k] = v }
+                continue
+            }
+            for p in pairs(child(schema, "properties")) { fields[p.key.value] = p.value }
+        }
+        return fields
+    }
+
     /// The entity a successful response returns, alone or in a list, or "".
     func responseEntity(_ op: YNode) -> String {
         for r in pairs(op.child("responses")) where r.key.value.hasPrefix("2") {
@@ -540,6 +557,11 @@ extension Design {
         if !pathParameters(str(p.value.child("route"))).isEmpty { success.when = open + " for a record that exists" }
         s.success = success
         denied(s, str(p.value.child("permission")), open)
+        if str(p.value.child("kind")) == "task" {
+            answerCases(s, p.value)
+            stateCases(s, p.value, open)
+            return s
+        }
         for param in pathParameters(str(p.value.child("route"))) {
             s.red("not found " + param, frequent, "no record has that " + param, open + " for that " + param, "it says the record was not found")
         }
@@ -559,19 +581,48 @@ extension Design {
         }
     }
 
+    /// A task page's cases, one per success its submit operation answers:
+    /// the first is the page's golden case, and each other is a golden case
+    /// of its own. What the page does on each is its onSubmitted for that
+    /// status, or nothing, and it stays.
+    func answerCases(_ s: Subject, _ pg: YNode) {
+        let submitted = "the page " + s.name + " is submitted with every field valid"
+        var first = true
+        for r in pairs(operations[str(pg.child("submit"))]?.node.child("responses")) where r.key.value.hasPrefix("2") {
+            let status = r.key.value
+            var then = "it is answered " + status + " and stays on the page"
+            if let ev = pg.child("onSubmitted")?.child(status) {
+                then = "it is answered " + status
+                let nav = str(ev.child("navigate"))
+                if !nav.isEmpty { then += " and leads to the page " + nav }
+                let m = str(ev.child("message"))
+                if !m.isEmpty { then += ", saying: " + m }
+            }
+            if first {
+                s.success?.when = submitted
+                s.success?.then = then
+                first = false
+                continue
+            }
+            s.cases.append(DerivedCase(name: "answered " + status, scenario: "golden", given: "...", when: submitted, then: then, frequency: frequent))
+        }
+    }
+
     /// The cases of a page's states, when it declares them: its empty and
     /// filtered empty states, and each problem type it can meet, showing its
     /// own message or the default.
     func stateCases(_ s: Subject, _ pg: YNode, _ open: String) {
-        guard let states = pg.child("states") else { return }
+        let states = pg.child("states")
+        let task = str(pg.child("kind")) == "task"
+        if states == nil && !task { return }
         func shows(_ st: YNode) -> String { "it shows: " + str(st.child("message")) }
-        if let st = states.child("empty") {
+        if let st = states?.child("empty") {
             s.cases.append(DerivedCase(name: "empty", scenario: "golden", given: "no records", when: open, then: shows(st), frequency: occasional))
         }
-        if let st = states.child("filteredEmpty") {
+        if let st = states?.child("filteredEmpty") {
             s.cases.append(DerivedCase(name: "filtered empty", scenario: "golden", given: "records, none matching the filters", when: open + " with those filters", then: shows(st), frequency: occasional))
         }
-        let failed = states.child("failed")
+        let failed = states?.child("failed")
         var labels: [String: String] = [:]
         for a in items(pg.child("actions")) where str(a.child("kind")) == "operation" {
             let t = str(a.child("target"))
@@ -579,17 +630,26 @@ extension Design {
         }
         let (problems, by) = pageProblems(pg)
         for pr in problems {
-            guard let st = failed?.child(pr) ?? failed?.child("default") else { continue } // the state check reports it
+            let then: String
+            if let st = failed?.child(pr) ?? failed?.child("default") {
+                then = shows(st)
+            } else if task && states == nil {
+                then = "it shows the problem " + pr // a task page has a case per answer, states or not
+            } else {
+                continue // the state check reports it
+            }
             var when = open
             let id = by[pr] ?? ""
-            if id == str(pg.child("submit")) {
+            if id == str(pg.child("submit")) && task {
+                when = "the page is submitted"
+            } else if id == str(pg.child("submit")) {
                 when = "the form is submitted"
             } else if id != str(pg.child("source")) {
                 when = "the action " + (labels[id] ?? "") + " is taken"
             }
             var given = str(root.child("errors")?.child(pr)?.child("condition"))
             if given.isEmpty { given = "..." }
-            s.red("fails with " + pr, occasional, given, when, shows(st))
+            s.red("fails with " + pr, occasional, given, when, then)
         }
     }
 

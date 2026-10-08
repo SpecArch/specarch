@@ -1,0 +1,7 @@
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a folder of workflow definitions, which no reader reads yet, one of them a TypeScript file that says it is generated from the others"
+when: "extract outline is run on the folder with a source key"
+then: "it writes a root that lists every tracked file as a clause of that source at the commit, and no element; it names the commit, counts the files, reports the generated file, and exits 0"
+verifies: [SA-44]

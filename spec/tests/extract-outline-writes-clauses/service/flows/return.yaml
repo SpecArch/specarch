@@ -1,0 +1,2 @@
+flow: return
+steps: [scan-book, close-loan]

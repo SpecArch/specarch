@@ -1,0 +1,37 @@
+arguments: [gaps, project]
+exitStatus: 0
+standardOutput: |+
+  # Outline of flows: open questions
+
+  Version 0.1.0 of the specification has no open question: nothing it says waits on a decision or on material from a stakeholder.
+
+  Elements by origin: 0 stated, 0 inferred, 0 decided, 0 without origin.
+
+  ## 1. Coverage
+
+  What each source's sections produced: the elements that cite a clause, or the clauses under it. A clause that produced nothing is either not read yet or holds nothing the specification needs; say which by citing it from an element or a question.
+
+  ### The code repository (flow-definitions)
+
+  3 clauses of 3 produced nothing.
+
+  | Clause | Title | Produced |
+  |---|---|---|
+  | flows/bindings.ts | Not read yet | nothing |
+  | flows/lend.yaml | Not read yet | nothing |
+  | flows/return.yaml | Not read yet | nothing |
+
+  ## 2. Outputs
+
+  What can be made from the specification now. A document is a draft while a must or should question blocks what it reads; code generation waits for those questions and for the approval.
+
+  | Output | State | Waits on |
+  |---|---|---|
+  | techspec document | ready | |
+  | requirements document | ready | |
+  | testplan document | ready | |
+  | traceability document | ready | |
+  | deployment document | ready | |
+  | commissioning document | ready | |
+  | code generation | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
+

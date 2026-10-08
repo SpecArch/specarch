@@ -1,0 +1,53 @@
+decisions:
+  ADR-043:
+    title: The database reader names entities after their tables, carries a bigint as text, and asks for what a catalogue cannot hold
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      The first reader of specarch extract reads a PostgreSQL catalogue
+      dump into entities. A catalogue says less than a design does in some
+      places (no message for a constraint, no reason for a table without a
+      key) and more in others (indexes, CHAR padding, defaults that are
+      expressions), and its names are the database's, not the design's.
+    decision: |
+      Each table becomes the entity of its own name in PascalCase (loans is
+      Loans; a table outside the public schema gets its schema in front),
+      never singularised, and each column the field of its name in
+      camelCase. A bigint is a string with format int64; a smallint an
+      int32 bounded to its range; CHAR(n) a string of at most n characters,
+      with a line saying the padding is not held. A primary key, a foreign
+      key to a primary key (a relation named after the target table, via
+      the column) and a unique key are written as such; a check is written
+      as an expression when the subset can say it and the validator's own
+      checker accepts it, a check that is a list of allowed values becomes
+      the field's enum, and any other check is written by kind with a must
+      question for its expression. Every constraint's message, which no
+      catalogue holds, and a missing primary key are must questions,
+      decided by the stakeholder system-owner, which the tree declares as
+      inferred for the reviewer to rename. Every entity cites the
+      migrations folder and its table, and the folder is the source's one
+      clause. The source is keyed code unless --source-key says otherwise,
+      titled the code repository, with its url the repository's folder as
+      seen from the tree.
+    consequences: |
+      Generating SQL from the extracted tree gives back the table names,
+      since a PascalCase name in snake case is the table's own. The merge
+      matches a document's Loan to the catalogue's Loans by its mapping or
+      by asking, not by a rule that turns plurals into singulars. A tree
+      from a large database carries one question per table with
+      constraints, which is the record of what the catalogue does not say.
+    why: |
+      A singular form is a guess, and it breaks on names English does not
+      inflect by rule; the table's own name is what the catalogue states,
+      and the plan's check (regenerate and compare) passes with it. A
+      bigint as text, because an integer carried in JSON needs bounds
+      inside 2^53, and the catalogue states no such bound; inventing one
+      would be a value the source does not say. A must question for each
+      message, because the schema requires one and the catalogue has
+      none, and a question is the one licence for a required key to be
+      missing. The expression is checked by the validator's own checker
+      before it is written, so a check that reads well in SQL but means
+      something else in the subset, a date plus a number, is asked about
+      instead of written wrong. The stakeholder system-owner, because a
+      question names who decides, and a reader cannot know the role.
+    satisfies: [SA-44]

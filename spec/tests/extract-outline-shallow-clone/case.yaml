@@ -1,0 +1,9 @@
+arguments: [extract, outline, --out, spec, service/flows]
+repository:
+  folder: service
+  commits:
+    - [flows/lend.yaml]
+    - [flows/return.yaml, flows/bindings.ts]
+  shallow: true
+exitStatus: 1
+standardOutput: ""

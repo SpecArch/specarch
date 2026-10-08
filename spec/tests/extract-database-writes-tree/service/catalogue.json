@@ -1,0 +1,289 @@
+{
+    "path": "migrations",
+    "enums": [
+        {
+            "name": "copy_condition",
+            "schema": "public",
+            "values": [
+                "good",
+                "worn",
+                "damaged"
+            ]
+        }
+    ],
+    "views": [
+        {
+            "name": "lent_copies",
+            "schema": "public",
+            "materialized": false
+        }
+    ],
+    "commit": "263d2d4ddc31c7a3c19f25cabe303ec19909ef1c",
+    "tables": [
+        {
+            "name": "branches",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "code",
+                    "type": "smallint",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "name",
+                    "type": "character varying(100)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "opened_on",
+                    "type": "date",
+                    "comment": null,
+                    "default": "'2020-01-01'::date",
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "fine_per_day",
+                    "type": "numeric(6,2)",
+                    "comment": null,
+                    "default": "0.50",
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "float_cash",
+                    "type": "money",
+                    "comment": null,
+                    "default": null,
+                    "notNull": false,
+                    "identity": null,
+                    "generated": null
+                }
+            ],
+            "comment": "A branch that lends books.",
+            "indexes": [
+                {
+                    "name": "branches_name_unique",
+                    "unique": true,
+                    "primary": false,
+                    "definition": "CREATE UNIQUE INDEX branches_name_unique ON public.branches USING btree (name)",
+                    "backsConstraint": true
+                },
+                {
+                    "name": "branches_pkey",
+                    "unique": true,
+                    "primary": true,
+                    "definition": "CREATE UNIQUE INDEX branches_pkey ON public.branches USING btree (code)",
+                    "backsConstraint": true
+                }
+            ],
+            "constraints": [
+                {
+                    "kind": "check",
+                    "name": "branches_fine_not_negative",
+                    "columns": [
+                        "fine_per_day"
+                    ],
+                    "onDelete": null,
+                    "definition": "CHECK ((fine_per_day >= (0)::numeric))",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                },
+                {
+                    "kind": "unique",
+                    "name": "branches_name_unique",
+                    "columns": [
+                        "name"
+                    ],
+                    "onDelete": null,
+                    "definition": "UNIQUE (name)",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                },
+                {
+                    "kind": "primary",
+                    "name": "branches_pkey",
+                    "columns": [
+                        "code"
+                    ],
+                    "onDelete": null,
+                    "definition": "PRIMARY KEY (code)",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                }
+            ]
+        },
+        {
+            "name": "copies",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "bigint",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": "a",
+                    "generated": null
+                },
+                {
+                    "name": "branch_code",
+                    "type": "smallint",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "state",
+                    "type": "character varying(10)",
+                    "comment": null,
+                    "default": "'shelved'::character varying",
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "condition",
+                    "type": "copy_condition",
+                    "comment": null,
+                    "default": null,
+                    "notNull": false,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "label",
+                    "type": "character(4)",
+                    "comment": "The shelf label.",
+                    "default": null,
+                    "notNull": false,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "shelved_at",
+                    "type": "timestamp with time zone",
+                    "comment": null,
+                    "default": "now()",
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "title",
+                    "type": "text",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                }
+            ],
+            "comment": null,
+            "indexes": [
+                {
+                    "name": "copies_pkey",
+                    "unique": true,
+                    "primary": true,
+                    "definition": "CREATE UNIQUE INDEX copies_pkey ON public.copies USING btree (id)",
+                    "backsConstraint": true
+                },
+                {
+                    "name": "copies_title",
+                    "unique": false,
+                    "primary": false,
+                    "definition": "CREATE INDEX copies_title ON public.copies USING btree (title)",
+                    "backsConstraint": false
+                }
+            ],
+            "constraints": [
+                {
+                    "kind": "foreign",
+                    "name": "copies_branch_code_fkey",
+                    "columns": [
+                        "branch_code"
+                    ],
+                    "onDelete": "cascade",
+                    "definition": "FOREIGN KEY (branch_code) REFERENCES branches(code) ON DELETE CASCADE",
+                    "referencesTable": "branches",
+                    "referencesSchema": "public",
+                    "referencesColumns": [
+                        "code"
+                    ]
+                },
+                {
+                    "kind": "primary",
+                    "name": "copies_pkey",
+                    "columns": [
+                        "id"
+                    ],
+                    "onDelete": null,
+                    "definition": "PRIMARY KEY (id)",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                },
+                {
+                    "kind": "check",
+                    "name": "copies_state",
+                    "columns": [
+                        "state"
+                    ],
+                    "onDelete": null,
+                    "definition": "CHECK (((state)::text = ANY ((ARRAY['shelved'::character varying, 'lent'::character varying, 'lost'::character varying])::text[])))",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                },
+                {
+                    "kind": "check",
+                    "name": "copies_title_not_empty",
+                    "columns": [
+                        "title"
+                    ],
+                    "onDelete": null,
+                    "definition": "CHECK ((length(title) > 0))",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                }
+            ]
+        },
+        {
+            "name": "notes",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "body",
+                    "type": "text",
+                    "comment": null,
+                    "default": null,
+                    "notNull": false,
+                    "identity": null,
+                    "generated": null
+                }
+            ],
+            "comment": null,
+            "indexes": [
+            ],
+            "constraints": [
+            ]
+        }
+    ],
+    "catalogue": "postgresql"
+}

@@ -1,0 +1,17 @@
+entities:
+  Branches:
+    description: A branch that lends books.
+    type: object
+    properties:
+      code: {type: integer, format: int32, minimum: -32768, maximum: 32767}
+      name: {type: string, maxLength: 100}
+      openedOn: {type: string, format: date, default: "2020-01-01"}
+      finePerDay: {type: string, format: decimal, precision: 6, scale: 2, default: "0.50"}
+    required: [code, name, openedOn, finePerDay]
+    primaryKey: [code]
+    constraints:
+      branches_fine_not_negative: {kind: check, expression: 'finePerDay >= decimal("0", 0)'}
+      branches_name_unique: {kind: unique, fields: [name]}
+    origin: stated
+    cites:
+      - {source: code, clause: migrations public.branches, says: 'Table public.branches: code smallint not null, name character varying(100) not null, opened_on date not null default ''2020-01-01''::date, fine_per_day numeric(6,2) not null default 0.50, float_cash money. branches_fine_not_negative CHECK ((fine_per_day >= (0)::numeric)); branches_name_unique UNIQUE (name); branches_pkey PRIMARY KEY (code).'}

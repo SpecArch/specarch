@@ -1,0 +1,8 @@
+command: extract
+level: system
+scenario: red
+covers: [exit 1]
+given: "a catalogue dump made at the commit that added the first migration, and a later commit that adds a second migration to the same folder"
+when: "extract database is run on the dump"
+then: "it refuses the dump as stale, naming both commits, writes nothing and exits 1"
+verifies: [SA-44]

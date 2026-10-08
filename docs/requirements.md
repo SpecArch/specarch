@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.5.0-dev of the specification: 5 stakeholders, 9 needs and 43 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.5.0-dev of the specification: 5 stakeholders, 9 needs and 44 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 ## 1. Purpose and scope
 
@@ -38,7 +38,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14 |
-| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-17, SA-18, SA-19, SA-20, SA-30 |
+| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-17, SA-18, SA-19, SA-20, SA-30, SA-44 |
 | NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22 |
 
 ## 4. Requirements
@@ -80,6 +80,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-19 | functional | must | accepted | specarch gaps shall list the open questions by stage with what each blocks and who decides, and shall say for every document and code target whether it is ready, a draft or waiting; the same text shall be the document target questions, and every other document shall mark the open questions about its elements. |
 | SA-20 | functional | must | accepted | specarch generate shall refuse to run a target while a must or should question blocks a section it reads, and shall refuse without a record that a stakeholder read the current documents and approved the specification's files as they are, unless --unapproved is given; specarch approve shall write that record only when the documents on disk are current. |
 | SA-30 | functional | must | accepted | A specification built from existing documents and existing code shall cite each element to the document section or the code file and line it came from, mappings of an implementation file included, and specarch gaps shall show for every source that lists its outline which elements each section or file produced and which produced nothing. |
+| SA-44 | functional | must | accepted | specarch extract shall read one surface of an existing system into a specification tree in which every element carries its origin and cites where it was read, name the commit it read, refuse a source no commit names, and give byte-identical output for the same sources at the same commit. |
 | SA-1 | functional | must | accepted | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. |
 | SA-2 | functional | must | accepted | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. |
 | SA-3 | functional | must | accepted | Every check constraint and formula shall parse and type-check in the fixed expression language. |
@@ -598,6 +599,21 @@ Acceptance criteria:
 - gaps on a specification whose manual and code list their clauses prints, per source, the elements under each clause, the count of clauses that produced nothing, and every citation that names a clause outside the outline.
 
 **Insight:** The owner of an existing system reads a partial specification to find out what the documents and the code really say and where they part; a section of either that produced nothing is the first thing to look at, and it cannot be seen without the outline.
+
+### SA-44
+
+specarch extract shall read one surface of an existing system into a specification tree in which every element carries its origin and cites where it was read, name the commit it read, refuse a source no commit names, and give byte-identical output for the same sources at the same commit.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-8.
+
+Acceptance criteria:
+
+- extract database on a committed catalogue dump writes a tree that validate accepts with no errors, and a second run writes the same bytes.
+- A column type the meta-model cannot hold is printed as a line naming it.
+- A dump older than the last change to the path it was made from, a path with changes not committed and a shallow clone are each refused with status 1.
+- extract outline on a folder writes a source listing its files as clauses, and gaps on that tree lists each of them as producing nothing.
+
+**Insight:** Reading a large system by hand misses the element nobody happened to look at, and a citation without the commit it was read at goes stale while still looking precise; extraction is rerun to see what changed, so any difference that is not a change in the sources hides the one that is.
 
 ### SA-1
 

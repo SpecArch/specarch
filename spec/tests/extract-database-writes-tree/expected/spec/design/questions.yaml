@@ -1,0 +1,22 @@
+questions:
+  Q-1:
+    question: 'What is a user told when each constraint of table public.branches fails: branches_fine_not_negative, branches_name_unique?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Branches/constraints/branches_fine_not_negative/message', '#/entities/Branches/constraints/branches_name_unique/message']
+    decidedBy: system-owner
+    why: A constraint carries the message a user reads, and a database catalogue holds none.
+  Q-2:
+    question: 'What is a user told when each constraint of table public.copies fails: copies_title_not_empty?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Copies/constraints/copies_title_not_empty/message']
+    decidedBy: system-owner
+    why: A constraint carries the message a user reads, and a database catalogue holds none.
+  Q-3:
+    question: Table public.notes has no primary key in the catalogue. Which fields identify one of its records?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Notes/primaryKey']
+    decidedBy: system-owner
+    why: Every entity names the fields that identify a record, and the catalogue gives none for this table.

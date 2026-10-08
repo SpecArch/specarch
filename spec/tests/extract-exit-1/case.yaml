@@ -1,0 +1,3 @@
+arguments: [extract, database, --out, spec, catalogue.json]
+exitStatus: 1
+standardOutput: ""

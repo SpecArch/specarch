@@ -47,7 +47,7 @@ mappings:
   "#/commands/gaps": { target: SpecArchKit.run, description: "Exits 2: the report is a document, built in Go only; the rules about questions are in this build." }
   "#/commands/approve": { target: SpecArchKit.run, description: "Exits 2: the record is written by the Go build only." }
   "#/commands/generate": { target: SpecArchKit.run, description: "Exits 2: this build runs no generator." }
-  "#/commands/extract": { target: SpecArchKit.run, description: "Exits 2, as the Go build does until it is built." }
+  "#/commands/extract": { target: SpecArchKit.run, description: "Exits 2: the readers are built in Go only." }
   "#/commands/derive": { target: SpecArchKit.run, description: "Exits 2: writing tests is built in Go only; the derivation it writes is in this build." }
   "#/commands/idioms": { target: SpecArchKit.run, description: "Exits 2: listing the idioms is built in Go only; the idiom checks are in this build." }
   "#/commands/idioms diff": { target: SpecArchKit.run, description: "Exits 2, as idioms does." }

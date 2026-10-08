@@ -1,0 +1,9 @@
+arguments: [extract, database, --out, spec, service/catalogue.json]
+repository:
+  folder: service
+  commits:
+    - [migrations/001_init.sql]
+    - [catalogue.json]
+    - [migrations/002_title.sql]
+exitStatus: 1
+standardOutput: ""

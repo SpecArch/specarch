@@ -1,0 +1,8 @@
+entities:
+  Notes:
+    type: object
+    properties:
+      body: {type: [string, "null"]}
+    origin: stated
+    cites:
+      - {source: code, clause: migrations public.notes, says: 'Table public.notes: body text.'}

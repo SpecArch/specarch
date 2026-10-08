@@ -2,16 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.5.0-dev of the specification: 230 design tests, 79 golden and 150 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
-
-1 test is marked not applicable, with the reason.
+Version 0.5.0-dev of the specification: 236 design tests, 82 golden and 154 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 226 |
+| system | 232 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -461,19 +459,61 @@ Scenario: golden; level: system; verifies SA-16, SA-22.
 
 ### Command extract
 
+#### extract-database-stale-dump
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: a catalogue dump made at the commit that added the first migration, and a later commit that adds a second migration to the same folder
+- When: extract database is run on the dump
+- Then: it refuses the dump as stale, naming both commits, writes nothing and exits 1
+
+#### extract-database-writes-tree
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository whose first commit holds its migrations and whose second holds the catalogue dump made from them, naming the first; the tables have a small integer key, a decimal with a default, a money column, a unique key, a check the expressions can say and one they can say as a list of values, an enum type, a fixed-width text, an identity column, a foreign key with cascade, an index, a table without a primary key and a view
+- When: extract database is run on the dump
+- Then: it writes one entity per table, with the types, keys, relations and constraints it can hold, a question for every constraint message and for the missing primary key, names the commit, counts what it read, prints a line for the money column, the fixed width, the default it cannot hold, the index and the view, and exits 0
+
 #### extract-exit-1
 
-Scenario: red; level: system; covers exit 1.
+Scenario: red; level: system; covers exit 1; verifies SA-44.
 
-Not applicable: Status 1, a surface that cannot be read as the source expects, can only happen once extract is built; this build answers every call with status 2.
+- Given: a file that is not a catalogue dump
+- When: extract database is run on it
+- Then: it says the file is not a catalogue dump, writes nothing and exits 1
 
 #### extract-not-offered
 
 Scenario: red; level: system; covers exit 2.
 
-- Given: a build that does not offer extract
+- Given: a source this build does not read yet
 - When: extract openapi is run on a file
-- Then: it says extract is not built yet and exits 2
+- Then: it names the sources it reads, writes nothing and exits 2
+
+#### extract-outline-shallow-clone
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: a clone of depth 1 of a repository with two commits
+- When: extract outline is run on a folder of it
+- Then: it refuses the shallow clone, whose history cannot name the last change to a path, writes nothing and exits 1
+
+#### extract-outline-uncommitted
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: a folder whose files are committed, one of them changed since and not committed
+- When: extract outline is run on the folder
+- Then: it refuses, naming the changed file, since no commit names what would be read; it writes nothing and exits 1
+
+#### extract-outline-writes-clauses
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository holding a folder of workflow definitions, which no reader reads yet, one of them a TypeScript file that says it is generated from the others
+- When: extract outline is run on the folder with a source key
+- Then: it writes a root that lists every tracked file as a clause of that source at the commit, and no element; it names the commit, counts the files, reports the generated file, and exits 0
 
 #### extract-usage-error
 
@@ -516,6 +556,14 @@ Scenario: golden; level: system; verifies SA-19.
 - Given: a specification without open questions and without an approval
 - When: gaps is run
 - Then: it prints that there is no open question, that every document is ready and that code generation waits on the approval, and exits 0
+
+#### gaps-outline-not-read
+
+Scenario: golden; level: system; verifies SA-30, SA-44.
+
+- Given: the tree extract outline wrote for a folder of workflow definitions: one source whose clauses are the folder's files, and no element
+- When: gaps is run
+- Then: it lists every file of the source as producing nothing, so the files show as not read, and exits 0
 
 #### gaps-usage-error
 
@@ -1905,7 +1953,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-126 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+130 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2020,6 +2068,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-20 | acceptance 2 | golden | SA-20 names no harm |
 | requirement SA-30 | acceptance 1 | golden | SA-30 names no harm |
 | requirement SA-30 | acceptance 2 | golden | SA-30 names no harm |
+| requirement SA-44 | acceptance 1 | golden | SA-44 names no harm |
+| requirement SA-44 | acceptance 2 | golden | SA-44 names no harm |
+| requirement SA-44 | acceptance 3 | golden | SA-44 names no harm |
+| requirement SA-44 | acceptance 4 | golden | SA-44 names no harm |
 | requirement SA-1 | acceptance 1 | golden | SA-1 names no harm |
 | requirement SA-1 | acceptance 2 | golden | SA-1 names no harm |
 | requirement SA-2 | acceptance 1 | golden | SA-2 names no harm |

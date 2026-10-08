@@ -2,6 +2,6 @@ command: extract
 level: system
 scenario: red
 covers: [exit 2]
-given: "a build that does not offer extract"
+given: "a source this build does not read yet"
 when: "extract openapi is run on a file"
-then: "it says extract is not built yet and exits 2"
+then: "it names the sources it reads, writes nothing and exits 2"

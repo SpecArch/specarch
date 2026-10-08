@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.4.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: Outline of flows
+  version: 0.1.0
+  description: |
+    The outline of flows at commit dacdbcaeef5e4f16a8bf22d9ff1b14c201437ec0: every tracked file is a clause, and no element is written, since no reader reads these files yet. specarch gaps shows each file as producing nothing until a reader or a reviewer cites it.
+  tracksOrigin: true
+sources:
+  flow-definitions:
+    kind: code
+    title: The code repository
+    edition: dacdbcaeef5e4f16a8bf22d9ff1b14c201437ec0
+    url: ../service
+    clauses:
+      - {clause: flows/bindings.ts, title: Not read yet}
+      - {clause: flows/lend.yaml, title: Not read yet}
+      - {clause: flows/return.yaml, title: Not read yet}

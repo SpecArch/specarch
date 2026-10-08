@@ -22,7 +22,9 @@ Is the loan period 21 days, as the manual says, or 14 days, as the service does?
 
 **Note:** From Lending desk manual, 2025, clause 3.3: The loan period is 21 days. <../sources/manual.md>
 
-**Note:** From The lending desk service, the copy beside this example, clause lending/model.go:8: LoanPeriod is 14 days. <../sources/code>
+**Note:** From The lending desk service, 7fdf7f6ef8b19f6d288058d822dcdd737e03c145, clause lending/model.go:8: LoanPeriod is 14 days. <../sources/code>
+
+**Note:** From The lending desk service, 7fdf7f6ef8b19f6d288058d822dcdd737e03c145, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14. <../sources/code>
 
 ### Q-3 (must, decision)
 
@@ -61,7 +63,7 @@ Renewing a loan is in the manual but not in the service. Build it as the manual 
 
 **Note:** From Lending desk manual, 2025, clause 4.1: A member may renew a loan once. <../sources/manual.md>
 
-**Note:** From The lending desk service, the copy beside this example, clause lending/routes.go:14: Routes serves no renew route. <../sources/code>
+**Note:** From The lending desk service, 7fdf7f6ef8b19f6d288058d822dcdd737e03c145, clause lending/routes.go:14: Routes serves no renew route. <../sources/code>
 
 ## 3. Tests
 
@@ -103,7 +105,7 @@ What each source's sections produced: the elements that cite a clause, or the cl
 | lending/model.go | The records and the lending limits | #/entities/Loan, #/entities/Member, #/questions/Q-1, #/requirements/LEND-3, #/requirements/LEND-4, mapping of #/entities/Book, mapping of #/entities/Loan, mapping of #/entities/Member |
 | lending/routes.go | The served routes and their handlers | #/paths/~1loans/post, #/paths/~1loans~1{loanId}~1return/post, #/paths/~1members/post, #/paths/~1members~1{cardNumber}~1loans/get, #/permissions/loans.read, #/permissions/loans.write, #/permissions/members.write, #/questions/Q-4, #/requirements/LEND-1, #/requirements/LEND-2, #/requirements/LEND-6, #/requirements/LEND-7, mapping of #/paths/~1loans/post, mapping of #/paths/~1loans~1{loanId}~1return/post, mapping of #/paths/~1members/post, mapping of #/paths/~1members~1{cardNumber}~1loans/get |
 | lending/roles.go | The seed of the roles table | #/roles/desk-staff, mapping of #/roles/desk-staff |
-| migrations/001_init.sql | The tables | #/entities/Book, #/entities/Loan, #/entities/Member, mapping of #/entities/Book, mapping of #/entities/Loan, mapping of #/entities/Member |
+| migrations/001_init.sql | The tables | #/entities/Book, #/entities/Loan, #/entities/Member, #/questions/Q-1, #/requirements/LEND-4, mapping of #/entities/Book, mapping of #/entities/Loan, mapping of #/entities/Member |
 
 ## 5. Outputs
 
@@ -125,6 +127,6 @@ Every source a Note in this document cites.
 
 | Source | Title | Edition | Author | Where to read it |
 |---|---|---|---|---|
-| desk-code | The lending desk service | the copy beside this example | The desk team | ../sources/code |
+| desk-code | The lending desk service | 7fdf7f6ef8b19f6d288058d822dcdd737e03c145 | The desk team | ../sources/code |
 | desk-manual | Lending desk manual | 2025 | The desk team | ../sources/manual.md |
 

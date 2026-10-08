@@ -48,8 +48,9 @@ checklist, and each surface's reader is a small script kept in the
 project's repository. `specarch extract <source>`, the verb that goes from
 existing code or documents to a specification, is designed in
 `spec/design/commands/extract.yaml` and built one reader at a time in the
-steps of "Building extract" below. Until a reader is built, every build
-answers it with status 2.
+steps of "Building extract" below. The Go build reads the sources
+`outline` and `database`; a source not built yet is answered with status
+2, and the Swift build has no extract verb.
 
 ## Building extract
 
@@ -110,30 +111,28 @@ Steps, in order:
 
 1. Built. The usage text marks `extract` as designed, not built, in both
    builds, and both builds refuse it with the same message.
-2. The shared core, the outline reader and the database reader. A
-   requirement of its own for extraction, and `extract.yaml` rewritten to
-   the rules above. `extract outline` writes a source with its files as
-   clauses and no elements, for a surface no reader reads yet, such as
-   workflow definitions, so that `specarch gaps` lists it as not read
-   rather than losing it. `extract database` reads a catalogue dump into
-   entities: columns, types, nullability, defaults, primary, foreign and
-   unique keys, indexes and checks. SpecArch ships the catalogue query
-   and a script that starts a disposable Postgres under Podman, applies
-   every migration and writes the dump with the commit it was made from;
-   the dump is committed beside the code, so a run can be repeated
-   without a database. The script is run by hand; CI reads the committed
-   dump and needs no Podman. The lending desk's migration gains a check
-   that the due date is fourteen days after the loan date, so the loan
-   period is in the catalogue, and its code source's edition becomes a
-   commit. Conformance cases build a throwaway git repository with a
-   fixed author, committer and dates, so the hash they record never
-   changes, and CI checks out with full history. Done when `extract
-   database` on the lending desk's dump writes a tree that `specarch
-   validate` accepts with no errors, twice byte-identical; a column type
-   the meta-model cannot hold prints a line; a stale dump, an uncommitted
-   change and a shallow clone are each refused; and `extract outline` on a
-   folder makes `specarch gaps` list each of its files as producing
-   nothing.
+2. Built. The shared core, the outline reader and the database reader,
+   under the requirement SA-44, with `extract.yaml` holding the rules
+   above. `extract outline` writes a source with its files as clauses and
+   no elements, for a surface no reader reads yet, such as workflow
+   definitions, so that `specarch gaps` lists it as not read rather than
+   losing it. `extract database` reads a catalogue dump into entities:
+   columns, types, nullability, defaults, primary and foreign keys,
+   unique keys and checks; a check the expression subset can say becomes
+   its expression, and a list of allowed values becomes the field's enum.
+   An index, a view, a type with no row in the type-rendering idiom and a
+   check the subset cannot say each print a line. SpecArch ships the
+   catalogue query, `tools/catalogue/catalogue.sql`, and
+   `tools/catalogue/dump-catalogue.sh`, which starts a disposable
+   PostgreSQL under Podman, applies every migration and writes the dump
+   with the commit it was made from; the dump is committed beside the
+   code, so a run can be repeated without a database. The script is run
+   by hand; CI reads the committed dump and needs no Podman. The lending
+   desk's migration checks that the due date is fourteen days after the
+   loan date, so the loan period is in the catalogue, and its dump is
+   `examples/lending-desk/sources/catalogue/catalogue.json`. Conformance
+   cases build a throwaway git repository with a fixed author, committer
+   and dates, so the hashes they record never change.
 3. The router reader, `extract router`: one operation per method and
    path pair, with its path parameters and the permission it checks, from
    a route table the running router prints, so that only routes actually

@@ -2,4 +2,7 @@ command: extract
 level: system
 scenario: red
 covers: [exit 1]
-notApplicable: "Status 1, a surface that cannot be read as the source expects, can only happen once extract is built; this build answers every call with status 2."
+given: "a file that is not a catalogue dump"
+when: "extract database is run on it"
+then: "it says the file is not a catalogue dump, writes nothing and exits 1"
+verifies: [SA-44]

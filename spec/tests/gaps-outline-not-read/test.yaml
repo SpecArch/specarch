@@ -1,0 +1,7 @@
+command: gaps
+level: system
+scenario: golden
+given: "the tree extract outline wrote for a folder of workflow definitions: one source whose clauses are the folder's files, and no element"
+when: "gaps is run"
+then: "it lists every file of the source as producing nothing, so the files show as not read, and exits 0"
+verifies: [SA-30, SA-44]

@@ -1,0 +1,8 @@
+command: extract
+level: system
+scenario: red
+covers: [exit 1]
+given: "a folder whose files are committed, one of them changed since and not committed"
+when: "extract outline is run on the folder"
+then: "it refuses, naming the changed file, since no commit names what would be read; it writes nothing and exits 1"
+verifies: [SA-44]

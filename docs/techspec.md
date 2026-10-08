@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.5.0-dev of the specification: 43 requirements, 3 entities, 11 commands, 6 algorithms, 230 tests, 42 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.5.0-dev of the specification: 44 requirements, 3 entities, 11 commands, 6 algorithms, 236 tests, 43 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -61,7 +61,7 @@ The interfaces the system offers, as its clients see them.
 | derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, or there is no release record for the new version; 2: usage error, a path that could not be read, or a specification with errors |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder, or a file that could not be read or written |
-| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects; 2: usage error, a source this build does not offer, or a path that could not be read or written |
+| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a path with changes not committed, untracked files, a shallow clone, or a path outside a git repository; 2: usage error, a source this build does not offer, or a path that could not be read or written |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open; 1: at least one must or should question is open; 2: usage error, a path that could not be read, or a specification with errors |
 | generate | Write code or data from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads, the specification is not approved, the plug-in reported an error, or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written |
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
@@ -526,30 +526,76 @@ sequenceDiagram
 
 ### Command extract
 
-Reads a surface of an existing system and writes the as-built
+Reads one surface of an existing system and writes the as-built
 specification of it into a folder, following the method in
-`docs/extraction.md`: the built router for endpoints, the database
-catalogue for entities, an OpenAPI document for operations, the
-running authorisation rules for permissions. The source names which
-surface is read. The result is a specification tree to be checked by
-regenerating and comparing, then reviewed by hand. It is built one
-reader at a time, in the steps of docs/extraction.md; until the
-first reader is built every build answers with status 2, and its
-line in the usage text says it is designed, not built.
+`docs/extraction.md`. The source names the surface. The result is a
+partial specification tree, to be merged with the trees of the other
+surfaces (`specarch merge`), checked by regenerating and comparing,
+then reviewed by hand. The readers are built one at a time, in the
+steps of docs/extraction.md, Building extract; a source this build
+does not read is answered with status 2.
 
-**Insight:** Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it.
+The sources this build reads:
+
+- `outline`: the files under the paths, each a clause of one code
+  source, and no elements. It records a surface no reader reads yet,
+  such as workflow definitions, so that `specarch gaps` lists every
+  file as producing nothing rather than losing it.
+- `database`: a PostgreSQL catalogue dump, written by
+  `tools/catalogue/dump-catalogue.sh` with the query
+  `tools/catalogue/catalogue.sql` against a database with every
+  migration applied. Each table becomes an entity of the same name in
+  PascalCase, each column a field in camelCase, with its type,
+  nullability, default, primary key, foreign keys as relations, and
+  unique and check constraints. A check the expression subset can say
+  is written as its expression.
+
+Every reader follows these rules:
+
+- The tree's root tracks origin. It declares one code source for the
+  repository read, under `--source-key` (default `code`), whose
+  `edition` is the full hash of the commit read and whose `url` is
+  the repository's folder relative to `--out`. Clauses are paths from
+  the repository's root.
+- Every element is `origin: stated` and cites where it was read.
+  What the surface does not say is a question, never a value: a
+  constraint's message, which no catalogue holds, and a check the
+  expression subset cannot say. A tree with a question also declares
+  the stakeholder `system-owner`, inferred, for the question to name.
+- The commit read is the newest of the commits that last changed each
+  path read, so a commit elsewhere leaves the output as it was. Git
+  runs in the repository holding the path, a submodule's own when the
+  path is in one. Only tracked files are read. A path with changes
+  not committed, or with files that are neither tracked nor ignored,
+  is refused, and so is a shallow clone.
+- A dump made from code names the commit and the path it was made
+  from, and is itself committed. That commit is its edition; a dump
+  whose commit is not the last change to that path is refused as
+  stale.
+- The same sources at the same commit give byte-identical output:
+  objects are written in the order of their names, and nothing
+  depends on the date, the clock, the working folder or the user's
+  git configuration.
+- A file whose text says it is generated from another source and must
+  not be edited is reported, so that the other source is read too.
+
+**Insight:** Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
-| `<source>` | string | yes | The surface to read, such as `openapi`, `database` or `router`. |
-| `<paths>` | string, one or more | yes | What to read it from, as the source needs it. |
+| `<source>` | string | yes | The surface to read: `outline` or `database`. |
+| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump. |
 | `--out` | string | yes | The folder the specification is written into; it becomes the specification's root folder. |
+| `--source-key` | string |   | The key of the code source in the written tree. |
 
 Reads `{paths}`: The surface being read.
 
 Writes `{out}/`: The as-built specification tree.
 
-Standard output: One line per object the specification could not hold, naming it, so the gap is recorded.
+Standard output: One line naming the commit read and the paths it was the last change
+to; one line per count, saying what was counted and how; one line per
+object the specification could not hold, naming it and saying why;
+and one line per file that says it is generated from another source.
 
 Standard error: A usage message on a usage error, and the reason a source could not be read.
 
@@ -916,6 +962,7 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/diff, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
+| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline and database readers, the translation of SQL checks into the expression subset, and the tree writer. |   |
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
 | cmd/specarch-gen-sql | The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk. | #/commands/generate |
@@ -952,7 +999,7 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | #/commands/version | main.runVersion |   |
 | #/commands/document | main.runDocument |   |
 | #/commands/generate | main.runGenerate | Refuses through main.gate while a question blocks what the target reads or the approval is missing or void; then runs the plug-in with main.runPlugin; the request and answer are the pluginRequest and pluginResponse structs. |
-| #/commands/extract | main.runExtract | Answers with status 2 until it is built. |
+| #/commands/extract | main.runExtract | Runs the reader of the source, extract.Outline or extract.Database, after extract.Commit has named the commit read and refused what no commit names; extract.Tree writes the tree from ordered YAML nodes. |
 | #/commands/derive | main.runDerive | Writes validate.Drafts, the drafts of the cases the warnings name. |
 | #/commands/idioms | main.runIdioms | Prints validate.IdiomUses, the idioms each implementation file resolves to. |
 | #/commands/idioms diff | main.runIdiomsDiff |   |
@@ -1128,7 +1175,7 @@ Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin
 | #/commands/gaps | SpecArchKit.run | Exits 2: the report is a document, built in Go only; the rules about questions are in this build. |
 | #/commands/approve | SpecArchKit.run | Exits 2: the record is written by the Go build only. |
 | #/commands/generate | SpecArchKit.run | Exits 2: this build runs no generator. |
-| #/commands/extract | SpecArchKit.run | Exits 2, as the Go build does until it is built. |
+| #/commands/extract | SpecArchKit.run | Exits 2: the readers are built in Go only. |
 | #/commands/derive | SpecArchKit.run | Exits 2: writing tests is built in Go only; the derivation it writes is in this build. |
 | #/commands/idioms | SpecArchKit.run | Exits 2: listing the idioms is built in Go only; the idiom checks are in this build. |
 | #/commands/idioms diff | SpecArchKit.run | Exits 2, as idioms does. |
@@ -2851,6 +2898,45 @@ the meta-model rather than writing prose.
 
 **Insight:** One tree per reader keeps each reader small and testable on its own sources, and keeps the comparison between sources in one place, the merge, where a disagreement becomes a question. The commit that last changed the path, rather than the repository's head, because a citation is only true for the content it was read from, and a commit elsewhere in the repository does not change that content; a head commit would make every committed extraction stale on each unrelated commit. Uncommitted changes are refused because no commit names them, so a citation to them could never be checked again. Byte-identical output, because extraction is rerun to see what changed, and a difference that is not a change in the sources hides the one that is. The database first and the router next, because the meta-model holds their output as it is, and the merge needs two code readers to be tested against. A dump rather than a connection, because a connection string is not a path, puts credentials on the command line and needs a database driver, while a dump can be kept with its commit and read again offline. A route table the running router prints, because only routes actually registered appear in it. merge as a verb of its own, because its input is specifications, and each source's tree can be checked before they meet. must for security and for what was promised outside, because an undocumented route is how an open endpoint is usually found, and a broken promise outside is not the project's alone to accept. The ownership mark per element, because one file often holds a single part another team owns. Marking the verb in the usage text, because a reader of the help plans around what it lists.
 
+### ADR-043: The database reader names entities after their tables, carries a bigint as text, and asks for what a catalogue cannot hold
+
+Status: accepted, 2026-10-08.
+
+Context: The first reader of specarch extract reads a PostgreSQL catalogue
+dump into entities. A catalogue says less than a design does in some
+places (no message for a constraint, no reason for a table without a
+key) and more in others (indexes, CHAR padding, defaults that are
+expressions), and its names are the database's, not the design's.
+
+Decision: Each table becomes the entity of its own name in PascalCase (loans is
+Loans; a table outside the public schema gets its schema in front),
+never singularised, and each column the field of its name in
+camelCase. A bigint is a string with format int64; a smallint an
+int32 bounded to its range; CHAR(n) a string of at most n characters,
+with a line saying the padding is not held. A primary key, a foreign
+key to a primary key (a relation named after the target table, via
+the column) and a unique key are written as such; a check is written
+as an expression when the subset can say it and the validator's own
+checker accepts it, a check that is a list of allowed values becomes
+the field's enum, and any other check is written by kind with a must
+question for its expression. Every constraint's message, which no
+catalogue holds, and a missing primary key are must questions,
+decided by the stakeholder system-owner, which the tree declares as
+inferred for the reviewer to rename. Every entity cites the
+migrations folder and its table, and the folder is the source's one
+clause. The source is keyed code unless --source-key says otherwise,
+titled the code repository, with its url the repository's folder as
+seen from the tree.
+
+Consequences: Generating SQL from the extracted tree gives back the table names,
+since a PascalCase name in snake case is the table's own. The merge
+matches a document's Loan to the catalogue's Loans by its mapping or
+by asking, not by a rule that turns plurals into singulars. A tree
+from a large database carries one question per table with
+constraints, which is the record of what the catalogue does not say.
+
+**Insight:** A singular form is a guess, and it breaks on names English does not inflect by rule; the table's own name is what the catalogue states, and the plan's check (regenerate and compare) passes with it. A bigint as text, because an integer carried in JSON needs bounds inside 2^53, and the catalogue states no such bound; inventing one would be a value the source does not say. A must question for each message, because the schema requires one and the catalogue has none, and a question is the one licence for a required key to be missing. The expression is checked by the validator's own checker before it is written, so a check that reads well in SQL but means something else in the subset, a date plus a number, is asked about instead of written wrong. The stakeholder system-owner, because a question names who decides, and a reader cannot know the role.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -2908,13 +2994,19 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-writes-techspec | command document | system | golden | a design file and an implementation file that names techspec's output folder | document techspec is run on both | it writes techspec/shop.techspec.md with every chapter the design fills, chapter 7 from the implementation file, and exits 0 |
 | document-writes-testplan | command document | system | golden | a specification with a golden and a red test of one entity constraint, one with a why | document testplan is run | it writes testplan.md with the count of each scenario, the levels, both test cases under their subject with given, when and then, and exits 0 |
 | document-writes-traceability | command document | system | golden | needs, two requirements, an entity that satisfies one and a test that verifies it, and a rejected need | document traceability is run | it writes traceability.md with both matrices and lists as gaps the unrefined need, the requirement without acceptance criteria and the one nothing satisfies or verifies, with no Harm column since no requirement names a harm, and exits 0 |
-| extract-exit-1 | command extract | system | red | not applicable |   | Status 1, a surface that cannot be read as the source expects, can only happen once extract is built; this build answers every call with status 2. |
-| extract-not-offered | command extract | system | red | a build that does not offer extract | extract openapi is run on a file | it says extract is not built yet and exits 2 |
+| extract-database-stale-dump | command extract | system | red | a catalogue dump made at the commit that added the first migration, and a later commit that adds a second migration to the same folder | extract database is run on the dump | it refuses the dump as stale, naming both commits, writes nothing and exits 1 |
+| extract-database-writes-tree | command extract | system | golden | a repository whose first commit holds its migrations and whose second holds the catalogue dump made from them, naming the first; the tables have a small integer key, a decimal with a default, a money column, a unique key, a check the expressions can say and one they can say as a list of values, an enum type, a fixed-width text, an identity column, a foreign key with cascade, an index, a table without a primary key and a view | extract database is run on the dump | it writes one entity per table, with the types, keys, relations and constraints it can hold, a question for every constraint message and for the missing primary key, names the commit, counts what it read, prints a line for the money column, the fixed width, the default it cannot hold, the index and the view, and exits 0 |
+| extract-exit-1 | command extract | system | red | a file that is not a catalogue dump | extract database is run on it | it says the file is not a catalogue dump, writes nothing and exits 1 |
+| extract-not-offered | command extract | system | red | a source this build does not read yet | extract openapi is run on a file | it names the sources it reads, writes nothing and exits 2 |
+| extract-outline-shallow-clone | command extract | system | red | a clone of depth 1 of a repository with two commits | extract outline is run on a folder of it | it refuses the shallow clone, whose history cannot name the last change to a path, writes nothing and exits 1 |
+| extract-outline-uncommitted | command extract | system | red | a folder whose files are committed, one of them changed since and not committed | extract outline is run on the folder | it refuses, naming the changed file, since no commit names what would be read; it writes nothing and exits 1 |
+| extract-outline-writes-clauses | command extract | system | golden | a repository holding a folder of workflow definitions, which no reader reads yet, one of them a TypeScript file that says it is generated from the others | extract outline is run on the folder with a source key | it writes a root that lists every tracked file as a clause of that source at the commit, and no element; it names the commit, counts the files, reports the generated file, and exits 0 |
 | extract-usage-error | command extract | system | red | no source | extract is run without arguments | it prints how to use it and exits 2 |
 | gaps-coverage | command gaps | system | golden | a specification that tracks origin, built from a manual and from code that both list their clauses; one clause of each is cited by nothing, one citation names a clause outside the outline, and the implementation file's mapping cites the code | gaps is run | it shows, per source, the elements each clause produced, counts the clauses that produced nothing, names the citation outside the outline, and exits 0 |
 | gaps-invalid-spec | command gaps | system | red | a specification with an error | gaps is run | it prints the error and exits 2, since the questions of an invalid specification cannot be trusted |
 | gaps-lists-questions | command gaps | system | red | a specification that tracks origin, with two must questions in two stages, one of them blocking an entity that is only a name, a could question, and an implementation file whose code target echo reads only the requirements | gaps is run | it prints the questions by stage with the missing keys of the blocked entity, the elements by origin, and the outputs with what each waits on, and exits 1 |
 | gaps-none | command gaps | system | golden | a specification without open questions and without an approval | gaps is run | it prints that there is no open question, that every document is ready and that code generation waits on the approval, and exits 0 |
+| gaps-outline-not-read | command gaps | system | golden | the tree extract outline wrote for a folder of workflow definitions: one source whose clauses are the folder's files, and no element | gaps is run | it lists every file of the source as producing nothing, so the files show as not read, and exits 0 |
 | gaps-usage-error | command gaps | system | red | no folder | gaps is run without arguments | it prints how to use it and exits 2 |
 | generate-go-dxlib | command generate | system | golden | the specification of generate-openapi-dxlib plus a job run every hour, and an implementation file with a go-dxlib target naming the package and the database; specarch-gen-go-dxlib built from this repository on PATH | generate go-dxlib is run with --unapproved | it writes one Go file for dxlib: the tables, the handlers registered by operationId that read every parameter with dxlib's getters, check the constraints dxlib does not enforce, and run the standard list, create and read operations, the privilege, role and menu seeds, and the job registered as a task, and exits 0 |
 | generate-no-plugin | command generate | system | red | a target this build does not have and no specarch-gen-openapi on PATH | generate openapi is run | it says there is no generator for the target and exits 2 |
@@ -3158,6 +3250,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-19 | specarch gaps shall list the open questions by stage with what each blocks and who decides, and shall say for every document and code target whether it is ready, a draft or waiting; the same text shall be the document target questions, and every other document shall mark the open questions about its elements. | functional | must | accepted | test | A specification with two must questions in two stages prints them under their stages, lists the missing keys of a blocked element, and exits 1. A specification without open questions prints that it has none and exits 0. A requirements document whose requirement a question blocks starts with a Draft notice and shows the question under the requirement. | NEED-8, NEED-3 |
 | SA-20 | specarch generate shall refuse to run a target while a must or should question blocks a section it reads, and shall refuse without a record that a stakeholder read the current documents and approved the specification's files as they are, unless --unapproved is given; specarch approve shall write that record only when the documents on disk are current. | functional | must | accepted | test | generate on a specification with an approval record whose digest matches writes its files; after one byte of one file changes it refuses, and runs with --unapproved. approve refuses while a configured document differs from what the specification generates, and writes records/approvals/<version>.yaml once the documents are current. | NEED-8 |
 | SA-30 | A specification built from existing documents and existing code shall cite each element to the document section or the code file and line it came from, mappings of an implementation file included, and specarch gaps shall show for every source that lists its outline which elements each section or file produced and which produced nothing. | functional | must | accepted | test | A mapping stated without a citation is reported as origin_citation, and one inferred without a reason as origin_reason, in both builds. gaps on a specification whose manual and code list their clauses prints, per source, the elements under each clause, the count of clauses that produced nothing, and every citation that names a clause outside the outline. | NEED-8 |
+| SA-44 | specarch extract shall read one surface of an existing system into a specification tree in which every element carries its origin and cites where it was read, name the commit it read, refuse a source no commit names, and give byte-identical output for the same sources at the same commit. | functional | must | accepted | test | extract database on a committed catalogue dump writes a tree that validate accepts with no errors, and a second run writes the same bytes. A column type the meta-model cannot hold is printed as a line naming it. A dump older than the last change to the path it was made from, a path with changes not committed and a shallow clone are each refused with status 1. extract outline on a folder writes a source listing its files as clauses, and gaps on that tree lists each of them as producing nothing. | NEED-8 |
 | SA-1 | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. | functional | must | accepted | test | A file that breaks the schema is reported with rule schema, its file, line and YAML path. A file that passes the schema and every other rule produces no output and status 0. | NEED-1 |
 | SA-2 | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. | functional | must | accepted | test | A misspelt relation target, enum, operation, page, algorithm, decision, requirement, need, stakeholder, source or environment is reported with its own rule, naming the file and line of the reference. A name defined in two files of the specification is reported with both files. | NEED-1, NEED-4 |
 | SA-3 | Every check constraint and formula shall parse and type-check in the fixed expression language. | functional | must | accepted | test | An expression outside the subset is refused with a message naming the construct. An expression that mixes types without a written conversion is refused with the conversion to write. | NEED-1 |
@@ -3251,6 +3344,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on SA-30:** The owner of an existing system reads a partial specification to find out what the documents and the code really say and where they part; a section of either that produced nothing is the first thing to look at, and it cannot be seen without the outline.
 
+**Insight on SA-44:** Reading a large system by hand misses the element nobody happened to look at, and a citation without the commit it was read at goes stale while still looking precise; extraction is rerun to see what changed, so any difference that is not a change in the sources hides the one that is.
+
 **Insight on SA-1:** The schema is the one definition of a file's shape; checking it first means every later rule can assume the shape.
 
 **Note on SA-6:** From The go command, Go documentation, 1.26: The Go tools print one problem per line as file:line, which editors and CI already parse. <https://go.dev/doc/>
@@ -3290,7 +3385,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-27 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
 | SA-28 | commands derive | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-root-tests; tests derive-skips-blocked; tests derive-usage-error; tests derive-writes-drafts |
 | SA-29 | enums Rule; commands validate; decisions ADR-021 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
-| SA-30 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests validate-mapping-origin |
+| SA-30 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests gaps-outline-not-read; tests validate-mapping-origin |
 | SA-31 | commands generate; decisions ADR-041 | tests generate-stack-fallback; tests generate-stack-plugin; tests generate-tests-dart; tests generate-tests-framework-refused; tests generate-tests-go; tests generate-tests-swift |
 | SA-32 | commands idioms; commands idioms diff; decisions ADR-023; decisions ADR-028 | tests idioms-diff; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems |
 | SA-33 | decisions ADR-024 | tests validate-stored-data; tests validate-stored-data-valid |
@@ -3304,6 +3399,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-41 | enums Rule; decisions ADR-033 | tests validate-views; tests validate-views-valid |
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039 | tests validate-accessibility; tests validate-compact-columns; tests validate-flows; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
+| SA-44 | commands extract; decisions ADR-043 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-exit-1; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests gaps-outline-not-read |
 
 ## Sources
 

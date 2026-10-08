@@ -1,0 +1,16 @@
+arguments: [extract, database, --out, spec, service/catalogue.json]
+repository:
+  folder: service
+  commits:
+    - [migrations]
+    - [catalogue.json]
+exitStatus: 0
+standardOutput: |
+  commit 263d2d4ddc31c7a3c19f25cabe303ec19909ef1c: the last change to migrations, as the dump catalogue.json names it
+  counted 3 tables, 13 columns, 7 constraints (1 foreign key, 1 unique key, 3 checks), 1 index besides those of keys, 1 view and 1 enum type: every entry of the dump's lists, which hold every schema but pg_catalog, information_schema and pg_toast
+  wrote 3 entities and 3 questions: one per table whose name an entity can hold, and one per thing the catalogue does not say
+  not held: column public.branches.float_cash, money: the meta-model has no type for it; left out
+  not held: column public.copies.label, character(4): CHAR pads its value with spaces to its width, which the meta-model cannot say; written as a string of at most 4 characters
+  not held: column public.copies.shelved_at: its default now() is not a value the meta-model can hold
+  not held: index copies_title of public.copies, CREATE INDEX copies_title ON public.copies USING btree (title): the meta-model has no index
+  not held: view public.lent_copies: a view is not read from the catalogue; describe it under views by hand

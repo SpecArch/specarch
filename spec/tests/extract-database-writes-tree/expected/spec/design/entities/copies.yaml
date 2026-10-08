@@ -1,0 +1,20 @@
+entities:
+  Copies:
+    type: object
+    properties:
+      id: {type: string, format: int64, readOnly: true}
+      branchCode: {type: integer, format: int32, minimum: -32768, maximum: 32767}
+      state: {type: string, maxLength: 10, default: shelved, enum: [shelved, lent, lost]}
+      condition: {type: [string, "null"], enum: [good, worn, damaged]}
+      label: {type: [string, "null"], maxLength: 4, description: The shelf label.}
+      shelvedAt: {type: string, format: date-time}
+      title: {type: string}
+    required: [id, branchCode, state, shelvedAt, title]
+    primaryKey: [id]
+    relations:
+      branches: {target: Branches, kind: many-to-one, via: branchCode, onDelete: cascade}
+    constraints:
+      copies_title_not_empty: {kind: check, expression: size(title) > 0}
+    origin: stated
+    cites:
+      - {source: code, clause: migrations public.copies, says: 'Table public.copies: id bigint not null identity, branch_code smallint not null, state character varying(10) not null default ''shelved''::character varying, condition copy_condition, label character(4), shelved_at timestamp with time zone not null default now(), title text not null. copies_branch_code_fkey FOREIGN KEY (branch_code) REFERENCES branches(code) ON DELETE CASCADE; copies_pkey PRIMARY KEY (id); copies_state CHECK (((state)::text = ANY ((ARRAY[''shelved''::character varying, ''lent''::character varying, ''lost''::character varying])::text[]))); copies_title_not_empty CHECK ((length(title) > 0)).'}

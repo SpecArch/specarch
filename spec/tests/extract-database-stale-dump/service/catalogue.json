@@ -1,0 +1,23 @@
+{
+    "catalogue": "postgresql",
+    "path": "migrations",
+    "commit": "e0d3233d9690a8e34155291cc2613a0fe42d1ef6",
+    "tables": [
+        {
+            "schema": "public",
+            "name": "books",
+            "comment": null,
+            "columns": [
+                {"name": "barcode", "type": "character varying(20)", "notNull": true, "default": null, "identity": null, "generated": null, "comment": null}
+            ],
+            "constraints": [
+                {"name": "books_pkey", "kind": "primary", "columns": ["barcode"], "definition": "PRIMARY KEY (barcode)", "referencesSchema": null, "referencesTable": null, "referencesColumns": null, "onDelete": null}
+            ],
+            "indexes": [
+                {"name": "books_pkey", "unique": true, "primary": true, "backsConstraint": true, "definition": "CREATE UNIQUE INDEX books_pkey ON public.books USING btree (barcode)"}
+            ]
+        }
+    ],
+    "views": [],
+    "enums": []
+}

@@ -1,0 +1,8 @@
+arguments: [extract, outline, --out, spec, service/flows]
+repository:
+  folder: service
+  commits:
+    - [flows]
+  changed: [flows/lend.yaml]
+exitStatus: 1
+standardOutput: ""

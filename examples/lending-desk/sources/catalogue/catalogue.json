@@ -1,0 +1,232 @@
+{
+    "path": "examples/lending-desk/sources/code/migrations",
+    "enums": [
+    ],
+    "views": [
+    ],
+    "commit": "7fdf7f6ef8b19f6d288058d822dcdd737e03c145",
+    "tables": [
+        {
+            "name": "books",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "barcode",
+                    "type": "character varying(20)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "title",
+                    "type": "character varying(300)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                }
+            ],
+            "comment": null,
+            "indexes": [
+                {
+                    "name": "books_pkey",
+                    "unique": true,
+                    "primary": true,
+                    "definition": "CREATE UNIQUE INDEX books_pkey ON public.books USING btree (barcode)",
+                    "backsConstraint": true
+                }
+            ],
+            "constraints": [
+                {
+                    "kind": "primary",
+                    "name": "books_pkey",
+                    "columns": [
+                        "barcode"
+                    ],
+                    "onDelete": null,
+                    "definition": "PRIMARY KEY (barcode)",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                }
+            ]
+        },
+        {
+            "name": "loans",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "bigint",
+                    "comment": null,
+                    "default": "nextval('loans_id_seq'::regclass)",
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "card_number",
+                    "type": "character(10)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "barcode",
+                    "type": "character varying(20)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "loaned_on",
+                    "type": "date",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "due_on",
+                    "type": "date",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "returned_on",
+                    "type": "date",
+                    "comment": null,
+                    "default": null,
+                    "notNull": false,
+                    "identity": null,
+                    "generated": null
+                }
+            ],
+            "comment": null,
+            "indexes": [
+                {
+                    "name": "loans_pkey",
+                    "unique": true,
+                    "primary": true,
+                    "definition": "CREATE UNIQUE INDEX loans_pkey ON public.loans USING btree (id)",
+                    "backsConstraint": true
+                }
+            ],
+            "constraints": [
+                {
+                    "kind": "foreign",
+                    "name": "loans_barcode_fkey",
+                    "columns": [
+                        "barcode"
+                    ],
+                    "onDelete": "no action",
+                    "definition": "FOREIGN KEY (barcode) REFERENCES books(barcode)",
+                    "referencesTable": "books",
+                    "referencesSchema": "public",
+                    "referencesColumns": [
+                        "barcode"
+                    ]
+                },
+                {
+                    "kind": "foreign",
+                    "name": "loans_card_number_fkey",
+                    "columns": [
+                        "card_number"
+                    ],
+                    "onDelete": "no action",
+                    "definition": "FOREIGN KEY (card_number) REFERENCES members(card_number)",
+                    "referencesTable": "members",
+                    "referencesSchema": "public",
+                    "referencesColumns": [
+                        "card_number"
+                    ]
+                },
+                {
+                    "kind": "check",
+                    "name": "loans_loan_period",
+                    "columns": [
+                        "due_on",
+                        "loaned_on"
+                    ],
+                    "onDelete": null,
+                    "definition": "CHECK ((due_on = (loaned_on + 14)))",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                },
+                {
+                    "kind": "primary",
+                    "name": "loans_pkey",
+                    "columns": [
+                        "id"
+                    ],
+                    "onDelete": null,
+                    "definition": "PRIMARY KEY (id)",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                }
+            ]
+        },
+        {
+            "name": "members",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "card_number",
+                    "type": "character(10)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "full_name",
+                    "type": "character varying(200)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                }
+            ],
+            "comment": null,
+            "indexes": [
+                {
+                    "name": "members_pkey",
+                    "unique": true,
+                    "primary": true,
+                    "definition": "CREATE UNIQUE INDEX members_pkey ON public.members USING btree (card_number)",
+                    "backsConstraint": true
+                }
+            ],
+            "constraints": [
+                {
+                    "kind": "primary",
+                    "name": "members_pkey",
+                    "columns": [
+                        "card_number"
+                    ],
+                    "onDelete": null,
+                    "definition": "PRIMARY KEY (card_number)",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                }
+            ]
+        }
+    ],
+    "catalogue": "postgresql"
+}

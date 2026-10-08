@@ -1,0 +1,3 @@
+flow: lend
+steps: [scan-card, scan-book, print-slip]
+approver: desk-staff

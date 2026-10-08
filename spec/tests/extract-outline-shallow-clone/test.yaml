@@ -1,0 +1,8 @@
+command: extract
+level: system
+scenario: red
+covers: [exit 1]
+given: "a clone of depth 1 of a repository with two commits"
+when: "extract outline is run on a folder of it"
+then: "it refuses the shallow clone, whose history cannot name the last change to a path, writes nothing and exits 1"
+verifies: [SA-44]

@@ -52,6 +52,7 @@ requirements:
     cites:
       - { source: desk-manual, clause: "3.3", says: "The loan period is 21 days." }
       - { source: desk-code, clause: "lending/model.go:8", says: "LoanPeriod is 14 days." }
+      - { source: desk-code, clause: "migrations/001_init.sql:18", says: "The loans table checks that due_on is loaned_on plus 14." }
   LEND-5:
     statement: Desk staff shall renew a loan once, before its due date, for one more loan period.
     kind: functional
@@ -91,6 +92,7 @@ questions:
     cites:
       - { source: desk-manual, clause: "3.3", says: "The loan period is 21 days." }
       - { source: desk-code, clause: "lending/model.go:8", says: "LoanPeriod is 14 days." }
+      - { source: desk-code, clause: "migrations/001_init.sql:18", says: "The loans table checks that due_on is loaned_on plus 14." }
   Q-2:
     question: The service lists a member's loans, which the manual never mentions. Is that wanted, and who may use it?
     kind: decision

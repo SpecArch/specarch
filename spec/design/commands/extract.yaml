@@ -2,24 +2,66 @@ commands:
   extract:
     summary: Write a specification from existing code or documents
     description: |
-      Reads a surface of an existing system and writes the as-built
+      Reads one surface of an existing system and writes the as-built
       specification of it into a folder, following the method in
-      `docs/extraction.md`: the built router for endpoints, the database
-      catalogue for entities, an OpenAPI document for operations, the
-      running authorisation rules for permissions. The source names which
-      surface is read. The result is a specification tree to be checked by
-      regenerating and comparing, then reviewed by hand. It is built one
-      reader at a time, in the steps of docs/extraction.md; until the
-      first reader is built every build answers with status 2, and its
-      line in the usage text says it is designed, not built.
+      `docs/extraction.md`. The source names the surface. The result is a
+      partial specification tree, to be merged with the trees of the other
+      surfaces (`specarch merge`), checked by regenerating and comparing,
+      then reviewed by hand. The readers are built one at a time, in the
+      steps of docs/extraction.md, Building extract; a source this build
+      does not read is answered with status 2.
+
+      The sources this build reads:
+
+      - `outline`: the files under the paths, each a clause of one code
+        source, and no elements. It records a surface no reader reads yet,
+        such as workflow definitions, so that `specarch gaps` lists every
+        file as producing nothing rather than losing it.
+      - `database`: a PostgreSQL catalogue dump, written by
+        `tools/catalogue/dump-catalogue.sh` with the query
+        `tools/catalogue/catalogue.sql` against a database with every
+        migration applied. Each table becomes an entity of the same name in
+        PascalCase, each column a field in camelCase, with its type,
+        nullability, default, primary key, foreign keys as relations, and
+        unique and check constraints. A check the expression subset can say
+        is written as its expression.
+
+      Every reader follows these rules:
+
+      - The tree's root tracks origin. It declares one code source for the
+        repository read, under `--source-key` (default `code`), whose
+        `edition` is the full hash of the commit read and whose `url` is
+        the repository's folder relative to `--out`. Clauses are paths from
+        the repository's root.
+      - Every element is `origin: stated` and cites where it was read.
+        What the surface does not say is a question, never a value: a
+        constraint's message, which no catalogue holds, and a check the
+        expression subset cannot say. A tree with a question also declares
+        the stakeholder `system-owner`, inferred, for the question to name.
+      - The commit read is the newest of the commits that last changed each
+        path read, so a commit elsewhere leaves the output as it was. Git
+        runs in the repository holding the path, a submodule's own when the
+        path is in one. Only tracked files are read. A path with changes
+        not committed, or with files that are neither tracked nor ignored,
+        is refused, and so is a shallow clone.
+      - A dump made from code names the commit and the path it was made
+        from, and is itself committed. That commit is its edition; a dump
+        whose commit is not the last change to that path is refused as
+        stale.
+      - The same sources at the same commit give byte-identical output:
+        objects are written in the order of their names, and nothing
+        depends on the date, the clock, the working folder or the user's
+        git configuration.
+      - A file whose text says it is generated from another source and must
+        not be edited is reported, so that the other source is read too.
     permission: public
     arguments:
       - name: source
-        description: The surface to read, such as `openapi`, `database` or `router`.
+        description: "The surface to read: `outline` or `database`."
         required: true
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
       - name: paths
-        description: What to read it from, as the source needs it.
+        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump."
         required: true
         repeatable: true
         schema: { type: string }
@@ -28,15 +70,22 @@ commands:
         description: The folder the specification is written into; it becomes the specification's root folder.
         schema: { type: string }
         required: true
+      source-key:
+        description: The key of the code source in the written tree.
+        schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$", default: code }
     reads:
       - { path: "{paths}", description: The surface being read. }
     writes:
       - { path: "{out}/", description: The as-built specification tree. }
-    standardOutput: One line per object the specification could not hold, naming it, so the gap is recorded.
+    standardOutput: |
+      One line naming the commit read and the paths it was the last change
+      to; one line per count, saying what was counted and how; one line per
+      object the specification could not hold, naming it and saying why;
+      and one line per file that says it is generated from another source.
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written
-      "1": the surface could not be read as the source expects
+      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a path with changes not committed, untracked files, a shallow clone, or a path outside a git repository"
       "2": usage error, a source this build does not offer, or a path that could not be read or written
-    satisfies: [SA-11]
-    why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it.
+    satisfies: [SA-11, SA-44]
+    why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

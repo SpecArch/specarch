@@ -1,0 +1,78 @@
+/* The theme's design tokens as custom properties, then the rules every
+   screen shares. */
+
+:root {
+  --color-text: #1b1f24;
+  --color-background: #ffffff;
+  --color-accent: #0b5cad;
+  --color-danger: #b3261e;
+  --color-border: #6e7781;
+  --color-link: var(--color-accent);
+  --space-small: 8px;
+  --space-medium: 16px;
+  --font-body: system-ui, sans-serif;
+  --font-strong: 600;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-text: #e6e8eb;
+    --color-background: #101214;
+    --color-accent: #6cb0f5;
+    --color-danger: #f2b8b5;
+    --color-border: #8c959f;
+  }
+}
+
+body {
+  margin: 0;
+  padding: var(--space-small);
+  color: var(--color-text);
+  background: var(--color-background);
+  font-family: var(--font-body);
+}
+
+a {
+  color: var(--color-accent);
+}
+
+table {
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: var(--space-small);
+  border-bottom: 1px solid var(--color-border);
+  text-align: start;
+}
+
+button,
+input,
+select {
+  min-width: 24px;
+  min-height: 24px;
+  font: inherit;
+}
+
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-small);
+  align-items: end;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+}
+
+[role="status"].failed {
+  color: var(--color-danger);
+}
+
+@media (max-width: 599px) {
+  .wide {
+    display: none;
+  }
+}

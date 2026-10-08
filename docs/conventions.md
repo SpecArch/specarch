@@ -694,7 +694,7 @@ A page may say what it shows when it is empty or fails:
         filteredEmpty: { message: No loan matches these filters. }
         failed:
           loan-closed: { message: "This loan was already closed, so nothing changed." }
-          default: { message: The loans cannot be changed right now. Try again in a moment. }
+          default: { message: The loans cannot be shown or changed right now. Try again in a moment. }
     member-form:
       kind: form
       states:

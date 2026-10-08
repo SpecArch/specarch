@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loans</title>
+<link rel="stylesheet" href="theme.css">
+<script type="module" src="loans-list.js"></script>
+</head>
+<body>
+<main>
+<h1>Loans</h1>
+<form id="filters" aria-label="Filters">
+<label>Status
+<select name="status">
+<option value="">Any</option>
+<option value="open">open</option>
+<option value="overdue">overdue</option>
+<option value="returned">returned</option>
+<option value="lost">lost</option>
+</select>
+</label>
+<label>Member
+<input name="memberId" type="text">
+</label>
+<button type="submit">Filter</button>
+</form>
+<p id="status" role="status" aria-live="polite"></p>
+<table id="rows">
+<thead>
+<tr>
+<th scope="col">Member</th>
+<th scope="col" class="wide">Book</th>
+<th scope="col" class="wide">Lent at</th>
+<th scope="col">Due on</th>
+<th scope="col">Status</th>
+<th scope="col" class="wide">Late fee</th>
+<th scope="col">Actions</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+<nav id="pager" aria-label="Pages">
+<button type="button" data-step="-1">Previous page</button>
+<span></span>
+<button type="button" data-step="1">Next page</button>
+</nav>
+</main>
+</body>
+</html>

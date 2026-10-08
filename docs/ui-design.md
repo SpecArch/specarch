@@ -136,7 +136,7 @@ with a problem type the operation answers, and the catalogue under
         filteredEmpty: { message: No loan matches these filters. }
         failed:
           loan-closed: { message: "This loan was already closed, so nothing changed." }
-          default: { message: The loans cannot be changed right now. Try again in a moment. }
+          default: { message: The loans cannot be shown or changed right now. Try again in a moment. }
 
 Loading and submitting have no text to write, and a generator draws them
 the stack's way; it also offers to retry a failed read and to clear

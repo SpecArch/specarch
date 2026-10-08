@@ -7,6 +7,7 @@ pages:
     permission: loans.read
     source: listLoans
     columns: [memberId, bookId, loanedAt, dueOn, status, lateFee]
+    compactColumns: [memberId, dueOn, status]
     filters: [status, memberId]
     states:
       empty: { message: No loans yet. A loan is made from a member's record. }

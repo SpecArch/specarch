@@ -590,7 +590,11 @@ func crossCutting(d *doc, root *yaml.Node) {
 			if len(shows) == 0 {
 				shows = strs(p.Value, "fields")
 			}
-			d.line("| %s | %s | %s | %s | %s | %s |", p.Key.Value, str(p.Value, "kind"), cell(str(p.Value, "route")), str(p.Value, "entity"), str(p.Value, "permission"), cell(strings.Join(shows, ", ")))
+			text := strings.Join(shows, ", ")
+			if compact := strs(p.Value, "compactColumns"); len(compact) > 0 {
+				text += "; on a compact screen " + strings.Join(compact, ", ")
+			}
+			d.line("| %s | %s | %s | %s | %s | %s |", p.Key.Value, str(p.Value, "kind"), cell(str(p.Value, "route")), str(p.Value, "entity"), str(p.Value, "permission"), cell(text))
 		}
 		d.blank()
 		var stateRows []string

@@ -228,3 +228,24 @@ extension Checker {
         }
     }
 }
+
+extension Checker {
+    /// Checks that a page's compact columns are a list's own columns: what
+    /// a compact screen keeps of them.
+    func checkCompactColumns(_ d: Design) {
+        for p in pairs(d.root.child("pages")) {
+            let name = p.key.value, pg = p.value
+            guard let cc = pg.child("compactColumns") else { continue }
+            let kind = str(pg.child("kind"))
+            if kind != "list" {
+                add(pg.key("compactColumns"), pointer("pages", name, "compactColumns"), .page, "\(name) is a \(kind), and compactColumns is what a list keeps of its columns on a compact screen; leave it out")
+                continue
+            }
+            var columns: [String: YNode] = [:]
+            for col in items(pg.child("columns")) { columns[col.value] = col }
+            for (i, col) in items(cc).enumerated() where columns[col.value] == nil {
+                add(col, pointer("pages", name, "compactColumns", "\(i)"), .page, "\(col.value) is not a column of \(name), and a compact screen keeps only columns the list has\(suggest(col.value, columns))")
+            }
+        }
+    }
+}

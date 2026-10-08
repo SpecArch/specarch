@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a list that keeps one of its columns on a compact screen, a list whose compact columns name one it does not have, and a view with compact columns"
+when: "validate is run"
+then: "it reports page twice, and exits 1"
+verifies: [SA-42]

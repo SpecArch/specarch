@@ -404,6 +404,7 @@ redefined.
 | `onSubmitted`, `onSelect`, `then`, `navigate`, `with`, `message` | SpecArch, after the events and navigation flows of OMG IFML 1.0 | where an event of a page leads, and the status message it carries (WCAG 2.2, 4.1.3) |
 | `flows`, `actor`, `steps`, `event`, `action` | SpecArch, after IFML's navigation flows | a task a person does across pages, step by step |
 | `states`, `empty`, `filteredEmpty`, `failed`, `message`, `field` | SpecArch | what a page shows when it is empty or fails |
+| `compactColumns` | SpecArch, after the compact size class of Apple's Human Interface Guidelines and Material Design 3 | the columns a list keeps on a compact screen |
 | `algorithms`, `inputs`, `output`, `formula`, `examples` (of an algorithm), `pseudocode` | SpecArch | IEEE 1016 algorithm viewpoint, made testable |
 | `decisions` and the ADR fields | SpecArch, after Michael Nygard's record | the common ADR shape: context, decision, consequences, plus `why` |
 | `tests`, `scenario`, `level`, `given`, `when`, `then`, `covers`, `notApplicable` | SpecArch, after ISO/IEC/IEEE 29119 and Gherkin | design tests; the levels are 29119-1's; given, when and then are the Gherkin words, without Gherkin's file format |
@@ -708,6 +709,18 @@ A page without `states` shows what its stack shows. Once a page has
 `filteredEmpty`, every problem type has a message or there is a
 `default`, and nothing else is named (`state`). Each state is a derived
 case of the page: `empty`, `filtered empty`, and `fails with <problem>`.
+
+### Compact screens
+
+A list says which of its columns a compact screen keeps, in order:
+
+    loans-list:
+      columns: [memberId, bookId, loanedAt, dueOn, status, lateFee]
+      compactColumns: [memberId, dueOn, status]
+
+Each must be one of the list's columns, and only a list has them
+(`page`). How small compact is, and how a compact row is laid out, are the
+stack's.
 
 ### Views
 

@@ -313,3 +313,28 @@ func (c *checker) checkPageStates(d *design) {
 		}
 	}
 }
+
+// checkCompactColumns checks that a page's compact columns are a list's
+// own columns: what a compact screen keeps of them.
+func (c *checker) checkCompactColumns(d *design) {
+	for _, p := range source.Pairs(source.Child(d.root, "pages")) {
+		name, pg := p.Key.Value, p.Value
+		cc := source.Child(pg, "compactColumns")
+		if cc == nil {
+			continue
+		}
+		if kind := source.Str(source.Child(pg, "kind")); kind != "list" {
+			c.add(source.Key(pg, "compactColumns"), source.Pointer("pages", name, "compactColumns"), RulePage, "%s is a %s, and compactColumns is what a list keeps of its columns on a compact screen; leave it out", name, kind)
+			continue
+		}
+		columns := map[string]*yaml.Node{}
+		for _, col := range source.Items(source.Child(pg, "columns")) {
+			columns[col.Value] = col
+		}
+		for i, col := range source.Items(cc) {
+			if columns[col.Value] == nil {
+				c.add(col, source.Pointer("pages", name, "compactColumns", fmt.Sprint(i)), RulePage, "%s is not a column of %s, and a compact screen keeps only columns the list has%s", col.Value, name, suggest(col.Value, columns))
+			}
+		}
+	}
+}

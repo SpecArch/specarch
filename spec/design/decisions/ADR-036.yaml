@@ -1,0 +1,32 @@
+decisions:
+  ADR-036:
+    title: A list says which columns a compact screen keeps, and the stack says what compact is
+    status: proposed
+    date: "2026-10-08"
+    context: |
+      A list of loans with six columns fits a desktop window and not a
+      phone. Which columns to keep is a design decision, since it says
+      what matters most to the person; how small compact is, and whether
+      the kept columns become a stacked row, is the platform's. Apple's
+      Human Interface Guidelines name two size classes, compact and
+      regular; Material Design 3 names window size classes compact, medium
+      and expanded, at 600 and 840 density independent pixels. Both agree
+      on compact.
+    decision: |
+      A list may name compactColumns, the columns a compact screen keeps,
+      in order; each must be one of the list's columns, and only a list
+      has them (page). SpecArch names one class, compact; its size in
+      points or pixels and the layout of a compact row are the stack's,
+      defaulting to the platform's. This decision is D5 of
+      docs/ui-design.md and waits for the owner to confirm or veto it.
+    consequences: |
+      A phone screen shows what the analyst chose rather than what fits,
+      and a reviewer sees it beside the full columns in the techspec. A
+      form or a view, whose fields are read in order anyway, needs no
+      compact variant.
+    why: |
+      Naming one class keeps the design from negotiating with each
+      platform's breakpoints, which differ and change; compact is the one
+      class both platforms define the same way, and the only one where
+      something has to be left out.
+    satisfies: [SA-42]

@@ -2388,6 +2388,15 @@ let designSchemaJSON = #"""
           "minItems": 1,
           "uniqueItems": true
         },
+        "compactColumns": {
+          "description": "For a list: the columns a compact screen keeps, in order. What compact means in points or pixels, and how the row is laid out, is the stack's.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
         "fields": {
           "description": "For a form or view: fields shown, in order.",
           "type": "array",

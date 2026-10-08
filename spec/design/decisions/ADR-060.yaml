@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-060:
     title: Data passed around but not stored is a schema under schemas, after OpenAPI's components.schemas, with no key and no table, and an entity may not relate to one or hold one

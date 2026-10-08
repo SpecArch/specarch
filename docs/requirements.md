@@ -63,6 +63,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-41 | functional | should | accepted | A specification shall declare a read model under views, an entity's row with fields read through its relations and counts of its related records added, which is never written, and specarch validate shall check every path, count and use of a view. |
 | SA-42 | functional | should | accepted | A specification shall define the behaviour, structure and rules of a user interface without naming a stack, the events of a page and where each leads among them, and specarch validate shall check them. |
 | SA-43 | functional | should | accepted | specarch generate ui shall write, through a plug-in, the list pages of a specification for the web in plain JavaScript, with no package, bundler or build step, so that the screens follow the design's pages, events, states, accessibility and theme. |
+| SA-47 | functional | should | accepted | A specification shall declare a value object under schemas, data passed around but not stored and with no identity, which a request body, a response, a message or another schema may refer to and an entity may not, and specarch validate shall check every use of one. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -372,6 +373,21 @@ Acceptance criteria:
 - The library lending example's loans list, written by hand before the generator, was reproduced by it apart from its header.
 
 **Insight:** A screen written by hand drifts from the pages, states and messages the owner reviewed; written from them, it says what the design says, and a change to the design reaches the screen on the next run.
+
+### SA-47
+
+A specification shall declare a value object under schemas, data passed around but not stored and with no identity, which a request body, a response, a message or another schema may refer to and an entity may not, and specarch validate shall check every use of one.
+
+Kind: functional; priority: should; status: accepted; verified by test; refines NEED-1.
+
+Acceptance criteria:
+
+- A schema is an object with properties and a required list, and nothing only a stored record has; a request body, a response, a message's payload and another schema's property may refer to it as '#/schemas/Name', and a derived case reads a body's required properties through it.
+- A relation whose target is a schema, an entity's field that refers to one, a schema named like an entity or a view, and a required name that is not one of the schema's properties are refused (value_object, field); a reference to a schema the specification lacks is refused (ref_type).
+- specarch generate sql writes nothing for a schema, and specarch generate openapi writes it under components.schemas.
+- specarch extract openapi writes a component schema it finds no key for as a schema, with no question about its key.
+
+**Insight:** Data passed around but never stored, a diagnostic, a summary or a token's claims, was written as an entity with a made-up key, so the generators gave it a table nobody uses and a reader of the specification could not tell it from a stored record.
 
 ### SA-7
 

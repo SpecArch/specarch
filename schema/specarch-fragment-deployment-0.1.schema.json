@@ -140,9 +140,9 @@
       "type": "string"
     },
     "schemaRef": {
-      "description": "A JSON pointer into the specification, such as '#/entities/Member', '#/enums/LoanStatus' or '#/views/LoanRow'. The pointer names the object wherever its file is in the tree.",
+      "description": "A JSON pointer into the specification, such as '#/entities/Member', '#/enums/LoanStatus', '#/views/LoanRow' or '#/schemas/Diagnostic'. The pointer names the object wherever its file is in the tree.",
       "type": "string",
-      "pattern": "^#/(entities|enums|views)/[A-Z][A-Za-z0-9]*$"
+      "pattern": "^#/(entities|enums|views|schemas)/[A-Z][A-Za-z0-9]*$"
     },
     "field": {
       "description": "JSON Schema keywords, a bounded subset. A field is either a scalar with a type, an array, a nested object, or a reference to an enum or entity.",

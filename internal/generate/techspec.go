@@ -10,6 +10,7 @@ import (
 
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/validate"
+	"github.com/SpecArch/specarch/internal/wirename"
 )
 
 // CompanionName is the hand-written explanation beside a specification's
@@ -206,6 +207,9 @@ func context(d *doc, root *yaml.Node) {
 	}
 	d.heading(2, "3. Context")
 	d.para("The interfaces the system offers, as its clients see them.")
+	if str(source.Child(root, "info"), "wireNames") == wirename.SnakeCase {
+		d.para("Every property goes on the wire in snake_case (info.wireNames): a field this specification names dueOn is due_on in a body, a parameter's schema and a message. A parameter's own name is written as it is on the wire.")
+	}
 	if len(ops) > 0 {
 		d.heading(3, "HTTP operations")
 		d.line("| Method and path | Operation | Summary | Permission |")

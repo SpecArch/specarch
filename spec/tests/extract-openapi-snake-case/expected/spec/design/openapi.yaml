@@ -1,0 +1,50 @@
+paths:
+  /loans:
+    post:
+      operationId: lendBook
+      summary: Lend a book
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cardNumber: {type: string, pattern: "^[0-9]{10}$"}
+                barcode: {type: string, maxLength: 20}
+              required: [cardNumber, barcode]
+      responses:
+        "201":
+          description: The new loan.
+          content:
+            application/json:
+              schema: {$ref: '#/entities/Loan'}
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1loans/post, says: 'POST /loans: Lend a book.'}
+entities:
+  Loan:
+    type: object
+    properties:
+      loanId:
+        type: integer
+        format: int32
+        minimum: 1
+      cardNumber: {type: string, pattern: "^[0-9]{10}$"}
+      loanedOn: {type: string, format: date}
+      dueOn: {type: string, format: date}
+      address1Line: {type: string, maxLength: 200}
+      shelf:
+        type: object
+        properties:
+          roomName: {type: string, maxLength: 40}
+          bay:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 99
+        required: [roomName]
+    required: [loanId, cardNumber, loanedOn, dueOn]
+    origin: stated
+    cites:
+      - {source: openapi, clause: /components/schemas/Loan, says: 'The schema Loan, with the properties loan_id, card_number, loaned_on, due_on, address1_line and shelf.'}

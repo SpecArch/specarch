@@ -115,6 +115,7 @@ const (
 	RuleAction                 Rule = "action"
 	RuleFormField              Rule = "form_field"
 	RuleValueObject            Rule = "value_object"
+	RuleWireName               Rule = "wire_name"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -222,6 +223,7 @@ var Rules = []Rule{
 	RuleAction,
 	RuleFormField,
 	RuleValueObject,
+	RuleWireName,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

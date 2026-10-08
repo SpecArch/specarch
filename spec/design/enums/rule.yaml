@@ -109,6 +109,7 @@ enums:
       - action
       - form_field
       - value_object
+      - wire_name
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: the file is not well-formed YAML
@@ -213,4 +214,5 @@ enums:
       action: "an action's when is on a form that loads no record, or its reason is on an action that runs no operation or names no property of the operation's request body, one the body does not require, or one that is not a string"
       form_field: "a page's fieldConditions name a field it does not show, make a field read-only on a page that is not a form, or give readOnly and readOnlyWhen together; its checks or enteredTwice are on a page that is not a form, or a check's field or a field entered twice is not one the form shows; or a check's message is not a full sentence"
       value_object: "a relation leads to a schema, an entity holds one in a field, or a schema is named like an entity or a view"
-    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48]
+      wire_name: "the specification names its wire names (info.wireNames) and two properties of one object, an entity's, a view's with its entity's, or a body's, a parameter's or a message's, go on the wire under one name"
+    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49]

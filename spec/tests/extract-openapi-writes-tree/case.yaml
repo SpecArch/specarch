@@ -15,7 +15,7 @@ standardOutput: |
   not held: operation GET /loans/{loanId}, response 4XX: the meta-model holds a response code or default, not a range; left out
   not held: operation GET /loans/{loanId}: the extension x-rate-group, whose meaning the document's own tools define; left out
   not held: schema Loan, property id: the format int64 is not a width the meta-model holds for a JSON integer; left out, and asked
-  not held: schema Loan, property due_on: its name is not camelCase, and meta-model 0.1 has no name on the wire; left out
+  not held: schema Loan, property due_on: its name is snake_case, and the document's other names are camelCase; a specification names its properties on the wire one way (info.wireNames); left out
   not held: schema Loan, property fee: the format float is not a width the meta-model holds for a JSON number; left out, and asked
   not held: schema Loan, property note: allOf combines schemas, which the field subset does not; left out
   not held: schema Loan, property note: no type the meta-model holds is left; left out

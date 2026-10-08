@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding an OpenAPI 3.1 document whose property names are snake_case throughout: an inline request body, an object schema with a nested object, a name with a digit inside it, one whose last word is a digit, and a required list naming them"
+when: "extract openapi is run on the document"
+then: "it writes info.wireNames snake_case and every property, the nested ones and the required lists included, by its camelCase name, leaves out with a line the name that would go back on the wire as another, and exits 0"
+verifies: [SA-44, SA-49]

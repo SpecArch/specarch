@@ -17,6 +17,7 @@ import (
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/ownership"
+	"github.com/SpecArch/specarch/internal/wirename"
 )
 
 // Request is what specarch writes on a plug-in's standard input.
@@ -103,11 +104,26 @@ type gen struct {
 	paramName map[string]string
 	envName   map[string]string
 	owned     ownership.Owned // elements another stakeholder owns, which the document leaves out
+	wireNames string          // the specification's info.wireNames, or ""
+}
+
+// wire is a property's name on the wire, by the specification's
+// info.wireNames (ADR-062).
+func (g *gen) wire(name string) string { return wirename.Of(g.wireNames, name) }
+
+// wireList is a list of property names on the wire.
+func (g *gen) wireList(names []any) []any {
+	out := make([]any, len(names))
+	for i, n := range names {
+		out[i] = g.wire(text(n))
+	}
+	return out
 }
 
 // Generate writes the OpenAPI document of a request.
 func Generate(r *Request) Response {
 	g := &gen{spec: r.Specification, root: r.Root, owned: ownership.Owned{}}
+	g.wireNames = text(obj(g.spec["info"])["wireNames"])
 	for _, impl := range r.Implementations {
 		for ptr, by := range ownership.Of(impl.Content) {
 			g.owned[ptr] = by
@@ -353,12 +369,12 @@ func (g *gen) schema(s map[string]any) *yaml.Node {
 			if props, ok := s["properties"].(map[string]any); ok {
 				pn := mapping()
 				for _, p := range sortedKeys(props) {
-					add(pn, p, g.schema(obj(props[p])))
+					add(pn, g.wire(p), g.schema(obj(props[p])))
 				}
 				add(n, "properties", pn)
 			}
 			if req := list(s["required"]); len(req) > 0 {
-				add(n, "required", plain(req))
+				add(n, "required", plain(g.wireList(req)))
 			}
 		}
 	}
@@ -434,7 +450,7 @@ func (g *gen) components() *yaml.Node {
 		}
 		props := mapping()
 		for _, p := range sortedKeys(ps) {
-			add(props, p, g.schema(obj(ps[p])))
+			add(props, g.wire(p), g.schema(obj(ps[p])))
 		}
 		if e["audited"] == true {
 			for _, f := range auditFields {
@@ -445,12 +461,12 @@ func (g *gen) components() *yaml.Node {
 				}
 				add(fn, "description", str(f.description))
 				add(fn, "readOnly", boolean(true))
-				add(props, f.name, fn)
+				add(props, g.wire(f.name), fn)
 			}
 		}
 		add(n, "properties", props)
 		if req := append(append([]any{}, list(e["required"])...), added...); len(req) > 0 {
-			add(n, "required", plain(req))
+			add(n, "required", plain(g.wireList(req)))
 		}
 		if v, ok := views[name].(map[string]any); ok {
 			add(n, "readOnly", boolean(true))
@@ -561,7 +577,7 @@ func (g *gen) expandList(path, method string, l map[string]any, params *yaml.Nod
 		add(s, "type", str("object"))
 		props := mapping()
 		for _, name := range f {
-			add(props, text(name), g.schema(obj(fields[text(name)])))
+			add(props, g.wire(text(name)), g.schema(obj(fields[text(name)])))
 		}
 		add(s, "properties", props)
 		add(s, "additionalProperties", boolean(false))
@@ -579,7 +595,7 @@ func (g *gen) expandList(path, method string, l map[string]any, params *yaml.Nod
 		add(s, "type", str("string"))
 		var values []any
 		for _, name := range f {
-			values = append(values, text(name), "-"+text(name))
+			values = append(values, g.wire(text(name)), "-"+g.wire(text(name)))
 		}
 		add(s, "enum", plain(values))
 		parts = append(parts, struct {
@@ -693,11 +709,21 @@ func (g *gen) listNames() bool {
 		if i.Name != "paginated-list" || i.As == "excluded" || i.Content == nil {
 			continue
 		}
-		g.paramName = names(i, "parameters")
-		g.envName = names(i, "envelope")
+		// The idiom names its parameters and its envelope's fields as
+		// properties, so they go on the wire by the same rule.
+		g.paramName = g.wireNamesOf(names(i, "parameters"))
+		g.envName = g.wireNamesOf(names(i, "envelope"))
 		return true
 	}
 	return false
+}
+
+// wireNamesOf maps the names an idiom gives to the wire.
+func (g *gen) wireNamesOf(m map[string]string) map[string]string {
+	for k, v := range m {
+		m[k] = g.wire(v)
+	}
+	return m
 }
 
 func names(i Idiom, part string) map[string]string {

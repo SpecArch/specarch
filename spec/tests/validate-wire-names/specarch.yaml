@@ -1,0 +1,89 @@
+specarch: "0.1"
+info: { title: Lending desk, version: 1.0.0, wireNames: snake_case }
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Member:
+    type: object
+    properties:
+      userId: { type: string, format: uuid, readOnly: true }
+      userID: { type: string, format: uuid }
+      address:
+        type: object
+        properties:
+          address1Line: { type: string, maxLength: 200 }
+          httpUrlPath: { type: string, maxLength: 200 }
+          httpURLPath: { type: string, maxLength: 200 }
+      tags:
+        type: array
+        maxItems: 10
+        items:
+          type: object
+          properties:
+            tagName: { type: string, maxLength: 20 }
+            tagNAME: { type: string, maxLength: 20 }
+      branchId: { type: string, format: uuid }
+    required: [userId, branchId]
+    primaryKey: [userId]
+    relations:
+      branch: { target: Branch, kind: many-to-one, via: branchId, onDelete: restrict }
+  Branch:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+    required: [id]
+    primaryKey: [id]
+views:
+  MemberRow:
+    from: Member
+    properties:
+      branchID: { path: branch.id }
+channels:
+  member.events:
+    messages:
+      MemberMoved:
+        summary: A member moved.
+        payload:
+          type: object
+          properties:
+            newBranch: { type: string, maxLength: 20 }
+            newbranch: { type: string, maxLength: 20 }
+            newBRANCH: { type: string, maxLength: 20 }
+permissions:
+  members.read: { description: Read members. }
+roles:
+  desk: { description: The desk., permissions: [members.read] }
+paths:
+  /members:
+    parameters:
+      - name: near
+        in: query
+        schema:
+          type: object
+          properties:
+            postCode: { type: string, maxLength: 10 }
+            postCODE: { type: string, maxLength: 10 }
+    post:
+      operationId: findMembers
+      summary: Find members
+      permission: members.read
+      parameters:
+        - name: cardNumber
+          in: header
+          schema: { type: string, maxLength: 10 }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName: { type: string, maxLength: 200 }
+                fullNAME: { type: string, maxLength: 200 }
+      responses:
+        "200":
+          description: The members.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/views/MemberRow" }

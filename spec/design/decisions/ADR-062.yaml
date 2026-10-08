@@ -1,0 +1,89 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-062:
+    title: A specification names how its properties go on the wire with one rule, info.wireNames snake_case, which the validator, extract openapi, merge and generate openapi all apply through one function
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Step 9 of docs/meta-model-0.2.md. A property's name must be
+      camelCase, and an API whose JSON names its properties in snake_case
+      could not be specified without renaming its contract: extract
+      openapi left every such property out, and a specification that
+      renamed them would generate a document that differs from the one
+      every client calls. The plan settles one rule per specification,
+      info.wireNames: snake_case, and leaves open the mapping itself, which
+      names it covers, how a reader tells a snake_case document, and what
+      merge does with it.
+    decision: |
+      info.wireNames takes one value, snake_case; left out, every name goes
+      on the wire as written. Under it every property of every entity,
+      view, body, parameter schema and message payload, at any depth, goes
+      on the wire by one mapping: a capital starts a word after a
+      lower-case letter or a digit, and so does the last capital of a run
+      of capitals that a lower-case letter follows, and every letter is
+      written in lower case. loanedOn is loaned_on, address1Line is
+      address1_line, userID and userId are both user_id, HTTPServer is
+      http_server. The required lists, the four audit fields, the fields a
+      list filters and sorts by, and the names the paginated-list idiom
+      gives its parameters and its envelope's fields go on the wire by the
+      same mapping. A parameter's own name is not mapped. The mapping is
+      one function in each build (internal/wirename, and WireNames.swift),
+      and the dxlib dialect's names come from it too.
+      The validator refuses two properties of one object that go on the
+      wire under one name, as wire_name, reported at the second: an
+      entity's, a nested object's or an array's items', a body's, a
+      parameter schema's and a payload's, and a view's added field against
+      its entity's.
+      extract openapi takes a document as snake_case when one property name
+      at least has an underscore and none has a capital. It then writes
+      info.wireNames snake_case and every property, and every required
+      list, by the camelCase name read from it, and leaves out with a line
+      a name the mapping would not give back (line_2 is read as line2,
+      which goes on the wire as line2). In a document that mixes the two,
+      a snake_case name is left out with a line that says so. merge writes
+      the rule when a tree names it. generate openapi in the standard
+      dialect writes every name it maps by the rule.
+    why: |
+      One rule rather than a name per property, because an API names its
+      properties one way throughout, and a name per property would be a
+      second way to say the same thing on every field (the plan's reason).
+      One value only, since no source has shown another convention, and
+      camelCase named explicitly would be a second way to say what leaving
+      the key out says.
+      The mapping splits words where Ruby on Rails' underscore does for a
+      camelCase name, so an acronym stays one word (SSLError is
+      ssl_error there, userID is user_id here); the dxlib dialect already
+      wrote its columns by this function, so the two agree on every name.
+      The mapping is not one to one: userID and userId meet. A collision
+      would make two fields one key in the JSON object, and JSON leaves a
+      repeated name's meaning to the parser (RFC 8259, section 4), so the
+      validator refuses it rather than let a generator pick one.
+      A parameter's name is a free string in the meta-model, written as it
+      is on the wire already; mapping it too would make a path template
+      differ from the parameter it names, and the router reader writes the
+      template as the code serves it. The idiom's names are mapped because
+      they are a body's properties and a query's parameters that the idiom
+      writes in camelCase to stay stack-neutral; an override that names
+      them in snake_case comes through unchanged, since the mapping leaves
+      a lower-case name alone.
+      A reader that renamed a property whose name does not come back the
+      same would generate a contract that differs from the document it
+      read, the reason the reader left names out before; the round trip is
+      that reason applied to each name. A mixed document is read as
+      camelCase because a camelCase name of two words has no snake_case
+      reading, while a snake_case one can only be left out.
+      Only a reader of an interface document knows how names go on the
+      wire; a database, a router or a page names fields its own way, so
+      merge takes the rule from the tree that states it, and no tree can
+      state another.
+      JSON Schema and OpenAPI place no rule on a property's name, so none
+      of their rules is relaxed here; the camelCase rule is SpecArch's own,
+      for the names generators derive from a field, and it stays.
+    consequences: |
+      The lending desk's OpenAPI document names its properties in
+      snake_case, extracts with no line about a name, and its tree and the
+      merged specification carry info.wireNames snake_case. The hand-written
+      lending desk specification carries it too, and generate openapi
+      writes the document's names back. A path parameter of a snake_case
+      API keeps the name the code gives it.
+    satisfies: [SA-36, SA-44, SA-45, SA-49]

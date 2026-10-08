@@ -5,6 +5,7 @@ info:
   title: Lending Desk
   version: 0.1.0
   tracksOrigin: true
+  wireNames: snake_case
   description: |
     The as-built specification of a small lending desk, written from its
     desk manual and its code by the procedure in docs/from-sources.md. Every

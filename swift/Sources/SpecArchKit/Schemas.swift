@@ -612,6 +612,13 @@ let designSchemaJSON = #"""
         "tracksOrigin": {
           "description": "SpecArch keyword. true when the specification was built from sources and every element says how it is known: the validator then reports each element of a section that carries no origin (origin_missing, a warning).",
           "type": "boolean"
+        },
+        "wireNames": {
+          "description": "SpecArch keyword. How the interface writes a property's name on the wire, when not as the specification names it. snake_case: every property of every entity, view, body, parameter schema and message payload goes on the wire in snake_case (loanedOn is loaned_on, userId and userID are user_id), and so do the property names an idiom gives, such as a list's paging; the validator refuses two properties of one object that map to one wire name (wire_name). A parameter's own name is written as it is on the wire and is not mapped. Left out, every name goes on the wire as written.",
+          "type": "string",
+          "enum": [
+            "snake_case"
+          ]
         }
       },
       "required": [

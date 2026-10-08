@@ -304,10 +304,14 @@ and a history entry. Steps 1 to 10 are additions to the 0.1 schema.
    `generate sql` writes the partial unique index in PostgreSQL and SQL
    Server and refuses it in Oracle and MariaDB, and the test plan groups
    the requirements by release.
-9. A name on the wire, `info.wireNames`. Done when two properties that map
-   to one wire name are refused in both builds (red), and the lending
-   desk's OpenAPI document with snake_case properties extracts without a
-   left-out line and `generate openapi` writes the same wire names back.
+9. Built. A name on the wire, `info.wireNames: snake_case` (ADR-062): one
+   mapping in each build, applied by the validator, `extract openapi`,
+   `merge` and `generate openapi`. Two properties of one object that map to
+   one wire name are refused as `wire_name` in both builds. The lending
+   desk's OpenAPI document names its properties in snake_case and extracts
+   with no line about a name, its tree and the merged specification carry
+   the rule, and `generate openapi` on the lending desk writes the
+   document's names back; CI checks both.
 10. A schema per fragment file, written from the design schema by a script,
     with a CI check that it is current. Done when every fragment in `spec/`
     and both examples validates in an editor against its stage's schema

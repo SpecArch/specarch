@@ -58,7 +58,8 @@ decisions:
       document would be a guess. A property whose name is not camelCase
       is left out rather than renamed, because a renamed property would
       generate a document that differs from the contract clients use;
-      the meta-model has no name on the wire yet. A question another tree
+      a document that names every property in snake_case is read with
+      info.wireNames (ADR-062), which gives each name back. A question another tree
       answers is left out because the element then cites the tree that
       gives the key, which is the row "agree" of docs/from-sources.md,
       section 3.2, and an open question beside the value would ask what
@@ -70,6 +71,5 @@ decisions:
       The lending desk's OpenAPI document merged with its router tree
       gives the summaries, responses and parameter values the router
       could not, takes the permissions from the router, and asks one
-      question about the path the router does not serve. Wire names that
-      are not camelCase wait for the meta-model to hold them.
+      question about the path the router does not serve.
     satisfies: [SA-11, SA-44, SA-45]

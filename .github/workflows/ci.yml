@@ -68,13 +68,17 @@ jobs:
           go run ./cmd/specarch validate "$RUNNER_TEMP/whole-one"
           test "$(grep -c 'the document says 21 days, the check loans_loan_period of Loans says 14' "$RUNNER_TEMP/whole-one.txt")" -eq 1
           grep -q "blocks: \['#/requirements/MANUAL-2/statement'\]" "$RUNNER_TEMP/whole-one/requirements/questions.yaml"
-      - name: The lending desk's OpenAPI document extracts the same twice, and merged with the routes asks one question, naming the path the router does not serve
-        # The document has the four routes and a renewal; the router
-        # answers its permission questions and it answers the router's.
+      - name: The lending desk's OpenAPI document extracts the same twice with its snake_case names, and merged with the routes asks one question, naming the path the router does not serve
+        # The document has the four routes and a renewal, and names its
+        # properties in snake_case; the router answers its permission
+        # questions and it answers the router's.
         run: |
           for run in one two; do go run ./cmd/specarch extract openapi --out "$RUNNER_TEMP/api-$run" examples/lending-desk/sources/openapi/openapi.yaml > "$RUNNER_TEMP/api-$run.txt" || exit 1; done
           diff -r "$RUNNER_TEMP/api-one" "$RUNNER_TEMP/api-two" && cmp "$RUNNER_TEMP/api-one.txt" "$RUNNER_TEMP/api-two.txt"
           go run ./cmd/specarch validate "$RUNNER_TEMP/api-one"
+          grep -q '^  wireNames: snake_case$' "$RUNNER_TEMP/api-one/specarch.yaml"
+          if grep -q '^not held: .*, property [a-z_0-9]*: \(its name\|read as\)' "$RUNNER_TEMP/api-one.txt"; then echo "a property was left out for its name"; exit 1; fi
+          grep -q 'required: \[id, cardNumber, barcode, loanedOn, dueOn\]' "$RUNNER_TEMP/api-one/design/openapi.yaml"
           for run in one two; do go run ./cmd/specarch merge --out "$RUNNER_TEMP/served-$run" "$RUNNER_TEMP/api-one" "$RUNNER_TEMP/routes-one" > "$RUNNER_TEMP/served-$run.txt" || exit 1; done
           diff -r "$RUNNER_TEMP/served-one" "$RUNNER_TEMP/served-two" && cmp "$RUNNER_TEMP/served-one.txt" "$RUNNER_TEMP/served-two.txt"
           go run ./cmd/specarch validate "$RUNNER_TEMP/served-one"
@@ -123,6 +127,10 @@ jobs:
           grep -q 'REFERENCES books (barcode)' "$RUNNER_TEMP/owned-one/sql/0001_expand.sql"
           if grep -q '^    Book:$' "$RUNNER_TEMP/owned-one/openapi/openapi.yaml"; then echo "the Book schema was generated"; exit 1; fi
           grep -q '^    Loan:$' "$RUNNER_TEMP/owned-one/openapi/openapi.yaml"
+          # The specification names its wire snake_case, so the schemas
+          # carry the names the desk's OpenAPI document gives.
+          for name in card_number full_name barcode loaned_on due_on returned_on; do grep -q "^        $name:$" "$RUNNER_TEMP/owned-one/openapi/openapi.yaml" || { echo "$name is not on the wire"; exit 1; }; done
+          if grep -qE '^ +(cardNumber|fullName|loanedOn|dueOn|returnedOn):$' "$RUNNER_TEMP/owned-one/openapi/openapi.yaml"; then echo "a camelCase name went on the wire"; exit 1; fi
           status=0; go run ./cmd/specarch gaps examples/lending-desk > "$RUNNER_TEMP/owned-gaps.txt" || status=$?
           test "$status" -eq 1 && grep -q '#/entities/Book' "$RUNNER_TEMP/owned-gaps.txt"
       - name: The lending desk extracts end to end the same twice, and gaps lists the phone number and the open member route as must questions
@@ -135,6 +143,7 @@ jobs:
           for run in one two; do SPECARCH="$RUNNER_TEMP/bin/specarch" examples/lending-desk/extract.sh "$RUNNER_TEMP/desk-$run" || exit 1; done
           diff -r "$RUNNER_TEMP/desk-one" "$RUNNER_TEMP/desk-two"
           grep -q ': 0 errors,' "$RUNNER_TEMP/desk-one/validate.txt"
+          grep -q '^  wireNames: snake_case$' "$RUNNER_TEMP/desk-one/spec/specarch.yaml"
           grep -F -B2 'Not built yet. The documents have field phoneNumber of entity Members' "$RUNNER_TEMP/desk-one/gaps.txt" | grep -q '(must, decision)'
           grep -F -B2 'Undocumented, from code: is operation showMember (GET /members/{cardNumber})' "$RUNNER_TEMP/desk-one/gaps.txt" | grep -q '(must, decision)'
           grep -F -B2 'GET /members/{cardNumber} checks no permission' "$RUNNER_TEMP/desk-one/gaps.txt" | grep -q '(must, decision)'

@@ -44,6 +44,8 @@ not a real library's system.
 
 The interfaces the system offers, as its clients see them.
 
+Every property goes on the wire in snake_case (info.wireNames): a field this specification names dueOn is due_on in a body, a parameter's schema and a message. A parameter's own name is written as it is on the wire.
+
 ### HTTP operations
 
 | Method and path | Operation | Summary | Permission |

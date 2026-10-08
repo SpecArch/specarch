@@ -221,9 +221,11 @@ Steps, in order:
    (ADR-058); 3.0's nullable, example and boolean exclusive bounds are
    written in the 3.1 form; a security scheme is not a permission, so every operation's
    permission is a question, and so is a number with no width the
-   meta-model holds. What the meta-model cannot hold prints a line,
-   among it a property whose name is not camelCase, since 0.1 has no
-   name on the wire. `specarch merge` leaves out a tree's question when
+   meta-model holds. What the meta-model cannot hold prints a line.
+   A document whose property names are snake_case is read with
+   `info.wireNames: snake_case`, each name in camelCase (ADR-062); a
+   snake_case name in a document whose other names are camelCase, or one
+   that would not go back on the wire unchanged, is left out with a line. `specarch merge` leaves out a tree's question when
    another tree gives every key it blocks, and reports a documents-side
    source none of whose paths the code serves as a placeholder. The
    lending desk's OpenAPI document,

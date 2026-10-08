@@ -373,6 +373,15 @@ style or in double quotes.
 The schema enforces these patterns. Targets rely on them to derive names in
 the output (table names, URL segments, constant names) without a mapping table.
 
+A field keeps its camelCase name in the specification however the
+interface writes it. An API whose JSON names its properties in snake_case
+says so once, with `info.wireNames: snake_case`: every property of every
+entity, view, body, parameter schema and message payload then goes on the
+wire in snake case (`loanedOn` is `loaned_on`, `userID` and `userId` are
+both `user_id`), and the validator refuses two properties of one object
+that would meet there (`wire_name`). A parameter's name is written as it
+is on the wire, and is not mapped (ADR-062).
+
 In SQL, a table is the entity's name in snake case (`LoanStatus` is
 `loan_status`), unless the implementation file's mapping names it
 (`target: table loans`); a column is the field's name in snake case

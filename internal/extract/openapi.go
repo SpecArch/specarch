@@ -13,6 +13,8 @@ import (
 	"strings"
 
 	"go.yaml.in/yaml/v3"
+
+	"github.com/SpecArch/specarch/internal/wirename"
 )
 
 // The OpenAPI versions the reader takes, and the names the meta-model
@@ -89,6 +91,10 @@ func OpenAPI(path, out, key string) (*Result, error) {
 	res := &Result{Tree: newTree()}
 	commitLine(res, r)
 	o := &openapiReader{doc: doc, v30: strings.HasPrefix(version, "3.0."), key: key, res: res, questions: &yaml.Node{Kind: yaml.MappingNode}}
+	o.snake = snakeWire(doc)
+	if o.snake {
+		res.say("wire names: snake_case: every property name of the document that has two words joins them with an underscore; each is written in camelCase, and info.wireNames says how it goes on the wire")
+	}
 	if line, text, ok := generatedMark(path); ok {
 		res.say("generated: %s:%d says it is generated from another source: %s", r.Paths[0], line, text)
 	}
@@ -127,13 +133,52 @@ func OpenAPI(path, out, key string) (*Result, error) {
 		res.Tree.put("design/questions.yaml", mapping("questions", o.questions))
 	}
 	description := fmt.Sprintf("The OpenAPI document %s, read at commit %s: every operation and component schema is a clause, every operation is written under its path citing it, every component schema of type object that an operation creates or a path with a parameter answers is an entity, and every other one a schema. What the document does not say is a question.\n", r.Paths[0], r.Commit)
-	res.Tree.put("specarch.yaml", rootFile(title, description, stages, mapping(key, src)))
+	root := rootFile(title, description, stages, mapping(key, src))
+	if o.snake {
+		set(child(root, "info"), "wireNames", wirename.SnakeCase)
+	}
+	res.Tree.put("specarch.yaml", root)
 	return res, nil
+}
+
+// snakeWire reports whether a document names its properties in snake_case
+// (ADR-062): one name at least joins words with an underscore, and none
+// has a capital. A name of one word is both, and a document that mixes the
+// two has camelCase names, which the meta-model takes as written.
+func snakeWire(doc *yaml.Node) bool {
+	underscore, capital := false, false
+	var walk func(n *yaml.Node)
+	walk = func(n *yaml.Node) {
+		switch n.Kind {
+		case yaml.MappingNode:
+			for i := 0; i+1 < len(n.Content); i += 2 {
+				k, v := n.Content[i].Value, n.Content[i+1]
+				switch {
+				case k == "example" || k == "examples" || k == "default" || k == "enum" || k == "const" || strings.HasPrefix(k, "x-"):
+					continue
+				case k == "properties" && v.Kind == yaml.MappingNode:
+					for j := 0; j+1 < len(v.Content); j += 2 {
+						name := v.Content[j].Value
+						underscore = underscore || strings.Contains(name, "_")
+						capital = capital || strings.ToLower(name) != name
+					}
+				}
+				walk(v)
+			}
+		case yaml.SequenceNode, yaml.DocumentNode:
+			for _, c := range n.Content {
+				walk(c)
+			}
+		}
+	}
+	walk(doc)
+	return underscore && !capital
 }
 
 type openapiReader struct {
 	doc       *yaml.Node
 	v30       bool
+	snake     bool // the document names its properties in snake_case
 	key       string
 	res       *Result
 	clauses   []*yaml.Node
@@ -599,7 +644,14 @@ func (o *openapiReader) entity(name, pointer string, s *yaml.Node) bool {
 	}
 	var fields []string
 	for i := 0; i < len(props.Content); i += 2 {
-		fields = append(fields, props.Content[i].Value)
+		// The citation quotes the document, so it names each property as
+		// the document does; a name read from snake_case goes back
+		// unchanged.
+		if o.snake {
+			fields = append(fields, wirename.Snake(props.Content[i].Value))
+		} else {
+			fields = append(fields, props.Content[i].Value)
+		}
 	}
 	set(out, "origin", "stated")
 	set(out, "cites", []*yaml.Node{citation(o.key, pointer, fmt.Sprintf("The schema %s, with the properties %s.", name, joinAnd(fields)))})
@@ -695,16 +747,18 @@ func (o *openapiReader) enum(name, pointer string, s *yaml.Node) {
 }
 
 // properties writes an object schema's properties and the required list,
-// leaving out a property whose name is not camelCase.
+// each by its name in camelCase: as written, or read from snake_case when
+// the document names its properties so. A name that cannot be written in
+// camelCase and go back on the wire unchanged is left out.
 func (o *openapiReader) properties(s *yaml.Node, where, at string) (*yaml.Node, []string) {
 	var props *yaml.Node
-	kept := map[string]bool{}
-	for _, name := range keys(child(s, "properties")) {
-		if !memberNameWord.MatchString(name) {
-			o.gap("%s, property %s: its name is not camelCase, and meta-model 0.1 has no name on the wire; left out", where, name)
+	kept := map[string]string{}
+	for _, wire := range keys(child(s, "properties")) {
+		name, ok := o.memberName(wire, where)
+		if !ok {
 			continue
 		}
-		f := o.field(child(child(s, "properties"), name), where+", property "+name, at+"/properties/"+name, 0)
+		f := o.field(child(child(s, "properties"), wire), where+", property "+wire, at+"/properties/"+name, 0)
 		if f == nil {
 			continue
 		}
@@ -712,15 +766,35 @@ func (o *openapiReader) properties(s *yaml.Node, where, at string) (*yaml.Node, 
 			props = &yaml.Node{Kind: yaml.MappingNode}
 		}
 		set(props, name, f)
-		kept[name] = true
+		kept[wire] = name
 	}
 	var required []string
 	for _, r := range scalarList(child(s, "required")) {
-		if kept[r] {
-			required = append(required, r)
+		if name, ok := kept[r]; ok {
+			required = append(required, name)
 		}
 	}
 	return props, required
+}
+
+// memberName is the camelCase name of a property named wire on the wire,
+// or false, with a line, when there is none that goes back unchanged.
+func (o *openapiReader) memberName(wire, where string) (string, bool) {
+	switch {
+	case !o.snake && memberNameWord.MatchString(wire):
+		return wire, true
+	case !o.snake && enumValueWord.MatchString(wire):
+		o.gap("%s, property %s: its name is snake_case, and the document's other names are camelCase; a specification names its properties on the wire one way (info.wireNames); left out", where, wire)
+	case !o.snake:
+		o.gap("%s, property %s: its name is neither camelCase nor snake_case; left out", where, wire)
+	default:
+		name, ok := wirename.Camel(wire)
+		if ok && memberNameWord.MatchString(name) {
+			return name, true
+		}
+		o.gap("%s, property %s: read as %s, it goes on the wire as %s under info.wireNames snake_case, which is not its name; left out", where, wire, name, wirename.Snake(name))
+	}
+	return "", false
 }
 
 // field writes a schema in the meta-model's field subset (ADR-049).

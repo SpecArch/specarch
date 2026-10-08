@@ -186,6 +186,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkMenus(d)
 	c.checkViews(d)
 	c.checkValueObjects(d)
+	c.checkWireNames(d)
 	c.checkSession(d)
 	c.checkPages(d)
 	c.checkEnabledBy(d)

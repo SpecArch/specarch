@@ -1385,6 +1385,15 @@ func (m *merger) write(asked int) (*Result, error) {
 	root := rootFile(fmt.Sprintf("Merge of %d trees", len(m.trees)),
 		fmt.Sprintf("The elements of these trees, merged in this order: %s. Every element cites where it was read; where the trees disagree, or the documents and the code do, a question asks which is right.\n", strings.Join(titles, "; ")),
 		stages, sources)
+	// Only a reader of an interface document knows how names go on the
+	// wire; the others say nothing about it, so a tree that names the
+	// rule names it for the merge (ADR-062).
+	for _, t := range m.trees {
+		if w := source.Str(source.Child(source.Child(t.s.Root, "info"), "wireNames")); w != "" {
+			set(child(root, "info"), "wireNames", w)
+			break
+		}
+	}
 	m.res.Tree.put(spec.RootFile, root)
 	return m.res, nil
 }

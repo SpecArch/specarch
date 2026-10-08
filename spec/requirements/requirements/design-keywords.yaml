@@ -41,7 +41,7 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-5]
     why: What runs at night or on a queue is the part of a system nobody watches, and the part a test plan forgets; written in the design, its tests follow from it like an operation's.
-  SA-47:
+  SA-49:
     statement: A specification shall be able to declare workflows, requests that finish after people approve them, as a sequential subset of BPMN 2.0, with the operation that starts each, the entity that holds the request while it waits, and approval and operation steps in order; specarch validate shall check each against the design, and a workflow shall be a subject of tests whose cases include the requester approving their own request.
     kind: functional
     priority: must
@@ -178,3 +178,16 @@ requirements:
     verification: test
     needs: [NEED-1]
     why: Data passed around but never stored, a diagnostic, a summary or a token's claims, was written as an entity with a made-up key, so the generators gave it a table nobody uses and a reader of the specification could not tell it from a stored record.
+  SA-49:
+    statement: A specification shall be able to say, once for the whole interface, that its properties go on the wire in snake_case while it names them in camelCase, and specarch validate shall refuse two properties of one object that would go on the wire under one name.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - info.wireNames snake_case maps every property of every entity, view, body, parameter schema and message payload by one rule, and a parameter's own name is written as it is on the wire.
+      - Two properties of one object that map to one wire name, a view's added field and its entity's included, are refused as wire_name, the same in both builds.
+      - specarch extract openapi reads a document whose property names are snake_case into camelCase names and info.wireNames, and leaves out with a line a name that does not come back the same.
+      - specarch generate openapi writes the wire names back, the names of the paginated-list idiom included.
+    verification: test
+    needs: [NEED-2]
+    why: An API that names its properties in snake_case could not be specified without renaming its contract, and a document generated from the renamed specification would differ from the one every client already calls.

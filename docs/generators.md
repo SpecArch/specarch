@@ -158,6 +158,12 @@ allowed when a relation on the way may have no record or the field is
 not required, and a count is a
 64-bit integer of at least 0. A list over a view filters and sorts by the
 view's fields.
+When the specification says `info.wireNames: snake_case`, every property
+name the document writes goes on the wire in snake_case (`loanedOn` is
+`loaned_on`): the entities', views' and inline objects', the required
+lists, the audit fields, the fields a list filters and sorts by, and the
+idiom's paging parameters and envelope fields. A parameter keeps the name
+the specification gives it (ADR-062).
 
 With `dialect: dxlib` on the target, the document is the one dxlib's OpenAPI
 reader binds. Every operation is a POST at `/<operationId>` with all of its

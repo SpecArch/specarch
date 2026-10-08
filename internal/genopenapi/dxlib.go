@@ -9,6 +9,7 @@ import (
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/ownership"
+	"github.com/SpecArch/specarch/internal/wirename"
 )
 
 // The dxlib dialect: the document dxlib's OpenAPI reader binds
@@ -240,21 +241,7 @@ func (g *gen) dxSchema(f map[string]any, at string) *yaml.Node {
 // Wire is a field's name in the dxlib dialect: its column name, the field's
 // name in snake case, since dxlib's standard operations take a parameter's
 // name as the column it reads or writes.
-func Wire(name string) string {
-	var b strings.Builder
-	rs := []rune(name)
-	for i, r := range rs {
-		if r >= 'A' && r <= 'Z' {
-			if i > 0 && (rs[i-1] >= 'a' && rs[i-1] <= 'z' || rs[i-1] >= '0' && rs[i-1] <= '9' || i+1 < len(rs) && rs[i+1] >= 'a' && rs[i+1] <= 'z' && rs[i-1] >= 'A' && rs[i-1] <= 'Z') {
-				b.WriteByte('_')
-			}
-			b.WriteRune(r + 'a' - 'A')
-			continue
-		}
-		b.WriteRune(r)
-	}
-	return b.String()
-}
+func Wire(name string) string { return wirename.Snake(name) }
 
 func toAny(m map[string]string) map[string]any {
 	out := map[string]any{}

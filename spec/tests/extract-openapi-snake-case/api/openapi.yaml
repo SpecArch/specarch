@@ -1,0 +1,43 @@
+openapi: 3.1.0
+info:
+  title: Lending API
+  version: 1.0.0
+paths:
+  /loans:
+    post:
+      operationId: lendBook
+      summary: Lend a book
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                card_number: { type: string, pattern: "^[0-9]{10}$" }
+                barcode: { type: string, maxLength: 20 }
+              required: [card_number, barcode]
+      responses:
+        "201":
+          description: The new loan.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Loan" }
+components:
+  schemas:
+    Loan:
+      type: object
+      properties:
+        loan_id: { type: integer, format: int32, minimum: 1 }
+        card_number: { type: string, pattern: "^[0-9]{10}$" }
+        loaned_on: { type: string, format: date }
+        due_on: { type: string, format: date, example: "2026-01-15" }
+        address1_line: { type: string, maxLength: 200 }
+        line_2: { type: string, maxLength: 200 }
+        shelf:
+          type: object
+          properties:
+            room_name: { type: string, maxLength: 40 }
+            bay: { type: integer, format: int32, minimum: 1, maximum: 99 }
+          required: [room_name]
+      required: [loan_id, card_number, loaned_on, due_on, line_2]

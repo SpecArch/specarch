@@ -196,6 +196,7 @@ extension Checker {
         checkMenus(d)
         checkViews(d)
         checkValueObjects(d)
+        checkWireNames(d)
         checkSession(d)
         checkPages(d)
         checkEnabledBy(d)

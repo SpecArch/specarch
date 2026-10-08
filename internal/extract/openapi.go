@@ -40,8 +40,9 @@ var fieldFormats = map[string]bool{"int32": true, "int64": true, "uint64": true,
 var fieldTypes = map[string]bool{"string": true, "integer": true, "number": true, "boolean": true, "array": true, "object": true}
 
 // OpenAPI reads one OpenAPI 3.0 or 3.1 document into a tree: its
-// operations under their paths, its component schemas as entities and
-// enums, and a question for what the document does not say (ADR-049).
+// operations under their paths, its component schemas as entities,
+// schemas and enums, and a question for what the document does not say
+// (ADR-049).
 func OpenAPI(path, out, key string) (*Result, error) {
 	ext := strings.ToLower(filepath.Ext(path))
 	if ext != ".yaml" && ext != ".yml" && ext != ".json" {
@@ -110,6 +111,9 @@ func OpenAPI(path, out, key string) (*Result, error) {
 	if o.entities != nil {
 		set(design, "entities", o.entities)
 	}
+	if o.schemas != nil {
+		set(design, "schemas", o.schemas)
+	}
 	if o.enums != nil {
 		set(design, "enums", o.enums)
 	}
@@ -122,7 +126,7 @@ func OpenAPI(path, out, key string) (*Result, error) {
 		res.Tree.put("requirements/stakeholders.yaml", mapping("stakeholders", ownerStakeholder()))
 		res.Tree.put("design/questions.yaml", mapping("questions", o.questions))
 	}
-	description := fmt.Sprintf("The OpenAPI document %s, read at commit %s: every operation and component schema is a clause, every operation is written under its path citing it, and every component schema of type object is an entity. What the document does not say is a question.\n", r.Paths[0], r.Commit)
+	description := fmt.Sprintf("The OpenAPI document %s, read at commit %s: every operation and component schema is a clause, every operation is written under its path citing it, every component schema of type object that an operation creates or a path with a parameter answers is an entity, and every other one a schema. What the document does not say is a question.\n", r.Paths[0], r.Commit)
 	res.Tree.put("specarch.yaml", rootFile(title, description, stages, mapping(key, src)))
 	return res, nil
 }
@@ -135,12 +139,13 @@ type openapiReader struct {
 	clauses   []*yaml.Node
 	paths     *yaml.Node
 	entities  *yaml.Node
+	schemas   *yaml.Node
 	enums     *yaml.Node
 	questions *yaml.Node
 	nextID    int
 	notHeld   []string
-	// The component schemas written as an entity or an enum, by name; a
-	// reference to any other is written in place.
+	// The component schemas written as an entity, a schema or an enum, by
+	// name; a reference to any other is written in place.
 	written map[string]string
 	// The numbers with no width the meta-model holds, by the element
 	// asked about, in the order read.
@@ -170,28 +175,31 @@ func (o *openapiReader) read() {
 	o.written = map[string]string{}
 	schemas := child(child(o.doc, "components"), "schemas")
 	names := sortedKeys(schemas)
+	resources := o.resources()
 	for _, name := range names {
 		s := o.resolve(child(schemas, name))
 		switch {
 		case !typeNameWord.MatchString(name):
-		case schemaType(s) == "object" && child(s, "properties") != nil:
+		case schemaType(s) == "object" && child(s, "properties") != nil && resources[name]:
 			o.written[name] = "entities"
+		case schemaType(s) == "object" && child(s, "properties") != nil:
+			o.written[name] = "schemas"
 		case scalar(child(s, "type")) == "string" && isEnumOfWords(child(s, "enum")):
 			o.written[name] = "enums"
 		}
 	}
-	// An object none of whose properties can be held is no entity, and a
-	// reference to it is written in place; leaving one out can leave
-	// another with none, so this runs until nothing changes.
+	// An object none of whose properties can be held is no entity or
+	// schema, and a reference to it is written in place; leaving one out
+	// can leave another with none, so this runs until nothing changes.
 	for changed := true; changed; {
 		changed = false
 		for _, name := range names {
-			if o.written[name] != "entities" {
+			if o.written[name] != "entities" && o.written[name] != "schemas" {
 				continue
 			}
 			trial := *o
 			trial.notHeld, trial.widths = nil, nil
-			if props, _ := trial.properties(o.resolve(child(schemas, name)), "", ""); props == nil {
+			if props, _ := trial.properties(o.resolve(child(schemas, name)), "", "#/"+o.written[name]+"/"+name); props == nil {
 				delete(o.written, name)
 				changed = true
 			}
@@ -206,7 +214,7 @@ func (o *openapiReader) read() {
 			pathCount++
 		}
 	}
-	entities, enums := 0, 0
+	entities, values, enums := 0, 0, 0
 	for _, name := range names {
 		pointer := "/components/schemas/" + escapeToken(name)
 		o.clauses = append(o.clauses, flow(mapping("clause", pointer, "title", "schema "+name)))
@@ -215,6 +223,10 @@ func (o *openapiReader) read() {
 		case "entities":
 			if o.entity(name, pointer, s) {
 				entities++
+			}
+		case "schemas":
+			if o.valueObject(name, pointer, s) {
+				values++
 			}
 		case "enums":
 			o.enum(name, pointer, s)
@@ -250,8 +262,8 @@ func (o *openapiReader) read() {
 	}
 	countedPaths := len(sortedKeys(child(o.doc, "paths")))
 	o.res.say("counted %s and %s: every key of paths and of components.schemas", plural(countedPaths, "path"), plural(len(names), "component schema"))
-	o.res.say("wrote %s on %s, %s, %s and %s: one operation per get, post, put, patch or delete, one entity per object schema, one enum per string enum, and one question per thing the document does not say",
-		plural(operations, "operation"), plural(pathCount, "path"), plural(entities, "entity"), plural(enums, "enum"), plural(o.nextID, "question"))
+	o.res.say("wrote %s on %s, %s, %s, %s and %s: one operation per get, post, put, patch or delete, one entity per object schema an operation creates or a path with a parameter answers, one schema per other object schema, one enum per string enum, and one question per thing the document does not say",
+		plural(operations, "operation"), plural(pathCount, "path"), plural(entities, "entity"), plural(values, "schema"), plural(enums, "enum"), plural(o.nextID, "question"))
 	o.res.Lines = append(o.res.Lines, o.notHeld...)
 }
 
@@ -607,6 +619,69 @@ func (o *openapiReader) entity(name, pointer string, s *yaml.Node) bool {
 	return true
 }
 
+// valueObject writes a component schema of type object that no operation
+// creates and no path with a parameter answers as a schema: data passed
+// around, with no key to ask for.
+func (o *openapiReader) valueObject(name, pointer string, s *yaml.Node) bool {
+	at := "#/schemas/" + name
+	props, required := o.properties(s, "schema "+name, at)
+	if props == nil {
+		o.gap("schema %s: none of its properties can be held; left out", name)
+		delete(o.written, name)
+		return false
+	}
+	out := mapping("type", "object")
+	set(out, "description", nonEmpty(scalar(child(s, "description"))))
+	set(out, "properties", props)
+	if len(required) > 0 {
+		set(out, "required", required)
+	}
+	var fields []string
+	for i := 0; i < len(props.Content); i += 2 {
+		fields = append(fields, props.Content[i].Value)
+	}
+	set(out, "origin", "stated")
+	set(out, "cites", []*yaml.Node{citation(o.key, pointer, fmt.Sprintf("The schema %s, with the properties %s.", name, joinAnd(fields)))})
+	if o.schemas == nil {
+		o.schemas = &yaml.Node{Kind: yaml.MappingNode}
+	}
+	set(o.schemas, name, out)
+	for _, k := range keys(s) {
+		switch k {
+		case "type", "properties", "required", "description", "title":
+		default:
+			o.gap("schema %s: %s; left out", name, notHeldKey(k))
+		}
+	}
+	return true
+}
+
+// resources are the component schemas the document treats as records: one
+// an operation's 201 answers, since 201 says a resource was created (RFC
+// 9110, 15.3.2), or one a path with a parameter answers as it is, since
+// the parameter names one record of it.
+func (o *openapiReader) resources() map[string]bool {
+	out := map[string]bool{}
+	for _, p := range keys(child(o.doc, "paths")) {
+		item := o.resolve(child(child(o.doc, "paths"), p))
+		for _, method := range []string{"get", "post", "put", "patch", "delete"} {
+			for _, code := range keys(child(child(item, method), "responses")) {
+				if code != "201" && !(strings.Contains(p, "{") && strings.HasPrefix(code, "2")) {
+					continue
+				}
+				r := o.resolve(child(child(child(item, method), "responses"), code))
+				for _, mt := range keys(child(r, "content")) {
+					ref := scalar(child(child(child(child(r, "content"), mt), "schema"), "$ref"))
+					if name, ok := strings.CutPrefix(ref, "#/components/schemas/"); ok {
+						out[name] = true
+					}
+				}
+			}
+		}
+	}
+	return out
+}
+
 func (o *openapiReader) enum(name, pointer string, s *yaml.Node) {
 	values := scalarList(child(s, "enum"))
 	out := mapping("type", "string", "enum", values)
@@ -651,7 +726,9 @@ func (o *openapiReader) properties(s *yaml.Node, where, at string) (*yaml.Node, 
 // field writes a schema in the meta-model's field subset (ADR-049).
 func (o *openapiReader) field(s *yaml.Node, where, at string, depth int) *yaml.Node {
 	if ref := scalar(child(s, "$ref")); ref != "" {
-		if name, ok := strings.CutPrefix(ref, "#/components/schemas/"); ok && o.written[name] != "" {
+		// An entity may not hold a schema, so inside an entity a schema
+		// is written in place.
+		if name, ok := strings.CutPrefix(ref, "#/components/schemas/"); ok && o.written[name] != "" && !(o.written[name] == "schemas" && strings.HasPrefix(at, "#/entities/")) {
 			return flow(mapping("$ref", "#/"+o.written[name]+"/"+name))
 		}
 		target := o.resolve(s)

@@ -7,7 +7,7 @@ exitStatus: 0
 standardOutput: |
   commit bd936c947854df912ce3cc6e012a4391b82bca95: the last change to openapi.yaml
   counted 2 paths and 3 component schemas: every key of paths and of components.schemas
-  wrote 2 operations on 2 paths, 1 entity, 1 enum and 6 questions: one operation per get, post, put, patch or delete, one entity per object schema, one enum per string enum, and one question per thing the document does not say
+  wrote 2 operations on 2 paths, 1 entity, 0 schemas, 1 enum and 6 questions: one operation per get, post, put, patch or delete, one entity per object schema an operation creates or a path with a parameter answers, one schema per other object schema, one enum per string enum, and one question per thing the document does not say
   not held: operation POST /loans: its operationId create-loan is not camelCase, which an operationId is; it is named postLoans
   not held: operation POST /loans: tags, which the meta-model does not hold here; left out
   not held: operation HEAD /loans/{loanId}: the meta-model holds the methods get, post, put, patch and delete; left out

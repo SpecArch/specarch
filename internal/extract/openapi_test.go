@@ -103,7 +103,7 @@ func TestOpenAPIImpliedType(t *testing.T) {
 }
 
 // TestOpenAPIEntityNeedsAProperty writes an object schema none of whose
-// properties can be held in place, so no reference points at an entity
+// properties can be held in place, so no reference points at a schema
 // that is not written.
 func TestOpenAPIEntityNeedsAProperty(t *testing.T) {
 	var doc yaml.Node
@@ -121,7 +121,60 @@ components:
 	}
 	o := &openapiReader{doc: doc.Content[0], key: "api", res: &Result{Tree: newTree()}, questions: &yaml.Node{Kind: yaml.MappingNode}}
 	o.read()
-	if got, want := o.written, map[string]string{"Wrapper": "entities", "Problem": "entities"}; len(got) != len(want) || got["Wrapper"] != want["Wrapper"] || got["Problem"] != want["Problem"] {
+	if got, want := o.written, map[string]string{"Wrapper": "schemas", "Problem": "schemas"}; len(got) != len(want) || got["Wrapper"] != want["Wrapper"] || got["Problem"] != want["Problem"] {
 		t.Errorf("written %v, want %v", got, want)
+	}
+}
+
+// TestOpenAPIResources writes a component an operation creates, or a path
+// with a parameter answers, as an entity, and every other object
+// component as a schema, which an entity holds in place.
+func TestOpenAPIResources(t *testing.T) {
+	var doc yaml.Node
+	src := `
+openapi: 3.1.0
+paths:
+  /loans:
+    post:
+      responses:
+        "201": {description: Made., content: {application/json: {schema: {$ref: "#/components/schemas/Loan"}}}}
+        "409": {description: Refused., content: {application/json: {schema: {$ref: "#/components/schemas/Refusal"}}}}
+    get:
+      responses:
+        "200": {description: All., content: {application/json: {schema: {type: array, items: {$ref: "#/components/schemas/Summary"}}}}}
+  /members/{cardNumber}:
+    get:
+      responses:
+        "200": {description: One., content: {application/json: {schema: {$ref: "#/components/schemas/Member"}}}}
+components:
+  schemas:
+    Loan: {type: object, properties: {id: {type: string}, terms: {$ref: "#/components/schemas/Terms"}}}
+    Member: {type: object, properties: {cardNumber: {type: string}}}
+    Refusal: {type: object, properties: {reason: {type: string}}}
+    Summary: {type: object, properties: {count: {type: string}}}
+    Terms: {type: object, properties: {days: {type: string}}}
+`
+	if err := yaml.Unmarshal([]byte(src), &doc); err != nil {
+		t.Fatal(err)
+	}
+	o := &openapiReader{doc: doc.Content[0], key: "api", res: &Result{Tree: newTree()}, questions: &yaml.Node{Kind: yaml.MappingNode}}
+	o.read()
+	want := map[string]string{"Loan": "entities", "Member": "entities", "Refusal": "schemas", "Summary": "schemas", "Terms": "schemas"}
+	for name, section := range want {
+		if o.written[name] != section {
+			t.Errorf("%s is written under %q, want %q", name, o.written[name], section)
+		}
+	}
+	terms := child(child(child(o.entities, "Loan"), "properties"), "terms")
+	if child(terms, "$ref") != nil || child(child(terms, "properties"), "days") == nil {
+		t.Error("Loan holds Terms by reference; an entity may not hold a schema, so it is written in place")
+	}
+	if o.nextID == 0 || child(o.schemas, "Refusal") == nil {
+		t.Errorf("want key questions for the entities and Refusal under schemas; %d questions", o.nextID)
+	}
+	for _, id := range keys(o.questions) {
+		if q := scalar(child(child(o.questions, id), "question")); strings.Contains(q, "Refusal") {
+			t.Errorf("a schema has no key question, and %s asks %s", id, q)
+		}
 	}
 }

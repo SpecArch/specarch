@@ -1,0 +1,48 @@
+openapi: 3.1.0
+info:
+  title: Holds API
+  version: 1.0.0
+paths:
+  /holds:
+    post:
+      operationId: placeHold
+      summary: Place a hold on a book
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HoldRequest" }
+      responses:
+        "201":
+          description: The hold, placed.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Hold" }
+        "409":
+          description: The book cannot be held.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Refusal" }
+components:
+  schemas:
+    Hold:
+      type: object
+      properties:
+        barcode: { type: string, maxLength: 20 }
+        placedOn: { type: string, format: date }
+        terms: { $ref: "#/components/schemas/Terms" }
+      required: [barcode, placedOn]
+    HoldRequest:
+      type: object
+      properties:
+        barcode: { type: string, maxLength: 20 }
+      required: [barcode]
+    Refusal:
+      type: object
+      description: Why a hold was refused.
+      properties:
+        reason: { type: string, maxLength: 200 }
+      required: [reason]
+    Terms:
+      type: object
+      properties:
+        days: { type: string, maxLength: 3 }

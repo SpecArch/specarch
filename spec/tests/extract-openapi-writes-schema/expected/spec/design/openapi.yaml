@@ -1,0 +1,59 @@
+paths:
+  /holds:
+    post:
+      operationId: placeHold
+      summary: Place a hold on a book
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: '#/schemas/HoldRequest'}
+      responses:
+        "201":
+          description: The hold, placed.
+          content:
+            application/json:
+              schema: {$ref: '#/entities/Hold'}
+        "409":
+          description: The book cannot be held.
+          content:
+            application/json:
+              schema: {$ref: '#/schemas/Refusal'}
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1holds/post, says: 'POST /holds: Place a hold on a book.'}
+entities:
+  Hold:
+    type: object
+    properties:
+      barcode: {type: string, maxLength: 20}
+      placedOn: {type: string, format: date}
+      terms: {type: object, properties: {days: {type: string, maxLength: 3}}}
+    required: [barcode, placedOn]
+    origin: stated
+    cites:
+      - {source: openapi, clause: /components/schemas/Hold, says: 'The schema Hold, with the properties barcode, placedOn and terms.'}
+schemas:
+  HoldRequest:
+    type: object
+    properties:
+      barcode: {type: string, maxLength: 20}
+    required: [barcode]
+    origin: stated
+    cites:
+      - {source: openapi, clause: /components/schemas/HoldRequest, says: 'The schema HoldRequest, with the properties barcode.'}
+  Refusal:
+    type: object
+    description: Why a hold was refused.
+    properties:
+      reason: {type: string, maxLength: 200}
+    required: [reason]
+    origin: stated
+    cites:
+      - {source: openapi, clause: /components/schemas/Refusal, says: 'The schema Refusal, with the properties reason.'}
+  Terms:
+    type: object
+    properties:
+      days: {type: string, maxLength: 3}
+    origin: stated
+    cites:
+      - {source: openapi, clause: /components/schemas/Terms, says: 'The schema Terms, with the properties days.'}

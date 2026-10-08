@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.4.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: Holds API
+  version: 0.1.0
+  description: |
+    The OpenAPI document openapi.yaml, read at commit 90b8d42e10ed53d98a707ac5f5aea48c8de04bfc: every operation and component schema is a clause, every operation is written under its path citing it, every component schema of type object that an operation creates or a path with a parameter answers is an entity, and every other one a schema. What the document does not say is a question.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  openapi:
+    kind: document
+    title: Holds API
+    edition: 90b8d42e10ed53d98a707ac5f5aea48c8de04bfc
+    url: ../api/openapi.yaml
+    clauses:
+      - {clause: /paths/~1holds/post, title: POST /holds}
+      - {clause: /components/schemas/Hold, title: schema Hold}
+      - {clause: /components/schemas/HoldRequest, title: schema HoldRequest}
+      - {clause: /components/schemas/Refusal, title: schema Refusal}
+      - {clause: /components/schemas/Terms, title: schema Terms}

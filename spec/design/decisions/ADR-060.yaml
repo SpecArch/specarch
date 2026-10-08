@@ -24,7 +24,12 @@ decisions:
       schemas of one interface. A derived case reads a request body's
       required properties through a schema as it does through an entity.
       specarch generate sql writes nothing for a schema; specarch generate
-      openapi writes it under components.schemas.
+      openapi writes it under components.schemas. specarch extract openapi
+      writes a component schema of type object as an entity only when the
+      document treats it as a resource: an operation's 201 response
+      answers it, or a path with a parameter answers it as it is. Every
+      other one is a schema, with no question about its key, and inside
+      an entity a reference to one is written in place.
     why: |
       The name schemas, and the shape of an object schema, are OpenAPI's:
       components.schemas is where an OpenAPI document keeps the named
@@ -43,7 +48,17 @@ decisions:
       from the design, and a stored copy of passed-around data is a
       record, which is what an entity says. Keeping the rule narrow costs
       nothing: a schema may still refer to an entity, as a response
-      carrying a record does.
+      carrying a record does. OpenAPI never says which fields identify a
+      record, so the reader takes what the document does say: 201
+      Created means the request created a resource (RFC 9110, 15.3.2),
+      and a path parameter that selects what a response answers names
+      one record of it; a component the document creates or addresses
+      that way has an identity, and its key is asked for. A component
+      the document only passes, such as a refusal's body, has none to
+      ask for, so asking for a key would invite the made-up key this
+      decision removes. The owner chose this rule over writing every
+      component as a schema and letting merge turn it into an entity,
+      which would move every extracted tree and merge's join.
     consequences: |
       Data with a made-up key can be rewritten as a schema without a
       version change, since schemas is an addition to the 0.1 design

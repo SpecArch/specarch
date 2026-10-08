@@ -1,0 +1,15 @@
+questions:
+  Q-1:
+    question: Which permission does POST /holds check? The document gives it no security.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1holds/post/permission']
+    decidedBy: system-owner
+    why: A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.
+  Q-2:
+    question: Which fields identify one Hold, its primary key?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Hold/primaryKey']
+    decidedBy: system-owner
+    why: A schema says what a record carries, not which of its fields identify it.

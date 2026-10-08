@@ -215,9 +215,11 @@ Steps, in order:
    3.1, in YAML or JSON, with no dependency beyond the YAML library
    (ADR-049): operations, parameters, request and response schemas, as a
    document source whose clauses are the JSON pointers read. A component
-   schema of type object is an entity, its primary key a question; 3.0's
-   nullable, example and boolean exclusive bounds are written in the 3.1
-   form; a security scheme is not a permission, so every operation's
+   schema of type object is an entity, its primary key a question, when
+   an operation's 201 answers it or a path with a parameter answers it;
+   any other is a schema under `schemas`, with no key to ask for
+   (ADR-058); 3.0's nullable, example and boolean exclusive bounds are
+   written in the 3.1 form; a security scheme is not a permission, so every operation's
    permission is a question, and so is a number with no width the
    meta-model holds. What the meta-model cannot hold prints a line,
    among it a property whose name is not camelCase, since 0.1 has no
@@ -228,6 +230,7 @@ Steps, in order:
    `examples/lending-desk/sources/openapi/openapi.yaml`, has the four
    routes and a renewal the router does not serve; merged with the
    router tree it gives the summaries, responses and parameter values,
+   writes the renewal's refusal body as a schema with no key question,
    takes the permissions from the router, and asks one question naming
    `/loans/{loanId}/renew`, validated and byte-identical; CI repeats it.
    A sample document whose paths the router serves none of is reported

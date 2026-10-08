@@ -14,5 +14,6 @@ CREATE TABLE loans (
     barcode     VARCHAR(20) NOT NULL REFERENCES books (barcode),
     loaned_on   DATE NOT NULL,
     due_on      DATE NOT NULL,
-    returned_on DATE
+    returned_on DATE,
+    CONSTRAINT loans_loan_period CHECK (due_on = loaned_on + 14)
 );

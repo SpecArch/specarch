@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"go.yaml.in/yaml/v3"
+
+	"github.com/SpecArch/specarch/internal/ownership"
 )
 
 // The dxlib dialect: the document dxlib's OpenAPI reader binds
@@ -341,7 +343,7 @@ func (g *gen) generateDxlib(r *Request) Response {
 	for _, p := range sortedKeys(obj(g.spec["paths"])) {
 		item := obj(obj(g.spec["paths"])[p])
 		for _, m := range []string{"get", "put", "post", "delete", "patch"} {
-			if o, ok := item[m].(map[string]any); ok {
+			if o, ok := item[m].(map[string]any); ok && !g.owned.Covers(ownership.Operation(p, m)) {
 				ops = append(ops, op{p, m, o, item})
 			}
 		}
@@ -357,6 +359,9 @@ func (g *gen) generateDxlib(r *Request) Response {
 	comps := mapping()
 	schemas := mapping()
 	for _, name := range sortedKeys(obj(g.spec["enums"])) {
+		if g.owned.Covers(ownership.Entity("enums", name)) {
+			continue
+		}
 		e := obj(obj(g.spec["enums"])[name])
 		n := mapping()
 		add(n, "type", str("string"))
@@ -391,7 +396,10 @@ func (g *gen) generateDxlib(r *Request) Response {
 				withAudit[names[a.key]] = fm
 			}
 		}
-		schemas.Content = append(schemas.Content, str(name), g.dxSchema(map[string]any{"type": "object", "description": e["description"], "properties": withAudit, "required": e["required"]}, "/entities/"+name))
+		// An owned entity gets no schema; a view of it is still the project's.
+		if !g.owned.Covers(ownership.Entity("entities", name)) {
+			schemas.Content = append(schemas.Content, str(name), g.dxSchema(map[string]any{"type": "object", "description": e["description"], "properties": withAudit, "required": e["required"]}, "/entities/"+name))
+		}
 		// A view of the entity is its fields and the fields the view adds.
 		for _, vn := range sortedKeys(obj(g.spec["views"])) {
 			v := obj(obj(g.spec["views"])[vn])
@@ -418,7 +426,7 @@ func (g *gen) generateDxlib(r *Request) Response {
 		}
 	}
 	for _, vn := range sortedKeys(obj(g.spec["views"])) {
-		if n := viewSchemas[vn]; n != nil {
+		if n := viewSchemas[vn]; n != nil && !g.owned.Covers(ownership.Entity("views", vn)) {
 			add(schemas, vn, n)
 		}
 	}

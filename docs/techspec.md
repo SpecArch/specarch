@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.5.0-dev of the specification: 45 requirements, 3 entities, 12 commands, 6 algorithms, 246 tests, 45 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.5.0-dev of the specification: 46 requirements, 3 entities, 12 commands, 6 algorithms, 250 tests, 46 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -228,7 +228,7 @@ Primary key: path.
 | Rule | test_data | a test's fixture, input or expect names what the design does not have, carries a value of the wrong type, holds a record a check constraint refuses, or says the same thing as a data folder beside it |
 | Rule | layout | a file or a section is not where the tree layout puts it; the root file's `stages` and the folders disagree, a test folder has no `test.yaml`, or a folder is not a stage |
 | Rule | need | a requirement's `needs` names a need that does not exist |
-| Rule | stakeholder | a need's `stakeholders` names a stakeholder that does not exist |
+| Rule | stakeholder | a need's `stakeholders`, a question's `decidedBy` or a mapping's `ownedBy` names a stakeholder that does not exist |
 | Rule | source | a citation names a source that is not declared under `sources` |
 | Rule | environment | a check, an environment's `promotesTo` or an implementation's deployment names an environment that does not exist, or a deployment names none when the specification declares them |
 | Rule | setting | an implementation's deployment gives a value to a setting the specification does not declare |
@@ -706,6 +706,14 @@ and writes or checks the files itself. A plug-in that exits with
 another status, or answers with something else, fails the run with
 status 2; its standard error is passed through.
 
+An element whose mapping in the implementation file names a
+stakeholder under `ownedBy` is owned by that stakeholder: a plug-in
+that builds code or data writes nothing for it or for anything under
+its pointer, and an element that refers to it still refers to it; the
+tests target, which checks rather than builds, keeps it (ADR-046). The gate does not look
+at the mark, so a question that blocks an owned element still holds
+the target up.
+
 **Insight:** One program with verbs, and generators as plug-ins found on PATH, is the pattern of protoc, git and kubectl: one name to learn and install, one parser, one diagnostic format and one version shared by every target, and new targets added without changing the program. Letting the program write the files, as protoc does, keeps `--check` and the rule "only into its folder" true for every plug-in without each one having to implement them.
 
 **Note:** From Protocol buffers compiler plug-in protocol, plugin.proto, 2024: A plug-in reads a CodeGeneratorRequest from standard input and writes a CodeGeneratorResponse to standard output; the file names it answers are relative to the output directory, and protoc writes them. <https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto>
@@ -1056,7 +1064,8 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
 | cmd/specarch-gen-sql | The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk. | #/commands/generate |
-| internal/gensql | The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema. |   |
+| internal/gensql | The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema; an entity or view another stakeholder owns gets no statement, and the snapshot lists it as owned. |   |
+| internal/ownership | Reads the ownedBy marks of an implementation file's mappings, which every generator that builds code or data follows by leaving the owned elements out. |   |
 | internal/typerows | Matches a field to a row of a type rendering, for the validator and the generators alike. |   |
 | cmd/specarch-gen-openapi | The plug-in behind generate openapi. Reads the request on standard input, answers the OpenAPI document on standard output, and never touches the disk. | #/commands/generate |
 | internal/genopenapi | The OpenAPI 3.1 document in the standard dialect, the design field for field, with the problem catalogue and lists paged through the paginated-list idiom; and in the dxlib dialect, what dxlib's reader binds. |   |
@@ -3136,6 +3145,54 @@ which file holds an element, never what is merged.
 
 **Insight:** Comparing only where the other side was read, because a reader reads one surface, and an element missing from a tree that never looked for it says nothing about the system; asking there would bury the real gaps under ones that are not. The side from the sources a tree declares, because that is what says whether a tree was read from code, and a tree written by hand from documents declares documents. The newest edition, because it is the commit rule of every reader, the newest of the commits that last changed each path read, applied to the paths of all the trees; the check that each path is unchanged up to it, because a citation is only true for the content it was read from, and git's ancestry is what says one commit includes another. A question per key, because the owner answers one fact at a time, and the key left out, because writing either value would be choosing between the sources (docs/from-sources.md, 3.2). A boolean named for what happened to the source, given outside, rather than a kind, because a manual and an interface can both be published, and the rule asks only whether someone outside holds the project to it. Numbering in the order given, because the order is the one input a reviewer chooses and can repeat.
 
+### ADR-046: An element another stakeholder owns is marked on its mapping with ownedBy; generators leave it out and everything that checks still reads it
+
+Status: accepted, 2026-10-08.
+
+Context: A specification extracted from a running system describes all of it,
+and some of it is built by others: a table another team keeps in the
+same database, a route another service answers behind the same
+gateway. The project needs the element in its specification, since
+its own elements refer to it and its sources cite it, but must not
+generate it. One implementation file often maps elements of both
+kinds, so a mark per file or per stage is too coarse.
+
+Decision: A mapping of the implementation file takes the optional key ownedBy,
+naming a stakeholder of the specification. The element at the
+mapping's pointer, and everything under it, is then owned by that
+stakeholder. Validate reports an ownedBy that names no stakeholder of
+the specification, under the rule stakeholder, in both builds. Every
+shipped generator that writes code or data leaves an owned element
+out: sql writes no table or view for it and no statement of a later
+migration about it; openapi, in both dialects, writes no schema for
+an owned entity, enum or view and no operation for an owned
+operation, and leaves out a path whose every operation is owned;
+go-dxlib writes no handler for an owned operation and no task for an
+owned job; ui writes no page for an owned page. An element that
+refers to an owned one still refers to it: a foreign key to an owned
+table is written, a schema reference to an owned entity stays though
+the document then has no schema of that name, and go-dxlib keeps the
+table handle of an owned entity, which is how the project's code
+reads the table. The tests target keeps owned elements, since a test
+checks the running system rather than building it. The sql snapshot
+keeps an owned entity's shape and lists it under owned, so handing a
+table over writes no drop, and taking one back starts from the shape
+last described. Validate, diff, gaps and the generation gate do not
+look at the mark; the technical specification shows it beside the
+mapping, so a reader sees who owns the element.
+
+Consequences: An OpenAPI document of a project that refers to an owned entity has a
+reference that resolves only once the owner's schema is joined to it;
+the project points its tooling at both documents, or writes the
+reference's target into its own components by hand in a file that is
+not generated. A question that blocks an owned element still holds
+generation up, because the gate reads the sections a target reads,
+not who owns what in them. A plug-in outside SpecArch reads the mark
+from the implementation file's content in its request and follows the
+same rule.
+
+**Insight:** The mapping, because ownership is a fact about how one project builds the design, not about the design: two projects implementing the same specification can split it differently, and docs/principles.md keeps stack and project choices out of the design files. Per element, because the parts another team owns are rarely a whole file or a whole section. A stakeholder by name, so that the owner is someone the specification already knows and a misspelling is an error rather than a new owner. The references kept, because the owned element exists in the running system; leaving a foreign key out would let the database accept rows that point at nothing, which is what the key protects against. The checks unchanged, because the project still depends on the element: a disagreement about it, or an open question on it, matters as much as on any element the project builds.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -3214,12 +3271,15 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-no-plugin | command generate | system | red | a target this build does not have and no specarch-gen-openapi on PATH | generate openapi is run | it says there is no generator for the target and exits 2 |
 | generate-openapi | command generate | system | golden | a specification with an enum, an audited entity, a problem catalogue and a list of the entity with search, filter, sort and a page size, and an implementation file in Go whose openapi target names a security scheme; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes openapi.yaml, OpenAPI 3.1.0, with the list paged by the paginated-list names in its envelope, the 404 as a problem document, the audit fields read-only and the security scheme on the operation, and exits 0 |
 | generate-openapi-dxlib | command generate | system | golden | a specification with a list, a create with limits, a read by id answering a problem, an audited and softly deleted entity, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes the document dxlib binds: one POST per operation at /<operationId> with every parameter in its JSON body, a dxlib type on every field and the constraints dxlib does not enforce listed as unenforced, privileges, dxlib's error body and list envelope, and no security scheme, and exits 0 |
+| generate-openapi-owned | command generate | system | golden | a specification whose Author entity and the operation that reads one author the implementation file marks as owned by the catalogue team, another operation that answers an Author, and specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes openapi.yaml with no Author schema and no path for the owned operation, the other operation still referring to the Author schema, and exits 0 |
 | generate-plugin-path-outside | command generate | system | red | a plug-in that answers a path outside the output folder | generate escape is run | it refuses the path, writes nothing and exits 2 |
 | generate-plugin-reports-error | command generate | system | red | a plug-in that answers an error diagnostic | generate strict is run | it prints the diagnostic, writes nothing and exits 1 |
 | generate-refuses-open-question | command generate | system | red | a specification with a must question that blocks an entity, and specarch-gen-echo on PATH | generate echo is run | it refuses because the question blocks what the target reads, writes nothing and exits 1 |
 | generate-refuses-unapproved | command generate | system | red | a specification without open questions and without an approval record, and specarch-gen-echo on PATH | generate echo is run | it refuses because the specification is not approved, writes nothing and exits 1 |
 | generate-sql | command generate | system | golden | a specification with an enum, an audited entity with soft deletion, a unique and a check constraint, an encrypted field found by hash, and a relation, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0001_expand.sql, each column through the type-rendering rows with the enum's check, the audit and deleted columns, the hash column the unique constraint is on, the translated check and the foreign key, and snapshot.yaml beside it, and exits 0 |
 | generate-sql-expand | command generate | system | golden | the specification of generate-sql with its first migration and snapshot in the output folder, and one new field, a subtitle that may be left out; specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0002_expand.sql, which adds the subtitle column, leaves 0001_expand.sql as it was, writes the snapshot again, and exits 0 |
+| generate-sql-owned | command generate | system | golden | a specification whose Author entity the implementation file marks as owned by the catalogue team, a Book entity with a foreign key to it and a view that joins it, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes no table for Author, the books table with its foreign key to authors and the view joining authors, and a snapshot that keeps Author's shape and lists it under owned, and exits 0 |
+| generate-sql-owned-handed-over | command generate | system | golden | an output folder whose migrations created the authors and books tables, a specification that now marks Author as owned by the catalogue team and adds a field to Author and one to Book, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0002_expand.sql with the new column of books and the view made again, no statement about authors and no drop, and a snapshot that lists Author under owned, and exits 0 |
 | generate-stack-fallback | command generate | system | golden | a specification whose implementation file is in Go, with only specarch-gen-echo on PATH | generate echo is run with --unapproved | it runs specarch-gen-echo, writes its file into the output the implementation file names, and exits 0 |
 | generate-stack-plugin | command generate | system | golden | a specification whose implementation file is in Go, with specarch-gen-echo-go and specarch-gen-echo both on PATH | generate echo is run with --unapproved | it runs specarch-gen-echo-go, the plug-in for the file's stack, writes its file into the output the implementation file names, and exits 0 |
 | generate-tests-dart | command generate | system | golden | the specification of generate-tests-go, and an implementation file in Dart whose testing framework is flutter_test; specarch-gen-tests-dart built from this repository on PATH | generate tests is run with --unapproved | it writes the library of values, harness and checks and the test file beside it, both importing flutter_test: the same tests as in Go through Harness, a body to write by hand for the test with no call, the reason of the test that does not apply, a group per algorithm with a test per worked example, and exits 0 |
@@ -3317,6 +3377,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-operation | command validate | system | red | a list page whose source operation does not exist | validate is run | it reports operation and exits 1 |
 | validate-origin | command validate | system | red | elements whose origin is stated without a citation, inferred without a why, decided without a decision, with an unknown decision, with a proposed decision, or with decidedIn beside another origin or no origin, and a decision decided by another; beside two elements whose origin is right | validate is run | it reports each wrong one with origin_citation, origin_reason or origin_decision and exits 1 |
 | validate-origin-tracked | command validate | system | golden | a specification that tracks origin, with one requirement and one entity that carry none | validate is run | it warns origin_missing for each of them, and exits 0 |
+| validate-owned-by-unknown | command validate | system | red | an implementation file whose mappings mark one entity as owned by a misspelt stakeholder and another as owned by an empty name | validate is run | it reports stakeholder with the nearest stakeholder's name, and schema for the empty name, and exits 1 |
 | validate-page | command validate | system | red | a navigate action to a page that does not exist | validate is run | it reports page and exits 1 |
 | validate-page-events | command validate | system | red | pages whose events lead to a page that does not exist, to a page without its route parameter and with one it does not have, from a field the entity lacks, an onSubmitted on a view, a then on an action that navigates, and a message that is not a sentence; besides a list's onSelect and an operation's then with only a message, which are right | validate is run | it reports flow seven times, and exits 1 |
 | validate-page-states | command validate | system | red | pages with complete states, and pages whose states leave out a list's empty state, name a filtered empty state on a list without filters and an empty state on a form, give a message that is not a sentence, name a problem type the page cannot meet, leave one it can meet without a message or a default, and put a field on a view or one the form does not show | validate is run | it reports state ten times, and exits 1 |
@@ -3447,6 +3508,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-14 | A code target that specarch does not build in shall be produced by the plug-in specarch-gen-<target> found on PATH, which receives the validated specification on its standard input and answers with the files to write, so that specarch writes them, checks them and keeps them inside the target's folder. | interface | should | accepted | test | specarch generate <target> with no built-in generator and no plug-in on PATH says so and exits 2. A plug-in's answer that names a path outside the output folder is refused and nothing is written. | NEED-7 |
 | SA-15 | Every document specarch writes shall show an element's why as an Insight and each of its citations as a Note, next to the element, and shall end with the sources its Notes cite. | functional | must | accepted | test | An element with a why gets one paragraph labelled Insight, and each citation one paragraph labelled Note that names the source's title, edition, the clause and what it says. An element shown as a row of a table gets its Insight and Notes after the table, labelled with the row's name. A document whose Notes cite sources ends with a table of exactly those sources. | NEED-6 |
 | SA-16 | specarch document shall write, besides the technical specification, the requirements specification, the test plan, the traceability matrix, the deployment guide and the commissioning procedure with its sign-off sheet. | functional | must | accepted | test | Each of the five targets writes <target>.md into the folder it owns, with the generated-from header. The commissioning procedure has a Result column for every step and a sign-off sheet with a row for every signer. | NEED-3, NEED-5 |
+| SA-46 | An implementation file shall mark an element another stakeholder owns, one mapping at a time, naming that stakeholder; no generator shall write a marked element, and validate, diff, gaps and the gates shall still read it. | functional | must | accepted | test | An entity whose mapping names a stakeholder under ownedBy gets no table from generate sql and no schema from generate openapi, while a foreign key or a reference to it is still written. An operation whose mapping names a stakeholder under ownedBy gets no operation from generate openapi. validate and gaps read the marked element as before, and a question that blocks it still holds generation up. ownedBy naming no stakeholder of the specification is reported, the same in both builds. | NEED-2, NEED-8 |
 | SA-32 | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. | functional | must | accepted | test | An idiom key naming no idiom, an exclusion or override without why, an override naming an unknown part or defining one it does not list, rendering a stack that is not the file's, or changing a shipped contract statement is each reported under its rule in both builds; an override copied from an older version is warned about. A field that no row of the type rendering matches for a stack of the implementation file, such as a decimal wider than Oracle holds, is reported as idiom_contract. An override that replaces the Oracle text rows for MAX_STRING_SIZE = EXTENDED validates without a diagnostic. The shipped set holds the fifteen idioms of the first set, each statement marked with what checks it, and every one passes the idiom schema and cites only the sources it declares. | NEED-2 |
 | SA-11 | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. | functional | must | accepted | test | A tree whose root lists its stages and holds each stage's files under that folder validates. A file in the wrong folder, a section in the wrong file, a listed stage without a folder, and a folder that is not a stage are each reported as layout. | NEED-4 |
 | SA-12 | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. | functional | must | accepted | test | A specification with only a requirements stage validates with no error. A requirement no design element satisfies, a requirement no test, check or monitor verifies, and a need no requirement refines are reported as warnings once the later stage exists. | NEED-5 |
@@ -3523,6 +3585,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-15:** A reader can skip every Insight and Note and still read the document, or read only them to follow the reasoning; a label on each makes both possible.
 
 **Note on SA-16:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 7.2 and 8.3: A test plan and test case specifications are the test documentation items of a project. <https://www.iso.org/standard/79429.html>
+
+**Insight on SA-46:** A system read from its sources often holds parts another team builds and changes, such as a shared table or a service behind the same gateway; the specification must describe them, since the project's code depends on them and its sources cite them, but a project that generated them would overwrite the other team's work or fight it on every change.
 
 **Insight on SA-32:** How a decimal, a text column or a missing value is held on a stack is decided once and read by every generator and every agent; without the table each implementation file restates it in prose, each a little differently.
 
@@ -3613,6 +3677,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-43 | decisions ADR-040 | tests generate-ui |
 | SA-44 | commands extract; decisions ADR-043; decisions ADR-044 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-exit-1; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests gaps-outline-not-read |
 | SA-45 | commands merge; decisions ADR-045 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-path-changed; tests merge-source-differs; tests merge-tree-invalid; tests validate-source-given-outside |
+| SA-46 | commands generate; decisions ADR-046 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-owned-by-unknown |
 
 ## Sources
 

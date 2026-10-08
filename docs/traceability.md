@@ -2,20 +2,20 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.5.0-dev of the specification: 9 needs, 45 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.5.0-dev of the specification: 9 needs, 46 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 ## 1. Needs to requirements
 
 | Need | Status | Refined by |
 |---|---|---|
 | NEED-1 | accepted | SA-33, SA-34, SA-35, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6 |
-| NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-32, SA-9, SA-10 |
+| NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-46, SA-32, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-19 |
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-35, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
 | NEED-6 | accepted | SA-15, SA-13 |
 | NEED-7 | accepted | SA-14 |
-| NEED-8 | accepted | SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45 |
+| NEED-8 | accepted | SA-46, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45 |
 | NEED-9 | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22 |
 
 ## 2. Requirements to design and verification
@@ -67,6 +67,7 @@ Version 0.5.0-dev of the specification: 9 needs, 45 requirements, and 0 gaps. Ea
 | SA-43 | NEED-2 | decisions ADR-040 | tests generate-ui |
 | SA-44 | NEED-8 | commands extract; decisions ADR-043; decisions ADR-044 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-exit-1; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests gaps-outline-not-read |
 | SA-45 | NEED-8 | commands merge; decisions ADR-045 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-path-changed; tests merge-source-differs; tests merge-tree-invalid; tests validate-source-given-outside |
+| SA-46 | NEED-2, NEED-8 | commands generate; decisions ADR-046 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-owned-by-unknown |
 
 ## 3. Gaps
 

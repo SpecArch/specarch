@@ -21,6 +21,7 @@ not a real library's system.
 |---|---|---|
 | desk-staff | Staff at the lending desk, who register members, lend books and take them back. |   |
 | member | A card holder who borrows books. |   |
+| catalogue-team | The team that keeps the book records, which the desk only reads. |   |
 | desk-manager | The person in charge of the desk, who settles what the manual and the service should say. |   |
 
 **Origin on desk-staff:** stated in Lending desk manual, clause 2.2.
@@ -30,6 +31,10 @@ not a real library's system.
 **Origin on member:** stated in Lending desk manual, clause 2.1.
 
 **Note on member:** From Lending desk manual, 2025, clause 2.1: Anyone with a library card may borrow. <../sources/manual.md>
+
+**Origin on catalogue-team:** stated in Lending desk manual, clause 3.4.
+
+**Note on catalogue-team:** From Lending desk manual, 2025, clause 3.4: The catalogue team keeps the book records: it adds each copy with its barcode and title, and changes them. <../sources/manual.md>
 
 **Origin on desk-manager:** inferred.
 
@@ -87,7 +92,7 @@ A card holder.
 
 | Field | Type | Required | Limits | Description |
 |---|---|---|---|---|
-| cardNumber | string | yes | matches `^[0-9]{10}$` | The number printed on the card. |
+| cardNumber | string | yes | at most 10 characters, matches `^[0-9]{10}$` | The number printed on the card. |
 | fullName | string | yes | at least 1 character, at most 200 characters |   |
 
 Primary key: cardNumber.
@@ -124,7 +129,7 @@ One book lent to one member.
 | Field | Type | Required | Limits | Description |
 |---|---|---|---|---|
 | id | int64 | yes | at least 1, at most 9007199254740991, set by the system | A BIGSERIAL key, bounded so that a JSON reader keeps every digit. |
-| cardNumber | string | yes | matches `^[0-9]{10}$` |   |
+| cardNumber | string | yes | at most 10 characters, matches `^[0-9]{10}$` |   |
 | barcode | string | yes | at least 1 character, at most 20 characters |   |
 | loanedOn | date | yes | set by the system |   |
 | dueOn | date | yes | set by the system |   |
@@ -235,7 +240,7 @@ Stack: language Go 1.26.
 | Design object | Implemented by | Notes |
 |---|---|---|
 | #/entities/Member | table members, type lending.Member |   |
-| #/entities/Book | table books, type lending.Book |   |
+| #/entities/Book | table books, type lending.Book | Owned by catalogue-team, not generated. |
 | #/entities/Loan | table loans, type lending.Loan |   |
 | #/roles/desk-staff | lending.Roles, the seed of the roles table |   |
 | #/paths/~1members/post | lending.Server.RegisterMember |   |
@@ -247,6 +252,8 @@ Stack: language Go 1.26.
 
 | Target | Output folder | Settings |
 |---|---|---|
+| sql | ../../../generated/sql | dialect postgresql |
+| openapi | ../../../generated/openapi |   |
 | techspec | ../../../docs |   |
 | requirements | ../../../docs |   |
 | traceability | ../../../docs |   |

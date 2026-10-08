@@ -19,6 +19,8 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/ownership"
+
 	"github.com/SpecArch/specarch/internal/expr"
 	"github.com/SpecArch/specarch/internal/typerows"
 )
@@ -94,6 +96,7 @@ var Dialects = map[string]bool{"postgresql": true, "sqlserver": true, "oracle": 
 type gen struct {
 	spec     map[string]any
 	impl     Implementation
+	owned    ownership.Owned // elements another stakeholder owns, which get no statement
 	dialect  string
 	idioms   map[string]Idiom
 	diags    []Diagnostic
@@ -116,6 +119,7 @@ func Generate(r *Request) Response {
 	if g.dialect == "" {
 		g.dialect = "postgresql"
 	}
+	g.owned = ownership.Of(g.impl.Content)
 	if !Dialects[g.dialect] {
 		return g.fail("/", "%s is not a SQL dialect specarch-gen-sql writes; it writes postgresql, sqlserver, oracle and mariadb", g.dialect)
 	}
@@ -280,6 +284,21 @@ func (g *gen) snapshot() string {
 		}
 		s["views"] = kept // only when there are views, so a schema without any keeps its snapshot
 	}
+	// The owned entities and views keep their shape above, so taking one
+	// back starts from it, and are listed here, so the next migration
+	// neither alters nor drops them; only when there are any, so a schema
+	// without any keeps its snapshot.
+	owned := map[string]any{}
+	for _, section := range []string{"entities", "views"} {
+		for name := range obj0(g.spec[section]) {
+			if ptr := ownership.Entity(section, name); g.owned.Covers(ptr) {
+				owned[ptr] = true
+			}
+		}
+	}
+	if len(owned) > 0 {
+		s["owned"] = sortedKeys(owned)
+	}
 	var b bytes.Buffer
 	enc := yaml.NewEncoder(&b)
 	enc.SetIndent(2)
@@ -397,6 +416,9 @@ func (g *gen) tables() []table {
 	entities := obj0(g.spec["entities"])
 	var out []table
 	for _, name := range sortedKeys(entities) {
+		if g.owned.Covers(ownership.Entity("entities", name)) {
+			continue
+		}
 		out = append(out, g.table(name, obj0(entities[name])))
 	}
 	return out

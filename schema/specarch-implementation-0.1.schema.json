@@ -366,6 +366,11 @@
           "type": "string",
           "minLength": 1
         },
+        "ownedBy": {
+          "description": "SpecArch keyword. The stakeholder of the specification that owns the element, when it is not this project: another team, a vendor or a shared service. The specification still describes the element, and validate, diff, gaps and the gates still read it, but no generator that builds code or data writes it (the tests target, which checks, keeps it), and an element that refers to it, such as a foreign key or a schema reference, still refers to it.",
+          "type": "string",
+          "minLength": 1
+        },
         "description": {
           "$ref": "#/$defs/markdown"
         },

@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an implementation file whose mappings mark one entity as owned by a misspelt stakeholder and another as owned by an empty name"
+when: "validate is run"
+then: "it reports stakeholder with the nearest stakeholder's name, and schema for the empty name, and exits 1"
+verifies: [SA-46]

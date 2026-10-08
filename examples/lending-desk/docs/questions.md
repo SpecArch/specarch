@@ -4,7 +4,7 @@
 
 Version 0.1.0 of the specification: 5 open questions (2 must, 3 should, 0 could). A must question holds up everything that reads what it blocks; a should question holds up code generation and approval until the stakeholder confirms what was inferred; a could question holds up nothing. Each is answered by the stakeholder named, with a decision record that names the question under answers; the question is then removed.
 
-Elements by origin: 18 stated, 4 inferred, 0 decided, 0 without origin.
+Elements by origin: 19 stated, 4 inferred, 0 decided, 0 without origin.
 
 ## 1. Requirements
 
@@ -82,7 +82,7 @@ What each source's sections produced: the elements that cite a clause, or the cl
 
 ### Lending desk manual (desk-manual)
 
-2 clauses of 9 produced nothing.
+2 clauses of 10 produced nothing.
 
 | Clause | Title | Produced |
 |---|---|---|
@@ -92,6 +92,7 @@ What each source's sections produced: the elements that cite a clause, or the cl
 | 3.1 | Lending a book | #/entities/Book, #/paths/~1loans/post, #/requirements/LEND-2 |
 | 3.2 | The five-book limit | #/requirements/LEND-3 |
 | 3.3 | The loan period | #/entities/Loan, #/questions/Q-1, #/requirements/LEND-4 |
+| 3.4 | The book records | #/stakeholders/catalogue-team, mapping of #/entities/Book |
 | 4.1 | Renewals | #/paths/~1loans~1{loanId}~1renew/post, #/questions/Q-4, #/requirements/LEND-5 |
 | 5.1 | Returns | #/paths/~1loans~1{loanId}~1return/post, #/requirements/LEND-6 |
 | 6 | Opening hours | nothing |
@@ -119,7 +120,8 @@ What can be made from the specification now. A document is a draft while a must 
 | traceability document | draft | Q-5, Q-1, Q-2, Q-3 |
 | deployment document | ready | |
 | commissioning document | ready | |
-| code generation | waits | Q-5, Q-1, Q-2, Q-3, Q-4; not approved: there is no records/approvals/0.1.0.yaml beside the specification |
+| code target openapi | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
+| code target sql | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 
 ## Sources
 

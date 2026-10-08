@@ -29,6 +29,7 @@ sources:
       - { clause: "3.1", title: Lending a book }
       - { clause: "3.2", title: The five-book limit }
       - { clause: "3.3", title: The loan period }
+      - { clause: "3.4", title: The book records }
       - { clause: "4.1", title: Renewals }
       - { clause: "5.1", title: Returns }
       - { clause: "6", title: Opening hours }

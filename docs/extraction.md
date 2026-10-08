@@ -169,15 +169,23 @@ Steps, in order:
    errors, `specarch gaps` reads, and a second run writes byte for byte;
    CI repeats it. A release tag after this step lets the first project
    use the database and router readers.
-5. A mark on an element that the project describes and compares but does
-   not generate, naming the stakeholder that owns it: on the element's
-   mapping in the implementation file, one element at a time, since one
-   file often holds a single part another team owns; an optional key in
-   the 0.1 implementation schema. Generators skip it; the comparisons and
-   the gates still check it. Done when the lending desk marks one entity
-   as owned by another stakeholder, `generate sql` and `generate openapi`
-   leave it out while `validate` and `gaps` still read it, and a mark
-   naming no stakeholder is a validation error in both builds.
+5. Built. A mark on an element that the project describes and compares
+   but does not generate, naming the stakeholder that owns it: `ownedBy`
+   on the element's mapping in the implementation file, one element at a
+   time, since one file often holds a single part another team owns; an
+   optional key in the 0.1 implementation schema (ADR-046). Generators
+   that build code or data skip it and everything under its pointer, and
+   still write what refers to it, such as a foreign key; the tests target
+   keeps it, since a test checks rather than builds. The comparisons and
+   the gates still check it, and the technical specification names the
+   owner beside the mapping. The SQL snapshot keeps an owned table's shape
+   and lists it as owned, so handing a table over writes no drop. The
+   lending desk's manual gives the book records to the catalogue team,
+   whose mapping of Book says so: `generate sql` and `generate openapi`
+   leave Book out, the loans table keeps its foreign key to books, and
+   `validate` and `gaps` read Book as before; CI runs both generators
+   twice and compares. A mark naming no stakeholder is the error
+   `stakeholder` in both builds.
 6. The documents reader, `extract documents`, for Markdown. The source
    gets its outline as clauses: every heading, and the page or slide where
    the format has them. A sentence that makes a commitment (shall, must,

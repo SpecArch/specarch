@@ -41,6 +41,14 @@ commands:
       and writes or checks the files itself. A plug-in that exits with
       another status, or answers with something else, fails the run with
       status 2; its standard error is passed through.
+
+      An element whose mapping in the implementation file names a
+      stakeholder under `ownedBy` is owned by that stakeholder: a plug-in
+      that builds code or data writes nothing for it or for anything under
+      its pointer, and an element that refers to it still refers to it; the
+      tests target, which checks rather than builds, keeps it (ADR-046). The gate does not look
+      at the mark, so a question that blocks an owned element still holds
+      the target up.
     permission: public
     arguments:
       - name: target
@@ -79,7 +87,7 @@ commands:
       "1": a specification has an error, an open question blocks what the target reads, the specification is not approved, the plug-in reported an error, or with `--check` the output differs
       "2": usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-14, SA-20, SA-31]
+    satisfies: [SA-7, SA-8, SA-14, SA-20, SA-31, SA-46]
     why: |
       One program with verbs, and generators as plug-ins found on PATH, is
       the pattern of protoc, git and kubectl: one name to learn and install,

@@ -159,7 +159,6 @@ func deploymentMonitors(d *doc, dep *yaml.Node) {
 	d.blank()
 }
 
-
 func stepsTable(d *doc, steps *yaml.Node) {
 	list := itemsOf(steps)
 	if len(list) == 0 {
@@ -222,7 +221,13 @@ func implementation(d *doc, impl *yaml.Node, idioms []IdiomUse) {
 		d.line("| Design object | Implemented by | Notes |")
 		d.line("|---|---|---|")
 		for _, m := range maps {
-			d.line("| %s | %s | %s |", m.Key.Value, cell(str(m.Value, "target")), cell(str(m.Value, "description")))
+			notes := str(m.Value, "description")
+			if by := str(m.Value, "ownedBy"); by != "" {
+				// An element another stakeholder owns is described here and
+				// generated nowhere (ADR-046).
+				notes = strings.TrimSpace("Owned by " + by + ", not generated. " + notes)
+			}
+			d.line("| %s | %s | %s |", m.Key.Value, cell(str(m.Value, "target")), cell(notes))
 		}
 		d.blank()
 	}

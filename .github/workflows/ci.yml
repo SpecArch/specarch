@@ -50,6 +50,26 @@ jobs:
           go run ./cmd/specarch validate "$RUNNER_TEMP/merged-one"
           status=0; go run ./cmd/specarch gaps "$RUNNER_TEMP/merged-one" > "$RUNNER_TEMP/gaps.txt" || status=$?
           test "$status" -eq 1 && grep -q '8 open questions (8 must' "$RUNNER_TEMP/gaps.txt"
+      - name: The lending desk's SQL and OpenAPI leave out the book records another team owns, the same twice
+        # Book's mapping names the catalogue team under ownedBy: no table
+        # and no schema for it, the loans table's foreign key to books
+        # kept, and validate and gaps still reading Book.
+        run: |
+          go build -o "$RUNNER_TEMP/bin/specarch-gen-sql" ./cmd/specarch-gen-sql
+          go build -o "$RUNNER_TEMP/bin/specarch-gen-openapi" ./cmd/specarch-gen-openapi
+          export PATH="$RUNNER_TEMP/bin:$PATH"
+          for run in one two; do
+            go run ./cmd/specarch generate sql --unapproved --out "$RUNNER_TEMP/owned-$run/sql" examples/lending-desk || exit 1
+            go run ./cmd/specarch generate openapi --unapproved --out "$RUNNER_TEMP/owned-$run/openapi" examples/lending-desk || exit 1
+          done
+          diff -r "$RUNNER_TEMP/owned-one" "$RUNNER_TEMP/owned-two"
+          if grep -q 'CREATE TABLE books' "$RUNNER_TEMP/owned-one/sql/0001_expand.sql"; then echo "books was generated"; exit 1; fi
+          grep -q 'CREATE TABLE loans' "$RUNNER_TEMP/owned-one/sql/0001_expand.sql"
+          grep -q 'REFERENCES books (barcode)' "$RUNNER_TEMP/owned-one/sql/0001_expand.sql"
+          if grep -q '^    Book:$' "$RUNNER_TEMP/owned-one/openapi/openapi.yaml"; then echo "the Book schema was generated"; exit 1; fi
+          grep -q '^    Loan:$' "$RUNNER_TEMP/owned-one/openapi/openapi.yaml"
+          status=0; go run ./cmd/specarch gaps examples/lending-desk > "$RUNNER_TEMP/owned-gaps.txt" || status=$?
+          test "$status" -eq 1 && grep -q '#/entities/Book' "$RUNNER_TEMP/owned-gaps.txt"
       - name: Generated documents are current
         # examples/lending-desk is a partial specification written from
         # sources and configures only the four documents an owner reads

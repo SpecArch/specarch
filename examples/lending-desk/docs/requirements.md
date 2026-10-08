@@ -2,7 +2,7 @@
 
 # Lending Desk: requirements specification
 
-Version 0.1.0 of the specification: 3 stakeholders, 0 needs and 7 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.1.0 of the specification: 4 stakeholders, 0 needs and 7 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Draft:** 3 open questions concern this document (Q-1, Q-2, Q-3); see the open questions document, or run specarch gaps.
 
@@ -21,6 +21,7 @@ not a real library's system.
 |---|---|---|
 | desk-staff | Staff at the lending desk, who register members, lend books and take them back. |   |
 | member | A card holder who borrows books. |   |
+| catalogue-team | The team that keeps the book records, which the desk only reads. |   |
 | desk-manager | The person in charge of the desk, who settles what the manual and the service should say. |   |
 
 **Origin on desk-staff:** stated in Lending desk manual, clause 2.2.
@@ -30,6 +31,10 @@ not a real library's system.
 **Origin on member:** stated in Lending desk manual, clause 2.1.
 
 **Note on member:** From Lending desk manual, 2025, clause 2.1: Anyone with a library card may borrow. <../sources/manual.md>
+
+**Origin on catalogue-team:** stated in Lending desk manual, clause 3.4.
+
+**Note on catalogue-team:** From Lending desk manual, 2025, clause 3.4: The catalogue team keeps the book records: it adds each copy with its barcode and title, and changes them. <../sources/manual.md>
 
 **Origin on desk-manager:** inferred.
 

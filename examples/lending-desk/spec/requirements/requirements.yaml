@@ -9,6 +9,11 @@ stakeholders:
     origin: stated
     cites:
       - { source: desk-manual, clause: "2.1", says: "Anyone with a library card may borrow." }
+  catalogue-team:
+    description: The team that keeps the book records, which the desk only reads.
+    origin: stated
+    cites:
+      - { source: desk-manual, clause: "3.4", says: "The catalogue team keeps the book records: it adds each copy with its barcode and title, and changes them." }
   desk-manager:
     description: The person in charge of the desk, who settles what the manual and the service should say.
     origin: inferred

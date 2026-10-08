@@ -74,6 +74,15 @@ status, or answers with anything else, fails the run with status 2; its
 standard error is passed through. The request and answer structs are in
 `cmd/specarch/generate.go`.
 
+A plug-in that builds code or data leaves out every element another
+stakeholder owns: one whose mapping in an implementation file of the
+request names a stakeholder under `ownedBy`, and everything under its
+pointer (`docs/conventions.md`, ADR-046). It still writes what refers to
+an owned element, such as a foreign key to an owned table. The shipped
+plug-ins read the marks through `internal/ownership`. A plug-in that
+writes tests keeps owned elements, since a test checks the running system
+rather than building it.
+
 ## Markdown technical specification
 
 `specarch document techspec` writes `techspec.md` for a specification: the
@@ -263,6 +272,12 @@ writes one new numbered forward migration, and updates the snapshot in the
 same run. The snapshot is committed with the migration. A migration that has
 been applied anywhere is never regenerated or edited: regenerating it would
 change history that a database has already recorded.
+
+An entity or a view another stakeholder owns gets no table or view and no
+statement in any migration; a foreign key to it is still written. The
+snapshot keeps its shape and lists its pointer under `owned`, so marking a
+table that this project created as owned hands it over without a drop,
+and taking one back starts from the shape the specification last gave it.
 
 A destructive step (dropping a column or a table, narrowing a type) is
 emitted only when asked for, by the target setting `destructive: true`, and

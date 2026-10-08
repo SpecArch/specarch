@@ -153,7 +153,7 @@ enums:
       suite: an implementation's test suite names a design test or subject that does not exist
       layout: a file or a section is not where the tree layout puts it; the root file's `stages` and the folders disagree, a test folder has no `test.yaml`, or a folder is not a stage
       need: a requirement's `needs` names a need that does not exist
-      stakeholder: a need's `stakeholders` names a stakeholder that does not exist
+      stakeholder: a need's `stakeholders`, a question's `decidedBy` or a mapping's `ownedBy` names a stakeholder that does not exist
       source: a citation names a source that is not declared under `sources`
       environment: a check, an environment's `promotesTo` or an implementation's deployment names an environment that does not exist, or a deployment names none when the specification declares them
       setting: an implementation's deployment gives a value to a setting the specification does not declare

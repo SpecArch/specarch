@@ -1,0 +1,62 @@
+decisions:
+  ADR-046:
+    title: An element another stakeholder owns is marked on its mapping with ownedBy; generators leave it out and everything that checks still reads it
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      A specification extracted from a running system describes all of it,
+      and some of it is built by others: a table another team keeps in the
+      same database, a route another service answers behind the same
+      gateway. The project needs the element in its specification, since
+      its own elements refer to it and its sources cite it, but must not
+      generate it. One implementation file often maps elements of both
+      kinds, so a mark per file or per stage is too coarse.
+    decision: |
+      A mapping of the implementation file takes the optional key ownedBy,
+      naming a stakeholder of the specification. The element at the
+      mapping's pointer, and everything under it, is then owned by that
+      stakeholder. Validate reports an ownedBy that names no stakeholder of
+      the specification, under the rule stakeholder, in both builds. Every
+      shipped generator that writes code or data leaves an owned element
+      out: sql writes no table or view for it and no statement of a later
+      migration about it; openapi, in both dialects, writes no schema for
+      an owned entity, enum or view and no operation for an owned
+      operation, and leaves out a path whose every operation is owned;
+      go-dxlib writes no handler for an owned operation and no task for an
+      owned job; ui writes no page for an owned page. An element that
+      refers to an owned one still refers to it: a foreign key to an owned
+      table is written, a schema reference to an owned entity stays though
+      the document then has no schema of that name, and go-dxlib keeps the
+      table handle of an owned entity, which is how the project's code
+      reads the table. The tests target keeps owned elements, since a test
+      checks the running system rather than building it. The sql snapshot
+      keeps an owned entity's shape and lists it under owned, so handing a
+      table over writes no drop, and taking one back starts from the shape
+      last described. Validate, diff, gaps and the generation gate do not
+      look at the mark; the technical specification shows it beside the
+      mapping, so a reader sees who owns the element.
+    consequences: |
+      An OpenAPI document of a project that refers to an owned entity has a
+      reference that resolves only once the owner's schema is joined to it;
+      the project points its tooling at both documents, or writes the
+      reference's target into its own components by hand in a file that is
+      not generated. A question that blocks an owned element still holds
+      generation up, because the gate reads the sections a target reads,
+      not who owns what in them. A plug-in outside SpecArch reads the mark
+      from the implementation file's content in its request and follows the
+      same rule.
+    why: |
+      The mapping, because ownership is a fact about how one project builds
+      the design, not about the design: two projects implementing the same
+      specification can split it differently, and docs/principles.md keeps
+      stack and project choices out of the design files. Per element,
+      because the parts another team owns are rarely a whole file or a
+      whole section. A stakeholder by name, so that the owner is someone
+      the specification already knows and a misspelling is an error rather
+      than a new owner. The references kept, because the owned element
+      exists in the running system; leaving a foreign key out would let the
+      database accept rows that point at nothing, which is what the key
+      protects against. The checks unchanged, because the project still
+      depends on the element: a disagreement about it, or an open question
+      on it, matters as much as on any element the project builds.
+    satisfies: [SA-46]

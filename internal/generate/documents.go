@@ -749,4 +749,3 @@ func stateMachines(d *doc, root *yaml.Node, state *State) {
 		d.blank()
 	}
 }
-

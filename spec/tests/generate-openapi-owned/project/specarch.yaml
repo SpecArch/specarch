@@ -1,0 +1,68 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+  catalogue-team: { description: The team that keeps the authors. }
+entities:
+  Author:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      name: { type: string, maxLength: 200 }
+    required: [id, name]
+    primaryKey: [id]
+  Book:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      authorId: { type: string, format: uuid }
+      title: { type: string, maxLength: 300 }
+    required: [id, authorId, title]
+    primaryKey: [id]
+    relations:
+      author: { target: Author, kind: many-to-one, via: authorId, onDelete: restrict }
+permissions:
+  books.read: { description: See books and their authors. }
+roles:
+  desk: { description: The desk., permissions: [books.read] }
+paths:
+  /books/{bookId}:
+    parameters:
+      - { name: bookId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getBook
+      summary: One book
+      permission: books.read
+      responses:
+        "200":
+          description: The book.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Book" }
+  /authors/{authorId}:
+    parameters:
+      - { name: authorId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getAuthor
+      summary: One author
+      permission: books.read
+      responses:
+        "200":
+          description: The author.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Author" }
+  /books/{bookId}/author:
+    parameters:
+      - { name: bookId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getBookAuthor
+      summary: The author of one book
+      permission: books.read
+      responses:
+        "200":
+          description: The book's author.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Author" }

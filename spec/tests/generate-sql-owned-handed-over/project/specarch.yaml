@@ -1,0 +1,32 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+  catalogue-team: { description: The team that keeps the authors. }
+entities:
+  Author:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      name: { type: string, maxLength: 200 }
+      born: { type: [integer, "null"], format: int32 }
+    required: [id, name]
+    primaryKey: [id]
+  Book:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      authorId: { type: string, format: uuid }
+      title: { type: string, maxLength: 300 }
+      subtitle: { type: [string, "null"], maxLength: 300 }
+    required: [id, authorId, title]
+    primaryKey: [id]
+    relations:
+      author: { target: Author, kind: many-to-one, via: authorId, onDelete: restrict }
+views:
+  BookWithAuthor:
+    from: Book
+    description: A book with its author's name.
+    properties:
+      authorName: { path: author.name }

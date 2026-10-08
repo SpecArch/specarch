@@ -25,6 +25,10 @@ barcode.
 
 3.3 The loan period is 21 days. The due date is printed on the slip.
 
+3.4 The catalogue team keeps the book records: it adds each copy with its
+barcode and title, and changes them. The desk reads them and never edits
+them.
+
 ## 4 Renewals
 
 4.1 A member may renew a loan once, for one more loan period, by asking at

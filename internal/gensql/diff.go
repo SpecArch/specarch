@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"go.yaml.in/yaml/v3"
+
+	"github.com/SpecArch/specarch/internal/ownership"
 )
 
 // The differ: what changed between the snapshot of the last migration and
@@ -53,6 +55,9 @@ func (g *gen) diff(prevText string) *steps {
 	var fks []string
 	for _, name := range sortedKeys(ce) {
 		e := obj0(ce[name])
+		if ownedIn(cur, "entities", name) {
+			continue // another stakeholder changes it
+		}
 		if pe[name] == nil {
 			t := g.table(name, obj0(obj0(g.spec["entities"])[name]))
 			s.add(strings.TrimSuffix(t.create(g.dialect), ";\n"))
@@ -66,7 +71,7 @@ func (g *gen) diff(prevText string) *steps {
 		fks = append(fks, g.diffEntity(s, name, obj0(pe[name]), e, obj0(prev["enums"]), obj0(cur["enums"]))...)
 	}
 	for _, name := range sortedKeys(pe) {
-		if ce[name] == nil {
+		if ce[name] == nil && !ownedIn(prev, "entities", name) {
 			s.remove("DROP TABLE "+g.tableNameOf(name, pm), "drop the table of "+name)
 		}
 	}
@@ -95,6 +100,17 @@ func (g *gen) diff(prevText string) *steps {
 		s.contract = append(append(dropNew, s.contract...), creates...)
 	}
 	return s
+}
+
+// ownedIn reports whether a snapshot lists an entity or a view as owned by
+// another stakeholder.
+func ownedIn(snapshot map[string]any, section, name string) bool {
+	for _, ptr := range list(snapshot["owned"]) {
+		if text(ptr) == ownership.Entity(section, name) {
+			return true
+		}
+	}
+	return false
 }
 
 // tableNameOf is an entity's table as the snapshot's mappings name it.

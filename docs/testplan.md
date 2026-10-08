@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.5.0-dev of the specification: 246 design tests, 85 golden and 161 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.5.0-dev of the specification: 250 design tests, 88 golden and 162 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 242 |
+| system | 246 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -631,6 +631,14 @@ Scenario: golden; level: system; verifies SA-39.
 - When: generate openapi is run with --unapproved
 - Then: it writes the document dxlib binds: one POST per operation at /<operationId> with every parameter in its JSON body, a dxlib type on every field and the constraints dxlib does not enforce listed as unenforced, privileges, dxlib's error body and list envelope, and no security scheme, and exits 0
 
+#### generate-openapi-owned
+
+Scenario: golden; level: system; verifies SA-46.
+
+- Given: a specification whose Author entity and the operation that reads one author the implementation file marks as owned by the catalogue team, another operation that answers an Author, and specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved
+- Then: it writes openapi.yaml with no Author schema and no path for the owned operation, the other operation still referring to the Author schema, and exits 0
+
 #### generate-plugin-path-outside
 
 Scenario: red; level: system; covers exit 2; verifies SA-7, SA-14.
@@ -678,6 +686,22 @@ Scenario: golden; level: system; verifies SA-38.
 - Given: the specification of generate-sql with its first migration and snapshot in the output folder, and one new field, a subtitle that may be left out; specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved
 - Then: it writes 0002_expand.sql, which adds the subtitle column, leaves 0001_expand.sql as it was, writes the snapshot again, and exits 0
+
+#### generate-sql-owned
+
+Scenario: golden; level: system; verifies SA-46.
+
+- Given: a specification whose Author entity the implementation file marks as owned by the catalogue team, a Book entity with a foreign key to it and a view that joins it, and specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved
+- Then: it writes no table for Author, the books table with its foreign key to authors and the view joining authors, and a snapshot that keeps Author's shape and lists it under owned, and exits 0
+
+#### generate-sql-owned-handed-over
+
+Scenario: golden; level: system; verifies SA-46.
+
+- Given: an output folder whose migrations created the authors and books tables, a specification that now marks Author as owned by the catalogue team and adds a field to Author and one to Book, and specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved
+- Then: it writes 0002_expand.sql with the new column of books and the view made again, no statement about authors and no drop, and a snapshot that lists Author under owned, and exits 0
 
 #### generate-stack-fallback
 
@@ -1463,6 +1487,14 @@ Scenario: golden; level: system; verifies SA-18.
 - When: validate is run
 - Then: it warns origin_missing for each of them, and exits 0
 
+#### validate-owned-by-unknown
+
+Scenario: red; level: system; covers exit 1; verifies SA-46.
+
+- Given: an implementation file whose mappings mark one entity as owned by a misspelt stakeholder and another as owned by an empty name
+- When: validate is run
+- Then: it reports stakeholder with the nearest stakeholder's name, and schema for the empty name, and exits 1
+
 #### validate-page
 
 Scenario: red; level: system; covers exit 1.
@@ -2035,7 +2067,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-135 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+139 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2118,6 +2150,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-15 | acceptance 3 | golden | SA-15 names no harm |
 | requirement SA-16 | acceptance 1 | golden | SA-16 names no harm |
 | requirement SA-16 | acceptance 2 | golden | SA-16 names no harm |
+| requirement SA-46 | acceptance 1 | golden | SA-46 names no harm |
+| requirement SA-46 | acceptance 2 | golden | SA-46 names no harm |
+| requirement SA-46 | acceptance 3 | golden | SA-46 names no harm |
+| requirement SA-46 | acceptance 4 | golden | SA-46 names no harm |
 | requirement SA-32 | acceptance 1 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 2 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 3 | golden | SA-32 names no harm |

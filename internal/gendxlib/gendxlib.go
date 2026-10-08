@@ -19,6 +19,7 @@ import (
 	"unicode"
 
 	"github.com/SpecArch/specarch/internal/genopenapi"
+	"github.com/SpecArch/specarch/internal/ownership"
 )
 
 // FileName is the file the plug-in writes in the target's folder.
@@ -26,8 +27,11 @@ const FileName = "specarch_dxlib.go"
 
 // Generate writes the Go of a request.
 func Generate(r *genopenapi.Request) genopenapi.Response {
-	g := &gen{spec: r.Specification, root: r.Root, imports: map[string]bool{}}
+	g := &gen{spec: r.Specification, root: r.Root, imports: map[string]bool{}, owned: ownership.Owned{}}
 	for _, impl := range r.Implementations {
+		for ptr, by := range ownership.Of(impl.Content) {
+			g.owned[ptr] = by
+		}
 		if s := impl.Settings; s != nil && g.settings == nil {
 			g.settings = s
 			g.mappings = obj(impl.Content["mappings"])
@@ -98,6 +102,7 @@ func Generate(r *genopenapi.Request) genopenapi.Response {
 type gen struct {
 	spec, settings, entities map[string]any
 	mappings                 map[string]any
+	owned                    ownership.Owned // operations and jobs another stakeholder owns get no code
 	root, db                 string
 	diags                    []genopenapi.Diagnostic
 	imports                  map[string]bool
@@ -303,7 +308,7 @@ func (g *gen) operations() []operation {
 	for _, p := range sortedKeys(paths) {
 		item := obj(paths[p])
 		for _, m := range []string{"get", "put", "post", "delete", "patch"} {
-			if op := obj(item[m]); op != nil {
+			if op := obj(item[m]); op != nil && !g.owned.Covers(ownership.Operation(p, m)) {
 				out = append(out, operation{id: text(op["operationId"]), path: p, method: m, node: op, item: item})
 			}
 		}
@@ -748,6 +753,9 @@ func (g *gen) tasks() {
 	jobs := obj(g.spec["jobs"])
 	var repeating []string
 	for _, name := range sortedKeys(jobs) {
+		if g.owned.Covers(ownership.Entity("jobs", name)) {
+			continue
+		}
 		trigger := obj(obj(jobs[name])["trigger"])
 		if text(trigger["every"]) == "" {
 			g.problem("warning", "/jobs/"+name, "dxlib's tasks run once or repeat after a delay, so job %s, started by a schedule or a message, is the service's to start", name)

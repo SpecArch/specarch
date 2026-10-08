@@ -1,0 +1,7 @@
+command: generate
+level: system
+scenario: golden
+given: "a specification whose Author entity and the operation that reads one author the implementation file marks as owned by the catalogue team, another operation that answers an Author, and specarch-gen-openapi built from this repository on PATH"
+when: "generate openapi is run with --unapproved"
+then: "it writes openapi.yaml with no Author schema and no path for the owned operation, the other operation still referring to the Author schema, and exits 0"
+verifies: [SA-46]

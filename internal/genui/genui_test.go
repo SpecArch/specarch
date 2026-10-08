@@ -106,3 +106,24 @@ func TestRefusals(t *testing.T) {
 		}
 	}
 }
+
+// TestOwned checks that a page another stakeholder owns gets no files,
+// while the other pages are written as before.
+func TestOwned(t *testing.T) {
+	resp := Generate(request(t, func(_, content map[string]any) {
+		mappings, _ := content["mappings"].(map[string]any)
+		if mappings == nil {
+			mappings = map[string]any{}
+			content["mappings"] = mappings
+		}
+		mappings["#/pages/loans-list"] = map[string]any{"target": "the circulation team's screen", "ownedBy": "librarian"}
+	}))
+	var paths []string
+	for _, f := range resp.Files {
+		paths = append(paths, f.Path)
+	}
+	got := strings.Join(paths, " ")
+	if strings.Contains(got, "loans-list") || !strings.Contains(got, "members-list.html") {
+		t.Errorf("want the members list without the owned loans list, got %s and %v", got, resp.Diagnostics)
+	}
+}

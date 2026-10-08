@@ -24,10 +24,12 @@ mappings:
       - { source: desk-code, clause: "lending/model.go:14", says: "type Member." }
   "#/entities/Book":
     target: table books, type lending.Book
+    ownedBy: catalogue-team
     origin: stated
     cites:
       - { source: desk-code, clause: "migrations/001_init.sql:6", says: "CREATE TABLE books." }
       - { source: desk-code, clause: "lending/model.go:20", says: "type Book." }
+      - { source: desk-manual, clause: "3.4", says: "The catalogue team keeps the book records; the desk reads them and never edits them." }
   "#/entities/Loan":
     target: table loans, type lending.Loan
     origin: stated
@@ -61,6 +63,15 @@ mappings:
       - { source: desk-code, clause: "lending/routes.go:19", says: "The route." }
 
 targets:
+  # The SQL and the OpenAPI document are generated only to check them, by
+  # CI with --out; the service keeps its own hand-written migration.
+  sql:
+    output: ../../../generated/sql
+    dialect: postgresql
+    reads: [entities, enums]
+  openapi:
+    output: ../../../generated/openapi
+    reads: [entities, enums, paths, permissions, roles]
   techspec:
     output: ../../../docs
   requirements:

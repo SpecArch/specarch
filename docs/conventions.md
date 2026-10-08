@@ -95,7 +95,7 @@ and nothing else: the language and toolchain with versions (`stack`), every
 library with its version and licence (`libraries`), the package layout and
 the design objects each package implements (`layout`), how each design
 object maps onto the stack (`mappings`, each of which may carry `why`,
-`cites` and `origin` like any element), the framework per interface kind
+`cites` and `origin` like any element, and `ownedBy`, below), the framework per interface kind
 (`bindings`), the document and code targets with their folders and settings
 (`targets`), build, test and CI commands (`tasks`), the test suites with
 their levels (`testing`), the shipped idioms it excludes or overrides, each
@@ -122,6 +122,29 @@ change is noticed by every implementation of it.
 Targets read the specification for the design and the implementation file
 for the target choices: which folder a target owns, the settings of the
 code generator that follows it, the type a decimal maps to.
+
+An element another stakeholder owns, such as a table another team keeps
+in the same database or a route another service answers behind the same
+gateway, is marked on its mapping with `ownedBy`, naming a stakeholder of
+the specification:
+
+```yaml
+mappings:
+  "#/entities/Book":
+    target: table books
+    ownedBy: catalogue-team
+```
+
+The specification still describes the element: validate, diff, gaps, the
+documents and the generation gate read it as they read any other, and so
+do the generated tests, which check the running system. No generator that
+builds code or data writes it, nor anything under its pointer; an element that
+refers to it, such as a foreign key or a schema reference, still refers
+to it. The mark is per mapping because the parts another team owns are
+rarely a whole file, and it sits in the implementation file because who
+builds what is a choice of one implementation, not part of the design
+(ADR-046). An `ownedBy` that names no stakeholder is the error
+`stakeholder`.
 
 ### The interface boundary
 
@@ -420,6 +443,7 @@ redefined.
 | `monitors`, `objective` | SpecArch, after ISO/IEC/IEEE 12207 6.4.12 | the operation stage: what is watched on the live system |
 | `testing`, `suites`, `designTests`, `designTestsOf`, `implementationOnly` | SpecArch | in implementation files: how one stack runs the design tests |
 | `stack`, `targets`, `deployments`, `environment` (of a deployment) | SpecArch | in implementation files: the stack, the output folders per target, and where the system really runs |
+| `ownedBy` | SpecArch | in implementation files: on a mapping, the stakeholder that owns an element the project describes but does not generate |
 
 ### Traceability links
 

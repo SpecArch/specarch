@@ -1,0 +1,19 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+  catalogue-team: { description: The team that keeps the books. }
+entities:
+  Book:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+    required: [id]
+    primaryKey: [id]
+  Shelf:
+    type: object
+    properties:
+      code: { type: string, maxLength: 8 }
+    required: [code]
+    primaryKey: [code]

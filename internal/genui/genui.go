@@ -17,6 +17,8 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/SpecArch/specarch/internal/ownership"
 )
 
 // Request is what specarch writes on a plug-in's standard input.
@@ -139,8 +141,12 @@ func Generate(r *Request) Response {
 	var files []File
 	var events []event
 	pages := obj0(g.spec["pages"])
+	owned := ownership.Of(g.impl.Content)
 	for _, name := range sortedKeys(pages) {
 		pg := obj0(pages[name])
+		if owned.Covers(ownership.Entity("pages", name)) {
+			continue // another stakeholder's page; a link to it stays
+		}
 		if text(pg["kind"]) != "list" {
 			g.problem("warning", "/pages/"+name, "%s is a %s, and this version of specarch-gen-ui writes lists only; it is left out", name, text(pg["kind"]))
 			continue

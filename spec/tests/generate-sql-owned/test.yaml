@@ -1,0 +1,7 @@
+command: generate
+level: system
+scenario: golden
+given: "a specification whose Author entity the implementation file marks as owned by the catalogue team, a Book entity with a foreign key to it and a view that joins it, and specarch-gen-sql built from this repository on PATH"
+when: "generate sql is run with --unapproved"
+then: "it writes no table for Author, the books table with its foreign key to authors and the view joining authors, and a snapshot that keeps Author's shape and lists it under owned, and exits 0"
+verifies: [SA-46]

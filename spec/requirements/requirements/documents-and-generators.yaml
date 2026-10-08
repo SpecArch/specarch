@@ -69,3 +69,16 @@ requirements:
       - source: iso-29119-3
         clause: "7.2 and 8.3"
         says: "A test plan and test case specifications are the test documentation items of a project."
+  SA-46:
+    statement: An implementation file shall mark an element another stakeholder owns, one mapping at a time, naming that stakeholder; no generator shall write a marked element, and validate, diff, gaps and the gates shall still read it.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - An entity whose mapping names a stakeholder under ownedBy gets no table from generate sql and no schema from generate openapi, while a foreign key or a reference to it is still written.
+      - An operation whose mapping names a stakeholder under ownedBy gets no operation from generate openapi.
+      - validate and gaps read the marked element as before, and a question that blocks it still holds generation up.
+      - ownedBy naming no stakeholder of the specification is reported, the same in both builds.
+    verification: test
+    needs: [NEED-2, NEED-8]
+    why: A system read from its sources often holds parts another team builds and changes, such as a shared table or a service behind the same gateway; the specification must describe them, since the project's code depends on them and its sources cite them, but a project that generated them would overwrite the other team's work or fight it on every change.

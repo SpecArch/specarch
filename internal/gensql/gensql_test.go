@@ -416,3 +416,40 @@ func TestViewRefusals(t *testing.T) {
 		t.Errorf("the count through Shelving is wrong:\n%s", sql)
 	}
 }
+
+// own marks an entity of a request as owned by another stakeholder.
+func own(r *Request, entity string) {
+	mappings, _ := r.Implementations[0].Content["mappings"].(map[string]any)
+	if mappings == nil {
+		mappings = map[string]any{}
+		r.Implementations[0].Content["mappings"] = mappings
+	}
+	m, _ := mappings["#/entities/"+entity].(map[string]any)
+	if m == nil {
+		m = map[string]any{"target": "table " + snake(entity) + "s"}
+		mappings["#/entities/"+entity] = m
+	}
+	m["ownedBy"] = "librarian"
+}
+
+// TestOwned checks that an owned entity gets no table, its foreign keys
+// stay, the snapshot lists it, and handing a table over later writes no
+// statement about it.
+func TestOwned(t *testing.T) {
+	r := request(t, "postgresql")
+	own(r, "Member")
+	resp := Generate(r)
+	sql, snap := file(resp, "0001_expand.sql"), file(resp, SnapshotName)
+	if strings.Contains(sql, "CREATE TABLE members") || !strings.Contains(sql, "REFERENCES members") || !strings.Contains(snap, "owned:\n  - '#/entities/Member'") {
+		t.Errorf("want no members table, a key to it and the snapshot listing it, got %v\n%s\n%s", resp.Diagnostics, sql, snap)
+	}
+	r = request(t, "postgresql", firstSnapshot(t, "postgresql"), File{Path: "0001_expand.sql", Content: "..."})
+	own(r, "Member")
+	props := r.Specification["entities"].(map[string]any)["Member"].(map[string]any)["properties"].(map[string]any)
+	props["nickname"] = map[string]any{"type": []any{"string", "null"}, "maxLength": json.Number("40")}
+	delete(props, "email")
+	resp = Generate(r)
+	if len(resp.Diagnostics) > 0 || len(resp.Files) != 1 || resp.Files[0].Path != SnapshotName {
+		t.Errorf("handing members over should write only the snapshot, got %v and %v", resp.Files, resp.Diagnostics)
+	}
+}

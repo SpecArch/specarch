@@ -99,6 +99,9 @@ func (c *checker) checkImplementation(s *spec.Spec, load Loader) {
 	}
 	for _, p := range source.Pairs(source.Child(c.root, "mappings")) {
 		c.checkDesignRef(s.Root, p.Key, p.Key.Value, source.Pointer("mappings", p.Key.Value), rel)
+		if by := source.Child(p.Value, "ownedBy"); by != nil && by.Value != "" && d.stakeholders[by.Value] == nil {
+			c.add(by, source.Pointer("mappings", p.Key.Value, "ownedBy"), RuleStakeholder, "%s is not a stakeholder of the specification%s", by.Value, suggest(by.Value, d.stakeholders))
+		}
 	}
 	decisions := map[string]*yaml.Node{}
 	for k, v := range d.decisions {

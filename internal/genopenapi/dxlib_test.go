@@ -174,3 +174,25 @@ func TestDxlibViews(t *testing.T) {
 		t.Error("listLoans does not sort by member_name")
 	}
 }
+
+// TestDxlibOwned checks that the dxlib dialect leaves out an owned
+// operation and an owned entity's schema.
+func TestDxlibOwned(t *testing.T) {
+	r := request(t, "../../spec/tests/generate-openapi-dxlib/project")
+	content := r.Implementations[0].Content
+	mappings, _ := content["mappings"].(map[string]any)
+	if mappings == nil {
+		mappings = map[string]any{}
+		content["mappings"] = mappings
+	}
+	mappings["#/paths/~1books/post"] = map[string]any{"target": "another service", "ownedBy": "owner"}
+	mappings["#/entities/Book"] = map[string]any{"target": "another team's table", "ownedBy": "owner"}
+	resp := Generate(r)
+	if len(resp.Files) != 1 {
+		t.Fatalf("got %v", resp.Diagnostics)
+	}
+	doc := resp.Files[0].Content
+	if strings.Contains(doc, "/createBook") || !strings.Contains(doc, "/listBooks") || strings.Contains(doc, "\n    Book:\n") {
+		t.Errorf("want listBooks without createBook and without the Book schema:\n%s", doc)
+	}
+}

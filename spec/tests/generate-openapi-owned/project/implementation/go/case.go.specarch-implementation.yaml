@@ -1,0 +1,12 @@
+specarchImplementation: "0.1"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+mappings:
+  "#/entities/Author": { target: the catalogue's authors, ownedBy: catalogue-team }
+  "#/paths/~1authors~1{authorId}/get": { target: the catalogue service, ownedBy: catalogue-team }
+targets:
+  openapi:
+    output: ../../../out
+    settings:
+      securityScheme: { name: bearerAuth, type: http, scheme: bearer }

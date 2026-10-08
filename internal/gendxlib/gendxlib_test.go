@@ -29,6 +29,14 @@ func generate(t *testing.T) genopenapi.Response {
 // specification.
 func generateWith(t *testing.T, change func(specification map[string]any)) genopenapi.Response {
 	t.Helper()
+	return generateOwning(t, change, nil)
+}
+
+// generateOwning runs the generator on the fixture after a change to its
+// specification, with the mappings at the pointers given marked as owned
+// by another stakeholder.
+func generateOwning(t *testing.T, change func(specification map[string]any), owned []string) genopenapi.Response {
+	t.Helper()
 	s := spec.Load(fixture)
 	if len(s.Problems) > 0 {
 		t.Fatalf("the fixture does not load: %v", s.Problems)
@@ -45,6 +53,16 @@ func generateWith(t *testing.T, change func(specification map[string]any)) genop
 	}
 	content := source.ValueOf(root).(map[string]any)
 	settings := content["targets"].(map[string]any)["go-dxlib"].(map[string]any)["settings"]
+	if len(owned) > 0 {
+		mappings, _ := content["mappings"].(map[string]any)
+		if mappings == nil {
+			mappings = map[string]any{}
+			content["mappings"] = mappings
+		}
+		for _, ptr := range owned {
+			mappings[ptr] = map[string]any{"target": "another team's", "ownedBy": "owner"}
+		}
+	}
 	change(s.Value.(map[string]any))
 	data, err := json.Marshal(map[string]any{"specarch": "0.1", "target": "go-dxlib", "root": filepath.ToSlash(s.RootFile),
 		"specification": s.Value, "output": filepath.Join(fixture, "..", "testdata"),
@@ -180,5 +198,25 @@ func TestListView(t *testing.T) {
 	})
 	if len(resp.Diagnostics) != 1 || !strings.Contains(resp.Diagnostics[0].Message, "through itself and through the view BookRow") && !strings.Contains(resp.Diagnostics[0].Message, "through the view BookRow and through itself") {
 		t.Errorf("a list of Book and a list of its view should be refused, got %v", resp.Diagnostics)
+	}
+}
+
+// TestOwned checks that an owned operation gets no handler and an owned
+// job no task, while the other operations and the table handles stay.
+func TestOwned(t *testing.T) {
+	r := generateOwning(t, func(map[string]any) {}, []string{"#/paths/~1books/post", "#/jobs/sweepWithdrawn", "#/entities/Book"})
+	if len(r.Files) != 1 {
+		t.Fatalf("got %d files and %v", len(r.Files), r.Diagnostics)
+	}
+	code := r.Files[0].Content
+	for _, gone := range []string{`"createBook"`, "func CreateBook", "sweepWithdrawn", "SweepWithdrawn"} {
+		if strings.Contains(code, gone) {
+			t.Errorf("the owned element is still written: %s", gone)
+		}
+	}
+	for _, kept := range []string{`"listBooks"`, `"getBook"`, "\tBook *tables."} {
+		if !strings.Contains(code, kept) {
+			t.Errorf("%s is missing", kept)
+		}
 	}
 }

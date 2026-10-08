@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+
+	"github.com/SpecArch/specarch/internal/ownership"
 )
 
 // Views: each view of the specification becomes a SQL view, written after
@@ -35,6 +37,9 @@ func (g *gen) createViews() []string {
 	views := obj0(g.spec["views"])
 	var out []string
 	for _, name := range sortedKeys(views) {
+		if g.owned.Covers(ownership.Entity("views", name)) {
+			continue
+		}
 		if stmt := g.createView(name); stmt != "" {
 			out = append(out, stmt)
 		}
@@ -273,11 +278,17 @@ func (g *gen) staleViews(prev, cur map[string]any) (drop []string, create []stri
 		return false
 	}
 	for _, name := range sortedKeys(pv) {
+		if ownedIn(prev, "views", name) || ownedIn(cur, "views", name) {
+			continue
+		}
 		if stale(name, obj0(pv[name]), pe) {
 			drop = append(drop, "DROP VIEW "+viewName(name, pm))
 		}
 	}
 	for _, name := range sortedKeys(cv) {
+		if ownedIn(prev, "views", name) || ownedIn(cur, "views", name) {
+			continue
+		}
 		if stale(name, obj0(cv[name]), ce) {
 			create = append(create, name)
 		}

@@ -15,6 +15,8 @@ import (
 	"strings"
 
 	"go.yaml.in/yaml/v3"
+
+	"github.com/SpecArch/specarch/internal/ownership"
 )
 
 // Request is what specarch writes on a plug-in's standard input.
@@ -100,12 +102,16 @@ type gen struct {
 	scheme    string // the security scheme's name, or ""
 	paramName map[string]string
 	envName   map[string]string
+	owned     ownership.Owned // elements another stakeholder owns, which the document leaves out
 }
 
 // Generate writes the OpenAPI document of a request.
 func Generate(r *Request) Response {
-	g := &gen{spec: r.Specification, root: r.Root}
+	g := &gen{spec: r.Specification, root: r.Root, owned: ownership.Owned{}}
 	for _, impl := range r.Implementations {
+		for ptr, by := range ownership.Of(impl.Content) {
+			g.owned[ptr] = by
+		}
 		if g.settings == nil && impl.Settings != nil {
 			g.settings = impl.Settings
 		}
@@ -174,10 +180,19 @@ func (g *gen) paths() *yaml.Node {
 		if params := list(item["parameters"]); len(params) > 0 {
 			add(node, "parameters", g.parameters(params))
 		}
+		ops, owned := 0, 0
 		for _, method := range []string{"get", "put", "post", "delete", "patch"} {
 			if op, ok := item[method].(map[string]any); ok {
+				ops++
+				if g.owned.Covers(ownership.Operation(p, method)) {
+					owned++
+					continue
+				}
 				add(node, method, g.operation(p, method, op))
 			}
+		}
+		if ops > 0 && owned == ops {
+			continue // every operation of the path is another stakeholder's
 		}
 		add(out, p, node)
 	}
@@ -363,15 +378,13 @@ func (g *gen) components() *yaml.Node {
 	enums := obj(g.spec["enums"])
 	entities := obj(g.spec["entities"])
 	var names []string
-	for k := range enums {
-		names = append(names, k)
-	}
-	for k := range entities {
-		names = append(names, k)
-	}
 	views := obj(g.spec["views"])
-	for k := range views {
-		names = append(names, k)
+	for section, m := range map[string]map[string]any{"enums": enums, "entities": entities, "views": views} {
+		for k := range m {
+			if !g.owned.Covers(ownership.Entity(section, k)) {
+				names = append(names, k)
+			}
+		}
 	}
 	sort.Strings(names)
 	for _, name := range names {

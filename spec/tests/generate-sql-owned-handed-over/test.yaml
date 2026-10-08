@@ -1,0 +1,7 @@
+command: generate
+level: system
+scenario: golden
+given: "an output folder whose migrations created the authors and books tables, a specification that now marks Author as owned by the catalogue team and adds a field to Author and one to Book, and specarch-gen-sql built from this repository on PATH"
+when: "generate sql is run with --unapproved"
+then: "it writes 0002_expand.sql with the new column of books and the view made again, no statement about authors and no drop, and a snapshot that lists Author under owned, and exits 0"
+verifies: [SA-46]

@@ -127,6 +127,9 @@ extension Checker {
         }
         for p in pairs(root.child("mappings")) {
             checkDesignRef(specRoot, p.key, p.key.value, pointer("mappings", p.key.value))
+            if let by = p.value.child("ownedBy"), !by.value.isEmpty, d.stakeholders[by.value] == nil {
+                add(by, pointer("mappings", p.key.value, "ownedBy"), .stakeholder, "\(by.value) is not a stakeholder of the specification\(suggest(by.value, d.stakeholders))")
+            }
         }
         var decisions = d.decisions
         for p in pairs(root.child("decisions")) { decisions[p.key.value] = p.value }

@@ -101,6 +101,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case state = "state"
     case accessibility = "accessibility"
     case theme = "theme"
+    case workflow = "workflow"
 }
 
 /// Whether a diagnostic makes the file invalid.

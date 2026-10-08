@@ -41,6 +41,18 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-5]
     why: What runs at night or on a queue is the part of a system nobody watches, and the part a test plan forgets; written in the design, its tests follow from it like an operation's.
+  SA-47:
+    statement: A specification shall be able to declare workflows, requests that finish after people approve them, as a sequential subset of BPMN 2.0, with the operation that starts each, the entity that holds the request while it waits, and approval and operation steps in order; specarch validate shall check each against the design, and a workflow shall be a subject of tests whose cases include the requester approving their own request.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A trigger that is not an operation or does not answer 202, a subject that is not an entity, an approver that is not a role or does not grant the approval's permission, an approval's permission that is the trigger's, a role granting both the trigger's and an approval's permission while a separation-of-duties set holds the pair, an operation step naming no operation, an escalation to a step that is not a later approval, an approval deadline of zero and two steps with one name are each reported as workflow, and an approval's undeclared permission as permission_undeclared, the same in both builds.
+      - A test may name a workflow as its subject, and a workflow gets the approved path as its golden case, and the cases refused at each approval, each deadline passing, the requester approving their own request, which is critical whatever the harm, and an approval by someone without its permission.
+      - The techspec draws each workflow as a flowchart of its steps, with each deadline on the edge it takes.
+    verification: test
+    needs: [NEED-1, NEED-5]
+    why: An approval that lives only in an external engine's configuration, or in prose, cannot be checked against the roles and permissions of the design, and the rule most worth testing, that nobody approves their own request, is the one a hand-written test plan forgets.
   SA-36:
     statement: specarch generate openapi shall write, through a plug-in, the OpenAPI 3.1 document of a specification in the standard dialect, with the problem catalogue as the error responses and every list expanded through the paginated-list idiom that applies, so that a standard OpenAPI code generator can write the server interface from it.
     kind: functional

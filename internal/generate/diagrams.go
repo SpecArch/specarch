@@ -397,3 +397,50 @@ func flowFlowchart(flow *yaml.Node) string {
 	}
 	return fence(b.String())
 }
+
+// workflowFlowchart draws a workflow as its steps in order: each approval
+// with its approvers and permission, the refusal that ends the request,
+// the deadline on the edge it takes, and each operation the system calls.
+func workflowFlowchart(w *yaml.Node) string {
+	steps := items(w, "steps")
+	if len(steps) == 0 {
+		return ""
+	}
+	var b strings.Builder
+	b.WriteString("flowchart LR\n")
+	fmt.Fprintf(&b, "  start([\"%s answers 202\"])\n", mermaidText(str(w, "trigger")))
+	index := map[string]int{}
+	refused := false
+	for i, st := range steps {
+		index[str(st, "name")] = i
+		if str(st, "kind") == "approval" {
+			refused = true
+			fmt.Fprintf(&b, "  s%d[\"%s: %s with %s\"]\n", i, mermaidText(str(st, "name")), mermaidText(strings.Join(strs(st, "approvers"), ", ")), mermaidText(str(st, "permission")))
+		} else {
+			fmt.Fprintf(&b, "  s%d[[\"%s\"]]\n", i, mermaidText(str(st, "operation")))
+		}
+	}
+	b.WriteString("  done((\"approved\"))\n")
+	if refused {
+		b.WriteString("  refused((\"refused\"))\n")
+	}
+	b.WriteString("  start --> s0\n")
+	for i, st := range steps {
+		next := "done"
+		if i+1 < len(steps) {
+			next = fmt.Sprintf("s%d", i+1)
+		}
+		if str(st, "kind") != "approval" {
+			fmt.Fprintf(&b, "  s%d --> %s\n", i, next)
+			continue
+		}
+		fmt.Fprintf(&b, "  s%d -->|\"approved\"| %s\n", i, next)
+		fmt.Fprintf(&b, "  s%d -->|\"refused\"| refused\n", i)
+		late := "refused"
+		if to, ok := index[str(st, "escalateTo")]; ok && str(st, "onDeadline") == "escalate" {
+			late = fmt.Sprintf("s%d", to)
+		}
+		fmt.Fprintf(&b, "  s%d -->|\"%s passes\"| %s\n", i, mermaidText(str(st, "deadline")), late)
+	}
+	return fence(b.String())
+}

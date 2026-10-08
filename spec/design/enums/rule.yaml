@@ -104,6 +104,7 @@ enums:
       - state
       - accessibility
       - theme
+      - workflow
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: the file is not well-formed YAML
@@ -203,4 +204,5 @@ enums:
       state: "a page's states leave out the empty state a list shows or the filtered empty state its filters can reach, name one it cannot reach, leave a problem type the page can meet without a message and without a default, name a problem type it cannot meet, put a field on a page that is not a form or that the form does not show, or give a message that is not a full sentence"
       accessibility: "once the specification names its accessibility target, a field a page shows has no title, or two actions of a page share a label"
       theme: "a design token has no type, a type SpecArch does not take, or a value not of its type, an alias names no token or one of another type or leads back to itself, a mode gives a token that does not exist, or a pair of colours is translucent or has less contrast than WCAG 2.2 asks of its use"
-    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42]
+      workflow: "a workflow's trigger is not an operation or does not answer 202, its subject is not an entity, an approver is not a role or does not grant the approval's permission, an approval's permission is the trigger's, a role grants both the trigger's and an approval's permission while a separation-of-duties set holds the pair, an approval's deadline is zero, an operation step names no operation, an escalation does not name a later approval step, or two steps share a name"
+    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47]

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a workflow whose subject is not an entity, whose approver does not grant the approval's permission or is not a role, whose approval checks the trigger's permission with a deadline of zero and escalates to a step that is not a later approval, with two steps of one name and an operation step naming no operation; a workflow started by an operation that does not answer 202 whose approval checks an undeclared permission; and one started by an operation that does not exist"
+when: "validate is run"
+then: "it reports workflow eleven times and permission_undeclared once, and exits 1"
+verifies: [SA-47]

@@ -2,7 +2,7 @@
 
 # Library Lending: requirements specification
 
-Version 0.1.0 of the specification: 3 stakeholders, 4 needs and 7 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.1.0 of the specification: 3 stakeholders, 4 needs and 8 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 ## 1. Purpose and scope
 
@@ -29,7 +29,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | We need to know who has which copy and when it is due, without a card index. | librarian | accepted | LIB-1, LIB-3, LIB-7 |
-| NEED-2 | We need late fees to be charged the same way for every member, as the policy says. | librarian, library-board | accepted | LIB-5 |
+| NEED-2 | We need late fees to be charged the same way for every member, as the policy says. | librarian, library-board | accepted | LIB-5, LIB-8 |
 | NEED-3 | Members need to browse the catalogue without logging in, and to see only their own records when they do. | member, library-board | accepted | LIB-2, LIB-6 |
 | NEED-4 | Members need to be told when a loan becomes overdue. | member | accepted | LIB-4 |
 
@@ -50,6 +50,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | LIB-5 | functional | must | accepted | A late return shall be charged a flat daily rate, capped at the book's replacement cost. |
 | LIB-6 | quality | must | accepted | A member shall see only their own loans and fees. |
 | LIB-7 | quality | should | accepted | A desk task shall take a librarian under a minute, in one screen. |
+| LIB-8 | functional | must | accepted | A late fee above the desk's limit shall be waived only after a second person, not the one who asked, approves it. |
 
 ### LIB-1
 
@@ -133,6 +134,19 @@ Kind: quality; priority: should; status: accepted; verified by demonstration; re
 Acceptance criteria:
 
 - Registering a member and lending a book each take one form and one submit.
+
+### LIB-8
+
+A late fee above the desk's limit shall be waived only after a second person, not the one who asked, approves it.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-2.
+
+Acceptance criteria:
+
+- A waiver a librarian asks for is approved by a desk supervisor before the fee is waived.
+- A waiver nobody answers within three days is refused.
+
+**Insight:** A fee waived by the person who asked for it is money the library loses with nobody having looked; a second person is the control the board asks for.
 
 ## 5. Constraints
 

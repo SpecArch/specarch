@@ -13,7 +13,7 @@ let designKeys: Set<String> = [
     "properties", "primaryKey", "stateField", "messages", "payload",
     "calls", "idempotencyKey", "guard", "validity",
     "sensitivity", "atRest", "lookup", "audited", "deletion",
-    "listOf", "limits", "problem", "errors", "jobs", "menus",
+    "listOf", "limits", "problem", "errors", "jobs", "menus", "workflows",
     "views", "count",
 ]
 

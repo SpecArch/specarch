@@ -105,7 +105,7 @@
       "pattern": "^x-(oapi-codegen|ogen|openapi-generator|codegen|protoc|grpc|go|java|kotlin|python|typescript|javascript|rust|swift|dotnet|csharp|php|ruby|framework|router|middleware|cli-library|server|servers|host|port|deploy|deployment|environment)(-|$)"
     },
     "test": {
-      "description": "SpecArch keyword. One test scenario. Exactly one subject: operation, command, page, requirement, or entity, alone for its state machine or with one constraint or transition. In a folder tree it is the content of tests/<name>/test.yaml.",
+      "description": "SpecArch keyword. One test scenario. Exactly one subject: operation, command, page, job, flow, workflow, requirement, or entity, alone for its state machine or with one constraint or transition. In a folder tree it is the content of tests/<name>/test.yaml.",
       "type": "object",
       "properties": {
         "operation": {
@@ -124,6 +124,11 @@
         "job": {
           "description": "The job the test is about.",
           "$ref": "#/$defs/memberName"
+        },
+        "workflow": {
+          "description": "The workflow the test is about.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
         },
         "flow": {
           "description": "The flow the test walks.",
@@ -335,6 +340,11 @@
         {
           "required": [
             "job"
+          ]
+        },
+        {
+          "required": [
+            "workflow"
           ]
         },
         {

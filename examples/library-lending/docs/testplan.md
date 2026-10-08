@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 119 design tests, 35 golden and 83 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 133 design tests, 38 golden and 94 red, about 35 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -10,8 +10,8 @@ Version 0.1.0 of the specification: 119 design tests, 35 golden and 83 red, abou
 
 | Level | Design tests |
 |---|---|
-| acceptance | 4 |
-| system | 115 |
+| acceptance | 9 |
+| system | 124 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -264,6 +264,56 @@ Scenario: red; level: system; covers fullName shorter than 1 character, fullName
 - Given: a librarian
 - When: createMember is called with an empty fullName and with a 201-character one
 - Then: both are refused as invalid input
+
+### Workflow fee-waiver
+
+#### fee-waiver
+
+Scenario: golden; level: acceptance; verifies LIB-8.
+
+- Given: a librarian, a desk supervisor, and a loan with a late fee of 3.50
+- When: the librarian asks for the fee to be waived and the desk supervisor approves the request
+- Then: requestFeeWaiver answers 202, waiveFee is called once, the late fee is 0.00, and the request ends approved
+
+#### fee-waiver-approval-without-permission
+
+Scenario: red; level: acceptance; covers approval without fees.approve; verifies LIB-8.
+
+- Given: a request to waive a fee, and a second librarian, who does not hold fees.approve
+- When: the second librarian approves it
+- Then: it is refused as not allowed, and the request still waits for a desk supervisor
+
+#### fee-waiver-deadline-passes
+
+Scenario: red; level: acceptance; covers deadline passes at approve; verifies LIB-8.
+
+- Given: a request to waive a fee, waiting for a desk supervisor
+- When: three days pass with no answer
+- Then: the request ends refused, waiveFee is not called, and the fee still stands
+
+**Origin:** inferred.
+
+**Insight:** Drafted by specarch derive, since a deadline passing is a case nobody tries by hand, then completed by hand; a request must not wait for ever.
+
+#### fee-waiver-refused
+
+Scenario: red; level: acceptance; covers refused at approve; verifies LIB-8.
+
+- Given: a request to waive a fee of 3.50, waiting for a desk supervisor
+- When: the desk supervisor refuses it
+- Then: the request ends refused, waiveFee is not called, and the fee still stands
+
+#### fee-waiver-requester-approves-own-request
+
+Scenario: red; level: acceptance; covers requester approves own request; verifies LIB-8.
+
+- Given: a desk supervisor who also works the desk and holds fees.request, and a request to waive a fee they asked for themselves
+- When: they approve their own request
+- Then: it is refused, the request still waits for another desk supervisor, and waiveFee is not called
+
+**Origin:** inferred.
+
+**Insight:** Drafted by specarch derive, since the four-eyes rule holds on every approval, then completed by hand; it is the one case the workflow exists for.
 
 ### Requirement LIB-3
 
@@ -937,6 +987,48 @@ Scenario: red; level: system; covers not found loanId, loanId not a valid uuid.
 - When: reportLost is called with an id no loan has and again with abc
 - Then: the first is refused as not found and the second as invalid input
 
+### Operation requestFeeWaiver
+
+#### request-fee-waiver
+
+Scenario: golden; level: system; verifies LIB-8.
+
+- Given: a librarian, and a loan returned seven days late with a late fee of 3.50
+- When: requestFeeWaiver is called for it with amount 3.50 and the reason "The book drop was closed for repairs."
+- Then: it answers 202 with the request, which waits for a desk supervisor, and the fee still stands
+
+#### request-fee-waiver-bad-input
+
+Scenario: red; level: system; covers missing amount, missing reason, amount not a valid decimal, loanId not a valid uuid.
+
+- Given: a librarian
+- When: requestFeeWaiver is called without amount, without reason, with amount three, and for loanId abc
+- Then: each is refused as invalid input, and no request is made
+
+#### request-fee-waiver-denied
+
+Scenario: red; level: system; covers denied without fees.request.
+
+- Given: a member, who does not hold fees.request
+- When: requestFeeWaiver is called for one of their own loans
+- Then: it is refused as not allowed, and no request is made
+
+#### request-fee-waiver-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session.
+
+- Given: a librarian whose session expired after half an hour without a request
+- When: requestFeeWaiver is called
+- Then: it is refused as not signed in, and no request is made
+
+#### request-fee-waiver-unknown-loan
+
+Scenario: red; level: system; covers not found loanId.
+
+- Given: a librarian and no loan with a given id
+- When: requestFeeWaiver is called for that id
+- Then: it is refused as not found, and no request is made
+
 ### Operation returnLoan
 
 #### return-already-closed
@@ -1055,6 +1147,40 @@ Scenario: red; level: system; covers fails with sign-in-refused.
 - When: the page sign-in is submitted
 - Then: it shows beside the password: The email address or the password is wrong.
 
+### Operation waiveFee
+
+#### waive-fee
+
+Scenario: golden; level: system; verifies LIB-8.
+
+- Given: a fee-waiver request for 3.50 that a desk supervisor has approved
+- When: waiveFee is called for it
+- Then: it answers 200, and the loan's late fee is 0.00
+
+#### waive-fee-denied
+
+Scenario: red; level: system; covers denied without fees.approve.
+
+- Given: a librarian, who does not hold fees.approve, and an approved request
+- When: waiveFee is called for it
+- Then: it is refused as not allowed, and the fee still stands
+
+#### waive-fee-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session.
+
+- Given: a desk supervisor whose session expired after half an hour without a request
+- When: waiveFee is called
+- Then: it is refused as not signed in, and the fee still stands
+
+#### waive-fee-unknown-waiver
+
+Scenario: red; level: system; covers waiverId not a valid uuid, not found waiverId.
+
+- Given: a desk supervisor and no request with a given id
+- When: waiveFee is called with waiverId abc, and with that id
+- Then: the first is refused as invalid input and the second as not found
+
 ## 3. State machines
 
 Each entity with a state field is a state machine. A path runs from a state no move reaches to one no move leaves; a test about the entity alone walks one, and names it under covers. A path with no test is listed under the derived cases left out, or warned about when it moves through a transition that satisfies a requirement with a harm.
@@ -1082,7 +1208,7 @@ stateDiagram-v2
 
 ## 4. Derived cases left out
 
-38 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+44 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1103,6 +1229,10 @@ stateDiagram-v2
 | operation returnLoan | response 503 | red | occasional case, and operation returnLoan satisfies no requirement with a harm |
 | operation reportLost | guard precondition fails | red | occasional case, and operation reportLost satisfies no requirement with a harm |
 | operation reportLost | response 503 | red | occasional case, and operation reportLost satisfies no requirement with a harm |
+| operation requestFeeWaiver | reason shorter than 1 character | red | occasional case, and operation requestFeeWaiver satisfies no requirement with a harm |
+| operation requestFeeWaiver | reason of 1 character | golden | occasional case, and operation requestFeeWaiver satisfies no requirement with a harm |
+| operation requestFeeWaiver | reason longer than 500 characters | red | occasional case, and operation requestFeeWaiver satisfies no requirement with a harm |
+| operation requestFeeWaiver | reason of 500 characters | golden | occasional case, and operation requestFeeWaiver satisfies no requirement with a harm |
 | job markOverdue | an item fails every try | red | occasional case, and job markOverdue satisfies no requirement with a harm |
 | page loan-form | fails with lending-refused | red | occasional case, and page loan-form satisfies no requirement with a harm |
 | page loans-list | empty | golden | occasional case, and page loans-list satisfies no requirement with a harm |
@@ -1124,6 +1254,8 @@ stateDiagram-v2
 | requirement LIB-5 | acceptance 2 | golden | LIB-5 names no harm |
 | requirement LIB-6 | acceptance 1 | golden | LIB-6 names no harm |
 | requirement LIB-7 | acceptance 1 | golden | LIB-7 names no harm |
+| requirement LIB-8 | acceptance 1 | golden | LIB-8 names no harm |
+| requirement LIB-8 | acceptance 2 | golden | LIB-8 names no harm |
 
 The checks run on the installed system before it is handed over are in the commissioning procedure.
 

@@ -7,4 +7,6 @@ permissions:
   loans.create: { description: Lend a copy to a member. }
   loans.return: { description: Record a return or a lost copy. }
   loans.writeoff: { description: "Write off a copy recorded as lost, closing its loan without a return." }
+  fees.request: { description: Ask for a late fee to be waived. }
+  fees.approve: { description: Approve or refuse a request to waive a late fee. }
   public: { description: "Open to everyone, including visitors without a card.", satisfies: [LIB-2] }

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: waiveFee
+level: system
+scenario: golden
+given: a fee-waiver request for 3.50 that a desk supervisor has approved
+when: waiveFee is called for it
+then: it answers 200, and the loan's late fee is 0.00
+verifies: [LIB-8]

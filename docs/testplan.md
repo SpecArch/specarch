@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 273 design tests, 102 golden and 171 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 275 design tests, 103 golden and 172 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 269 |
+| system | 271 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2223,6 +2223,22 @@ Scenario: golden; level: system; verifies SA-41.
 - When: validate is run
 - Then: it reports no error, and exits 0
 
+#### validate-workflow
+
+Scenario: red; level: system; covers exit 1; verifies SA-47.
+
+- Given: a workflow whose subject is not an entity, whose approver does not grant the approval's permission or is not a role, whose approval checks the trigger's permission with a deadline of zero and escalates to a step that is not a later approval, with two steps of one name and an operation step naming no operation; a workflow started by an operation that does not answer 202 whose approval checks an undeclared permission; and one started by an operation that does not exist
+- When: validate is run
+- Then: it reports workflow eleven times and permission_undeclared once, and exits 1
+
+#### validate-workflow-valid
+
+Scenario: golden; level: system; verifies SA-47.
+
+- Given: a workflow of two approvals, the first escalating to the second after a day, and an operation step, with a test of the requester approving their own request
+- When: validate is run
+- Then: it reports no error, counts the test as covering the four-eyes case, warns that no test covers the approved path, a refusal and the deadline at each approval and an approval without each permission, among the others, and exits 0
+
 #### validate-yaml-syntax
 
 Scenario: red; level: system; covers exit 1; verifies SA-6.
@@ -2251,7 +2267,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-141 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+144 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2283,6 +2299,9 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-34 | acceptance 4 | golden | SA-34 names no harm |
 | requirement SA-35 | acceptance 1 | golden | SA-35 names no harm |
 | requirement SA-35 | acceptance 2 | golden | SA-35 names no harm |
+| requirement SA-47 | acceptance 1 | golden | SA-47 names no harm |
+| requirement SA-47 | acceptance 2 | golden | SA-47 names no harm |
+| requirement SA-47 | acceptance 3 | golden | SA-47 names no harm |
 | requirement SA-36 | acceptance 1 | golden | SA-36 names no harm |
 | requirement SA-36 | acceptance 2 | golden | SA-36 names no harm |
 | requirement SA-36 | acceptance 3 | golden | SA-36 names no harm |

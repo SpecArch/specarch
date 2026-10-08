@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+workflow: fee-waiver
+level: acceptance
+scenario: golden
+given: a librarian, a desk supervisor, and a loan with a late fee of 3.50
+when: the librarian asks for the fee to be waived and the desk supervisor approves the request
+then: requestFeeWaiver answers 202, waiveFee is called once, the late fee is 0.00, and the request ends approved
+verifies: [LIB-8]

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a workflow of two approvals, the first escalating to the second after a day, and an operation step, with a test of the requester approving their own request"
+when: "validate is run"
+then: "it reports no error, counts the test as covering the four-eyes case, warns that no test covers the approved path, a refusal and the deadline at each approval and an approval without each permission, among the others, and exits 0"
+verifies: [SA-47]

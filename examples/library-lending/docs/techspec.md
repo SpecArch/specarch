@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 7 requirements, 3 entities, 10 HTTP operations, 2 channels, 1 dependency, 7 pages, 1 flow, 1 algorithm, 119 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 8 requirements, 4 entities, 12 HTTP operations, 2 channels, 1 dependency, 7 pages, 1 flow, 1 workflow, 1 algorithm, 133 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -60,6 +60,8 @@ The interfaces the system offers, as its clients see them.
 | POST /loans | createLoan | Lend a copy to a member | loans.create |
 | POST /loans/{loanId}/return | returnLoan | Record the return of a copy | loans.return |
 | POST /loans/{loanId}/lost | reportLost | Record a lost copy and charge its replacement cost | loans.return |
+| POST /loans/{loanId}/fee-waivers | requestFeeWaiver | Ask for a loan's late fee to be waived | fees.request |
+| POST /fee-waivers/{waiverId}/waive | waiveFee | Waive the late fee an approved request names | fees.approve |
 
 ### Channels
 
@@ -85,6 +87,7 @@ External systems the operations call. A call that fails, or that does not answer
 ```mermaid
 erDiagram
   Book ||--o{ Loan : loans
+  FeeWaiverRequest }o--|| Loan : loan
   Member ||--o{ Loan : loans
   Book {
     uuid id PK
@@ -94,6 +97,12 @@ erDiagram
     int32 copiesOwned
     int32 copiesAvailable
     decimal replacementCost
+  }
+  FeeWaiverRequest {
+    uuid id PK
+    uuid loanId FK
+    decimal amount
+    string reason
   }
   Loan {
     uuid id PK
@@ -141,6 +150,23 @@ Primary key: id.
 |---|---|---|
 | book_isbn_unique | unique: isbn | This ISBN is already in the catalogue. |
 | book_available_within_owned | check `copiesAvailable <= copiesOwned` | Available copies cannot exceed the copies owned. |
+
+### FeeWaiverRequest
+
+A librarian's request to waive the late fee of a loan, held while it waits for a supervisor.
+
+| Field | Type | Required | Limits | Description |
+|---|---|---|---|---|
+| id | uuid | yes | set by the system |   |
+| loanId | uuid | yes |   |   |
+| amount | decimal(10, 2) | yes |   |   |
+| reason | string | yes | at least 1 character, at most 500 characters |   |
+
+Primary key: id.
+
+| Relation | Kind | Target | Via | On delete |
+|---|---|---|---|---|
+| loan | many-to-one | Loan | loanId | restrict |
 
 ### Loan
 
@@ -395,6 +421,29 @@ sequenceDiagram
   S-->>C: 200 Loan
 ```
 
+### requestFeeWaiver (POST /loans/{loanId}/fee-waivers)
+
+Starts the fee-waiver workflow. The fee stands until a desk supervisor
+approves the request.
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant S as Library Lending
+  C->>S: POST /loans/{loanId}/fee-waivers
+  S-->>C: 202 FeeWaiverRequest
+```
+
+### waiveFee (POST /fee-waivers/{waiverId}/waive)
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant S as Library Lending
+  C->>S: POST /fee-waivers/{waiverId}/waive
+  S-->>C: 200 FeeWaiverRequest
+```
+
 ### Job markOverdue
 
 Every night, finds the open loans past their due date, marks each overdue, and publishes LoanOverdue for it, so the member is told.
@@ -402,6 +451,28 @@ Every night, finds the open loans past their due date, marks each overdue, and p
 **Insight:** Overnight, when no one is at the desk, so a loan is overdue from the first morning after its due date.
 
 Runs on the schedule `0 2 * * *` (UTC), as the role scheduler. Reads Loan. Writes Loan. Publishes loan.overdue/LoanOverdue. A failed item is tried 3 times, then set aside for a person. Running it twice over the same records changes nothing a second time.
+
+### Workflow fee-waiver
+
+A late fee is waived only after a desk supervisor, who is not the librarian who asked, approves it.
+
+**Insight:** Three days, because a supervisor is at the desk every working day and a member asking about a fee should have an answer within the week.
+
+Starts when requestFeeWaiver accepts a request and answers 202; the request waits as a FeeWaiverRequest. It is approved at approve (fees.approve, within P3D) and a refusal ends it. The person who made the request never approves it.
+
+```mermaid
+flowchart LR
+  start(["requestFeeWaiver answers 202"])
+  s0["approve: desk-supervisor with fees.approve"]
+  s1[["waiveFee"]]
+  done(("approved"))
+  refused(("refused"))
+  start --> s0
+  s0 -->|"approved"| s1
+  s0 -->|"refused"| refused
+  s0 -->|"P3D passes"| refused
+  s1 --> done
+```
 
 ## 7. Deployment and implementation
 
@@ -654,16 +725,18 @@ The entity fields that are not public, and the ones encrypted at rest. A persona
 
 Access is fail-closed: every operation, command and page names the one permission it needs, and only the roles below grant one.
 
-| Permission | librarian | head-librarian | member | scheduler | public |
-|---|---|---|---|---|---|
-| members.read | yes | | | | |
-| members.write | yes | | | | |
-| catalogue.read | yes | | yes | | |
-| loans.read | yes | yes | yes | yes | |
-| loans.create | yes | | | | |
-| loans.return | yes | | | | |
-| loans.writeoff | | yes | | | |
-| public | | | | | everyone |
+| Permission | librarian | head-librarian | member | scheduler | desk-supervisor | public |
+|---|---|---|---|---|---|---|
+| members.read | yes | | | | | |
+| members.write | yes | | | | | |
+| catalogue.read | yes | | yes | | | |
+| loans.read | yes | yes | yes | yes | yes | |
+| loans.create | yes | | | | | |
+| loans.return | yes | | | | | |
+| loans.writeoff | | yes | | | | |
+| fees.request | yes | | | | | |
+| fees.approve | | | | | yes | |
+| public | | | | | | everyone |
 
 **Insight on member:** The row-level rule, a member sees only loans whose memberId is their own, is not in the meta-model yet; the service enforces it and this role is where it is written down.
 
@@ -895,6 +968,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | create-loan-repeated-with-the-same-idempotency-key | operation createLoan | system | golden | a loan was created for a member and a book under an Idempotency-Key, and the client never saw the answer | createLoan is called again with the same Idempotency-Key, member and book | it answers 201 with the loan already created, no second loan exists, and the book's copies available are unchanged |
 | create-loan-request-larger-than-1024-bytes | operation createLoan | system | red | a librarian at the desk | createLoan is called with a body larger than 1024 bytes | it is refused as too large and no loan is created |
 | create-member-denied-with-expired-session | operation createMember | system | red | a librarian whose session expired after half an hour without a request | createMember is called | it is refused as not signed in, and nothing changes |
+| fee-waiver | workflow fee-waiver | acceptance | golden | a librarian, a desk supervisor, and a loan with a late fee of 3.50 | the librarian asks for the fee to be waived and the desk supervisor approves the request | requestFeeWaiver answers 202, waiveFee is called once, the late fee is 0.00, and the request ends approved |
+| fee-waiver-approval-without-permission | workflow fee-waiver | acceptance | red | a request to waive a fee, and a second librarian, who does not hold fees.approve | the second librarian approves it | it is refused as not allowed, and the request still waits for a desk supervisor |
+| fee-waiver-deadline-passes | workflow fee-waiver | acceptance | red | a request to waive a fee, waiting for a desk supervisor | three days pass with no answer | the request ends refused, waiveFee is not called, and the fee still stands |
+| fee-waiver-refused | workflow fee-waiver | acceptance | red | a request to waive a fee of 3.50, waiting for a desk supervisor | the desk supervisor refuses it | the request ends refused, waiveFee is not called, and the fee still stands |
+| fee-waiver-requester-approves-own-request | workflow fee-waiver | acceptance | red | a desk supervisor who also works the desk and holds fees.request, and a request to waive a fee they asked for themselves | they approve their own request | it is refused, the request still waits for another desk supervisor, and waiveFee is not called |
 | fees-block-lending | requirement LIB-3 | acceptance | golden | a member who owes a late fee | the librarian lends them a copy | A member with outstanding fees is refused a loan with 409. |
 | get-member-denied-with-expired-session | operation getMember | system | red | a librarian whose session expired after half an hour without a request | getMember is called for a member that exists | it is refused as not signed in, and nothing changes |
 | lend-a-copy | operation createLoan | system | golden | a standard-tier member with no loans and no fees, and a book with one copy available | createLoan is called for them | an open loan due in 21 days is created, the book has no copy available, and LoanCreated is published |
@@ -981,6 +1059,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | report-lost-dependency-times-out-fee-ledger | operation reportLost | system | red | an open loan, and a fee ledger that does not answer within 5 seconds | reportLost is called for it | it gives up the call, answers 503, the loan stays open, and no event is published |
 | report-lost-event-not-delivered | operation reportLost | system | red | the loan.lifecycle channel is unavailable | reportLost is called | the loan stays open, nothing is charged, and the call fails |
 | report-lost-unknown-loan | operation reportLost | system | red | a librarian | reportLost is called with an id no loan has and again with abc | the first is refused as not found and the second as invalid input |
+| request-fee-waiver | operation requestFeeWaiver | system | golden | a librarian, and a loan returned seven days late with a late fee of 3.50 | requestFeeWaiver is called for it with amount 3.50 and the reason "The book drop was closed for repairs." | it answers 202 with the request, which waits for a desk supervisor, and the fee still stands |
+| request-fee-waiver-bad-input | operation requestFeeWaiver | system | red | a librarian | requestFeeWaiver is called without amount, without reason, with amount three, and for loanId abc | each is refused as invalid input, and no request is made |
+| request-fee-waiver-denied | operation requestFeeWaiver | system | red | a member, who does not hold fees.request | requestFeeWaiver is called for one of their own loans | it is refused as not allowed, and no request is made |
+| request-fee-waiver-denied-with-expired-session | operation requestFeeWaiver | system | red | a librarian whose session expired after half an hour without a request | requestFeeWaiver is called | it is refused as not signed in, and no request is made |
+| request-fee-waiver-unknown-loan | operation requestFeeWaiver | system | red | a librarian and no loan with a given id | requestFeeWaiver is called for that id | it is refused as not found, and no request is made |
 | return-already-closed | operation returnLoan | system | red | a loan already returned | returnLoan is called on it | it answers 409 and nothing changes |
 | return-denied | operation returnLoan | system | red | a caller holding only the member role | returnLoan is called | it is refused as not allowed |
 | return-event-not-delivered | operation returnLoan | system | red | the loan.lifecycle channel is unavailable | returnLoan is called | the loan stays open and the call fails |
@@ -999,6 +1082,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | sign-in-page | page sign-in | system | golden | a librarian who is not signed in | the page sign-in is submitted with their email address and password | it leads to the page members-list, saying that they are signed in |
 | sign-in-page-refused | page sign-in | system | red | a librarian who types a wrong password | the page sign-in is submitted | it shows beside the password: The email address or the password is wrong. |
 | sign-in-succeeds | operation signIn | system | golden | a member whose password is the one they chose | signIn is called with their email address and that password | it answers 200 and their session starts |
+| waive-fee | operation waiveFee | system | golden | a fee-waiver request for 3.50 that a desk supervisor has approved | waiveFee is called for it | it answers 200, and the loan's late fee is 0.00 |
+| waive-fee-denied | operation waiveFee | system | red | a librarian, who does not hold fees.approve, and an approved request | waiveFee is called for it | it is refused as not allowed, and the fee still stands |
+| waive-fee-denied-with-expired-session | operation waiveFee | system | red | a desk supervisor whose session expired after half an hour without a request | waiveFee is called | it is refused as not signed in, and the fee still stands |
+| waive-fee-unknown-waiver | operation waiveFee | system | red | a desk supervisor and no request with a given id | waiveFee is called with waiverId abc, and with that id | the first is refused as invalid input and the second as not found |
 
 **Origin on create-loan-rate-exceeded:** inferred.
 
@@ -1007,6 +1094,14 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Origin on create-loan-request-larger-than-1024-bytes:** inferred.
 
 **Insight on create-loan-request-larger-than-1024-bytes:** Derived from the body limit on createLoan, then completed by hand; a lending request holds two ids, so anything near the limit is not a lending request.
+
+**Origin on fee-waiver-deadline-passes:** inferred.
+
+**Insight on fee-waiver-deadline-passes:** Drafted by specarch derive, since a deadline passing is a case nobody tries by hand, then completed by hand; a request must not wait for ever.
+
+**Origin on fee-waiver-requester-approves-own-request:** inferred.
+
+**Insight on fee-waiver-requester-approves-own-request:** Drafted by specarch derive, since the four-eyes rule holds on every approval, then completed by hand; it is the one case the workflow exists for.
 
 **Origin on lend-a-copy-at-the-desk:** inferred.
 
@@ -1061,6 +1156,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | LIB-5 | A late return shall be charged a flat daily rate, capped at the book's replacement cost. | functional | must | accepted | test | Seven days late at 0.50 a day on a 25.00 book charges 3.50. Ninety days late at 0.50 a day on a 25.00 book charges 25.00. | NEED-2 |
 | LIB-6 | A member shall see only their own loans and fees. | quality | must | accepted | test | A member listing loans gets only loans whose memberId is their own. | NEED-3 |
 | LIB-7 | A desk task shall take a librarian under a minute, in one screen. | quality | should | accepted | demonstration | Registering a member and lending a book each take one form and one submit. | NEED-1 |
+| LIB-8 | A late fee above the desk's limit shall be waived only after a second person, not the one who asked, approves it. | functional | must | accepted | test | A waiver a librarian asks for is approved by a desk supervisor before the fee is waived. A waiver nobody answers within three days is refused. | NEED-2 |
 
 **Note on LIB-1:** From Lending policy of the library, 2026, clause 1: Each member holds one card, and the card number identifies them at the desk.
 
@@ -1071,6 +1167,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Note on LIB-5:** From Lending policy of the library, 2026, clause 4: The late fee is a daily rate set by the board, and never more than the cost of replacing the book.
 
 **Note on LIB-6:** From The data-protection rules the library is bound by, 2024: Personal data is shown only to the person it is about and to the staff who need it.
+
+**Insight on LIB-8:** A fee waived by the person who asked for it is money the library loses with nobody having looked; a second person is the control the board asks for.
 
 ### Traceability
 
@@ -1085,6 +1183,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | LIB-5 |   | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; configuration dailyRate | tests loan-lent-and-returned; tests return-late; checks lend-and-return |
 | LIB-6 |   | roles member; session | checks member-sees-own-loans |
 | LIB-7 |   | pages loan-form; pages member-form; flows lend-a-copy | tests lend-a-copy-at-the-desk; tests lend-a-copy-limit-reached; checks lend-and-return; monitors catalogue-latency |
+| LIB-8 |   | entities FeeWaiverRequest; roles desk-supervisor; paths /loans/{loanId}/fee-waivers post; paths /fee-waivers/{waiverId}/waive post; workflows fee-waiver | tests fee-waiver; tests fee-waiver-approval-without-permission; tests fee-waiver-deadline-passes; tests fee-waiver-refused; tests fee-waiver-requester-approves-own-request; tests request-fee-waiver; tests waive-fee |
 
 ## Sources
 

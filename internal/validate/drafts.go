@@ -70,6 +70,8 @@ func (s *subject) chosenReason(dc derivedCase) string {
 		return "a failing dependency is always written"
 	case dc.name == "concurrent write":
 		return "two writers on one record is a case nobody exercises by hand, so it is always written"
+	case s.kind == "workflow" && workflowReason(dc.name) != "":
+		return workflowReason(dc.name)
 	case s.critical || dc.critical:
 		return s.label + " is at stake in a requirement that names a harm, so its cases are written"
 	}

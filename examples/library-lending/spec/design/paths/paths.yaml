@@ -233,3 +233,46 @@ paths:
       emits: [loan.lifecycle/LoanLost]
       calls: [feeLedger]
       guard: { entity: Loan, precondition: 'status == "open" || status == "overdue"', recordsChanged: 1 }
+
+  /loans/{loanId}/fee-waivers:
+    parameters:
+      - { name: loanId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: requestFeeWaiver
+      summary: Ask for a loan's late fee to be waived
+      description: |
+        Starts the fee-waiver workflow. The fee stands until a desk supervisor
+        approves the request.
+      permission: fees.request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount: { type: string, format: decimal, precision: 10, scale: 2 }
+                reason: { type: string, minLength: 1, maxLength: 500 }
+              required: [amount, reason]
+      responses:
+        "202":
+          description: The request is accepted and waits for a desk supervisor.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/FeeWaiverRequest" }
+      satisfies: [LIB-8]
+
+  /fee-waivers/{waiverId}/waive:
+    parameters:
+      - { name: waiverId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: waiveFee
+      summary: Waive the late fee an approved request names
+      permission: fees.approve
+      responses:
+        "200":
+          description: The fee is waived.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/FeeWaiverRequest" }
+      satisfies: [LIB-8]

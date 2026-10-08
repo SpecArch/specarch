@@ -1152,7 +1152,7 @@ func (m *merger) givenOutside(n *yaml.Node) bool {
 // The word for one entry of each section, for a question's text.
 var entryWords = map[string]string{
 	"enums": "enum", "entities": "entity", "views": "view", "permissions": "permission", "roles": "role",
-	"commands": "command", "channels": "channel", "dependencies": "dependency", "jobs": "job", "errors": "error",
+	"commands": "command", "channels": "channel", "dependencies": "dependency", "jobs": "job", "workflows": "workflow", "errors": "error",
 	"pages": "page", "menus": "menu", "flows": "flow", "algorithms": "algorithm",
 }
 

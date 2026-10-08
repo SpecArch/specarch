@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+workflow: fee-waiver
+level: acceptance
+scenario: red
+covers: [approval without fees.approve]
+given: a request to waive a fee, and a second librarian, who does not hold fees.approve
+when: the second librarian approves it
+then: it is refused as not allowed, and the request still waits for a desk supervisor
+verifies: [LIB-8]

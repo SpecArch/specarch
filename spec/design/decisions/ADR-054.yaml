@@ -49,4 +49,4 @@ decisions:
       does not wait for 0.3; whether the requester and the approver are
       the same person is known only when the workflow runs, so it is a
       derived critical test rather than a validator check.
-    satisfies: [SA-5, SA-21]
+    satisfies: [SA-5, SA-21, SA-47]

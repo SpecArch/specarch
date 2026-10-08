@@ -325,7 +325,7 @@ folder and only the first four are in the root file.
 5. `permissions`, `roles`, `session`
 6. `paths`
 7. `commands`
-8. `channels`, `dependencies`, `jobs`, `errors`
+8. `channels`, `dependencies`, `jobs`, `workflows`, `errors`
 9. `pages`, `menus`
 10. `algorithms`
 11. `tests`
@@ -450,6 +450,7 @@ redefined.
 | `limits`, `maxRequestBytes`, `rate`, `requests`, `per`, `burst` | SpecArch | the request size and rate a client keeps to |
 | `jobs`, `trigger`, `schedule`, `every`, `consumes`, `role`, `retries`, `limit`, `then` | SpecArch | work the system does on its own; a schedule is the five fields of cron, in UTC |
 | `menus`, `title`, `page`, `items` | SpecArch | the navigation: a tree whose leaves open pages |
+| `workflows`, `trigger`, `subject`, `steps`, `approvers`, `deadline`, `onDeadline`, `escalateTo` | BPMN 2.0, a sequential subset | a request that finishes after people approve it: an approval is a user task with its potential owners and a timer, an operation step a service task |
 | `views`, `from`, `path`, `count` | SpecArch, after the SQL view of ISO/IEC 9075 | a read model: an entity's row with fields read through its relations and counts added, never written |
 | `errors`, `status`, `title`, `condition`, `type`, `problem` | RFC 9457, Problem Details for HTTP APIs | the catalogue of problem types; `condition` is SpecArch's, the standard's other members are the document's own at run time |
 | a duration (`timeout`, `idleTimeout`, `absoluteTimeout`) | ISO 8601, the form JSON Schema's `format: duration` names | days, hours, minutes and seconds only (`PT5S`, `P1DT12H`): weeks, months and years depend on the calendar, so a limit written in them would not mean the same every day |
@@ -714,6 +715,56 @@ and `an item fails every try` when it retries.
 `menus` is the navigation, a tree of entries, each a `title` with a `page`
 or with `items` of its own. Every page an entry opens must exist (`menu`).
 An entry is shown to who may open its page.
+
+### Workflows
+
+A request that finishes later, after people approve it, is a workflow,
+under `workflows`, keyed by kebab-case name:
+
+    fee-waiver:
+      description: A late fee is waived only after a desk supervisor approves it.
+      trigger: requestFeeWaiver
+      subject: FeeWaiverRequest
+      steps:
+        - name: approve
+          kind: approval
+          approvers: [desk-supervisor]
+          permission: fees.approve
+          deadline: P3D
+          onDeadline: refuse
+        - name: waive
+          kind: operation
+          operation: waiveFee
+
+The steps take their meaning from BPMN 2.0, its sequential subset: an
+`approval` is a user task whose `approvers` are its potential owners, its
+`deadline` a timer on it, and an `operation` step a service task. The
+steps run in order, and a refusal at an approval ends the request. The
+`trigger` is the operation that starts the workflow; its request body is
+the workflow's form, and it answers 202, accepted and not yet done
+(RFC 9110). The `subject` is the entity that holds the request while it
+waits. An approval names the roles that may approve, the `permission` it
+checks, a `deadline`, a duration above zero, and `onDeadline`: `refuse`
+ends the request, `escalate` moves it to the later approval named under
+`escalateTo`. An operation step names the operation the system calls once
+every approval before it has passed.
+
+The person who made a request never approves it. The rule holds on every
+approval and has no switch; whether two people are one is known only when
+the workflow runs, so it is a derived case, not a check.
+
+The validator refuses a trigger that is not an operation or does not
+answer 202, a subject that is not an entity, an approver that is not a
+role or does not grant the approval's permission, an approval that checks
+the trigger's permission, a role that grants both the trigger's and an
+approval's permission while a separation-of-duties set holds the pair,
+whatever the set's cardinality, a deadline of zero, an operation step naming no
+operation, an escalation to a step that is not a later approval, and two
+steps of one name (`workflow`); an approval's permission must be declared
+(`permission_undeclared`). A test names a workflow as its subject with
+`workflow: <name>`. Parallel approvals, a number of approvals out of a
+pool and loops are outside the subset; a workflow that needs one is
+written with a question.
 
 ### Page events
 
@@ -1081,7 +1132,7 @@ the tests of its own code (unit and integration suites, fixtures, mocks,
 performance targets, platforms).
 
 A design test is about one subject: an `operation`, a `command`, a `page`,
-a `job`, a `requirement`, or an `entity`, with one of its `constraint`s or
+a `job`, a `flow`, a `workflow`, a `requirement`, or an `entity`, with one of its `constraint`s or
 `transition`s or alone for its state machine. It has a
 `level`, `system` (the test exercises the system through its interfaces as a
 client would) or `acceptance` (it shows a stakeholder that a requirement is
@@ -1162,6 +1213,9 @@ mistake:
 | a job | `runs twice` | golden | critical on its own |
 | a job that calls a dependency | `dependency fails <name>`, `dependency times out <name>` | red | critical on its own |
 | a job with `retries` | `an item fails every try` | red | occasional |
+| an approval of a workflow | `refused at <step>`, `approval without <permission>` | red | frequent |
+| | `deadline passes at <step>` | red | critical on its own |
+| a workflow with an approval | `requester approves own request` | red | critical on its own |
 | a `session`, for every permission other than `public` | `denied with expired session` | red | frequent |
 | a `guard` with a precondition | `guard precondition fails` | red | occasional |
 | a `guard` | `concurrent write` | red | rare |

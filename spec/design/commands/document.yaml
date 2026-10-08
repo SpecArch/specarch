@@ -16,8 +16,9 @@ commands:
       specification of the whole specification, with chapters only for
       what it holds. Diagrams are Mermaid: an entity diagram, a state
       diagram for each entity with a state field, a sequence diagram for
-      each operation and command, a flowchart of the pages, and a
-      permissions table. Chapter 2 comes from the constraints and
+      each operation and command, a flowchart of the pages, a flowchart
+      of each workflow's steps with each deadline on the edge it takes,
+      and a permissions table. Chapter 2 comes from the constraints and
       assumptions, chapter 7 from the deployment and commissioning stages
       and from each implementation file, chapter 12 from the glossary, and
       chapter 13 from the needs and requirements, with the traceability

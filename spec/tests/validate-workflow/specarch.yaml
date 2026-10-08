@@ -1,0 +1,91 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+entities:
+  Waiver:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+    primaryKey: [id]
+    satisfies: [CASE-1]
+workflows:
+  waiver:
+    description: A waiver is approved twice before it is granted.
+    trigger: askWaiver
+    subject: Waivers
+    steps:
+      - name: check
+        kind: approval
+        approvers: [desk, boss]
+        permission: waivers.ask
+        deadline: P0D
+        onDeadline: escalate
+        escalateTo: grant
+      - name: check
+        kind: approval
+        approvers: [desk, auditor]
+        permission: waivers.approve
+        deadline: P3D
+        onDeadline: refuse
+      - name: grant
+        kind: operation
+        operation: grantWaiver
+    satisfies: [CASE-1]
+  late:
+    description: A waiver asked through an operation that answers at once.
+    trigger: listWaivers
+    subject: Waiver
+    steps:
+      - name: approve
+        kind: approval
+        approvers: [boss]
+        permission: waivers.decide
+        deadline: PT4H
+        onDeadline: refuse
+    satisfies: [CASE-1]
+  missing:
+    description: A waiver asked through an operation that does not exist.
+    trigger: askWaivers
+    subject: Waiver
+    steps:
+      - name: approve
+        kind: approval
+        approvers: [boss]
+        permission: waivers.approve
+        deadline: P1D
+        onDeadline: refuse
+    satisfies: [CASE-1]
+paths:
+  /waivers:
+    get:
+      operationId: listWaivers
+      summary: The waivers
+      permission: waivers.ask
+      responses:
+        "200":
+          description: The waivers.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Waiver" } }
+      satisfies: [CASE-1]
+    post:
+      operationId: askWaiver
+      summary: Ask for a waiver
+      permission: waivers.ask
+      responses:
+        "202": { description: The request waits for approval. }
+      satisfies: [CASE-1]
+permissions:
+  waivers.ask: { description: Ask for a waiver. }
+  waivers.approve: { description: Approve a waiver. }
+  waivers.audit: { description: Audit the waivers. }
+roles:
+  desk: { description: The desk., permissions: [waivers.ask] }
+  boss: { description: The boss., permissions: [waivers.approve, waivers.audit] }
+  clerk: { description: The clerk., permissions: [waivers.ask, waivers.approve] }
+separationOfDuties:
+  waivers:
+    description: Nobody holds all three of asking, approving and auditing a waiver.
+    permissions: [waivers.ask, waivers.approve, waivers.audit]
+    cardinality: 3

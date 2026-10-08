@@ -83,3 +83,14 @@ requirements:
       - Registering a member and lending a book each take one form and one submit.
     verification: demonstration
     needs: [NEED-1]
+  LIB-8:
+    statement: A late fee above the desk's limit shall be waived only after a second person, not the one who asked, approves it.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A waiver a librarian asks for is approved by a desk supervisor before the fee is waived.
+      - A waiver nobody answers within three days is refused.
+    verification: test
+    needs: [NEED-2]
+    why: A fee waived by the person who asked for it is money the library loses with nobody having looked; a second person is the control the board asks for.

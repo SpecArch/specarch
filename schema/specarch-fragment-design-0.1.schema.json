@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-fragment-design-0.1.schema.json",
   "title": "SpecArch design file, meta-model 0.1",
-  "description": "One file under the design/ folder of a SpecArch specification: a mapping of that stage's sections (enums, entities, views, permissions, roles, separationOfDuties, session, paths, commands, channels, dependencies, jobs, errors, pages, menus, flows, accessibility, theme, algorithms, decisions, questions). A file under a sub-folder named after a section holds only that section. The validator merges every file of a tree into one document, which specarch-design-0.1.schema.json describes, and checks what spans files, such as references and names defined twice; this schema checks one file alone. Written by tools/fragment-schemas from that schema; do not edit, run it.",
+  "description": "One file under the design/ folder of a SpecArch specification: a mapping of that stage's sections (enums, entities, views, permissions, roles, separationOfDuties, session, paths, commands, channels, dependencies, jobs, workflows, errors, pages, menus, flows, accessibility, theme, algorithms, decisions, questions). A file under a sub-folder named after a section holds only that section. The validator merges every file of a tree into one document, which specarch-design-0.1.schema.json describes, and checks what spans files, such as references and names defined twice; this schema checks one file alone. Written by tools/fragment-schemas from that schema; do not edit, run it.",
   "type": "object",
   "properties": {
     "enums": {
@@ -117,6 +117,16 @@
       },
       "additionalProperties": {
         "$ref": "#/$defs/job"
+      }
+    },
+    "workflows": {
+      "description": "SpecArch keyword, a sequential subset of BPMN 2.0. Requests that finish later, after people approve them, keyed by kebab-case name: the operation that starts each, answering 202, the entity that holds the request while it waits, and its approval and operation steps in order. The person who made a request never approves it. A workflow is a test subject.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/workflow"
       }
     },
     "errors": {
@@ -2212,6 +2222,199 @@
             "action"
           ]
         }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "workflow": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "trigger": {
+          "description": "The operationId that starts the workflow. Its request body is the workflow's form, and it answers 202: the request is accepted and waits.",
+          "$ref": "#/$defs/memberName"
+        },
+        "subject": {
+          "description": "The entity that holds the request while it waits.",
+          "$ref": "#/$defs/typeName"
+        },
+        "steps": {
+          "description": "The steps in order, after BPMN 2.0: an approval is a user task with its potential owners and a timer, an operation a service task. A refusal at an approval ends the request.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/workflowStep"
+          },
+          "minItems": 1
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description",
+        "trigger",
+        "subject",
+        "steps"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "workflowStep": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "The step's name, unique in the workflow.",
+          "$ref": "#/$defs/memberName"
+        },
+        "kind": {
+          "description": "approval: people with the permission approve or refuse the request; operation: the system calls an operation once every approval before it has passed.",
+          "type": "string",
+          "enum": [
+            "approval",
+            "operation"
+          ]
+        },
+        "approvers": {
+          "description": "For an approval: the roles that may approve, each granting the permission.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/roleName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "permission": {
+          "description": "For an approval: the permission the approval checks; never the trigger's.",
+          "$ref": "#/$defs/permissionName"
+        },
+        "deadline": {
+          "description": "For an approval: how long the request waits for an answer.",
+          "$ref": "#/$defs/duration"
+        },
+        "onDeadline": {
+          "description": "For an approval: what the deadline does when it passes. refuse ends the request; escalate moves it to the later approval step named under escalateTo.",
+          "type": "string",
+          "enum": [
+            "refuse",
+            "escalate"
+          ]
+        },
+        "escalateTo": {
+          "description": "With onDeadline escalate: the later approval step the request moves to.",
+          "$ref": "#/$defs/memberName"
+        },
+        "operation": {
+          "description": "For an operation step: the operationId the system calls.",
+          "$ref": "#/$defs/memberName"
+        }
+      },
+      "required": [
+        "name",
+        "kind"
+      ],
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "approval"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "approvers",
+          "permission",
+          "deadline",
+          "onDeadline"
+        ],
+        "not": {
+          "required": [
+            "operation"
+          ]
+        },
+        "if": {
+          "properties": {
+            "onDeadline": {
+              "const": "escalate"
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "escalateTo"
+          ]
+        },
+        "else": {
+          "not": {
+            "required": [
+              "escalateTo"
+            ]
+          }
+        }
+      },
+      "else": {
+        "required": [
+          "operation"
+        ],
+        "allOf": [
+          {
+            "not": {
+              "required": [
+                "approvers"
+              ]
+            }
+          },
+          {
+            "not": {
+              "required": [
+                "permission"
+              ]
+            }
+          },
+          {
+            "not": {
+              "required": [
+                "deadline"
+              ]
+            }
+          },
+          {
+            "not": {
+              "required": [
+                "onDeadline"
+              ]
+            }
+          },
+          {
+            "not": {
+              "required": [
+                "escalateTo"
+              ]
+            }
+          }
+        ]
       },
       "patternProperties": {
         "^x-": {}

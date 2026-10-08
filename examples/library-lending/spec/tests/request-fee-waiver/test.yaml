@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: requestFeeWaiver
+level: system
+scenario: golden
+given: a librarian, and a loan returned seven days late with a late fee of 3.50
+when: requestFeeWaiver is called for it with amount 3.50 and the reason "The book drop was closed for repairs."
+then: it answers 202 with the request, which waits for a desk supervisor, and the fee still stands
+verifies: [LIB-8]

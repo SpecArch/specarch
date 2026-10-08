@@ -43,7 +43,7 @@ var Sections = map[string]string{
 	"stakeholders": "requirements", "needs": "requirements", "requirements": "requirements",
 	"glossary": "requirements", "assumptions": "requirements", "constraints": "requirements",
 	"enums": "design", "entities": "design", "views": "design", "permissions": "design", "roles": "design", "separationOfDuties": "design", "session": "design", "paths": "design",
-	"commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "errors": "design", "pages": "design", "menus": "design", "flows": "design", "accessibility": "design", "theme": "design", "algorithms": "design", "decisions": "design",
+	"commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "workflows": "design", "errors": "design", "pages": "design", "menus": "design", "flows": "design", "accessibility": "design", "theme": "design", "algorithms": "design", "decisions": "design",
 	"tests":        "tests",
 	"environments": "deployment", "configuration": "deployment", "release": "deployment",
 	"rollback": "deployment", "migrations": "deployment",
@@ -55,7 +55,7 @@ var Sections = map[string]string{
 // docs/conventions.md: life-cycle order, the questions last.
 var sectionOrder = []string{
 	"stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
-	"enums", "entities", "views", "permissions", "roles", "separationOfDuties", "session", "paths", "commands", "channels", "dependencies", "jobs", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
+	"enums", "entities", "views", "permissions", "roles", "separationOfDuties", "session", "paths", "commands", "channels", "dependencies", "jobs", "workflows", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
 	"tests", "decisions",
 	"environments", "configuration", "release", "rollback", "migrations",
 	"checks", "signoff",

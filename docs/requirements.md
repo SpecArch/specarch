@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.6.0-dev of the specification: 5 stakeholders, 9 needs and 46 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.6.0-dev of the specification: 5 stakeholders, 9 needs and 47 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 ## 1. Purpose and scope
 
@@ -31,11 +31,11 @@ What the stakeholders said they need, before it was shaped into requirements, an
 
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
-| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6 |
+| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6 |
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-46, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-19 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
-| NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
+| NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-46, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45 |
@@ -54,6 +54,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-33 | functional | must | accepted | A specification shall be able to say how sensitive a field is, that it is encrypted at rest and how it is still found, and that an entity is audited or deleted softly, and specarch validate shall check each against the design and derive the cases a soft delete implies. |
 | SA-34 | functional | must | accepted | A specification shall be able to say that an operation answers a page of an entity's records with the fields it searches, filters and sorts by and its page size, the limits a client keeps to, and the catalogue of problem types its refusals answer with, and specarch validate shall check each against the design and derive the cases each implies. |
 | SA-35 | functional | must | accepted | A specification shall be able to declare the jobs the system runs on its own, with what starts each, the role it acts as, what it reads, writes, calls and publishes, and how it retries, and the menus that lead to its pages; specarch validate shall check each against the design, and a job shall be a subject of tests with the cases it implies. |
+| SA-47 | functional | must | accepted | A specification shall be able to declare workflows, requests that finish after people approve them, as a sequential subset of BPMN 2.0, with the operation that starts each, the entity that holds the request while it waits, and approval and operation steps in order; specarch validate shall check each against the design, and a workflow shall be a subject of tests whose cases include the requester approving their own request. |
 | SA-36 | functional | must | accepted | specarch generate openapi shall write, through a plug-in, the OpenAPI 3.1 document of a specification in the standard dialect, with the problem catalogue as the error responses and every list expanded through the paginated-list idiom that applies, so that a standard OpenAPI code generator can write the server interface from it. |
 | SA-37 | functional | must | accepted | specarch generate sql shall write, through a plug-in, the forward migrations of a specification's schema in PostgreSQL, SQL Server, Oracle or MariaDB, every column type through the type-rendering idiom of the target's dialect, with a snapshot of the schema beside them, and shall refuse what the dialect cannot hold. |
 | SA-38 | functional | must | accepted | specarch generate sql shall write the migration of what changed since the last snapshot as new files only, what only adds in an expand migration and what can lose data in a contract migration of its own that the target's settings must allow, and shall refuse a change it cannot tell from a rewrite. |
@@ -230,6 +231,20 @@ Acceptance criteria:
 - A test may name a job as its subject, and a job gets the cases runs twice, a dependency failing or timing out for each it calls, and an item failing every try when it retries.
 
 **Insight:** What runs at night or on a queue is the part of a system nobody watches, and the part a test plan forgets; written in the design, its tests follow from it like an operation's.
+
+### SA-47
+
+A specification shall be able to declare workflows, requests that finish after people approve them, as a sequential subset of BPMN 2.0, with the operation that starts each, the entity that holds the request while it waits, and approval and operation steps in order; specarch validate shall check each against the design, and a workflow shall be a subject of tests whose cases include the requester approving their own request.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-1, NEED-5.
+
+Acceptance criteria:
+
+- A trigger that is not an operation or does not answer 202, a subject that is not an entity, an approver that is not a role or does not grant the approval's permission, an approval's permission that is the trigger's, a role granting both the trigger's and an approval's permission while a separation-of-duties set holds the pair, an operation step naming no operation, an escalation to a step that is not a later approval, an approval deadline of zero and two steps with one name are each reported as workflow, and an approval's undeclared permission as permission_undeclared, the same in both builds.
+- A test may name a workflow as its subject, and a workflow gets the approved path as its golden case, and the cases refused at each approval, each deadline passing, the requester approving their own request, which is critical whatever the harm, and an approval by someone without its permission.
+- The techspec draws each workflow as a flowchart of its steps, with each deadline on the edge it takes.
+
+**Insight:** An approval that lives only in an external engine's configuration, or in prose, cannot be checked against the roles and permissions of the design, and the rule most worth testing, that nobody approves their own request, is the one a hand-written test plan forgets.
 
 ### SA-36
 

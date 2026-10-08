@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: requestFeeWaiver
+level: system
+scenario: red
+covers: [not found loanId]
+given: a librarian and no loan with a given id
+when: requestFeeWaiver is called for that id
+then: it is refused as not found, and no request is made

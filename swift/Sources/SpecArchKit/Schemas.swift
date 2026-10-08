@@ -217,6 +217,16 @@ let designSchemaJSON = #"""
         "$ref": "#/$defs/job"
       }
     },
+    "workflows": {
+      "description": "SpecArch keyword, a sequential subset of BPMN 2.0. Requests that finish later, after people approve them, keyed by kebab-case name: the operation that starts each, answering 202, the entity that holds the request while it waits, and its approval and operation steps in order. The person who made a request never approves it. A workflow is a test subject.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/workflow"
+      }
+    },
     "errors": {
       "description": "SpecArch keyword. The catalogue of problem types the operations answer with, keyed by kebab-case name. Every 4xx and 5xx response is an RFC 9457 problem document and names its type under problem.",
       "type": "object",
@@ -2891,6 +2901,199 @@ let designSchemaJSON = #"""
       },
       "additionalProperties": false
     },
+    "workflow": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "trigger": {
+          "description": "The operationId that starts the workflow. Its request body is the workflow's form, and it answers 202: the request is accepted and waits.",
+          "$ref": "#/$defs/memberName"
+        },
+        "subject": {
+          "description": "The entity that holds the request while it waits.",
+          "$ref": "#/$defs/typeName"
+        },
+        "steps": {
+          "description": "The steps in order, after BPMN 2.0: an approval is a user task with its potential owners and a timer, an operation a service task. A refusal at an approval ends the request.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/workflowStep"
+          },
+          "minItems": 1
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description",
+        "trigger",
+        "subject",
+        "steps"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "workflowStep": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "The step's name, unique in the workflow.",
+          "$ref": "#/$defs/memberName"
+        },
+        "kind": {
+          "description": "approval: people with the permission approve or refuse the request; operation: the system calls an operation once every approval before it has passed.",
+          "type": "string",
+          "enum": [
+            "approval",
+            "operation"
+          ]
+        },
+        "approvers": {
+          "description": "For an approval: the roles that may approve, each granting the permission.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/roleName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "permission": {
+          "description": "For an approval: the permission the approval checks; never the trigger's.",
+          "$ref": "#/$defs/permissionName"
+        },
+        "deadline": {
+          "description": "For an approval: how long the request waits for an answer.",
+          "$ref": "#/$defs/duration"
+        },
+        "onDeadline": {
+          "description": "For an approval: what the deadline does when it passes. refuse ends the request; escalate moves it to the later approval step named under escalateTo.",
+          "type": "string",
+          "enum": [
+            "refuse",
+            "escalate"
+          ]
+        },
+        "escalateTo": {
+          "description": "With onDeadline escalate: the later approval step the request moves to.",
+          "$ref": "#/$defs/memberName"
+        },
+        "operation": {
+          "description": "For an operation step: the operationId the system calls.",
+          "$ref": "#/$defs/memberName"
+        }
+      },
+      "required": [
+        "name",
+        "kind"
+      ],
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "approval"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "approvers",
+          "permission",
+          "deadline",
+          "onDeadline"
+        ],
+        "not": {
+          "required": [
+            "operation"
+          ]
+        },
+        "if": {
+          "properties": {
+            "onDeadline": {
+              "const": "escalate"
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "escalateTo"
+          ]
+        },
+        "else": {
+          "not": {
+            "required": [
+              "escalateTo"
+            ]
+          }
+        }
+      },
+      "else": {
+        "required": [
+          "operation"
+        ],
+        "allOf": [
+          {
+            "not": {
+              "required": [
+                "approvers"
+              ]
+            }
+          },
+          {
+            "not": {
+              "required": [
+                "permission"
+              ]
+            }
+          },
+          {
+            "not": {
+              "required": [
+                "deadline"
+              ]
+            }
+          },
+          {
+            "not": {
+              "required": [
+                "onDeadline"
+              ]
+            }
+          },
+          {
+            "not": {
+              "required": [
+                "escalateTo"
+              ]
+            }
+          }
+        ]
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
     "pageStates": {
       "description": "SpecArch keyword. What a page shows in each state but its content: empty and filtered empty for a list, and failed per problem type it can meet. Loading and submitting have no text of their own, and a stack draws them its way. Without states, a stack shows its own.",
       "type": "object",
@@ -3597,7 +3800,7 @@ let designSchemaJSON = #"""
       "pattern": "^x-(oapi-codegen|ogen|openapi-generator|codegen|protoc|grpc|go|java|kotlin|python|typescript|javascript|rust|swift|dotnet|csharp|php|ruby|framework|router|middleware|cli-library|server|servers|host|port|deploy|deployment|environment)(-|$)"
     },
     "test": {
-      "description": "SpecArch keyword. One test scenario. Exactly one subject: operation, command, page, requirement, or entity, alone for its state machine or with one constraint or transition. In a folder tree it is the content of tests/<name>/test.yaml.",
+      "description": "SpecArch keyword. One test scenario. Exactly one subject: operation, command, page, job, flow, workflow, requirement, or entity, alone for its state machine or with one constraint or transition. In a folder tree it is the content of tests/<name>/test.yaml.",
       "type": "object",
       "properties": {
         "operation": {
@@ -3616,6 +3819,11 @@ let designSchemaJSON = #"""
         "job": {
           "description": "The job the test is about.",
           "$ref": "#/$defs/memberName"
+        },
+        "workflow": {
+          "description": "The workflow the test is about.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
         },
         "flow": {
           "description": "The flow the test walks.",
@@ -3827,6 +4035,11 @@ let designSchemaJSON = #"""
         {
           "required": [
             "job"
+          ]
+        },
+        {
+          "required": [
+            "workflow"
           ]
         },
         {

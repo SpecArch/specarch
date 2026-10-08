@@ -131,6 +131,7 @@ func contents(root *yaml.Node) string {
 	count(len(pairs(root, "dependencies")), "dependency", "dependencies")
 	count(len(pairs(root, "pages")), "page", "pages")
 	count(len(pairs(root, "flows")), "flow", "flows")
+	count(len(pairs(root, "workflows")), "workflow", "workflows")
 	count(len(pairs(root, "algorithms")), "algorithm", "algorithms")
 	count(len(pairs(root, "tests")), "test", "tests")
 	count(len(pairs(root, "decisions")), "decision", "decisions")
@@ -382,7 +383,8 @@ func runtime(d *doc, root *yaml.Node) {
 	ops := operations(root)
 	cmds := pairs(root, "commands")
 	jobs := pairs(root, "jobs")
-	if len(states)+len(ops)+len(cmds)+len(jobs) == 0 {
+	workflows := pairs(root, "workflows")
+	if len(states)+len(ops)+len(cmds)+len(jobs)+len(workflows) == 0 {
 		return
 	}
 	d.heading(2, "6. Runtime view")
@@ -419,6 +421,13 @@ func runtime(d *doc, root *yaml.Node) {
 		d.para(str(j.Value, "description"))
 		d.explain(j.Value)
 		jobDetails(d, root, j.Value)
+	}
+	for _, w := range workflows {
+		d.heading(3, "Workflow "+w.Key.Value)
+		d.para(str(w.Value, "description"))
+		d.explain(w.Value)
+		workflowDetails(d, w.Value)
+		d.block(workflowFlowchart(w.Value))
 	}
 	for _, c := range cmds {
 		d.heading(3, "Command "+c.Key.Value)
@@ -759,7 +768,7 @@ func qualityTests(d *doc, root *yaml.Node) {
 }
 
 func testSubject(t *yaml.Node) string {
-	for _, k := range []string{"operation", "command", "page", "job"} {
+	for _, k := range []string{"operation", "command", "page", "job", "workflow"} {
 		if v := str(t, k); v != "" {
 			return k + " " + v
 		}
@@ -1243,4 +1252,24 @@ func roleCombinations(root *yaml.Node, perms []string, cardinality int) [][]stri
 		out = append(out, names)
 	}
 	return out
+}
+
+// workflowDetails writes what starts a workflow, where its request waits,
+// and the four-eyes rule every approval keeps.
+func workflowDetails(d *doc, w *yaml.Node) {
+	text := "Starts when " + str(w, "trigger") + " accepts a request and answers 202; the request waits as a " + str(w, "subject") + "."
+	var approvals []string
+	for _, st := range items(w, "steps") {
+		if str(st, "kind") == "approval" {
+			approvals = append(approvals, fmt.Sprintf("%s (%s, within %s)", str(st, "name"), str(st, "permission"), str(st, "deadline")))
+		}
+	}
+	if len(approvals) > 0 {
+		order := ""
+		if len(approvals) > 1 {
+			order = ", in that order,"
+		}
+		text += " It is approved at " + joinAnd(approvals) + order + " and a refusal ends it. The person who made the request never approves it."
+	}
+	d.para(text)
 }

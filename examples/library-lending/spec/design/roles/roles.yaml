@@ -2,7 +2,7 @@
 roles:
   librarian:
     description: Staff at the desk.
-    permissions: [members.read, members.write, catalogue.read, loans.read, loans.create, loans.return]
+    permissions: [members.read, members.write, catalogue.read, loans.read, loans.create, loans.return, fees.request]
   head-librarian:
     description: Staff who decide what a lost copy costs the library; they do not lend.
     permissions: [loans.read, loans.writeoff]
@@ -14,3 +14,7 @@ roles:
   scheduler:
     description: The system itself, running the nightly jobs; no person signs in as it.
     permissions: [loans.read]
+  desk-supervisor:
+    description: The supervisor of the desk, who approves what one librarian may not do alone.
+    permissions: [loans.read, fees.approve]
+    satisfies: [LIB-8]

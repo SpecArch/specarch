@@ -47,6 +47,7 @@ permission it needs.
 ```mermaid
 erDiagram
   Book ||--o{ Loan : loans
+  FeeWaiverRequest }o--|| Loan : loan
   Member ||--o{ Loan : loans
   Book {
     uuid id PK
@@ -56,6 +57,12 @@ erDiagram
     int32 copiesOwned
     int32 copiesAvailable
     decimal replacementCost
+  }
+  FeeWaiverRequest {
+    uuid id PK
+    uuid loanId FK
+    decimal amount
+    string reason
   }
   Loan {
     uuid id PK
@@ -126,16 +133,18 @@ file.
 ## 8. Cross-cutting concepts
 
 <!-- specarch:generate permissions -->
-| Permission | librarian | head-librarian | member | scheduler | public |
-|---|---|---|---|---|---|
-| members.read | yes | | | | |
-| members.write | yes | | | | |
-| catalogue.read | yes | | yes | | |
-| loans.read | yes | yes | yes | yes | |
-| loans.create | yes | | | | |
-| loans.return | yes | | | | |
-| loans.writeoff | | yes | | | |
-| public | | | | | everyone |
+| Permission | librarian | head-librarian | member | scheduler | desk-supervisor | public |
+|---|---|---|---|---|---|---|
+| members.read | yes | | | | | |
+| members.write | yes | | | | | |
+| catalogue.read | yes | | yes | | | |
+| loans.read | yes | yes | yes | yes | yes | |
+| loans.create | yes | | | | | |
+| loans.return | yes | | | | | |
+| loans.writeoff | | yes | | | | |
+| fees.request | yes | | | | | |
+| fees.approve | | | | | yes | |
+| public | | | | | | everyone |
 <!-- specarch:end -->
 
 A member holding `loans.read` sees only loans where `memberId` is their own.

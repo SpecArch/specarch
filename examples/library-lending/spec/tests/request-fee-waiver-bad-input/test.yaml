@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: requestFeeWaiver
+level: system
+scenario: red
+covers: [missing amount, missing reason, amount not a valid decimal, loanId not a valid uuid]
+given: a librarian
+when: requestFeeWaiver is called without amount, without reason, with amount three, and for loanId abc
+then: each is refused as invalid input, and no request is made

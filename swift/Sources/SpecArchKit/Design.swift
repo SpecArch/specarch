@@ -191,6 +191,7 @@ extension Checker {
         checkCommands(d)
         checkDependencies(d)
         checkJobs(d)
+        checkWorkflows(d)
         checkMenus(d)
         checkViews(d)
         checkSession(d)
@@ -616,6 +617,11 @@ extension Checker {
             use(pg.child("permission"), pointer("pages", name, "permission"), "page " + name)
             for (i, a) in items(pg.child("actions")).enumerated() {
                 use(a.child("permission"), pointer("pages", name, "actions", "\(i)", "permission"), "an action of page " + name)
+            }
+        }
+        for w in pairs(d.root.child("workflows")) {
+            for (i, st) in items(w.value.child("steps")).enumerated() {
+                use(st.child("permission"), pointer("workflows", w.key.value, "steps", "\(i)", "permission"), "workflow " + w.key.value)
             }
         }
         var granted = Set<String>()

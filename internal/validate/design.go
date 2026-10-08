@@ -180,6 +180,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkCommands(d)
 	c.checkDependencies(d)
 	c.checkJobs(d)
+	c.checkWorkflows(d)
 	c.checkMenus(d)
 	c.checkViews(d)
 	c.checkSession(d)
@@ -618,6 +619,11 @@ func (c *checker) checkAccess(d *design) {
 		use(source.Child(pg, "permission"), source.Pointer("pages", name, "permission"), "page "+name)
 		for i, a := range source.Items(source.Child(pg, "actions")) {
 			use(source.Child(a, "permission"), source.Pointer("pages", name, "actions", fmt.Sprint(i), "permission"), "an action of page "+name)
+		}
+	}
+	for _, w := range source.Pairs(source.Child(d.root, "workflows")) {
+		for i, st := range source.Items(source.Child(w.Value, "steps")) {
+			use(source.Child(st, "permission"), source.Pointer("workflows", w.Key.Value, "steps", fmt.Sprint(i), "permission"), "workflow "+w.Key.Value)
 		}
 	}
 	granted := map[string]bool{}

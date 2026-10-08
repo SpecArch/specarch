@@ -2,14 +2,14 @@
 
 # Library Lending: traceability matrix
 
-Version 0.1.0 of the specification: 4 needs, 7 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.1.0 of the specification: 4 needs, 8 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 ## 1. Needs to requirements
 
 | Need | Status | Refined by |
 |---|---|---|
 | NEED-1 | accepted | LIB-1, LIB-3, LIB-7 |
-| NEED-2 | accepted | LIB-5 |
+| NEED-2 | accepted | LIB-5, LIB-8 |
 | NEED-3 | accepted | LIB-2, LIB-6 |
 | NEED-4 | accepted | LIB-4 |
 
@@ -24,6 +24,7 @@ Version 0.1.0 of the specification: 4 needs, 7 requirements, and 0 gaps. Each re
 | LIB-5 |   | NEED-2 | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; configuration dailyRate | tests loan-lent-and-returned; tests return-late; checks lend-and-return |
 | LIB-6 |   | NEED-3 | roles member; session | checks member-sees-own-loans |
 | LIB-7 |   | NEED-1 | pages loan-form; pages member-form; flows lend-a-copy | tests lend-a-copy-at-the-desk; tests lend-a-copy-limit-reached; checks lend-and-return; monitors catalogue-latency |
+| LIB-8 |   | NEED-2 | entities FeeWaiverRequest; roles desk-supervisor; paths /loans/{loanId}/fee-waivers post; paths /fee-waivers/{waiverId}/waive post; workflows fee-waiver | tests fee-waiver; tests fee-waiver-approval-without-permission; tests fee-waiver-deadline-passes; tests fee-waiver-refused; tests fee-waiver-requester-approves-own-request; tests request-fee-waiver; tests waive-fee |
 
 ## 3. Gaps
 

@@ -24,7 +24,7 @@ var designKeys = map[string]bool{
 	"properties": true, "primaryKey": true, "stateField": true, "messages": true, "payload": true,
 	"calls": true, "idempotencyKey": true, "guard": true, "validity": true,
 	"sensitivity": true, "atRest": true, "lookup": true, "audited": true, "deletion": true,
-	"listOf": true, "limits": true, "problem": true, "errors": true, "jobs": true, "menus": true,
+	"listOf": true, "limits": true, "problem": true, "errors": true, "jobs": true, "menus": true, "workflows": true,
 	"views": true, "count": true,
 }
 

@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.1.schema.json
+entities:
+  FeeWaiverRequest:
+    description: A librarian's request to waive the late fee of a loan, held while it waits for a supervisor.
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      loanId: { type: string, format: uuid }
+      amount: { type: string, format: decimal, precision: 10, scale: 2 }
+      reason: { type: string, minLength: 1, maxLength: 500 }
+    required: [id, loanId, amount, reason]
+    primaryKey: [id]
+    relations:
+      loan: { target: Loan, kind: many-to-one, via: loanId }
+    satisfies: [LIB-8]

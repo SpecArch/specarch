@@ -13,7 +13,7 @@ private func indefinite(_ word: String) -> String {
 
 /// The kind of subject a test names, and how a message names it.
 private func testKindOf(_ t: YNode) -> (kind: String, label: String) {
-    for k in ["operation", "command", "page", "job", "requirement"] {
+    for k in ["operation", "command", "page", "job", "workflow", "requirement"] {
         let v = str(t.child(k))
         if !v.isEmpty { return (k, k + " " + v) }
     }

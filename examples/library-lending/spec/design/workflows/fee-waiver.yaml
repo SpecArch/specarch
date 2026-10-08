@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.1.schema.json
+workflows:
+  fee-waiver:
+    description: A late fee is waived only after a desk supervisor, who is not the librarian who asked, approves it.
+    trigger: requestFeeWaiver
+    subject: FeeWaiverRequest
+    steps:
+      - name: approve
+        kind: approval
+        approvers: [desk-supervisor]
+        permission: fees.approve
+        deadline: P3D
+        onDeadline: refuse
+      - name: waive
+        kind: operation
+        operation: waiveFee
+    satisfies: [LIB-8]
+    why: Three days, because a supervisor is at the desk every working day and a member asking about a fee should have an answer within the week.

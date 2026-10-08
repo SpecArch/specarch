@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: requestFeeWaiver
+level: system
+scenario: red
+covers: [denied without fees.request]
+given: a member, who does not hold fees.request
+when: requestFeeWaiver is called for one of their own loans
+then: it is refused as not allowed, and no request is made

@@ -486,7 +486,7 @@ func kind(field map[string]any, v any) string {
 }
 
 func subjectOf(t map[string]any) string {
-	for _, k := range []string{"operation", "command", "page", "job", "flow", "requirement"} {
+	for _, k := range []string{"operation", "command", "page", "job", "flow", "workflow", "requirement"} {
 		if v := str(t, k); v != "" {
 			return k + " " + v
 		}

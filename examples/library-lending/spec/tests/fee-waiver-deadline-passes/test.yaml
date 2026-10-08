@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+workflow: fee-waiver
+level: acceptance
+scenario: red
+covers: [deadline passes at approve]
+given: a request to waive a fee, waiting for a desk supervisor
+when: three days pass with no answer
+then: the request ends refused, waiveFee is not called, and the fee still stands
+verifies: [LIB-8]
+origin: inferred
+why: Drafted by specarch derive, since a deadline passing is a case nobody tries by hand, then completed by hand; a request must not wait for ever.

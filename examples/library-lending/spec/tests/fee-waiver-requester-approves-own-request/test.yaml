@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+workflow: fee-waiver
+level: acceptance
+scenario: red
+covers: [requester approves own request]
+given: a desk supervisor who also works the desk and holds fees.request, and a request to waive a fee they asked for themselves
+when: they approve their own request
+then: it is refused, the request still waits for another desk supervisor, and waiveFee is not called
+verifies: [LIB-8]
+origin: inferred
+why: Drafted by specarch derive, since the four-eyes rule holds on every approval, then completed by hand; it is the one case the workflow exists for.

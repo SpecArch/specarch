@@ -1,0 +1,67 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+enums:
+  Colour:
+    type: string
+    enum: [red, green]
+entities:
+  Item:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      name: { type: string, minLength: 1, maxLength: 40 }
+      colour: { $ref: "#/enums/Colour" }
+      stock: { type: integer, format: int32 }
+      reserved: { type: integer, format: int32 }
+    required: [id, name]
+    primaryKey: [id]
+    constraints:
+      reserved_within_stock:
+        kind: check
+        expression: reserved <= stock
+        message: No more can be reserved than is in stock.
+permissions:
+  items.write: { description: Add items. }
+roles:
+  clerk: { description: Staff., permissions: [items.write] }
+channels:
+  items:
+    messages:
+      ItemAdded:
+        summary: An item was added
+        payload: { $ref: "#/entities/Item" }
+paths:
+  /items:
+    post:
+      operationId: addItem
+      summary: Add an item
+      permission: items.write
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Item" }
+      responses:
+        "201":
+          description: Added.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Item" }
+        "409": { description: An item with that name exists. }
+      emits: [items/ItemAdded]
+tests:
+  add-item:
+    operation: addItem
+    level: system
+    scenario: golden
+    given: a clerk and an empty shelf
+    when: addItem is called with a red lamp
+    then: it answers 201 and ItemAdded is published
+    fixture:
+      caller: clerk
+      Item: [{ name: lamp, stock: 3, reserved: 1 }]
+    input: { name: kettle, colour: red, stock: 2 }
+    expect:
+      status: 201
+      body: { name: kettle, colour: red }
+      state: { Item: [{ name: kettle, stock: 2, reserved: 0 }] }
+      emits: [items/ItemAdded]

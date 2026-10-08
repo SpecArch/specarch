@@ -45,6 +45,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case testRedMissing = "test_red_missing"
     case testCaseMissing = "test_case_missing"
     case suite = "suite"
+    case testData = "test_data"
     case layout = "layout"
     case need = "need"
     case stakeholder = "stakeholder"

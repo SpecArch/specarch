@@ -1,0 +1,34 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:34: warning: /commands/count: test_case_missing: command count has no red scenario for "denied without items.write"; add under tests count-denied-without-items-write: { command: count, scenario: red, covers: [denied without items.write], given: "a caller without items.write", when: "count is run", then: "it is refused as not allowed" }
+  specarch.yaml:34: warning: /commands/count: test_case_missing: command count has no red scenario for "exit 2"; add under tests count-exit-2: { command: count, scenario: red, covers: [exit 2], given: "...", when: "count is run", then: "it exits 2: usage error" }
+  specarch.yaml:34: warning: /commands/count: test_case_missing: command count has no red scenario for "usage error"; add under tests count-usage-error: { command: count, scenario: red, covers: [usage error], given: "...", when: "count is run with arguments it does not accept", then: "it prints how to use it and exits with the usage status" }
+  specarch.yaml:46: warning: /pages/item-view: test_case_missing: page item-view has no red scenario for "denied without items.write"; add under tests item-view-denied-without-items-write: { page: item-view, scenario: red, covers: [denied without items.write], given: "a caller without items.write", when: "the page item-view is opened", then: "it is refused as not allowed" }
+  specarch.yaml:46: warning: /pages/item-view: test_case_missing: page item-view has no red scenario for "not found itemId"; add under tests item-view-not-found-item-id: { page: item-view, scenario: red, covers: [not found itemId], given: "no record has that itemId", when: "the page item-view is opened for that itemId", then: "it says the record was not found" }
+  specarch.yaml:48: error: /pages/item-view/kind: schema: detail is not allowed here; use one of form, list, view
+  specarch.yaml:59: warning: /paths/~1items/post: test_case_missing: operation addItem has no red scenario for "colour not one of its values"; add under tests add-item-colour-not-one-of-its-values: { operation: addItem, scenario: red, covers: [colour not one of its values], given: "...", when: "addItem is called with colour set to a value it does not allow", then: "it is refused" }
+  specarch.yaml:59: warning: /paths/~1items/post: test_case_missing: operation addItem has no red scenario for "denied without items.write"; add under tests add-item-denied-without-items-write: { operation: addItem, scenario: red, covers: [denied without items.write], given: "a caller without items.write", when: "addItem is called", then: "it is refused as not allowed" }
+  specarch.yaml:59: warning: /paths/~1items/post: test_case_missing: operation addItem has no red scenario for "dependency fails items"; add under tests add-item-dependency-fails-items: { operation: addItem, scenario: red, covers: [dependency fails items], given: "items cannot take the message", when: "addItem is called", then: "..." }
+  specarch.yaml:59: warning: /paths/~1items/post: test_case_missing: operation addItem has no red scenario for "missing name"; add under tests add-item-missing-name: { operation: addItem, scenario: red, covers: [missing name], given: "...", when: "addItem is called without name", then: "it is refused" }
+  specarch.yaml:83: error: /tests/add-item/fixture/caller: test_data: caller clerck is neither public nor a role of the specification; did you mean clerk?
+  specarch.yaml:84: error: /tests/add-item/fixture/Item/0: test_data: this Item breaks reserved_within_stock (No more can be reserved than is in stock); a test holds only records that could exist
+  specarch.yaml:84: error: /tests/add-item/fixture/Item/0/weight: test_data: weight is not a field of Item; use one of colour, id, name, reserved, stock
+  specarch.yaml:85: error: /tests/add-item/fixture/Shelf: test_data: Shelf is not an entity of the specification; use one of Item
+  specarch.yaml:86: error: /tests/add-item/input/name: test_data: input name is a string, so write it in quotes: "7"
+  specarch.yaml:86: error: /tests/add-item/input/size: test_data: size is not a parameter or body field of operation addItem; use one of colour, name, reserved, stock
+  specarch.yaml:88: error: /tests/add-item/expect/status: test_data: operation addItem has no response 204; did you mean 201?
+  specarch.yaml:89: error: /tests/add-item/expect/exit: test_data: exit is for a command, and this test is about operation addItem
+  specarch.yaml:90: error: /tests/add-item/expect/emits/0: test_data: operation addItem does not emit items/ItemRemoved; use one of items/ItemAdded
+  specarch.yaml:91: error: /tests/add-item/expect/emitsNothing: test_data: emits and emitsNothing say opposite things; keep one
+  specarch.yaml:100: error: /tests/item-reserved-within-stock/input: test_data: input is for an operation, a command or a page, and this test is about Item constraint reserved_within_stock
+  specarch.yaml:110: error: /tests/add-item-blue/expect/body/colour: test_data: colour of the body is blue, which is not one of green, red
+  specarch.yaml:110: error: /tests/add-item-blue/expect/body/shade: test_data: shade is not a field of Item, which the response returns; use one of colour, id, name, reserved, stock
+  specarch.yaml:119: error: /tests/count-shelves/input/arguments/rooms: test_data: rooms is not an argument of command count; use one of shelves
+  specarch.yaml:119: error: /tests/count-shelves/input/arguments/shelves: test_data: argument shelves is a string, so write it in quotes: "3"
+  specarch.yaml:120: error: /tests/count-shelves/input/options/colour: test_data: option colour is blue, which is not one of green, red
+  specarch.yaml:120: error: /tests/count-shelves/input/options/size: test_data: size is not an option of command count; use one of colour
+  specarch.yaml:121: error: /tests/count-shelves/input/flags: test_data: flags is not part of a command's input, which has arguments and options
+  specarch.yaml:122: error: /tests/count-shelves/expect/exit: test_data: command count has no exit code 1; did you mean 0?
+  specarch.yaml:130: error: /tests/item-view-opened/input/action: test_data: Remove is not an action of page item-view; use one of Add another
+  specarch.yaml:130: error: /tests/item-view-opened/input/shelf: test_data: shelf is not a route parameter of page item-view; a page's input is its route parameters and action

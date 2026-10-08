@@ -178,6 +178,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkAccess(d)
 	c.checkExpressions(d)
 	c.checkTests(d)
+	c.checkTestData(d)
 	c.checkDeploymentStage(d)
 	c.checkTraceability(d)
 	c.checkQuestions(d)

@@ -191,6 +191,7 @@ extension Checker {
         checkAccess(d)
         checkExpressions(d)
         checkTests(d)
+        checkTestData(d)
         checkDeploymentStage(d)
         checkTraceability(d)
         checkQuestions(d)

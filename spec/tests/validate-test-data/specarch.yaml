@@ -1,0 +1,130 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+enums:
+  Colour:
+    type: string
+    enum: [red, green]
+entities:
+  Item:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      name: { type: string, minLength: 1, maxLength: 40 }
+      colour: { $ref: "#/enums/Colour" }
+      stock: { type: integer, format: int32 }
+      reserved: { type: integer, format: int32 }
+    required: [id, name]
+    primaryKey: [id]
+    constraints:
+      reserved_within_stock:
+        kind: check
+        expression: reserved <= stock
+        message: No more can be reserved than is in stock.
+permissions:
+  items.write: { description: Add items. }
+roles:
+  clerk: { description: Staff., permissions: [items.write] }
+channels:
+  items:
+    messages:
+      ItemAdded:
+        summary: An item was added
+        payload: { $ref: "#/entities/Item" }
+commands:
+  count:
+    summary: Count the items
+    permission: items.write
+    arguments:
+      - { name: shelves, required: true, repeatable: true, schema: { type: string, minLength: 1 } }
+    options:
+      colour: { description: Count only this colour., schema: { $ref: "#/enums/Colour" } }
+    standardOutput: The count.
+    exitCodes:
+      "0": counted
+      "2": usage error
+pages:
+  item-view:
+    title: An item
+    kind: detail
+    entity: Item
+    route: /items/{itemId}
+    permission: items.write
+    source: addItem
+    fields: [name, colour]
+    actions:
+      - { label: Add another, kind: operation, target: addItem }
+paths:
+  /items:
+    post:
+      operationId: addItem
+      summary: Add an item
+      permission: items.write
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Item" }
+      responses:
+        "201":
+          description: Added.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Item" }
+        "409": { description: An item with that name exists. }
+      emits: [items/ItemAdded]
+tests:
+  add-item:
+    operation: addItem
+    level: system
+    scenario: golden
+    given: a clerk
+    when: addItem is called
+    then: it answers 201
+    fixture:
+      caller: clerck
+      Item: [{ name: lamp, stock: 1, reserved: 2, weight: 3 }]
+      Shelf: [{ id: "1" }]
+    input: { name: 7, size: big }
+    expect:
+      status: 204
+      exit: 0
+      emits: [items/ItemRemoved]
+      emitsNothing: true
+  item-reserved-within-stock:
+    entity: Item
+    constraint: reserved_within_stock
+    level: system
+    scenario: golden
+    given: an item
+    when: it is saved
+    then: it is saved
+    input: { stock: 1 }
+  add-item-blue:
+    operation: addItem
+    level: system
+    scenario: golden
+    given: a clerk
+    when: addItem is called for a blue lamp
+    then: it answers 201
+    expect:
+      status: 201
+      body: { colour: blue, shade: dark }
+  count-shelves:
+    command: count
+    level: system
+    scenario: golden
+    given: two shelves
+    when: count is run on both
+    then: it prints the count
+    input:
+      arguments: { shelves: [a, 3], rooms: x }
+      options: { colour: blue, size: big }
+      flags: [quick]
+    expect: { exit: 1 }
+  item-view-opened:
+    page: item-view
+    level: system
+    scenario: golden
+    given: an item
+    when: the page opens
+    then: it shows the item
+    input: { itemId: "1", shelf: a, action: Remove }

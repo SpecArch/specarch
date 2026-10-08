@@ -5,3 +5,13 @@ given: "a standard-tier member with no loans and no fees, and a book with one co
 when: createLoan is called for them
 then: "an open loan due in 21 days is created, the book has no copy available, and LoanCreated is published"
 verifies: [LIB-3]
+fixture:
+  caller: librarian
+  Member: [{ id: "6f1c2a8e-3d4b-4c5a-9e7f-1a2b3c4d5e6f", tier: standard, outstandingFees: "0.00" }]
+  Book: [{ id: "9b2e7d1c-5a6f-4b3c-8d2e-7f1a9c3b5d4e", copiesOwned: 1, copiesAvailable: 1 }]
+input: { memberId: "6f1c2a8e-3d4b-4c5a-9e7f-1a2b3c4d5e6f", bookId: "9b2e7d1c-5a6f-4b3c-8d2e-7f1a9c3b5d4e" }
+expect:
+  status: 201
+  body: { status: open }
+  state: { Book: [{ id: "9b2e7d1c-5a6f-4b3c-8d2e-7f1a9c3b5d4e", copiesAvailable: 0 }] }
+  emits: [loan.lifecycle/LoanCreated]

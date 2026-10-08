@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.3.0-dev of the specification: 179 design tests, 55 golden and 123 red, about 9 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.3.0-dev of the specification: 182 design tests, 56 golden and 125 red, about 9 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.3.0-dev of the specification: 179 design tests, 55 golden and 123 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 175 |
+| system | 178 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1369,6 +1369,30 @@ Scenario: red; level: system; covers exit 1.
 - When: validate is run
 - Then: it reports test_case with the cases it has, warns for the case now uncovered, and exits 1
 
+#### validate-test-data
+
+Scenario: red; level: system; covers exit 1; verifies SA-27.
+
+- Given: tests whose fixture names an unknown role, entity and field and holds a record the check constraint refuses, whose input names an unknown body field and carries a number for a string, whose expect names a response, exit code, message and body values the design does not have and says emits and emitsNothing both, and a constraint test with input
+- When: validate is run
+- Then: it reports test_data at each and exits 1
+
+#### validate-test-data-folder
+
+Scenario: red; level: system; covers exit 1; verifies SA-27.
+
+- Given: a test with input and an input/ folder holding the request beside it
+- When: validate is run
+- Then: it reports test_data at input, since the two say the same thing, and exits 1
+
+#### validate-test-data-valid
+
+Scenario: golden; level: system; verifies SA-27.
+
+- Given: a test with a fixture, an input and an expected status, body, state and message, each naming what the design has with values of the right type
+- When: validate is run
+- Then: it reports no test_data and exits 0
+
 #### validate-test-subject
 
 Scenario: red; level: system; covers exit 1.
@@ -1485,10 +1509,13 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-60 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a failing dependency, and none is a mistake users make often. Writing a test that covers one removes it from this list.
+63 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a failing dependency, and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
+| requirement SA-27 | acceptance 1 | golden | SA-27 names no harm |
+| requirement SA-27 | acceptance 2 | golden | SA-27 names no harm |
+| requirement SA-27 | acceptance 3 | golden | SA-27 names no harm |
 | requirement SA-21 | acceptance 1 | golden | SA-21 names no harm |
 | requirement SA-21 | acceptance 2 | golden | SA-21 names no harm |
 | requirement SA-21 | acceptance 3 | golden | SA-21 names no harm |

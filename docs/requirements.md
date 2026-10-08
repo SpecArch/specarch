@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.3.0-dev of the specification: 5 stakeholders, 9 needs and 26 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.3.0-dev of the specification: 5 stakeholders, 9 needs and 27 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 ## 1. Purpose and scope
 
@@ -39,12 +39,13 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-17, SA-18, SA-19, SA-20 |
-| NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-21, SA-22 |
+| NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-27, SA-21, SA-22 |
 
 ## 4. Requirements
 
 | Requirement | Kind | Priority | Status | Statement |
 |---|---|---|---|---|
+| SA-27 | functional | should | accepted | A design test may carry its fixture, input and expected outcome as structured data in the design's own vocabulary, and the validator shall check that data against the design. |
 | SA-21 | functional | must | accepted | specarch validate shall rank every test case it derives as critical, frequent or other, from the harm of the requirements its subject satisfies and from how often users get its field wrong, and shall warn only for the critical and frequent cases no test covers. |
 | SA-22 | functional | must | accepted | specarch document shall list in the test plan, under Derived cases left out, every derived case of rank other that no test covers, with its subject and the reason it was left out, and shall show each requirement's harm in the traceability matrix once a requirement names one. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
@@ -71,6 +72,20 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-6 | interface | must | accepted | Every problem shall be reported, one line each, with file, line, YAML path and rule; the exit status is 0 when valid, 1 when invalid, 2 on a usage or read error. |
 | SA-9 | constraint | must | accepted | A specification and its implementations shall be separate files; a specification holds no stack-specific key and an implementation file adds no design. |
 | SA-10 | functional | must | accepted | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. |
+
+### SA-27
+
+A design test may carry its fixture, input and expected outcome as structured data in the design's own vocabulary, and the validator shall check that data against the design.
+
+Kind: functional; priority: should; status: accepted; verified by test; refines NEED-9.
+
+Acceptance criteria:
+
+- A fixture naming a field the entity does not have, a value of the wrong type, or a record a check constraint refuses is reported as test_data.
+- An input naming a parameter the operation does not have, or an expected status that is not one of its responses, is reported as test_data.
+- A test with input and an input/ folder beside it is reported as test_data.
+
+**Insight:** A generator can only write a test from data it can read, and data checked against the design cannot describe a record that could never exist.
 
 ### SA-21
 

@@ -2798,6 +2798,94 @@ let designSchemaJSON = #"""
           "type": "string",
           "minLength": 1
         },
+        "fixture": {
+          "description": "SpecArch keyword. The state before the test, for a generator: caller, the role making the call or public, and records that exist, by entity name.",
+          "type": "object",
+          "properties": {
+            "caller": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "propertyNames": {
+            "anyOf": [
+              {
+                "const": "caller"
+              },
+              {
+                "$ref": "#/$defs/typeName"
+              },
+              {
+                "pattern": "^x-"
+              }
+            ]
+          },
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "minItems": 1
+          }
+        },
+        "input": {
+          "description": "SpecArch keyword. What the call carries, for a generator: an operation's parameters and body fields by name; a command's arguments and options; a page's route parameters and action, the label of one of its actions.",
+          "type": "object",
+          "minProperties": 1
+        },
+        "expect": {
+          "description": "SpecArch keyword. The outcome, for a generator: an operation's status and the body fields that matter; a command's exit and lines of standardOutput; the state after, as records by entity name; and emits, the messages published, or emitsNothing.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "description": "One of the operation's response statuses.",
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 599
+            },
+            "body": {
+              "description": "Fields of the entity the response returns, with their values.",
+              "type": "object",
+              "minProperties": 1
+            },
+            "exit": {
+              "description": "One of the command's exit codes.",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            },
+            "standardOutput": {
+              "description": "Lines the command prints, in order.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            },
+            "state": {
+              "$ref": "#/$defs/testRecords"
+            },
+            "emits": {
+              "description": "The messages published, as channel/Message.",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*/[A-Z][A-Za-z0-9]*$"
+              },
+              "minItems": 1
+            },
+            "emitsNothing": {
+              "description": "No message is published.",
+              "type": "boolean",
+              "const": true
+            }
+          },
+          "minProperties": 1,
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        },
         "covers": {
           "description": "The derived cases this test covers, written exactly as the validator names them, such as 'missing memberId'.",
           "type": "array",
@@ -3339,6 +3427,21 @@ let designSchemaJSON = #"""
         "^x-": {}
       },
       "additionalProperties": false
+    },
+    "testRecords": {
+      "description": "SpecArch keyword. Records by entity name: each a list of records, each naming the fields that matter with values of the field's type.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/typeName"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "minItems": 1
+      },
+      "minProperties": 1
     }
   }
 }

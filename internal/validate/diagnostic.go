@@ -52,6 +52,7 @@ const (
 	RuleTestRedMissing         Rule = "test_red_missing"
 	RuleTestCaseMissing        Rule = "test_case_missing"
 	RuleSuite                  Rule = "suite"
+	RuleTestData               Rule = "test_data"
 	RuleChangeLog              Rule = "change_log"
 	RuleUnsafeInteger          Rule = "unsafe_integer"
 	RuleLayout                 Rule = "layout"
@@ -128,6 +129,7 @@ var Rules = []Rule{
 	RuleTestRedMissing,
 	RuleTestCaseMissing,
 	RuleSuite,
+	RuleTestData,
 	RuleChangeLog,
 	RuleUnsafeInteger,
 	RuleLayout,

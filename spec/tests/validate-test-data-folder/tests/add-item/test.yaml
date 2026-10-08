@@ -1,0 +1,7 @@
+operation: addItem
+level: system
+scenario: golden
+given: a clerk
+when: addItem is called with the request in input/
+then: it answers 201
+input: { name: kettle }

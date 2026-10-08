@@ -34,4 +34,4 @@ commands:
       "1": at least one input has an error
       "2": usage error, a path could not be read, or a folder holds no specification and no implementation file
     algorithm: exitStatus
-    satisfies: [SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-21, SA-23, SA-24]
+    satisfies: [SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-21, SA-23, SA-24, SA-27]

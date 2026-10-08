@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.3.0-dev of the specification: 9 needs, 26 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.3.0-dev of the specification: 9 needs, 27 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 ## 1. Needs to requirements
 
@@ -16,7 +16,7 @@ Version 0.3.0-dev of the specification: 9 needs, 26 requirements, and 0 gaps. Ea
 | NEED-6 | accepted | SA-15, SA-13 |
 | NEED-7 | accepted | SA-14 |
 | NEED-8 | accepted | SA-17, SA-18, SA-19, SA-20 |
-| NEED-9 | accepted | SA-21, SA-22 |
+| NEED-9 | accepted | SA-27, SA-21, SA-22 |
 
 ## 2. Requirements to design and verification
 
@@ -48,6 +48,7 @@ Version 0.3.0-dev of the specification: 9 needs, 26 requirements, and 0 gaps. Ea
 | SA-24 | NEED-5 | enums Rule; commands validate | tests validate-release-bump; tests validate-release-contents; tests validate-release-version; tests validate-releases-valid |
 | SA-25 | NEED-5 | commands diff | tests diff-classifies-changes; tests diff-invalid-spec; tests diff-lists-changes; tests diff-no-release; tests diff-not-covered; tests diff-tracker-unknown; tests diff-usage-error; tests diff-version-step |
 | SA-26 | NEED-3, NEED-5 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-releases |
+| SA-27 | NEED-9 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
 
 ## 3. Gaps
 

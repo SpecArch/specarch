@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "a test with a fixture, an input and an expected status, body, state and message, each naming what the design has with values of the right type"
+when: validate is run
+then: "it reports no test_data and exits 0"
+verifies: [SA-27]

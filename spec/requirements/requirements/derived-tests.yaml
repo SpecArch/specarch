@@ -1,4 +1,16 @@
 requirements:
+  SA-27:
+    statement: A design test may carry its fixture, input and expected outcome as structured data in the design's own vocabulary, and the validator shall check that data against the design.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - A fixture naming a field the entity does not have, a value of the wrong type, or a record a check constraint refuses is reported as test_data.
+      - An input naming a parameter the operation does not have, or an expected status that is not one of its responses, is reported as test_data.
+      - A test with input and an input/ folder beside it is reported as test_data.
+    verification: test
+    needs: [NEED-9]
+    why: A generator can only write a test from data it can read, and data checked against the design cannot describe a record that could never exist.
   SA-21:
     statement: specarch validate shall rank every test case it derives as critical, frequent or other, from the harm of the requirements its subject satisfies and from how often users get its field wrong, and shall warn only for the critical and frequent cases no test covers.
     kind: functional

@@ -13,7 +13,8 @@ the rank of each derived case, the narrowed warning, the left-out section
 of the test plan and the Harm column. The second is built too: the
 success case of every subject, the acceptance case per criterion, the
 paths of a state machine and the decision-table cases of a check
-constraint. The other items are listed at the end.
+constraint. So is the third: `fixture`, `input` and `expect` on a test,
+checked against the design. The other items are listed at the end.
 
 The standards are ISO/IEC/IEEE 29119-4:2021 for the techniques and their
 coverage measures, and ISO/IEC/IEEE 29119-1:2022 for why a test set is a
@@ -81,6 +82,33 @@ for what they cover and the files for the rest, never both for the same
 thing: a test with `input` has no `input/` folder, and a test with
 `expect` no `expected/` folder (`test_data`, a new rule), so there is one
 way to say each thing.
+
+Written out, for an operation, a command and a constraint:
+
+    fixture:
+      caller: librarian
+      Member: [{ id: "6f1c...", tier: standard }]
+    input: { memberId: "6f1c...", bookId: "9b2e..." }
+    expect:
+      status: 201
+      body: { status: open }
+      emits: [loan.lifecycle/LoanCreated]
+
+    input: { arguments: { paths: spec }, options: { check: true } }
+    expect: { exit: 0, standardOutput: ["specarch: 1 input checked: 0 errors"] }
+
+    expect: { state: { Loan: [{ status: returned }] }, emitsNothing: true }
+
+`caller` is a role of the specification or `public`. A record names only
+the fields that matter; the check constraints are evaluated on the ones
+it gives, and a constraint that names a field it leaves out is not
+evaluated. A command's `arguments` are its arguments by name, a list of
+values for a repeatable one, and its `options` its options by name. A
+page's input is its route parameters and `action`, the label of one of
+its actions. `status` and `exit` are whole numbers; `body` holds fields of
+the entity the response with that status returns, when it returns one.
+`emits` and `emitsNothing` are not both given. Every one of these checks
+reports as `test_data`.
 
 ### Error definitions
 
@@ -348,9 +376,9 @@ validator builds where it adds a rule, and the conformance cases.
    subject), the paths of a state machine (an `entity` subject alone), and
    the decision-table cases of a check constraint. Both builds, with
    cases; the test plan draws each state machine with its paths.
-3. `fixture`, `input` and `expect` on a test, the rule `test_data`, and
-   their checks against the design, including a fixture evaluated against
-   the entity's constraints. Both builds.
+3. Built. `fixture`, `input` and `expect` on a test, the rule
+   `test_data`, and their checks against the design, including a fixture
+   evaluated against the entity's constraints. Both builds.
 4. `specarch derive`. Go only, like the other verbs that write.
 5. The `tests` target for Go: `specarch-gen-tests-go`, mapping fixture,
    input and expect through the implementation file; worked examples as

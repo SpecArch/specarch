@@ -506,8 +506,15 @@ met, and names it under `verifies`); unit and integration tests belong to
 the implementation's suites, which carry the same `level` key. It is marked
 `scenario: golden` for the path that succeeds or `scenario: red` for a path
 that fails, and says what happens in three plain sentences: `given`, `when`
-and `then`. There is no test language beyond that. In a tree, each test is
-`tests/<name>/test.yaml`, with the scenario's own data files beside it:
+and `then`. For a generator a test may add `fixture` (the caller and the
+records that exist), `input` (what the call carries) and `expect` (the
+status, exit, body, state and messages after), in the design's own
+vocabulary and checked against it (`test_data`; `docs/test-generation.md`
+gives the shapes). There is no test language beyond that. In a tree, each
+test is `tests/<name>/test.yaml`, with the scenario's own data files beside
+it, for what the structured keys cannot hold; a test says one thing one
+way, so a test with `input` has no `input/` folder and one with `expect`
+no `expected/` folder:
 
     tests/lend-limit-reached/test.yaml
     tests/lend-limit-reached/input/request.json

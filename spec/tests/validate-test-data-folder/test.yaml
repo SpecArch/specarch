@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a test with input and an input/ folder holding the request beside it"
+when: validate is run
+then: "it reports test_data at input, since the two say the same thing, and exits 1"
+verifies: [SA-27]

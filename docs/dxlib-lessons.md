@@ -83,9 +83,10 @@ sensitivity is a prefix (`protected-string` is masked by role on display,
 (`serial`, `bigserial`, `id`, the public-id type, `money`). Two registries
 list the values: `Types`, the names a request parameter may use, and
 `DataTypes`, a shorter list. The column-only types (the serials, the fixed
-widths, money, the geometry point, the public id) are in neither, and `money`
-has a parameter-type constant but no registry entry, so it cannot be declared
-on a request. A registry keyed by names has to be kept complete by hand, and
+widths, money, the geometry point, the public id) are in neither. `money`
+is read on a request all the same, because the validator and the OpenAPI
+reader switch on its constant, but `GetDataTypeFromString("money")` does
+not find it. A registry keyed by names has to be kept complete by hand, and
 this one is not.
 
 Enums are not in the type model. A parameter carries an `Enum` list of
@@ -534,7 +535,7 @@ have no design spelling (they are not needed).
 | a `dialect: dxlib` setting on the openapi target: the extensions, one method per path, body parameters for every method with a body, the type names in `x-dxlib-type` | small | go-dxlib |
 | `specarch-gen-sql` through the type-rendering idiom, four dialects, new-file migrations | medium to large | every route |
 | `specarch-gen-go-dxlib`: models, tables, stubs, accessors, seeds, tasks | medium to large | go-dxlib |
-| the dxlib items above (bounds in the validator, a method in the route key) | medium, in dxlib | go-dxlib without workarounds |
+| the dxlib items of section 6 (bounds in the validator, a method in the route key) | medium, in dxlib | go-dxlib without workarounds |
 
 The payoff is large for the owner's own services, because the runtime
 already does what a generated service would otherwise have to carry as
@@ -640,11 +641,60 @@ where it adds a rule, and the conformance cases; the generators are Go only.
    project, when the owner decides that service's specification goes ahead.
    Built: the dialect, whose document dxlib's own reader reads, and the
    generator, whose file compiles against dxlib.
-7. Reported to dxlib's own queue, not done here: enforce the JSON Schema
-   bounds in the parameter validator and accept them in the OpenAPI reader;
-   route by method and URI; add `money` to the parameter registry; answer
-   with a problem document.
+7. Not done here: the items of section 6, written for dxlib's own queue.
 8. `views` as a read model, after the first real specification needs one.
+
+## 6. Items for dxlib's own queue
+
+Work in dxlib, not in this repository, each read against dxlib at
+`62f4a82`. None blocks SpecArch: the dxlib dialect and
+`specarch-gen-go-dxlib` work around each one, and each removes a
+workaround once it lands.
+
+1. **Enforce JSON Schema's bounds, then accept them.** The parameter
+   validator (`api/api_endpoint_request_parameter_value.go`) applies only
+   the bounds a type name implies, and the OpenAPI reader refuses the rest
+   with `CONSTRAINT_NOT_ENFORCED_BY_DXLIB` (`openAPIRefusedFields` in
+   `api/openapi_read.go`): `maxLength`, `pattern`, `maximum`,
+   `exclusiveMaximum`, `maxItems`, `minItems`, `uniqueItems`, `const`,
+   `multipleOf`, and `minLength` and `minimum` beyond the values a type
+   name carries. Carry each on the parameter, check it in the validator
+   with the parameter's path in the refusal, and take it off the refused
+   list. Until then the dialect lists them under `x-specarch-unenforced`
+   and the generated handler checks them.
+2. **Carry the annotations.** The reader also refuses `title`, `default`,
+   `readOnly` and `writeOnly` as `NOT_CARRIED_BY_DXLIB`. They promise no
+   check, so reading and ignoring them is safe, and `default` could fill an
+   absent parameter as the default argument of some getters already does. Until
+   then the dialect leaves them out, so the dxlib document cannot be the
+   standard one.
+3. **Route by method and URI.** `NewEndPoint` (`api/api.go`) keys an
+   endpoint by its URI alone and stops the process on a second method
+   (`Duplicate endpoint uri`), and `FindEndPointByURI` looks up by URI. Key
+   both by method and URI, so `GET /members` and `POST /members` are two
+   endpoints. Until then every operation is a POST at `/<operationId>`.
+4. **Complete the type registry.** `money` has its constant
+   (`types/types.go`), its validator branch and its OpenAPI mapping, but is
+   in neither `DataTypes` nor `Types`, so `GetDataTypeFromString("money")`
+   answers `unknown type`. The same holds for the serials, the fixed
+   widths, the geometry point and the public id. Add each, or derive both
+   lists from one table so none can be missed.
+5. **A pointer getter for `nullable-int32`.** `nullable-string` and
+   `nullable-int64` have `GetParameterValueAsNullableString` and
+   `GetParameterValueAsNullableInt64`, answering a pointer;
+   `nullable-int32` has only `GetParameterValueAsInt32`, answering a plain
+   `int32`. Add `GetParameterValueAsNullableInt32` answering `*int32`, so
+   the three nullable types read alike. The generated request struct keeps
+   a `Has` flag per field meanwhile.
+6. **Answer with a problem document.** Every refusal is written as
+   `{status, status_code, reason, reason_message}`
+   (`WriteResponseAndNewErrorf` in `api/api_endpoint_request.go`, and the
+   literal bodies in `api/api.go`). Offer RFC 9457
+   (`application/problem+json` with `type`, `title`, `status`, `detail`,
+   `instance`) as a setting of the API, the reason code becoming the
+   problem type's last segment, so a client can branch on the type. Until
+   then the `error-response` idiom's `dxlib` rendering maps the problem
+   catalogue onto dxlib's body.
 
 ## Left out of this document
 

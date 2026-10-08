@@ -287,13 +287,25 @@ extension Checker {
 
 /// Whether an idiom applies to a specification and an implementation file:
 /// it renders one of the file's stacks, or any, and the specification uses
-/// one of the keywords it reads.
+/// one of the keywords it reads, as a section or as a key anywhere inside
+/// one.
 func idiomApplies(_ i: Idiom, _ root: YNode, _ isStack: Set<String>) -> Bool {
     guard items(i.root.child("stacks")).contains(where: { isStack.contains($0.value) }) else { return false }
-    for r in items(i.root.child("reads")) {
-        if let n = root.child(r.value), !n.pairs.isEmpty || !n.items.isEmpty { return true }
+    for r in items(i.root.child("reads")) where usesKeyword(root, r.value) {
+        return true
     }
     return false
+}
+
+/// Whether the design uses a keyword: a section of that name that is not
+/// empty, or the key anywhere inside a section.
+func usesKeyword(_ root: YNode, _ keyword: String) -> Bool {
+    if let n = root.child(keyword), !n.pairs.isEmpty || !n.items.isEmpty { return true }
+    var found = false
+    walk(root, []) { n, path in
+        if !path.isEmpty && n.key(keyword) != nil { found = true }
+    }
+    return found
 }
 
 /// The rendering of one part for one stack, by the lookup order: the

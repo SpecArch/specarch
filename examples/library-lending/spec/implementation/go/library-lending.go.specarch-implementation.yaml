@@ -83,9 +83,13 @@ targets:
   releases:
     output: ../../../docs
   openapi:
-    output: api
+    output: ../../../openapi
     tool: oapi-codegen
-    settings: { package: api, generate: { chi-server: true, strict-server: true, models: true } }
+    description: The interface as an OpenAPI 3.1 document, from which oapi-codegen writes the strict server interface into the package api.
+    settings:
+      package: api
+      generate: { chi-server: true, strict-server: true, models: true }
+      securityScheme: { name: bearerAuth, type: http, scheme: bearer, bearerFormat: JWT }
   sql:
     output: migrations
     dialect: postgresql

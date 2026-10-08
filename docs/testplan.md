@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.4.0-dev of the specification: 211 design tests, 69 golden and 141 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.4.0-dev of the specification: 212 design tests, 70 golden and 141 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.4.0-dev of the specification: 211 design tests, 69 golden and 141 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 207 |
+| system | 208 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -23,6 +23,7 @@ Framework: go test. Run: `go test ./...`.
 |---|---|---|---|
 | conformance | system | every design test of command validate, command gaps, command document, command approve, command generate, command extract, command idioms, command idioms diff, command version | `go test ./cmd/specarch` |
 | shipped-idioms | unit | tests of this implementation only | `go test ./internal/validate` |
+| generated-openapi | unit | tests of this implementation only | `go test ./internal/genopenapi` |
 | generated-tests | unit | tests of this implementation only | `go test ./internal/gentests` |
 | expressions | unit | tests of this implementation only | `go test ./internal/expr` |
 
@@ -530,6 +531,14 @@ Scenario: red; level: system; covers exit 2; verifies SA-14.
 - Given: a target this build does not have and no specarch-gen-openapi on PATH
 - When: generate openapi is run
 - Then: it says there is no generator for the target and exits 2
+
+#### generate-openapi
+
+Scenario: golden; level: system; verifies SA-36.
+
+- Given: a specification with an enum, an audited entity, a problem catalogue and a list of the entity with search, filter, sort and a page size, and an implementation file in Go whose openapi target names a security scheme; specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved
+- Then: it writes openapi.yaml, OpenAPI 3.1.0, with the list paged by the paginated-list names in its envelope, the 404 as a problem document, the audit fields read-only and the security scheme on the operation, and exits 0
 
 #### generate-plugin-path-outside
 
@@ -1749,7 +1758,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-85 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+88 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1779,6 +1788,9 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-34 | acceptance 4 | golden | SA-34 names no harm |
 | requirement SA-35 | acceptance 1 | golden | SA-35 names no harm |
 | requirement SA-35 | acceptance 2 | golden | SA-35 names no harm |
+| requirement SA-36 | acceptance 1 | golden | SA-36 names no harm |
+| requirement SA-36 | acceptance 2 | golden | SA-36 names no harm |
+| requirement SA-36 | acceptance 3 | golden | SA-36 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

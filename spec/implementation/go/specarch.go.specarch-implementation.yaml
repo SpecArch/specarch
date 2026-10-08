@@ -71,6 +71,11 @@ layout:
     description: Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys.
   internal/spec:
     description: Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems.
+  cmd/specarch-gen-openapi:
+    description: The plug-in behind generate openapi. Reads the request on standard input, answers the OpenAPI document on standard output, and never touches the disk.
+    implements: ["#/commands/generate"]
+  internal/genopenapi:
+    description: The OpenAPI 3.1 document in the standard dialect, the design field for field, with the problem catalogue and lists paged through the paginated-list idiom.
   cmd/specarch-gen-tests-go:
     description: The plug-in behind generate tests for a Go implementation file. Reads the request on standard input, answers the Go test file on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
@@ -200,6 +205,12 @@ testing:
     shipped-idioms:
       description: Checks every shipped idiom against the idiom schema, that each is named after its file, and that it cites only the sources it declares.
       run: go test ./internal/validate
+      level: unit
+      implementationOnly: true
+      ci: true
+    generated-openapi:
+      description: Generates the library lending example's OpenAPI document and checks it parses, pages its list through the idiom, answers its refusals with problem documents and carries the audit fields; and that a list by POST takes its paging in the body.
+      run: go test ./internal/genopenapi
       level: unit
       implementationOnly: true
       ci: true

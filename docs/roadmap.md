@@ -71,10 +71,13 @@ difference. The rules and the pattern each target follows are in
 1. Technical specification in Markdown, arc42 layout, with the generated
    Mermaid diagrams (entity, state, sequence, pages, permissions matrix).
    Highest payoff: it is what reviewers read, and it makes the YAML visible.
-2. OpenAPI 3.1 document. Fields map one to one, since the keywords are
-   OpenAPI's. Permissions become a security scheme plus a `x-specarch-permission`
-   extension per operation. Server interfaces and types then come from a
-   standard OpenAPI code generator per stack, not from SpecArch.
+2. Built, standard dialect: `specarch-gen-openapi` writes the OpenAPI 3.1
+   document. Fields map one to one, since the keywords are OpenAPI's.
+   Permissions become the security scheme the target names plus a
+   `x-specarch-permission` extension per operation; refusals are RFC 9457
+   problem documents; lists page through the paginated-list idiom. Server
+   interfaces and types then come from a standard OpenAPI code generator
+   per stack, not from SpecArch. The dxlib dialect comes with go-dxlib.
 3. SQL migrations, new files only, in PostgreSQL by default; the other
    dialects render through the type-rendering idiom of `docs/idioms.md`,
    with the table in `docs/dxlib-lessons.md`. The generator diffs the spec against

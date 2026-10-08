@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: paginated-list
+version: 1.0.0
+concern: list-operations
+stacks: [any]
+reads: [listOf]
+description: |
+  How an operation that lists an entity takes its search, filter, sort and
+  page, and what it answers. The design says which fields may be searched,
+  filtered and sorted by and how large a page may be (listOf); this idiom
+  gives the names on the wire and the answer's envelope, so every list of
+  every service has one shape and one client component reads them all.
+why: |
+  Every list answers the same four questions: which page, how large, in
+  what order, matching what. One shape means one client component and one
+  set of tests.
+
+contract:
+  page:
+    statement: The operation takes a page number from 1 and a page size, and answers the page's records with the total count of records and of pages.
+    check: document
+  page-size-limit:
+    statement: A page size above the maximum of listOf is refused, never cut down silently.
+    check: test
+  sortable:
+    statement: A sort by a field not in sortable is refused, never ignored.
+    check: test
+  filterable:
+    statement: A filter on a field not in filterable is refused, never ignored.
+    check: test
+  search:
+    statement: Free-text search matches any of the searchable fields, case-insensitively.
+    check: guidance
+  safe-totals:
+    statement: The totals are integers a JSON reader holds exactly, at most 2^53 - 1.
+    check: document
+
+parts:
+  parameters:
+    description: The names of the request's parts. A GET takes them as query parameters; any other method takes them as properties of its request body.
+    stack:
+      any:
+        names: { search: search, filter: filter, sort: sort, page: page, pageSize: pageSize }
+        code: |
+          search is free text. filter is an object whose properties are the
+          filterable fields, each matched by equality; in a query it is
+          written filter[status]=open (OpenAPI style deepObject). sort is a
+          sortable field, ascending, or the field after a minus sign,
+          descending. page counts from 1. pageSize has the default and the
+          maximum of listOf.
+        why: Plain words a client developer reads without a glossary; the deepObject style is the one OpenAPI defines for an object in a query.
+  envelope:
+    description: The answer's shape.
+    stack:
+      any:
+        names: { items: items, totalItems: totalItems, totalPages: totalPages }
+        code: |
+          { "items": [ ... ], "totalItems": 0, "totalPages": 0 }
+        why: The records under one name, so the envelope can grow without breaking a client, and both totals, so a client can draw the pages without counting.
+
+tests:
+  - { case: page beyond last, scenario: golden, then: an empty page with the true totals }
+  - { case: page size above maximum, scenario: red, then: it is refused }
+  - { case: sort by a field not sortable, scenario: red, then: it is refused }
+  - { case: filter by a field not filterable, scenario: red, then: it is refused }

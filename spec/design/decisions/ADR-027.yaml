@@ -1,0 +1,51 @@
+decisions:
+  ADR-027:
+    title: The OpenAPI document in the standard dialect, and idioms in the plug-in request
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      Plain Go services get their server interface from a standard OpenAPI
+      generator in strict mode, so the OpenAPI document is where the design
+      reaches the code. The document has to say everything a client needs
+      that SpecArch adds to OpenAPI, the refusals and the paging among
+      them, and a plug-in must render through the idioms that apply without
+      reading the project's files.
+    decision: |
+      specarch-gen-openapi writes openapi.yaml, OpenAPI 3.1.0. Paths,
+      parameters, bodies and responses are the design's as they are; an
+      entity or an enum is a schema under components. SpecArch's own field
+      and operation keywords become x-specarch- extensions (permission,
+      limits, emits, satisfies, precision, scale, sensitivity, atRest,
+      lookup); rationale and test hints (why, cites, origin, mistakes,
+      guard, calls, algorithm) are not interface and are left out. A
+      response that names a problem type answers application/problem+json
+      with RFC 9457's problem schema and names the type in
+      x-specarch-problem; the catalogue is x-specarch-problems under
+      components. A list takes the names of the paginated-list idiom that
+      applies: as query parameters on a GET, as properties of the request
+      body on another method, and its answer is wrapped in the idiom's
+      envelope with totals bounded to 2^53 - 1. The security scheme is the
+      one the target's settings give under securityScheme; without it the
+      document has none, and each operation still names its permission. An
+      audited entity's schema carries the four audit fields as read-only.
+      Each implementation file in a plug-in's request carries its idioms
+      with their content and the override.
+    consequences: |
+      A plug-in renders through an override without touching the disk. The
+      standard dialect is the absence of a dialect on the openapi target;
+      a dxlib dialect needs the stacks of an implementation file to leave
+      out a dialect that is not a SQL one. The document is not checked
+      against an OpenAPI validator yet, which would be a new dependency;
+      the test parses it back and checks its parts. Server code is the
+      standard generator's.
+    why: |
+      A made-up URI for a problem type would be a placeholder, so a type
+      without its own URI is named, not invented; RFC 9457 reserves only
+      about:blank. The security scheme is the implementation's choice, so
+      no default is guessed. The idiom's names are read from the request,
+      never written into the plug-in, or an override would change nothing.
+    cites:
+      - source: rfc-9457
+        clause: "3.1.1"
+        says: "The type member is a URI reference that identifies the problem type; when it is not present its value is assumed to be about:blank."
+    satisfies: [SA-36]

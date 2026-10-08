@@ -3,9 +3,11 @@ package main
 import (
 	"bytes"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 
 	"go.yaml.in/yaml/v3"
@@ -19,6 +21,46 @@ type conformanceCase struct {
 	Arguments      []string `yaml:"arguments"`
 	ExitStatus     int      `yaml:"exitStatus"`
 	StandardOutput string   `yaml:"standardOutput"`
+	// Plugins names the targets whose plug-in from this repository the
+	// case runs with, such as openapi for cmd/specarch-gen-openapi: each is
+	// built once and put on PATH.
+	Plugins []string `yaml:"plugins"`
+}
+
+// builtPlugins is the folder the repository's own plug-ins are built into
+// for the cases that name them.
+var builtPlugins struct {
+	sync.Mutex
+	dir   string
+	built map[string]bool
+}
+
+// buildPlugin builds cmd/specarch-gen-<target> once and returns its folder.
+// It runs before the case changes its working folder.
+func buildPlugin(t *testing.T, target string) string {
+	t.Helper()
+	builtPlugins.Lock()
+	defer builtPlugins.Unlock()
+	if builtPlugins.dir == "" {
+		dir, err := os.MkdirTemp("", "specarch-plugins-")
+		if err != nil {
+			t.Fatal(err)
+		}
+		builtPlugins.dir, builtPlugins.built = dir, map[string]bool{}
+	}
+	if !builtPlugins.built[target] {
+		src, err := filepath.Abs("../specarch-gen-" + target)
+		if err != nil {
+			t.Fatal(err)
+		}
+		cmd := exec.Command("go", "build", "-o", filepath.Join(builtPlugins.dir, "specarch-gen-"+target), ".")
+		cmd.Dir = src
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("cannot build the plug-in for %s: %v\n%s", target, err, out)
+		}
+		builtPlugins.built[target] = true
+	}
+	return builtPlugins.dir
 }
 
 // The conformance suite is the tests stage of SpecArch's own specification:
@@ -68,10 +110,17 @@ func TestConformance(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
+			var built string
+			for _, target := range c.Plugins {
+				built = buildPlugin(t, target)
+			}
 			t.Chdir(work)
-			if _, err := os.Stat(filepath.Join(work, "plugins")); err == nil {
+			switch _, err := os.Stat(filepath.Join(work, "plugins")); {
+			case err == nil:
 				t.Setenv("PATH", filepath.Join(work, "plugins")+string(os.PathListSeparator)+os.Getenv("PATH"))
-			} else {
+			case built != "":
+				t.Setenv("PATH", built)
+			default:
 				t.Setenv("PATH", filepath.Join(work, "no-plugins"))
 			}
 			var stdout, stderr bytes.Buffer

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"sort"
@@ -15,6 +16,7 @@ import (
 	"github.com/SpecArch/specarch/internal/approval"
 	"github.com/SpecArch/specarch/internal/generate"
 	"github.com/SpecArch/specarch/internal/source"
+	"github.com/SpecArch/specarch/internal/validate"
 )
 
 // pluginPrefix starts the name of every generator plug-in on PATH.
@@ -38,9 +40,22 @@ type pluginRequest struct {
 }
 
 type pluginImplementation struct {
-	File     string `json:"file"`
-	Content  any    `json:"content"`
-	Settings any    `json:"settings,omitempty"`
+	File     string        `json:"file"`
+	Content  any           `json:"content"`
+	Settings any           `json:"settings,omitempty"`
+	Idioms   []pluginIdiom `json:"idioms"`
+}
+
+// pluginIdiom is one idiom an implementation file uses, as the plug-in
+// needs it to render: how it applies, the idiom file that applies (the
+// shipped one, or the project's own), and the override file when the
+// project overrides it. An excluded idiom carries no content.
+type pluginIdiom struct {
+	Name     string `json:"name"`
+	Version  string `json:"version"`
+	As       string `json:"as"`
+	Content  any    `json:"content,omitempty"`
+	Override any    `json:"override,omitempty"`
 }
 
 // pluginResponse is what a plug-in writes on its standard output, as JSON:
@@ -111,15 +126,7 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 			if status != 0 {
 				return status
 			}
-			req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: l.spec.Value, Output: filepath.ToSlash(folder)}
-			for _, i := range g.impls {
-				settings := source.Child(source.Child(source.Child(i.Node, "targets"), target), "settings")
-				pi := pluginImplementation{File: filepath.ToSlash(i.Path), Content: source.ValueOf(i.Node)}
-				if settings != nil {
-					pi.Settings = source.ValueOf(settings)
-				}
-				req.Implementations = append(req.Implementations, pi)
-			}
+			req := newPluginRequest(l, target, folder, g.impls)
 			resp, status := runPlugin(g.exe, g.name, req, stderr)
 			if status != 0 {
 				return status
@@ -226,6 +233,45 @@ func pluginGroups(l loaded, target string, stderr io.Writer) ([]pluginGroup, int
 func stackName(impl *yaml.Node) string {
 	name := source.Str(source.Child(source.Child(source.Child(impl, "stack"), "language"), "name"))
 	return strings.ReplaceAll(strings.ToLower(strings.TrimSpace(name)), " ", "-")
+}
+
+// newPluginRequest is the request a plug-in gets for one specification and
+// the implementation files that reach it.
+func newPluginRequest(l loaded, target, folder string, impls []generate.Implementation) pluginRequest {
+	req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: l.spec.Value, Output: filepath.ToSlash(folder), Implementations: []pluginImplementation{}}
+	for _, i := range impls {
+		settings := source.Child(source.Child(source.Child(i.Node, "targets"), target), "settings")
+		pi := pluginImplementation{File: filepath.ToSlash(i.Path), Content: source.ValueOf(i.Node), Idioms: []pluginIdiom{}}
+		if settings != nil {
+			pi.Settings = source.ValueOf(settings)
+		}
+		shipped := validate.ShippedIdioms()
+		for _, u := range validate.IdiomUses(i.Path, i.Node, l.spec) {
+			pid := pluginIdiom{Name: u.Name, Version: u.Version, As: u.As}
+			switch u.As {
+			case "shipped":
+				pid.Content = source.ValueOf(shipped[u.Name].Root)
+			case "overridden":
+				pid.Content = source.ValueOf(shipped[u.Name].Root)
+				if data, err := os.ReadFile(u.Override); err == nil {
+					pid.Override = source.Parse(data).Value
+				}
+			case "project":
+				if data, err := os.ReadFile(projectIdiomPath(i.Path, u.Name)); err == nil {
+					pid.Content = source.Parse(data).Value
+				}
+			}
+			pi.Idioms = append(pi.Idioms, pid)
+		}
+		req.Implementations = append(req.Implementations, pi)
+	}
+	return req
+}
+
+// projectIdiomPath is where the project's own idiom of a name sits, beside
+// its implementation file.
+func projectIdiomPath(implPath, name string) string {
+	return filepath.Join(filepath.Dir(implPath), "idioms", name+validate.IdiomSuffix)
 }
 
 // gate refuses to generate a target while a must or should question blocks

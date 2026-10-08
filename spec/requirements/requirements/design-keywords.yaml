@@ -40,3 +40,15 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-5]
     why: What runs at night or on a queue is the part of a system nobody watches, and the part a test plan forgets; written in the design, its tests follow from it like an operation's.
+  SA-36:
+    statement: specarch generate openapi shall write, through a plug-in, the OpenAPI 3.1 document of a specification in the standard dialect, with the problem catalogue as the error responses and every list expanded through the paginated-list idiom that applies, so that a standard OpenAPI code generator can write the server interface from it.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - The document of the library lending example parses, is OpenAPI 3.1.0, pages its list of loans by the idiom's names in the idiom's envelope, answers its refusals with RFC 9457 problem documents naming their types, carries an audited entity's audit fields as read-only, and carries SpecArch's own keywords as x-specarch- extensions.
+      - A list by a method other than GET takes its paging in its request body, and a body that is a reference to an entity is reported.
+      - Each implementation file in a plug-in's request carries the idioms it uses, with the content of the idiom that applies and the project's override.
+    verification: test
+    needs: [NEED-2, NEED-3]
+    why: The server interface of a Go service is written by a standard OpenAPI generator in strict mode, so the document is where the design reaches the code; written by hand, it drifts from the design on the first change.

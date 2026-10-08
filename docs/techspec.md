@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.4.0-dev of the specification: 35 requirements, 3 entities, 11 commands, 6 algorithms, 211 tests, 26 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.4.0-dev of the specification: 36 requirements, 3 entities, 11 commands, 6 algorithms, 212 tests, 27 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -626,8 +626,11 @@ specification with a request on its standard input, as JSON:
 `specarch` (the meta-model version), `target`, `root` (the root file's
 path), `specification` (the merged, validated specification as plain
 values), `implementations` (each implementation file as `file`,
-`content` and the target's `settings` from it) and `output` (the
-folder the files are for). The plug-in answers on its standard output,
+`content`, the target's `settings` from it, and `idioms`, the idioms
+it uses, each with its `name`, `version`, how it applies (`as`:
+shipped, overridden, project or excluded), the `content` of the idiom
+that applies and the project's `override`) and `output` (the folder
+the files are for). The plug-in answers on its standard output,
 as JSON, with `files` (each a `path` relative to the output folder and
 its `content`) and `diagnostics` (each with the validator's fields:
 file, line, severity, path, rule, message), and exits 0. The program
@@ -906,6 +909,8 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
+| cmd/specarch-gen-openapi | The plug-in behind generate openapi. Reads the request on standard input, answers the OpenAPI document on standard output, and never touches the disk. | #/commands/generate |
+| internal/genopenapi | The OpenAPI 3.1 document in the standard dialect, the design field for field, with the problem catalogue and lists paged through the paginated-list idiom. |   |
 | cmd/specarch-gen-tests-go | The plug-in behind generate tests for a Go implementation file. Reads the request on standard input, answers the Go test file on standard output, and never touches the disk. | #/commands/generate |
 | internal/gentests | The Go tests a specification implies, as the plug-in writes them. One file per specification, with the Harness interface the project implements beside it; design tests become tests through it, worked examples unit tests of the algorithm's mapping. |   |
 | internal/semver | Semantic Versioning 2.0.0 versions, their precedence, and the step one needs from another, with the step before 1.0.0; the release rules and diff measure a release with it. |   |
@@ -987,6 +992,7 @@ Stand-ins: None. Every test runs the real program on real files.
 |---|---|---|---|
 | conformance | system | every design test of command validate, command gaps, command document, command approve, command generate, command extract, command idioms, command idioms diff, command version | `go test ./cmd/specarch` |
 | shipped-idioms | unit | tests of this implementation only | `go test ./internal/validate` |
+| generated-openapi | unit | tests of this implementation only | `go test ./internal/genopenapi` |
 | generated-tests | unit | tests of this implementation only | `go test ./internal/gentests` |
 | expressions | unit | tests of this implementation only | `go test ./internal/expr` |
 
@@ -2196,6 +2202,49 @@ meta-model stays at 0.1.
 
 **Insight:** A trigger is one of three, because a job that both runs hourly and consumes a queue is two jobs. Runs twice is critical on its own as a concurrent write is: a scheduler that fires twice, or a message delivered twice, is what happens in production and never by hand.
 
+### ADR-027: The OpenAPI document in the standard dialect, and idioms in the plug-in request
+
+Status: accepted, 2026-10-08.
+
+Context: Plain Go services get their server interface from a standard OpenAPI
+generator in strict mode, so the OpenAPI document is where the design
+reaches the code. The document has to say everything a client needs
+that SpecArch adds to OpenAPI, the refusals and the paging among
+them, and a plug-in must render through the idioms that apply without
+reading the project's files.
+
+Decision: specarch-gen-openapi writes openapi.yaml, OpenAPI 3.1.0. Paths,
+parameters, bodies and responses are the design's as they are; an
+entity or an enum is a schema under components. SpecArch's own field
+and operation keywords become x-specarch- extensions (permission,
+limits, emits, satisfies, precision, scale, sensitivity, atRest,
+lookup); rationale and test hints (why, cites, origin, mistakes,
+guard, calls, algorithm) are not interface and are left out. A
+response that names a problem type answers application/problem+json
+with RFC 9457's problem schema and names the type in
+x-specarch-problem; the catalogue is x-specarch-problems under
+components. A list takes the names of the paginated-list idiom that
+applies: as query parameters on a GET, as properties of the request
+body on another method, and its answer is wrapped in the idiom's
+envelope with totals bounded to 2^53 - 1. The security scheme is the
+one the target's settings give under securityScheme; without it the
+document has none, and each operation still names its permission. An
+audited entity's schema carries the four audit fields as read-only.
+Each implementation file in a plug-in's request carries its idioms
+with their content and the override.
+
+Consequences: A plug-in renders through an override without touching the disk. The
+standard dialect is the absence of a dialect on the openapi target;
+a dxlib dialect needs the stacks of an implementation file to leave
+out a dialect that is not a SQL one. The document is not checked
+against an OpenAPI validator yet, which would be a new dependency;
+the test parses it back and checks its parts. Server code is the
+standard generator's.
+
+**Insight:** A made-up URI for a problem type would be a placeholder, so a type without its own URI is named, not invented; RFC 9457 reserves only about:blank. The security scheme is the implementation's choice, so no default is guessed. The idiom's names are read from the request, never written into the plug-in, or an override would change nothing.
+
+**Note:** From RFC 9457, Problem Details for HTTP APIs, 2023, clause 3.1.1: The type member is a URI reference that identifies the problem type; when it is not present its value is assumed to be about:blank. <https://www.rfc-editor.org/rfc/rfc9457>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -2262,6 +2311,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | gaps-none | command gaps | system | golden | a specification without open questions and without an approval | gaps is run | it prints that there is no open question, that every document is ready and that code generation waits on the approval, and exits 0 |
 | gaps-usage-error | command gaps | system | red | no folder | gaps is run without arguments | it prints how to use it and exits 2 |
 | generate-no-plugin | command generate | system | red | a target this build does not have and no specarch-gen-openapi on PATH | generate openapi is run | it says there is no generator for the target and exits 2 |
+| generate-openapi | command generate | system | golden | a specification with an enum, an audited entity, a problem catalogue and a list of the entity with search, filter, sort and a page size, and an implementation file in Go whose openapi target names a security scheme; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes openapi.yaml, OpenAPI 3.1.0, with the list paged by the paginated-list names in its envelope, the 404 as a problem document, the audit fields read-only and the security scheme on the operation, and exits 0 |
 | generate-plugin-path-outside | command generate | system | red | a plug-in that answers a path outside the output folder | generate escape is run | it refuses the path, writes nothing and exits 2 |
 | generate-plugin-reports-error | command generate | system | red | a plug-in that answers an error diagnostic | generate strict is run | it prints the diagnostic, writes nothing and exits 1 |
 | generate-refuses-open-question | command generate | system | red | a specification with a must question that blocks an entity, and specarch-gen-echo on PATH | generate echo is run | it refuses because the question blocks what the target reads, writes nothing and exits 1 |
@@ -2458,6 +2508,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-33 | A specification shall be able to say how sensitive a field is, that it is encrypted at rest and how it is still found, and that an entity is audited or deleted softly, and specarch validate shall check each against the design and derive the cases a soft delete implies. | functional | must | accepted | test | A credential field that a response can carry and that is not writeOnly is reported as sensitivity_exposed; a personal field in the response of a public operation is warned about. A lookup on a field that is not encrypted, and an encrypted key or unique field without lookup hash, are reported as at_rest. An audited entity that declares createdAt, createdBy, lastModifiedAt or lastModifiedBy, and one with soft deletion that declares deleted, is reported as audited. A list of an entity with soft deletion gets the case deleted record not listed, and a read by id the case deleted record read, answered as not found. | NEED-1, NEED-2 |
 | SA-34 | A specification shall be able to say that an operation answers a page of an entity's records with the fields it searches, filters and sorts by and its page size, the limits a client keeps to, and the catalogue of problem types its refusals answer with, and specarch validate shall check each against the design and derive the cases each implies. | functional | must | accepted | test | A list naming a field its entity lacks, an encrypted field to search or sort by or to filter by without a hash, or a default page above the maximum is reported as list_of. A rate over no time, or with a burst below its requests, is reported as limits. A response naming a problem type that is not under errors or has another status, and a 4xx or 5xx response that names none once errors exist, is reported as problem. A list gets the cases page beyond last, page size above the maximum, and sort and filter outside the lists; a limit gets request too large and rate exceeded. | NEED-1, NEED-2 |
 | SA-35 | A specification shall be able to declare the jobs the system runs on its own, with what starts each, the role it acts as, what it reads, writes, calls and publishes, and how it retries, and the menus that lead to its pages; specarch validate shall check each against the design, and a job shall be a subject of tests with the cases it implies. | functional | must | accepted | test | A job acting as a role the specification lacks, reading or writing an entity it lacks, or consuming a message no channel declares is reported as job; a menu entry opening a page that does not exist is reported as menu. A test may name a job as its subject, and a job gets the cases runs twice, a dependency failing or timing out for each it calls, and an item failing every try when it retries. | NEED-1, NEED-5 |
+| SA-36 | specarch generate openapi shall write, through a plug-in, the OpenAPI 3.1 document of a specification in the standard dialect, with the problem catalogue as the error responses and every list expanded through the paginated-list idiom that applies, so that a standard OpenAPI code generator can write the server interface from it. | functional | must | accepted | test | The document of the library lending example parses, is OpenAPI 3.1.0, pages its list of loans by the idiom's names in the idiom's envelope, answers its refusals with RFC 9457 problem documents naming their types, carries an audited entity's audit fields as read-only, and carries SpecArch's own keywords as x-specarch- extensions. A list by a method other than GET takes its paging in its request body, and a body that is a reference to an entity is reported. Each implementation file in a plug-in's request carries the idioms it uses, with the content of the idiom that applies and the project's override. | NEED-2, NEED-3 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -2514,6 +2565,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Note on SA-34:** From RFC 9457, Problem Details for HTTP APIs, 2023, clause 3: A problem details object carries a type URI that identifies the problem type, a short human-readable title, and the HTTP status code; a client branches on the type. <https://www.rfc-editor.org/rfc/rfc9457>
 
 **Insight on SA-35:** What runs at night or on a queue is the part of a system nobody watches, and the part a test plan forgets; written in the design, its tests follow from it like an operation's.
+
+**Insight on SA-36:** The server interface of a Go service is written by a standard OpenAPI generator in strict mode, so the document is where the design reaches the code; written by hand, it drifts from the design on the first change.
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
@@ -2598,6 +2651,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-33 | decisions ADR-024 | tests validate-stored-data; tests validate-stored-data-valid |
 | SA-34 | decisions ADR-025 | tests validate-interface-problems; tests validate-interface-valid |
 | SA-35 | decisions ADR-026 | tests validate-jobs-menus; tests validate-jobs-menus-valid |
+| SA-36 | decisions ADR-027 | tests generate-openapi |
 
 ## Sources
 

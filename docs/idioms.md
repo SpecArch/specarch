@@ -174,8 +174,9 @@ An implementation file's stacks are its language, from its file name
 (`<name>.go.specarch-implementation.yaml` is `go`), and the `dialect` of each
 of its targets: `postgresql`, `sqlserver`, `oracle` or `mariadb`; a target
 named `sql` without a dialect is `postgresql`. An idiom applies to the file
-when it renders one of those stacks and the specification uses one of the
-keywords under its `reads`. An override may render only those stacks and
+when it renders one of those stacks, or `any`, and the specification uses
+one of the keywords under its `reads`, as a section (`entities`) or as a key
+anywhere inside one (`listOf` on an operation). An override may render only those stacks and
 `any` (`idiom_stack`).
 
 A part that renders types carries `rows` per stack. A row matches a field on
@@ -299,7 +300,7 @@ cases under an idiom's `tests` joining the derived cases
 4. The first two shipped idioms, `type-rendering` and `paginated-list`, with
    their Go and SQL renderings, since `specarch-gen-sql` and
    `specarch-gen-openapi` read them. `type-rendering` is built;
-   `paginated-list` reads `listOf`, which the design now has, and is written
-when `specarch-gen-openapi` needs it.
+   `paginated-list` is built too, with its stack-neutral wire names
+and envelope, which `specarch-gen-openapi` reads.
 5. The rest of the first set, as the generators and the first real projects
    need them, Go first.

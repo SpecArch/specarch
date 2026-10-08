@@ -283,7 +283,8 @@ func (c *checker) checkOverride(o Idiom, ov *yaml.Node, shippedSet map[string]Id
 
 // idiomApplies reports whether an idiom applies to a specification and an
 // implementation file: it renders one of the file's stacks, or any, and
-// the specification uses one of the keywords it reads.
+// the specification uses one of the keywords it reads, as a section or as a
+// key anywhere inside one.
 func idiomApplies(i Idiom, root *yaml.Node, isStack map[string]bool) bool {
 	renders := false
 	for _, st := range source.Items(source.Child(i.Root, "stacks")) {
@@ -295,11 +296,26 @@ func idiomApplies(i Idiom, root *yaml.Node, isStack map[string]bool) bool {
 		return false
 	}
 	for _, r := range source.Items(source.Child(i.Root, "reads")) {
-		if n := source.Child(root, r.Value); n != nil && len(source.Deref(n).Content) > 0 {
+		if usesKeyword(root, r.Value) {
 			return true
 		}
 	}
 	return false
+}
+
+// usesKeyword reports whether the design uses a keyword: a section of that
+// name that is not empty, or the key anywhere inside a section.
+func usesKeyword(root *yaml.Node, keyword string) bool {
+	if n := source.Child(root, keyword); n != nil && len(source.Deref(n).Content) > 0 {
+		return true
+	}
+	found := false
+	walk(root, nil, func(n *yaml.Node, path []string) {
+		if len(path) > 0 && source.Key(n, keyword) != nil {
+			found = true
+		}
+	})
+	return found
 }
 
 func rendersStack(i Idiom, stack string) bool {

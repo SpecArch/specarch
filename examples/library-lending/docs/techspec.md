@@ -543,7 +543,7 @@ storage: github.com/jackc/pgx/v5. Money columns are `numeric(10,2)`.
 | questions | ../../../docs |   |
 | changes | ../../../docs |   |
 | releases | ../../../docs |   |
-| openapi | api | tool oapi-codegen |
+| openapi | ../../../openapi | tool oapi-codegen |
 | sql | migrations | dialect postgresql |
 | ui | web | platform web, framework plain-javascript |
 | tests | internal/lending |   |
@@ -561,6 +561,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 
 | Idiom | Version | Applies as | Parts the project replaces |
 |---|---|---|---|
+| paginated-list | 1.0.0 | shipped |   |
 | type-rendering | 1.0.0 | shipped |   |
 
 #### Deployments

@@ -59,7 +59,7 @@ input one JSON object:
 | `target` | the target name |
 | `root` | the root file's path |
 | `specification` | the merged, validated specification as plain values |
-| `implementations` | one object per implementation file: `file`, `content` (the file as plain values) and `settings` (the target's settings from it, when any) |
+| `implementations` | one object per implementation file: `file`, `content` (the file as plain values), `settings` (the target's settings from it, when any), and `idioms`: each idiom the file uses, with its `name`, `version`, how it applies (`as`: shipped, overridden, project or excluded), the `content` of the idiom that applies and the project's `override`, so a plug-in renders through an override without reading the disk |
 | `output` | the folder the files are for |
 
 The plug-in answers on its standard output with one JSON object: `files`,
@@ -124,9 +124,23 @@ entity cannot leave a stale diagram behind.
 
 ## OpenAPI document and the server interface
 
-The emitter writes an OpenAPI 3.1 document, field for field, since the
-keywords are OpenAPI's own. Permissions become one security scheme plus an
-`x-specarch-permission` extension on every operation.
+`specarch-gen-openapi` writes `openapi.yaml`, an OpenAPI 3.1 document, field
+for field, since the keywords are OpenAPI's own; this is the standard
+dialect. An entity or an enum is a schema under `components`, and an
+audited entity's schema carries its four audit fields as read-only.
+SpecArch's own field and operation keywords become `x-specarch-`
+extensions (`permission`, `limits`, `emits`, `satisfies`, `precision`,
+`scale`, `sensitivity`, `atRest`, `lookup`); the rationale and the test
+hints are left out. Permissions become the security scheme the target's
+settings name under `securityScheme` (its `name` and the OpenAPI scheme
+object), required on every operation that is not public, plus the
+`x-specarch-permission` extension; without the setting the document has
+no scheme. A response that names a problem type answers
+`application/problem+json` with RFC 9457's problem schema and names the
+type in `x-specarch-problem`; the catalogue is `x-specarch-problems`. A
+list takes the names of the paginated-list idiom that applies: query
+parameters on a GET, properties of an inline request body on another
+method, and the answer wrapped in the idiom's envelope.
 
 Server code is not SpecArch's job. A standard OpenAPI code generator for the
 stack turns the document into a typed server interface with request and

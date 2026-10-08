@@ -623,9 +623,9 @@ where it adds a rule, and the conformance cases; the generators are Go only.
    generator: `sensitivity`, `audited` and `deletion`, `listOf`, `errors`
    and `problem`, `limits`, `menus`, `jobs`, `atRest`. Each with its rule,
    its derived test cases and its place in the documents.
-3. `specarch-gen-openapi`, standard dialect, with the problem catalogue as
-   the error responses and `listOf` expanded through the `paginated-list`
-   idiom.
+3. Built: `specarch-gen-openapi`, standard dialect, with the problem
+   catalogue as the error responses and `listOf` expanded through the
+   `paginated-list` idiom.
 4. The first Go idioms written from dxlib (`docs/idioms.md`, section "The
    first set"), stack-neutral contract first, Go rendering second.
 5. `specarch-gen-sql` through `type-rendering`, four dialects, new-file

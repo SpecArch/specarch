@@ -26,8 +26,11 @@ commands:
       `specarch` (the meta-model version), `target`, `root` (the root file's
       path), `specification` (the merged, validated specification as plain
       values), `implementations` (each implementation file as `file`,
-      `content` and the target's `settings` from it) and `output` (the
-      folder the files are for). The plug-in answers on its standard output,
+      `content`, the target's `settings` from it, and `idioms`, the idioms
+      it uses, each with its `name`, `version`, how it applies (`as`:
+      shipped, overridden, project or excluded), the `content` of the idiom
+      that applies and the project's `override`) and `output` (the folder
+      the files are for). The plug-in answers on its standard output,
       as JSON, with `files` (each a `path` relative to the output folder and
       its `content`) and `diagnostics` (each with the validator's fields:
       file, line, severity, path, rule, message), and exits 0. The program

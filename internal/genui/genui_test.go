@@ -71,7 +71,8 @@ func TestExample(t *testing.T) {
 }
 
 // TestRefusals refuses a target that is not plain JavaScript for the web,
-// a target without a language, and a filter its list cannot ask for.
+// a target without a language, a filter its list cannot ask for, a list
+// that does not page, and an API in the dxlib dialect.
 func TestRefusals(t *testing.T) {
 	ui := func(content map[string]any) map[string]any {
 		return content["targets"].(map[string]any)["ui"].(map[string]any)
@@ -86,7 +87,14 @@ func TestRefusals(t *testing.T) {
 		{"filter", func(s, _ map[string]any) {
 			pg := s["pages"].(map[string]any)["loans-list"].(map[string]any)
 			pg["filters"] = []any{"dueOn"}
-		}, "dueOn, which is not a query parameter of listLoans"},
+		}, "dueOn, which is neither a query parameter of listLoans"},
+		{"paging", func(s, _ map[string]any) {
+			get := s["paths"].(map[string]any)["/loans"].(map[string]any)["get"].(map[string]any)
+			delete(get, "listOf")
+		}, "listLoans has no listOf, so it does not page"},
+		{"dxlib", func(_, c map[string]any) {
+			c["targets"].(map[string]any)["openapi"].(map[string]any)["dialect"] = "dxlib"
+		}, "the standard dialect only"},
 	} {
 		resp := Generate(request(t, c.change))
 		found := false

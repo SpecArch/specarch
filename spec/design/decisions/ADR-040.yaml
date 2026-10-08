@@ -5,43 +5,56 @@ decisions:
     date: "2026-10-08"
     context: |
       The owner picked plain JavaScript for the web as the first UI
-      generator (D9 of docs/ui-design.md). docs/generators.md accepts a UI
-      emitter only once it reproduces a screen built by hand in a real
-      project, because a generator nobody checked against a real screen was
-      once found unused beside the screens people wrote instead. No plain
-      JavaScript project exists yet among the projects SpecArch serves. The
-      roadmap sets the web's rules: native ES modules, no package install,
-      no bundler, no build step, and one small event bus whose event names
-      are declared once.
+      generator (D9 of docs/ui-design.md). docs/generators.md accepts a
+      UI emitter only once it reproduces a screen built by hand in a
+      real project, because a generator nobody checked against a real
+      screen was once found unused beside the screens people wrote
+      instead. No plain JavaScript project exists yet among the projects
+      SpecArch serves. The roadmap sets the web's rules: native ES
+      modules, no package install, no bundler, no build step, and one
+      small event bus whose event names are declared once.
     decision: |
       specarch-gen-ui writes, for a ui target of platform web in
       plain-javascript, each list page as an HTML page and an ES module,
       events.js with every event of the screens, and theme.css from the
       theme. The reference screen, the library lending example's loans
-      list, was written by hand and committed alone before the generator,
-      and the generator reproduces it apart from its header; the first real
-      plain JavaScript project repeats that test against its own first
-      screen before the generator is used there. The target's settings give
-      the page language and which tokens play which part (text, background,
-      accent, danger, border, space, font), since that mapping is the
-      stack's. The tokens are written as CSS directly; a token-rendering
-      idiom arrives with a second stack that needs one. Forms, views,
-      navigation and modes other than dark are reported and left out of
-      this version.
+      list, was written by hand and committed alone before the
+      generator, and the generator reproduces it apart from its header;
+      the first real plain JavaScript project repeats that test against
+      its own first screen before the generator is used there. The
+      target's settings give the page language and which tokens play
+      which part (text, background, accent, danger, border, space,
+      font), since that mapping is the stack's. A list filters by its
+      operation's query parameters or by the fields its listOf makes
+      filterable, through the idiom's filter name; a list whose path
+      takes a parameter, one that does not page, and a service whose API
+      is in the dxlib dialect are refused, and an action whose operation
+      takes a request body is left out. The tokens are written as CSS
+      directly; a token-rendering idiom arrives with a second stack that
+      needs one. Forms, views, navigation and modes other than dark are
+      reported and left out of this version.
     consequences: |
-      A list in the design is a working screen with one run, and its
-      states and messages are the ones the owner reviewed. Two things the
-      generator found were fixed in the example: a list filtering by a field
-      its operation did not take, and a list page reading an operation that
-      did not page. A plug-in receives objects with their keys sorted, so
-      the custom properties of theme.css are in the order of their names,
-      not the order the theme file writes them; that is the one place the
-      generated example differs from the hand-built one beyond its header.
+      The check shows the generator reproduces a screen; written by the
+      same hand a commit before it, the screen does not show how a real
+      project builds its screens, which is why the first real project
+      repeats the check. A list in the design is a working screen with
+      one run, and its states and messages are the ones the owner
+      reviewed. Two things the generator found were fixed in the
+      example: a list filtering by a field its operation did not take,
+      and a list page reading an operation that did not page. A plug-in
+      receives objects with their keys sorted, so the custom properties
+      of theme.css are in the order of their names, not the order the
+      theme file writes them. Beyond its header, the generated example
+      first differed from the hand-built one there and in events.js,
+      which also declares the members list's events; the review that
+      followed made the screen sturdier (stale answers, a page past the
+      last, focus, names of row buttons), so the generated loans list
+      has moved on from the reference since, as the history records.
     why: |
       Lists first, because they carry most of what the design keywords
       say: columns, compact columns, filters, every state, actions with
-      confirmations and messages, and the theme. Writing the reference by
-      hand in the example, and saying so, keeps the rule's purpose, a
+      confirmations and messages, and the theme. Writing the reference
+      by hand in the example, and saying so, keeps the rule's purpose, a
       generator checked against a real screen, while no real project
       exists; the commit that holds the screen alone is the evidence.
     satisfies: [SA-43]

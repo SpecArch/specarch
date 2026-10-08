@@ -2,9 +2,7 @@
 // JavaScript: the logic of the specarch-gen-ui plug-in. Each list page
 // becomes an HTML page and an ES module, the events of every page are
 // declared once in events.js, and the theme becomes theme.css. Nothing
-// needs a package, a bundler or a build step. The output was first written
-// by hand for the library lending example's loans list, and the generator
-// reproduces it.
+// needs a package, a bundler or a build step.
 package genui
 
 import (
@@ -118,6 +116,11 @@ func Generate(r *Request) Response {
 			break
 		}
 	}
+	for _, impl := range r.Implementations {
+		if text(obj0(obj0(impl.Content["targets"])["openapi"])["dialect"]) == "dxlib" {
+			g.problem("error", "/", "%s serves its API in the dxlib dialect, whose lists are a POST per operation counted from page 0, and specarch-gen-ui writes screens for the standard dialect only", impl.File)
+		}
+	}
 	if text(g.settings["language"]) == "" {
 		g.problem("error", "/", "the %s target's settings name no language, the page's lang (WCAG 2.2, 3.1.1); add language, such as en", r.Target)
 	}
@@ -151,6 +154,13 @@ func Generate(r *Request) Response {
 		files = append(files,
 			File{Path: name + ".html", Content: strings.Replace(h, "\n", "\n"+header("<!-- ", " -->"), 1)},
 			File{Path: name + ".js", Content: header("// ", "") + p.js()})
+	}
+	docs := map[string]string{}
+	for _, e := range events {
+		if d, ok := docs[e.name]; ok && d != e.doc {
+			g.problem("error", "/pages", "two events of the screens are both named %s (%s; and %s); rename a page or an operation so their names differ", e.name, d, e.doc)
+		}
+		docs[e.name] = e.doc
 	}
 	if g.failed() {
 		return g.response(nil)
@@ -209,7 +219,8 @@ type page struct {
 	columns, titles, filters               []string
 	wide                                   map[string]bool
 	filterHTML                             []string
-	pageSize                               string
+	pageSize, key                          string
+	filterKeys                             map[string]string // a filter's name in the query, where it is not its own
 	empty, filteredEmpty, failed           string
 	sourceRefusals                         [][2]string
 	actions                                []action
@@ -235,12 +246,26 @@ func (g *gen) page(name string, pg map[string]any) *page {
 		g.problem("error", at+"/source", "%s reads %s, which is not a GET operation of the specification; this version reads a list by GET", name, p.source)
 		return nil
 	}
-	p.sourcePath = srcPath
-	p.pageSize = text(obj0(obj0(src["listOf"])["pageSize"])["default"])
-	if p.pageSize == "" || g.list["page"] == "" || g.list["items"] == "" {
-		g.problem("error", at+"/source", "%s pages through the paginated-list idiom, and %s has no listOf with a default page size, or the idiom is excluded; give it listOf", name, p.source)
+	if pathParam.MatchString(srcPath) {
+		g.problem("error", at+"/source", "%s reads %s at %s, whose path takes a parameter, and this version of specarch-gen-ui reads a list whose path takes none", name, p.source, srcPath)
 		return nil
 	}
+	p.sourcePath = jsTemplate(srcPath)
+	listOf, ok := obj(src["listOf"])
+	size := obj0(listOf["pageSize"])
+	p.pageSize = orText(text(size["default"]), text(size["maximum"]))
+	switch {
+	case !ok:
+		g.problem("error", at+"/source", "%s pages through its list, and %s has no listOf, so it does not page; give it listOf", name, p.source)
+		return nil
+	case p.pageSize == "":
+		g.problem("error", at+"/source", "%s pages through its list, and the listOf of %s gives no page size; give pageSize a default", name, p.source)
+		return nil
+	case g.list["page"] == "" || g.list["items"] == "":
+		g.problem("error", at+"/source", "%s pages through the paginated-list idiom, which the implementation file excludes; keep the idiom", name)
+		return nil
+	}
+	p.filterKeys = map[string]string{}
 	compact := map[string]bool{}
 	for _, c := range list(pg["compactColumns"]) {
 		compact[text(c)] = true
@@ -258,10 +283,18 @@ func (g *gen) page(name string, pg map[string]any) *page {
 			params[text(obj0(prm)["name"])] = true
 		}
 	}
+	filterable := map[string]bool{}
+	for _, f := range list(listOf["filterable"]) {
+		filterable[text(f)] = true
+	}
 	for _, f := range list(pg["filters"]) {
 		name := text(f)
-		if !params[name] {
-			g.problem("error", at+"/filters", "%s filters by %s, which is not a query parameter of %s, so the screen cannot ask for it; add the parameter to the operation", p.name, name, p.source)
+		switch {
+		case params[name]:
+		case filterable[name] && g.list["filter"] != "":
+			p.filterKeys[name] = g.list["filter"] + "[" + name + "]"
+		default:
+			g.problem("error", at+"/filters", "%s filters by %s, which is neither a query parameter of %s nor filterable in its listOf, so the screen cannot ask for it; add it to the operation", p.name, name, p.source)
 			continue
 		}
 		p.filters = append(p.filters, name)
@@ -274,6 +307,9 @@ func (g *gen) page(name string, pg map[string]any) *page {
 	p.failed = orText(text(obj0(failed["default"])["message"]), defaultFailed)
 	p.sourceRefusals = refusals(src, failed)
 	pk := list(entity["primaryKey"])
+	if len(pk) == 1 {
+		p.key = text(pk[0])
+	}
 	for i, a := range list(pg["actions"]) {
 		am := obj0(a)
 		if text(am["kind"]) != "operation" {
@@ -284,21 +320,22 @@ func (g *gen) page(name string, pg map[string]any) *page {
 		if op == nil {
 			continue
 		}
+		if body := obj0(op["requestBody"]); body != nil {
+			g.problem("warning", fmt.Sprintf("%s/actions/%d", at, i), "the action %s runs %s, which takes a request body, and this version of specarch-gen-ui sends none; it is left out", text(am["label"]), text(am["target"]))
+			continue
+		}
 		then := obj0(am["then"])
 		if text(then["navigate"]) != "" {
 			g.problem("warning", fmt.Sprintf("%s/actions/%d/then", at, i), "the action %s leads to %s, and this version of specarch-gen-ui stays on the page and shows the message only", text(am["label"]), text(then["navigate"]))
 		}
-		var bad bool
-		path = pathParam.ReplaceAllStringFunc(path, func(m string) string {
-			if len(pk) != 1 {
-				bad = true
-				return m
-			}
-			return "${encodeURIComponent(row." + text(pk[0]) + ")}"
-		})
-		if bad || len(pathParam.FindAllString(path, -1)) > 1 {
-			g.problem("error", fmt.Sprintf("%s/actions/%d", at, i), "%s takes a path parameter from the row, and %s has no primary key of one field to give it", text(am["target"]), text(pg["entity"]))
+		if n := len(pathParam.FindAllString(path, -1)); n > 1 || n == 1 && p.key == "" {
+			g.problem("error", fmt.Sprintf("%s/actions/%d", at, i), "%s takes %d path parameters, and this version of specarch-gen-ui gives one, the row's primary key of one field", text(am["target"]), n)
 			continue
+		}
+		parts := pathParam.Split(path, -1)
+		path = jsTemplate(parts[0])
+		if len(parts) == 2 {
+			path += "${encodeURIComponent(row." + p.key + ")}" + jsTemplate(parts[1])
 		}
 		p.actions = append(p.actions, action{label: text(am["label"]), operation: text(am["target"]), method: strings.ToUpper(method), path: path,
 			confirm: text(am["confirm"]), message: text(then["message"]), refusals: refusals(op, failed)})
@@ -318,6 +355,9 @@ func refusals(op, failed map[string]any) [][2]string {
 	rs := obj0(op["responses"])
 	for _, code := range sortedKeys(rs) {
 		problem := text(obj0(rs[code])["problem"])
+		if _, err := strconv.Atoi(code); err != nil {
+			continue // a response for any other status is the page's default
+		}
 		if m := text(obj0(failed[problem])["message"]); problem != "" && m != "" {
 			out = append(out, [2]string{code, m})
 		}
@@ -372,10 +412,14 @@ func (g *gen) control(fields map[string]any, name string) []string {
 	return append(out, "</label>")
 }
 
-// eventNames are the events a page raises, and those of its actions.
+// events are the events a page raises, and those of its actions.
 func (p *page) events() []event {
+	filters := "{}"
+	if len(p.filters) > 0 {
+		filters = "{ " + strings.Join(p.filters, ", ") + " }"
+	}
 	out := []event{
-		{p.upper + "_FILTERED", "The filters of the " + p.lowerTitle() + " list were applied: { " + strings.Join(p.filters, ", ") + " }"},
+		{p.upper + "_FILTERED", "The filters of the " + p.lowerTitle() + " list were applied: " + filters},
 		{p.upper + "_PAGED", "Another page of the " + p.lowerTitle() + " list was asked for: { page }"},
 		{p.upper + "_LOADED", "A page of " + p.lowerTitle() + " arrived: { items, totalItems, totalPages, page, filtered }"},
 		{p.upper + "_FAILED", "The " + p.lowerTitle() + " could not be read: { status }"},
@@ -387,7 +431,10 @@ func (p *page) events() []event {
 	return out
 }
 
-func (p *page) lowerTitle() string { return strings.ToLower(p.title) }
+// lowerTitle is the page's title in lower case, safe inside a comment.
+func (p *page) lowerTitle() string {
+	return strings.ReplaceAll(strings.ToLower(p.title), "*/", "* /")
+}
 
 // eventsJS declares every event once, and the bus that carries them.
 func eventsJS(events []event) string {
@@ -405,7 +452,7 @@ export const DEBUG = false;
 			continue
 		}
 		seen[e.name] = true
-		fmt.Fprintf(&b, "/** %s */\nexport const %s = %q;\n", e.doc, e.name, e.name)
+		fmt.Fprintf(&b, "/** %s */\nexport const %s = %q;\n", strings.ReplaceAll(e.doc, "*/", "* /"), e.name, e.name)
 	}
 	b.WriteString(`
 const handlers = new Map();
@@ -446,7 +493,7 @@ func (p *page) html(g *gen) string {
 	w("</head>")
 	w("<body>")
 	w("<main>")
-	w("<h1>" + html.EscapeString(p.title) + "</h1>")
+	w(`<h1 id="title">` + html.EscapeString(p.title) + "</h1>")
 	if len(p.filters) > 0 {
 		w(`<form id="filters" aria-label="Filters">`)
 		for _, l := range p.filterHTML {
@@ -456,7 +503,7 @@ func (p *page) html(g *gen) string {
 		w("</form>")
 	}
 	w(`<p id="status" role="status" aria-live="polite"></p>`)
-	w(`<table id="rows">`)
+	w(`<table id="rows" aria-labelledby="title" tabindex="-1">`)
 	w("<thead>")
 	w("<tr>")
 	for i, c := range p.columns {
@@ -565,6 +612,17 @@ func (p *page) js() string {
 		w("  },")
 	}
 	w("];")
+	if len(p.filterKeys) > 0 {
+		w("")
+		w("// The filters the list's operation takes by the paginated-list idiom's name.")
+		w("const filterKeys = {")
+		for _, f := range p.filters {
+			if k := p.filterKeys[f]; k != "" {
+				w("  " + f + ": " + jsString(k) + ",")
+			}
+		}
+		w("};")
+	}
 	b.WriteString(strings.NewReplacer(
 		"{{UPPER}}", p.upper,
 		"{{PATH}}", p.sourcePath,
@@ -575,59 +633,77 @@ func (p *page) js() string {
 		"{{TOTALPAGES}}", p.list["totalPages"],
 		"{{SOURCE}}", p.source,
 		"{{TITLE}}", p.lowerTitle(),
-	).Replace(listBody(len(p.filters) > 0, len(p.actions) > 0, allConfirm)))
+		"{{KEY}}", p.key,
+	).Replace(listBody(len(p.filters) > 0, len(p.filterKeys) > 0, len(p.actions) > 0, allConfirm)))
 	return b.String()
 }
 
 // listBody is the part of a list's module that is the same for every list,
 // with the parts it has.
-func listBody(filters, actions, allConfirm bool) string {
+func listBody(filters, filterKeys, actions, allConfirm bool) string {
 	var b strings.Builder
+	key := "name"
+	if filterKeys {
+		key = "filterKeys[name] ?? name"
+	}
 	b.WriteString(`
 /** The message of a refusal of an operation, or the page's default. */
 function refusal(operation, status) {
   return refusals[operation][String(status)] ?? messages.failed;
 }
 
-/** Reads the list: the filters given, then the page. */
+/** Reads the list: the filters given, then the page. Only the answer to
+    the latest request counts, and a page becomes the list's page once it
+    has arrived. */
 function loader() {
   let filters = {};
   let page = 1;
-  async function load() {
+  let latest = 0;
+  async function load(wanted) {
+    const ask = ++latest;
     const query = new URLSearchParams();
     for (const [name, value] of Object.entries(filters)) {
       if (value !== "") {
-        query.set(name, value);
+        query.set(` + key + `, value);
       }
     }
     const filtered = [...query.keys()].length > 0;
-    query.set("{{PAGE}}", String(page));
+    query.set("{{PAGE}}", String(wanted));
     query.set("{{PAGESIZE}}", String(pageSize));
     try {
       const response = await fetch(` + "`{{PATH}}?${query}`" + `, { headers: { Accept: "application/json" } });
+      if (ask !== latest) {
+        return;
+      }
       if (!response.ok) {
         emit({{UPPER}}_FAILED, { status: response.status });
         return;
       }
       const body = await response.json();
+      if (ask !== latest) {
+        return;
+      }
+      if (body.{{ITEMS}}.length === 0 && wanted > 1 && body.{{TOTALPAGES}} > 0 && wanted > body.{{TOTALPAGES}}) {
+        load(body.{{TOTALPAGES}}); // the page asked for is past the last
+        return;
+      }
+      page = wanted;
       emit({{UPPER}}_LOADED, { items: body.{{ITEMS}}, totalItems: body.{{TOTALITEMS}}, totalPages: body.{{TOTALPAGES}}, page, filtered });
     } catch {
-      emit({{UPPER}}_FAILED, { status: 0 });
+      if (ask === latest) {
+        emit({{UPPER}}_FAILED, { status: 0 });
+      }
     }
   }
   on({{UPPER}}_FILTERED, (payload) => {
     filters = payload;
-    page = 1;
-    load();
+    load(1);
   });
-  on({{UPPER}}_PAGED, (payload) => {
-    page = payload.page;
-    load();
-  });
+  on({{UPPER}}_PAGED, (payload) => load(payload.page));
   for (const action of actions) {
-    on(action.succeeded, () => load());
+    on(action.succeeded, () => load(page));
   }
-  load();
+  load(1);
 }
 `)
 	if filters {
@@ -637,7 +713,8 @@ function filterForm() {
   const form = document.getElementById("filters");
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-    emit({{UPPER}}_FILTERED, Object.fromEntries(new FormData(form)));
+    const given = [...new FormData(form)].map(([name, value]) => [name, String(value).trim()]);
+    emit({{UPPER}}_FILTERED, Object.fromEntries(given));
   });
 }
 `)
@@ -648,30 +725,36 @@ function filterForm() {
 			check = "action.confirm && " + check
 		}
 		b.WriteString(`
-/** Runs an action on a row, once the person confirms it. */
-async function run(action, row) {
+/** Runs an action on a row, once the person confirms it, its button
+    disabled while it runs. */
+async function run(action, row, button) {
   if (` + check + `) {
     return;
   }
+  button.disabled = true;
   try {
     const response = await fetch(action.path(row), { method: action.method, headers: { Accept: "application/json" } });
     if (response.ok) {
-      emit(action.succeeded, { id: row.id });
+      emit(action.succeeded, { id: row.{{KEY}} });
     } else {
-      emit(action.failed, { id: row.id, status: response.status });
+      button.disabled = false;
+      emit(action.failed, { id: row.{{KEY}}, status: response.status });
     }
   } catch {
-    emit(action.failed, { id: row.id, status: 0 });
+    button.disabled = false;
+    emit(action.failed, { id: row.{{KEY}}, status: 0 });
   }
 }
 `)
 	}
 	b.WriteString(`
-/** The table of {{TITLE}}. */
+/** The table of {{TITLE}}. Focus in it stays on the same button, or moves
+    to the table when its row is gone. */
 function table() {
   const body = document.querySelector("#rows tbody");
   const head = document.querySelectorAll("#rows thead th");
   on({{UPPER}}_LOADED, ({ items }) => {
+    const focused = body.contains(document.activeElement) ? document.activeElement.dataset.key : undefined;
     body.replaceChildren();
     for (const row of items) {
       const tr = document.createElement("tr");
@@ -688,13 +771,19 @@ function table() {
         const button = document.createElement("button");
         button.type = "button";
         button.textContent = action.label;
-        button.addEventListener("click", () => run(action, row));
+        button.setAttribute("aria-label", ` + "`${action.label} ${row[columns[0]] ?? \"\"}`" + `.trim());
+        button.dataset.key = ` + "`${action.operation} ${row.{{KEY}}}`" + `;
+        button.addEventListener("click", () => run(action, row, button));
         cell.append(button);
       }
       tr.append(cell);
 `)
 	}
 	b.WriteString(`      body.append(tr);
+    }
+    if (focused !== undefined) {
+      const again = [...body.querySelectorAll("button")].find((button) => button.dataset.key === focused);
+      (again ?? document.getElementById("rows")).focus();
     }
   });
 }
@@ -713,11 +802,10 @@ function statusLine() {
   on({{UPPER}}_FILTERED, () => show("", false, false));
   on({{UPPER}}_PAGED, () => show("", false, false));
   on({{UPPER}}_LOADED, ({ items, filtered }) => {
-    if (items.length === 0) {
-      show(filtered ? messages.filteredEmpty : messages.empty, false, false);
-    } else if (!kept) {
-      show("", false, false);
+    if (kept) {
+      return;
     }
+    show(items.length === 0 ? (filtered ? messages.filteredEmpty : messages.empty) : "", false, false);
   });
   on({{UPPER}}_FAILED, ({ status }) => show(refusal("{{SOURCE}}", status), true, false));
   for (const action of actions) {
@@ -726,7 +814,7 @@ function statusLine() {
   }
 }
 
-/** The pager. */
+/** The pager. A button that is disabled while it has focus hands focus on. */
 function pager() {
   const nav = document.getElementById("pager");
   const where = nav.querySelector("span");
@@ -735,8 +823,13 @@ function pager() {
   on({{UPPER}}_LOADED, (payload) => {
     page = payload.page;
     where.textContent = ` + "`Page ${payload.page} of ${Math.max(payload.totalPages, 1)}`" + `;
+    const focused = document.activeElement;
     previous.disabled = payload.page <= 1;
     next.disabled = payload.page >= payload.totalPages;
+    if (focused instanceof HTMLButtonElement && nav.contains(focused) && focused.disabled) {
+      const other = focused === previous ? next : previous;
+      (other.disabled ? document.getElementById("rows") : other).focus();
+    }
   });
   for (const button of [previous, next]) {
     button.addEventListener("click", () => emit({{UPPER}}_PAGED, { page: page + Number(button.dataset.step) }));
@@ -760,10 +853,22 @@ func (g *gen) themeCSS() string {
 	theme := obj0(g.spec["theme"])
 	var toks []token
 	walkTokens(obj0(theme["tokens"]), "", &toks)
+	names := map[string]string{}
+	for _, t := range toks {
+		at := "/theme/tokens/" + strings.ReplaceAll(t.path, ".", "/")
+		if !cssIdent.MatchString(strings.ReplaceAll(t.path, ".", "-")) {
+			g.problem("error", at, "%s cannot name a CSS custom property; use letters, digits, - and _ in a token's name", t.path)
+			continue
+		}
+		if other, ok := names[cssName(t.path)]; ok {
+			g.problem("error", at, "%s and %s are both the custom property --%s; rename one", other, t.path, cssName(t.path))
+		}
+		names[cssName(t.path)] = t.path
+	}
 	if len(toks) > 0 {
 		b.WriteString(":root {\n")
 		for _, t := range toks {
-			fmt.Fprintf(&b, "  --%s: %s;\n", cssName(t.path), cssValue(t.value))
+			fmt.Fprintf(&b, "  --%s: %s;\n", cssName(t.path), cssValue(t.typ, t.value))
 		}
 		b.WriteString("}\n\n")
 	}
@@ -777,7 +882,7 @@ func (g *gen) themeCSS() string {
 		over := obj0(modes[m])
 		for _, t := range toks {
 			if v, ok := over[t.path]; ok {
-				fmt.Fprintf(&b, "    --%s: %s;\n", cssName(t.path), cssValue(v))
+				fmt.Fprintf(&b, "    --%s: %s;\n", cssName(t.path), cssValue(t.typ, v))
 			}
 		}
 		b.WriteString("  }\n}\n\n")
@@ -818,12 +923,20 @@ func (g *gen) themeCSS() string {
 
 // token is one design token: its path and its value.
 type token struct {
-	path  string
-	value any
+	path, typ string
+	value     any
 }
 
-// walkTokens lists the tokens of a group in order.
+// walkTokens lists the tokens of a group in order, each with the type it
+// or a group above it gives.
 func walkTokens(group map[string]any, prefix string, out *[]token) {
+	walkTyped(group, prefix, "", out)
+}
+
+func walkTyped(group map[string]any, prefix, typ string, out *[]token) {
+	if t := text(group["$type"]); t != "" {
+		typ = t
+	}
 	for _, k := range sortedKeys(group) {
 		if strings.HasPrefix(k, "$") {
 			continue
@@ -831,11 +944,27 @@ func walkTokens(group map[string]any, prefix string, out *[]token) {
 		path := strings.TrimPrefix(prefix+"."+k, ".")
 		v := obj0(group[k])
 		if val, ok := v["$value"]; ok {
-			*out = append(*out, token{path, val})
+			*out = append(*out, token{path: path, typ: orText(text(v["$type"]), typ), value: val})
 			continue
 		}
-		walkTokens(v, path, out)
+		walkTyped(v, path, typ, out)
 	}
+}
+
+// cssIdent is what a custom property's name may hold after its --.
+var cssIdent = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
+
+// genericFamilies are CSS's generic font families, written without quotes.
+var genericFamilies = map[string]bool{"serif": true, "sans-serif": true, "monospace": true, "cursive": true, "fantasy": true,
+	"system-ui": true, "ui-serif": true, "ui-sans-serif": true, "ui-monospace": true, "ui-rounded": true, "math": true, "emoji": true, "fangsong": true}
+
+// cssFamily writes a font family: a generic one as it is, any other as a
+// CSS string.
+func cssFamily(name string) string {
+	if genericFamilies[name] {
+		return name
+	}
+	return `"` + strings.NewReplacer(`\`, `\\`, `"`, `\"`, "\n", `\a `).Replace(name) + `"`
 }
 
 // cssName is a token's path as a custom property's name.
@@ -844,9 +973,12 @@ func cssName(path string) string { return strings.ReplaceAll(path, ".", "-") }
 // cssValue writes a token's value in CSS: an alias as the property it
 // names, a colour as its hex or, translucent, as rgb with its alpha, a
 // dimension or a duration with its unit, a font family as its list.
-func cssValue(v any) string {
+func cssValue(typ string, v any) string {
 	if s, ok := v.(string); ok && strings.HasPrefix(s, "{") && strings.HasSuffix(s, "}") {
 		return "var(--" + cssName(strings.Trim(s, "{}")) + ")"
+	}
+	if s, ok := v.(string); ok && typ == "fontFamily" {
+		return cssFamily(s)
 	}
 	if m, ok := v.(map[string]any); ok {
 		if comps := list(m["components"]); len(comps) == 3 {
@@ -865,25 +997,23 @@ func cssValue(v any) string {
 	if l, ok := v.([]any); ok {
 		var names []string
 		for _, n := range l {
-			s := text(n)
-			if strings.ContainsAny(s, " ,") {
-				s = strconv.Quote(s)
-			}
-			names = append(names, s)
+			names = append(names, cssFamily(text(n)))
 		}
 		return strings.Join(names, ", ")
 	}
 	return text(v)
 }
 
-// upperSnake writes loans-list as LOANS_LIST and returnLoan as RETURN_LOAN.
+// upperSnake writes loans-list as LOANS_LIST, returnLoan as RETURN_LOAN and
+// getHTTPStatus as GET_HTTP_STATUS.
 func upperSnake(s string) string {
 	var b strings.Builder
-	for i, r := range s {
+	rs := []rune(s)
+	for i, r := range rs {
 		switch {
 		case r == '-' || r == '.' || r == ' ':
 			b.WriteByte('_')
-		case unicode.IsUpper(r) && i > 0:
+		case unicode.IsUpper(r) && i > 0 && (unicode.IsLower(rs[i-1]) || unicode.IsDigit(rs[i-1]) || i+1 < len(rs) && unicode.IsLower(rs[i+1]) && unicode.IsUpper(rs[i-1])):
 			b.WriteByte('_')
 			b.WriteRune(r)
 		default:
@@ -927,7 +1057,7 @@ func wrap(text string, width int) []string {
 	var lines []string
 	line := ""
 	for _, word := range strings.Fields(text) {
-		if line != "" && len(line)+1+len(word) > width {
+		if line != "" && len([]rune(line))+1+len([]rune(word)) > width {
 			lines = append(lines, line)
 			line = word
 			continue
@@ -992,4 +1122,9 @@ func sortedKeys(m map[string]any) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// jsTemplate escapes text for a JavaScript template literal.
+func jsTemplate(s string) string {
+	return strings.NewReplacer("\\", "\\\\", "`", "\\`", "${", "\\${").Replace(s)
 }

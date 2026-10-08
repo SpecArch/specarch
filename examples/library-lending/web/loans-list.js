@@ -57,11 +57,15 @@ function refusal(operation, status) {
   return refusals[operation][String(status)] ?? messages.failed;
 }
 
-/** Reads the list: the filters given, then the page. */
+/** Reads the list: the filters given, then the page. Only the answer to
+    the latest request counts, and a page becomes the list's page once it
+    has arrived. */
 function loader() {
   let filters = {};
   let page = 1;
-  async function load() {
+  let latest = 0;
+  async function load(wanted) {
+    const ask = ++latest;
     const query = new URLSearchParams();
     for (const [name, value] of Object.entries(filters)) {
       if (value !== "") {
@@ -69,33 +73,42 @@ function loader() {
       }
     }
     const filtered = [...query.keys()].length > 0;
-    query.set("page", String(page));
+    query.set("page", String(wanted));
     query.set("pageSize", String(pageSize));
     try {
       const response = await fetch(`/loans?${query}`, { headers: { Accept: "application/json" } });
+      if (ask !== latest) {
+        return;
+      }
       if (!response.ok) {
         emit(LOANS_LIST_FAILED, { status: response.status });
         return;
       }
       const body = await response.json();
+      if (ask !== latest) {
+        return;
+      }
+      if (body.items.length === 0 && wanted > 1 && body.totalPages > 0 && wanted > body.totalPages) {
+        load(body.totalPages); // the page asked for is past the last
+        return;
+      }
+      page = wanted;
       emit(LOANS_LIST_LOADED, { items: body.items, totalItems: body.totalItems, totalPages: body.totalPages, page, filtered });
     } catch {
-      emit(LOANS_LIST_FAILED, { status: 0 });
+      if (ask === latest) {
+        emit(LOANS_LIST_FAILED, { status: 0 });
+      }
     }
   }
   on(LOANS_LIST_FILTERED, (payload) => {
     filters = payload;
-    page = 1;
-    load();
+    load(1);
   });
-  on(LOANS_LIST_PAGED, (payload) => {
-    page = payload.page;
-    load();
-  });
+  on(LOANS_LIST_PAGED, (payload) => load(payload.page));
   for (const action of actions) {
-    on(action.succeeded, () => load());
+    on(action.succeeded, () => load(page));
   }
-  load();
+  load(1);
 }
 
 /** The filters form. */
@@ -103,32 +116,39 @@ function filterForm() {
   const form = document.getElementById("filters");
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-    emit(LOANS_LIST_FILTERED, Object.fromEntries(new FormData(form)));
+    const given = [...new FormData(form)].map(([name, value]) => [name, String(value).trim()]);
+    emit(LOANS_LIST_FILTERED, Object.fromEntries(given));
   });
 }
 
-/** Runs an action on a row, once the person confirms it. */
-async function run(action, row) {
+/** Runs an action on a row, once the person confirms it, its button
+    disabled while it runs. */
+async function run(action, row, button) {
   if (!window.confirm(action.confirm)) {
     return;
   }
+  button.disabled = true;
   try {
     const response = await fetch(action.path(row), { method: action.method, headers: { Accept: "application/json" } });
     if (response.ok) {
       emit(action.succeeded, { id: row.id });
     } else {
+      button.disabled = false;
       emit(action.failed, { id: row.id, status: response.status });
     }
   } catch {
+    button.disabled = false;
     emit(action.failed, { id: row.id, status: 0 });
   }
 }
 
-/** The table of loans. */
+/** The table of loans. Focus in it stays on the same button, or moves
+    to the table when its row is gone. */
 function table() {
   const body = document.querySelector("#rows tbody");
   const head = document.querySelectorAll("#rows thead th");
   on(LOANS_LIST_LOADED, ({ items }) => {
+    const focused = body.contains(document.activeElement) ? document.activeElement.dataset.key : undefined;
     body.replaceChildren();
     for (const row of items) {
       const tr = document.createElement("tr");
@@ -143,11 +163,17 @@ function table() {
         const button = document.createElement("button");
         button.type = "button";
         button.textContent = action.label;
-        button.addEventListener("click", () => run(action, row));
+        button.setAttribute("aria-label", `${action.label} ${row[columns[0]] ?? ""}`.trim());
+        button.dataset.key = `${action.operation} ${row.id}`;
+        button.addEventListener("click", () => run(action, row, button));
         cell.append(button);
       }
       tr.append(cell);
       body.append(tr);
+    }
+    if (focused !== undefined) {
+      const again = [...body.querySelectorAll("button")].find((button) => button.dataset.key === focused);
+      (again ?? document.getElementById("rows")).focus();
     }
   });
 }
@@ -166,11 +192,10 @@ function statusLine() {
   on(LOANS_LIST_FILTERED, () => show("", false, false));
   on(LOANS_LIST_PAGED, () => show("", false, false));
   on(LOANS_LIST_LOADED, ({ items, filtered }) => {
-    if (items.length === 0) {
-      show(filtered ? messages.filteredEmpty : messages.empty, false, false);
-    } else if (!kept) {
-      show("", false, false);
+    if (kept) {
+      return;
     }
+    show(items.length === 0 ? (filtered ? messages.filteredEmpty : messages.empty) : "", false, false);
   });
   on(LOANS_LIST_FAILED, ({ status }) => show(refusal("listLoans", status), true, false));
   for (const action of actions) {
@@ -179,7 +204,7 @@ function statusLine() {
   }
 }
 
-/** The pager. */
+/** The pager. A button that is disabled while it has focus hands focus on. */
 function pager() {
   const nav = document.getElementById("pager");
   const where = nav.querySelector("span");
@@ -188,8 +213,13 @@ function pager() {
   on(LOANS_LIST_LOADED, (payload) => {
     page = payload.page;
     where.textContent = `Page ${payload.page} of ${Math.max(payload.totalPages, 1)}`;
+    const focused = document.activeElement;
     previous.disabled = payload.page <= 1;
     next.disabled = payload.page >= payload.totalPages;
+    if (focused instanceof HTMLButtonElement && nav.contains(focused) && focused.disabled) {
+      const other = focused === previous ? next : previous;
+      (other.disabled ? document.getElementById("rows") : other).focus();
+    }
   });
   for (const button of [previous, next]) {
     button.addEventListener("click", () => emit(LOANS_LIST_PAGED, { page: page + Number(button.dataset.step) }));

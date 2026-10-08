@@ -2716,38 +2716,51 @@ page can move from fields to sections without anything else changing.
 Status: accepted, 2026-10-08.
 
 Context: The owner picked plain JavaScript for the web as the first UI
-generator (D9 of docs/ui-design.md). docs/generators.md accepts a UI
-emitter only once it reproduces a screen built by hand in a real
-project, because a generator nobody checked against a real screen was
-once found unused beside the screens people wrote instead. No plain
-JavaScript project exists yet among the projects SpecArch serves. The
-roadmap sets the web's rules: native ES modules, no package install,
-no bundler, no build step, and one small event bus whose event names
-are declared once.
+generator (D9 of docs/ui-design.md). docs/generators.md accepts a
+UI emitter only once it reproduces a screen built by hand in a
+real project, because a generator nobody checked against a real
+screen was once found unused beside the screens people wrote
+instead. No plain JavaScript project exists yet among the projects
+SpecArch serves. The roadmap sets the web's rules: native ES
+modules, no package install, no bundler, no build step, and one
+small event bus whose event names are declared once.
 
 Decision: specarch-gen-ui writes, for a ui target of platform web in
 plain-javascript, each list page as an HTML page and an ES module,
 events.js with every event of the screens, and theme.css from the
 theme. The reference screen, the library lending example's loans
-list, was written by hand and committed alone before the generator,
-and the generator reproduces it apart from its header; the first real
-plain JavaScript project repeats that test against its own first
-screen before the generator is used there. The target's settings give
-the page language and which tokens play which part (text, background,
-accent, danger, border, space, font), since that mapping is the
-stack's. The tokens are written as CSS directly; a token-rendering
-idiom arrives with a second stack that needs one. Forms, views,
-navigation and modes other than dark are reported and left out of
-this version.
+list, was written by hand and committed alone before the
+generator, and the generator reproduces it apart from its header;
+the first real plain JavaScript project repeats that test against
+its own first screen before the generator is used there. The
+target's settings give the page language and which tokens play
+which part (text, background, accent, danger, border, space,
+font), since that mapping is the stack's. A list filters by its
+operation's query parameters or by the fields its listOf makes
+filterable, through the idiom's filter name; a list whose path
+takes a parameter, one that does not page, and a service whose API
+is in the dxlib dialect are refused, and an action whose operation
+takes a request body is left out. The tokens are written as CSS
+directly; a token-rendering idiom arrives with a second stack that
+needs one. Forms, views, navigation and modes other than dark are
+reported and left out of this version.
 
-Consequences: A list in the design is a working screen with one run, and its
-states and messages are the ones the owner reviewed. Two things the
-generator found were fixed in the example: a list filtering by a field
-its operation did not take, and a list page reading an operation that
-did not page. A plug-in receives objects with their keys sorted, so
-the custom properties of theme.css are in the order of their names,
-not the order the theme file writes them; that is the one place the
-generated example differs from the hand-built one beyond its header.
+Consequences: The check shows the generator reproduces a screen; written by the
+same hand a commit before it, the screen does not show how a real
+project builds its screens, which is why the first real project
+repeats the check. A list in the design is a working screen with
+one run, and its states and messages are the ones the owner
+reviewed. Two things the generator found were fixed in the
+example: a list filtering by a field its operation did not take,
+and a list page reading an operation that did not page. A plug-in
+receives objects with their keys sorted, so the custom properties
+of theme.css are in the order of their names, not the order the
+theme file writes them. Beyond its header, the generated example
+first differed from the hand-built one there and in events.js,
+which also declares the members list's events; the review that
+followed made the screen sturdier (stale answers, a page past the
+last, focus, names of row buttons), so the generated loans list
+has moved on from the reference since, as the history records.
 
 **Insight:** Lists first, because they carry most of what the design keywords say: columns, compact columns, filters, every state, actions with confirmations and messages, and the theme. Writing the reference by hand in the example, and saying so, keeps the rule's purpose, a generator checked against a real screen, while no real project exists; the commit that holds the screen alone is the evidence.
 
@@ -3035,7 +3048,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-40 | specarch generate go-dxlib shall write, for a go-dxlib target, one Go file a service on dxlib compiles beside its own code, holding the tables, a handler per operation, the privileges, roles and menu as data, and a task per repeating job. | functional | should | accepted | test | Each entity is a dxlib table, a DXTable when audited or softly deleted and a DXRawTable otherwise, with the search, order and filter fields its lists allow. An entity listed through a view pages through it as the table's list view, named as specarch-gen-sql names the view; an entity listed through two views, or both directly and through a view, is refused, since dxlib reads a table through one list view. Each operation has a handler registered by its operationId that reads every parameter with dxlib's typed getters, checks every constraint the dxlib dialect lists as unenforced, and runs dxlib's standard list, create or read operation where the design gives one, and otherwise calls a body the service writes. Each permission and role is a seed row, public excluded, each menu entry is a menu item, and each job that repeats at an interval is a dxlib task calling a job function the service writes; any other job is reported and left out. The file compiles against dxlib, where a dxlib checkout is at hand. | NEED-2 |
 | SA-41 | A specification shall declare a read model under views, an entity's row with fields read through its relations and counts of its related records added, which is never written, and specarch validate shall check every path, count and use of a view. | functional | should | accepted | test | A view names the entity it reads from, and adds properties that are either a path through many-to-one or one-to-one relations ending in a field, or a count of a one-to-many or many-to-many relation; it carries every field of its entity besides. A path through a relation that does not exist or does not lead to one record, a count of a relation that does not lead to many, a property that repeats a field of the entity, and a view named like an entity are refused (view). A list may read from a view, with its whitelists naming the view's fields; a view under a request body is refused, since a view is never written. The techspec shows each view with the source and the type of every added property. | NEED-2 |
 | SA-42 | A specification shall define the behaviour, structure and rules of a user interface without naming a stack, the events of a page and where each leads among them, and specarch validate shall check them. | functional | should | accepted | test | A form's onSubmitted, a list's onSelect and an operation action's then lead to a page with exactly that page's route parameters, each from a field of the page's entity, and may carry a message, a full sentence; an event on a page or action that does not raise it, a page that does not exist, a route parameter missing or not the target's, a field the entity lacks and a message that is not a sentence are refused (flow). A flow names a task across pages, its actor and its steps, each a page and the event on it that leads to the next step's page; an actor that is not a role or may not open a page or take an action on the way, a page that does not exist, an event the page does not raise and an event that leads elsewhere are refused (flow). A test may name a flow as its subject. A page may declare its states, each with a message in a full sentence; once it does, a list has empty, a list with filters has filteredEmpty, and every problem type the page's operations answer has a message under failed or a default, and a failed state of a form may name the field it is about; anything else is refused (state). Each state is a derived case of the page. A list may name compactColumns, the columns a compact screen keeps, each one of its columns; on another page, or naming another column, it is refused (page). A specification may name its accessibility target, WCAG 2.2 at level A, AA or AAA; with it, a field a page shows or filters by without a title and two actions of a page with one label are refused (accessibility), and the techspec lists the criteria of the level the design settles or leaves to the generator, with who meets each. A theme holds design tokens in the W3C Design Tokens format, modes and pairs of colours; a token without a type or with a value not of its type, a colour outside srgb, a hex that is not its components, a broken or circular alias, a mode naming no token, a number not written in decimals, and a pair below the contrast WCAG 2.2 asks of its use at AA, or AAA when that is the target, in any mode, are refused (theme), and the techspec lists the tokens and each pair's contrast. A form or a view gives its fields once, as fields or as titled sections in reading order; neither, both, a field in two sections and sections on a list are refused (page). The techspec's screen-flow diagram draws every event, and each flow is drawn as its steps. | NEED-2 |
-| SA-43 | specarch generate ui shall write, through a plug-in, the list pages of a specification for the web in plain JavaScript, with no package, bundler or build step, so that the screens follow the design's pages, events, states, accessibility and theme. | functional | should | accepted | test | Each list page becomes an HTML page and an ES module that reads its list a page at a time by the paginated-list idiom, filters by the source operation's query parameters, hides on a compact screen the columns compactColumns leaves out, runs its operation actions with their confirmation and message, and shows its states in a status line announced without moving focus. Every event of the screens is declared once in events.js as an UPPERCASE constant with its payload, and each component subscribes where it is created. The theme's tokens become CSS custom properties with the dark mode under prefers-color-scheme, and the target's settings say which tokens play which part. A target that is not platform web in plain-javascript, one without a language, a filter that is not a query parameter of the list's operation, and a list that does not page are refused; forms, views, navigation and modes other than dark are reported and left out. The library lending example's loans list, written by hand first, is reproduced by the generator apart from its header. | NEED-2 |
+| SA-43 | specarch generate ui shall write, through a plug-in, the list pages of a specification for the web in plain JavaScript, with no package, bundler or build step, so that the screens follow the design's pages, events, states, accessibility and theme. | functional | should | accepted | test | Each list page becomes an HTML page and an ES module that reads its list a page at a time by the paginated-list idiom, filters by the source operation's query parameters, hides on a compact screen the columns compactColumns leaves out, runs its operation actions with their confirmation and message, and shows its states in a status line announced without moving focus. Every event of the screens is declared once in events.js as an UPPERCASE constant with its payload, and each component subscribes where it is created. The theme's tokens become CSS custom properties with the dark mode under prefers-color-scheme, and the target's settings say which tokens play which part. A target that is not platform web in plain-javascript, one without a language, a filter that is neither a query parameter of the list's operation nor filterable in its listOf, a list whose path takes a parameter or that does not page, a service whose API is in the dxlib dialect, two events with one name, and a token name that cannot be a custom property are refused; forms, views, navigation, actions that take a request body and modes other than dark are reported and left out. The library lending example's loans list, written by hand before the generator, was reproduced by it apart from its header. | NEED-2 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |

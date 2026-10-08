@@ -107,7 +107,8 @@ knows them.
 (size classes compact and regular, a hit target of 44 by 44 points,
 navigation by stack, split view or tab bar) and Material Design 3 (window
 size classes compact, medium and expanded at 600 and 840 density
-independent pixels, with large and extra large above 1200 and 1600). Both say the same thing a design needs to know:
+independent pixels, with large and extra large above 1200 and 1600).
+Both say the same thing a design needs to know:
 what to keep and what to move when the window is compact. Neither belongs
 in the design: the number of points and the kind of navigation are a
 stack's.
@@ -291,13 +292,15 @@ given, is the colour the components give. A token may be an alias of
 another, `{group.token}`, as the format allows. The types taken are
 color, dimension, fontFamily, fontWeight, duration and number.
 
-`modes` gives a token another value in a mode, the tokens' own values being the default.
+`modes` gives a token another value in a mode, the tokens' own values
+being the default.
 `pairs` names which colours are shown on which background and for what
 `use`: text, large text, or the parts of a control. That is what the
 contrast check reads. The design file holds values and names
 only; a token is used by a stack as that stack's generator writes it (CSS
 custom properties for the web, an asset catalogue and a `Color` extension
-for SwiftUI); an idiom for it arrives with a second stack. A specification without a theme is valid: the stack's own
+for SwiftUI); an idiom for it arrives with a second stack. A
+specification without a theme is valid: the stack's own
 look applies, and the contrast check has nothing to read.
 
 What is left out on purpose: the format's composite types (typography,
@@ -373,7 +376,8 @@ before it.
 
 ## Implementation items, in order
 
-Items 1 to 5 are built. Item 6 is built for the web in plain JavaScript, the owner's pick (D9), for list pages first (ADR-040).
+Items 1 to 5 are built. Item 6 is built for the web in plain JavaScript,
+the owner's pick (D9), for list pages first (ADR-040).
 
 1. The keywords of D2 to D7 in the schema, `docs/conventions.md` and the
    rule enum (`state`, `flow`, `accessibility`, `theme`), spec first, with

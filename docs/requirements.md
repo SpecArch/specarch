@@ -347,8 +347,8 @@ Acceptance criteria:
 - Each list page becomes an HTML page and an ES module that reads its list a page at a time by the paginated-list idiom, filters by the source operation's query parameters, hides on a compact screen the columns compactColumns leaves out, runs its operation actions with their confirmation and message, and shows its states in a status line announced without moving focus.
 - Every event of the screens is declared once in events.js as an UPPERCASE constant with its payload, and each component subscribes where it is created.
 - The theme's tokens become CSS custom properties with the dark mode under prefers-color-scheme, and the target's settings say which tokens play which part.
-- A target that is not platform web in plain-javascript, one without a language, a filter that is not a query parameter of the list's operation, and a list that does not page are refused; forms, views, navigation and modes other than dark are reported and left out.
-- The library lending example's loans list, written by hand first, is reproduced by the generator apart from its header.
+- A target that is not platform web in plain-javascript, one without a language, a filter that is neither a query parameter of the list's operation nor filterable in its listOf, a list whose path takes a parameter or that does not page, a service whose API is in the dxlib dialect, two events with one name, and a token name that cannot be a custom property are refused; forms, views, navigation, actions that take a request body and modes other than dark are reported and left out.
+- The library lending example's loans list, written by hand before the generator, was reproduced by it apart from its header.
 
 **Insight:** A screen written by hand drifts from the pages, states and messages the owner reviewed; written from them, it says what the design says, and a change to the design reaches the screen on the next run.
 

@@ -150,8 +150,7 @@ func TestDxlibViews(t *testing.T) {
 	withViews(r)
 	r.Implementations[0].Content["targets"].(map[string]any)["openapi"].(map[string]any)["dialect"] = "dxlib"
 	paths := r.Specification["paths"].(map[string]any)
-	delete(paths["/books"].(map[string]any), "get") // bare lists, which dxlib does not answer
-	delete(paths["/members"].(map[string]any), "get")
+	delete(paths["/books"].(map[string]any), "get") // a bare list, which dxlib does not answer
 	resp := Generate(r)
 	for _, d := range resp.Diagnostics {
 		if strings.HasPrefix(d.Path, "/views/") {

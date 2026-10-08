@@ -300,12 +300,20 @@ framework `plain-javascript`, each list page as `<page>.html` and
 `<page>.js`, every event of the screens once in `events.js`, and
 `theme.css`. Nothing needs a package, a bundler or a build step: the pages
 load native ES modules, and no third-party file is written. A page reads
-its list a page at a time by the paginated-list idiom's names, filters by
-the query parameters of its source operation (a filter that is not one is
-refused), hides on a compact screen, below 600 CSS pixels, the columns
+its list a page at a time by the paginated-list idiom's names, with only
+the answer to its latest request counting and a page past the last
+falling back to the last, filters by a query parameter of its source
+operation or, through the idiom's `filter` name, a field its `listOf`
+makes filterable (any other filter is refused), hides on a compact screen, below 600 CSS pixels, the columns
 `compactColumns` leaves out, and runs each operation action on a row,
 taking a path parameter from the row's primary key, after its confirmation
-and with its message. Its states and the messages of its events show in a
+and with its message, its button disabled while it runs; each row's
+buttons are named with the row's first column, and focus stays on the
+same button when the list is read again. A list whose operation's path
+takes a parameter, or whose operation does not page, is refused; an
+action whose operation takes a request body is reported and left out. A
+service whose OpenAPI target is in the dxlib dialect is refused, since
+its lists are not the standard dialect's. Its states and the messages of its events show in a
 status line announced without moving focus; a refusal shows the failed
 state of its problem type, matched by the operation's response status. A
 page without states shows the generator's own sentences in English.
@@ -317,13 +325,16 @@ properties, the dark mode under `prefers-color-scheme`, and the rules
 every screen shares, which use the tokens the target's `settings.tokens`
 names for each part: `text`, `background`, `accent`, `danger`, `border`,
 `space` and `font`. `settings.language` is the pages' `lang`, and is
-required.
+required. A token's name must be letters, digits, `-` and `_`, and two
+tokens may not make one custom property; a font family other than CSS's
+generic ones is written as a string. Two events of the screens with one
+name, a page's and an operation's, are refused.
 
 Forms, views, navigation (`onSelect`, actions of kind navigate, an
 action's `then.navigate`) and modes other than dark are reported and left
-out of this version. The generator was accepted against the library
-lending example's loans list, written by hand first and committed alone;
-the first real plain JavaScript project repeats that test against its own
+out of this version. The screen it is checked against is the library
+lending example's loans list, written by hand before the generator; the
+first real plain JavaScript project repeats the check against its own
 first screen (ADR-040).
 
 ## Tests from the specification

@@ -174,8 +174,8 @@ generate tests` runs to write its Go tests, and `specarch-gen-go-dxlib`,
 which `specarch generate go-dxlib` runs to write the tables, handlers, seeds
 and tasks of a Go service on dxlib. A fifth, `specarch-gen-ui`, which
 `specarch generate ui` runs to write list pages for the web in plain
-JavaScript, is newer than the last tag, so it is installed from a commit or
-a clone (`go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@<commit>`).
+JavaScript, is in no release yet, so it is installed from a commit or a clone
+(`go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@<commit>`).
 Install the four at the same tag as `specarch`:
 
     go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v0.4.0

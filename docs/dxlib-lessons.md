@@ -679,13 +679,22 @@ workaround once it lands.
    answers `unknown type`. The same holds for the serials, the fixed
    widths, the geometry point and the public id. Add each, or derive both
    lists from one table so none can be missed.
-5. **A pointer getter for `nullable-int32`.** `nullable-string` and
-   `nullable-int64` have `GetParameterValueAsNullableString` and
-   `GetParameterValueAsNullableInt64`, answering a pointer;
-   `nullable-int32` has only `GetParameterValueAsInt32`, answering a plain
-   `int32`. Add `GetParameterValueAsNullableInt32` answering `*int32`, so
-   the three nullable types read alike. The generated request struct keeps
-   a `Has` flag per field meanwhile.
+5. **A getter for `nullable-int32` like its siblings.** In dxlib a
+   nullable parameter sent as JSON null and one left out mean the same
+   thing, not given: the value stays nil either way.
+   `GetParameterValueAsNullableString` and
+   `GetParameterValueAsNullableInt64` answer nil for both, and the
+   handler's business rule decides what not given means: assign a default,
+   use 0, or branch to other processing. `nullable-int32` has only
+   `GetParameterValueAsInt32`, answering a plain `int32`. Add
+   `GetParameterValueAsNullableInt32` answering `*int32`, nil when the
+   value is not given, so the three read alike. The specification still
+   says what happens when a value is not given (its default, or the
+   branch); the `request-validation` idiom's `dxlib` part reads null and
+   absent as that one case, while its stack-neutral contract keeps them
+   apart for other stacks. The generated request struct reads a nullable
+   field into its plain type and a `Has` flag, false for both cases, and
+   applies the design's default meanwhile.
 6. **Answer with a problem document.** Every refusal is written as
    `{status, status_code, reason, reason_message}`
    (`WriteResponseAndNewErrorf` in `api/api_endpoint_request.go`, and the

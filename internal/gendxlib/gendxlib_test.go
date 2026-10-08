@@ -70,6 +70,11 @@ func TestParts(t *testing.T) {
 		`Tables.Book.GetByUidNotDeletedAuto(aepr.Context, &aepr.Log, r.BookId)`,
 		`{"desk", "The desk.", []string{"books.read", "books.write"}}`,
 		`task.Manager.NewTask("sweepWithdrawn", "always", 3600, jobSweepWithdrawn)`,
+		// A null and a left-out edition are one case in dxlib, not given,
+		// and the design's default fills it.
+		"if !r.HasEdition {\n\t\tr.Edition = 1\n\t}",
+		`data["edition"] = r.Edition`,
+		`aepr.GetParameterValueAsString("subtitle")`,
 	} {
 		if !strings.Contains(src, want) {
 			t.Errorf("the file has no %q", want)

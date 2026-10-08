@@ -15,8 +15,19 @@ import (
 func dxlibDocument(t *testing.T) (string, map[string]any) {
 	t.Helper()
 	resp := Generate(request(t, "../../spec/tests/generate-openapi-dxlib/project"))
-	if len(resp.Diagnostics) > 0 || len(resp.Files) != 1 {
-		t.Fatalf("want one file and no diagnostics, got %d files and %v", len(resp.Files), resp.Diagnostics)
+	// The fixture's edition is required and may be null, which dxlib reads
+	// as one case, not given: a warning on each place it is required, and
+	// nothing else.
+	warned := 0
+	for _, d := range resp.Diagnostics {
+		if d.Severity == "warning" && strings.HasSuffix(d.Path, "/properties/edition") {
+			warned++
+		} else {
+			t.Errorf("unexpected diagnostic: %v", d)
+		}
+	}
+	if len(resp.Files) != 1 || warned != 2 {
+		t.Fatalf("want one file and the edition warning twice, got %d files and %v", len(resp.Files), resp.Diagnostics)
 	}
 	var doc map[string]any
 	if err := yaml.Unmarshal([]byte(resp.Files[0].Content), &doc); err != nil {
@@ -69,6 +80,16 @@ func TestDxlibDialect(t *testing.T) {
 	}
 	if at(t, doc, "paths", "/listBooks", "post", "requestBody", "content", "application/json", "schema", "properties", "page_index", "minimum") != 0 {
 		t.Error("page_index does not count from 0")
+	}
+	// In dxlib a null and a left-out parameter are one case, not given: a
+	// field that may be null takes dxlib's nullable type and is not required.
+	if at(t, doc, "components", "schemas", "Book", "properties", "subtitle", "x-dxlib-type") != "nullable-string" {
+		t.Error("subtitle, which may be null, is not dxlib's nullable-string")
+	}
+	for _, r := range at(t, doc, "components", "schemas", "Book", "required").([]any) {
+		if r == "edition" {
+			t.Error("edition, which may be null, is required in the dxlib dialect")
+		}
 	}
 }
 

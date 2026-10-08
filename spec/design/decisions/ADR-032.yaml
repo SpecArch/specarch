@@ -14,7 +14,9 @@ decisions:
       its settings name, for the database its settings name; a target
       without databaseNameId is refused. The file holds a table per entity,
       Register binding every handler, and per operation a request struct
-      with a Has flag per field, a reader using dxlib's getters, a check of
+      with a Has flag per field, a reader using dxlib's getters that takes
+      the field's design default when the value is not given (left out or
+      null, which dxlib reads alike), a check of
       every constraint the dxlib dialect lists as unenforced, and the
       handler. A list runs the table's paging list after checking the page
       size, a create inserts the given fields with a new identifier and the

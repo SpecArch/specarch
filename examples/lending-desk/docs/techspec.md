@@ -262,7 +262,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | health-endpoint | 1.0.0 | shipped |   |
 | identifiers | 1.1.0 | shipped |   |
 | migrations | 1.0.0 | shipped |   |
-| request-validation | 1.0.0 | shipped |   |
+| request-validation | 1.1.0 | shipped |   |
 | transactions | 1.0.0 | shipped |   |
 | type-rendering | 1.2.0 | shipped |   |
 

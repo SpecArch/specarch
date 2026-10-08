@@ -40,12 +40,16 @@ func Register(a *api.DXAPI) {
 type CreateBookRequest struct {
 	ContactEmail    string
 	HasContactEmail bool
+	Edition         int32
+	HasEdition      bool
 	Pages           int32
 	HasPages        bool
 	Price           decimal.Decimal
 	HasPrice        bool
 	Shelf           string
 	HasShelf        bool
+	Subtitle        string
+	HasSubtitle     bool
 	Title           string
 	HasTitle        bool
 }
@@ -54,6 +58,12 @@ func readCreateBookRequest(aepr *api.DXAPIEndPointRequest) (r CreateBookRequest,
 	if r.HasContactEmail, r.ContactEmail, err = aepr.GetParameterValueAsString("contact_email"); err != nil {
 		return r, err
 	}
+	if r.HasEdition, r.Edition, err = aepr.GetParameterValueAsInt32("edition"); err != nil {
+		return r, err
+	}
+	if !r.HasEdition {
+		r.Edition = 1
+	}
 	if r.HasPages, r.Pages, err = aepr.GetParameterValueAsInt32("pages"); err != nil {
 		return r, err
 	}
@@ -61,6 +71,9 @@ func readCreateBookRequest(aepr *api.DXAPIEndPointRequest) (r CreateBookRequest,
 		return r, err
 	}
 	if r.HasShelf, r.Shelf, err = aepr.GetParameterValueAsString("shelf"); err != nil {
+		return r, err
+	}
+	if r.HasSubtitle, r.Subtitle, err = aepr.GetParameterValueAsString("subtitle"); err != nil {
 		return r, err
 	}
 	if r.HasTitle, r.Title, err = aepr.GetParameterValueAsString("title"); err != nil {
@@ -74,6 +87,9 @@ func readCreateBookRequest(aepr *api.DXAPIEndPointRequest) (r CreateBookRequest,
 func checkCreateBook(aepr *api.DXAPIEndPointRequest, r CreateBookRequest) error {
 	if r.HasPages && r.Pages > 5000 {
 		return aepr.WriteResponseAndNewErrorf(http.StatusUnprocessableEntity, "", "%s", "INVALID_PARAMETER:pages:maximum: 5000")
+	}
+	if r.HasSubtitle && utf8.RuneCountInString(r.Subtitle) > 300 {
+		return aepr.WriteResponseAndNewErrorf(http.StatusUnprocessableEntity, "", "%s", "INVALID_PARAMETER:subtitle:maxLength: 300")
 	}
 	if r.HasTitle && utf8.RuneCountInString(r.Title) > 300 {
 		return aepr.WriteResponseAndNewErrorf(http.StatusUnprocessableEntity, "", "%s", "INVALID_PARAMETER:title:maxLength: 300")
@@ -94,6 +110,7 @@ func CreateBook(aepr *api.DXAPIEndPointRequest) error {
 	if r.HasContactEmail {
 		data["contact_email"] = r.ContactEmail
 	}
+	data["edition"] = r.Edition
 	if r.HasPages {
 		data["pages"] = r.Pages
 	}
@@ -102,6 +119,9 @@ func CreateBook(aepr *api.DXAPIEndPointRequest) error {
 	}
 	if r.HasShelf {
 		data["shelf"] = r.Shelf
+	}
+	if r.HasSubtitle {
+		data["subtitle"] = r.Subtitle
 	}
 	if r.HasTitle {
 		data["title"] = r.Title

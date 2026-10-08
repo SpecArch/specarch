@@ -150,7 +150,10 @@ routes by the URI alone. A field carries its dxlib type in `x-dxlib-type`
 and keeps only the constraints dxlib's validator applies; the others, a
 `maxLength`, a `pattern`, a `maximum`, a format dxlib does not know, are
 listed in `x-specarch-unenforced` on the field, for the go-dxlib handler to
-check. Permissions are `x-dxlib-privileges`, no security scheme is written,
+check. A field that may be null takes dxlib's nullable type where its base
+has one and is not required, with a warning where the design requires it,
+because dxlib reads a null and a left-out parameter as one case, not given.
+Permissions are `x-dxlib-privileges`, no security scheme is written,
 a refusal is dxlib's error body named by its problem type, and a list uses
 the dxlib names and envelope of the paginated-list idiom. Two limits are
 dxlib's to lift: its validator does not apply JSON Schema's bounds, and its
@@ -165,7 +168,9 @@ file holds a dxlib table per entity, a DXTable when the entity is audited
 or softly deleted and a DXRawTable otherwise, with the search, order and
 filter fields its lists allow; `Register`, binding each handler to its
 `operationId`; and per operation a request struct with a `Has` flag per
-field, read through dxlib's typed getters, a check of every constraint the
+field, read through dxlib's typed getters, the field's design default
+taken when the value is not given (dxlib reads a null and a left-out
+parameter alike, so `Has` is false for both), a check of every constraint the
 dxlib dialect lists as unenforced, and the handler. A list checks the page
 size and runs the table's paging list, a create inserts the given fields
 with a new identifier and the audit fields and answers the stored row with

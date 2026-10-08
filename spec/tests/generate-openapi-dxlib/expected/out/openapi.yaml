@@ -20,6 +20,13 @@ paths:
                   format: email
                   x-dxlib-type: email
                   x-specarch-sensitivity: personal
+                edition:
+                  type:
+                    - integer
+                    - "null"
+                  format: int32
+                  minimum: 1
+                  x-dxlib-type: int32p
                 pages:
                   type: integer
                   format: int32
@@ -34,6 +41,13 @@ paths:
                   x-specarch-scale: 4
                 shelf:
                   $ref: '#/components/schemas/Shelf'
+                subtitle:
+                  type:
+                    - string
+                    - "null"
+                  x-dxlib-type: nullable-string
+                  x-specarch-unenforced:
+                    - 'maxLength: 300'
                 title:
                   type: string
                   minLength: 1
@@ -234,6 +248,13 @@ components:
           type: string
           description: The name of who created the record; set by the system.
           x-dxlib-type: string
+        edition:
+          type:
+            - integer
+            - "null"
+          format: int32
+          minimum: 1
+          x-dxlib-type: int32p
         id:
           type: string
           x-dxlib-type: string
@@ -266,6 +287,13 @@ components:
           x-specarch-scale: 4
         shelf:
           $ref: '#/components/schemas/Shelf'
+        subtitle:
+          type:
+            - string
+            - "null"
+          x-dxlib-type: nullable-string
+          x-specarch-unenforced:
+            - 'maxLength: 300'
         title:
           type: string
           minLength: 1

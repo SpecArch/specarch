@@ -2378,9 +2378,12 @@ parameter's or a field's, is written in snake_case, since dxlib's
 standard operations take a parameter's name as its column's. A field keeps only what
 dxlib's validator applies, carries its dxlib type in x-dxlib-type, and
 lists every other constraint in x-specarch-unenforced, which the
-reader skips as it skips any extension not its own. A field may be
-left out by being absent from required, and may be null by a type
-list with null; dxlib's nullable types are not used. A sensitive text
+reader skips as it skips any extension not its own. dxlib reads a
+parameter sent as null and one left out as one case, not given, so a
+field that may be null takes dxlib's nullable type where its base has
+one (nullable-string, nullable-int32, nullable-int64) and is never
+required, with a warning where the design requires it; the
+specification's default or branch says what not given means. A sensitive text
 field is a protected string. Permissions become x-dxlib-privileges,
 and a public operation has none, which dxlib reads as no privilege
 check. No security scheme is written, since the reader refuses one it
@@ -2416,7 +2419,9 @@ Decision: The go-dxlib target writes one file, specarch_dxlib.go, in the package
 its settings name, for the database its settings name; a target
 without databaseNameId is refused. The file holds a table per entity,
 Register binding every handler, and per operation a request struct
-with a Has flag per field, a reader using dxlib's getters, a check of
+with a Has flag per field, a reader using dxlib's getters that takes
+the field's design default when the value is not given (left out or
+null, which dxlib reads alike), a check of
 every constraint the dxlib dialect lists as unenforced, and the
 handler. A list runs the table's paging list after checking the page
 size, a create inserts the given fields with a new identifier and the

@@ -572,7 +572,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | migrations | 1.0.0 | shipped |   |
 | paginated-list | 1.1.0 | shipped |   |
 | pii-in-logs | 1.0.0 | shipped |   |
-| request-validation | 1.0.0 | shipped |   |
+| request-validation | 1.1.0 | shipped |   |
 | soft-delete | 1.1.0 | shipped |   |
 | transactions | 1.0.0 | shipped |   |
 | type-rendering | 1.2.0 | shipped |   |

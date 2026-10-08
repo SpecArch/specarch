@@ -314,6 +314,9 @@ func (g *gen) params(o operation) []param {
 // goType is the Go type of a parameter and the dxlib getter that reads it.
 func (g *gen) goType(s map[string]any) (typ, getter string) {
 	t, _ := genopenapi.DXType(s)
+	// A nullable type reads as its base: dxlib's getter answers a null and a
+	// left-out parameter alike, with Has false.
+	t = strings.TrimPrefix(t, "nullable-")
 	switch {
 	case strings.HasPrefix(t, "int32"):
 		return "int32", "GetParameterValueAsInt32"
@@ -340,6 +343,27 @@ func (g *gen) goType(s map[string]any) (typ, getter string) {
 		return "[]any", "GetParameterValueAsArrayOfAny"
 	}
 	return "string", "GetParameterValueAsString"
+}
+
+// defaultValue is the Go literal of a field's design default, which a
+// handler takes when the value is not given: left out, or sent as null,
+// which dxlib reads alike. A default with no Go literal here is reported.
+func (g *gen) defaultValue(at, wire string, s map[string]any) (string, bool) {
+	v, ok := s["default"]
+	if !ok || v == nil {
+		return "", false
+	}
+	typ, _ := g.goType(s)
+	switch typ {
+	case "string":
+		return fmt.Sprintf("%q", text(v)), true
+	case "int32", "int64", "float64", "bool":
+		return fmt.Sprintf("%v", v), true
+	case "decimal.Decimal":
+		return fmt.Sprintf("decimal.RequireFromString(%q)", text(v)), true
+	}
+	g.problem("warning", at, "the default of %s has no Go literal for a %s; apply it in the service", wire, typ)
+	return "", false
 }
 
 // handlers writes the registration, and per operation its accessor, its
@@ -382,6 +406,11 @@ func (g *gen) operation(o operation) {
 		g.line("\tif r.Has%s, r.%s, err = aepr.%s(%q); err != nil {", p.field, p.field, getter, p.wire)
 		g.line("\t\treturn r, err")
 		g.line("\t}")
+		if v, ok := g.defaultValue("/paths/"+o.path+"/"+o.method, p.wire, p.schema); ok {
+			g.line("\tif !r.Has%s {", p.field)
+			g.line("\t\tr.%s = %s", p.field, v)
+			g.line("\t}")
+		}
 	}
 	g.line("\treturn r, nil")
 	g.line("}")
@@ -471,6 +500,10 @@ func (g *gen) createBody(entity string, params []param) {
 	uid, _ := g.keyed(entity)
 	g.line("\tdata := utils.JSON{}")
 	for _, p := range params {
+		if _, ok := p.schema["default"]; ok && p.schema["default"] != nil {
+			g.line("\tdata[%q] = r.%s", p.wire, p.field)
+			continue
+		}
 		g.line("\tif r.Has%s {", p.field)
 		g.line("\t\tdata[%q] = r.%s", p.wire, p.field)
 		g.line("\t}")

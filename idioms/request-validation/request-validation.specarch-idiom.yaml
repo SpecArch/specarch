@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: request-validation
-version: 1.0.0
+version: 1.1.0
 concern: request-validation
-stacks: [go, any]
+stacks: [go, any, dxlib]
 reads: [paths]
 description: |
   How a request is checked before its handler runs: every bound, format,
@@ -25,7 +25,7 @@ contract:
     statement: A refusal names the path of each failing field, such as customer.email.
     check: guidance
   absent-and-null:
-    statement: A field that may be left out (required false) and a field whose value may be null (a type list with null) are told apart, and a handler never reads one as the other.
+    statement: A field that may be left out (required false) and a field whose value may be null (a type list with null) are told apart, and a handler never reads one as the other, except on a stack whose rendering reads both as one case, not given; there the handler does what the specification says for a value not given, its default or the branch it names.
     check: guidance
 parts:
   validation:
@@ -51,7 +51,18 @@ parts:
           with a presence flag or an accessor the request layer sets, such
           as Has(name); the zero value never stands for "not given". Null
           only (required, a type list with null): a pointer. Both: a pointer
-          and the presence flag. A library type named nullable-X for a
-          request parameter, as dxlib's are, means "may be left out", so its
-          plain int32 is right and needs no pointer.
+          and the presence flag.
         why: In a REST request, absence and null are two different things a client can send; a pointer alone cannot say which one it was.
+      dxlib:
+        code: |
+          One case, not given. dxlib reads a parameter sent as null and one
+          left out alike: its value stays nil and the getter answers
+          isExist false, for a nullable-X type and for any parameter that
+          is not required. A field that may be null takes dxlib's nullable
+          type where its base has one (nullable-string, nullable-int32,
+          nullable-int64) and is never required, since a required one would
+          refuse the null. The handler reads it with the base getter into
+          the plain Go type and a Has flag, and when Has is false it does
+          what the specification says for a value not given: takes the
+          field's default, or follows the branch the operation names.
+        why: In dxlib, nullable means the parameter may be not given, whether left out or sent as null; a handler that tried to tell the two apart would find nothing to tell them by, and the specification's default or branch is what gives "not given" its meaning.

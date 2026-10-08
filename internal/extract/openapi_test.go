@@ -88,3 +88,40 @@ func TestJSONNode(t *testing.T) {
 		t.Error("text after the document was read")
 	}
 }
+
+// TestOpenAPIImpliedType reads properties with no type as an object and
+// items with no type as an array.
+func TestOpenAPIImpliedType(t *testing.T) {
+	for schema, want := range map[string]string{
+		`{properties: {name: {type: string}}}`: `{type: object, properties: {name: {type: string}}}`,
+		`{items: {type: string}}`:              `{type: array, items: {type: string}}`,
+	} {
+		if got, _ := openapiField(t, false, schema); got != want {
+			t.Errorf("%s: got %s, want %s", schema, got, want)
+		}
+	}
+}
+
+// TestOpenAPIEntityNeedsAProperty writes an object schema none of whose
+// properties can be held in place, so no reference points at an entity
+// that is not written.
+func TestOpenAPIEntityNeedsAProperty(t *testing.T) {
+	var doc yaml.Node
+	src := `
+openapi: 3.1.0
+paths: {}
+components:
+  schemas:
+    Token: {type: object, properties: {access_token: {type: string}}}
+    Wrapper: {type: object, properties: {token: {$ref: "#/components/schemas/Token"}}}
+    Problem: {properties: {title: {type: string}}}
+`
+	if err := yaml.Unmarshal([]byte(src), &doc); err != nil {
+		t.Fatal(err)
+	}
+	o := &openapiReader{doc: doc.Content[0], key: "api", res: &Result{Tree: newTree()}, questions: &yaml.Node{Kind: yaml.MappingNode}}
+	o.read()
+	if got, want := o.written, map[string]string{"Wrapper": "entities", "Problem": "entities"}; len(got) != len(want) || got["Wrapper"] != want["Wrapper"] || got["Problem"] != want["Problem"] {
+		t.Errorf("written %v, want %v", got, want)
+	}
+}

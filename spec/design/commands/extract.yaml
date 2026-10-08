@@ -67,10 +67,14 @@ commands:
         schema is written in the field subset: OpenAPI 3.0's `nullable`
         becomes a type that allows null, its `example` an `examples`
         list, and its boolean `exclusiveMinimum` and `exclusiveMaximum`
-        the number form; a reference to a component schema becomes a
-        reference to the entity of that name. A component schema of type
-        object becomes an entity, its primary key a must question, and
-        one of type string with an enum of snake_case values an enum.
+        the number form; a schema with properties and no type is an
+        object, and one with items an array, as JSON Schema reads those
+        keywords. A component schema of type object with at least one
+        property that can be held becomes an entity, its primary key a
+        must question, and a reference to it a reference to the entity;
+        one of type string with an enum of snake_case values becomes an
+        enum; a reference to any other component schema is written in
+        place.
         What the meta-model cannot hold prints a line and is left out: the
         methods head, options and trace; a cookie parameter or one given
         by content; a response code range; response headers and links;

@@ -41,6 +41,13 @@ decisions:
       release for this subset alone. OpenAPI 3.0's nullable, example and
       boolean exclusive bounds are rewritten in the 3.1 form, which is
       JSON Schema's and the meta-model's, since they say the same thing.
+      A schema with properties and no type is written as an object, and
+      one with items as an array, because JSON Schema applies those
+      keywords only to that type, so the type is read from the document
+      and not guessed. A component schema is an entity only when one of
+      its properties can be held, since an entity needs a property, and
+      a reference to one that is not is written in place rather than
+      left pointing at nothing.
       A security scheme is not a permission: it says how a caller proves
       who it is, and scopes are a scheme's own, so the permission is
       asked, never derived, and never written as public, for the reason

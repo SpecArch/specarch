@@ -174,10 +174,27 @@ func (o *openapiReader) read() {
 		s := o.resolve(child(schemas, name))
 		switch {
 		case !typeNameWord.MatchString(name):
-		case scalar(child(s, "type")) == "object" && child(s, "properties") != nil:
+		case schemaType(s) == "object" && child(s, "properties") != nil:
 			o.written[name] = "entities"
 		case scalar(child(s, "type")) == "string" && isEnumOfWords(child(s, "enum")):
 			o.written[name] = "enums"
+		}
+	}
+	// An object none of whose properties can be held is no entity, and a
+	// reference to it is written in place; leaving one out can leave
+	// another with none, so this runs until nothing changes.
+	for changed := true; changed; {
+		changed = false
+		for _, name := range names {
+			if o.written[name] != "entities" {
+				continue
+			}
+			trial := *o
+			trial.notHeld, trial.widths = nil, nil
+			if props, _ := trial.properties(o.resolve(child(schemas, name)), "", ""); props == nil {
+				delete(o.written, name)
+				changed = true
+			}
 		}
 	}
 	o.paths = &yaml.Node{Kind: yaml.MappingNode}
@@ -204,6 +221,9 @@ func (o *openapiReader) read() {
 			enums++
 		default:
 			why := "it is neither an object with properties nor a string enum of snake_case values"
+			if schemaType(s) == "object" && child(s, "properties") != nil {
+				why = "none of its properties can be held"
+			}
 			if !typeNameWord.MatchString(name) {
 				why = "its name is not PascalCase, which an entity's or an enum's is"
 			}
@@ -365,7 +385,7 @@ func (o *openapiReader) operation(p, method string, op *yaml.Node, params []stri
 			continue
 		}
 		at := at + "/responses/" + code
-		set(responses, code, o.response(o.resolve(child(child(op, "responses"), code)), label+", response "+code, at))
+		set(responses, code, o.response(o.resolve(child(child(op, "responses"), code)), "operation "+label+", response "+code, at))
 	}
 	if len(responses.Content) > 0 {
 		set(out, "responses", responses)
@@ -486,7 +506,7 @@ func (o *openapiReader) parameter(pn *yaml.Node, where, at string, params []stri
 }
 
 func (o *openapiReader) requestBody(rb *yaml.Node, label, at string) *yaml.Node {
-	content := o.content(child(rb, "content"), label+", request body", at+"/content")
+	content := o.content(child(rb, "content"), "operation "+label+", request body", at+"/content")
 	if content == nil {
 		o.gap("operation %s, request body: no media type the meta-model holds; left out", label)
 		return nil
@@ -643,6 +663,11 @@ func (o *openapiReader) field(s *yaml.Node, where, at string, depth int) *yaml.N
 	}
 	out := mapping()
 	typ := child(s, "type")
+	if typ == nil && schemaType(s) != "" {
+		// JSON Schema's properties constrain only an object, and its items
+		// only an array, so either keyword says the type.
+		typ = str(schemaType(s))
+	}
 	switch {
 	case typ == nil:
 	case typ.Kind == yaml.ScalarNode && fieldTypes[typ.Value]:
@@ -729,6 +754,20 @@ func (o *openapiReader) field(s *yaml.Node, where, at string, depth int) *yaml.N
 		flow(out)
 	}
 	return out
+}
+
+// schemaType is a schema's type, or the type its properties or items
+// keyword implies when it names none.
+func schemaType(s *yaml.Node) string {
+	switch {
+	case child(s, "type") != nil:
+		return scalar(child(s, "type"))
+	case child(s, "properties") != nil:
+		return "object"
+	case child(s, "items") != nil:
+		return "array"
+	}
+	return ""
 }
 
 // widthHeld says whether a JSON integer or number has a width the

@@ -592,10 +592,14 @@ The sources this build reads:
   schema is written in the field subset: OpenAPI 3.0's `nullable`
   becomes a type that allows null, its `example` an `examples`
   list, and its boolean `exclusiveMinimum` and `exclusiveMaximum`
-  the number form; a reference to a component schema becomes a
-  reference to the entity of that name. A component schema of type
-  object becomes an entity, its primary key a must question, and
-  one of type string with an enum of snake_case values an enum.
+  the number form; a schema with properties and no type is an
+  object, and one with items an array, as JSON Schema reads those
+  keywords. A component schema of type object with at least one
+  property that can be held becomes an entity, its primary key a
+  must question, and a reference to it a reference to the entity;
+  one of type string with an enum of snake_case values becomes an
+  enum; a reference to any other component schema is written in
+  place.
   What the meta-model cannot hold prints a line and is left out: the
   methods head, options and trace; a cookie parameter or one given
   by content; a response code range; response headers and links;
@@ -3377,7 +3381,7 @@ could not, takes the permissions from the router, and asks one
 question about the path the router does not serve. Wire names that
 are not camelCase wait for the meta-model to hold them.
 
-**Insight:** A document source, because an OpenAPI file is written by people about the system and can drift from it, as the manual can, and the merge compares the documents side with the code side; read as code, a path the router does not serve would join the specification unasked. No OpenAPI library, because the reader takes a subset of the format that yaml/v3, already a dependency, parses in both notations, and a library would add a dependency to check every release for this subset alone. OpenAPI 3.0's nullable, example and boolean exclusive bounds are rewritten in the 3.1 form, which is JSON Schema's and the meta-model's, since they say the same thing. A security scheme is not a permission: it says how a caller proves who it is, and scopes are a scheme's own, so the permission is asked, never derived, and never written as public, for the reason the router reader gives. An integer with no width is asked because the meta-model refuses one, and choosing int32 or int64 for the document would be a guess. A property whose name is not camelCase is left out rather than renamed, because a renamed property would generate a document that differs from the contract clients use; the meta-model has no name on the wire yet. A question another tree answers is left out because the element then cites the tree that gives the key, which is the row "agree" of docs/from-sources.md, section 3.2, and an open question beside the value would ask what the specification already states. The placeholder is reported and not dropped, because the plan gives the refusal to the route-table gate, and a reviewer needs the not-built questions to tell a placeholder from a contract the code has not caught up with.
+**Insight:** A document source, because an OpenAPI file is written by people about the system and can drift from it, as the manual can, and the merge compares the documents side with the code side; read as code, a path the router does not serve would join the specification unasked. No OpenAPI library, because the reader takes a subset of the format that yaml/v3, already a dependency, parses in both notations, and a library would add a dependency to check every release for this subset alone. OpenAPI 3.0's nullable, example and boolean exclusive bounds are rewritten in the 3.1 form, which is JSON Schema's and the meta-model's, since they say the same thing. A schema with properties and no type is written as an object, and one with items as an array, because JSON Schema applies those keywords only to that type, so the type is read from the document and not guessed. A component schema is an entity only when one of its properties can be held, since an entity needs a property, and a reference to one that is not is written in place rather than left pointing at nothing. A security scheme is not a permission: it says how a caller proves who it is, and scopes are a scheme's own, so the permission is asked, never derived, and never written as public, for the reason the router reader gives. An integer with no width is asked because the meta-model refuses one, and choosing int32 or int64 for the document would be a guess. A property whose name is not camelCase is left out rather than renamed, because a renamed property would generate a document that differs from the contract clients use; the meta-model has no name on the wire yet. A question another tree answers is left out because the element then cites the tree that gives the key, which is the row "agree" of docs/from-sources.md, section 3.2, and an open question beside the value would ask what the specification already states. The placeholder is reported and not dropped, because the plan gives the refusal to the route-table gate, and a reviewer needs the not-built questions to tell a placeholder from a contract the code has not caught up with.
 
 ## 10. Quality requirements
 

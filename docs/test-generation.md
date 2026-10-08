@@ -15,10 +15,11 @@ success case of every subject, the acceptance case per criterion, the
 paths of a state machine and the decision-table cases of a check
 constraint. So is the third: `fixture`, `input` and `expect` on a test,
 checked against the design. And the fourth: `specarch derive`, which
-writes the drafts. The sixth is built ahead of the fifth: the concepts the
-waiting red paths needed, dependencies with a time limit, an idempotency
-key, validity, sessions and guards, with their derived cases. The other
-items are listed at the end.
+writes the drafts. The fifth: the Go test plug-in. The sixth: the
+concepts the waiting red paths needed, dependencies with a time limit, an
+idempotency key, validity, sessions and guards, with their derived cases.
+And the seventh: the Swift and Dart test plug-ins, Dart serving Flutter.
+The items are listed at the end.
 
 The standards are ISO/IEC/IEEE 29119-4:2021 for the techniques and their
 coverage measures, and ISO/IEC/IEEE 29119-1:2022 for why a test set is a
@@ -355,7 +356,12 @@ example into the folder the target owns:
 What is stack-specific stays in the implementation file: the framework
 and its assertion style, how a caller is signed in (a header, a token, a
 session), how records are inserted, where the generated files go. The
-Swift and Flutter plug-ins follow the same request and differ only there.
+Swift and Dart plug-ins, `specarch-gen-tests-swift` for Swift Testing and
+`specarch-gen-tests-dart` for `package:test` or `flutter_test`, read the
+specification into the same tests as the Go one and differ only there and
+in the language; a Flutter app's language is Dart. `docs/generators.md`
+has what each writes and what the project writes beside it, ADR-041 the
+reasons.
 
 ## Traceability
 
@@ -414,5 +420,11 @@ validator builds where it adds a rule, and the conformance cases.
    operation, `validity` on an entity, `session`, and `guard` on an
    operation or a command, each with its rule and its derived cases.
    Both builds, with cases; the techspec shows each.
-7. The Swift and Flutter test plug-ins, once the first project on each
-   stack exists.
+7. Built. The `tests` target for Swift and Dart: `specarch-gen-tests-swift`
+   for Swift Testing and `specarch-gen-tests-dart` for `package:test` or
+   `flutter_test`, with the Go plug-in's tests through a harness of the
+   same shape. No project on either stack has a hand-written test to serve
+   as the acceptance test yet, so, as for Go, the library lending example's
+   tests are built in Swift and analyzed in Dart beside a harness that does
+   nothing, and the first real project on each stack repeats the check
+   against its own test.

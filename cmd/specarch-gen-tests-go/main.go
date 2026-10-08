@@ -28,7 +28,7 @@ func run(stdin io.Reader, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "specarch-gen-tests-go: the request is not specarch's JSON (%v); run this plug-in through specarch generate tests\n", err)
 		return 2
 	}
-	out, err := json.Marshal(gentests.Generate(req))
+	out, err := json.Marshal(gentests.GenerateGo(req))
 	if err != nil {
 		fmt.Fprintf(stderr, "specarch-gen-tests-go: cannot encode the answer: %v\n", err)
 		return 2

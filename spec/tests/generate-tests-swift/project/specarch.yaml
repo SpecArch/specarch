@@ -1,0 +1,157 @@
+specarch: "0.1"
+info: { title: Stockroom, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+enums:
+  Colour:
+    type: string
+    enum: [red, green]
+entities:
+  Item:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      name: { type: string, minLength: 1, maxLength: 40 }
+      colour: { $ref: "#/enums/Colour" }
+      stock: { type: integer, format: int32 }
+      reserved: { type: integer, format: int32 }
+      price: { type: string, format: decimal, precision: 10, scale: 2 }
+    required: [id, name]
+    primaryKey: [id]
+    constraints:
+      reserved_within_stock:
+        kind: check
+        expression: reserved <= stock
+        message: No more can be reserved than is in stock.
+permissions:
+  items.write: { description: Add items. }
+roles:
+  clerk: { description: Staff., permissions: [items.write] }
+channels:
+  items:
+    messages:
+      ItemAdded:
+        summary: An item was added
+        payload: { $ref: "#/entities/Item" }
+commands:
+  count:
+    summary: Count the items
+    permission: items.write
+    arguments:
+      - { name: shelves, required: true, repeatable: true, schema: { type: string, minLength: 1 } }
+    options:
+      colour: { description: Count only this colour., schema: { $ref: "#/enums/Colour" } }
+    standardOutput: The count.
+    exitCodes:
+      "0": counted
+      "2": usage error
+pages:
+  item-view:
+    title: An item
+    kind: view
+    entity: Item
+    route: /items/{itemId}
+    permission: items.write
+    source: addItem
+    fields: [name, colour]
+    actions:
+      - { label: Add another, kind: operation, target: addItem }
+algorithms:
+  restockCost:
+    description: What it costs to fill a shelf back up.
+    inputs:
+      missing: { type: integer, format: int32, minimum: 0 }
+      unitPrice: { type: string, format: decimal, precision: 10, scale: 2 }
+    output: { type: string, format: decimal, precision: 10, scale: 2 }
+    formula: decimal(missing, 0) * unitPrice
+    pseudocode: |
+      function restockCost(missing, unitPrice):
+          return missing * unitPrice
+    examples:
+      - name: nothing missing
+        inputs: { missing: 0, unitPrice: "2.50" }
+        expected: "0.00"
+      - name: three missing
+        inputs: { missing: 3, unitPrice: "2.50" }
+        expected: "7.50"
+paths:
+  /items:
+    post:
+      operationId: addItem
+      summary: Add an item
+      permission: items.write
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Item" }
+      responses:
+        "201":
+          description: Added.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Item" }
+        "409": { description: An item with that name exists. }
+      emits: [items/ItemAdded]
+tests:
+  add-item:
+    operation: addItem
+    level: system
+    scenario: golden
+    given: a clerk and a red lamp in stock
+    when: addItem is called for a green lamp
+    then: "it answers 201 with the item, both lamps are kept, and ItemAdded is published"
+    fixture:
+      caller: clerk
+      Item: [{ name: red lamp, colour: red, stock: 2, reserved: 1, price: "12.50" }]
+    input: { name: green lamp, colour: green, stock: 1, price: "12.50" }
+    expect:
+      status: 201
+      body: { name: green lamp, colour: green }
+      state: { Item: [{ name: red lamp }, { name: green lamp }] }
+      emits: [items/ItemAdded]
+  add-item-twice:
+    operation: addItem
+    level: system
+    scenario: red
+    given: a clerk and a lamp
+    when: addItem is called for a lamp again
+    then: it answers 409 and publishes nothing
+    fixture:
+      caller: clerk
+      Item: [{ name: lamp }]
+    input: { name: lamp }
+    expect: { status: 409, emitsNothing: true }
+  item-reserved-within-stock:
+    entity: Item
+    constraint: reserved_within_stock
+    level: system
+    scenario: red
+    given: "an item with 1 in stock"
+    when: "2 are reserved"
+    then: it is refused
+  count-shelves:
+    command: count
+    level: system
+    scenario: golden
+    given: two shelves
+    when: count is run on both for red
+    then: it prints the count
+    input:
+      arguments: { shelves: [a, b] }
+      options: { colour: red }
+    expect: { exit: 0, standardOutput: ["2 items"] }
+  item-view-opened:
+    page: item-view
+    level: system
+    scenario: golden
+    given: an item
+    when: the page opens
+    then: it shows the item
+    input: { itemId: "4f1c2a8e-3d4b-4c5a-9e7f-1a2b3c4d5e6f" }
+  item-view-offline:
+    page: item-view
+    level: system
+    scenario: red
+    covers: [denied without items.write]
+    notApplicable: The page is served with the API and has no offline mode.

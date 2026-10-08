@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.5.0-dev of the specification: 226 design tests, 76 golden and 149 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.5.0-dev of the specification: 230 design tests, 79 golden and 150 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.5.0-dev of the specification: 226 design tests, 76 golden and 149 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 222 |
+| system | 226 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -622,6 +622,38 @@ Scenario: golden; level: system; verifies SA-31.
 - Given: a specification whose implementation file is in Go, with specarch-gen-echo-go and specarch-gen-echo both on PATH
 - When: generate echo is run with --unapproved
 - Then: it runs specarch-gen-echo-go, the plug-in for the file's stack, writes its file into the output the implementation file names, and exits 0
+
+#### generate-tests-dart
+
+Scenario: golden; level: system; verifies SA-31.
+
+- Given: the specification of generate-tests-go, and an implementation file in Dart whose testing framework is flutter_test; specarch-gen-tests-dart built from this repository on PATH
+- When: generate tests is run with --unapproved
+- Then: it writes the library of values, harness and checks and the test file beside it, both importing flutter_test: the same tests as in Go through Harness, a body to write by hand for the test with no call, the reason of the test that does not apply, a group per algorithm with a test per worked example, and exits 0
+
+#### generate-tests-framework-refused
+
+Scenario: red; level: system; covers exit 1; verifies SA-31.
+
+- Given: the specification of generate-tests-go, and an implementation file in Swift whose testing framework is XCTest; specarch-gen-tests-swift built from this repository on PATH
+- When: generate tests is run with --unapproved
+- Then: the plug-in refuses the framework by name, saying it writes Swift Testing; nothing is written, and it exits 1
+
+#### generate-tests-go
+
+Scenario: golden; level: system; verifies SA-31.
+
+- Given: a specification with an operation, a command, a page, a check constraint and an algorithm, and design tests of each with fixtures, inputs and expected outcomes where the design gives a call; an implementation file in Go with a tests target; specarch-gen-tests-go built from this repository on PATH
+- When: generate tests is run with --unapproved
+- Then: it writes one Go test file: a test per design test through the Harness, a body to write by hand for the test with no call, the reason of the test that does not apply, a unit test per worked example with decimals as decimals, and exits 0
+
+#### generate-tests-swift
+
+Scenario: golden; level: system; verifies SA-31.
+
+- Given: the specification of generate-tests-go, and an implementation file in Swift with a tests target and no testing framework named; specarch-gen-tests-swift built from this repository on PATH
+- When: generate tests is run with --unapproved
+- Then: it writes one Swift Testing file: the same tests as in Go through SpecArch.Harness, async and throwing, a body to write by hand for the test with no call, the reason of the test that does not apply, the worked examples with decimals as decimals, and exits 0
 
 #### generate-ui
 
@@ -1873,12 +1905,14 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-124 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+126 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
 | requirement SA-31 | acceptance 1 | golden | SA-31 names no harm |
 | requirement SA-31 | acceptance 2 | golden | SA-31 names no harm |
+| requirement SA-31 | acceptance 3 | golden | SA-31 names no harm |
+| requirement SA-31 | acceptance 4 | golden | SA-31 names no harm |
 | requirement SA-29 | acceptance 1 | golden | SA-29 names no harm |
 | requirement SA-29 | acceptance 2 | golden | SA-29 names no harm |
 | requirement SA-28 | acceptance 1 | golden | SA-28 names no harm |

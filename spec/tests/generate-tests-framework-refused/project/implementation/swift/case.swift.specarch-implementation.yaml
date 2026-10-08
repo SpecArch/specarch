@@ -1,0 +1,19 @@
+specarchImplementation: "0.1"
+info: { title: Stockroom in Swift, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Swift, version: "6.0" } }
+mappings:
+  "#/entities/Item": { target: items }
+  "#/algorithms/restockCost": { target: Stock.restockCost }
+testing:
+  framework: XCTest
+  run: swift test
+  suites:
+    design:
+      description: The design tests.
+      run: swift test
+      level: system
+      designTests: [add-item]
+targets:
+  tests:
+    output: ../../../Tests/StockroomTests

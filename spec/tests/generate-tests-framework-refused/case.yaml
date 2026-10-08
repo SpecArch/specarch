@@ -1,0 +1,5 @@
+arguments: [generate, tests, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/implementation/swift/case.swift.specarch-implementation.yaml:1: error: /testing/framework: generator: specarch-gen-tests-swift writes tests for Swift Testing, and this implementation file's testing framework is "XCTest"; name Swift Testing there, or write these tests by hand
+plugins: [tests-swift]

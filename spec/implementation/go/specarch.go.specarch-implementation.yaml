@@ -96,8 +96,14 @@ layout:
   cmd/specarch-gen-tests-go:
     description: The plug-in behind generate tests for a Go implementation file. Reads the request on standard input, answers the Go test file on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
+  cmd/specarch-gen-tests-swift:
+    description: The plug-in behind generate tests for a Swift implementation file. Reads the request on standard input, answers the Swift Testing file on standard output, and never touches the disk.
+    implements: ["#/commands/generate"]
+  cmd/specarch-gen-tests-dart:
+    description: The plug-in behind generate tests for a Dart implementation file, a Flutter app's included. Reads the request on standard input, answers the Dart library and test file on standard output, and never touches the disk.
+    implements: ["#/commands/generate"]
   internal/gentests:
-    description: The Go tests a specification implies, as the plug-in writes them. One file per specification, with the Harness interface the project implements beside it; design tests become tests through it, worked examples unit tests of the algorithm's mapping.
+    description: The tests a specification implies, as the three test plug-ins write them. The specification is read once into a model of tests and worked examples, and written in Go, in Swift for Swift Testing, or in Dart for package:test or flutter_test, each with the Harness the project implements beside it; design tests become tests through it, worked examples unit tests of the algorithm's mapping.
   internal/semver:
     description: Semantic Versioning 2.0.0 versions, their precedence, and the step one needs from another, with the step before 1.0.0; the release rules and diff measure a release with it.
   internal/diff:
@@ -250,7 +256,7 @@ testing:
       implementationOnly: true
       ci: true
     generated-tests:
-      description: Generates the tests of the library lending example and compiles them with go vet beside a harness that does nothing, so a generated file that would not compile in a project fails here.
+      description: Generates the tests of the library lending example in Go, Swift and Dart and compiles them beside a harness that does nothing (go vet; swift build when a Swift 6 toolchain is on PATH; dart analyze, against a stand-in for each framework, when dart is), so a generated file that would not compile in a project fails here.
       run: go test ./internal/gentests
       level: unit
       implementationOnly: true

@@ -1,0 +1,69 @@
+decisions:
+  ADR-041:
+    title: The Swift and Dart test plug-ins write the Go plug-in's tests through a harness of the same shape, for Swift Testing and for package:test or flutter_test
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      Step 7 of docs/test-generation.md: the tests target for Swift and
+      for Flutter. The Go plug-in writes one file of tests through a
+      Harness the project implements. generate finds a plug-in by the
+      implementation file's language, so a Flutter app, whose language
+      is Dart, is served by specarch-gen-tests-dart. docs/generators.md
+      accepts a target against a real project's hand-written test, and
+      no Swift or Flutter project among those SpecArch serves has one
+      yet.
+    decision: |
+      Both plug-ins read the specification into the same model as the Go
+      plug-in, so the three write the same tests, calls and checks, and
+      differ only in the language. Swift: one file,
+      SpecArchDesignTests.swift, in Swift Testing, with its types and
+      checks in a caseless enum SpecArch and the project's
+      makeHarness(); a check records an issue at the line that called
+      it and the test goes on, as Go's t.Errorf does. Dart: two files,
+      specarch_design.dart with the types, the Harness and the checks,
+      and specarch_design_test.dart with the tests, which imports the
+      project's specarch_harness.dart for newHarness and the bodies; a
+      check fails the test where it stands. The harness methods are
+      asynchronous and may throw, in both. The implementation file's
+      testing framework picks the import: Swift Testing for Swift, and
+      package:test or flutter_test for Dart, package:test when the file
+      names none; any other is refused by name. Decimals and numbers are
+      compared exactly, whatever their length, with the standard library
+      only: the whole text must be a number, and both are brought to one
+      form, digits and a power of ten, before they are compared.
+    consequences: |
+      A project on either stack gets the same tests as a Go project from
+      one specification, and writes one harness. The generated Dart files
+      are not in dart format's layout, so a project that checks its
+      format leaves them out, as it does any generated file. A project
+      on XCTest cannot use the Swift plug-in until it adds Swift Testing,
+      which runs beside XCTest in one test target. Until the first real
+      project on each stack writes a test by hand that the generated one
+      must match, the acceptance is the library lending example's tests
+      built in Swift and analyzed in Dart beside a harness that does
+      nothing, as for Go.
+    why: |
+      Swift Testing over XCTest: it is the framework Swift 6 ships on
+      every platform it runs on, its #expect and Issue.record take the
+      caller's source location as a default argument, which gives a
+      helper the same failure line t.Helper gives in Go, and a test is a
+      plain function, so a test with a body written by hand is a call
+      like any other. XCTest needs a class per suite, SpecArch's own
+      Swift build already tests with Swift Testing, and supporting both
+      would be two ways to say one thing. A namespace keeps Value, Record,
+      Response and Harness from colliding with the project's own types,
+      which live in the same test target; Go has its own package for
+      that, and Dart has an import prefix. Dart's test runners look only
+      at files ending in _test.dart, and every Dart file is its own
+      library, so the types the project's harness needs go in a library
+      of their own that both import, rather than in the test file.
+      package:test and flutter_test export the same test, group and
+      fail, so they differ only in the import, and flutter_test is
+      needed for a widget test's binding. Asynchronous harness methods,
+      because a harness on either stack talks to a server, a database
+      or a widget tree; in Swift a synchronous method satisfies an
+      asynchronous requirement, and in Dart an async body that awaits
+      nothing does, so a harness that needs none of it loses nothing. The standard library alone for decimals,
+      because a decimal package would be a dependency, with its licence
+      and scan, that every project using the plug-in has to take.
+    satisfies: [SA-31]

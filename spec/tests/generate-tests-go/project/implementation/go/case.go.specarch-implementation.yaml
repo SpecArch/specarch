@@ -1,0 +1,12 @@
+specarchImplementation: "0.1"
+info: { title: Stockroom in Go, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+mappings:
+  "#/entities/Item": { target: items }
+  "#/algorithms/restockCost": { target: stock.RestockCost }
+targets:
+  tests:
+    # testdata keeps the recorded Go file out of the repository's own build.
+    output: ../../../testdata
+    settings: { package: stockroom }

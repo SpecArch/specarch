@@ -370,7 +370,40 @@ are compared as decimals. The package name is `specarchtests`, or the
 other files in that folder. Its subject and scenario go into the test's
 name, so a failing red test says which refusal broke. A design test marked
 `notApplicable` becomes no test; its reason is printed in the generated
-file's header.
+file where the test would be.
+
+Swift and Dart get the same tests, calls and checks from the same reading
+of the specification, and differ only in the language; a Flutter app's
+language is Dart, so `specarch-gen-tests-dart` serves it. The
+implementation file's `testing.framework` picks what the tests are
+written for, and a framework the plug-in does not write for is refused by
+name with nothing written.
+
+- `specarch-gen-tests-swift` writes `SpecArchDesignTests.swift` for Swift
+  Testing, the only framework it writes for. The values, the `Harness`
+  protocol and the checks are in a caseless `enum SpecArch`, so they do
+  not collide with the test target's own types. The project writes
+  `func makeHarness() async throws -> any SpecArch.Harness` and, for each
+  test the design gives no call for,
+  `func body<TestName>(_ h: any SpecArch.Harness) async throws`. A check
+  records an issue at the line that called it, and the test goes on.
+- `specarch-gen-tests-dart` writes `specarch_design.dart`, the values,
+  the `Harness` interface and the checks, and `specarch_design_test.dart`,
+  the tests, for `package:test` or `flutter_test` (`package:test` when the
+  file names none). The project writes `specarch_harness.dart` beside
+  them, importing `specarch_design.dart`, with
+  `Future<Harness> newHarness()` and
+  `Future<void> body<TestName>(Harness h)` for each test the design gives
+  no call for. A check fails the test where it stands.
+
+The harness methods are asynchronous and may throw on both stacks, since
+a harness talks to a server, a database or a widget tree; one that does
+not need to can answer at once. Decimals and numbers are compared exactly,
+whatever their length, with the standard library alone: the whole text
+must be a number, and both are brought to one form, digits and a power of
+ten, so the generated tests bring the project no dependency. When the
+implementation files reached by one plug-in name frameworks, each must be
+one it writes for. ADR-041 has the reasons.
 
 ## Guarded operational scripts
 

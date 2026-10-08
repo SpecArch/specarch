@@ -1,0 +1,8 @@
+command: generate
+level: system
+scenario: red
+covers: [exit 1]
+given: "the specification of generate-tests-go, and an implementation file in Swift whose testing framework is XCTest; specarch-gen-tests-swift built from this repository on PATH"
+when: "generate tests is run with --unapproved"
+then: "the plug-in refuses the framework by name, saying it writes Swift Testing; nothing is written, and it exits 1"
+verifies: [SA-31]

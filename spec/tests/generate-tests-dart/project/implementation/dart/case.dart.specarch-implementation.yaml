@@ -1,0 +1,19 @@
+specarchImplementation: "0.1"
+info: { title: Stockroom in Flutter, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Dart, version: "3.5" } }
+mappings:
+  "#/entities/Item": { target: items }
+  "#/algorithms/restockCost": { target: restockCost }
+targets:
+  tests:
+    output: ../../../test
+testing:
+  framework: flutter_test
+  run: flutter test
+  suites:
+    design:
+      description: The design tests, through the harness in test/specarch_harness.dart.
+      run: flutter test test/specarch_design_test.dart
+      level: system
+      designTests: [add-item, add-item-twice, item-reserved-within-stock, count-shelves, item-view-opened]

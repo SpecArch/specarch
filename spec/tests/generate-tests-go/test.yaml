@@ -1,0 +1,7 @@
+command: generate
+level: system
+scenario: golden
+given: "a specification with an operation, a command, a page, a check constraint and an algorithm, and design tests of each with fixtures, inputs and expected outcomes where the design gives a call; an implementation file in Go with a tests target; specarch-gen-tests-go built from this repository on PATH"
+when: "generate tests is run with --unapproved"
+then: "it writes one Go test file: a test per design test through the Harness, a body to write by hand for the test with no call, the reason of the test that does not apply, a unit test per worked example with decimals as decimals, and exits 0"
+verifies: [SA-31]

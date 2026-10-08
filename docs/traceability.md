@@ -52,7 +52,7 @@ Version 0.5.0-dev of the specification: 9 needs, 43 requirements, and 0 gaps. Ea
 | SA-28 | NEED-9 | commands derive | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-root-tests; tests derive-skips-blocked; tests derive-usage-error; tests derive-writes-drafts |
 | SA-29 | NEED-9 | enums Rule; commands validate; decisions ADR-021 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
 | SA-30 | NEED-8 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests validate-mapping-origin |
-| SA-31 | NEED-9 | commands generate | tests generate-stack-fallback; tests generate-stack-plugin |
+| SA-31 | NEED-9 | commands generate; decisions ADR-041 | tests generate-stack-fallback; tests generate-stack-plugin; tests generate-tests-dart; tests generate-tests-framework-refused; tests generate-tests-go; tests generate-tests-swift |
 | SA-32 | NEED-2 | commands idioms; commands idioms diff; decisions ADR-023; decisions ADR-028 | tests idioms-diff; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems |
 | SA-33 | NEED-1, NEED-2 | decisions ADR-024 | tests validate-stored-data; tests validate-stored-data-valid |
 | SA-34 | NEED-1, NEED-2 | decisions ADR-025 | tests validate-interface-problems; tests validate-interface-valid |

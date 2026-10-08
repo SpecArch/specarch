@@ -51,6 +51,47 @@ func TestLibraryLendingCompiles(t *testing.T) {
 	if _, err := exec.LookPath("go"); err != nil {
 		t.Skip("no go on PATH to compile the generated file with")
 	}
+	r, out := libraryLending(t, nil)
+	resp := GenerateGo(r)
+	if len(resp.Diagnostics) > 0 || len(resp.Files) != 1 {
+		t.Fatalf("want one file and no diagnostics, got %d files and %v", len(resp.Files), resp.Diagnostics)
+	}
+	content := resp.Files[0].Content
+	for _, want := range []string{"func TestLendACopy(t *testing.T) {", "func TestAlgorithmLateFee(t *testing.T) {", `Value{Kind: "decimal", Text: "3.50"}`} {
+		if !strings.Contains(content, want) {
+			t.Errorf("the generated file has no %q", want)
+		}
+	}
+
+	var b strings.Builder
+	b.WriteString(stub)
+	for _, n := range bodies(content, bodyCall) {
+		fmt.Fprintf(&b, "\nfunc body%s(t *testing.T, h Harness) {}\n", n)
+	}
+	files := map[string]string{
+		"go.mod":          "module example.com/specarchtests\n\ngo 1.26\n",
+		GoFile:            content,
+		"harness_test.go": b.String(),
+	}
+	for name, text := range files {
+		if err := os.WriteFile(filepath.Join(out, name), []byte(text), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	cmd := exec.Command("go", "vet", "./...")
+	cmd.Dir = out
+	cmd.Env = append(os.Environ(), "GOFLAGS=-mod=mod", "GOWORK=off")
+	if b, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("the generated tests do not compile: %v\n%s", err, b)
+	}
+}
+
+// libraryLending is the request specarch makes for the library lending
+// example's tests, with an output folder of the test's own; change edits
+// each implementation file's content first, standing in for a project on
+// another stack.
+func libraryLending(t *testing.T, change func(content map[string]any)) (*Request, string) {
+	t.Helper()
 	s := spec.Load("../../examples/library-lending/spec")
 	if len(s.Problems) > 0 {
 		t.Fatalf("the example does not load: %v", s.Problems)
@@ -65,7 +106,11 @@ func TestLibraryLendingCompiles(t *testing.T) {
 	}
 	var impls []map[string]any
 	for _, impl := range s.Implementations {
-		impls = append(impls, map[string]any{"file": impl.Path, "content": source.ValueOf(source.Parse(impl.Data).Root)})
+		content, _ := source.ValueOf(source.Parse(impl.Data).Root).(map[string]any)
+		if change != nil {
+			change(content)
+		}
+		impls = append(impls, map[string]any{"file": impl.Path, "content": content})
 	}
 	req["implementations"] = impls
 	data, err := json.Marshal(req)
@@ -76,45 +121,19 @@ func TestLibraryLendingCompiles(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	resp := Generate(r)
-	if len(resp.Diagnostics) > 0 || len(resp.Files) != 1 {
-		t.Fatalf("want one file and no diagnostics, got %d files and %v", len(resp.Files), resp.Diagnostics)
-	}
-	content := resp.Files[0].Content
-	for _, want := range []string{"func TestLendACopy(t *testing.T) {", "func TestAlgorithmLateFee(t *testing.T) {", `Value{Kind: "decimal", Text: "3.50"}`} {
-		if !strings.Contains(content, want) {
-			t.Errorf("the generated file has no %q", want)
-		}
-	}
+	return r, out
+}
 
-	bodies := map[string]bool{}
-	for _, m := range bodyCall.FindAllStringSubmatch(content, -1) {
-		bodies[m[1]] = true
+// bodies are the names of the bodies a generated file calls, sorted.
+func bodies(content string, call *regexp.Regexp) []string {
+	seen := map[string]bool{}
+	for _, m := range call.FindAllStringSubmatch(content, -1) {
+		seen[m[1]] = true
 	}
-	names := make([]string, 0, len(bodies))
-	for n := range bodies {
+	names := make([]string, 0, len(seen))
+	for n := range seen {
 		names = append(names, n)
 	}
 	sort.Strings(names)
-	var b strings.Builder
-	b.WriteString(stub)
-	for _, n := range names {
-		fmt.Fprintf(&b, "\nfunc body%s(t *testing.T, h Harness) {}\n", n)
-	}
-	files := map[string]string{
-		"go.mod":          "module example.com/specarchtests\n\ngo 1.26\n",
-		FileName:          content,
-		"harness_test.go": b.String(),
-	}
-	for name, text := range files {
-		if err := os.WriteFile(filepath.Join(out, name), []byte(text), 0o644); err != nil {
-			t.Fatal(err)
-		}
-	}
-	cmd := exec.Command("go", "vet", "./...")
-	cmd.Dir = out
-	cmd.Env = append(os.Environ(), "GOFLAGS=-mod=mod", "GOWORK=off")
-	if b, err := cmd.CombinedOutput(); err != nil {
-		t.Fatalf("the generated tests do not compile: %v\n%s", err, b)
-	}
+	return names
 }

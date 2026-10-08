@@ -172,10 +172,14 @@ OpenAPI 3.1 document of a specification, `specarch-gen-sql`, which
 Server, Oracle or MariaDB, and `specarch-gen-tests-go`, which `specarch
 generate tests` runs to write its Go tests, and `specarch-gen-go-dxlib`,
 which `specarch generate go-dxlib` runs to write the tables, handlers, seeds
-and tasks of a Go service on dxlib. A fifth, `specarch-gen-ui`, which
-`specarch generate ui` runs to write list pages for the web in plain
-JavaScript, is in no release yet, so it is installed from a commit or a clone
-(`go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@<commit>`).
+and tasks of a Go service on dxlib. Three more are in no release yet, so
+they are installed from a commit or a clone
+(`go install github.com/SpecArch/specarch/cmd/<name>@<commit>`):
+`specarch-gen-ui`, which `specarch generate ui` runs to write list pages for
+the web in plain JavaScript, and `specarch-gen-tests-swift` and
+`specarch-gen-tests-dart`, which `specarch generate tests` runs instead of
+the Go one for an implementation file in Swift (Swift Testing) or in Dart
+(`package:test` or `flutter_test`, so a Flutter app too).
 Install the four at the same tag as `specarch`:
 
     go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v0.4.0

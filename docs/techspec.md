@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.5.0-dev of the specification: 43 requirements, 3 entities, 11 commands, 6 algorithms, 226 tests, 40 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.5.0-dev of the specification: 43 requirements, 3 entities, 11 commands, 6 algorithms, 230 tests, 41 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -927,7 +927,9 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | internal/genui | The list pages for the web in plain JavaScript, the events they raise, and the theme as CSS custom properties. |   |
 | internal/gendxlib | The Go file of a service on dxlib, its tables, handlers, seeds and tasks, read from the design through the dxlib dialect's names and types. |   |
 | cmd/specarch-gen-tests-go | The plug-in behind generate tests for a Go implementation file. Reads the request on standard input, answers the Go test file on standard output, and never touches the disk. | #/commands/generate |
-| internal/gentests | The Go tests a specification implies, as the plug-in writes them. One file per specification, with the Harness interface the project implements beside it; design tests become tests through it, worked examples unit tests of the algorithm's mapping. |   |
+| cmd/specarch-gen-tests-swift | The plug-in behind generate tests for a Swift implementation file. Reads the request on standard input, answers the Swift Testing file on standard output, and never touches the disk. | #/commands/generate |
+| cmd/specarch-gen-tests-dart | The plug-in behind generate tests for a Dart implementation file, a Flutter app's included. Reads the request on standard input, answers the Dart library and test file on standard output, and never touches the disk. | #/commands/generate |
+| internal/gentests | The tests a specification implies, as the three test plug-ins write them. The specification is read once into a model of tests and worked examples, and written in Go, in Swift for Swift Testing, or in Dart for package:test or flutter_test, each with the Harness the project implements beside it; design tests become tests through it, worked examples unit tests of the algorithm's mapping. |   |
 | internal/semver | Semantic Versioning 2.0.0 versions, their precedence, and the step one needs from another, with the step before 1.0.0; the release rules and diff measure a release with it. |   |
 | internal/diff | Compares two merged specifications element by element, finds the public interface, and classifies each difference by the version step it needs. |   |
 | internal/approval | The approval record beside a specification, its digest of the specification's files, and where a version's approval stands against the files now. |   |
@@ -2764,6 +2766,51 @@ has moved on from the reference since, as the history records.
 
 **Insight:** Lists first, because they carry most of what the design keywords say: columns, compact columns, filters, every state, actions with confirmations and messages, and the theme. Writing the reference by hand in the example, and saying so, keeps the rule's purpose, a generator checked against a real screen, while no real project exists; the commit that holds the screen alone is the evidence.
 
+### ADR-041: The Swift and Dart test plug-ins write the Go plug-in's tests through a harness of the same shape, for Swift Testing and for package:test or flutter_test
+
+Status: accepted, 2026-10-08.
+
+Context: Step 7 of docs/test-generation.md: the tests target for Swift and
+for Flutter. The Go plug-in writes one file of tests through a
+Harness the project implements. generate finds a plug-in by the
+implementation file's language, so a Flutter app, whose language
+is Dart, is served by specarch-gen-tests-dart. docs/generators.md
+accepts a target against a real project's hand-written test, and
+no Swift or Flutter project among those SpecArch serves has one
+yet.
+
+Decision: Both plug-ins read the specification into the same model as the Go
+plug-in, so the three write the same tests, calls and checks, and
+differ only in the language. Swift: one file,
+SpecArchDesignTests.swift, in Swift Testing, with its types and
+checks in a caseless enum SpecArch and the project's
+makeHarness(); a check records an issue at the line that called
+it and the test goes on, as Go's t.Errorf does. Dart: two files,
+specarch_design.dart with the types, the Harness and the checks,
+and specarch_design_test.dart with the tests, which imports the
+project's specarch_harness.dart for newHarness and the bodies; a
+check fails the test where it stands. The harness methods are
+asynchronous and may throw, in both. The implementation file's
+testing framework picks the import: Swift Testing for Swift, and
+package:test or flutter_test for Dart, package:test when the file
+names none; any other is refused by name. Decimals and numbers are
+compared exactly, whatever their length, with the standard library
+only: the whole text must be a number, and both are brought to one
+form, digits and a power of ten, before they are compared.
+
+Consequences: A project on either stack gets the same tests as a Go project from
+one specification, and writes one harness. The generated Dart files
+are not in dart format's layout, so a project that checks its
+format leaves them out, as it does any generated file. A project
+on XCTest cannot use the Swift plug-in until it adds Swift Testing,
+which runs beside XCTest in one test target. Until the first real
+project on each stack writes a test by hand that the generated one
+must match, the acceptance is the library lending example's tests
+built in Swift and analyzed in Dart beside a harness that does
+nothing, as for Go.
+
+**Insight:** Swift Testing over XCTest: it is the framework Swift 6 ships on every platform it runs on, its #expect and Issue.record take the caller's source location as a default argument, which gives a helper the same failure line t.Helper gives in Go, and a test is a plain function, so a test with a body written by hand is a call like any other. XCTest needs a class per suite, SpecArch's own Swift build already tests with Swift Testing, and supporting both would be two ways to say one thing. A namespace keeps Value, Record, Response and Harness from colliding with the project's own types, which live in the same test target; Go has its own package for that, and Dart has an import prefix. Dart's test runners look only at files ending in _test.dart, and every Dart file is its own library, so the types the project's harness needs go in a library of their own that both import, rather than in the test file. package:test and flutter_test export the same test, group and fail, so they differ only in the import, and flutter_test is needed for a widget test's binding. Asynchronous harness methods, because a harness on either stack talks to a server, a database or a widget tree; in Swift a synchronous method satisfies an asynchronous requirement, and in Dart an async body that awaits nothing does, so a harness that needs none of it loses nothing. The standard library alone for decimals, because a decimal package would be a dependency, with its licence and scan, that every project using the plug-in has to take.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -2841,6 +2888,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-sql-expand | command generate | system | golden | the specification of generate-sql with its first migration and snapshot in the output folder, and one new field, a subtitle that may be left out; specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0002_expand.sql, which adds the subtitle column, leaves 0001_expand.sql as it was, writes the snapshot again, and exits 0 |
 | generate-stack-fallback | command generate | system | golden | a specification whose implementation file is in Go, with only specarch-gen-echo on PATH | generate echo is run with --unapproved | it runs specarch-gen-echo, writes its file into the output the implementation file names, and exits 0 |
 | generate-stack-plugin | command generate | system | golden | a specification whose implementation file is in Go, with specarch-gen-echo-go and specarch-gen-echo both on PATH | generate echo is run with --unapproved | it runs specarch-gen-echo-go, the plug-in for the file's stack, writes its file into the output the implementation file names, and exits 0 |
+| generate-tests-dart | command generate | system | golden | the specification of generate-tests-go, and an implementation file in Dart whose testing framework is flutter_test; specarch-gen-tests-dart built from this repository on PATH | generate tests is run with --unapproved | it writes the library of values, harness and checks and the test file beside it, both importing flutter_test: the same tests as in Go through Harness, a body to write by hand for the test with no call, the reason of the test that does not apply, a group per algorithm with a test per worked example, and exits 0 |
+| generate-tests-framework-refused | command generate | system | red | the specification of generate-tests-go, and an implementation file in Swift whose testing framework is XCTest; specarch-gen-tests-swift built from this repository on PATH | generate tests is run with --unapproved | the plug-in refuses the framework by name, saying it writes Swift Testing; nothing is written, and it exits 1 |
+| generate-tests-go | command generate | system | golden | a specification with an operation, a command, a page, a check constraint and an algorithm, and design tests of each with fixtures, inputs and expected outcomes where the design gives a call; an implementation file in Go with a tests target; specarch-gen-tests-go built from this repository on PATH | generate tests is run with --unapproved | it writes one Go test file: a test per design test through the Harness, a body to write by hand for the test with no call, the reason of the test that does not apply, a unit test per worked example with decimals as decimals, and exits 0 |
+| generate-tests-swift | command generate | system | golden | the specification of generate-tests-go, and an implementation file in Swift with a tests target and no testing framework named; specarch-gen-tests-swift built from this repository on PATH | generate tests is run with --unapproved | it writes one Swift Testing file: the same tests as in Go through SpecArch.Harness, async and throwing, a body to write by hand for the test with no call, the reason of the test that does not apply, the worked examples with decimals as decimals, and exits 0 |
 | generate-ui | command generate | system | golden | a specification with a list page that filters by an enum, keeps one column on a compact screen, declares its empty, filtered empty and failed states, runs an operation on a row with a message and no confirmation, and a theme of two colours; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH | generate ui is run with --unapproved | it writes the page's HTML and module, events.js with the page's and the operation's events, and theme.css with the tokens as custom properties and the rules the target's token settings name, and exits 0 |
 | generate-unapproved | command generate | system | golden | a specification without an approval record, and specarch-gen-echo on PATH | generate echo is run with --unapproved | it writes the files under out/ and exits 0 |
 | generate-usage-error | command generate | system | red | no target | generate is run without arguments | it prints how to use it and exits 2 |
@@ -3032,7 +3083,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 | Requirement | Statement | Kind | Priority | Status | Verification | Acceptance | Needs |
 |---|---|---|---|---|---|---|---|
-| SA-31 | specarch generate tests shall write, through the plug-in for an implementation file's stack, one Go test per design test and one per worked example, setting up the fixture, making the call and checking the expected outcome through a harness the project writes, so that the generated file is the same on every Go stack. | functional | should | accepted | test | generate looks up specarch-gen-<target>-<stack> for an implementation file in Go before specarch-gen-<target>, and falls back to the second when the first is not on PATH. The tests generated from the library lending example compile beside a harness that does nothing and an empty body for each test the design gives no call for, and a worked example's expected decimal is compared as a decimal. | NEED-9 |
+| SA-31 | specarch generate tests shall write, through the plug-in for an implementation file's stack, one test per design test and one per worked example, in Go, in Swift with Swift Testing, or in Dart with package:test or flutter_test, setting up the fixture, making the call and checking the expected outcome through a harness the project writes, so that the generated tests are the same on every project of that language. | functional | should | accepted | test | generate looks up specarch-gen-<target>-<stack> for an implementation file in Go before specarch-gen-<target>, and falls back to the second when the first is not on PATH. The tests generated from the library lending example compile beside a harness that does nothing and an empty body for each test the design gives no call for, in Go, in Swift and in Dart for both frameworks, and a worked example's expected decimal is compared as a decimal. The Go, Swift and Dart tests generated from one specification hold the same tests, calls and checks. A Swift or Dart implementation file whose testing framework is not one the plug-in writes for is refused by name, and nothing is written. | NEED-9 |
 | SA-29 | A specification shall be able to declare the dependencies an operation calls with a time limit per call, an idempotency key on an operation, the validity of an entity's records, how a session ends, and a guard on a data change, and specarch validate shall check each against the design and derive the red cases each implies. | functional | must | accepted | test | A calls entry naming no declared dependency, an idempotency key naming no header parameter or sitting on a GET, a validity naming a field that is not a date, a timeout of zero, and a guard naming no entity are each reported under their rule. An operation that calls a dependency gets the cases dependency fails and dependency times out, one with an idempotency key the repeated and reused cases, one taking a record of an entity with validity the expired case, one with a guard the concurrent write case, and every non-public subject the expired session case once a session is declared. | NEED-9 |
 | SA-28 | specarch derive shall write a draft test for every derived case that no test covers, and shall never overwrite a test or write one for a subject an open must or should question holds up. | functional | should | accepted | test | A specification with uncovered chosen cases gets one test folder per case, each marked origin inferred, and validates afterwards. A test folder that exists is kept as it is. A subject a must question blocks gets no test, and derive names it. | NEED-9 |
 | SA-27 | A design test may carry its fixture, input and expected outcome as structured data in the design's own vocabulary, and the validator shall check that data against the design. | functional | should | accepted | test | A fixture naming a field the entity does not have, a value of the wrong type, or a record a check constraint refuses is reported as test_data. An input naming a parameter the operation does not have, or an expected status that is not one of its responses, is reported as test_data. A test with input and an input/ folder beside it is reported as test_data. | NEED-9 |
@@ -3076,7 +3127,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-9 | A specification and its implementations shall be separate files; a specification holds no stack-specific key and an implementation file adds no design. | constraint | must | accepted | test | A stack-specific extension key in a specification is reported as stack_key. A design keyword in an implementation file is reported as design_key. | NEED-2 |
 | SA-10 | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. | functional | must | accepted | test | An implementation written against an older version of its specification is reported as implements. A pointer to an object the specification does not have is reported as design_ref. | NEED-2 |
 
-**Insight on SA-31:** A test the specification implies is worth most when it runs; what differs between two Go projects (how a caller signs in, how a record is stored, how a request is sent) is the harness, so the generated file needs nothing but it.
+**Insight on SA-31:** A test the specification implies is worth most when it runs; what differs between two projects in one language (how a caller signs in, how a record is stored, how a request is sent) is the harness, so the generated file needs nothing but it.
 
 **Insight on SA-29:** The red paths a specification could not express, a dependency down or slow, a retry, expired data, an expired session, two writers on one record, are the ones a tester forgets and a live system meets; once the design says them, the tests follow from it like every other case.
 
@@ -3200,7 +3251,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-28 | commands derive | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-root-tests; tests derive-skips-blocked; tests derive-usage-error; tests derive-writes-drafts |
 | SA-29 | enums Rule; commands validate; decisions ADR-021 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
 | SA-30 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests validate-mapping-origin |
-| SA-31 | commands generate | tests generate-stack-fallback; tests generate-stack-plugin |
+| SA-31 | commands generate; decisions ADR-041 | tests generate-stack-fallback; tests generate-stack-plugin; tests generate-tests-dart; tests generate-tests-framework-refused; tests generate-tests-go; tests generate-tests-swift |
 | SA-32 | commands idioms; commands idioms diff; decisions ADR-023; decisions ADR-028 | tests idioms-diff; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems |
 | SA-33 | decisions ADR-024 | tests validate-stored-data; tests validate-stored-data-valid |
 | SA-34 | decisions ADR-025 | tests validate-interface-problems; tests validate-interface-valid |

@@ -322,7 +322,7 @@ not the runtime half, or the reverse; missing means neither.
 | a table with columns, keys, not null, unique, defaults, foreign keys | `databases/models/database_model_table.go` | `entities` with `properties`, `required`, `primaryKey`, `relations` with `onDelete`, `constraints` of kind unique | exists |
 | check constraints | none | `constraints` of kind check, in the CEL subset | SpecArch only |
 | generated columns, triggers, functions, views, materialized views, indexes, extensions, transparent encryption per table | `databases/models/` | none; implementation detail of the `sql` target | missing, implementation side |
-| a list view beside a table (`v_user`) | `tables.NewDXTableSimple` fourth argument | none; a read model is a 0.2 candidate beside value objects | missing |
+| a list view beside a table (`v_user`) | `tables.NewDXTableSimple` fourth argument | `views`: an entity's row with paths through its relations and counts added, never written | exists |
 | encrypted columns with a searchable hash companion | `databases/database_encryption.go`, `ModelDBField` | none | missing, section 2 |
 | enum values | `Enum []any` on a parameter; constants beside a table | `enums`, `$ref`, `valueDescriptions` | exists |
 | an endpoint: URI, method, content type, parameters, responses | `api/api_endpoint.go` | `paths` with operations, parameters, request body, responses | exists |
@@ -452,9 +452,9 @@ with a validator rule or a generator that reads it.
 10. **A read model.** A list view that joins names and counts onto a row is
     what every list page shows. Already close to the value-object candidate
     of the roadmap; dxlib adds that it is read-only, derived and
-    per-engine. Proposed for 0.2 after the items above: `views`, an entity
-    whose `properties` are derived from named entities and relations, never
-    written.
+    per-engine. Built: `views`, one row per record of an entity, carrying
+    every field of it, with properties that are paths through its to-one
+    relations or counts of its to-many ones, never written (ADR-033).
 
 Not adopted into the design, because they are implementation: indexes
 (they go into the `sql` target's settings under the entity's mapping),
@@ -642,7 +642,7 @@ where it adds a rule, and the conformance cases; the generators are Go only.
    Built: the dialect, whose document dxlib's own reader reads, and the
    generator, whose file compiles against dxlib.
 7. Not done here: the items of section 6, written for dxlib's own queue.
-8. `views` as a read model, after the first real specification needs one.
+8. Built: `views` as a read model.
 
 ## 6. Items for dxlib's own queue
 

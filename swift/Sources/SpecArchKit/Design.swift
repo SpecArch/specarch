@@ -26,7 +26,7 @@ let methods = ["get", "post", "put", "patch", "delete"]
 final class Design {
     let root: YNode
     var spec: Spec? // the specification on disk, when known
-    let entities, enums, permissions, roles, commands, channels, dependencies, pages, algorithms, decisions, sources: [String: YNode]
+    let entities, views, enums, permissions, roles, commands, channels, dependencies, pages, algorithms, decisions, sources: [String: YNode]
     let stakeholders, needs, requirements, environments, settings, checks, monitors, questions: [String: YNode]
     var operations: [String: Operation] = [:] // by operationId, the first definition
     var opList: [Operation] = []              // every operation in document order
@@ -39,6 +39,7 @@ final class Design {
         }
         self.root = root
         entities = topMap("entities")
+        views = topMap("views")
         enums = topMap("enums")
         permissions = topMap("permissions")
         roles = topMap("roles")
@@ -191,6 +192,7 @@ extension Checker {
         checkDependencies(d)
         checkJobs(d)
         checkMenus(d)
+        checkViews(d)
         checkSession(d)
         checkPages(d)
         checkDecisions(d)
@@ -215,6 +217,11 @@ extension Checker {
                     let name = String(ref.dropFirst("#/entities/".count))
                     if d.entities[name] == nil {
                         add(p.value, ptr, .refType, "\(name) is not an entity of the specification\(suggest(name, d.entities))")
+                    }
+                } else if ref.hasPrefix("#/views/") {
+                    let name = String(ref.dropFirst("#/views/".count))
+                    if d.views[name] == nil {
+                        add(p.value, ptr, .refType, "\(name) is not a view of the specification\(suggest(name, d.views))")
                     }
                 } else if ref.hasPrefix("#/enums/") {
                     let name = String(ref.dropFirst("#/enums/".count))

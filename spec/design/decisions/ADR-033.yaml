@@ -1,0 +1,51 @@
+decisions:
+  ADR-033:
+    title: A view is an entity's row with fields read through its relations and counts added, and is never written
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      Every list page shows a row of one entity with names and counts
+      joined onto it: a loan with its member's name and its book's title, a
+      member with the number of loans open. JSON Schema, OpenAPI and
+      AsyncAPI have no word for such a read model. SQL has one, the view of
+      ISO/IEC 9075, a named query; the standard lets a view be updated only
+      when it reads one table without grouping, so a view that joins or
+      counts is read-only there, and the engines differ in what else they
+      allow to be written through one. dxlib reads a table's lists, reads by
+      identifier, counts and its deleted filter all through the table's list
+      view when one is set.
+    decision: |
+      views is a SpecArch keyword, after the SQL view. A view, named like
+      an entity, reads from one entity (from) and holds one row per record
+      of it, carrying every field of that entity, its audit and deleted
+      fields included, and the properties it adds. A property is either a
+      path, relations separated by dots ending in a field, where every
+      relation is many-to-one or one-to-one, or a count of a one-to-many or
+      many-to-many relation of the entity. A property declares no type: a
+      path has its field's type, and a count is a 64-bit integer. A path
+      through a relation that has no record is null; a count leaves out
+      softly deleted records. A property may not repeat a field of the
+      entity, and a view may not share an entity's name. A view is never
+      written: it may be the item of a response and the subject of a list,
+      whose whitelists then name the view's fields, and it is refused under
+      a request body. A view has no derived tests of its own; the list that
+      reads it is the subject.
+    consequences: |
+      A list over a view gives a client the joined names and counts as
+      fields it may filter and sort by, and a generator writes the view
+      from the relations, so the join follows them. Carrying the entity's
+      fields keeps its key, so a read by identifier and the deleted filter
+      work through the view, as dxlib needs. A view of many rows per record,
+      or one joined over a to-many relation, cannot be said; it waits for a
+      real specification that needs one.
+    why: |
+      Paths only through relations that lead to one record keep one row per
+      record, which is what a list pages through; a to-many hop would repeat
+      the record. A null for a missing related record, as a left join gives,
+      keeps the record listed rather than dropping it. Keeping a view
+      unwritten avoids the standard's and each engine's rules for updatable
+      views, which differ, and a write has one place to go, the entity. A
+      64-bit count cannot overflow on any table an engine holds. Leaving
+      softly deleted records out of a count follows the soft-delete idiom: a
+      deleted record is not listed.
+    satisfies: [SA-41]

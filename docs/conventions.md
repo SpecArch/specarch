@@ -373,7 +373,7 @@ redefined.
 | Keyword | Origin | Notes |
 |---|---|---|
 | `info`, `paths`, `parameters`, `requestBody`, `responses`, `content`, `operationId`, `summary`, `deprecated` | OpenAPI 3 | bounded subset: `in` is path, query or header; no callbacks, links or servers |
-| `type`, `properties`, `required`, `enum`, `const`, `format`, `default`, `examples`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`, `minLength`, `maxLength`, `pattern`, `items`, `minItems`, `maxItems`, `uniqueItems`, `readOnly`, `writeOnly`, `$ref` | JSON Schema 2020-12 | `$ref` is restricted to `#/entities/X` and `#/enums/X`; nullability is written `type: [string, "null"]` as JSON Schema does |
+| `type`, `properties`, `required`, `enum`, `const`, `format`, `default`, `examples`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`, `minLength`, `maxLength`, `pattern`, `items`, `minItems`, `maxItems`, `uniqueItems`, `readOnly`, `writeOnly`, `$ref` | JSON Schema 2020-12 | `$ref` is restricted to `#/entities/X`, `#/enums/X` and `#/views/X`; nullability is written `type: [string, "null"]` as JSON Schema does |
 | `channels`, `messages`, `payload` | AsyncAPI | one level: channel, messages, payload; no servers, bindings or operations objects |
 | `x-*` | OpenAPI convention | allowed in every object, ignored by validation |
 | `stages`, `sources` | SpecArch | the root file's list of stage folders and its registry of cited sources |
@@ -396,6 +396,7 @@ redefined.
 | `limits`, `maxRequestBytes`, `rate`, `requests`, `per`, `burst` | SpecArch | the request size and rate a client keeps to |
 | `jobs`, `trigger`, `schedule`, `every`, `consumes`, `role`, `retries`, `limit`, `then` | SpecArch | work the system does on its own; a schedule is the five fields of cron, in UTC |
 | `menus`, `title`, `page`, `items` | SpecArch | the navigation: a tree whose leaves open pages |
+| `views`, `from`, `path`, `count` | SpecArch, after the SQL view of ISO/IEC 9075 | a read model: an entity's row with fields read through its relations and counts added, never written |
 | `errors`, `status`, `title`, `condition`, `type`, `problem` | RFC 9457, Problem Details for HTTP APIs | the catalogue of problem types; `condition` is SpecArch's, the standard's other members are the document's own at run time |
 | a duration (`timeout`, `idleTimeout`, `absoluteTimeout`) | ISO 8601, the form JSON Schema's `format: duration` names | days, hours, minutes and seconds only (`PT5S`, `P1DT12H`): weeks, months and years depend on the calendar, so a limit written in them would not mean the same every day |
 | `emits`, `algorithm` | SpecArch | links from an operation to its events and its computation |
@@ -627,6 +628,42 @@ and `an item fails every try` when it retries.
 `menus` is the navigation, a tree of entries, each a `title` with a `page`
 or with `items` of its own. Every page an entry opens must exist (`menu`).
 An entry is shown to who may open its page.
+
+### Views
+
+A list page shows a row of one entity with names and counts joined onto
+it. That row is a view, under `views`, named like an entity:
+
+    LoanRow:
+      description: A loan as the desk's list shows it.
+      from: Loan
+      properties:
+        memberName: { path: member.fullName }
+        branchName: { path: member.branch.name }
+    MemberRow:
+      from: Member
+      properties:
+        openLoans: { count: loans }
+
+A view holds one row per record of its `from` entity and carries every
+field of it, the audit and deleted fields included, so its key still
+names one record. Each property it adds is exactly one of `path`,
+relations separated by dots that each lead to one record (many-to-one or
+one-to-one) and end in a field, or `count`, a relation of the entity that
+leads to many (one-to-many or many-to-many). A path has its field's type
+and is null when a relation on it has no record; a count is a 64-bit
+integer and leaves out softly deleted records. A property may not repeat a
+field of the entity, and a view may not share an entity's name (`view`).
+
+A view is never written. It may be the item of a response, as
+`$ref: "#/views/LoanRow"`, and the subject of a list, as
+`listOf: { view: LoanRow, ... }`, whose whitelists then name the view's
+fields; under a request body it is refused (`view`). The SQL standard lets
+a view be updated only when it reads one table without grouping, and the
+engines differ beyond that, so a write goes to the entity, its one place.
+In SQL a view is named as a table is: the view's name in snake case,
+unless the implementation file's mapping names it (`target: view
+loan_rows`).
 
 ### Secrets
 

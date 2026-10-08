@@ -1,0 +1,17 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |+
+  specarch.yaml:40: error: /views/LoanRow/properties/memberName/path: view: member.fullNam does not resolve: Member has no field fullNam; did you mean fullName?
+  specarch.yaml:41: error: /views/LoanRow/properties/branchName/path: view: member.loans.id does not resolve: Member.loans is one-to-many, which leads to many records; a path follows only many-to-one and one-to-one relations, so the view keeps one row per record; count it instead
+  specarch.yaml:42: error: /views/LoanRow/properties/dueOn: view: dueOn is a field of Loan already, and the view carries every field of its entity; leave it out, or give the added field another name
+  specarch.yaml:43: error: /views/LoanRow/properties/memberCount/count: view: Loan.member is many-to-one, which leads to one record; a count counts one-to-many and many-to-many relations; read it with a path instead
+  specarch.yaml:45: error: /views/MemberRow/from: view: Members is not an entity of the specification; did you mean Member?
+  specarch.yaml:48: error: /views/Branch: view: Branch is the name of an entity too; a view and an entity are one namespace, since each becomes a table or view and a schema of its own; rename the view
+  specarch.yaml:51: error: /views/Branch/properties/memberCount/count: view: Branch has no relation members; it has no relations
+  specarch.yaml:59: warning: /paths/~1loans/get: test_case_missing: operation listLoans has no red scenario for "denied without loans.read"; add under tests list-loans-denied-without-loans-read: { operation: listLoans, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "listLoans is called", then: "it is refused as not allowed" }
+  specarch.yaml:59: warning: /paths/~1loans/get: test_golden_missing: operation listLoans has no golden scenario; add one under tests, for example list-loans-succeeds: { operation: listLoans, scenario: golden, given: "a caller with loans.read", when: "listLoans is called", then: "it answers 200: The loans." }
+  specarch.yaml:65: error: /paths/~1loans/get/listOf/filterable/2: list_of: title is not a field of LoanRow, so it cannot be filterable; use one of branchName, dueOn, id, memberCount, memberId, memberName
+  specarch.yaml:75: warning: /paths/~1loans/post: test_case_missing: operation createLoan has no red scenario for "denied without loans.read"; add under tests create-loan-denied-without-loans-read: { operation: createLoan, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "createLoan is called", then: "it is refused as not allowed" }
+  specarch.yaml:75: warning: /paths/~1loans/post: test_golden_missing: operation createLoan has no golden scenario; add one under tests, for example create-loan-succeeds: { operation: createLoan, scenario: golden, given: "a caller with loans.read", when: "createLoan is called with values inside every limit", then: "it answers 201: The loan." }
+  specarch.yaml:82: error: /paths/~1loans/post/requestBody/content/application~1json/schema/$ref: view: LoanRow is a view, and a view is never written; take the entity it reads from, or the fields the operation takes
+  specarch.yaml:88: error: /paths/~1loans/post/responses/201/content/application~1json/schema/$ref: ref_type: LoanRows is not a view of the specification; did you mean LoanRow?

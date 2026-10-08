@@ -123,6 +123,16 @@ let designSchemaJSON = #"""
         "$ref": "#/$defs/entity"
       }
     },
+    "views": {
+      "description": "SpecArch keyword, after the SQL view. Read models keyed by PascalCase name: one row per record of an entity, carrying every field of it and the properties the view adds, fields read through its relations and counts of its related records. A view is never written.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/typeName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/view"
+      }
+    },
     "permissions": {
       "description": "SpecArch keyword. Named rights, keyed by dotted lower-case name such as 'loans.create'. The name 'public' is reserved: an operation or page that grants it is open to everyone, including unauthenticated callers.",
       "type": "object",
@@ -465,9 +475,9 @@ let designSchemaJSON = #"""
       "type": "string"
     },
     "schemaRef": {
-      "description": "A JSON pointer into the specification, such as '#/entities/Member' or '#/enums/LoanStatus'. The pointer names the object wherever its file is in the tree.",
+      "description": "A JSON pointer into the specification, such as '#/entities/Member', '#/enums/LoanStatus' or '#/views/LoanRow'. The pointer names the object wherever its file is in the tree.",
       "type": "string",
-      "pattern": "^#/(entities|enums)/[A-Z][A-Za-z0-9]*$"
+      "pattern": "^#/(entities|enums|views)/[A-Z][A-Za-z0-9]*$"
     },
     "info": {
       "description": "OpenAPI keyword. What the system is. Only in specarch.yaml.",
@@ -3734,11 +3744,15 @@ let designSchemaJSON = #"""
       "minProperties": 1
     },
     "listOf": {
-      "description": "SpecArch keyword. The operation answers a page of an entity's records: which fields a free-text search covers, which may be filtered and sorted by, and the page size. A client must know the lists, and a request outside them is refused, never ignored. The parameter names and the answer's envelope are the paginated-list idiom.",
+      "description": "SpecArch keyword. The operation answers a page of an entity's records, or of a view's rows: which fields a free-text search covers, which may be filtered and sorted by, and the page size. A client must know the lists, and a request outside them is refused, never ignored. The parameter names and the answer's envelope are the paginated-list idiom.",
       "type": "object",
       "properties": {
         "entity": {
           "description": "The entity listed.",
+          "$ref": "#/$defs/typeName"
+        },
+        "view": {
+          "description": "The view listed, in place of an entity; the whitelists then name the view's fields.",
           "$ref": "#/$defs/typeName"
         },
         "searchable": {
@@ -3791,7 +3805,6 @@ let designSchemaJSON = #"""
         }
       },
       "required": [
-        "entity",
         "pageSize"
       ],
       "propertyNames": {
@@ -3802,7 +3815,19 @@ let designSchemaJSON = #"""
       "patternProperties": {
         "^x-": {}
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "entity"
+          ]
+        },
+        {
+          "required": [
+            "view"
+          ]
+        }
+      ]
     },
     "limits": {
       "description": "SpecArch keyword. Limits a client must keep to: the largest request body, and how many requests are taken in a time. The runtime side is the rate-limit idiom.",
@@ -4056,6 +4081,95 @@ let designSchemaJSON = #"""
         {
           "required": [
             "items"
+          ]
+        }
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "view": {
+      "description": "SpecArch keyword. A read model: the entity it reads from, whose every field it carries, and the properties it adds. It may be the item of a response and the subject of a list, never the body of a request.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "from": {
+          "description": "The entity the view reads from; the view holds one row per record of it.",
+          "$ref": "#/$defs/typeName"
+        },
+        "properties": {
+          "description": "The fields the view adds, keyed by camelCase name; none may repeat a field of the entity.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/viewProperty"
+          },
+          "minProperties": 1
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "from",
+        "properties"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "viewProperty": {
+      "description": "A field a view adds: exactly one of path, relations separated by dots that each lead to one record and end in a field of the last, or count, a relation of the entity that leads to many records. A path has its field's type and is null when a relation has no record; a count is a 64-bit integer and leaves out softly deleted records.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^[a-z][A-Za-z0-9]*(\\.[a-z][A-Za-z0-9]*)+$"
+        },
+        "count": {
+          "$ref": "#/$defs/memberName"
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "path"
+          ]
+        },
+        {
+          "required": [
+            "count"
           ]
         }
       ],

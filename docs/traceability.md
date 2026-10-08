@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.4.0-dev of the specification: 9 needs, 40 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.4.0-dev of the specification: 9 needs, 41 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 ## 1. Needs to requirements
 
 | Need | Status | Refined by |
 |---|---|---|
 | NEED-1 | accepted | SA-33, SA-34, SA-35, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6 |
-| NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-32, SA-9, SA-10 |
+| NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-32, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-19 |
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-35, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
@@ -62,6 +62,7 @@ Version 0.4.0-dev of the specification: 9 needs, 40 requirements, and 0 gaps. Ea
 | SA-38 | NEED-2 | decisions ADR-030 | tests generate-sql-expand |
 | SA-39 | NEED-2 | decisions ADR-031 | tests generate-openapi-dxlib |
 | SA-40 | NEED-2 | decisions ADR-032 | tests generate-go-dxlib |
+| SA-41 | NEED-2 | enums Rule; decisions ADR-033 | tests validate-views; tests validate-views-valid |
 
 ## 3. Gaps
 

@@ -202,8 +202,8 @@ Other known candidates:
 - sets and lists in the expression language, so a rule over many objects
   (every permission granted by some role) can be a formula rather than a
   count;
-- a read model (`views`), the last keyword `docs/dxlib-lessons.md` found
-  needed;
+- built: a read model (`views`), an entity's row with fields read through
+  its relations and counts added, never written;
 - built: background jobs and schedules (`jobs`), and the other keywords
   `docs/dxlib-lessons.md` found needed: the sensitivity of a field,
   encryption at rest, audited entities and soft delete, list operations,

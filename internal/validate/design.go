@@ -17,6 +17,7 @@ type design struct {
 	root         *yaml.Node
 	spec         *spec.Spec // the specification on disk, when known
 	entities     map[string]*yaml.Node
+	views        map[string]*yaml.Node
 	enums        map[string]*yaml.Node
 	permissions  map[string]*yaml.Node
 	roles        map[string]*yaml.Node
@@ -61,6 +62,7 @@ func newDesign(root *yaml.Node) *design {
 	d := &design{
 		root:         root,
 		entities:     topMap(root, "entities"),
+		views:        topMap(root, "views"),
 		enums:        topMap(root, "enums"),
 		permissions:  topMap(root, "permissions"),
 		roles:        topMap(root, "roles"),
@@ -179,6 +181,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkDependencies(d)
 	c.checkJobs(d)
 	c.checkMenus(d)
+	c.checkViews(d)
 	c.checkSession(d)
 	c.checkPages(d)
 	c.checkDecisions(d)
@@ -207,6 +210,11 @@ func (c *checker) checkRefs(d *design) {
 				name := strings.TrimPrefix(ref, "#/entities/")
 				if d.entities[name] == nil {
 					c.add(p.Value, ptr, RuleRefType, "%s is not an entity of the specification%s", name, suggest(name, d.entities))
+				}
+			case strings.HasPrefix(ref, "#/views/"):
+				name := strings.TrimPrefix(ref, "#/views/")
+				if d.views[name] == nil {
+					c.add(p.Value, ptr, RuleRefType, "%s is not a view of the specification%s", name, suggest(name, d.views))
 				}
 			case strings.HasPrefix(ref, "#/enums/"):
 				name := strings.TrimPrefix(ref, "#/enums/")

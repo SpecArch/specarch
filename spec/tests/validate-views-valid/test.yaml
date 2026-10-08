@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "a view of a loan with its member's name and, through the member, its branch's name, a view of a member with a count of its loans, and a list over the first view whose whitelists name both the view's fields and its entity's, answering the view's rows"
+when: "validate is run"
+then: "it reports no error, and exits 0"
+verifies: [SA-41]

@@ -22,14 +22,24 @@ func (c *checker) checkListOf(d *design, o operation) {
 		return
 	}
 	entNode := source.Child(l, "entity")
-	e := d.entities[source.Str(entNode)]
-	if e == nil {
-		if entNode != nil {
-			c.add(entNode, o.pointer("listOf", "entity"), RuleListOf, "%s is not an entity of the specification%s", entNode.Value, suggest(entNode.Value, d.entities))
+	var fields map[string]*yaml.Node
+	if viewNode := source.Child(l, "view"); viewNode != nil {
+		v := d.views[viewNode.Value]
+		if v == nil {
+			c.add(viewNode, o.pointer("listOf", "view"), RuleListOf, "%s is not a view of the specification%s", viewNode.Value, suggest(viewNode.Value, d.views))
+			return
 		}
-		return
+		entNode, fields = viewNode, d.viewFields(v)
+	} else {
+		e := d.entities[source.Str(entNode)]
+		if e == nil {
+			if entNode != nil {
+				c.add(entNode, o.pointer("listOf", "entity"), RuleListOf, "%s is not an entity of the specification%s", entNode.Value, suggest(entNode.Value, d.entities))
+			}
+			return
+		}
+		fields = fieldsOf(e)
 	}
-	fields := fieldsOf(e)
 	for _, list := range []string{"searchable", "filterable", "sortable"} {
 		for i, item := range source.Items(source.Child(l, list)) {
 			ptr := o.pointer("listOf", list, fmt.Sprint(i))

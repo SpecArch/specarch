@@ -91,7 +91,8 @@ type namedField struct {
 }
 
 // responseFields lists every field a schema can carry: through a $ref to an
-// entity, its items, and its properties, each entity once.
+// entity or a view, its items, and its properties, each entity and view
+// once.
 func (d *design) responseFields(schema *yaml.Node) []namedField {
 	var out []namedField
 	seen := map[string]bool{}
@@ -108,6 +109,20 @@ func (d *design) responseFields(schema *yaml.Node) []namedField {
 			}
 			seen[name] = true
 			visit(d.entities[name], name)
+			return
+		}
+		if ref := source.Str(source.Child(s, "$ref")); strings.HasPrefix(ref, "#/views/") {
+			// A view carries its entity's fields and the fields its paths read.
+			name := strings.TrimPrefix(ref, "#/views/")
+			v := d.views[name]
+			if seen["#"+name] || v == nil {
+				return
+			}
+			seen["#"+name] = true
+			fields := d.viewFields(v)
+			for _, k := range sortedKeys(fields) {
+				out = append(out, namedField{name: name + "." + k, node: fields[k]})
+			}
 			return
 		}
 		visit(source.Child(s, "items"), owner)

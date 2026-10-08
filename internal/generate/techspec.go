@@ -121,6 +121,7 @@ func contents(root *yaml.Node) string {
 	}
 	count(len(pairs(root, "requirements")), "requirement", "requirements")
 	count(len(pairs(root, "entities")), "entity", "entities")
+	count(len(pairs(root, "views")), "view", "views")
 	count(len(operations(root)), "HTTP operation", "HTTP operations")
 	count(len(pairs(root, "commands")), "command", "commands")
 	count(len(pairs(root, "channels")), "channel", "channels")
@@ -260,7 +261,8 @@ func context(d *doc, root *yaml.Node) {
 func buildingBlocks(d *doc, root *yaml.Node) {
 	entities := pairs(root, "entities")
 	enums := pairs(root, "enums")
-	if len(entities)+len(enums) == 0 {
+	views := pairs(root, "views")
+	if len(entities)+len(enums)+len(views) == 0 {
 		return
 	}
 	d.heading(2, "5. Building blocks")
@@ -322,6 +324,33 @@ func buildingBlocks(d *doc, root *yaml.Node) {
 			}
 			d.blank()
 			d.explainRows(pairRows(e.Value, "constraints"))
+		}
+	}
+	if len(views) > 0 {
+		d.heading(3, "Views")
+		d.para("A view is a read model: one row per record of the entity it reads from, with every field of that entity and the fields below. It is never written. A path is null when a relation on it has no record; a count leaves out softly deleted records.")
+		for _, v := range views {
+			from := str(v.Value, "from")
+			d.heading(4, v.Key.Value)
+			d.para(str(v.Value, "description"))
+			d.explain(v.Value)
+			d.line("| Field | Type | Read from | Description |")
+			d.line("|---|---|---|---|")
+			for _, p := range pairs(v.Value, "properties") {
+				typ, source := "integer, 64-bit", "count of "+from+"."+str(p.Value, "count")
+				if path := str(p.Value, "path"); path != "" {
+					typ, source = "", from+"."+path
+					if f, optional := viewPathField(root, from, path); f != nil {
+						typ = typeText(f)
+						if optional && !strings.HasSuffix(typ, " or null") {
+							typ += " or null"
+						}
+					}
+				}
+				d.line("| %s | %s | %s | %s |", p.Key.Value, cell(typ), cell(source), cell(str(p.Value, "description")))
+			}
+			d.blank()
+			d.para("Reads from: " + from + ".")
 		}
 	}
 	if len(enums) > 0 {
@@ -878,4 +907,22 @@ func menuList(d *doc, root *yaml.Node, items []source.Pair, indent string) {
 		d.line("%s- %s", indent, str(m.Value, "title"))
 		menuList(d, root, pairs(m.Value, "items"), indent+"  ")
 	}
+}
+
+// viewPathField follows a view's path from an entity through its relations
+// to the field it ends in, or nil, and says whether a relation on the way
+// may have no record: its via field is not required, or may be null.
+func viewPathField(root *yaml.Node, entity, path string) (*yaml.Node, bool) {
+	hops := strings.Split(path, ".")
+	cur := get(get(root, "entities"), entity)
+	optional := false
+	for _, hop := range hops[:len(hops)-1] {
+		rel := get(get(cur, "relations"), hop)
+		via := str(rel, "via")
+		if !contains(strs(cur, "required"), via) || strings.Contains(typeText(get(get(cur, "properties"), via)), "or null") {
+			optional = true
+		}
+		cur = get(get(root, "entities"), str(rel, "target"))
+	}
+	return get(get(cur, "properties"), hops[len(hops)-1]), optional
 }

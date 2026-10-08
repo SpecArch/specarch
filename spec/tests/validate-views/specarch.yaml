@@ -1,0 +1,88 @@
+specarch: "0.1"
+info: { title: Lending desk, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Branch:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      name: { type: string, minLength: 1, maxLength: 100 }
+    required: [id, name]
+    primaryKey: [id]
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      fullName: { type: string, minLength: 1, maxLength: 200 }
+      branchId: { type: [string, "null"], format: uuid }
+    required: [id, fullName]
+    primaryKey: [id]
+    relations:
+      branch: { target: Branch, kind: many-to-one, via: branchId, onDelete: restrict }
+      loans: { target: Loan, kind: one-to-many, via: memberId }
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      memberId: { type: string, format: uuid }
+      dueOn: { type: string, format: date }
+    required: [id, memberId, dueOn]
+    primaryKey: [id]
+    relations:
+      member: { target: Member, kind: many-to-one, via: memberId, onDelete: restrict }
+    deletion: soft
+views:
+  LoanRow:
+    description: A loan as the desk's list shows it.
+    from: Loan
+    properties:
+      memberName: { path: member.fullNam }
+      branchName: { path: member.loans.id }
+      dueOn: { path: member.fullName }
+      memberCount: { count: member }
+  MemberRow:
+    from: Members
+    properties:
+      openLoans: { count: loans }
+  Branch:
+    from: Branch
+    properties:
+      memberCount: { count: members }
+permissions:
+  loans.read: { description: See loans. }
+roles:
+  desk: { description: The desk., permissions: [loans.read] }
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: The loans
+      permission: loans.read
+      listOf:
+        view: LoanRow
+        searchable: [memberName]
+        filterable: [branchName, dueOn, title]
+        sortable: [dueOn, memberName]
+        pageSize: { default: 20, maximum: 100 }
+      responses:
+        "200":
+          description: The loans.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/views/LoanRow" } }
+    post:
+      operationId: createLoan
+      summary: Lend
+      permission: loans.read
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/views/LoanRow" }
+      responses:
+        "201":
+          description: The loan.
+          content:
+            application/json:
+              schema: { $ref: "#/views/LoanRows" }

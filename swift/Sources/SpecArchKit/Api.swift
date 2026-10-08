@@ -10,14 +10,24 @@ extension Checker {
     /// default page fits the maximum.
     func checkListOf(_ d: Design, _ o: Operation) {
         guard let l = o.node.child("listOf") else { return }
-        let entNode = l.child("entity")
-        guard let e = d.entities[str(entNode)] else {
-            if let entNode {
-                add(entNode, o.pointer("listOf", "entity"), .listOf, "\(entNode.value) is not an entity of the specification\(suggest(entNode.value, d.entities))")
+        var entNode = l.child("entity")
+        let fields: [String: YNode]
+        if let viewNode = l.child("view") {
+            guard let v = d.views[viewNode.value] else {
+                add(viewNode, o.pointer("listOf", "view"), .listOf, "\(viewNode.value) is not a view of the specification\(suggest(viewNode.value, d.views))")
+                return
             }
-            return
+            entNode = viewNode
+            fields = d.viewFields(v)
+        } else {
+            guard let e = d.entities[str(entNode)] else {
+                if let entNode {
+                    add(entNode, o.pointer("listOf", "entity"), .listOf, "\(entNode.value) is not an entity of the specification\(suggest(entNode.value, d.entities))")
+                }
+                return
+            }
+            fields = fieldsOf(e)
         }
-        let fields = fieldsOf(e)
         for list in ["searchable", "filterable", "sortable"] {
             for (i, item) in items(l.child(list)).enumerated() {
                 let ptr = o.pointer("listOf", list, "\(i)")

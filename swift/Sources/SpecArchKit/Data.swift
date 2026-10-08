@@ -97,6 +97,17 @@ extension Design {
                 visit(e, name)
                 return
             }
+            if ref.hasPrefix("#/views/") {
+                // A view carries its entity's fields and the fields its paths read.
+                let name = String(ref.dropFirst("#/views/".count))
+                guard !seen.contains("#" + name), let v = views[name] else { return }
+                seen.insert("#" + name)
+                let fields = viewFields(v)
+                for k in fields.keys.sorted() {
+                    out.append(NamedField(name: name + "." + k, node: fields[k]!))
+                }
+                return
+            }
             visit(s.child("items"), owner)
             for p in pairs(s.child("properties")) {
                 out.append(NamedField(name: owner.isEmpty ? p.key.value : owner + "." + p.key.value, node: p.value))

@@ -42,7 +42,7 @@ const QuestionsSection = "questions"
 var Sections = map[string]string{
 	"stakeholders": "requirements", "needs": "requirements", "requirements": "requirements",
 	"glossary": "requirements", "assumptions": "requirements", "constraints": "requirements",
-	"enums": "design", "entities": "design", "permissions": "design", "roles": "design", "session": "design", "paths": "design",
+	"enums": "design", "entities": "design", "views": "design", "permissions": "design", "roles": "design", "session": "design", "paths": "design",
 	"commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "errors": "design", "pages": "design", "menus": "design", "algorithms": "design", "decisions": "design",
 	"tests":        "tests",
 	"environments": "deployment", "configuration": "deployment", "release": "deployment",
@@ -55,7 +55,7 @@ var Sections = map[string]string{
 // docs/conventions.md: life-cycle order, the questions last.
 var sectionOrder = []string{
 	"stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
-	"enums", "entities", "permissions", "roles", "session", "paths", "commands", "channels", "dependencies", "jobs", "errors", "pages", "menus", "algorithms",
+	"enums", "entities", "views", "permissions", "roles", "session", "paths", "commands", "channels", "dependencies", "jobs", "errors", "pages", "menus", "algorithms",
 	"tests", "decisions",
 	"environments", "configuration", "release", "rollback", "migrations",
 	"checks", "signoff",

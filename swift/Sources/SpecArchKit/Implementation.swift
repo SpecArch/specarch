@@ -14,6 +14,7 @@ let designKeys: Set<String> = [
     "calls", "idempotencyKey", "guard", "validity",
     "sensitivity", "atRest", "lookup", "audited", "deletion",
     "listOf", "limits", "problem", "errors", "jobs", "menus",
+    "views", "count",
 ]
 
 /// The implementation file's maps whose keys the author chooses (a folder,

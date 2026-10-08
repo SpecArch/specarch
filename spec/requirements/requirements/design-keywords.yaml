@@ -102,3 +102,16 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: The handlers, tables and seeds of a dxlib service follow from its design and its dxlib document; written by hand they drift from both, and the constraints dxlib does not enforce are easy to miss.
+  SA-41:
+    statement: A specification shall declare a read model under views, an entity's row with fields read through its relations and counts of its related records added, which is never written, and specarch validate shall check every path, count and use of a view.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - A view names the entity it reads from, and adds properties that are either a path through many-to-one or one-to-one relations ending in a field, or a count of a one-to-many or many-to-many relation; it carries every field of its entity besides.
+      - A path through a relation that does not exist or does not lead to one record, a count of a relation that does not lead to many, a property that repeats a field of the entity, and a view named like an entity are refused (view).
+      - A list may read from a view, with its whitelists naming the view's fields; a view under a request body is refused, since a view is never written.
+      - The techspec shows each view with the source and the type of every added property.
+    verification: test
+    needs: [NEED-2]
+    why: Every list page shows a row with names and counts joined onto it; written by hand, the join drifts from the relations it follows, and a client cannot tell from the document which fields it may filter by.

@@ -187,6 +187,9 @@ private final class TypeChecker {
         if l.nullable || r.nullable {
             return fail(n, .typeMismatch, "\(op) cannot take a value that may be null; check it with == null first")
         }
+        if (op == "+" || op == "-") && (l.kind == .date || l.kind == .duration) {
+            return dateArithmetic(n, op, l, r)
+        }
         if !numeric(l.kind) || l.kind != r.kind {
             if numeric(l.kind) && numeric(r.kind) {
                 return fail(n, .typeMismatch, "\(op) needs two numbers of one type, and this is \(l) \(op) \(r); \(conversionHint(l, r))")
@@ -204,6 +207,33 @@ private final class TypeChecker {
             }
         }
         return ExprType(.decimal, scale: scale)
+    }
+
+    /// A date moved by a whole number of days: a date plus or minus
+    /// duration("P<n>D"), written in place.
+    func dateArithmetic(_ n: ExprNode, _ op: String, _ l: ExprType, _ r: ExprType) -> ExprType {
+        if l.kind == .duration && r.kind == .date && op == "+" {
+            return fail(n, .typeMismatch, "write the date first: date + duration")
+        }
+        if l.kind == .duration {
+            return fail(n, .typeMismatch, "\(op) works on numbers, or moves a date by a duration, and this is \(l) \(op) \(r)")
+        }
+        if r.kind == .int || r.kind == .uint {
+            var days = "14"
+            if n.args[1].op == .int || n.args[1].op == .uint { days = formatDecimal(n.args[1].intValue) }
+            return fail(n, .typeMismatch, "\(op) cannot move a date by a number, since a number names no unit; write the days as a duration, such as duration(\"P\(days)D\")")
+        }
+        if r.kind != .duration {
+            return fail(n, .typeMismatch, "\(op) moves a date by a duration, and this is \(l) \(op) \(r)")
+        }
+        let a = n.args[1]
+        guard a.op == .call, a.text == "duration", a.args[0].op == .text else {
+            return fail(a, .typeMismatch, "a date moves by whole days written in place, such as duration(\"P14D\")")
+        }
+        guard let d = parseDuration(a.args[0].text), d.isWholeDays else {
+            return fail(a, .typeMismatch, "a date moves by whole days, and \(quote(a.args[0].text)) is not; write days only, such as \"P14D\"")
+        }
+        return ExprType(.date)
     }
 
     func equality(_ n: ExprNode, _ op: String) -> ExprType {
@@ -346,6 +376,15 @@ private final class TypeChecker {
             }
             if a0.kind == .timestamp || a0.kind == .string { return ExprType(.timestamp) }
             return fail(n, .typeMismatch, "timestamp(x) takes a quoted RFC 3339 instant, and this is \(a0)")
+        case "duration":
+            guard count(1) else { return bad }
+            if n.args[0].op == .text {
+                if parseDuration(n.args[0].text) == nil {
+                    return fail(n.args[0], .typeMismatch, "\(quote(n.args[0].text)) is not a duration; write it as ISO 8601 days, hours, minutes and seconds, such as \"P14D\" or \"PT2H\"")
+                }
+                return ExprType(.duration)
+            }
+            return fail(n, .typeMismatch, "duration(x) takes a quoted ISO 8601 duration, such as duration(\"P14D\"), and this is \(a0)")
         case "size":
             guard count(1) else { return bad }
             if [.string, .bytes, .list].contains(a0.kind) { return ExprType(.int) }

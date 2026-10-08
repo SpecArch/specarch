@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.5.0-dev of the specification: 46 requirements, 3 entities, 12 commands, 6 algorithms, 250 tests, 46 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.5.0-dev of the specification: 46 requirements, 3 entities, 12 commands, 6 algorithms, 252 tests, 47 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -3193,6 +3193,39 @@ same rule.
 
 **Insight:** The mapping, because ownership is a fact about how one project builds the design, not about the design: two projects implementing the same specification can split it differently, and docs/principles.md keeps stack and project choices out of the design files. Per element, because the parts another team owns are rarely a whole file or a whole section. A stakeholder by name, so that the owner is someone the specification already knows and a misspelling is an error rather than a new owner. The references kept, because the owned element exists in the running system; leaving a foreign key out would let the database accept rows that point at nothing, which is what the key protects against. The checks unchanged, because the project still depends on the element: a disagreement about it, or an open question on it, matters as much as on any element the project builds.
 
+### ADR-047: A date moves by whole days written as an ISO 8601 duration, date + duration("P14D")
+
+Status: accepted, 2026-10-09.
+
+Context: A due date fourteen days after the loan date is a common rule, and
+databases hold it as a check: PostgreSQL writes it due_on = loaned_on
++ 14, since it adds a number of days to a date. The expression subset
+had no date arithmetic, so a reader of such a check could only turn
+it into a question. CEL adds a duration to a timestamp, but has no
+date type, and its duration() reads a protocol buffers duration, a
+fixed number of seconds written as "336h", with no unit for a day.
+
+Decision: duration(x) takes a quoted ISO 8601 duration in days, hours, minutes
+and seconds, the form every other duration in SpecArch is written
+in, and gives a duration. A date plus or minus duration("P<n>D")
+gives a date, the date first, and the duration written in place in
+whole days. A bare number added to a date is refused with the form
+to write, and so is a duration with hours, minutes or seconds, one
+in weeks, months or years, and one written before the date.
+Generators write the days the way each engine keeps a date:
+date + n on PostgreSQL and Oracle, DATEADD on SQL Server, + INTERVAL
+n DAY on MariaDB. The database reader translates PostgreSQL's date
+plus a whole number into this form.
+
+Consequences: The lending desk's check on the loan period becomes an expression,
+dueOn == loanedOn + duration("P14D"), and leaves only its message as
+a question. A duration field cannot move a date; a rule that needs
+one waits for a request that shows it.
+
+**Insight:** A bare number names no unit, and CEL refuses to mix types without a written conversion so that a reader never has to guess one; date + 14 would be the one place the subset guessed. A date has no time of day, so moving it by hours would need a rounding nobody wrote, and a week, month or year has a length that depends on the calendar, which the durations of the meta-model leave out for the same reason. The ISO 8601 form rather than CEL's "336h", because the meta-model writes every other duration that way and one way to say a thing is the rule; CEL's form has no day, since CEL has no date. The date first, so that one rule reads every such expression. Only in place, so that validate can tell the duration is whole days before any value is known. PostgreSQL and Oracle get a number rather than an interval, since adding an interval to a date gives a timestamp there.
+
+**Note:** From Common Expression Language, language definition, 2024: timestamp + duration gives a timestamp; duration(string) reads a duration such as "1h30m", in hours, minutes, seconds and smaller units. <https://github.com/google/cel-spec/blob/master/doc/langdef.md>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -3336,6 +3369,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-example-expected | command validate | system | red | a worked example whose expected value has more places than the output's scale | validate is run | it reports example_expected and exits 1 |
 | validate-example-input | command validate | system | red | a worked example whose decimal input is not quoted | validate is run | it reports example_input and exits 1 |
 | validate-example-mismatch | command validate | system | red | a worked example whose expected value is wrong | validate is run | it reports example_mismatch with the computed value and exits 1 |
+| validate-expression-date-days | command validate | system | golden | formulas that move a date forward and back by whole days, with worked examples across a month, a year and a leap day | validate is run | it evaluates every example to the date it expects and exits 0 |
+| validate-expression-date-number | command validate | system | red | formulas that add a bare number, hours, weeks, and a duration written before the date to a date | validate is run | it reports expression_type for each, with the form to write, and exits 1 |
 | validate-expression-in-stage-file | command validate | system | red | a specification tree whose design stage holds a formula naming an input that does not exist and a check that gives a number | validate is run | it reports expression_name and expression_type, each at the file and line of its expression, and exits 1 |
 | validate-expression-name | command validate | system | red | a formula that names an input that does not exist | validate is run | it reports expression_name and exits 1 |
 | validate-expression-not-in-subset | command validate | system | red | a formula that uses %, which the subset leaves out | validate is run | it reports expression_syntax naming % and exits 1 |
@@ -3634,7 +3669,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 |---|---|---|
 | SA-1 | enums DocumentKind; entities SpecFile; commands validate; decisions ADR-003; decisions ADR-006; decisions ADR-007; decisions ADR-009 | tests validate-schema-name-form; tests validate-schema-untyped-integer; tests validate-valid-design; checks checks-the-examples; monitors main-stays-green |
 | SA-2 | enums Rule; commands validate; algorithms referenceResolves | tests validate-duplicate-name-across-files; tests validate-environment; tests validate-need; tests validate-ref-type; tests validate-relation-target; tests validate-requirement-set; tests validate-stakeholder |
-| SA-3 | enums Rule; commands validate; decisions ADR-004 | tests validate-expression-in-stage-file; tests validate-expression-syntax; tests validate-expression-type |
+| SA-3 | enums Rule; commands validate; decisions ADR-004; decisions ADR-047 | tests validate-expression-date-days; tests validate-expression-date-number; tests validate-expression-in-stage-file; tests validate-expression-syntax; tests validate-expression-type |
 | SA-4 | enums Rule; commands validate; algorithms workedExampleHolds; decisions ADR-004 | tests validate-example-mismatch |
 | SA-5 | enums Rule; commands validate; algorithms permissionGranted; decisions ADR-006 | tests validate-permission-undeclared; tests validate-permission-ungranted; tests validate-schema-operation-without-permission |
 | SA-6 | enums Rule; enums Severity; entities Diagnostic; commands validate; algorithms exitStatus; decisions ADR-005; decisions ADR-008 | tests validate-usage-error; tests validate-yaml-syntax; tests version-prints-versions; checks installs-and-answers |

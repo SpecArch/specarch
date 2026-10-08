@@ -1,0 +1,49 @@
+decisions:
+  ADR-047:
+    title: A date moves by whole days written as an ISO 8601 duration, date + duration("P14D")
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      A due date fourteen days after the loan date is a common rule, and
+      databases hold it as a check: PostgreSQL writes it due_on = loaned_on
+      + 14, since it adds a number of days to a date. The expression subset
+      had no date arithmetic, so a reader of such a check could only turn
+      it into a question. CEL adds a duration to a timestamp, but has no
+      date type, and its duration() reads a protocol buffers duration, a
+      fixed number of seconds written as "336h", with no unit for a day.
+    decision: |
+      duration(x) takes a quoted ISO 8601 duration in days, hours, minutes
+      and seconds, the form every other duration in SpecArch is written
+      in, and gives a duration. A date plus or minus duration("P<n>D")
+      gives a date, the date first, and the duration written in place in
+      whole days. A bare number added to a date is refused with the form
+      to write, and so is a duration with hours, minutes or seconds, one
+      in weeks, months or years, and one written before the date.
+      Generators write the days the way each engine keeps a date:
+      date + n on PostgreSQL and Oracle, DATEADD on SQL Server, + INTERVAL
+      n DAY on MariaDB. The database reader translates PostgreSQL's date
+      plus a whole number into this form.
+    why: |
+      A bare number names no unit, and CEL refuses to mix types without a
+      written conversion so that a reader never has to guess one; date +
+      14 would be the one place the subset guessed. A date has no time of
+      day, so moving it by hours would need a rounding nobody wrote, and a
+      week, month or year has a length that depends on the calendar,
+      which the durations of the meta-model leave out for the same
+      reason. The ISO 8601 form rather than CEL's "336h", because the
+      meta-model writes every other duration that way and one way to say
+      a thing is the rule; CEL's form has no day, since CEL has no date.
+      The date first, so that one rule reads every such expression. Only
+      in place, so that validate can tell the duration is whole days
+      before any value is known. PostgreSQL and Oracle get a number rather
+      than an interval, since adding an interval to a date gives a
+      timestamp there.
+    consequences: |
+      The lending desk's check on the loan period becomes an expression,
+      dueOn == loanedOn + duration("P14D"), and leaves only its message as
+      a question. A duration field cannot move a date; a rule that needs
+      one waits for a request that shows it.
+    satisfies: [SA-3]
+    cites:
+      - source: cel
+        says: "timestamp + duration gives a timestamp; duration(string) reads a duration such as \"1h30m\", in hours, minutes, seconds and smaller units."

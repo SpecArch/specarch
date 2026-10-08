@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -211,6 +212,9 @@ func (c *checker) arithmetic(n *Node) Type {
 	if l.Nullable || r.Nullable {
 		return c.fail(n, TypeMismatch, "%s cannot take a value that may be null; check it with == null first", n.Op)
 	}
+	if (n.Op == "+" || n.Op == "-") && (l.Kind == Date || l.Kind == Duration) {
+		return c.dateArithmetic(n, l, r)
+	}
 	if !numeric(l.Kind) || l.Kind != r.Kind {
 		if numeric(l.Kind) && numeric(r.Kind) {
 			return c.fail(n, TypeMismatch, "%s needs two numbers of one type, and this is %s %s %s; %s", n.Op, l, n.Op, r, conversionHint(l, r))
@@ -233,6 +237,57 @@ func (c *checker) arithmetic(n *Node) Type {
 		}
 	}
 	return Type{Kind: Decimal, Scale: scale}
+}
+
+// dateArithmetic checks a date moved by a whole number of days: a date
+// plus or minus duration("P<n>D"), written in place.
+func (c *checker) dateArithmetic(n *Node, l, r Type) Type {
+	switch {
+	case l.Kind == Duration && r.Kind == Date && n.Op == "+":
+		return c.fail(n, TypeMismatch, "write the date first: date + duration")
+	case l.Kind == Duration:
+		return c.fail(n, TypeMismatch, "%s works on numbers, or moves a date by a duration, and this is %s %s %s", n.Op, l, n.Op, r)
+	case r.Kind == Int || r.Kind == Uint:
+		days := "14"
+		if n.Args[1].Op == OpInt || n.Args[1].Op == OpUint {
+			days = n.Args[1].Int.String()
+		}
+		return c.fail(n, TypeMismatch, "%s cannot move a date by a number, since a number names no unit; write the days as a duration, such as duration(\"P%sD\")", n.Op, days)
+	case r.Kind != Duration:
+		return c.fail(n, TypeMismatch, "%s moves a date by a duration, and this is %s %s %s", n.Op, l, n.Op, r)
+	}
+	a := n.Args[1]
+	if a.Op != OpCall || a.Text != "duration" || a.Args[0].Op != OpText {
+		return c.fail(a, TypeMismatch, "a date moves by whole days written in place, such as duration(\"P14D\")")
+	}
+	if d, ok := ParseDuration(a.Args[0].Text); !ok || d%(24*time.Hour) != 0 {
+		return c.fail(a, TypeMismatch, "a date moves by whole days, and %q is not; write days only, such as \"P14D\"", a.Args[0].Text)
+	}
+	return Type{Kind: Date}
+}
+
+var isoDuration = regexp.MustCompile(`^P(?:([0-9]+)D)?(?:T(?:([0-9]+)H)?(?:([0-9]+)M)?(?:([0-9]+)S)?)?$`)
+
+// ParseDuration reads the day-and-time part of ISO 8601: P1DT2H3M4S.
+// Weeks, months and years are left out, since their length depends on the
+// calendar.
+func ParseDuration(s string) (time.Duration, bool) {
+	m := isoDuration.FindStringSubmatch(s)
+	if m == nil || s == "P" || s == "PT" {
+		return 0, false
+	}
+	units := []time.Duration{24 * time.Hour, time.Hour, time.Minute, time.Second}
+	var d time.Duration
+	for i, u := range units {
+		if m[i+1] != "" {
+			v, err := strconv.ParseInt(m[i+1], 10, 64)
+			if err != nil {
+				return 0, false
+			}
+			d += time.Duration(v) * u
+		}
+	}
+	return d, true
 }
 
 func (c *checker) names(near string) string {
@@ -437,6 +492,17 @@ func (c *checker) call(n *Node) Type {
 			return Type{Kind: Timestamp}
 		}
 		return c.fail(n, TypeMismatch, "timestamp(x) takes a quoted RFC 3339 instant, and this is %s", a0)
+	case "duration":
+		if !count(1) {
+			return badType
+		}
+		if n.Args[0].Op == OpText {
+			if _, ok := ParseDuration(n.Args[0].Text); !ok {
+				return c.fail(n.Args[0], TypeMismatch, "%q is not a duration; write it as ISO 8601 days, hours, minutes and seconds, such as \"P14D\" or \"PT2H\"", n.Args[0].Text)
+			}
+			return Type{Kind: Duration}
+		}
+		return c.fail(n, TypeMismatch, "duration(x) takes a quoted ISO 8601 duration, such as duration(\"P14D\"), and this is %s", a0)
 	case "size":
 		if !count(1) {
 			return badType

@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: formulas that add a bare number, hours, weeks, and a duration written before the date to a date
+when: validate is run
+then: it reports expression_type for each, with the form to write, and exits 1
+verifies: [SA-3]

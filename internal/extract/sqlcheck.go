@@ -470,8 +470,12 @@ func (w *celWriter) write(n *sqlNode) (string, int, error) {
 	if err != nil {
 		return "", 0, err
 	}
-	r, rp, err := w.write(n.args[1])
-	if err != nil {
+	var r string
+	var rp int
+	if days := n.args[1]; (n.op == "+" || n.op == "-") && w.isDate(n.args[0]) && days.op == "num" && days.cast == "" && !strings.Contains(days.text, ".") {
+		// PostgreSQL adds a number of days to a date.
+		r, rp = fmt.Sprintf("duration(\"P%sD\")", days.text), 9
+	} else if r, rp, err = w.write(n.args[1]); err != nil {
 		return "", 0, err
 	}
 	if lp < prec || (prec == 3 && lp == 3) {
@@ -481,6 +485,21 @@ func (w *celWriter) write(n *sqlNode) (string, int, error) {
 		r = "(" + r + ")"
 	}
 	return l + " " + n.op + " " + r, prec, nil
+}
+
+// isDate says whether a node is a date: a date column, a quoted date, or
+// a date moved by days.
+func (w *celWriter) isDate(n *sqlNode) bool {
+	switch n.op {
+	case "col":
+		f := w.fields[n.text]
+		return f != nil && f.kind == "date" && (n.cast == "" || n.cast == "date")
+	case "str":
+		return n.cast == "date"
+	case "+", "-":
+		return w.isDate(n.args[0])
+	}
+	return false
 }
 
 // castKeeps says whether casting a column to a type leaves its value as the

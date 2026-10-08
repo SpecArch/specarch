@@ -337,7 +337,7 @@ func (d *design) value(n *yaml.Node, field *yaml.Node) (expr.Value, string) {
 		}
 		return expr.Value{Kind: t.Kind, Time: tm}, ""
 	case expr.Duration:
-		dur, ok := parseDuration(n.Value)
+		dur, ok := expr.ParseDuration(n.Value)
 		if !ok || tag != "!!str" {
 			return expr.Value{}, fmt.Sprintf("must be an ISO 8601 duration in quotes, such as \"PT2H\", and is %s", n.Value)
 		}
@@ -355,26 +355,6 @@ func (d *design) value(n *yaml.Node, field *yaml.Node) (expr.Value, string) {
 		return expr.Value{Kind: expr.String, Text: n.Value}, ""
 	}
 	return expr.Value{}, fmt.Sprintf("is %s, which worked examples cannot hold; use a single value", t)
-}
-
-var isoDuration = regexp.MustCompile(`^P(?:([0-9]+)D)?(?:T(?:([0-9]+)H)?(?:([0-9]+)M)?(?:([0-9]+)S)?)?$`)
-
-// parseDuration reads the day-and-time part of ISO 8601: P1DT2H3M4S.
-func parseDuration(s string) (time.Duration, bool) {
-	m := isoDuration.FindStringSubmatch(s)
-	if m == nil || s == "P" || s == "PT" {
-		return 0, false
-	}
-	units := []time.Duration{24 * time.Hour, time.Hour, time.Minute, time.Second}
-	var d time.Duration
-	for i, u := range units {
-		if m[i+1] != "" {
-			var v int64
-			fmt.Sscan(m[i+1], &v)
-			d += time.Duration(v) * u
-		}
-	}
-	return d, true
 }
 
 func layoutName(k expr.Kind) string {

@@ -276,6 +276,30 @@ func TestUnwritableCheck(t *testing.T) {
 	}
 }
 
+// TestDateDays moves a date by whole days the way each dialect keeps it a
+// date.
+func TestDateDays(t *testing.T) {
+	for dialect, want := range map[string]string{
+		"postgresql": "CHECK ((due_on <= (CAST(loaned_at AS DATE) + 28)))",
+		"oracle":     "CHECK ((due_on <= (TRUNC(loaned_at) + 28)))",
+		"sqlserver":  "CHECK ((due_on <= DATEADD(day, 28, CAST(loaned_at AS DATE))))",
+		"mariadb":    "CHECK ((due_on <= (CAST(loaned_at AS DATE) + INTERVAL 28 DAY)))",
+	} {
+		r := request(t, dialect)
+		loan := r.Specification["entities"].(map[string]any)["Loan"].(map[string]any)
+		loan["constraints"].(map[string]any)["loan_due_within"] = map[string]any{"kind": "check", "expression": `dueOn <= date(loanedAt) + duration("P28D")`, "message": "A loan is due within 28 days."}
+		if sql := migration(t, r); !strings.Contains(sql, want) {
+			t.Errorf("%s: the migration has no %q:\n%s", dialect, want, sql)
+		}
+	}
+	r := request(t, "postgresql")
+	loan := r.Specification["entities"].(map[string]any)["Loan"].(map[string]any)
+	loan["constraints"].(map[string]any)["loan_reminder"] = map[string]any{"kind": "check", "expression": `dueOn - duration("P2D") > date(loanedAt)`, "message": "m"}
+	if sql := migration(t, r); !strings.Contains(sql, "((due_on - 2) > CAST(loaned_at AS DATE))") {
+		t.Errorf("postgresql: no date moved back by two days:\n%s", sql)
+	}
+}
+
 // withViews adds a view of loans with their member's name and book's
 // title, and a view of members with their loans counted.
 func withViews(r *Request) {

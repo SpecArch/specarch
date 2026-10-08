@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: formulas that move a date forward and back by whole days, with worked examples across a month, a year and a leap day
+when: validate is run
+then: it evaluates every example to the date it expects and exits 0
+verifies: [SA-3]

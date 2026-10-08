@@ -33,8 +33,8 @@ public final class ExprNode {
 }
 
 /// The functions of the subset.
-public let exprFunctions: Set<String> = ["int", "uint", "double", "decimal", "string", "date", "timestamp", "size", "round", "floor", "ceil", "min", "max"]
-public let exprFunctionList = "int, uint, double, decimal, string, date, timestamp, size, round, floor, ceil, min and max"
+public let exprFunctions: Set<String> = ["int", "uint", "double", "decimal", "string", "date", "timestamp", "duration", "size", "round", "floor", "ceil", "min", "max"]
+public let exprFunctionList = "int, uint, double, decimal, string, date, timestamp, duration, size, round, floor, ceil, min and max"
 
 // MARK: - Lexer
 

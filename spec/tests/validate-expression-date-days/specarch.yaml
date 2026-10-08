@@ -1,0 +1,20 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+algorithms:
+  dueDate:
+    inputs:
+      loanedOn: { type: string, format: date }
+    output: { type: string, format: date }
+    formula: loanedOn + duration("P14D")
+    examples:
+      - { name: inside a month, inputs: { loanedOn: "2026-10-01" }, expected: "2026-10-15" }
+      - { name: across a year, inputs: { loanedOn: "2026-12-25" }, expected: "2027-01-08" }
+    pseudocode: return loanedOn plus 14 days
+  reminderDate:
+    inputs:
+      dueOn: { type: string, format: date }
+    output: { type: string, format: date }
+    formula: dueOn - duration("P2D")
+    examples:
+      - { name: across a leap day, inputs: { dueOn: "2028-03-01" }, expected: "2028-02-28" }
+    pseudocode: return dueOn minus 2 days

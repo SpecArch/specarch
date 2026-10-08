@@ -15,6 +15,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 
 	"go.yaml.in/yaml/v3"
@@ -887,12 +888,41 @@ func (t *translator) tr(n *expr.Node, cond bool) string {
 			op = "<>"
 		}
 		return "(" + t.tr(l, false) + " " + op + " " + t.tr(r, false) + ")"
-	case "<", "<=", ">", ">=", "+", "-", "*", "/":
+	case "+", "-":
+		if d := n.Args[1]; d.Op == expr.OpCall && d.Text == "duration" {
+			return t.addDays(n.Op, t.tr(n.Args[0], false), d)
+		}
+		return "(" + t.tr(n.Args[0], false) + " " + n.Op + " " + t.tr(n.Args[1], false) + ")"
+	case "<", "<=", ">", ">=", "*", "/":
 		return "(" + t.tr(n.Args[0], false) + " " + n.Op + " " + t.tr(n.Args[1], false) + ")"
 	case expr.OpCall:
 		return t.call(n)
 	}
 	return t.fail("%s is not written in SQL by this version", n.Op)
+}
+
+// addDays writes a date moved by whole days, which validate has checked
+// the duration to be: PostgreSQL and Oracle add a number of days to a date
+// and keep a date, where adding an interval would give a timestamp.
+func (t *translator) addDays(op, date string, d *expr.Node) string {
+	dur, ok := expr.ParseDuration(d.Args[0].Text)
+	if !ok || dur%(24*time.Hour) != 0 {
+		return t.fail("%s is not a whole number of days", d.Args[0].Text)
+	}
+	days := int64(dur / (24 * time.Hour))
+	if op == "-" {
+		days = -days
+	}
+	switch t.g.dialect {
+	case "sqlserver":
+		return fmt.Sprintf("DATEADD(day, %d, %s)", days, date)
+	case "mariadb":
+		return fmt.Sprintf("(%s + INTERVAL %d DAY)", date, days)
+	}
+	if days < 0 {
+		return fmt.Sprintf("(%s - %d)", date, -days)
+	}
+	return fmt.Sprintf("(%s + %d)", date, days)
 }
 
 func (t *translator) call(n *expr.Node) string {

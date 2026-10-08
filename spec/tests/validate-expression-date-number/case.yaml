@@ -1,0 +1,7 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:8: error: /algorithms/dueDate/formula: expression_type: the formula, column 10: + cannot move a date by a number, since a number names no unit; write the days as a duration, such as duration("P14D")
+  specarch.yaml:16: error: /algorithms/dueHour/formula: expression_type: the formula, column 20: a date moves by whole days, and "PT12H" is not; write days only, such as "P14D"
+  specarch.yaml:24: error: /algorithms/dueWeeks/formula: expression_type: the formula, column 21: "P2W" is not a duration; write it as ISO 8601 days, hours, minutes and seconds, such as "P14D" or "PT2H"
+  specarch.yaml:32: error: /algorithms/dueReversed/formula: expression_type: the formula, column 18: write the date first: date + duration

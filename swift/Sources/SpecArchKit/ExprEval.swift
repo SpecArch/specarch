@@ -164,6 +164,10 @@ public func evalExpr(_ n: ExprNode, _ vals: [String: ExprValue]) throws -> ExprV
 
 private func arithmetic(_ n: ExprNode, _ op: String, _ l: ExprValue, _ r: ExprValue) throws -> ExprValue {
     var v = ExprValue(l.kind)
+    if l.kind == .date {
+        v.seconds = op == "-" ? l.seconds - r.seconds : l.seconds + r.seconds
+        return v
+    }
     if l.kind == .double {
         switch op {
         case "+": v.double = l.double + r.double
@@ -266,6 +270,11 @@ private func call(_ n: ExprNode, _ vals: [String: ExprValue]) throws -> ExprValu
             guard let s = parseDate(a.text) else { throw evalErr(n, "\(quote(a.text)) is not a date") }
             v.seconds = s
         }
+        return v
+    case "duration":
+        guard let d = parseDuration(a.text) else { throw evalErr(n, "\(quote(a.text)) is not a duration") }
+        var v = ExprValue(.duration)
+        v.seconds = d
         return v
     case "timestamp":
         if a.kind == .timestamp { return a }

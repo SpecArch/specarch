@@ -1,0 +1,35 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+algorithms:
+  dueDate:
+    inputs:
+      loanedOn: { type: string, format: date }
+    output: { type: string, format: date }
+    formula: loanedOn + 14
+    examples:
+      - { name: inside a month, inputs: { loanedOn: "2026-10-01" }, expected: "2026-10-15" }
+    pseudocode: return loanedOn plus 14 days
+  dueHour:
+    inputs:
+      loanedOn: { type: string, format: date }
+    output: { type: string, format: date }
+    formula: loanedOn + duration("PT12H")
+    examples:
+      - { name: half a day, inputs: { loanedOn: "2026-10-01" }, expected: "2026-10-01" }
+    pseudocode: return loanedOn plus 12 hours
+  dueWeeks:
+    inputs:
+      loanedOn: { type: string, format: date }
+    output: { type: string, format: date }
+    formula: loanedOn + duration("P2W")
+    examples:
+      - { name: two weeks, inputs: { loanedOn: "2026-10-01" }, expected: "2026-10-15" }
+    pseudocode: return loanedOn plus two weeks
+  dueReversed:
+    inputs:
+      loanedOn: { type: string, format: date }
+    output: { type: string, format: date }
+    formula: duration("P14D") + loanedOn
+    examples:
+      - { name: two weeks, inputs: { loanedOn: "2026-10-01" }, expected: "2026-10-15" }
+    pseudocode: return loanedOn plus 14 days

@@ -26,6 +26,9 @@ func TestTranslateCheck(t *testing.T) {
 		{"CHECK ((NOT (active AND (copies = 0))))", "!(active && copies == 0)"},
 		{"CHECK (((title)::text = ANY ((ARRAY['a'::character varying, 'b'::character varying])::text[])))", `title == "a" || title == "b"`},
 		{"CHECK ((title <> 'it''s'::text))", `title != "it's"`},
+		{"CHECK ((due_on = (loaned_on + 14)))", `dueOn == loanedOn + duration("P14D")`},
+		{"CHECK ((due_on > ((loaned_on + 14) - 2)))", `dueOn > loanedOn + duration("P14D") - duration("P2D")`},
+		{"CHECK ((due_on <= ('2026-01-01'::date + 30)))", `dueOn <= date("2026-01-01") + duration("P30D")`},
 	} {
 		got, reason := translateCheck(c.def, fields)
 		if reason != "" || got != c.want {
@@ -33,7 +36,8 @@ func TestTranslateCheck(t *testing.T) {
 		}
 	}
 	for _, def := range []string{
-		"CHECK ((due_on = (loaned_on + 14)))",
+		"CHECK ((copies = (loaned_on + 14)))",
+		"CHECK ((due_on = (loaned_on + 1.5)))",
 		"CHECK ((title ~ '^[A-Z]'::text))",
 		"CHECK ((upper(title) = title))",
 		"CHECK ((missing > 0))",

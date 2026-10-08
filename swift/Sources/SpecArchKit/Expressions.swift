@@ -179,6 +179,15 @@ func parseDuration(_ s: String) -> Decimal? {
     return Decimal(total)
 }
 
+extension Decimal {
+    /// Whether a duration in seconds is a whole number of days.
+    var isWholeDays: Bool {
+        var q = self / 86400, whole = Decimal()
+        NSDecimalRound(&whole, &q, 0, .down)
+        return whole == q
+    }
+}
+
 /// The file line of a line inside an expression scalar.
 func exprLine(_ n: YNode, _ line: Int) -> Int {
     n.style == .literal || n.style == .folded ? n.line + line : n.line + line - 1

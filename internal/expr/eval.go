@@ -189,6 +189,13 @@ func Eval(n *Node, vals map[string]Value) (Value, error) {
 }
 
 func arithmetic(n *Node, l, r Value) (Value, error) {
+	if l.Kind == Date {
+		days := int(r.Dur / (24 * time.Hour))
+		if n.Op == "-" {
+			days = -days
+		}
+		return Value{Kind: Date, Time: l.Time.AddDate(0, 0, days)}, nil
+	}
 	if l.Kind == Double {
 		var f float64
 		switch n.Op {
@@ -380,6 +387,12 @@ func call(n *Node, vals map[string]Value) (Value, error) {
 			return Value{}, evalErr(n, "%q is not a timestamp", a.Text)
 		}
 		return Value{Kind: Timestamp, Time: t}, nil
+	case "duration":
+		d, ok := ParseDuration(a.Text)
+		if !ok {
+			return Value{}, evalErr(n, "%q is not a duration", a.Text)
+		}
+		return Value{Kind: Duration, Dur: d}, nil
 	case "size":
 		switch a.Kind {
 		case String:

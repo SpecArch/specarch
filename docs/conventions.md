@@ -922,10 +922,18 @@ none; money needs one.
 | `string(x)` | `string(count)` | to string |
 | `date(x)` | `dueOn > date(loanedAt)` | the date of a timestamp, or a quoted date: `date("2026-10-07")` |
 | `timestamp(x)` | `timestamp("2026-10-07T09:30:00Z")` | a quoted RFC 3339 instant |
+| `duration(x)` | `duration("P14D")`, `duration("PT2H")` | a quoted ISO 8601 duration in days, hours, minutes and seconds |
+| date `+`, `-` duration | `dueOn == loanedOn + duration("P14D")` | a date moved by whole days, the date first and the days written in place |
 | `size(x)` | `size(fullName) <= 200` | the length of a string or a list, an int |
 | `round(x, places)` | `round(total, 2)` | a decimal or double rounded half away from zero; a decimal result has that scale |
 | `floor(x)`, `ceil(x)` | `floor(hours)` | down or up to a whole number, keeping the type |
 | `min(a, b, ...)`, `max(a, b, ...)` | `min(fee, replacementCost)` | the smallest or largest of two or more values of one type |
+
+A date moves only by whole days written in place: `loanedOn + 14` is
+refused, since a number names no unit, and so is `duration("PT12H")`
+added to a date, since a date has no time of day. `duration` reads the
+ISO 8601 form every other duration of the meta-model is written in, not
+CEL's `"336h"`, which has no day because CEL has no date.
 
 Decimal scales are tracked. `+` and `-` give the larger of the two scales,
 `*` the sum of the scales, `min`, `max` and `? :` the larger; `/` gives an

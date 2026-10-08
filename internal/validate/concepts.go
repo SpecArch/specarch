@@ -6,6 +6,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/expr"
 	"github.com/SpecArch/specarch/internal/source"
 )
 
@@ -37,7 +38,7 @@ func (c *checker) checkTimeout(n *yaml.Node, ptr string, rule Rule, what string)
 	if n == nil {
 		return
 	}
-	if dur, ok := parseDuration(n.Value); ok && dur == 0 {
+	if dur, ok := expr.ParseDuration(n.Value); ok && dur == 0 {
 		c.add(n, ptr, rule, "%s is no time at all; give %s a limit above zero", n.Value, what)
 	}
 }

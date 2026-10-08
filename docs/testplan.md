@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.5.0-dev of the specification: 250 design tests, 88 golden and 162 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.5.0-dev of the specification: 252 design tests, 89 golden and 163 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 246 |
+| system | 248 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1158,6 +1158,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-4.
 - Given: a worked example whose expected value is wrong
 - When: validate is run
 - Then: it reports example_mismatch with the computed value and exits 1
+
+#### validate-expression-date-days
+
+Scenario: golden; level: system; verifies SA-3.
+
+- Given: formulas that move a date forward and back by whole days, with worked examples across a month, a year and a leap day
+- When: validate is run
+- Then: it evaluates every example to the date it expects and exits 0
+
+#### validate-expression-date-number
+
+Scenario: red; level: system; covers exit 1; verifies SA-3.
+
+- Given: formulas that add a bare number, hours, weeks, and a duration written before the date to a date
+- When: validate is run
+- Then: it reports expression_type for each, with the form to write, and exits 1
 
 #### validate-expression-in-stage-file
 

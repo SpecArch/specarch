@@ -69,12 +69,12 @@ var binary = map[string]string{
 // Functions lists the functions of the subset.
 var Functions = map[string]bool{
 	"int": true, "uint": true, "double": true, "decimal": true, "string": true,
-	"date": true, "timestamp": true, "size": true, "round": true, "floor": true,
+	"date": true, "timestamp": true, "duration": true, "size": true, "round": true, "floor": true,
 	"ceil": true, "min": true, "max": true,
 }
 
 // FunctionList names the functions for messages.
-const FunctionList = "int, uint, double, decimal, string, date, timestamp, size, round, floor, ceil, min and max"
+const FunctionList = "int, uint, double, decimal, string, date, timestamp, duration, size, round, floor, ceil, min and max"
 
 var celParser = func() *parser.Parser {
 	p, err := parser.NewParser()

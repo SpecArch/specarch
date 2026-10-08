@@ -23,12 +23,13 @@ decisions:
       entity (the record submitted, selected or acted on), and may carry a
       message, a status message in a full sentence. An event on a page or an
       action that does not raise it, a page that does not exist, a route
-      parameter missing or not the target's, and a field the entity lacks
-      are refused (flow). IFML's concepts are taken and its diagram notation
+      parameter missing or not the target's, a field the entity lacks and a
+      message that is not a full sentence are refused (flow). IFML's concepts are taken and its diagram notation
       is not: the events are written on the page that raises them. The
       techspec's screen-flow diagram draws every event. A flow, under
       flows, is a task a person does across pages: its actor, a role that
-      must be allowed to open every page on the way, and its steps, each a
+      must be allowed to open every page on the way and take every action a
+      step names, and its steps, each a
       page and the event on it (select, submitted, or an action by its
       label) that leads to the next step's page; it is drawn as its steps
       and is a test subject. This decision is D3 of docs/ui-design.md and

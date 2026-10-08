@@ -56,8 +56,12 @@ func (c *checker) checkPageEvents(d *design) {
 	}
 }
 
-// checkEvent checks where one event leads.
+// checkEvent checks where one event leads, and that its message is a full
+// sentence.
 func (c *checker) checkEvent(d *design, ev *yaml.Node, base []string, fields map[string]*yaml.Node) {
+	if m := source.Child(ev, "message"); m != nil && !sentence(m.Value) {
+		c.add(m, source.Pointer(append(base, "message")...), RuleFlow, "the message is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one")
+	}
 	nav := source.Child(ev, "navigate")
 	with := source.Child(ev, "with")
 	if nav == nil {
@@ -159,6 +163,17 @@ func (c *checker) checkFlows(d *design) {
 				c.add(pageNode, source.Pointer(append(at, "page")...), RuleFlow, "%s cannot open %s, which needs %s; grant it to the role, or give the flow another actor", actor, pageNode.Value, perm)
 			}
 			event := source.Str(source.Child(step, "event"))
+			if event == "action" && role != nil {
+				for _, a := range source.Items(source.Child(pg, "actions")) {
+					if source.Str(source.Child(a, "label")) != source.Str(source.Child(step, "action")) {
+						continue
+					}
+					if perm := source.Str(source.Child(a, "permission")); perm != "" && !granted[perm] {
+						c.add(source.Child(step, "action"), source.Pointer(append(at, "action")...), RuleFlow, "%s cannot take the action %s, which needs %s; grant it to the role, or give the flow another actor", actor, source.Str(source.Child(step, "action")), perm)
+					}
+					break
+				}
+			}
 			target, raised := eventTarget(pg, event, source.Str(source.Child(step, "action")))
 			if !raised {
 				what := map[string]string{"select": "has no onSelect", "submitted": "is not a form", "action": "has no action labelled " + source.Str(source.Child(step, "action"))}[event]
@@ -167,7 +182,7 @@ func (c *checker) checkFlows(d *design) {
 			}
 			if i+1 < len(steps) {
 				next := source.Str(source.Child(steps[i+1], "page"))
-				if target != next {
+				if target != next && d.pages[next] != nil {
 					leads := "leads nowhere"
 					if target != "" {
 						leads = "leads to " + target
@@ -219,15 +234,20 @@ func (d *design) pageProblems(pg *yaml.Node) (names []string, by map[string]stri
 	return names, by
 }
 
-// sentence reports whether a message reads as a full sentence: a capital
-// or a digit first, and a full stop, question mark or exclamation mark last.
+// sentence reports whether a message reads as a full sentence: a capital,
+// a letter of a script without case, or a digit first, and a full stop,
+// question mark or exclamation mark last, in Latin or CJK form. Only the
+// ASCII spaces and a byte order mark around it are trimmed, the same in
+// both builds, since one YAML reader drops a byte order mark and the other
+// keeps it.
 func sentence(s string) bool {
-	s = strings.TrimSpace(s)
+	s = strings.Trim(s, " \t\n\r\v\f\ufeff")
 	if s == "" {
 		return false
 	}
-	first, last := []rune(s)[0], s[len(s)-1]
-	return (unicode.IsUpper(first) || unicode.IsDigit(first)) && strings.ContainsRune(".?!", rune(last))
+	rs := []rune(s)
+	first, last := rs[0], rs[len(rs)-1]
+	return unicode.In(first, unicode.Lu, unicode.Lt, unicode.Lo, unicode.Nd) && strings.ContainsRune(".?!。？！", last)
 }
 
 // checkPageStates checks a page's states: a list has empty, a list with
@@ -248,7 +268,7 @@ func (c *checker) checkPageStates(d *design) {
 		filters := len(source.Items(source.Child(pg, "filters"))) > 0
 		message := func(st *yaml.Node, at []string) {
 			if m := source.Child(st, "message"); m != nil && !sentence(m.Value) {
-				c.add(m, source.Pointer(append(at, "message")...), RuleState, "%q is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one", m.Value)
+				c.add(m, source.Pointer(append(at, "message")...), RuleState, "the message is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one")
 			}
 		}
 		for _, k := range []string{"empty", "filteredEmpty"} {
@@ -340,7 +360,7 @@ func (c *checker) checkCompactColumns(d *design) {
 }
 
 // checkAccessibility checks, once the specification names its target,
-// what the design decides of it: every field a page shows has a title, its
+// what the design decides of it: every field a page shows or filters by has a title, its
 // label (WCAG 2.2, 3.3.2 and 2.4.6), and no two actions of a page share a
 // label, so each has a name of its own (4.1.2).
 func (c *checker) checkAccessibility(d *design) {
@@ -352,7 +372,7 @@ func (c *checker) checkAccessibility(d *design) {
 	for _, p := range source.Pairs(source.Child(d.root, "pages")) {
 		name, pg := p.Key.Value, p.Value
 		ent := source.Str(source.Child(pg, "entity"))
-		for _, list := range [][]*yaml.Node{source.Items(source.Child(pg, "columns")), pageFields(pg)} {
+		for _, list := range [][]*yaml.Node{source.Items(source.Child(pg, "columns")), pageFields(pg), source.Items(source.Child(pg, "filters"))} {
 			for _, f := range list {
 				k := ent + "." + f.Value
 				if len(shownOn[k]) == 0 {

@@ -17,6 +17,12 @@ theme:
       loop: { $value: "{color.loop}" }
       veil: { $value: { colorSpace: srgb, components: [0, 0, 0], alpha: 0.5 } }
       gap: { $value: "{space.small}" }
+      hexInt: { $value: { colorSpace: srgb, components: [0x1, 0, 0] } }
+      shortForms: { $value: { colorSpace: srgb, components: [.5, 1e0, 0] } }
+      newline: { $value: { colorSpace: srgb, components: [0, 0, 0], hex: "#000000\n" } }
+      chained: { $value: "{color.wrongHex}" }
+    alias:
+      untyped: { $value: "{color.text}", $extensions: { org.example.tool: { locked: true } } }
     space:
       $type: dimension
       small: { $value: { value: 8, unit: px } }
@@ -41,3 +47,4 @@ theme:
     - { text: color.muted, background: color.background, use: largeText }
     - { text: color.veil, background: color.background, use: control }
     - { text: space.small, background: color.background, use: text }
+    - { text: alias.untyped, background: color.background, use: text }

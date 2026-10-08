@@ -2853,6 +2853,17 @@ let designSchemaJSON = #"""
         },
         "$description": {
           "type": "string"
+        },
+        "$extensions": {
+          "description": "The format's extensions, keyed by the reverse domain of the tool that writes them; SpecArch keeps them and reads none.",
+          "type": "object"
+        },
+        "$deprecated": {
+          "description": "The format's deprecation: true, or a sentence saying what to use instead.",
+          "type": [
+            "boolean",
+            "string"
+          ]
         }
       },
       "patternProperties": {
@@ -2874,7 +2885,7 @@ let designSchemaJSON = #"""
       "additionalProperties": false
     },
     "designToken": {
-      "description": "A design token: its $value, of its type or an alias of another token written {group.token}, its $type when no group gives it, and a $description.",
+      "description": "A design token: its $value, of its type or an alias of another token written {group.token}, its $type when no group gives it and it is not an alias, a $description, and the format's $extensions and $deprecated.",
       "type": "object",
       "properties": {
         "$value": {},
@@ -2884,6 +2895,17 @@ let designSchemaJSON = #"""
         },
         "$description": {
           "type": "string"
+        },
+        "$extensions": {
+          "description": "The format's extensions, keyed by the reverse domain of the tool that writes them; SpecArch keeps them and reads none.",
+          "type": "object"
+        },
+        "$deprecated": {
+          "description": "The format's deprecation: true, or a sentence saying what to use instead.",
+          "type": [
+            "boolean",
+            "string"
+          ]
         }
       },
       "required": [

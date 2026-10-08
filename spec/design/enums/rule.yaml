@@ -125,7 +125,7 @@ enums:
       session: a session's idle or absolute timeout is zero
       guard: a `guard` names an entity that does not exist (its precondition is checked as a check constraint is)
       operation: a `source`, `submit` or operation action names an operationId that does not exist
-      page: a navigate action names a page that does not exist
+      page: "a navigate action names a page that does not exist, compactColumns is on a page that is not a list or names a column the list lacks, or a page gives its fields as neither or both of fields and sections, shows a field in two sections, or is a list with sections"
       algorithm: an `algorithm` reference names an algorithm that does not exist
       decision: a `supersededBy` names a decision that does not exist, or an implementation decision reuses a design decision's ID
       enum_value: a `valueDescriptions` key is not a value of its enum
@@ -196,8 +196,8 @@ enums:
       job: "a job acts as a role the specification does not have, reads or writes an entity it does not have, or consumes a message no channel declares"
       menu: "a menu entry opens a page the specification does not have"
       view: "a view reads from an entity the specification does not have, follows a path or counts a relation that does not lead where it must, repeats a field of its entity, shares an entity's name, or is used where it would be written"
-      flow: "a page event is on a page or an action that does not raise it, leads to a page the specification does not have, or does not give that page exactly its route parameters from fields of the page's entity"
+      flow: "a page event is on a page or an action that does not raise it, leads to a page the specification does not have, does not give that page exactly its route parameters from fields of the page's entity, or carries a message that is not a full sentence; or a flow's actor is not a role or may not open a page or take an action on the way, a step's page does not exist or does not raise its event, or an event leads somewhere other than the next step's page"
       state: "a page's states leave out the empty state a list shows or the filtered empty state its filters can reach, name one it cannot reach, leave a problem type the page can meet without a message and without a default, name a problem type it cannot meet, put a field on a page that is not a form or that the form does not show, or give a message that is not a full sentence"
       accessibility: "once the specification names its accessibility target, a field a page shows has no title, or two actions of a page share a label"
       theme: "a design token has no type, a type SpecArch does not take, or a value not of its type, an alias names no token or one of another type or leads back to itself, a mode gives a token that does not exist, or a pair of colours is translucent or has less contrast than WCAG 2.2 asks of its use"
-    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41]
+    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42]

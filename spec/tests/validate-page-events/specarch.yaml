@@ -71,7 +71,7 @@ pages:
     columns: [fullName]
     onSelect: { navigate: member-view, with: { memberId: id } }
     actions:
-      - { label: Remove, kind: operation, target: removeMember, then: { message: Member removed. } }
+      - { label: Remove, kind: operation, target: removeMember, then: { message: member removed } }
       - { label: Remove and show, kind: operation, target: removeMember, then: { navigate: member-veiw } }
       - { label: Remove and open, kind: operation, target: removeMember, then: { navigate: member-view, with: { id: id } } }
   member-form:

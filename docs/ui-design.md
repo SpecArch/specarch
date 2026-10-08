@@ -35,10 +35,11 @@ beside it in the implementation file. Its findings, in short:
 5. Build one UI generator first, SwiftUI, against a real hand-built screen,
    and the plain JavaScript web generator after it.
 
-Decisions D1 to D9 at the end are for the owner to confirm or veto before
-the keywords are built.
+Decisions D1 to D9 at the end are for the owner to confirm or veto. D2 to
+D7 are built as ADR-034 to ADR-039, which stay proposed until the owner
+confirms them; D9 waits for the owner's pick.
 
-## What exists
+## The base it builds on
 
 | Keyword | What it says | Checked |
 |---|---|---|
@@ -50,7 +51,7 @@ the keywords are built.
 The roadmap names two UI generators, SwiftUI for the iPhone and plain
 JavaScript for the web, and `docs/generators.md` sets the rule for them:
 an emitter is written against one hand-built screen in a real project and
-has to reproduce it before it is accepted. None is built.
+has to reproduce it before it is accepted. Which one comes first is D9.
 
 ## Where the standards and the platforms stand
 
@@ -67,7 +68,7 @@ those are the ones a specification can check: text contrast of at least
 1.4.11); a label for every input (3.3.2) and a name for every control
 (4.1.2); an error identified in text and a suggestion when one is known
 (3.3.1, 3.3.3); a consistent order of navigation on every page (3.2.3); a
-target of at least 24 by 24 CSS pixels (2.5.8, new in 2.2); no reliance on
+target of at least 24 by 24 CSS pixels (2.5.8, added in 2.2); no reliance on
 colour alone (1.4.1); and a status message announced without moving focus
 (4.1.3). Why it is the way it is: the criteria are written to be testable
 by a person or a tool, so that "accessible" is a result and not an
@@ -106,7 +107,7 @@ knows them.
 (size classes compact and regular, a hit target of 44 by 44 points,
 navigation by stack, split view or tab bar) and Material Design 3 (window
 size classes compact, medium and expanded at 600 and 840 density
-independent pixels). Both say the same thing a design needs to know:
+independent pixels, with large and extra large above 1200 and 1600). Both say the same thing a design needs to know:
 what to keep and what to move when the window is compact. Neither belongs
 in the design: the number of points and the kind of navigation are a
 stack's.
@@ -152,25 +153,25 @@ and a red `fails with <problem>` per problem type.
 
 ### Events and screen flows
 
-A page raises events: the actions it has today, a form's submission that
-succeeded or failed, a selected row of a list. Each event leads
-somewhere: to another page with the parameters it carries, back, to the
-same page with a message, or to an operation. Today only an action of
-kind navigate says where it leads. The design adds `then` to an action
-and `onSubmitted` to a form:
+A page raises events: its actions, a form's successful submission, a
+selected row of a list. Each event leads somewhere: to another page with
+the parameters it carries, or it stays on the same page with a message.
+An action of kind navigate says where it leads by its target; a form says
+it with `onSubmitted`, a list with `onSelect`, and an action of kind
+operation with `then`:
 
     member-form:
       kind: form
       submit: createMember
-      onSubmitted: { navigate: member-view, with: { memberId: id }, message: Member registered. }
+      onSubmitted: { navigate: member-view, with: { memberId: id }, message: The member is registered. }
     members-list:
       kind: list
       onSelect: { navigate: member-view, with: { memberId: id } }
 
-`with` maps the target's route parameters to the fields of the response
-or the selected row, and each is checked (`flow`). An action of kind
-operation gains `then` with the same shape. A message after an event is a
-status message, announced without moving focus (WCAG 4.1.3).
+`with` maps the target's route parameters to fields of the page's
+entity, the record submitted, selected or acted on, and each is checked
+(`flow`). A message after an event is a status message in a full
+sentence, announced without moving focus (WCAG 4.1.3).
 
 A flow is a task a person does across pages, named once, so that the
 documents can draw it and a test can walk it:
@@ -181,15 +182,16 @@ documents can draw it and a test can walk it:
         actor: librarian
         steps:
           - { page: members-list, event: select }
-          - { page: member-view, event: "action: Lend a book" }
+          - { page: member-view, event: action, action: Lend a book }
           - { page: loan-form, event: submitted }
         satisfies: [LIB-7]
 
 Each step must be reachable from the one before by an event the page
-declares (`flow`). The techspec draws each flow as a Mermaid flowchart
-of its steps, and the screen-flow diagram that exists grows to every
-event. A flow is a test subject: its golden case walks the steps, and its
-red cases are the failed states on the way.
+declares, and the actor must be allowed to open each page and take each
+action on the way (`flow`). The techspec draws each flow as a Mermaid
+flowchart of its steps, and its screen-flow diagram draws every event. A
+flow is a test subject: its golden case walks the steps, and like every
+subject it asks for a red test, such as a refusal on the last step.
 
 ### Sections and order
 
@@ -236,12 +238,15 @@ With a target, the validator checks what the design decides (`accessibility`):
   label);
 - every action has a label, and no two actions of a page share one, so a
   screen reader can tell them apart (4.1.2);
+- a field a list filters by has a title too, since a filter is an input
+  (3.3.2);
 - the contrast of every pair of colour tokens the theme declares is at
   least what its use asks at the target's level: 4.5:1 for text and 3:1
   for large text and the parts of a control at AA (1.4.3, 1.4.11), 7:1
   and 4.5:1 for text at AAA (1.4.6), in every mode, computed by WCAG's
   own formula for relative luminance on 8-bit sRGB values. A theme
-  without a target is held to AA, the level laws ask for.
+  without a target, or with level A, at which WCAG asks no contrast, is
+  held to AA, the level laws ask for.
 
 Whether a problem is about one field the validator cannot tell, so a
 failed state names its `field` when the analyst knows it. Whether a state
@@ -286,7 +291,7 @@ given, is the colour the components give. A token may be an alias of
 another, `{group.token}`, as the format allows. The types taken are
 color, dimension, fontFamily, fontWeight, duration and number.
 
-`modes` gives a token another value in a mode, light being the default.
+`modes` gives a token another value in a mode, the tokens' own values being the default.
 `pairs` names which colours are shown on which background and for what
 `use`: text, large text, or the parts of a control. That is what the
 contrast check reads. The design file holds values and names
@@ -295,9 +300,10 @@ custom properties for the web, an asset catalogue and a `Color` extension
 for SwiftUI). A specification without a theme is valid: the stack's own
 look applies, and the contrast check has nothing to read.
 
-What is left out on purpose: a typography scale beyond the format's own
-`typography` type, motion, illustrations and icons as files. They are
-added when a real specification needs them.
+What is left out on purpose: the format's composite types (typography,
+shadow, border, transition, gradient, stroke style) and its cubic Bézier
+curves, motion, illustrations and icons as files. They are taken when a
+real specification needs them.
 
 ## What a generator needs beside the design
 
@@ -319,12 +325,11 @@ component part and keeps the rest.
 
 ## The documents
 
-The techspec's pages part grows to:
+The techspec's pages part has:
 
 - the screen-flow diagram with every event: navigation, submission,
   selection, and the operations called;
-- a Mermaid flowchart per flow, its steps and the failed states on the
-  way;
+- a Mermaid flowchart per flow, its steps and the event of each;
 - per page, its sections in order, its states with their messages, and
   what it keeps on a compact screen;
 - the theme's tokens with their values per mode, and each text pair's
@@ -361,12 +366,14 @@ before it.
 | D3 | Events and flows after IFML: `onSubmitted`, `onSelect` and an action's `then`, each with `navigate`, `with` and `message`; `flows` as named tasks across pages, each a test subject | confirm |
 | D4 | A form or view gives its fields once, as `fields` or as titled `sections`, and the order is the focus order | confirm |
 | D5 | One screen class, compact, with `compactColumns`; the stack sets its size | confirm |
-| D6 | `accessibility: { standard: WCAG 2.2, level: AA }` in the design turns on the checks listed above; without it nothing is checked | confirm |
+| D6 | `accessibility: { standard: WCAG 2.2, level: AA }` in the design turns on the checks listed above; without it only the theme's contrast is checked, at AA | confirm |
 | D7 | The theme is `design/theme.yaml` in the Design Tokens Community Group format, `$type` and `$value` kept, srgb colours only, with `modes` and `pairs` as SpecArch's | confirm |
 | D8 | No wireframe images in the documents; the structure table and the diagrams instead | confirm |
 | D9 | The first UI generator is SwiftUI, against a hand-built screen of an existing app; the web one follows | the owner picks |
 
 ## Implementation items, in order
+
+Items 1 to 5 are built; item 6 waits for D9.
 
 1. The keywords of D2 to D7 in the schema, `docs/conventions.md` and the
    rule enum (`state`, `flow`, `accessibility`, `theme`), spec first, with

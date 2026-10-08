@@ -495,8 +495,6 @@ extension Design {
         return s
     }
 
-    /// A job's tests: it runs, it runs twice over the same records without a
-    /// second effect, its dependencies fail, and an item fails every time.
     /// A flow as a test subject: its golden case walks the steps.
     func screenFlowSubject(_ p: Pair) -> Subject {
         let name = p.key.value
@@ -506,6 +504,8 @@ extension Design {
         return s
     }
 
+    /// A job's tests: it runs, it runs twice over the same records without a
+    /// second effect, its dependencies fail, and an item fails every time.
     func jobSubject(_ p: Pair) -> Subject {
         let name = p.key.value
         let s = Subject(label: "job " + name, node: p.key, path: pointer("jobs", name), yamlKey: "job: " + name, name: kebab(name))

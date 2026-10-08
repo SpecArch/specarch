@@ -11,16 +11,18 @@ decisions:
       build: every input has a label (3.3.2), labels describe their purpose
       (2.4.6), every control has a name of its own (4.1.2), errors are
       identified in text (3.3.1), status messages are announced (4.1.3).
-      A specification can check those before a screen exists. A field has
-      no label today: a page shows its name.
+      A specification can check those before a screen exists. Without a
+      label, a page can only show a field's name.
     decision: |
       accessibility names the target once, with its standard (WCAG 2.2)
       and its level (A, AA or AAA). With it, the validator checks that every
-      field a page shows has a title, JSON Schema's own keyword, used as
-      its label, and that no two actions of a page share a label
-      (accessibility). Without it, nothing is checked. The techspec lists
-      every criterion of the level that the interface meets, and whether
-      the design, the generator or a person meets it. This decision is D6
+      field a page shows or filters by has a title, JSON Schema's own
+      keyword, used as its label, and that no two actions of a page share a
+      label (accessibility). Without it, neither is checked; a theme's
+      contrast is checked either way. The techspec lists the criteria of
+      the level that the design settles or leaves to the generator, and who
+      meets each; every other criterion of the level is a person's to check
+      at commissioning. This decision is D6
       of docs/ui-design.md and waits for the owner to confirm or veto it.
     consequences: |
       A specification that claims a level shows, criterion by criterion,

@@ -696,9 +696,9 @@ Scenario: red; level: system; covers exit 2, usage error; verifies SA-32.
 
 Scenario: red; level: system; covers exit 1; verifies SA-42.
 
-- Given: a specification that names WCAG 2.2 at level AA, whose pages show a field with a title and two without one, and a page with two actions of the same label
+- Given: a specification that names WCAG 2.2 at level AA, whose pages show or filter by a field with a title and two without one, and a page with two actions of the same label
 - When: validate is run
-- Then: it reports accessibility for each field without a title, naming the pages that show it, and for the second action, and exits 1
+- Then: it reports accessibility for each field without a title, naming the pages that show it or filter by it, and for the second action, and exits 1
 
 #### validate-algorithm
 
@@ -1040,7 +1040,7 @@ Scenario: red; level: system; covers exit 1.
 
 Scenario: red; level: system; covers exit 1; verifies SA-42.
 
-- Given: a flow that is right and a test that walks it; flows by a role that does not exist, through a page that does not exist, by a role that may not open a page on the way, and with events a page does not raise or that lead elsewhere; and a test of a flow that does not exist
+- Given: a flow that is right and a test that walks it; flows by a role that does not exist, through a page that does not exist, by a role that may not open a page on the way nor take an action on it, and with events a page does not raise or that lead elsewhere; and a test of a flow that does not exist
 - When: validate is run
 - Then: it reports flow eight times and test_subject once, warns that the flows lack tests, and exits 1
 
@@ -1312,9 +1312,9 @@ Scenario: red; level: system; covers exit 1.
 
 Scenario: red; level: system; covers exit 1; verifies SA-42.
 
-- Given: pages whose events lead to a page that does not exist, to a page without its route parameter and with one it does not have, from a field the entity lacks, an onSubmitted on a view, and a then on an action that navigates; besides a list's onSelect and an operation's then with only a message, which are right
+- Given: pages whose events lead to a page that does not exist, to a page without its route parameter and with one it does not have, from a field the entity lacks, an onSubmitted on a view, a then on an action that navigates, and a message that is not a sentence; besides a list's onSelect and an operation's then with only a message, which are right
 - When: validate is run
-- Then: it reports flow six times, and exits 1
+- Then: it reports flow seven times, and exits 1
 
 #### validate-page-states
 
@@ -1736,9 +1736,9 @@ Scenario: red; level: system; covers exit 1; verifies SA-21.
 
 Scenario: red; level: system; covers exit 1; verifies SA-42.
 
-- Given: a theme of design tokens with a dark mode and pairs of colours, at the AA target, holding a hex that is not its components, a colour outside srgb, an alias that leads back to itself and one to a token of another type, a dimension in a unit not taken, a token with no type, one of a type not taken, a misspelt $value, a mode naming a token that does not exist, pairs below the contrast their use asks for in the default and the dark mode, a translucent pair, and a pair naming a dimension
+- Given: a theme of design tokens with a dark mode and pairs of colours, at the AA target, holding a hex that is not its components, a hexadecimal component, a hex with a trailing line break, a colour outside srgb, an alias that leads back to itself and one to a token of another type, a dimension in a unit not taken, a token with no type, one of a type not taken, a misspelt $value, a mode naming a token that does not exist, pairs below the contrast their use asks for in the default and the dark mode, a translucent pair, a pair naming a dimension; besides components written .5 and 1e0, an alias of a bad colour, and an alias with no type and with extensions in a pair, which are right
 - When: validate is run
-- Then: it reports theme thirteen times and schema once, and exits 1
+- Then: it reports theme fifteen times and schema once, and exits 1
 
 #### validate-traceability-warnings
 

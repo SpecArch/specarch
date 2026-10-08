@@ -657,7 +657,9 @@ kind operation; an action of kind navigate leads already. `navigate` names
 a page, and `with` gives exactly that page's route parameters, each from
 a field of the page's entity: the record submitted, selected or acted on.
 `message` is a status message, a full sentence, announced without moving
-focus (WCAG 2.2, 4.1.3). An event with only a message stays on the page.
+focus (WCAG 2.2, 4.1.3). A full sentence starts with a capital, a letter
+of a script without case or a digit, and ends with a full stop, a
+question mark or an exclamation mark, in Latin or CJK form. An event with only a message stays on the page.
 Every rule here is `flow`. The concepts are IFML's events and navigation
 flows; its diagram notation is not used, and the techspec draws the
 screen flow from the pages.
@@ -674,7 +676,7 @@ kebab case:
         - { page: loan-form, event: submitted }
 
 The `actor` is a role, and it must be allowed to open every page on the
-way. Each step is a page and the `event` on it: `select`, `submitted`, or
+way and to take every action a step names. Each step is a page and the `event` on it: `select`, `submitted`, or
 `action` with the action's label. Every event but the last must lead to
 the next step's page (`flow`). The techspec draws each flow as its steps.
 A test names a flow as its subject with `flow: <name>`; its golden case
@@ -748,19 +750,23 @@ The specification names its target once, in the design:
 
     accessibility: { standard: WCAG 2.2, level: AA }
 
-With it, every field a page shows has a `title`, JSON Schema's keyword,
-which is the label a person reads beside it (WCAG 2.2, 3.3.2 and 2.4.6),
-and no two actions of a page share a label (4.1.2); both are
-`accessibility`. Without it, neither is checked. The techspec lists every
-criterion of the level and whether the design, the generator or a person
-meets it.
+With it, every field a page shows or filters by has a `title`, JSON
+Schema's keyword, which is the label a person reads beside it (WCAG 2.2,
+3.3.2 and 2.4.6), and no two actions of a page share a label (4.1.2);
+both are `accessibility`. Without it, neither is checked; the theme's
+contrast is checked either way. The techspec lists the criteria of the
+level that the design settles or leaves to the generator, and says who
+meets each; every other criterion is checked at commissioning.
 
 ### Theme
 
 The visual design is one object, `theme`, in `design/theme.yaml`. Its
 `tokens` are in the format of the W3C Design Tokens Community Group:
 groups and tokens, each token a `$value` and a `$type` given by it or a
-group above it, and an alias of another token written `{group.token}`:
+group above it, an alias of another token written `{group.token}`, which
+takes that token's type when nothing else gives one, and the format's
+`$description`, `$extensions` and `$deprecated`, which SpecArch keeps and
+does not read:
 
     theme:
       tokens:
@@ -768,6 +774,7 @@ group above it, and an alias of another token written `{group.token}`:
           $type: color
           text: { $value: { colorSpace: srgb, components: [0.1059, 0.1216, 0.1412], hex: "#1b1f24" } }
           background: { $value: { colorSpace: srgb, components: [1, 1, 1], hex: "#ffffff" } }
+          accent: { $value: { colorSpace: srgb, components: [0.0431, 0.3608, 0.6784], hex: "#0b5cad" } }
           link: { $value: "{color.accent}" }
         space:
           $type: dimension
@@ -775,18 +782,23 @@ group above it, and an alias of another token written `{group.token}`:
       modes:
         dark:
           color.text: { colorSpace: srgb, components: [0.902, 0.9098, 0.9216], hex: "#e6e8eb" }
+          color.background: { colorSpace: srgb, components: [0.0627, 0.0706, 0.0784], hex: "#101214" }
+          color.accent: { colorSpace: srgb, components: [0.4235, 0.6902, 0.9608], hex: "#6cb0f5" }
       pairs:
         - { text: color.text, background: color.background, use: text }
+        - { text: color.link, background: color.background, use: text }
 
 The types taken are color (in the srgb space, three components from 0 to
 1, and an `alpha` and a `hex` that must be the components' colour),
 dimension (px or rem), fontFamily, fontWeight, duration (ms or s) and
-number. `modes` gives tokens, by path, another value; the tokens' own
+number. A number is written in decimals: a hexadecimal, octal or binary
+integer and a digit separator are refused. `modes` gives tokens, by path, another value; the tokens' own
 values are the default. Each pair is a `text` colour on a `background`
 colour, with its `use`: `text`, `largeText` (18 point, or 14 point bold)
 or `control` (the parts of a control and graphics). Its contrast must
-reach what WCAG 2.2 asks of the use at the accessibility target's level,
-AA when none is named, in every mode: 4.5:1 for text, 3:1 for large text
+reach what WCAG 2.2 asks of the use, at AAA when the accessibility target
+is AAA and at AA otherwise, since WCAG asks no contrast at level A, in
+every mode: 4.5:1 for text, 3:1 for large text
 and controls, and at AAA 7:1 and 4.5:1 for text (1.4.3, 1.4.6, 1.4.11).
 A translucent colour in a pair is refused, since its contrast depends on
 what lies beneath. Every rule here is `theme`. How a token becomes code is

@@ -14,8 +14,10 @@ struct DesignToken {
 let tokenTypes: Set<String> = ["color", "dimension", "fontFamily", "fontWeight", "duration", "number"]
 let fontWeights: Set<String> = ["thin", "hairline", "extra-light", "ultra-light", "light", "normal", "regular", "book",
                                 "medium", "semi-bold", "demi-bold", "bold", "extra-bold", "ultra-bold", "black", "heavy", "extra-black", "ultra-black"]
-let aliasPattern = try! NSRegularExpression(pattern: "^\\{([^{}]+)\\}$")
-let hexPattern = try! NSRegularExpression(pattern: "^#[0-9a-fA-F]{6}$")
+let aliasPattern = try! NSRegularExpression(pattern: "\\A\\{([^{}]+)\\}\\z")
+let hexPattern = try! NSRegularExpression(pattern: "\\A#[0-9a-fA-F]{6}\\z")
+/// A number in decimals, with an optional sign, fraction and exponent.
+let decimalPattern = try! NSRegularExpression(pattern: "\\A[-+]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)([eE][-+]?[0-9]+)?\\z")
 
 /// WCAG 2.2's linear value of each 8-bit sRGB channel: c/12.92 up to
 /// 0.04045, ((c+0.055)/1.055)^2.4 above, with c the channel over 255. It is
@@ -116,9 +118,12 @@ func collectTokens(_ group: YNode?, _ prefix: String, _ typ: String, _ out: inou
     }
 }
 
-/// A YAML number, or nil for anything else.
+/// A YAML number written in decimals, or nil for anything else: a
+/// hexadecimal, octal or binary integer and a digit separator are refused,
+/// so both builds read the same numbers.
 func numberOf(_ n: YNode?) -> Double? {
-    guard let n, n.kind == .scalar, n.tag == "!!int" || n.tag == "!!float" else { return nil }
+    guard let n, n.kind == .scalar, n.tag == "!!int" || n.tag == "!!float",
+          decimalPattern.firstMatch(in: n.value, range: NSRange(n.value.startIndex..., in: n.value)) != nil else { return nil }
     return Double(n.value)
 }
 
@@ -201,6 +206,29 @@ func pairFloor(_ use: String, _ level: String) -> (Double, String, String) {
     return level == "AAA" ? (7, "7", "1.4.6") : (4.5, "4.5", "1.4.3")
 }
 
+/// The tokens of a theme, in order and by path. A token whose value is an
+/// alias and that no group gives a type takes the type of the token it
+/// names, as the format says.
+func themeTokens(_ theme: YNode) -> ([DesignToken], [String: DesignToken]) {
+    var list: [DesignToken] = []
+    collectTokens(theme.child("tokens"), "", "", &list)
+    var byPath: [String: DesignToken] = [:]
+    for t in list { byPath[t.path] = t }
+    for (i, t) in list.enumerated() {
+        var typ = t.typ
+        var v = t.value
+        var seen = Set<String>()
+        while typ.isEmpty, let alias = aliasOf(v), !seen.contains(alias), let target = byPath[alias] {
+            seen.insert(alias)
+            typ = target.typ
+            v = target.value
+        }
+        list[i] = DesignToken(path: t.path, typ: typ, value: t.value, key: t.key)
+        byPath[t.path] = list[i]
+    }
+    return (list, byPath)
+}
+
 extension Checker {
     /// Checks the theme: every token has a type SpecArch takes and a value
     /// of that type, an alias names a token of the same type and does not
@@ -209,19 +237,20 @@ extension Checker {
     /// the target's level, AA when none is named, in every mode.
     func checkTheme(_ d: Design) {
         guard let theme = d.root.child("theme") else { return }
-        var list: [DesignToken] = []
-        collectTokens(theme.child("tokens"), "", "", &list)
-        var byPath: [String: DesignToken] = [:]
-        var known: [String: YNode] = [:]
-        for t in list { byPath[t.path] = t; known[t.path] = t.key }
+        let (list, byPath) = themeTokens(theme)
+        func known(_ typ: String, _ me: String) -> [String: YNode] {
+            var out: [String: YNode] = [:]
+            for t in list where (typ.isEmpty || t.typ == typ) && t.path != me { out[t.path] = t.key }
+            return out
+        }
         func ptr(_ path: String, _ more: [String] = []) -> String {
             pointer(["theme", "tokens"] + path.split(separator: ".", omittingEmptySubsequences: false).map(String.init) + more)
         }
-        func resolve(_ typ: String, _ v: YNode, _ overrides: [String: YNode]) -> (YNode?, String) {
+        func resolve(_ me: String, _ typ: String, _ v: YNode, _ overrides: [String: YNode]) -> (YNode?, String) {
             var v = v
             var seen = Set<String>()
             while let alias = aliasOf(v) {
-                guard let target = byPath[alias] else { return (nil, alias + " is not a token of the theme" + suggest(alias, known)) }
+                guard let target = byPath[alias] else { return (nil, alias + " is not a token of the theme" + suggest(alias, known(typ, me))) }
                 if target.typ != typ { return (nil, alias + " is a " + target.typ + " token, and this one is a " + typ) }
                 if seen.contains(alias) { return (nil, "the aliases lead back to " + alias) }
                 seen.insert(alias)
@@ -238,9 +267,9 @@ extension Checker {
                 add(t.key, ptr(t.path), .theme, "\(t.path) is a \(t.typ) token, which SpecArch does not take yet; it takes color, dimension, fontFamily, fontWeight, duration and number")
                 continue
             }
-            var (v, why) = resolve(t.typ, t.value, [:])
-            if why.isEmpty, let v { why = tokenValue(t.typ, v) }
-            _ = v
+            // An alias is checked for what it names; the value it leads to is
+            // reported where it is written.
+            let why = aliasOf(t.value) != nil ? resolve(t.path, t.typ, t.value, [:]).1 : tokenValue(t.typ, t.value)
             if !why.isEmpty { add(t.value, ptr(t.path, ["$value"]), .theme, "\(t.path): \(why)") }
         }
         var modes: [String: [String: YNode]] = [:]
@@ -251,19 +280,19 @@ extension Checker {
             for kv in pairs(m.value) {
                 let at = pointer("theme", "modes", m.key.value, kv.key.value)
                 guard let t = byPath[kv.key.value] else {
-                    add(kv.key, at, .theme, "\(kv.key.value) is not a token of the theme\(suggest(kv.key.value, known))")
+                    add(kv.key, at, .theme, "\(kv.key.value) is not a token of the theme\(suggest(kv.key.value, known("", "")))")
                     continue
                 }
                 modes[m.key.value]![kv.key.value] = kv.value
                 if !tokenTypes.contains(t.typ) { continue }
-                var (v, why) = resolve(t.typ, kv.value, modes[m.key.value]!)
-                if why.isEmpty, let v { why = tokenValue(t.typ, v) }
-                _ = v
+                let why = aliasOf(kv.value) != nil ? resolve(kv.key.value, t.typ, kv.value, modes[m.key.value]!).1 : tokenValue(t.typ, kv.value)
                 if !why.isEmpty { add(kv.value, at, .theme, "\(kv.key.value) in the \(m.key.value) mode: \(why)") }
             }
         }
+        // WCAG 2.2 asks no contrast at level A, so a theme is held to AA
+        // unless the target is AAA.
         var level = str(d.root.child("accessibility")?.child("level"))
-        if level.isEmpty { level = "AA" }
+        if level != "AAA" { level = "AA" }
         for (i, p) in items(theme.child("pairs")).enumerated() {
             let at = ["theme", "pairs", "\(i)"]
             var bad = false
@@ -275,7 +304,7 @@ extension Checker {
                         bad = true
                     }
                 } else {
-                    add(n, pointer(at + [k]), .theme, "\(str(n)) is not a token of the theme\(suggest(str(n), known))")
+                    add(n, pointer(at + [k]), .theme, "\(str(n)) is not a token of the theme\(suggest(str(n), known("color", "")))")
                     bad = true
                 }
             }
@@ -286,7 +315,7 @@ extension Checker {
             for mode in [""] + modeNames {
                 let overrides = modes[mode] ?? [:]
                 func value(_ path: String) -> YNode? {
-                    resolve("color", overrides[path] ?? byPath[path]!.value, overrides).0
+                    resolve(path, "color", overrides[path] ?? byPath[path]!.value, overrides).0
                 }
                 guard let tv = value(text), let bv = value(background),
                       tokenValue("color", tv).isEmpty, tokenValue("color", bv).isEmpty else { continue } // reported with the token

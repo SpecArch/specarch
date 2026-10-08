@@ -2,7 +2,7 @@ command: validate
 level: system
 scenario: red
 covers: [exit 1]
-given: "a flow that is right and a test that walks it; flows by a role that does not exist, through a page that does not exist, by a role that may not open a page on the way, and with events a page does not raise or that lead elsewhere; and a test of a flow that does not exist"
+given: "a flow that is right and a test that walks it; flows by a role that does not exist, through a page that does not exist, by a role that may not open a page on the way nor take an action on it, and with events a page does not raise or that lead elsewhere; and a test of a flow that does not exist"
 when: "validate is run"
 then: "it reports flow eight times and test_subject once, warns that the flows lack tests, and exits 1"
 verifies: [SA-42]

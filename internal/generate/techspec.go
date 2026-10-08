@@ -987,14 +987,15 @@ var wcagCriteria = []struct{ id, name, level, who, how string }{
 	{"1.3.1", "Info and relationships", "A", "the generator", "a page's title, its labels and its order become the stack's headings and labelled controls"},
 	{"1.4.1", "Use of color", "A", "the generator", "a state or a value is shown in text as well as in colour"},
 	{"1.4.3", "Contrast (minimum)", "AA", "the generator", "the stack's own colours, which a person checks"},
+	{"1.4.6", "Contrast (enhanced)", "AAA", "the generator", "the stack's own colours, which a person checks"},
 	{"1.4.11", "Non-text contrast", "AA", "the generator", "the stack's own colours for the parts of controls, which a person checks"},
 	{"2.1.1", "Keyboard", "A", "the generator", "every action and field is reachable without a pointer"},
 	{"2.4.3", "Focus order", "A", "the design", "the order of a page's fields and columns is its focus order"},
-	{"2.4.6", "Headings and labels", "AA", "the design, checked", "every page has a title, every field it shows a title, and every action a label of its own"},
+	{"2.4.6", "Headings and labels", "AA", "the design, checked", "every page has a title, every field it shows or filters by a title, and every action a label of its own"},
 	{"2.5.8", "Target size (minimum)", "AA", "the generator", "every control is at least 24 by 24 CSS pixels"},
 	{"3.2.3", "Consistent navigation", "AA", "the design", "the menu is one tree, the same on every page"},
-	{"3.3.1", "Error identification", "A", "the design, checked", "every failed state a page declares is a message in a full sentence, beside the field it is about"},
-	{"3.3.2", "Labels or instructions", "A", "the design, checked", "every field a page shows has a title"},
+	{"3.3.1", "Error identification", "A", "the design, checked", "every failed state a page declares is a message in a full sentence, shown beside the field it names when it names one"},
+	{"3.3.2", "Labels or instructions", "A", "the design, checked", "every field a page shows or filters by has a title"},
 	{"4.1.2", "Name, role, value", "A", "the design, checked, and the generator", "every action has a label of its own; the generator gives each control its role"},
 	{"4.1.3", "Status messages", "AA", "the design and the generator", "every event's message and every state is text, which the generator announces without moving focus"},
 }
@@ -1004,7 +1005,7 @@ var wcagCriteria = []struct{ id, name, level, who, how string }{
 func accessibilityTable(d *doc, a *yaml.Node, pairs bool) {
 	level := str(a, "level")
 	d.heading(3, "Accessibility")
-	d.para("The user interface conforms to " + str(a, "standard") + " at level " + level + ". What the design decides is in the specification, and the validator checks what it can; the rest is the generator's to build and a person's to check at commissioning.")
+	d.para("The target is " + str(a, "standard") + " at level " + level + ". Of its criteria, these are settled in the design or left to the generator, as the table says; the validator checks those marked checked, and every other criterion of the level is a person's to check at commissioning.")
 	d.line("| Criterion | Level | Met by | How |")
 	d.line("|---|---|---|---|")
 	for _, c := range wcagCriteria {
@@ -1012,7 +1013,7 @@ func accessibilityTable(d *doc, a *yaml.Node, pairs bool) {
 			continue
 		}
 		who, how := c.who, c.how
-		if pairs && (c.id == "1.4.3" || c.id == "1.4.11") {
+		if pairs && (c.id == "1.4.3" || c.id == "1.4.6" || c.id == "1.4.11") {
 			who, how = "the design, checked", "every pair of colours the theme declares has the contrast its use asks for, in every mode"
 		}
 		d.line("| %s %s | %s | %s | %s |", c.id, c.name, c.level, who, how)

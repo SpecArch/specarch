@@ -17,14 +17,18 @@ decisions:
       sRGB values.
     decision: |
       theme, one object in the design, holds tokens in the format, its $
-      keys kept; modes, each giving tokens by path another value, the
+      keys kept, $extensions and $deprecated among them, which SpecArch keeps
+      and does not read, and an alias without a type taking the type of the
+      token it names, as the format says; modes, each giving tokens by path another value, the
       tokens' own values being the default; and pairs, each a text colour,
       a background colour and its use (text, largeText or control). The
       types taken are color, dimension, fontFamily, fontWeight, duration
-      and number, and a colour is in the srgb space. The validator checks
+      and number, a colour is in the srgb space, and a number is written in
+      decimals. The validator checks
       every token's type and value, every alias, every mode, and the
-      contrast of every pair in every mode against the floor of its use at
-      the accessibility target's level, AA when none is named; a
+      contrast of every pair in every mode against the floor of its use, at
+      AAA when the accessibility target is AAA and at AA otherwise, since
+      WCAG asks no contrast at level A; a
       translucent pair is refused, since its contrast depends on what lies
       beneath (theme). The techspec lists the tokens per mode and each
       pair's contrast. This decision is D7 of docs/ui-design.md and waits
@@ -41,7 +45,10 @@ decisions:
       the theme readable by the tools that already build tokens into CSS,
       asset catalogues and resources. srgb only, because WCAG's luminance
       is defined on sRGB and a contrast computed from another space would be
-      a conversion SpecArch would have to choose. Components are read as
+      a conversion SpecArch would have to choose. Numbers in decimals only,
+      because YAML readers differ on hexadecimal, octal and separated
+      digits, and the two validator builds must read the same value.
+      Components are read as
       8-bit values, as WCAG's formula expects, and the luminance of each is
       a fixed table, so both validator builds compute the same ratio.
     satisfies: [SA-42]

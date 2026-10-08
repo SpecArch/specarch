@@ -71,7 +71,8 @@ pages:
     entity: Member
     permission: members.read
     source: listMembers
-    columns: [fullName, email]
+    columns: [fullName]
+    filters: [email]
   member-view:
     kind: view
     title: Member

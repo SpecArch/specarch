@@ -32,8 +32,12 @@ extension Checker {
         }
     }
 
-    /// Checks where one event leads.
+    /// Checks where one event leads, and that its message is a full
+    /// sentence.
     func checkEvent(_ d: Design, _ ev: YNode, _ base: [String], _ fields: [String: YNode]) {
+        if let m = ev.child("message"), !sentence(m.value) {
+            add(m, pointer(base + ["message"]), .flow, "the message is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one")
+        }
         guard let nav = ev.child("navigate") else { return } // the schema asks for navigate beside with
         let with = ev.child("with")
         guard let target = d.pages[nav.value] else {
@@ -115,6 +119,13 @@ extension Checker {
                     add(pageNode, pointer(at + ["page"]), .flow, "\(actor) cannot open \(str(pageNode)), which needs \(perm); grant it to the role, or give the flow another actor")
                 }
                 let event = str(step.child("event"))
+                if event == "action" && role != nil,
+                   let a = items(pg.child("actions")).first(where: { str($0.child("label")) == str(step.child("action")) }) {
+                    let aperm = str(a.child("permission"))
+                    if !aperm.isEmpty && !granted.contains(aperm) {
+                        add(step.child("action"), pointer(at + ["action"]), .flow, "\(actor) cannot take the action \(str(step.child("action"))), which needs \(aperm); grant it to the role, or give the flow another actor")
+                    }
+                }
                 let (target, raised) = eventTarget(pg, event, str(step.child("action")))
                 if !raised {
                     let what = ["select": "has no onSelect", "submitted": "is not a form", "action": "has no action labelled " + str(step.child("action"))][event] ?? ""
@@ -123,7 +134,7 @@ extension Checker {
                 }
                 if i + 1 < steps.count {
                     let next = str(steps[i + 1].child("page"))
-                    if target != next {
+                    if target != next && d.pages[next] != nil {
                         let leads = target.isEmpty ? "leads nowhere" : "leads to " + target
                         add(step.child("event"), pointer(at + ["event"]), .flow, "\(stepEvent(step)) on page \(str(pageNode)) \(leads), and the next step is on \(next); make the event lead there, or correct the steps")
                     }
@@ -158,13 +169,16 @@ extension Design {
     }
 }
 
-/// Whether a message reads as a full sentence: a capital or a digit first,
-/// and a full stop, question mark or exclamation mark last.
+/// Whether a message reads as a full sentence: a capital, a letter of a
+/// script without case, or a digit first, and a full stop, question mark or
+/// exclamation mark last, in Latin or CJK form. Only the ASCII spaces and a
+/// byte order mark around it are trimmed, the same in both builds, since one
+/// YAML reader drops a byte order mark and the other keeps it.
 func sentence(_ s: String) -> Bool {
-    let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
+    let t = s.trimmingCharacters(in: CharacterSet(charactersIn: " \t\n\r\u{0B}\u{0C}\u{FEFF}"))
     guard let first = t.unicodeScalars.first, let last = t.unicodeScalars.last else { return false }
-    let cat = first.properties.generalCategory
-    return (cat == .uppercaseLetter || cat == .decimalNumber) && ".?!".unicodeScalars.contains(last)
+    let cats: [Unicode.GeneralCategory] = [.uppercaseLetter, .titlecaseLetter, .otherLetter, .decimalNumber]
+    return cats.contains(first.properties.generalCategory) && ".?!。？！".unicodeScalars.contains(last)
 }
 
 extension Checker {
@@ -183,7 +197,7 @@ extension Checker {
             let filters = !items(pg.child("filters")).isEmpty
             func message(_ st: YNode, _ at: [String]) {
                 if let m = st.child("message"), !sentence(m.value) {
-                    add(m, pointer(at + ["message"]), .state, "\(quote(m.value)) is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one")
+                    add(m, pointer(at + ["message"]), .state, "the message is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one")
                 }
             }
             for k in ["empty", "filteredEmpty"] {
@@ -252,7 +266,7 @@ extension Checker {
 
 extension Checker {
     /// Checks, once the specification names its target, what the design
-    /// decides of it: every field a page shows has a title, its label (WCAG
+    /// decides of it: every field a page shows or filters by has a title, its label (WCAG
     /// 2.2, 3.3.2 and 2.4.6), and no two actions of a page share a label, so
     /// each has a name of its own (4.1.2).
     func checkAccessibility(_ d: Design) {
@@ -262,7 +276,7 @@ extension Checker {
         for p in pairs(d.root.child("pages")) {
             let name = p.key.value, pg = p.value
             let ent = str(pg.child("entity"))
-            for list in [items(pg.child("columns")), pageFields(pg)] {
+            for list in [items(pg.child("columns")), pageFields(pg), items(pg.child("filters"))] {
                 for f in list {
                     let k = ent + "." + f.value
                     let l = shownOn[k] ?? []

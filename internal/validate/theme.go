@@ -30,7 +30,10 @@ var tokenTypes = map[string]bool{"color": true, "dimension": true, "fontFamily":
 var (
 	aliasPattern = regexp.MustCompile(`^\{([^{}]+)\}$`)
 	hexPattern   = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
-	fontWeights  = map[string]bool{"thin": true, "hairline": true, "extra-light": true, "ultra-light": true, "light": true, "normal": true, "regular": true, "book": true,
+	// decimalPattern is a number in decimals, with an optional sign,
+	// fraction and exponent.
+	decimalPattern = regexp.MustCompile(`^[-+]?([0-9]+(\.[0-9]*)?|\.[0-9]+)([eE][-+]?[0-9]+)?$`)
+	fontWeights    = map[string]bool{"thin": true, "hairline": true, "extra-light": true, "ultra-light": true, "light": true, "normal": true, "regular": true, "book": true,
 		"medium": true, "semi-bold": true, "demi-bold": true, "bold": true, "extra-bold": true, "ultra-bold": true, "black": true, "heavy": true, "extra-black": true, "ultra-black": true}
 )
 
@@ -130,9 +133,11 @@ func tokens(group *yaml.Node, prefix, typ string, out *[]token) {
 	}
 }
 
-// number reads a YAML number, or reports false for anything else.
+// number reads a YAML number written in decimals, or reports false for
+// anything else: a hexadecimal, octal or binary integer and a digit
+// separator are refused, so both builds read the same numbers.
 func number(n *yaml.Node) (float64, bool) {
-	if n == nil || n.Kind != yaml.ScalarNode || (n.Tag != "!!int" && n.Tag != "!!float") {
+	if n == nil || n.Kind != yaml.ScalarNode || (n.Tag != "!!int" && n.Tag != "!!float") || !decimalPattern.MatchString(n.Value) {
 		return 0, false
 	}
 	f, err := strconv.ParseFloat(n.Value, 64)
@@ -257,6 +262,37 @@ func pairFloor(use, level string) (float64, string, string) {
 	return 4.5, "4.5", "1.4.3"
 }
 
+// themeTokens are the tokens of a theme, in order and by path. A token
+// whose value is an alias and that no group gives a type takes the type of
+// the token it names, as the format says.
+func themeTokens(theme *yaml.Node) ([]token, map[string]token) {
+	var list []token
+	tokens(source.Child(theme, "tokens"), "", "", &list)
+	byPath := map[string]token{}
+	for _, t := range list {
+		byPath[t.path] = t
+	}
+	for i, t := range list {
+		seen := map[string]bool{}
+		v := t.value
+		for t.typ == "" {
+			m := aliasPattern.FindStringSubmatch(source.Str(v))
+			if v.Kind != yaml.ScalarNode || m == nil || seen[m[1]] {
+				break
+			}
+			seen[m[1]] = true
+			target, ok := byPath[m[1]]
+			if !ok {
+				break
+			}
+			t.typ, v = target.typ, target.value
+		}
+		list[i].typ = t.typ
+		byPath[t.path] = list[i]
+	}
+	return list, byPath
+}
+
 // checkTheme checks the theme: every token has a type SpecArch takes and a
 // value of that type, an alias names a token of the same type and does not
 // lead back to itself, a mode gives tokens that exist a value of their
@@ -268,22 +304,23 @@ func (c *checker) checkTheme(d *design) {
 	if theme == nil {
 		return
 	}
-	var list []token
-	tokens(source.Child(theme, "tokens"), "", "", &list)
-	byPath := map[string]token{}
-	for _, t := range list {
-		byPath[t.path] = t
-	}
-	known := map[string]*yaml.Node{}
-	for _, t := range list {
-		known[t.path] = t.key
+	list, byPath := themeTokens(theme)
+	// known are the tokens an alias of a type may name, for a suggestion.
+	known := func(typ, self string) map[string]*yaml.Node {
+		out := map[string]*yaml.Node{}
+		for _, t := range list {
+			if (typ == "" || t.typ == typ) && t.path != self {
+				out[t.path] = t.key
+			}
+		}
+		return out
 	}
 	ptr := func(path string, more ...string) string {
 		return source.Pointer(append(append([]string{"theme", "tokens"}, strings.Split(path, ".")...), more...)...)
 	}
 	// resolve follows aliases from a value to a literal, or says why it
 	// cannot.
-	resolve := func(typ string, v *yaml.Node, overrides map[string]*yaml.Node) (*yaml.Node, string) {
+	resolve := func(self, typ string, v *yaml.Node, overrides map[string]*yaml.Node) (*yaml.Node, string) {
 		seen := map[string]bool{}
 		for {
 			m := aliasPattern.FindStringSubmatch(source.Str(v))
@@ -293,7 +330,7 @@ func (c *checker) checkTheme(d *design) {
 			target, ok := byPath[m[1]]
 			switch {
 			case !ok:
-				return nil, m[1] + " is not a token of the theme" + suggest(m[1], known)
+				return nil, m[1] + " is not a token of the theme" + suggest(m[1], known(typ, self))
 			case target.typ != typ:
 				return nil, m[1] + " is a " + target.typ + " token, and this one is a " + typ
 			case seen[m[1]]:
@@ -315,9 +352,13 @@ func (c *checker) checkTheme(d *design) {
 			c.add(t.key, ptr(t.path), RuleTheme, "%s is a %s token, which SpecArch does not take yet; it takes color, dimension, fontFamily, fontWeight, duration and number", t.path, t.typ)
 			continue
 		}
-		v, why := resolve(t.typ, t.value, nil)
-		if why == "" {
-			why = tokenValue(t.typ, v)
+		// An alias is checked for what it names; the value it leads to is
+		// reported where it is written.
+		why := ""
+		if aliasPattern.MatchString(source.Str(t.value)) && t.value.Kind == yaml.ScalarNode {
+			_, why = resolve(t.path, t.typ, t.value, nil)
+		} else {
+			why = tokenValue(t.typ, t.value)
 		}
 		if why != "" {
 			c.add(t.value, ptr(t.path, "$value"), RuleTheme, "%s: %s", t.path, why)
@@ -332,24 +373,28 @@ func (c *checker) checkTheme(d *design) {
 			at := source.Pointer("theme", "modes", m.Key.Value, kv.Key.Value)
 			t, ok := byPath[kv.Key.Value]
 			if !ok {
-				c.add(kv.Key, at, RuleTheme, "%s is not a token of the theme%s", kv.Key.Value, suggest(kv.Key.Value, known))
+				c.add(kv.Key, at, RuleTheme, "%s is not a token of the theme%s", kv.Key.Value, suggest(kv.Key.Value, known("", "")))
 				continue
 			}
 			modes[m.Key.Value][kv.Key.Value] = kv.Value
 			if !tokenTypes[t.typ] {
 				continue
 			}
-			v, why := resolve(t.typ, kv.Value, modes[m.Key.Value])
-			if why == "" {
-				why = tokenValue(t.typ, v)
+			why := ""
+			if aliasPattern.MatchString(source.Str(kv.Value)) && kv.Value.Kind == yaml.ScalarNode {
+				_, why = resolve(kv.Key.Value, t.typ, kv.Value, modes[m.Key.Value])
+			} else {
+				why = tokenValue(t.typ, kv.Value)
 			}
 			if why != "" {
 				c.add(kv.Value, at, RuleTheme, "%s in the %s mode: %s", kv.Key.Value, m.Key.Value, why)
 			}
 		}
 	}
+	// WCAG 2.2 asks no contrast at level A, so a theme is held to AA unless
+	// the target is AAA.
 	level := source.Str(source.Child(source.Child(d.root, "accessibility"), "level"))
-	if level == "" {
+	if level != "AAA" {
 		level = "AA"
 	}
 	for i, p := range source.Items(source.Child(theme, "pairs")) {
@@ -359,7 +404,7 @@ func (c *checker) checkTheme(d *design) {
 			n := source.Child(p, k)
 			switch t, ok := byPath[source.Str(n)]; {
 			case !ok:
-				c.add(n, source.Pointer(append(at, k)...), RuleTheme, "%s is not a token of the theme%s", source.Str(n), suggest(source.Str(n), known))
+				c.add(n, source.Pointer(append(at, k)...), RuleTheme, "%s is not a token of the theme%s", source.Str(n), suggest(source.Str(n), known("color", "")))
 				bad = true
 			case t.typ != "color":
 				c.add(n, source.Pointer(append(at, k)...), RuleTheme, "%s is a %s token, and a pair is of colours", source.Str(n), t.typ)
@@ -378,7 +423,7 @@ func (c *checker) checkTheme(d *design) {
 				if o := modes[mode][path]; o != nil {
 					v = o
 				}
-				r, _ := resolve("color", v, modes[mode])
+				r, _ := resolve(path, "color", v, modes[mode])
 				return r
 			}
 			tv, bv := value(text), value(background)
@@ -418,12 +463,7 @@ type PairContrast struct {
 // with the names of the modes after the default.
 func ThemeContrasts(root *yaml.Node) ([]PairContrast, []string) {
 	theme := source.Child(root, "theme")
-	var list []token
-	tokens(source.Child(theme, "tokens"), "", "", &list)
-	byPath := map[string]token{}
-	for _, t := range list {
-		byPath[t.path] = t
-	}
+	_, byPath := themeTokens(theme)
 	modes := map[string]map[string]*yaml.Node{}
 	var modeNames []string
 	for _, m := range source.Pairs(source.Child(theme, "modes")) {

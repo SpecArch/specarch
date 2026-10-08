@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-deployment-0.1.schema.json
 migrations:
   add-membership-tier:
     description: Every member gets a tier; existing members are standard.

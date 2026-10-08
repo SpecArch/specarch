@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-014:
     title: Design elements satisfy requirements, tests and checks verify them

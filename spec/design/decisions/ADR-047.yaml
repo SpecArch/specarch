@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-047:
     title: A date moves by whole days written as an ISO 8601 duration, date + duration("P14D")

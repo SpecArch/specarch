@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-052:
     title: Meta-model 0.2 is built in twelve steps of additions, and the version moves only with the last, which turns a missing test into an error

@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-030:
     title: The next migration is an expand file, and a contract file only when allowed

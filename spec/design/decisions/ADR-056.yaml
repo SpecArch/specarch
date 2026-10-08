@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-056:
     title: A page not about an entity is a task page that submits to an operation, and the elements of a back-office form are page keywords in the design

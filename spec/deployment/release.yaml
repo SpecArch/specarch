@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../schema/specarch-fragment-deployment-0.1.schema.json
 release:
   description: A release is a tagged commit of this repository; nothing is uploaded anywhere, since every user builds the program from source.
   steps:

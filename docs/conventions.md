@@ -67,11 +67,38 @@ For an implementation file:
 
     # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-implementation-0.1.schema.json
 
-The schema describes the merged document, so a fragment file under a stage
-folder has no hint yet; an editor validates the root file and the
-implementation files, and `specarch validate` the whole tree. Pin the
-schema version a project is written against. A project moves to a new
-meta-model version on purpose, in its own change.
+The design schema describes the merged document, so a file under a stage
+folder, which holds only some of its sections, has a schema of its own:
+
+| File | Its schema |
+|---|---|
+| a file under `requirements/`, `design/`, `deployment/`, `commissioning/` or `operation/` | `specarch-fragment-<stage>-0.1.schema.json`, that stage's sections and `questions` |
+| `tests/<name>/test.yaml` | `specarch-fragment-test-0.1.schema.json`, one test |
+| a file directly under `tests/` or `implementation/` | `specarch-fragment-questions-0.1.schema.json`, only `questions` |
+
+A fragment's hint names the same commit or tag as the root file's, here
+for a file under `design/entities/`:
+
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/<commit or tag>/schema/specarch-fragment-design-0.1.schema.json
+
+Each is written from the design schema by `tools/fragment-schemas`, which
+copies the stage's sections and the definitions they reach, so a keyword
+is defined once; `go test ./...` fails when the design schema changes and
+they were not written again (`go run ./tools/fragment-schemas`). One file
+alone cannot show what spans files: a reference to an object in another
+file, a name defined twice, a sub-folder holding a second section, and a
+required key an open must question blocks, which the editor reports as
+missing and `specarch validate` excuses while the question is open. The
+editor checks each file as it is written; `specarch validate` checks the
+whole tree.
+
+The specifications in this repository name the schemas by a path relative
+to the file (`../../../schema/specarch-fragment-design-0.1.schema.json`),
+because they are written against the schemas beside them rather than a
+released tag; `go run ./tools/fragment-schemas` writes those lines too.
+
+Pin the schema version a project is written against. A project moves to a
+new meta-model version on purpose, in its own change.
 
 ## Design and implementation
 

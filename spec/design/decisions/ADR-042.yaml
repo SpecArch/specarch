@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-042:
     title: extract is built one reader at a time, each writing a partial specification at a named commit, and the readers' trees are merged into one

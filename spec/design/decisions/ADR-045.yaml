@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-045:
     title: specarch merge joins the readers' trees element by element, asks wherever they disagree, and compares the documents with the code only where the code was read

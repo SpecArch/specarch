@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-035:
     title: A page names what it shows when empty or failed, from a fixed set of states

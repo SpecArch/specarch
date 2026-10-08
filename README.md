@@ -119,6 +119,7 @@ a defect in the roadmap, not an accepted state.
 | `schema/specarch-implementation-0.1.schema.json` | the meta-model of implementation files |
 | `schema/specarch-record-0.1.schema.json` | the records beside a specification |
 | `schema/specarch-idiom-0.1.schema.json` | the meta-model of an idiom, shipped or a project's |
+| `schema/specarch-fragment-*-0.1.schema.json` | one schema per kind of file under a stage folder, written from the design schema by `tools/fragment-schemas` (`docs/conventions.md`, The tree) |
 | `idioms/` | the fifteen idioms SpecArch ships, one folder per concern, embedded into the program, each a stack-neutral contract and its Go rendering: `type-rendering` (what each field type becomes in Go and in PostgreSQL, SQL Server, Oracle and MariaDB), `paginated-list`, `request-validation`, `error-response` and the rest |
 | `spec/` | SpecArch's own specification: every stage, the design of the `specarch` command, its Go and Swift implementation files, and in `spec/tests/` the conformance suite every implementation of `specarch` must pass |
 | `docs/techspec.md` | SpecArch's technical specification, generated from `spec/` |

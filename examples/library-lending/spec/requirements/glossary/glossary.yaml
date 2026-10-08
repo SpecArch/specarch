@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-requirements-0.1.schema.json
 glossary:
   copy:
     definition: One physical book. The example counts copies per title and does not identify them.

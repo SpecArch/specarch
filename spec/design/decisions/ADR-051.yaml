@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-051:
     title: A second web generator writes Next.js and Carbon screens from a TypeScript implementation file, drawing each page through a ui-components idiom a project overrides

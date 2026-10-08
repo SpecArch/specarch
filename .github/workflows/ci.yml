@@ -31,6 +31,9 @@ jobs:
         run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
       - name: Validate SpecArch's own specification and every example
         run: go run ./cmd/specarch validate spec examples
+      - name: The fragment schemas and every fragment's hint line are current with the design schema
+        # go test checks it too; this step names what to run when it fails.
+        run: go run ./tools/fragment-schemas -check
       - name: The lending desk's database extracts the same twice and validates
         run: |
           for run in one two; do go run ./cmd/specarch extract database --out "$RUNNER_TEMP/$run" examples/lending-desk/sources/catalogue/catalogue.json > "$RUNNER_TEMP/$run.txt" || exit 1; done

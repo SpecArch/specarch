@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.1.schema.json
 flows:
   lend-a-copy:
     description: A librarian finds the member at the desk, opens their record and lends them a copy.

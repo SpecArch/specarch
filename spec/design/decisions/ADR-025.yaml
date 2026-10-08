@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-025:
     title: A list's whitelists, an operation's limits and the problem catalogue are design

@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-039:
     title: A form or a view groups its fields in titled sections, whose order is the focus order

@@ -1,0 +1,447 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-fragment-test-0.1.schema.json",
+  "title": "SpecArch test file, meta-model 0.1",
+  "description": "The test.yaml of a test folder tests/<name>/ in a SpecArch specification: one design test, named by its folder. The validator merges every file of a tree into one document, which specarch-design-0.1.schema.json describes, and checks what spans files, such as references and names defined twice; this schema checks one file alone. Written by tools/fragment-schemas from that schema; do not edit, run it.",
+  "$ref": "#/$defs/test",
+  "$defs": {
+    "typeName": {
+      "description": "PascalCase identifier for an entity or enum.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Za-z0-9]*$"
+    },
+    "memberName": {
+      "description": "camelCase identifier for a field, relation, algorithm or input.",
+      "type": "string",
+      "pattern": "^[a-z][A-Za-z0-9]*$"
+    },
+    "idKey": {
+      "description": "SpecArch keyword. The ID of a requirement, need, assumption or constraint: an upper-case prefix of 2 to 16 letters or digits, a dash, and an ID, such as SA-1 or NEED-12.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+    },
+    "requirementLink": {
+      "description": "SpecArch keyword. The ID of a requirement: one defined under 'requirements' in this specification, or one in an external requirement set declared under 'sources' with kind requirement-set, whose prefix is the set's prefix.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+    },
+    "verifies": {
+      "description": "SpecArch keyword. The requirements this test, commissioning check or monitor verifies, by ID (the verify relation of ISO/IEC/IEEE 29148:2018, 6.5.2). A requirement no test verifies is reported by the validator.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/requirementLink"
+      },
+      "uniqueItems": true
+    },
+    "why": {
+      "description": "SpecArch keyword. The rationale in plain words: why this element is the way it is, what was concluded. Optional on every element; a document renders it as an Insight next to the element.",
+      "type": "string",
+      "minLength": 1
+    },
+    "citation": {
+      "description": "SpecArch keyword. One citation: which source, where in it, and what it says here. A document renders it as a Note under the element's Insight.",
+      "type": "object",
+      "properties": {
+        "source": {
+          "description": "The key of a source declared under 'sources' in specarch.yaml.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "clause": {
+          "description": "The clause, section, page or question cited, as the source numbers it, such as '5.2.5' or 'Annex A'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "says": {
+          "description": "What the source says that applies here, in plain words: what it requires, recommends or reports.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "source",
+        "says"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "citations": {
+      "description": "SpecArch keyword. The sources this element rests on, one citation each. Optional on every element.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/citation"
+      },
+      "minItems": 1
+    },
+    "origin": {
+      "description": "SpecArch keyword. How the element is known. stated: a source says it, and cites names the source and where in it. inferred: it was concluded from evidence (code, data, the source's silence), and why says from what. decided: a stakeholder settled it, answering a question or correcting the source, and decidedIn names the decision. An element without origin was written spec-first. What is not known at all is not an element with an origin but an open question under questions.",
+      "type": "string",
+      "enum": [
+        "stated",
+        "inferred",
+        "decided"
+      ]
+    },
+    "decidedIn": {
+      "description": "SpecArch keyword. With origin decided: the decision record that settled this element, such as ADR-021.",
+      "type": "string",
+      "pattern": "^ADR-[0-9]{3,}$"
+    },
+    "commandName": {
+      "description": "SpecArch keyword. One or more kebab-case words separated by single spaces, as typed after the program name.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*( [a-z][a-z0-9]*(-[a-z0-9]+)*)*$"
+    },
+    "stackSpecificKey": {
+      "description": "Extension keys that belong to one implementation, not to the design: code-generator settings, a language or framework binding, servers, hosts, ports and deployments. They go in a SpecArch Implementation File (*.specarch-implementation.yaml), never in a design file. See 'Design and implementation' in docs/conventions.md.",
+      "type": "string",
+      "pattern": "^x-(oapi-codegen|ogen|openapi-generator|codegen|protoc|grpc|go|java|kotlin|python|typescript|javascript|rust|swift|dotnet|csharp|php|ruby|framework|router|middleware|cli-library|server|servers|host|port|deploy|deployment|environment)(-|$)"
+    },
+    "test": {
+      "description": "SpecArch keyword. One test scenario. Exactly one subject: operation, command, page, requirement, or entity, alone for its state machine or with one constraint or transition. In a folder tree it is the content of tests/<name>/test.yaml.",
+      "type": "object",
+      "properties": {
+        "operation": {
+          "description": "The operationId under test.",
+          "$ref": "#/$defs/memberName"
+        },
+        "command": {
+          "description": "The command under test.",
+          "$ref": "#/$defs/commandName"
+        },
+        "page": {
+          "description": "The page under test.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "job": {
+          "description": "The job the test is about.",
+          "$ref": "#/$defs/memberName"
+        },
+        "flow": {
+          "description": "The flow the test walks.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "requirement": {
+          "description": "The requirement whose acceptance criteria the test shows met: its cases are 'acceptance 1', 'acceptance 2' and so on, one per criterion, and the test is usually level acceptance.",
+          "$ref": "#/$defs/idKey"
+        },
+        "entity": {
+          "description": "The entity under test: alone, its state machine, whose cases are its paths from an initial to a terminal state such as 'open to overdue to returned'; with constraint or transition, that one.",
+          "$ref": "#/$defs/typeName"
+        },
+        "constraint": {
+          "description": "With entity: the constraint under test.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+        },
+        "transition": {
+          "description": "With entity: the transition under test.",
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "string",
+              "minLength": 1
+            },
+            "to": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "from",
+            "to"
+          ],
+          "additionalProperties": false
+        },
+        "scenario": {
+          "description": "golden for the path that succeeds, red for a path that fails.",
+          "type": "string",
+          "enum": [
+            "golden",
+            "red"
+          ]
+        },
+        "level": {
+          "description": "system: the test exercises the system through its interfaces as a client would; acceptance: it shows a stakeholder that a requirement is met, so it names one under 'verifies'. Unit and integration tests belong to an implementation file's suites. The levels are those of ISO/IEC/IEEE 29119-1.",
+          "type": "string",
+          "enum": [
+            "system",
+            "acceptance"
+          ]
+        },
+        "given": {
+          "description": "The state before, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "when": {
+          "description": "What happens, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "then": {
+          "description": "The outcome, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "fixture": {
+          "description": "SpecArch keyword. The state before the test, for a generator: caller, the role making the call or public, and records that exist, by entity name.",
+          "type": "object",
+          "properties": {
+            "caller": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "propertyNames": {
+            "anyOf": [
+              {
+                "const": "caller"
+              },
+              {
+                "$ref": "#/$defs/typeName"
+              },
+              {
+                "pattern": "^x-"
+              }
+            ]
+          },
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "minItems": 1
+          }
+        },
+        "input": {
+          "description": "SpecArch keyword. What the call carries, for a generator: an operation's parameters and body fields by name; a command's arguments and options; a page's route parameters and action, the label of one of its actions.",
+          "type": "object",
+          "minProperties": 1
+        },
+        "expect": {
+          "description": "SpecArch keyword. The outcome, for a generator: an operation's status and the body fields that matter; a command's exit and lines of standardOutput; the state after, as records by entity name; and emits, the messages published, or emitsNothing.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "description": "One of the operation's response statuses.",
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 599
+            },
+            "body": {
+              "description": "Fields of the entity the response returns, with their values.",
+              "type": "object",
+              "minProperties": 1
+            },
+            "exit": {
+              "description": "One of the command's exit codes.",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            },
+            "standardOutput": {
+              "description": "Lines the command prints, in order.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            },
+            "state": {
+              "$ref": "#/$defs/testRecords"
+            },
+            "emits": {
+              "description": "The messages published, as channel/Message.",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*/[A-Z][A-Za-z0-9]*$"
+              },
+              "minItems": 1
+            },
+            "emitsNothing": {
+              "description": "No message is published.",
+              "type": "boolean",
+              "const": true
+            }
+          },
+          "minProperties": 1,
+          "patternProperties": {
+            "^x-": {}
+          },
+          "additionalProperties": false
+        },
+        "covers": {
+          "description": "The derived cases this test covers, written exactly as the validator names them, such as 'missing memberId'.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "notApplicable": {
+          "description": "Instead of given, when and then: why the derived cases in covers do not apply to this subject. Only with a written reason.",
+          "type": "string",
+          "minLength": 1
+        },
+        "verifies": {
+          "$ref": "#/$defs/verifies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "scenario",
+        "level"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "operation"
+          ]
+        },
+        {
+          "required": [
+            "command"
+          ]
+        },
+        {
+          "required": [
+            "page"
+          ]
+        },
+        {
+          "required": [
+            "job"
+          ]
+        },
+        {
+          "required": [
+            "flow"
+          ]
+        },
+        {
+          "required": [
+            "requirement"
+          ]
+        },
+        {
+          "required": [
+            "entity"
+          ]
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "entity"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "constraint",
+                "transition"
+              ]
+            }
+          }
+        },
+        {
+          "dependentRequired": {
+            "constraint": [
+              "entity"
+            ],
+            "transition": [
+              "entity"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "notApplicable"
+            ]
+          },
+          "then": {
+            "required": [
+              "covers"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "given"
+                  ]
+                },
+                {
+                  "required": [
+                    "when"
+                  ]
+                },
+                {
+                  "required": [
+                    "then"
+                  ]
+                }
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "given",
+              "when",
+              "then"
+            ]
+          }
+        }
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "testRecords": {
+      "description": "SpecArch keyword. Records by entity name: each a list of records, each naming the fields that matter with values of the field's type.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/typeName"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "minItems": 1
+      },
+      "minProperties": 1
+    }
+  }
+}

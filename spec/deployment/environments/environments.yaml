@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-deployment-0.1.schema.json
 environments:
   developer-machine:
     description: The machine of a person who writes specifications; the program is installed from source with one command.

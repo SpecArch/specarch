@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-operation-0.1.schema.json
 monitors:
   catalogue-latency:
     description: How long listBooks takes to answer at the desk.

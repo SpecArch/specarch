@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.1.schema.json
 jobs:
   markOverdue:
     description: Every night, finds the open loans past their due date, marks each overdue, and publishes LoanOverdue for it, so the member is told.

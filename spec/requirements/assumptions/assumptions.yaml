@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-requirements-0.1.schema.json
 assumptions:
   ASSUME-1:
     statement: A specification is kept in version control, so its history lives there and in history files, never inside the specification.

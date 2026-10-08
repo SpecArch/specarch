@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-041:
     title: The Swift and Dart test plug-ins write the Go plug-in's tests through a harness of the same shape, for Swift Testing and for package:test or flutter_test

@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../../schema/specarch-fragment-questions-0.1.schema.json
 questions:
   Q-4:
     question: Renewing a loan is in the manual but not in the service. Build it as the manual describes, or take it out of the manual?

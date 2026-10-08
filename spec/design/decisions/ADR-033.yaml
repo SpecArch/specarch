@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-033:
     title: A view is an entity's row with fields read through its relations and counts added, and is never written

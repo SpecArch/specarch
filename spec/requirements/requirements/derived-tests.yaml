@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-requirements-0.1.schema.json
 requirements:
   SA-31:
     statement: specarch generate tests shall write, through the plug-in for an implementation file's stack, one test per design test and one per worked example, in Go, in Swift with Swift Testing, or in Dart with package:test or flutter_test, setting up the fixture, making the call and checking the expected outcome through a harness the project writes, so that the generated tests are the same on every project of that language.

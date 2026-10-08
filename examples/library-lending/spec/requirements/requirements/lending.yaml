@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-requirements-0.1.schema.json
 requirements:
   LIB-1:
     statement: A member shall be identified by a unique card number and a unique email address.

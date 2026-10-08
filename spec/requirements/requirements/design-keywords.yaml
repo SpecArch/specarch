@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-requirements-0.1.schema.json
 requirements:
   SA-33:
     statement: A specification shall be able to say how sensitive a field is, that it is encrypted at rest and how it is still found, and that an entity is audited or deleted softly, and specarch validate shall check each against the design and derive the cases a soft delete implies.

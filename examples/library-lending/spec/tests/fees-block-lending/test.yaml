@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
 requirement: LIB-3
 level: acceptance
 scenario: golden

@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-operation-0.1.schema.json
 monitors:
   main-stays-green:
     description: The continuous-integration run on every change to main, both the Go and the Swift job.

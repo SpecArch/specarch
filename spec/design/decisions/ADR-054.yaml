@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-054:
     title: A request that finishes after people approve it is a workflow, its own object named workflows, with a sequential subset of BPMN 2.0 and a four-eyes rule on every approval

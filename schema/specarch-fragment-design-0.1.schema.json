@@ -1,0 +1,3203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-fragment-design-0.1.schema.json",
+  "title": "SpecArch design file, meta-model 0.1",
+  "description": "One file under the design/ folder of a SpecArch specification: a mapping of that stage's sections (enums, entities, views, permissions, roles, session, paths, commands, channels, dependencies, jobs, errors, pages, menus, flows, accessibility, theme, algorithms, decisions, questions). A file under a sub-folder named after a section holds only that section. The validator merges every file of a tree into one document, which specarch-design-0.1.schema.json describes, and checks what spans files, such as references and names defined twice; this schema checks one file alone. Written by tools/fragment-schemas from that schema; do not edit, run it.",
+  "type": "object",
+  "properties": {
+    "enums": {
+      "description": "Named value sets, keyed by PascalCase name.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/typeName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/enum"
+      }
+    },
+    "entities": {
+      "description": "Persistent things with identity, keyed by PascalCase name. Each entity becomes a table (or collection) and a schema component.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/typeName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/entity"
+      }
+    },
+    "views": {
+      "description": "SpecArch keyword, after the SQL view. Read models keyed by PascalCase name: one row per record of an entity, carrying every field of it and the properties the view adds, fields read through its relations and counts of its related records. A view is never written.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/typeName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/view"
+      }
+    },
+    "permissions": {
+      "description": "SpecArch keyword. Named rights, keyed by dotted lower-case name such as 'loans.create'. The name 'public' is reserved: an operation or page that grants it is open to everyone, including unauthenticated callers.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/permissionName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/permission"
+      }
+    },
+    "roles": {
+      "description": "SpecArch keyword. Roles a caller can hold, each listing the permissions it grants. A role grants nothing it does not list.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/roleName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/role"
+      }
+    },
+    "session": {
+      "description": "SpecArch keyword. How a caller's signed-in session ends: 'idleTimeout', the time without a request after which it expires, and 'absoluteTimeout', the time after signing in after which it expires whatever the caller does; at least one of the two (OWASP Session Management Cheat Sheet). Once a session is declared, every operation, command and page whose permission is not 'public' gets the derived red case 'denied with expired session'.",
+      "$ref": "#/$defs/session"
+    },
+    "paths": {
+      "description": "OpenAPI keyword. HTTP endpoints keyed by path template.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^/"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/pathItem"
+      }
+    },
+    "commands": {
+      "description": "SpecArch keyword. Command-line commands, keyed by the words a user types after the program name, such as 'validate' or 'generate techspec'. A command is an interface like an HTTP operation: it names a permission (fail-closed) and lists its arguments, options, files and exit codes.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/commandName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/command"
+      }
+    },
+    "channels": {
+      "description": "AsyncAPI keyword. Event channels keyed by channel name (dotted lower-case). Each channel carries one or more messages; a message is an event.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/channel"
+      }
+    },
+    "dependencies": {
+      "description": "SpecArch keyword. External systems the operations call, keyed by camelCase name: a payment gateway, a directory, a ledger. Each has a time limit per call. An operation names the ones it calls under 'calls'; the validator derives the cases where one fails and where one does not answer in time.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/memberName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/dependency"
+      }
+    },
+    "jobs": {
+      "description": "SpecArch keyword. The work the system does on its own, keyed by camelCase name.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/memberName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/job"
+      }
+    },
+    "errors": {
+      "description": "SpecArch keyword. The catalogue of problem types the operations answer with, keyed by kebab-case name. Every 4xx and 5xx response is an RFC 9457 problem document and names its type under problem.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/problemType"
+      }
+    },
+    "pages": {
+      "description": "SpecArch keyword. Screens, keyed by kebab-case name.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/page"
+      }
+    },
+    "menus": {
+      "description": "SpecArch keyword. The navigation: a tree of entries whose leaves name pages, keyed by camelCase name. A leaf is shown to who has the page's permission.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/memberName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/menuItem"
+      }
+    },
+    "flows": {
+      "description": "SpecArch keyword, after the navigation flows of OMG's IFML. Tasks a person does across pages, keyed by kebab-case name: who does it and each step, a page and the event on it that leads to the next step's page. A flow is a test subject.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/flow"
+      }
+    },
+    "accessibility": {
+      "description": "SpecArch keyword. The accessibility the user interface conforms to, by the standard and its level. With it, the validator checks what the design decides: a title for every field a page shows and a distinct label for every action of a page.",
+      "type": "object",
+      "properties": {
+        "standard": {
+          "description": "WCAG 2.2, the W3C Recommendation of October 2023.",
+          "type": "string",
+          "enum": [
+            "WCAG 2.2"
+          ]
+        },
+        "level": {
+          "description": "The conformance level; AA is what most laws ask for.",
+          "type": "string",
+          "enum": [
+            "A",
+            "AA",
+            "AAA"
+          ]
+        }
+      },
+      "required": [
+        "standard",
+        "level"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "theme": {
+      "description": "SpecArch keyword. The visual design as design tokens in the format of the W3C Design Tokens Community Group, the modes that give a token another value, and the pairs of colours shown as text or controls on a background, whose contrast the validator checks against WCAG 2.2. How a token becomes code is the stack's.",
+      "type": "object",
+      "properties": {
+        "tokens": {
+          "$ref": "#/$defs/tokenGroup"
+        },
+        "modes": {
+          "description": "Other modes, such as dark, keyed by camelCase name: each gives tokens, by path, another value. The tokens' own values are the default mode.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "minProperties": 1
+          }
+        },
+        "pairs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/colorPair"
+          }
+        }
+      },
+      "required": [
+        "tokens"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "algorithms": {
+      "description": "SpecArch keyword. Computations that must be specified before they are written by hand, keyed by camelCase name.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/memberName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/algorithm"
+      }
+    },
+    "decisions": {
+      "description": "SpecArch keyword. Architecture decision records, keyed by ID such as 'ADR-001'.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^ADR-[0-9]{3,}$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/decision"
+      }
+    },
+    "questions": {
+      "description": "SpecArch keyword. The open questions: what the sources do not say and a stakeholder must decide or provide, keyed by ID such as Q-12. A question is written in the folder of the stage it is about, so every stage folder may hold questions; the validator merges them into one section and checks each sits in the stage of what it blocks. A question leaves the specification when it is answered; the decision that answered it names it under answers.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Z][A-Z0-9]{0,15}-[A-Za-z0-9._]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/question"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "typeName": {
+      "description": "PascalCase identifier for an entity or enum.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Za-z0-9]*$"
+    },
+    "memberName": {
+      "description": "camelCase identifier for a field, relation, algorithm or input.",
+      "type": "string",
+      "pattern": "^[a-z][A-Za-z0-9]*$"
+    },
+    "permissionName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$"
+    },
+    "roleName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+    },
+    "duration": {
+      "description": "SpecArch keyword. A length of time as ISO 8601 writes it, in days, hours, minutes and seconds only and never zero: PT5S, PT30M, P1DT12H. Weeks, months and years are not allowed, because their length depends on the calendar, and a limit must mean the same every day.",
+      "type": "string",
+      "pattern": "^P(?:[0-9]+D|(?:[0-9]+D)?T(?:[0-9]+H(?:[0-9]+M)?(?:[0-9]+S)?|[0-9]+M(?:[0-9]+S)?|[0-9]+S))$"
+    },
+    "questionId": {
+      "description": "SpecArch keyword. The ID of an open question: an upper-case prefix of 1 to 16 letters or digits, a dash, and an ID, such as Q-12 or OPEN-3.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{0,15}-[A-Za-z0-9._]+$"
+    },
+    "requirementLink": {
+      "description": "SpecArch keyword. The ID of a requirement: one defined under 'requirements' in this specification, or one in an external requirement set declared under 'sources' with kind requirement-set, whose prefix is the set's prefix.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+    },
+    "satisfies": {
+      "description": "SpecArch keyword. The requirements this element satisfies, by ID (the satisfy relation of ISO/IEC/IEEE 29148:2018, 6.5.1, and SysML). Every named design and deployment element carries it; fields, parameters, responses, actions and worked examples trace through the object that holds them. A requirement no element satisfies is reported by the validator.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/requirementLink"
+      },
+      "uniqueItems": true
+    },
+    "why": {
+      "description": "SpecArch keyword. The rationale in plain words: why this element is the way it is, what was concluded. Optional on every element; a document renders it as an Insight next to the element.",
+      "type": "string",
+      "minLength": 1
+    },
+    "citation": {
+      "description": "SpecArch keyword. One citation: which source, where in it, and what it says here. A document renders it as a Note under the element's Insight.",
+      "type": "object",
+      "properties": {
+        "source": {
+          "description": "The key of a source declared under 'sources' in specarch.yaml.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "clause": {
+          "description": "The clause, section, page or question cited, as the source numbers it, such as '5.2.5' or 'Annex A'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "says": {
+          "description": "What the source says that applies here, in plain words: what it requires, recommends or reports.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "source",
+        "says"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "citations": {
+      "description": "SpecArch keyword. The sources this element rests on, one citation each. Optional on every element.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/citation"
+      },
+      "minItems": 1
+    },
+    "origin": {
+      "description": "SpecArch keyword. How the element is known. stated: a source says it, and cites names the source and where in it. inferred: it was concluded from evidence (code, data, the source's silence), and why says from what. decided: a stakeholder settled it, answering a question or correcting the source, and decidedIn names the decision. An element without origin was written spec-first. What is not known at all is not an element with an origin but an open question under questions.",
+      "type": "string",
+      "enum": [
+        "stated",
+        "inferred",
+        "decided"
+      ]
+    },
+    "decidedIn": {
+      "description": "SpecArch keyword. With origin decided: the decision record that settled this element, such as ADR-021.",
+      "type": "string",
+      "pattern": "^ADR-[0-9]{3,}$"
+    },
+    "markdown": {
+      "description": "Prose in Markdown.",
+      "type": "string"
+    },
+    "schemaRef": {
+      "description": "A JSON pointer into the specification, such as '#/entities/Member', '#/enums/LoanStatus' or '#/views/LoanRow'. The pointer names the object wherever its file is in the tree.",
+      "type": "string",
+      "pattern": "^#/(entities|enums|views)/[A-Z][A-Za-z0-9]*$"
+    },
+    "enum": {
+      "description": "JSON Schema keywords. A closed set of string values.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "type": {
+          "type": "string",
+          "const": "string"
+        },
+        "enum": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "valueDescriptions": {
+          "description": "SpecArch keyword. Meaning of each value, keyed by value; JSON Schema has no per-value description.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "type",
+        "enum"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "field": {
+      "description": "JSON Schema keywords, a bounded subset. A field is either a scalar with a type, an array, a nested object, or a reference to an enum or entity.",
+      "type": "object",
+      "properties": {
+        "$ref": {
+          "$ref": "#/$defs/schemaRef"
+        },
+        "type": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "string",
+                "integer",
+                "number",
+                "boolean",
+                "array",
+                "object"
+              ]
+            },
+            {
+              "description": "A type that also allows null, written as JSON Schema does: [string, 'null'].",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "string",
+                  "integer",
+                  "number",
+                  "boolean",
+                  "array",
+                  "object",
+                  "null"
+                ]
+              },
+              "minItems": 2,
+              "maxItems": 2,
+              "uniqueItems": true,
+              "contains": {
+                "const": "null"
+              }
+            }
+          ]
+        },
+        "title": {
+          "description": "JSON Schema's title: the label a person reads for the field, on a page and in a document.",
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "format": {
+          "description": "The concrete type of the value, where the JSON type alone would leave it open. type says how the value is carried in JSON; format says what it is. An integer needs int32, int64 or uint64; a number needs double; a decimal is a string with format decimal, precision and scale; an int64 or uint64 that can exceed 2^53 is carried as a string with format int64 or uint64. See 'Types' in docs/conventions.md.",
+          "type": "string",
+          "enum": [
+            "int32",
+            "int64",
+            "uint64",
+            "double",
+            "decimal",
+            "date",
+            "date-time",
+            "time",
+            "duration",
+            "email",
+            "uuid",
+            "uri",
+            "hostname",
+            "ipv4",
+            "ipv6",
+            "byte",
+            "binary",
+            "password"
+          ]
+        },
+        "enum": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "integer",
+              "number",
+              "boolean"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "const": {
+          "type": [
+            "string",
+            "integer",
+            "number",
+            "boolean"
+          ]
+        },
+        "default": {},
+        "examples": {
+          "type": "array",
+          "minItems": 1
+        },
+        "minimum": {
+          "type": "number"
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "exclusiveMinimum": {
+          "type": "number"
+        },
+        "exclusiveMaximum": {
+          "type": "number"
+        },
+        "multipleOf": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "minLength": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxLength": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pattern": {
+          "type": "string",
+          "format": "regex"
+        },
+        "items": {
+          "$ref": "#/$defs/field"
+        },
+        "minItems": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxItems": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "uniqueItems": {
+          "type": "boolean"
+        },
+        "properties": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/field"
+          }
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "uniqueItems": true
+        },
+        "readOnly": {
+          "description": "Set by the system, never by a client (an ID, a timestamp).",
+          "type": "boolean"
+        },
+        "writeOnly": {
+          "type": "boolean"
+        },
+        "deprecated": {
+          "type": "boolean"
+        },
+        "precision": {
+          "description": "SpecArch keyword. Total digits of a decimal; required with format: decimal.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "scale": {
+          "description": "SpecArch keyword. Digits after the decimal point; required with format: decimal.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "mistakes": {
+          "description": "SpecArch keyword. How often users get this field wrong: frequent or rare. It replaces the default frequency of every derived test case about the field, which decides with the harm of the subject whether the case is written or left out.",
+          "type": "string",
+          "enum": [
+            "frequent",
+            "rare"
+          ]
+        },
+        "sensitivity": {
+          "description": "SpecArch keyword. How sensitive the value is: public; internal, for staff only; personal, data about a person, masked in logs and shown only to who may see it; credential, a secret such as a password or a token, which no response carries unless the field is writeOnly. The masking per sensitivity is the pii-in-logs idiom.",
+          "type": "string",
+          "enum": [
+            "public",
+            "internal",
+            "personal",
+            "credential"
+          ]
+        },
+        "atRest": {
+          "description": "SpecArch keyword. encrypted: the value is stored encrypted, so it cannot be searched, sorted or compared in storage unless lookup gives a way. The engine function and the key are the encrypted-column idiom.",
+          "type": "string",
+          "enum": [
+            "encrypted"
+          ]
+        },
+        "lookup": {
+          "description": "SpecArch keyword. With atRest encrypted: hash, a salted hash kept beside the value, so the field can be a key, unique or filtered by equality.",
+          "type": "string",
+          "enum": [
+            "hash"
+          ]
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "$ref"
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ]
+        }
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "anyOf": [
+              {
+                "properties": {
+                  "type": {
+                    "const": "integer"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              },
+              {
+                "properties": {
+                  "type": {
+                    "type": "array",
+                    "contains": {
+                      "const": "integer"
+                    }
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            ]
+          },
+          "then": {
+            "required": [
+              "format"
+            ],
+            "properties": {
+              "format": {
+                "enum": [
+                  "int32",
+                  "int64",
+                  "uint64"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "anyOf": [
+              {
+                "properties": {
+                  "type": {
+                    "const": "number"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              },
+              {
+                "properties": {
+                  "type": {
+                    "type": "array",
+                    "contains": {
+                      "const": "number"
+                    }
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            ]
+          },
+          "then": {
+            "required": [
+              "format"
+            ],
+            "properties": {
+              "format": {
+                "enum": [
+                  "double"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "anyOf": [
+              {
+                "properties": {
+                  "type": {
+                    "const": "string"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              },
+              {
+                "properties": {
+                  "type": {
+                    "type": "array",
+                    "contains": {
+                      "const": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            ]
+          },
+          "then": {
+            "properties": {
+              "format": {
+                "not": {
+                  "enum": [
+                    "int32",
+                    "double"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "format": {
+                "const": "decimal"
+              }
+            },
+            "required": [
+              "format"
+            ]
+          },
+          "then": {
+            "required": [
+              "precision",
+              "scale"
+            ]
+          }
+        }
+      ]
+    },
+    "entity": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "type": {
+          "type": "string",
+          "const": "object"
+        },
+        "properties": {
+          "description": "JSON Schema keyword. The entity's fields.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/field"
+          },
+          "minProperties": 1
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "uniqueItems": true
+        },
+        "primaryKey": {
+          "description": "SpecArch keyword. Field or fields that identify a row.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "relations": {
+          "description": "SpecArch keyword. Links to other entities, keyed by camelCase name.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/relation"
+          }
+        },
+        "constraints": {
+          "description": "SpecArch keyword. Rules the data must satisfy beyond a single field's own keywords, keyed by snake_case name (it becomes the database constraint name).",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/constraint"
+          }
+        },
+        "stateField": {
+          "description": "SpecArch keyword. The field whose enum values form this entity's state machine; transitions lists the allowed moves. Generators draw the state diagram from it.",
+          "$ref": "#/$defs/memberName"
+        },
+        "transitions": {
+          "description": "SpecArch keyword. Allowed state changes of stateField.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/transition"
+          },
+          "minItems": 1
+        },
+        "validity": {
+          "$ref": "#/$defs/validity"
+        },
+        "audited": {
+          "description": "SpecArch keyword. true: every record carries who created and last changed it and when, set by the system and never by a caller: createdAt, createdBy, lastModifiedAt and lastModifiedBy, which the entity does not declare itself. The columns are the audit-fields idiom.",
+          "const": true
+        },
+        "deletion": {
+          "description": "SpecArch keyword. soft: a delete marks the record deleted and keeps it; a deleted record is not listed and reads as not found. The flag, deleted, is not declared by the entity. The column is the soft-delete idiom.",
+          "type": "string",
+          "enum": [
+            "soft"
+          ]
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "type",
+        "properties",
+        "primaryKey"
+      ],
+      "dependentRequired": {
+        "transitions": [
+          "stateField"
+        ],
+        "stateField": [
+          "transitions"
+        ]
+      },
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "relation": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "target": {
+          "description": "The entity this relation points at.",
+          "$ref": "#/$defs/typeName"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "one-to-one",
+            "one-to-many",
+            "many-to-one",
+            "many-to-many"
+          ]
+        },
+        "via": {
+          "description": "For many-to-one and one-to-one: the field on this entity that holds the foreign key. For one-to-many: the field on the target that points back. For many-to-many: the join entity.",
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9]*$"
+        },
+        "onDelete": {
+          "description": "What happens to this side when the target row is deleted. Default restrict.",
+          "type": "string",
+          "enum": [
+            "restrict",
+            "cascade",
+            "set_null"
+          ],
+          "default": "restrict"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "target",
+        "kind",
+        "via"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "constraint": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "unique",
+            "check"
+          ]
+        },
+        "fields": {
+          "description": "For unique: the fields that together must be unique.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "expression": {
+          "description": "For check: one expression in SpecArch's subset of CEL (docs/conventions.md) over the entity's fields, giving true or false.",
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "description": "What a user is told when the constraint fails.",
+          "type": "string"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "kind",
+        "message"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "unique"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "fields"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "check"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "expression"
+            ]
+          }
+        }
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "transition": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        },
+        "trigger": {
+          "description": "The operationId, command, channel message ('channel/Message') or algorithm that causes the move.",
+          "type": "string"
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "validity": {
+      "description": "SpecArch keyword. The fields that bound when a record is current: 'from', the date or instant from which it is valid, which may be left out, and 'until', the date or instant after which it is expired. Both name fields of this entity with the same format, date or date-time. A record used outside its validity is refused; the validator derives that case for every operation that takes one.",
+      "type": "object",
+      "properties": {
+        "from": {
+          "description": "The field holding the date or instant from which the record is valid.",
+          "$ref": "#/$defs/memberName"
+        },
+        "until": {
+          "description": "The field holding the date or instant after which the record is expired.",
+          "$ref": "#/$defs/memberName"
+        }
+      },
+      "required": [
+        "until"
+      ],
+      "additionalProperties": false
+    },
+    "permission": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "role": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "permissions": {
+          "description": "Permissions this role grants. Fail-closed: an empty list is not allowed; a role that grants nothing is left out.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/permissionName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description",
+        "permissions"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "session": {
+      "description": "SpecArch keyword. The one session object of a specification.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "idleTimeout": {
+          "description": "The time without a request after which the session expires.",
+          "$ref": "#/$defs/duration"
+        },
+        "absoluteTimeout": {
+          "description": "The time after signing in after which the session expires, whatever the caller does.",
+          "$ref": "#/$defs/duration"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "idleTimeout"
+          ]
+        },
+        {
+          "required": [
+            "absoluteTimeout"
+          ]
+        }
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "pathItem": {
+      "description": "OpenAPI keyword. The operations on one path.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "parameters": {
+          "$ref": "#/$defs/parameters"
+        },
+        "get": {
+          "$ref": "#/$defs/operation"
+        },
+        "post": {
+          "$ref": "#/$defs/operation"
+        },
+        "put": {
+          "$ref": "#/$defs/operation"
+        },
+        "patch": {
+          "$ref": "#/$defs/operation"
+        },
+        "delete": {
+          "$ref": "#/$defs/operation"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "get"
+          ]
+        },
+        {
+          "required": [
+            "post"
+          ]
+        },
+        {
+          "required": [
+            "put"
+          ]
+        },
+        {
+          "required": [
+            "patch"
+          ]
+        },
+        {
+          "required": [
+            "delete"
+          ]
+        }
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "parameters": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/parameter"
+      }
+    },
+    "parameter": {
+      "description": "OpenAPI keyword.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "in": {
+          "type": "string",
+          "enum": [
+            "path",
+            "query",
+            "header"
+          ]
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "schema": {
+          "$ref": "#/$defs/field"
+        }
+      },
+      "required": [
+        "name",
+        "in",
+        "schema"
+      ],
+      "if": {
+        "properties": {
+          "in": {
+            "const": "path"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "required": {
+            "const": true
+          }
+        },
+        "required": [
+          "required"
+        ]
+      },
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "operation": {
+      "description": "OpenAPI keywords plus the SpecArch 'permission'. An operation without a permission is invalid: access is fail-closed.",
+      "type": "object",
+      "properties": {
+        "operationId": {
+          "$ref": "#/$defs/memberName"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "permission": {
+          "description": "SpecArch keyword. The one permission a caller must hold. Use 'public' for an endpoint open to everyone.",
+          "$ref": "#/$defs/permissionName"
+        },
+        "parameters": {
+          "$ref": "#/$defs/parameters"
+        },
+        "requestBody": {
+          "$ref": "#/$defs/requestBody"
+        },
+        "responses": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^([1-5][0-9][0-9]|default)$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/response"
+          },
+          "minProperties": 1
+        },
+        "emits": {
+          "description": "SpecArch keyword. Channel messages this operation publishes, as 'channel/Message'.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*/[A-Z][A-Za-z0-9]*$"
+          },
+          "uniqueItems": true
+        },
+        "calls": {
+          "description": "SpecArch keyword. The dependencies this operation calls, by their names under 'dependencies'.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "uniqueItems": true
+        },
+        "idempotencyKey": {
+          "description": "SpecArch keyword. The name of a header parameter of this operation by which a repeated request is told from a new one: a request repeated with the same key is answered as the first was and has no second effect, and a different request with a key already used is refused. Only on a method that is not idempotent by itself (RFC 9110, 9.2.2): post or patch.",
+          "type": "string",
+          "minLength": 1
+        },
+        "guard": {
+          "$ref": "#/$defs/guard"
+        },
+        "listOf": {
+          "$ref": "#/$defs/listOf"
+        },
+        "limits": {
+          "$ref": "#/$defs/limits"
+        },
+        "algorithm": {
+          "description": "SpecArch keyword. The algorithm this operation runs, if any.",
+          "$ref": "#/$defs/memberName"
+        },
+        "deprecated": {
+          "type": "boolean"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "operationId",
+        "summary",
+        "permission",
+        "responses"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "requestBody": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "content": {
+          "$ref": "#/$defs/content"
+        }
+      },
+      "required": [
+        "content"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "content": {
+          "$ref": "#/$defs/content"
+        },
+        "problem": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+          "description": "SpecArch keyword. The problem type this response answers with, by its name under errors. Once the specification declares errors, every 4xx and 5xx response names one."
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "content": {
+      "description": "OpenAPI keyword. Media type to schema.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z]+/[a-z0-9.+-]+$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "schema": {
+            "$ref": "#/$defs/field"
+          }
+        },
+        "required": [
+          "schema"
+        ],
+        "propertyNames": {
+          "not": {
+            "$ref": "#/$defs/stackSpecificKey"
+          }
+        },
+        "patternProperties": {
+          "^x-": {}
+        },
+        "additionalProperties": false
+      },
+      "minProperties": 1
+    },
+    "guard": {
+      "description": "SpecArch keyword. What is checked together with a data change: the entity it writes, a precondition over that entity's fields that must hold on the records as they are at the moment of the change, and the exact number of records it changes. The checks run with the change itself, so a writer who read a record before another writer changed it is refused rather than overwriting the other's change, and a change that would touch more records than expected is refused as a whole. The validator derives the cases 'guard precondition fails' and 'concurrent write'.",
+      "type": "object",
+      "properties": {
+        "entity": {
+          "description": "The entity whose records the change writes.",
+          "$ref": "#/$defs/typeName"
+        },
+        "precondition": {
+          "description": "One expression in SpecArch's subset of CEL (docs/conventions.md) over the entity's fields, giving true or false, that must hold on each record as it is when the change is made.",
+          "type": "string",
+          "minLength": 1
+        },
+        "recordsChanged": {
+          "description": "The exact number of records of the entity the change writes.",
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "entity",
+        "recordsChanged"
+      ],
+      "additionalProperties": false
+    },
+    "channel": {
+      "description": "AsyncAPI keywords.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "messages": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/typeName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/message"
+          },
+          "minProperties": 1
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "messages"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "message": {
+      "description": "AsyncAPI keywords. One event.",
+      "type": "object",
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "payload": {
+          "$ref": "#/$defs/field"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "summary",
+        "payload"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "dependency": {
+      "description": "SpecArch keyword. One external system an operation calls.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "timeout": {
+          "description": "The time limit of one call: after it, the call is given up and the operation answers as it does when the dependency fails.",
+          "$ref": "#/$defs/duration"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description",
+        "timeout"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "page": {
+      "description": "SpecArch keyword. A screen of one of three kinds. Generators map it onto the target project's component library.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "list",
+            "form",
+            "view"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "route": {
+          "description": "Client-side route; {param} marks a path parameter.",
+          "type": "string",
+          "pattern": "^/"
+        },
+        "entity": {
+          "$ref": "#/$defs/typeName"
+        },
+        "permission": {
+          "description": "Fail-closed, like an operation.",
+          "$ref": "#/$defs/permissionName"
+        },
+        "source": {
+          "description": "operationId that loads the page's data. Required for list and view; a form that creates a new row has nothing to load and leaves it out, a form that edits an existing row names the operation that loads it.",
+          "$ref": "#/$defs/memberName"
+        },
+        "submit": {
+          "description": "For a form: operationId that receives it.",
+          "$ref": "#/$defs/memberName"
+        },
+        "columns": {
+          "description": "For a list: fields shown, in order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "compactColumns": {
+          "description": "For a list: the columns a compact screen keeps, in order. What compact means in points or pixels, and how the row is laid out, is the stack's.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "fields": {
+          "description": "For a form or view: fields shown, in order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "sections": {
+          "description": "For a form or a view, in place of fields: its fields in groups, each with a title, in the order a person reads them, which is the focus order (WCAG 2.2, 2.4.3). How groups sit on a screen is the stack's.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/pageSection"
+          },
+          "minItems": 1
+        },
+        "filters": {
+          "description": "For a list: fields the user can filter on.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "uniqueItems": true
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/action"
+          }
+        },
+        "onSubmitted": {
+          "description": "For a form: where a successful submission leads.",
+          "$ref": "#/$defs/pageEvent"
+        },
+        "onSelect": {
+          "description": "For a list: where selecting a row leads.",
+          "$ref": "#/$defs/pageEvent"
+        },
+        "states": {
+          "$ref": "#/$defs/pageStates"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "kind",
+        "title",
+        "route",
+        "entity",
+        "permission"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "list"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "columns",
+              "source"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "form"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "submit"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "view"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "source"
+            ]
+          }
+        }
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "action": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "navigate",
+            "operation"
+          ]
+        },
+        "target": {
+          "description": "A page name for navigate, an operationId for operation.",
+          "type": "string",
+          "minLength": 1
+        },
+        "permission": {
+          "description": "Shown only to callers holding it; defaults to the page's permission.",
+          "$ref": "#/$defs/permissionName"
+        },
+        "confirm": {
+          "description": "Question asked before an operation runs.",
+          "type": "string"
+        },
+        "then": {
+          "description": "For an operation: where it leads once it succeeds.",
+          "$ref": "#/$defs/pageEvent"
+        }
+      },
+      "required": [
+        "label",
+        "kind",
+        "target"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "pageEvent": {
+      "description": "SpecArch keyword, after the navigation flow of OMG's IFML. Where an event of a page leads: to another page with the route parameters it needs, and with a message announced to the person (WCAG 2.2, 4.1.3). Geometry and animation are a stack's.",
+      "type": "object",
+      "properties": {
+        "navigate": {
+          "description": "The page the event leads to.",
+          "type": "string",
+          "minLength": 1
+        },
+        "with": {
+          "description": "The route parameters of the page navigated to, each from a field of this page's entity: the record submitted, selected or acted on.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minProperties": 1
+        },
+        "message": {
+          "description": "A status message, a full sentence, announced without moving focus.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "minProperties": 1,
+      "dependentRequired": {
+        "with": [
+          "navigate"
+        ]
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "flow": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "actor": {
+          "description": "The role that does the task; it must be allowed to open every page on the way.",
+          "$ref": "#/$defs/roleName"
+        },
+        "steps": {
+          "description": "The pages in order, each with the event that leads to the next one's page.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/flowStep"
+          },
+          "minItems": 2
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description",
+        "actor",
+        "steps"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "flowStep": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "description": "The page of the step.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "event": {
+          "description": "What the person does on it: selects a row of a list, submits a form, or takes an action.",
+          "type": "string",
+          "enum": [
+            "select",
+            "submitted",
+            "action"
+          ]
+        },
+        "action": {
+          "description": "For event action: the label of the action.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "page",
+        "event"
+      ],
+      "if": {
+        "properties": {
+          "event": {
+            "const": "action"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "action"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "action"
+          ]
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "pageStates": {
+      "description": "SpecArch keyword. What a page shows in each state but its content: empty and filtered empty for a list, and failed per problem type it can meet. Loading and submitting have no text of their own, and a stack draws them its way. Without states, a stack shows its own.",
+      "type": "object",
+      "properties": {
+        "empty": {
+          "description": "For a list: what it shows when there are no records.",
+          "$ref": "#/$defs/pageState"
+        },
+        "filteredEmpty": {
+          "description": "For a list with filters: what it shows when no record matches them.",
+          "$ref": "#/$defs/pageState"
+        },
+        "failed": {
+          "description": "What the page shows when an operation it calls fails, keyed by problem type, or default for every problem type not named.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/pageState"
+          },
+          "minProperties": 1
+        }
+      },
+      "minProperties": 1,
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "pageState": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "description": "A full sentence the person reads, and a screen reader announces (WCAG 2.2, 3.3.1 and 4.1.3).",
+          "type": "string",
+          "minLength": 1
+        },
+        "field": {
+          "description": "For a failed state of a form: the field the problem is about, so the message shows beside it.",
+          "$ref": "#/$defs/memberName"
+        }
+      },
+      "required": [
+        "message"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "pageSection": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "description": "The heading of the group.",
+          "type": "string",
+          "minLength": 1
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "title",
+        "fields"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "tokenGroup": {
+      "description": "A group of design tokens, after the W3C Design Tokens Community Group's Format Module 2025.10: $type gives the type of every token it holds that does not give its own, and every other key is a token, which has a $value, or a group.",
+      "type": "object",
+      "properties": {
+        "$type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "$description": {
+          "type": "string"
+        },
+        "$extensions": {
+          "description": "The format's extensions, keyed by the reverse domain of the tool that writes them; SpecArch keeps them and reads none.",
+          "type": "object"
+        },
+        "$deprecated": {
+          "description": "The format's deprecation: true, or a sentence saying what to use instead.",
+          "type": [
+            "boolean",
+            "string"
+          ]
+        }
+      },
+      "patternProperties": {
+        "^[^${}.][^{}.]*$": {
+          "if": {
+            "type": "object",
+            "required": [
+              "$value"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/designToken"
+          },
+          "else": {
+            "$ref": "#/$defs/tokenGroup"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "designToken": {
+      "description": "A design token: its $value, of its type or an alias of another token written {group.token}, its $type when no group gives it and it is not an alias, a $description, and the format's $extensions and $deprecated.",
+      "type": "object",
+      "properties": {
+        "$value": {},
+        "$type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "$description": {
+          "type": "string"
+        },
+        "$extensions": {
+          "description": "The format's extensions, keyed by the reverse domain of the tool that writes them; SpecArch keeps them and reads none.",
+          "type": "object"
+        },
+        "$deprecated": {
+          "description": "The format's deprecation: true, or a sentence saying what to use instead.",
+          "type": [
+            "boolean",
+            "string"
+          ]
+        }
+      },
+      "required": [
+        "$value"
+      ],
+      "additionalProperties": false
+    },
+    "colorPair": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "description": "The colour token used as text or as the part of a control, by its path.",
+          "type": "string",
+          "minLength": 1
+        },
+        "background": {
+          "description": "The colour token it is shown on.",
+          "type": "string",
+          "minLength": 1
+        },
+        "use": {
+          "description": "text asks 4.5:1 at AA (1.4.3) and 7:1 at AAA (1.4.6); largeText, 18 point or 14 point bold, asks 3:1 and 4.5:1; control, the parts of a control and graphics, asks 3:1 (1.4.11).",
+          "type": "string",
+          "enum": [
+            "text",
+            "largeText",
+            "control"
+          ]
+        }
+      },
+      "required": [
+        "text",
+        "background",
+        "use"
+      ],
+      "additionalProperties": false
+    },
+    "algorithm": {
+      "description": "SpecArch keyword. All three of formula, examples and pseudocode are required; the examples become test cases.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "inputs": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/field"
+          },
+          "minProperties": 1
+        },
+        "output": {
+          "$ref": "#/$defs/field"
+        },
+        "formula": {
+          "description": "The computation as one expression in SpecArch's subset of CEL (docs/conventions.md). It is type-checked against the inputs' declared types, with no implicit conversion, and its result must have the output's type. The validator evaluates it on every worked example.",
+          "type": "string",
+          "minLength": 1
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/workedExample"
+          },
+          "minItems": 1
+        },
+        "pseudocode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "inputs",
+        "output",
+        "formula",
+        "examples",
+        "pseudocode"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "workedExample": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputs": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minProperties": 1
+        },
+        "expected": {},
+        "note": {
+          "description": "Why this case matters or how the number was reached.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "inputs",
+        "expected"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "decision": {
+      "description": "SpecArch keyword. A short architecture decision record: the context (what was true and at stake), the decision, its consequences, and under 'why' the reasoning that led from the one to the other.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "proposed",
+            "accepted",
+            "deprecated",
+            "superseded"
+          ]
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "context": {
+          "$ref": "#/$defs/markdown"
+        },
+        "decision": {
+          "$ref": "#/$defs/markdown"
+        },
+        "consequences": {
+          "$ref": "#/$defs/markdown"
+        },
+        "supersededBy": {
+          "type": "string",
+          "pattern": "^ADR-[0-9]{3,}$"
+        },
+        "answers": {
+          "description": "SpecArch keyword. The open questions this decision answers, by ID. The questions themselves are removed from the specification once answered, so these IDs are text, not references; the validator refuses an accepted decision that answers a question still present.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/questionId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "decidedBy": {
+          "description": "SpecArch keyword. The stakeholder who decided, by key; a role, never a person. Required when the decision answers questions.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "title",
+        "status",
+        "date",
+        "context",
+        "decision",
+        "consequences"
+      ],
+      "if": {
+        "properties": {
+          "status": {
+            "const": "superseded"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "supersededBy"
+        ]
+      },
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false,
+      "dependentRequired": {
+        "answers": [
+          "decidedBy"
+        ]
+      }
+    },
+    "question": {
+      "description": "SpecArch keyword. One open question: something the sources do not say and a stakeholder must decide or provide. ISO/IEC/IEEE 29148:2018 (5.2.6) says a complete set of requirements holds no 'to be defined' clause and that resolving them is iterative within a time set by risk; IEEE Std 830-1998 (4.3.3) says such an item carries why it is open, what must be done, who is responsible and by when. A question is the one licence for an element to be incomplete: a required key may be missing exactly where a must question says it is unknown.",
+      "type": "object",
+      "properties": {
+        "question": {
+          "description": "What is asked, as one plain question.",
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "description": "decision: the stakeholder decides; material: the stakeholder provides something to read, such as a document, a file, a screenshot or a record.",
+          "type": "string",
+          "enum": [
+            "decision",
+            "material"
+          ]
+        },
+        "priority": {
+          "description": "must: what it blocks is not defined, and nothing that reads it can be generated; should: what it blocks is written as inferred and the stakeholder should confirm it before it is built on; could: the answer would improve the specification, but nothing waits for it.",
+          "type": "string",
+          "enum": [
+            "must",
+            "should",
+            "could"
+          ]
+        },
+        "blocks": {
+          "description": "What cannot be final until the question is answered: a stage name, a section name, or a pointer to an element (#/entities/Loan, #/paths/~1loans/post) or to one key of it (#/requirements/BR-3/priority). A must question covers the required keys missing at or under an element pointer, and the one key of a key pointer.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "decidedBy": {
+          "description": "The stakeholder who decides or provides, by key; a role, never a person.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "options": {
+          "description": "For a decision with a known set of answers: the answers, two or more, so that the question can be put as a choice.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 2,
+          "uniqueItems": true
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "question",
+        "kind",
+        "priority",
+        "blocks",
+        "decidedBy"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "commandName": {
+      "description": "SpecArch keyword. One or more kebab-case words separated by single spaces, as typed after the program name.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*( [a-z][a-z0-9]*(-[a-z0-9]+)*)*$"
+    },
+    "command": {
+      "description": "SpecArch keyword. One command of a command-line interface. Design only: how the arguments are parsed and which library does it belong in an implementation file.",
+      "type": "object",
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "permission": {
+          "description": "SpecArch keyword. The one permission a caller must hold. A local tool that anyone may run uses 'public'.",
+          "$ref": "#/$defs/permissionName"
+        },
+        "arguments": {
+          "description": "Positional arguments, in order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/commandArgument"
+          }
+        },
+        "options": {
+          "description": "Named options, keyed by the long name without its leading dashes.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/commandOption"
+          }
+        },
+        "reads": {
+          "description": "Files and folders the command reads.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fileUse"
+          }
+        },
+        "writes": {
+          "description": "Files and folders the command writes. A command that writes nothing leaves this out.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fileUse"
+          }
+        },
+        "standardOutput": {
+          "description": "What the command prints on standard output.",
+          "$ref": "#/$defs/markdown"
+        },
+        "standardError": {
+          "description": "What the command prints on standard error.",
+          "$ref": "#/$defs/markdown"
+        },
+        "exitCodes": {
+          "description": "Every exit status the command can return, keyed by number. Status 0 is required.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^(0|[1-9][0-9]?|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required": [
+            "0"
+          ]
+        },
+        "guard": {
+          "$ref": "#/$defs/guard"
+        },
+        "algorithm": {
+          "description": "SpecArch keyword. The algorithm this command runs, if any.",
+          "$ref": "#/$defs/memberName"
+        },
+        "deprecated": {
+          "type": "boolean"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "summary",
+        "permission",
+        "exitCodes"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "commandArgument": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "repeatable": {
+          "description": "The argument takes one or more values; only the last argument may.",
+          "type": "boolean"
+        },
+        "schema": {
+          "$ref": "#/$defs/field"
+        }
+      },
+      "required": [
+        "name",
+        "schema"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "commandOption": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "schema": {
+          "$ref": "#/$defs/field"
+        },
+        "required": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "description",
+        "schema"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "fileUse": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "description": "A path or a pattern; {name} marks a part taken from an argument or option.",
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        }
+      },
+      "required": [
+        "path",
+        "description"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "stackSpecificKey": {
+      "description": "Extension keys that belong to one implementation, not to the design: code-generator settings, a language or framework binding, servers, hosts, ports and deployments. They go in a SpecArch Implementation File (*.specarch-implementation.yaml), never in a design file. See 'Design and implementation' in docs/conventions.md.",
+      "type": "string",
+      "pattern": "^x-(oapi-codegen|ogen|openapi-generator|codegen|protoc|grpc|go|java|kotlin|python|typescript|javascript|rust|swift|dotnet|csharp|php|ruby|framework|router|middleware|cli-library|server|servers|host|port|deploy|deployment|environment)(-|$)"
+    },
+    "listOf": {
+      "description": "SpecArch keyword. The operation answers a page of an entity's records, or of a view's rows: which fields a free-text search covers, which may be filtered and sorted by, and the page size. A client must know the lists, and a request outside them is refused, never ignored. The parameter names and the answer's envelope are the paginated-list idiom.",
+      "type": "object",
+      "properties": {
+        "entity": {
+          "description": "The entity listed.",
+          "$ref": "#/$defs/typeName"
+        },
+        "view": {
+          "description": "The view listed, in place of an entity; the whitelists then name the view's fields.",
+          "$ref": "#/$defs/typeName"
+        },
+        "searchable": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "The fields a free-text search matches."
+        },
+        "filterable": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "The fields a filter may name."
+        },
+        "sortable": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "The fields the list may be sorted by."
+        },
+        "pageSize": {
+          "description": "How many records a page holds.",
+          "type": "object",
+          "properties": {
+            "default": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            },
+            "maximum": {
+              "description": "The largest page a request may ask for; above it the request is refused.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          },
+          "required": [
+            "maximum"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "pageSize"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "entity"
+          ]
+        },
+        {
+          "required": [
+            "view"
+          ]
+        }
+      ]
+    },
+    "limits": {
+      "description": "SpecArch keyword. Limits a client must keep to: the largest request body, and how many requests are taken in a time. The runtime side is the rate-limit idiom.",
+      "type": "object",
+      "properties": {
+        "maxRequestBytes": {
+          "description": "The largest request body, in bytes; a larger one is refused.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "rate": {
+          "description": "How many requests one caller may make in a time, and how many at once above that.",
+          "type": "object",
+          "properties": {
+            "requests": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            },
+            "per": {
+              "$ref": "#/$defs/duration"
+            },
+            "burst": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          },
+          "required": [
+            "requests",
+            "per"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "minProperties": 1,
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "problemType": {
+      "description": "SpecArch keyword. One kind of problem an operation answers with, in the shape of RFC 9457, Problem Details for HTTP APIs: its HTTP status, a short title that does not change between occurrences, and the condition under which it is answered.",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "minimum": 400,
+          "maximum": 599
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "condition": {
+          "$ref": "#/$defs/markdown"
+        },
+        "type": {
+          "description": "The problem type's URI, when it is not derived from the name.",
+          "type": "string",
+          "minLength": 1
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "status",
+        "title",
+        "condition"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "job": {
+      "description": "SpecArch keyword. Work the system does on its own: on a schedule, at an interval, or for each message it consumes. It acts as a role, reads and writes entities, may call dependencies and publish messages, and retries a failed item a bounded number of times.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "trigger": {
+          "description": "What starts the job: exactly one of schedule, a cron expression of five fields in UTC; every, a duration between runs; consumes, the channel/Message it handles one at a time.",
+          "type": "object",
+          "properties": {
+            "schedule": {
+              "type": "string",
+              "pattern": "^\\S+( \\S+){4}$"
+            },
+            "every": {
+              "$ref": "#/$defs/duration"
+            },
+            "consumes": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*/[A-Z][A-Za-z0-9]*$"
+            }
+          },
+          "minProperties": 1,
+          "maxProperties": 1,
+          "additionalProperties": false
+        },
+        "role": {
+          "description": "The role the job acts as; its permissions are what the job may do.",
+          "$ref": "#/$defs/roleName"
+        },
+        "reads": {
+          "description": "The entities the job reads.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/typeName"
+          },
+          "uniqueItems": true
+        },
+        "writes": {
+          "description": "The entities the job writes.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/typeName"
+          },
+          "uniqueItems": true
+        },
+        "calls": {
+          "description": "The dependencies the job calls.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "uniqueItems": true
+        },
+        "emits": {
+          "description": "The messages the job publishes, as channel/Message.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*/[A-Z][A-Za-z0-9]*$"
+          },
+          "uniqueItems": true
+        },
+        "retries": {
+          "description": "How often a failed item is tried again, and what becomes of it after the last try: deadLetter keeps it apart for a person, discard drops it.",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            },
+            "then": {
+              "type": "string",
+              "enum": [
+                "deadLetter",
+                "discard"
+              ]
+            }
+          },
+          "required": [
+            "limit",
+            "then"
+          ],
+          "additionalProperties": false
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description",
+        "trigger",
+        "role"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "menuItem": {
+      "description": "SpecArch keyword. One entry of a menu: a leaf that opens a page, or a group of entries.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "page": {
+          "description": "The page the entry opens; it is shown to who may open the page.",
+          "type": "string",
+          "minLength": 1
+        },
+        "items": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/menuItem"
+          },
+          "minProperties": 1
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "page"
+          ]
+        },
+        {
+          "required": [
+            "items"
+          ]
+        }
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "view": {
+      "description": "SpecArch keyword. A read model: the entity it reads from, whose every field it carries, and the properties it adds. It may be the item of a response and the subject of a list, never the body of a request.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "from": {
+          "description": "The entity the view reads from; the view holds one row per record of it.",
+          "$ref": "#/$defs/typeName"
+        },
+        "properties": {
+          "description": "The fields the view adds, keyed by camelCase name; none may repeat a field of the entity.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/viewProperty"
+          },
+          "minProperties": 1
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "from",
+        "properties"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "viewProperty": {
+      "description": "A field a view adds: exactly one of path, relations separated by dots that each lead to one record and end in a field of the last, or count, a relation of the entity that leads to many records. A path has its field's type and is null when a relation has no record; a count is a 64-bit integer and leaves out softly deleted records.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^[a-z][A-Za-z0-9]*(\\.[a-z][A-Za-z0-9]*)+$"
+        },
+        "count": {
+          "$ref": "#/$defs/memberName"
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "path"
+          ]
+        },
+        {
+          "required": [
+            "count"
+          ]
+        }
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-013:
     title: One binary, specarch, with verbs named by direction, and generator plug-ins on PATH

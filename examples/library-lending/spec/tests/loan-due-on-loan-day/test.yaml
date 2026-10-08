@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
 entity: Loan
 constraint: loan_due_after_loaned
 level: system

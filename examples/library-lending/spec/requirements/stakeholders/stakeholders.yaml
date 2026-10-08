@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-requirements-0.1.schema.json
 stakeholders:
   librarian:
     description: Staff at the desk who register members, lend copies and take returns.

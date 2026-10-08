@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-requirements-0.1.schema.json
 constraints:
   CON-1:
     statement: Every keyword that a standard already has is taken from that standard with its meaning; SpecArch adds a keyword only where none exists.

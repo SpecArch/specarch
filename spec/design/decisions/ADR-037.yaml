@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-037:
     title: A specification names its accessibility target, WCAG 2.2 at a level, and the design is checked against it

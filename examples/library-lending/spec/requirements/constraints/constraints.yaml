@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-requirements-0.1.schema.json
 constraints:
   CON-1:
     statement: Member data is kept only while the membership is open and for one year after, then deleted.

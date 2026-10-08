@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-055:
     title: Meta-model 0.2 turns a derived case no test covers into an error, except where an open question holds up its subject, and reads 0.1 files with warnings until 1.0

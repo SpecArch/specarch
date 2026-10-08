@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-048:
     title: extract documents reads a Markdown document's outline, its commitment sentences as requirements and its tables of fields, and merge joins a number of days to the one check that names it

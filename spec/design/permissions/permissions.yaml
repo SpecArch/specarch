@@ -1,2 +1,3 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 permissions:
   public: { description: "Anyone who has the program may run it. It reads and writes local files only." }

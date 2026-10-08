@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../../schema/specarch-fragment-deployment-0.1.schema.json
 release:
   description: A release goes to staging first, where a librarian tries the desk tasks, then to production outside opening hours.
   steps:

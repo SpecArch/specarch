@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-031:
     title: The dxlib dialect is a stack, and its document says only what dxlib enforces

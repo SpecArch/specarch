@@ -1,0 +1,835 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-fragment-deployment-0.1.schema.json",
+  "title": "SpecArch deployment file, meta-model 0.1",
+  "description": "One file under the deployment/ folder of a SpecArch specification: a mapping of that stage's sections (environments, configuration, release, rollback, migrations, questions). A file under a sub-folder named after a section holds only that section. The validator merges every file of a tree into one document, which specarch-design-0.1.schema.json describes, and checks what spans files, such as references and names defined twice; this schema checks one file alone. Written by tools/fragment-schemas from that schema; do not edit, run it.",
+  "type": "object",
+  "properties": {
+    "environments": {
+      "description": "SpecArch keyword. Where the system is installed, keyed by kebab-case name such as development, staging, production: what each is for and which one a release goes to next. Hosts, URLs and ports belong to an implementation file's deployments.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/environment"
+      }
+    },
+    "configuration": {
+      "description": "SpecArch keyword. The settings the system reads at run time, keyed by camelCase name: what each is, its type, and whether it is a secret. A secret's value is never written in a specification; the implementation file says where it comes from.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/memberName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/setting"
+      }
+    },
+    "release": {
+      "$ref": "#/$defs/procedure",
+      "description": "SpecArch keyword. How a new version is put into an environment, as ordered steps with a check for each (ISO/IEC/IEEE 12207:2017, 6.4.10 Transition process)."
+    },
+    "rollback": {
+      "$ref": "#/$defs/procedure",
+      "description": "SpecArch keyword. How the previous version is restored when a release fails, as ordered steps with a check for each."
+    },
+    "migrations": {
+      "description": "SpecArch keyword. Changes to stored data that a release carries, keyed by kebab-case name, each with its steps and how it is reversed. A migration that cannot be reversed says so in its description.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/migration"
+      }
+    },
+    "questions": {
+      "description": "SpecArch keyword. The open questions: what the sources do not say and a stakeholder must decide or provide, keyed by ID such as Q-12. A question is written in the folder of the stage it is about, so every stage folder may hold questions; the validator merges them into one section and checks each sits in the stage of what it blocks. A question leaves the specification when it is answered; the decision that answered it names it under answers.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Z][A-Z0-9]{0,15}-[A-Za-z0-9._]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/question"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "memberName": {
+      "description": "camelCase identifier for a field, relation, algorithm or input.",
+      "type": "string",
+      "pattern": "^[a-z][A-Za-z0-9]*$"
+    },
+    "requirementLink": {
+      "description": "SpecArch keyword. The ID of a requirement: one defined under 'requirements' in this specification, or one in an external requirement set declared under 'sources' with kind requirement-set, whose prefix is the set's prefix.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+    },
+    "satisfies": {
+      "description": "SpecArch keyword. The requirements this element satisfies, by ID (the satisfy relation of ISO/IEC/IEEE 29148:2018, 6.5.1, and SysML). Every named design and deployment element carries it; fields, parameters, responses, actions and worked examples trace through the object that holds them. A requirement no element satisfies is reported by the validator.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/requirementLink"
+      },
+      "uniqueItems": true
+    },
+    "why": {
+      "description": "SpecArch keyword. The rationale in plain words: why this element is the way it is, what was concluded. Optional on every element; a document renders it as an Insight next to the element.",
+      "type": "string",
+      "minLength": 1
+    },
+    "citation": {
+      "description": "SpecArch keyword. One citation: which source, where in it, and what it says here. A document renders it as a Note under the element's Insight.",
+      "type": "object",
+      "properties": {
+        "source": {
+          "description": "The key of a source declared under 'sources' in specarch.yaml.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "clause": {
+          "description": "The clause, section, page or question cited, as the source numbers it, such as '5.2.5' or 'Annex A'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "says": {
+          "description": "What the source says that applies here, in plain words: what it requires, recommends or reports.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "source",
+        "says"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "citations": {
+      "description": "SpecArch keyword. The sources this element rests on, one citation each. Optional on every element.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/citation"
+      },
+      "minItems": 1
+    },
+    "origin": {
+      "description": "SpecArch keyword. How the element is known. stated: a source says it, and cites names the source and where in it. inferred: it was concluded from evidence (code, data, the source's silence), and why says from what. decided: a stakeholder settled it, answering a question or correcting the source, and decidedIn names the decision. An element without origin was written spec-first. What is not known at all is not an element with an origin but an open question under questions.",
+      "type": "string",
+      "enum": [
+        "stated",
+        "inferred",
+        "decided"
+      ]
+    },
+    "decidedIn": {
+      "description": "SpecArch keyword. With origin decided: the decision record that settled this element, such as ADR-021.",
+      "type": "string",
+      "pattern": "^ADR-[0-9]{3,}$"
+    },
+    "markdown": {
+      "description": "Prose in Markdown.",
+      "type": "string"
+    },
+    "schemaRef": {
+      "description": "A JSON pointer into the specification, such as '#/entities/Member', '#/enums/LoanStatus' or '#/views/LoanRow'. The pointer names the object wherever its file is in the tree.",
+      "type": "string",
+      "pattern": "^#/(entities|enums|views)/[A-Z][A-Za-z0-9]*$"
+    },
+    "field": {
+      "description": "JSON Schema keywords, a bounded subset. A field is either a scalar with a type, an array, a nested object, or a reference to an enum or entity.",
+      "type": "object",
+      "properties": {
+        "$ref": {
+          "$ref": "#/$defs/schemaRef"
+        },
+        "type": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "string",
+                "integer",
+                "number",
+                "boolean",
+                "array",
+                "object"
+              ]
+            },
+            {
+              "description": "A type that also allows null, written as JSON Schema does: [string, 'null'].",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "string",
+                  "integer",
+                  "number",
+                  "boolean",
+                  "array",
+                  "object",
+                  "null"
+                ]
+              },
+              "minItems": 2,
+              "maxItems": 2,
+              "uniqueItems": true,
+              "contains": {
+                "const": "null"
+              }
+            }
+          ]
+        },
+        "title": {
+          "description": "JSON Schema's title: the label a person reads for the field, on a page and in a document.",
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "format": {
+          "description": "The concrete type of the value, where the JSON type alone would leave it open. type says how the value is carried in JSON; format says what it is. An integer needs int32, int64 or uint64; a number needs double; a decimal is a string with format decimal, precision and scale; an int64 or uint64 that can exceed 2^53 is carried as a string with format int64 or uint64. See 'Types' in docs/conventions.md.",
+          "type": "string",
+          "enum": [
+            "int32",
+            "int64",
+            "uint64",
+            "double",
+            "decimal",
+            "date",
+            "date-time",
+            "time",
+            "duration",
+            "email",
+            "uuid",
+            "uri",
+            "hostname",
+            "ipv4",
+            "ipv6",
+            "byte",
+            "binary",
+            "password"
+          ]
+        },
+        "enum": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "integer",
+              "number",
+              "boolean"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "const": {
+          "type": [
+            "string",
+            "integer",
+            "number",
+            "boolean"
+          ]
+        },
+        "default": {},
+        "examples": {
+          "type": "array",
+          "minItems": 1
+        },
+        "minimum": {
+          "type": "number"
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "exclusiveMinimum": {
+          "type": "number"
+        },
+        "exclusiveMaximum": {
+          "type": "number"
+        },
+        "multipleOf": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "minLength": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxLength": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pattern": {
+          "type": "string",
+          "format": "regex"
+        },
+        "items": {
+          "$ref": "#/$defs/field"
+        },
+        "minItems": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxItems": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "uniqueItems": {
+          "type": "boolean"
+        },
+        "properties": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/field"
+          }
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "uniqueItems": true
+        },
+        "readOnly": {
+          "description": "Set by the system, never by a client (an ID, a timestamp).",
+          "type": "boolean"
+        },
+        "writeOnly": {
+          "type": "boolean"
+        },
+        "deprecated": {
+          "type": "boolean"
+        },
+        "precision": {
+          "description": "SpecArch keyword. Total digits of a decimal; required with format: decimal.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "scale": {
+          "description": "SpecArch keyword. Digits after the decimal point; required with format: decimal.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "mistakes": {
+          "description": "SpecArch keyword. How often users get this field wrong: frequent or rare. It replaces the default frequency of every derived test case about the field, which decides with the harm of the subject whether the case is written or left out.",
+          "type": "string",
+          "enum": [
+            "frequent",
+            "rare"
+          ]
+        },
+        "sensitivity": {
+          "description": "SpecArch keyword. How sensitive the value is: public; internal, for staff only; personal, data about a person, masked in logs and shown only to who may see it; credential, a secret such as a password or a token, which no response carries unless the field is writeOnly. The masking per sensitivity is the pii-in-logs idiom.",
+          "type": "string",
+          "enum": [
+            "public",
+            "internal",
+            "personal",
+            "credential"
+          ]
+        },
+        "atRest": {
+          "description": "SpecArch keyword. encrypted: the value is stored encrypted, so it cannot be searched, sorted or compared in storage unless lookup gives a way. The engine function and the key are the encrypted-column idiom.",
+          "type": "string",
+          "enum": [
+            "encrypted"
+          ]
+        },
+        "lookup": {
+          "description": "SpecArch keyword. With atRest encrypted: hash, a salted hash kept beside the value, so the field can be a key, unique or filtered by equality.",
+          "type": "string",
+          "enum": [
+            "hash"
+          ]
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "$ref"
+          ]
+        },
+        {
+          "required": [
+            "type"
+          ]
+        }
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "anyOf": [
+              {
+                "properties": {
+                  "type": {
+                    "const": "integer"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              },
+              {
+                "properties": {
+                  "type": {
+                    "type": "array",
+                    "contains": {
+                      "const": "integer"
+                    }
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            ]
+          },
+          "then": {
+            "required": [
+              "format"
+            ],
+            "properties": {
+              "format": {
+                "enum": [
+                  "int32",
+                  "int64",
+                  "uint64"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "anyOf": [
+              {
+                "properties": {
+                  "type": {
+                    "const": "number"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              },
+              {
+                "properties": {
+                  "type": {
+                    "type": "array",
+                    "contains": {
+                      "const": "number"
+                    }
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            ]
+          },
+          "then": {
+            "required": [
+              "format"
+            ],
+            "properties": {
+              "format": {
+                "enum": [
+                  "double"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "anyOf": [
+              {
+                "properties": {
+                  "type": {
+                    "const": "string"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              },
+              {
+                "properties": {
+                  "type": {
+                    "type": "array",
+                    "contains": {
+                      "const": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            ]
+          },
+          "then": {
+            "properties": {
+              "format": {
+                "not": {
+                  "enum": [
+                    "int32",
+                    "double"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "format": {
+                "const": "decimal"
+              }
+            },
+            "required": [
+              "format"
+            ]
+          },
+          "then": {
+            "required": [
+              "precision",
+              "scale"
+            ]
+          }
+        }
+      ]
+    },
+    "question": {
+      "description": "SpecArch keyword. One open question: something the sources do not say and a stakeholder must decide or provide. ISO/IEC/IEEE 29148:2018 (5.2.6) says a complete set of requirements holds no 'to be defined' clause and that resolving them is iterative within a time set by risk; IEEE Std 830-1998 (4.3.3) says such an item carries why it is open, what must be done, who is responsible and by when. A question is the one licence for an element to be incomplete: a required key may be missing exactly where a must question says it is unknown.",
+      "type": "object",
+      "properties": {
+        "question": {
+          "description": "What is asked, as one plain question.",
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "description": "decision: the stakeholder decides; material: the stakeholder provides something to read, such as a document, a file, a screenshot or a record.",
+          "type": "string",
+          "enum": [
+            "decision",
+            "material"
+          ]
+        },
+        "priority": {
+          "description": "must: what it blocks is not defined, and nothing that reads it can be generated; should: what it blocks is written as inferred and the stakeholder should confirm it before it is built on; could: the answer would improve the specification, but nothing waits for it.",
+          "type": "string",
+          "enum": [
+            "must",
+            "should",
+            "could"
+          ]
+        },
+        "blocks": {
+          "description": "What cannot be final until the question is answered: a stage name, a section name, or a pointer to an element (#/entities/Loan, #/paths/~1loans/post) or to one key of it (#/requirements/BR-3/priority). A must question covers the required keys missing at or under an element pointer, and the one key of a key pointer.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "decidedBy": {
+          "description": "The stakeholder who decides or provides, by key; a role, never a person.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "options": {
+          "description": "For a decision with a known set of answers: the answers, two or more, so that the question can be put as a choice.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 2,
+          "uniqueItems": true
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "question",
+        "kind",
+        "priority",
+        "blocks",
+        "decidedBy"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "stackSpecificKey": {
+      "description": "Extension keys that belong to one implementation, not to the design: code-generator settings, a language or framework binding, servers, hosts, ports and deployments. They go in a SpecArch Implementation File (*.specarch-implementation.yaml), never in a design file. See 'Design and implementation' in docs/conventions.md.",
+      "type": "string",
+      "pattern": "^x-(oapi-codegen|ogen|openapi-generator|codegen|protoc|grpc|go|java|kotlin|python|typescript|javascript|rust|swift|dotnet|csharp|php|ruby|framework|router|middleware|cli-library|server|servers|host|port|deploy|deployment|environment)(-|$)"
+    },
+    "step": {
+      "description": "SpecArch keyword. One step of a procedure or a check.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "A short name for the step, such as 'Tag the release'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "description": "What is done, in plain words. The exact command belongs to the implementation file.",
+          "type": "string",
+          "minLength": 1
+        },
+        "check": {
+          "description": "How the person running it knows the step worked.",
+          "type": "string",
+          "minLength": 1
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "name",
+        "action"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/step"
+      },
+      "minItems": 1
+    },
+    "procedure": {
+      "description": "SpecArch keyword. An ordered procedure: a release or a rollback.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "steps": {
+          "$ref": "#/$defs/steps"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "steps"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "environment": {
+      "description": "SpecArch keyword. One environment the system is installed in.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "description": "What the environment is for and who uses it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "promotesTo": {
+          "description": "The environment a release goes to after it has passed here, by key. The last environment leaves it out.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "setting": {
+      "description": "SpecArch keyword. One run-time setting.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "description": "What the setting controls and where its value comes from.",
+          "type": "string",
+          "minLength": 1
+        },
+        "secret": {
+          "description": "True when the value must never be written in a specification or a document: a password, a key, a token. The validator refuses a default or a deployment value for a secret.",
+          "type": "boolean"
+        },
+        "schema": {
+          "$ref": "#/$defs/field"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description",
+        "secret",
+        "schema"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "migration": {
+      "description": "SpecArch keyword. One data migration a release carries.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "steps": {
+          "$ref": "#/$defs/steps"
+        },
+        "rollback": {
+          "description": "How the data change is reversed. Left out only when the description says why it cannot be.",
+          "$ref": "#/$defs/steps"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description",
+        "steps"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-057:
     title: extract pages reads a file-system router's folders from git and a page's schema file in the subset of TypeScript that is also JSON5, and merge takes an element given only by name as not given

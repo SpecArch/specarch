@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-053:
     title: Separation of duties is a set of permissions with a cardinality, after the static separation of duty of ANSI RBAC, and the validator checks it against each role

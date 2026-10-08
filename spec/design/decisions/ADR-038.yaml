@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-038:
     title: The theme is design tokens in the W3C Design Tokens format, and its pairs of colours are checked for contrast

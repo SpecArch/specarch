@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-001:
     title: Late fees are a flat daily rate capped at the replacement cost

@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 commands:
   version:
     summary: Print the program version and the meta-model versions it reads

@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-046:
     title: An element another stakeholder owns is marked on its mapping with ownedBy; generators leave it out and everything that checks still reads it

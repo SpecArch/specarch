@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-fragment-operation-0.1.schema.json",
+  "title": "SpecArch operation file, meta-model 0.1",
+  "description": "One file under the operation/ folder of a SpecArch specification: a mapping of that stage's sections (monitors, questions). A file under a sub-folder named after a section holds only that section. The validator merges every file of a tree into one document, which specarch-design-0.1.schema.json describes, and checks what spans files, such as references and names defined twice; this schema checks one file alone. Written by tools/fragment-schemas from that schema; do not edit, run it.",
+  "type": "object",
+  "properties": {
+    "monitors": {
+      "description": "SpecArch keyword. What is watched on the live system (ISO/IEC/IEEE 12207:2017, 6.4.12 Operation process), keyed by kebab-case name: each says what is measured, the objective it must meet, the environment it runs in and the requirements it verifies. The tool, the query and where an alert goes are implementation; the implementation file's deployments name them per monitor. Lives in the operation stage.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/monitor"
+      }
+    },
+    "questions": {
+      "description": "SpecArch keyword. The open questions: what the sources do not say and a stakeholder must decide or provide, keyed by ID such as Q-12. A question is written in the folder of the stage it is about, so every stage folder may hold questions; the validator merges them into one section and checks each sits in the stage of what it blocks. A question leaves the specification when it is answered; the decision that answered it names it under answers.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Z][A-Z0-9]{0,15}-[A-Za-z0-9._]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/question"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "requirementLink": {
+      "description": "SpecArch keyword. The ID of a requirement: one defined under 'requirements' in this specification, or one in an external requirement set declared under 'sources' with kind requirement-set, whose prefix is the set's prefix.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+    },
+    "verifies": {
+      "description": "SpecArch keyword. The requirements this test, commissioning check or monitor verifies, by ID (the verify relation of ISO/IEC/IEEE 29148:2018, 6.5.2). A requirement no test verifies is reported by the validator.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/requirementLink"
+      },
+      "uniqueItems": true
+    },
+    "why": {
+      "description": "SpecArch keyword. The rationale in plain words: why this element is the way it is, what was concluded. Optional on every element; a document renders it as an Insight next to the element.",
+      "type": "string",
+      "minLength": 1
+    },
+    "citation": {
+      "description": "SpecArch keyword. One citation: which source, where in it, and what it says here. A document renders it as a Note under the element's Insight.",
+      "type": "object",
+      "properties": {
+        "source": {
+          "description": "The key of a source declared under 'sources' in specarch.yaml.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "clause": {
+          "description": "The clause, section, page or question cited, as the source numbers it, such as '5.2.5' or 'Annex A'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "says": {
+          "description": "What the source says that applies here, in plain words: what it requires, recommends or reports.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "source",
+        "says"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "citations": {
+      "description": "SpecArch keyword. The sources this element rests on, one citation each. Optional on every element.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/citation"
+      },
+      "minItems": 1
+    },
+    "origin": {
+      "description": "SpecArch keyword. How the element is known. stated: a source says it, and cites names the source and where in it. inferred: it was concluded from evidence (code, data, the source's silence), and why says from what. decided: a stakeholder settled it, answering a question or correcting the source, and decidedIn names the decision. An element without origin was written spec-first. What is not known at all is not an element with an origin but an open question under questions.",
+      "type": "string",
+      "enum": [
+        "stated",
+        "inferred",
+        "decided"
+      ]
+    },
+    "decidedIn": {
+      "description": "SpecArch keyword. With origin decided: the decision record that settled this element, such as ADR-021.",
+      "type": "string",
+      "pattern": "^ADR-[0-9]{3,}$"
+    },
+    "question": {
+      "description": "SpecArch keyword. One open question: something the sources do not say and a stakeholder must decide or provide. ISO/IEC/IEEE 29148:2018 (5.2.6) says a complete set of requirements holds no 'to be defined' clause and that resolving them is iterative within a time set by risk; IEEE Std 830-1998 (4.3.3) says such an item carries why it is open, what must be done, who is responsible and by when. A question is the one licence for an element to be incomplete: a required key may be missing exactly where a must question says it is unknown.",
+      "type": "object",
+      "properties": {
+        "question": {
+          "description": "What is asked, as one plain question.",
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "description": "decision: the stakeholder decides; material: the stakeholder provides something to read, such as a document, a file, a screenshot or a record.",
+          "type": "string",
+          "enum": [
+            "decision",
+            "material"
+          ]
+        },
+        "priority": {
+          "description": "must: what it blocks is not defined, and nothing that reads it can be generated; should: what it blocks is written as inferred and the stakeholder should confirm it before it is built on; could: the answer would improve the specification, but nothing waits for it.",
+          "type": "string",
+          "enum": [
+            "must",
+            "should",
+            "could"
+          ]
+        },
+        "blocks": {
+          "description": "What cannot be final until the question is answered: a stage name, a section name, or a pointer to an element (#/entities/Loan, #/paths/~1loans/post) or to one key of it (#/requirements/BR-3/priority). A must question covers the required keys missing at or under an element pointer, and the one key of a key pointer.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "decidedBy": {
+          "description": "The stakeholder who decides or provides, by key; a role, never a person.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "options": {
+          "description": "For a decision with a known set of answers: the answers, two or more, so that the question can be put as a choice.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 2,
+          "uniqueItems": true
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        }
+      },
+      "required": [
+        "question",
+        "kind",
+        "priority",
+        "blocks",
+        "decidedBy"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "stackSpecificKey": {
+      "description": "Extension keys that belong to one implementation, not to the design: code-generator settings, a language or framework binding, servers, hosts, ports and deployments. They go in a SpecArch Implementation File (*.specarch-implementation.yaml), never in a design file. See 'Design and implementation' in docs/conventions.md.",
+      "type": "string",
+      "pattern": "^x-(oapi-codegen|ogen|openapi-generator|codegen|protoc|grpc|go|java|kotlin|python|typescript|javascript|rust|swift|dotnet|csharp|php|ruby|framework|router|middleware|cli-library|server|servers|host|port|deploy|deployment|environment)(-|$)"
+    },
+    "monitor": {
+      "description": "SpecArch keyword. One monitor of the live system.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "description": "What is measured, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "environment": {
+          "description": "The environment the monitor watches, by key.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "objective": {
+          "description": "What the measurement must stay within, as one verifiable sentence, such as 'nine calls in ten answer within 300 ms over a day'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "verifies": {
+          "$ref": "#/$defs/verifies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description",
+        "environment",
+        "objective"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    }
+  }
+}

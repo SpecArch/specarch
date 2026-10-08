@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-015:
     title: Insights and Notes are labelled paragraphs, after the table for an element shown as a row

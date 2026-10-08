@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-requirements-0.1.schema.json
 stakeholders:
   specification-author:
     description: A person or an assistant who writes a specification in SpecArch and keeps it current.

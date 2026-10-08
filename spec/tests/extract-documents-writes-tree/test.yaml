@@ -1,0 +1,7 @@
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a Markdown handbook with numbered headings and paragraphs, sentences with shall, must, should, a number of days and a time of day, a commitment that names its subject only as it, two tables of fields, one with a sensitivity column and one whose sensitivity a sentence gives for one field, a field of a type the meta-model does not hold, a table of another header and a code block"
+when: "extract documents is run on the handbook"
+then: "it writes the outline as clauses at the commit read, one requirement per commitment citing its clause, the fields of each table as an entity with the sensitivity the document gives, and a question for the commitment it cannot place, the requirements' kind, each entity's primary key and the sensitivity not given, prints a line for the type, the table and the code block it does not hold, and exits 0"
+verifies: [SA-44]

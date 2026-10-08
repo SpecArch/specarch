@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.4.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: Branch handbook
+  version: 0.1.0
+  description: |
+    The document handbook.md, read at commit ba017caa7101f1ff913c98e9e7f53e9a17077a66: every heading and numbered section is a clause, every sentence that makes a commitment is a requirement citing its clause, and every table of fields is an entity's fields. What the document does not say is a question.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  handbook:
+    kind: document
+    title: Branch handbook
+    edition: ba017caa7101f1ff913c98e9e7f53e9a17077a66
+    url: ../docs/handbook.md
+    clauses:
+      - {clause: Branch handbook, title: Branch handbook}
+      - {clause: "1.1", title: Members}
+      - {clause: "1.2", title: Members}
+      - {clause: "2.1", title: Loans}
+      - {clause: "2.2", title: Loans}
+      - {clause: "3", title: Opening}

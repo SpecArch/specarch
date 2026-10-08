@@ -1,0 +1,19 @@
+entities:
+  Loans:
+    type: object
+    properties:
+      id: {type: string, format: int64, readOnly: true}
+      loanedOn: {type: string, format: date}
+      dueOn: {type: string, format: date}
+      remindOn: {type: string, format: date}
+      returnedOn: {type: [string, "null"], format: date}
+    required: [id, loanedOn, dueOn, remindOn]
+    primaryKey: [id]
+    constraints:
+      loans_loan_period: {kind: check, expression: dueOn == loanedOn + duration("P14D"), message: A loan is due 14 days after it is made., satisfies: [HANDBOOK-1]}
+      loans_reminder_period: {kind: check, expression: remindOn == dueOn - duration("P2D"), message: The reminder goes out 2 days before the due date., satisfies: [HANDBOOK-2]}
+      loans_return_period: {kind: check, expression: returnedOn == null || returnedOn <= dueOn + duration("P60D"), message: A loan is returned within 60 days of its due date.}
+      loans_returned_after_loan: {kind: check, expression: returnedOn == null || returnedOn >= loanedOn, message: A book is returned after it is lent.}
+    origin: stated
+    cites:
+      - {source: code, clause: migrations/001_init.sql, says: The loans table and its checks.}

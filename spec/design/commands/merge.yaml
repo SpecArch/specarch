@@ -36,6 +36,17 @@ commands:
         element concerns security (a role, a permission, an operation, or
         an entity or field that is personal or a credential) or when a
         source it cites is marked `givenOutside`; otherwise it is should.
+      - A requirement of the documents side whose statement gives one
+        number of days, such as "The loan period is 21 days.", is compared
+        with the check constraints of the code side that move a date by
+        exactly one number of whole days. When exactly one such check has
+        every word of the statement's subject in its name (the words
+        before is, are, shall, must, will or should, without the, a, an,
+        of, each and every), the check satisfies the requirement. When the
+        numbers differ, the requirement's statement is left out and one
+        must question cites both and blocks it; the check keeps the
+        expression the code runs. No match, or more than one, changes
+        nothing (ADR-048).
       - Sources of the same key are one source when they are the same in
         everything but their clauses, which are joined. Code sources that
         differ only in their edition are one repository read at different
@@ -67,8 +78,9 @@ commands:
       One line per tree naming its title and what it holds; one line per
       source joined from several trees, naming the edition taken; one line
       counting the elements written and those found in more than one
-      tree; and one line per question the merge asked, naming what it
-      blocks and why.
+      tree; one line per requirement joined to a check that gives the
+      same number of days; and one line per question the merge asked,
+      naming what it blocks and why.
     standardError: A usage message on a usage error, and the reason a tree could not be merged.
     exitCodes:
       "0": the merged specification was written

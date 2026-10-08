@@ -50,6 +50,17 @@ jobs:
           go run ./cmd/specarch validate "$RUNNER_TEMP/merged-one"
           status=0; go run ./cmd/specarch gaps "$RUNNER_TEMP/merged-one" > "$RUNNER_TEMP/gaps.txt" || status=$?
           test "$status" -eq 1 && grep -q '8 open questions (8 must' "$RUNNER_TEMP/gaps.txt"
+      - name: The lending desk's manual extracts the same twice, and merged with the code gives the loan period as one must question
+        # The manual says 21 days at clause 3.3; the loans table checks 14.
+        run: |
+          for run in one two; do go run ./cmd/specarch extract documents --out "$RUNNER_TEMP/manual-$run" examples/lending-desk/sources/manual.md > "$RUNNER_TEMP/manual-$run.txt" || exit 1; done
+          diff -r "$RUNNER_TEMP/manual-one" "$RUNNER_TEMP/manual-two" && cmp "$RUNNER_TEMP/manual-one.txt" "$RUNNER_TEMP/manual-two.txt"
+          go run ./cmd/specarch validate "$RUNNER_TEMP/manual-one"
+          for run in one two; do go run ./cmd/specarch merge --out "$RUNNER_TEMP/whole-$run" "$RUNNER_TEMP/manual-one" "$RUNNER_TEMP/one" "$RUNNER_TEMP/routes-one" > "$RUNNER_TEMP/whole-$run.txt" || exit 1; done
+          diff -r "$RUNNER_TEMP/whole-one" "$RUNNER_TEMP/whole-two" && cmp "$RUNNER_TEMP/whole-one.txt" "$RUNNER_TEMP/whole-two.txt"
+          go run ./cmd/specarch validate "$RUNNER_TEMP/whole-one"
+          test "$(grep -c 'the document says 21 days, the check loans_loan_period of Loans says 14' "$RUNNER_TEMP/whole-one.txt")" -eq 1
+          grep -q "blocks: \['#/requirements/MANUAL-2/statement'\]" "$RUNNER_TEMP/whole-one/requirements/questions.yaml"
       - name: The lending desk's SQL and OpenAPI leave out the book records another team owns, the same twice
         # Book's mapping names the catalogue team under ownedBy: no table
         # and no schema for it, the loans table's foreign key to books

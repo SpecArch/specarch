@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.5.0-dev of the specification: 46 requirements, 3 entities, 12 commands, 6 algorithms, 252 tests, 47 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.5.0-dev of the specification: 46 requirements, 3 entities, 12 commands, 6 algorithms, 255 tests, 48 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -61,7 +61,7 @@ The interfaces the system offers, as its clients see them.
 | derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, or there is no release record for the new version; 2: usage error, a path that could not be read, or a specification with errors |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder, or a file that could not be read or written |
-| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a path with changes not committed, untracked files, a shallow clone, or a path outside a git repository; 2: usage error, a source this build does not offer, or a path that could not be read or written |
+| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, or a document that is not Markdown; 2: usage error, a source this build does not offer, or a path that could not be read or written |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open; 1: at least one must or should question is open; 2: usage error, a path that could not be read, or a specification with errors |
 | generate | Write code or data from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads, the specification is not approved, the plug-in reported an error, or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written |
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
@@ -559,11 +559,35 @@ The sources this build reads:
   parameters and the permission it checks; every permission checked
   is declared. A route that checks no permission is a must question,
   never written as public.
+- `documents`: one Markdown document, as one document source under
+  `--source-key` (default the file's name in kebab-case, without its
+  extension). Every ATX heading and every paragraph that starts with
+  a section number such as `3.1` is a clause, the number its name
+  and the heading its title; a heading with clauses under it is
+  listed only when it holds text of its own. A sentence that makes a
+  commitment (shall, must, will or should; a number followed by what
+  it counts; a time of day; once or twice; within, before, after,
+  until or no later than) becomes a requirement, stated, citing its
+  clause, numbered in the order read under the source key in
+  capitals: must, or should for should, accepted, and its kind a
+  must question. A commitment whose subject is only it, they, this
+  or the like is a must question, never a guess. A table whose first
+  column is Field, and whose others are Type, Required, Sensitivity
+  or Description, gives the fields of an entity named after its
+  section's heading in PascalCase, each in camelCase, with the type
+  when it is text, string, date, date-time, timestamp, boolean,
+  yes/no or email, and the sensitivity from its column or from the
+  one sentence that names the field and calls it personal or a
+  credential; the primary key is a must question, and a sensitivity
+  the document does not give a should question. A field of any other
+  type, any other table and fenced code each print a line. The
+  edition is the commit that last changed the file.
 
 Every reader follows these rules:
 
-- The tree's root tracks origin. It declares one code source for the
-  repository read, under `--source-key` (default `code`), whose
+- The tree's root tracks origin. The code readers declare one code
+  source for the repository read, under `--source-key` (default
+  `code`), whose
   `edition` is the full hash of the commit read and whose `url` is
   the repository's folder relative to `--out`. Clauses are paths from
   the repository's root.
@@ -595,10 +619,10 @@ Every reader follows these rules:
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
-| `<source>` | string | yes | The surface to read: `outline`, `database` or `router`. |
-| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table. |
+| `<source>` | string | yes | The surface to read: `outline`, `database`, `router` or `documents`. |
+| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file. |
 | `--out` | string | yes | The folder the specification is written into; it becomes the specification's root folder. |
-| `--source-key` | string |   | The key of the code source in the written tree. |
+| `--source-key` | string |   | The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents, when it is not given. |
 
 Reads `{paths}`: The surface being read.
 
@@ -852,6 +876,17 @@ refused.
   element concerns security (a role, a permission, an operation, or
   an entity or field that is personal or a credential) or when a
   source it cites is marked `givenOutside`; otherwise it is should.
+- A requirement of the documents side whose statement gives one
+  number of days, such as "The loan period is 21 days.", is compared
+  with the check constraints of the code side that move a date by
+  exactly one number of whole days. When exactly one such check has
+  every word of the statement's subject in its name (the words
+  before is, are, shall, must, will or should, without the, a, an,
+  of, each and every), the check satisfies the requirement. When the
+  numbers differ, the requirement's statement is left out and one
+  must question cites both and blocks it; the check keeps the
+  expression the code runs. No match, or more than one, changes
+  nothing (ADR-048).
 - Sources of the same key are one source when they are the same in
   everything but their clauses, which are joined. Code sources that
   differ only in their edition are one repository read at different
@@ -878,8 +913,9 @@ Writes `{out}/`: The merged specification.
 Standard output: One line per tree naming its title and what it holds; one line per
 source joined from several trees, naming the edition taken; one line
 counting the elements written and those found in more than one
-tree; and one line per question the merge asked, naming what it
-blocks and why.
+tree; one line per requirement joined to a check that gives the
+same number of days; and one line per question the merge asked,
+naming what it blocks and why.
 
 Standard error: A usage message on a usage error, and the reason a tree could not be merged.
 
@@ -1060,7 +1096,7 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
-| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database and router readers, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry. |   |
+| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router and documents readers, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, and a requirement that gives a number of days joined to the one check that names it. |   |
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
 | cmd/specarch-gen-sql | The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk. | #/commands/generate |
@@ -1098,7 +1134,7 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | #/commands/version | main.runVersion |   |
 | #/commands/document | main.runDocument |   |
 | #/commands/generate | main.runGenerate | Refuses through main.gate while a question blocks what the target reads or the approval is missing or void; then runs the plug-in with main.runPlugin; the request and answer are the pluginRequest and pluginResponse structs. |
-| #/commands/extract | main.runExtract | Runs the reader of the source, extract.Outline, extract.Database or extract.Router, after extract.Open has named the commit read and refused what no commit names; extract.Tree writes the tree from ordered YAML nodes. |
+| #/commands/extract | main.runExtract | Runs the reader of the source, extract.Outline, extract.Database, extract.Router or extract.Documents, after extract.Open has named the commit read and refused what no commit names; extract.Tree writes the tree from ordered YAML nodes. |
 | #/commands/merge | main.runMerge | Loads each tree with spec.Load and refuses one validate.CheckSpec reports an error in; extract.Merge joins the sources, the elements and the questions, and extract.Tree writes the result. |
 | #/commands/derive | main.runDerive | Writes validate.Drafts, the drafts of the cases the warnings name. |
 | #/commands/idioms | main.runIdioms | Prints validate.IdiomUses, the idioms each implementation file resolves to. |
@@ -3226,6 +3262,47 @@ one waits for a request that shows it.
 
 **Note:** From Common Expression Language, language definition, 2024: timestamp + duration gives a timestamp; duration(string) reads a duration such as "1h30m", in hours, minutes, seconds and smaller units. <https://github.com/google/cel-spec/blob/master/doc/langdef.md>
 
+### ADR-048: extract documents reads a Markdown document's outline, its commitment sentences as requirements and its tables of fields, and merge joins a number of days to the one check that names it
+
+Status: accepted, 2026-10-09.
+
+Context: Step 6 of docs/extraction.md, Building extract, reads the documents:
+the outline as clauses, a sentence that makes a commitment as an
+element citing its clause, and a field's sensitivity from a table
+or a sentence, so that a manual merged with the code shows where
+they disagree. The lending desk's manual gives a loan period of 21
+days; the database checks 14. The manual's sentence is a
+requirement and the database's rule a check on an entity, and the
+merge matches elements by name within one section, so the two never
+met.
+
+Decision: extract documents reads one Markdown file into one document source,
+at the commit that last changed it. Its headings and numbered
+paragraphs are the clauses, a parent listed only when it holds text
+of its own. A sentence with a modal of obligation, a number followed
+by what it counts, a time of day, once or twice, or a time limit
+becomes a requirement with the sentence as its statement, must
+unless it says should, accepted, citing its clause; its kind is a
+must question, and a commitment whose subject is a pronoun is a
+question. A table headed Field and any of Type, Required,
+Sensitivity and Description gives an entity named after its
+section's heading; its primary key is a question, and so is a
+sensitivity neither a column nor a sentence gives. The owner chose
+the link to the code: merge compares a documents-side requirement
+that gives one number of days with the code-side check constraints
+that move a date by one number of whole days, and when exactly one
+has every word of the statement's subject in its name, the check
+satisfies the requirement; different numbers leave the statement
+out with one must question citing both.
+
+Consequences: The lending desk's manual merged with its database and router
+trees gives the loan period as one must question citing the
+manual's clause 3.3 and the loans table. A disagreement in any other
+unit, or about a rule the code holds in a function rather than a
+check, is not found by the merge and stays for the reviewer.
+
+**Insight:** A Markdown reader needs no dependency: headings, paragraphs, lists, tables and fences are read line by line, while PDF and slide decks wait for a reader that passes the dependency rules. The commit of the file as its edition, for the same reason as the code readers': a citation is only true of the text it was read from. A parent heading is listed only with text of its own, since docs/from-sources.md lists the leaves of an outline and a parent beside its children would show as producing nothing. The sentence as written is the statement, since rewriting it would be a guess; the kind is asked, since a document says what is committed and not how to classify it, and a must question is the one that covers a missing required key. A pronoun subject is asked about because the element it names is in another sentence. The entity takes its section's heading in PascalCase because the database reader names a table that way, so a manual's Members meet the code's Members. The link by days and by the words of the subject in a check's name, because the merge matches by name everywhere else and a check's name is the code's own name for the rule; the comparison is narrow, a number of days on both sides and exactly one candidate, so a wrong pairing can only cost a question and never set a value. The check keeps its expression because it is what the system runs, and a question is about one stage, so it blocks the requirement's statement.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -3285,6 +3362,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-writes-traceability | command document | system | golden | needs, two requirements, an entity that satisfies one and a test that verifies it, and a rejected need | document traceability is run | it writes traceability.md with both matrices and lists as gaps the unrefined need, the requirement without acceptance criteria and the one nothing satisfies or verifies, with no Harm column since no requirement names a harm, and exits 0 |
 | extract-database-stale-dump | command extract | system | red | a catalogue dump made at the commit that added the first migration, and a later commit that adds a second migration to the same folder | extract database is run on the dump | it refuses the dump as stale, naming both commits, writes nothing and exits 1 |
 | extract-database-writes-tree | command extract | system | golden | a repository whose first commit holds its migrations and whose second holds the catalogue dump made from them, naming the first; the tables have a small integer key, a decimal with a default, a money column, a unique key, a check the expressions can say and one they can say as a list of values, an enum type, a fixed-width text, an identity column, a foreign key with cascade, an index, a table without a primary key and a view | extract database is run on the dump | it writes one entity per table, with the types, keys, relations and constraints it can hold, a question for every constraint message and for the missing primary key, names the commit, counts what it read, prints a line for the money column, the fixed width, the default it cannot hold, the index and the view, and exits 0 |
+| extract-documents-not-markdown | command extract | system | red | a handbook kept as plain text rather than Markdown | extract documents is run on it | it says this build reads Markdown documents, writes nothing and exits 1 |
+| extract-documents-writes-tree | command extract | system | golden | a repository holding a Markdown handbook with numbered headings and paragraphs, sentences with shall, must, should, a number of days and a time of day, a commitment that names its subject only as it, two tables of fields, one with a sensitivity column and one whose sensitivity a sentence gives for one field, a field of a type the meta-model does not hold, a table of another header and a code block | extract documents is run on the handbook | it writes the outline as clauses at the commit read, one requirement per commitment citing its clause, the fields of each table as an entity with the sensitivity the document gives, and a question for the commitment it cannot place, the requirements' kind, each entity's primary key and the sensitivity not given, prints a line for the type, the table and the code block it does not hold, and exits 0 |
 | extract-exit-1 | command extract | system | red | a file that is not a catalogue dump | extract database is run on it | it says the file is not a catalogue dump, writes nothing and exits 1 |
 | extract-not-offered | command extract | system | red | a source this build does not read yet | extract openapi is run on a file | it names the sources it reads, writes nothing and exits 2 |
 | extract-outline-shallow-clone | command extract | system | red | a clone of depth 1 of a repository with two commits | extract outline is run on a folder of it | it refuses the shallow clone, whose history cannot name the last change to a path, writes nothing and exits 1 |
@@ -3329,6 +3408,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | idioms-lists | command idioms | system | golden | a specification with one implementation file in Go with an Oracle sql target, whose override of type-rendering replaces its types part, with the reason | idioms is run | it prints the file's path and type-rendering as overridden by the file, copied from 1.2.0, replacing types, with the reason, and exits 0 |
 | idioms-usage-error | command idioms | system | red | no folder | idioms is run without arguments | it prints the usage and exits 2 |
 | merge-documents-and-code | command merge | system | golden | a tree read from code and a tree written from a manual and a published interface, the interface marked givenOutside: they give one entity's card number and one path parameter different lengths, require different fields and describe one permission differently; only the code has a plain entity and an operation, and only the documents have a personal field and an entity from the interface | merge is run on the two trees | it writes the elements of both with both citations, leaves out each key they disagree on with a must question citing both, writes the code's entity and operation inferred as undocumented, with a should question for the entity and a must question for the operation, keeps the documents' field and entity with a must Not built yet question for each in implementation/questions.yaml, and exits 0 |
+| merge-documents-days | command merge | system | golden | a code tree whose loans checks move a date by 14, 2 and 60 days, and a documents tree whose requirements say the loan period is 21 days, the reminder period two days and the period for a lost book 90 days | merge is run on the two trees | the check whose name holds the reminder period satisfies its requirement, the loan period's statement is left out with one must question citing both, the lost book period matches no check and is kept as it is, and it exits 0 |
 | merge-joins-commits | command merge | system | golden | a repository whose first commit holds the migrations and whose second the router, a database tree read at the first that asks one question, and a router tree read at the second that asks two, both declaring the repository as the source code | merge is run on the two trees | it writes one specification with one source code at the second commit, whose clauses are both trees', every element of both trees, the stakeholder they share once and the three questions numbered again in the order the trees are given, says the migrations are unchanged up to the second commit, and exits 0 |
 | merge-path-changed | command merge | system | red | a repository whose first commit adds a migration, whose second adds another and whose third the router, a database tree read at the first and a router tree read at the third | merge is run on the two trees | it refuses them, saying the migrations changed at the second commit, after the first the database tree read them at, writes nothing and exits 1 |
 | merge-source-differs | command merge | system | red | two trees that both declare the source code, at two different urls | merge is run on the two trees | it refuses them, naming the source and what differs, writes nothing and exits 1 |
@@ -3677,7 +3757,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-8 | entities GeneratedFile; commands document; commands generate; algorithms markersWellFormed | tests document-entity-diagram; tests document-two-implementations; tests document-writes-techspec |
 | SA-9 | enums DocumentKind; enums Rule; commands validate; decisions ADR-001; decisions ADR-002; decisions ADR-007 | tests validate-design-key; tests validate-stack-key |
 | SA-10 | enums Rule; commands validate | tests validate-deployment-environment-missing; tests validate-design-ref; tests validate-implements; tests validate-setting; tests validate-tree-valid |
-| SA-11 | enums Rule; entities SpecFile; commands extract; commands validate; decisions ADR-010; decisions ADR-042 | tests validate-duplicate-name-across-files; tests validate-layout-folder-missing; tests validate-layout-not-a-stage; tests validate-layout-section-folder-in-root; tests validate-layout-section-in-root; tests validate-layout-section-in-wrong-stage; tests validate-layout-stack-mismatch; tests validate-layout-stage-not-listed; tests validate-layout-subfolder-section; tests validate-layout-test-without-file; tests validate-tree-valid; checks checks-the-examples |
+| SA-11 | enums Rule; entities SpecFile; commands extract; commands validate; decisions ADR-010; decisions ADR-042; decisions ADR-048 | tests merge-documents-days; tests validate-duplicate-name-across-files; tests validate-layout-folder-missing; tests validate-layout-not-a-stage; tests validate-layout-section-folder-in-root; tests validate-layout-section-in-root; tests validate-layout-section-in-wrong-stage; tests validate-layout-stack-mismatch; tests validate-layout-stage-not-listed; tests validate-layout-subfolder-section; tests validate-layout-test-without-file; tests validate-tree-valid; checks checks-the-examples |
 | SA-12 | enums Rule; commands validate; decisions ADR-011; decisions ADR-014 | tests validate-deployment-valid; tests validate-monitor-environment; tests validate-monitor-not-declared; tests validate-monitor-valid; tests validate-need-rejected; tests validate-requirements-only; tests validate-secret-in-deployment; tests validate-secret-value; tests validate-traceability-warnings |
 | SA-13 | enums Rule; commands validate; decisions ADR-012 | tests document-citation-unknown-source; tests validate-cites; tests validate-source |
 | SA-14 | enums GeneratorTarget; commands generate; decisions ADR-013 | tests generate-no-plugin; tests generate-plugin-path-outside; tests generate-with-plugin |
@@ -3710,8 +3790,8 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-41 | enums Rule; decisions ADR-033 | tests validate-views; tests validate-views-valid |
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039 | tests validate-accessibility; tests validate-compact-columns; tests validate-flows; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
-| SA-44 | commands extract; decisions ADR-043; decisions ADR-044 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-exit-1; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests gaps-outline-not-read |
-| SA-45 | commands merge; decisions ADR-045 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-path-changed; tests merge-source-differs; tests merge-tree-invalid; tests validate-source-given-outside |
+| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests gaps-outline-not-read |
+| SA-45 | commands merge; decisions ADR-045; decisions ADR-048 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-path-changed; tests merge-source-differs; tests merge-tree-invalid; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-owned-by-unknown |
 
 ## Sources

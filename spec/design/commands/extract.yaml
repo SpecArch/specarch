@@ -34,11 +34,35 @@ commands:
         parameters and the permission it checks; every permission checked
         is declared. A route that checks no permission is a must question,
         never written as public.
+      - `documents`: one Markdown document, as one document source under
+        `--source-key` (default the file's name in kebab-case, without its
+        extension). Every ATX heading and every paragraph that starts with
+        a section number such as `3.1` is a clause, the number its name
+        and the heading its title; a heading with clauses under it is
+        listed only when it holds text of its own. A sentence that makes a
+        commitment (shall, must, will or should; a number followed by what
+        it counts; a time of day; once or twice; within, before, after,
+        until or no later than) becomes a requirement, stated, citing its
+        clause, numbered in the order read under the source key in
+        capitals: must, or should for should, accepted, and its kind a
+        must question. A commitment whose subject is only it, they, this
+        or the like is a must question, never a guess. A table whose first
+        column is Field, and whose others are Type, Required, Sensitivity
+        or Description, gives the fields of an entity named after its
+        section's heading in PascalCase, each in camelCase, with the type
+        when it is text, string, date, date-time, timestamp, boolean,
+        yes/no or email, and the sensitivity from its column or from the
+        one sentence that names the field and calls it personal or a
+        credential; the primary key is a must question, and a sensitivity
+        the document does not give a should question. A field of any other
+        type, any other table and fenced code each print a line. The
+        edition is the commit that last changed the file.
 
       Every reader follows these rules:
 
-      - The tree's root tracks origin. It declares one code source for the
-        repository read, under `--source-key` (default `code`), whose
+      - The tree's root tracks origin. The code readers declare one code
+        source for the repository read, under `--source-key` (default
+        `code`), whose
         `edition` is the full hash of the commit read and whose `url` is
         the repository's folder relative to `--out`. Clauses are paths from
         the repository's root.
@@ -68,11 +92,11 @@ commands:
     permission: public
     arguments:
       - name: source
-        description: "The surface to read: `outline`, `database` or `router`."
+        description: "The surface to read: `outline`, `database`, `router` or `documents`."
         required: true
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
       - name: paths
-        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table."
+        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file."
         required: true
         repeatable: true
         schema: { type: string }
@@ -82,8 +106,8 @@ commands:
         schema: { type: string }
         required: true
       source-key:
-        description: The key of the code source in the written tree.
-        schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$", default: code }
+        description: The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents, when it is not given.
+        schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
     reads:
       - { path: "{paths}", description: The surface being read. }
     writes:
@@ -96,7 +120,7 @@ commands:
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written
-      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a path with changes not committed, untracked files, a shallow clone, or a path outside a git repository"
+      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, or a document that is not Markdown"
       "2": usage error, a source this build does not offer, or a path that could not be read or written
     satisfies: [SA-11, SA-44]
     why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

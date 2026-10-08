@@ -1,0 +1,8 @@
+command: extract
+level: system
+scenario: red
+covers: [exit 1]
+given: "a handbook kept as plain text rather than Markdown"
+when: "extract documents is run on it"
+then: "it says this build reads Markdown documents, writes nothing and exits 1"
+verifies: [SA-44]

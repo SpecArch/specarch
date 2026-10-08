@@ -49,7 +49,7 @@ project's repository. `specarch extract <source>`, the verb that goes from
 existing code or documents to a specification, is designed in
 `spec/design/commands/extract.yaml` and built one reader at a time in the
 steps of "Building extract" below. The Go build reads the sources
-`outline`, `database` and `router`, and `specarch merge` joins their trees; a source not built yet is answered with status
+`outline`, `database`, `router` and `documents`, and `specarch merge` joins their trees; a source not built yet is answered with status
 2, and the Swift build has no extract or merge verb.
 
 ## Building extract
@@ -186,20 +186,31 @@ Steps, in order:
    `validate` and `gaps` read Book as before; CI runs both generators
    twice and compares. A mark naming no stakeholder is the error
    `stakeholder` in both builds.
-6. The documents reader, `extract documents`, for Markdown. The source
-   gets its outline as clauses: every heading, and the page or slide where
-   the format has them. A sentence that makes a commitment (shall, must,
-   will, a number, a time limit) becomes an element with `origin: stated`
-   citing its clause; other prose produces no element and shows in the
-   coverage. A commitment sentence the reader cannot place as one element
-   becomes a question, never a guess. A field's sensitivity is read from a
-   table column headed sensitivity, or from a sentence that calls the
-   field personal or a credential; otherwise it is left for a question.
-   Done when the lending desk manual
-   gives its outline and its commitments, and merged with the code gives
-   the deliberate disagreement on the loan period as one `must` question
-   citing both. PDF and slide decks follow once a reader for them passes
-   the dependency rules.
+6. Built. The documents reader, `extract documents`, for Markdown
+   (ADR-048), after date arithmetic in the expression subset (ADR-047):
+   a date plus or minus `duration("P14D")`, so that the catalogue's
+   check on the loan period is an expression and only its message a
+   question. The source gets its outline as clauses: every heading and
+   every paragraph that starts with a section number, a parent only
+   when it holds text of its own. A sentence that makes a commitment
+   (shall, must, will, should, a number of something, a time of day,
+   once or twice, a time limit) becomes a requirement with
+   `origin: stated` citing its clause, and its kind a question; other
+   prose produces no element and shows in the coverage. A commitment
+   sentence whose subject is only a pronoun becomes a question, never a
+   guess. A table headed Field gives an entity's fields; a field's
+   sensitivity is read from a table column headed sensitivity, or from
+   a sentence that calls the field personal or a credential; otherwise
+   it is left for a question. `specarch merge` joins a requirement that
+   gives a number of days to the one code check whose name holds the
+   words of its subject and that moves a date by days: the same number
+   makes the check satisfy the requirement, a different one leaves the
+   statement out with a `must` question citing both. The lending desk
+   manual gives its outline and four commitments, and merged with the
+   database and router trees gives the loan period, 21 days against 14,
+   as one `must` question citing clause 3.3 and the loans table,
+   validated and byte-identical; CI repeats it. PDF and slide decks
+   follow once a reader for them passes the dependency rules.
 7. The OpenAPI reader, `extract openapi`, for OpenAPI 3.0 and 3.1:
    operations, parameters, request and response schemas. Where it and
    the router disagree, a question; a document none of whose paths the

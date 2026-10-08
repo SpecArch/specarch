@@ -152,8 +152,8 @@ checks, `gaps` lists the open questions and what they hold up, `document`
 goes from the specification to a document, `approve` records that the
 documents were read and the specification is approved, `generate` from
 the approved specification to code, `extract` from one surface of
-existing code to a specification (its outline, database and router readers
-are built; the others follow, as `docs/extraction.md` lists), `merge` joins the
+existing code or documents to a specification (its outline, database,
+router and Markdown documents readers are built; the others follow, as `docs/extraction.md` lists), `merge` joins the
 trees extract writes into one, and `diff` compares two versions of a
 specification and checks the release between them, and `derive` writes a
 draft test for every derived case no test covers, and `idioms` lists the

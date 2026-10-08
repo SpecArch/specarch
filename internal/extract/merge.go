@@ -90,6 +90,7 @@ func Merge(specs []*spec.Spec, out string) (*Result, error) {
 	m.treeQuestions()
 	asked := m.disputeQuestions()
 	asked += m.sideQuestions()
+	asked += m.quantityQuestions()
 	return m.write(asked)
 }
 

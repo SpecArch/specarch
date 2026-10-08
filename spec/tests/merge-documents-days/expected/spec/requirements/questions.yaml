@@ -1,0 +1,12 @@
+questions:
+  Q-1:
+    question: Is it 21 days, as HANDBOOK-1 says ("The loan period is 21 days."), or 14 days, as the check loans_loan_period of Loans has it (dueOn == loanedOn + duration("P14D"))?
+    kind: decision
+    priority: must
+    blocks: ['#/requirements/HANDBOOK-1/statement']
+    decidedBy: system-owner
+    options: ['21 days: the code is to change', '14 days: the document is to change']
+    why: 'The documents and the code disagree: the document says 21 days, the code checks 14. The merge leaves the statement out rather than choose, and keeps the check the code runs, which satisfies the requirement whichever way it is answered.'
+    cites:
+      - {source: handbook, clause: "2.1", says: The loan period is 21 days.}
+      - {source: code, clause: migrations/001_init.sql, says: The loans table and its checks.}

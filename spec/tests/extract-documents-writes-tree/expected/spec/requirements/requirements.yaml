@@ -1,0 +1,51 @@
+stakeholders:
+  system-owner:
+    description: Whoever owns the system that was read and answers for it; the reviewer replaces this with the real role.
+    origin: inferred
+    why: The surface names no one, and every question needs a stakeholder to decide it.
+requirements:
+  HANDBOOK-1:
+    statement: Staff should check the card at every visit.
+    priority: should
+    status: accepted
+    origin: stated
+    cites:
+      - {source: handbook, clause: "1.2", says: Staff should check the card at every visit.}
+  HANDBOOK-2:
+    statement: A loan lasts 14 days.
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: handbook, clause: "2.1", says: A loan lasts 14 days.}
+  HANDBOOK-3:
+    statement: 'The branch shall send a reminder before the due date:'
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: handbook, clause: "2.2", says: 'The branch shall send a reminder before the due date:'}
+  HANDBOOK-4:
+    statement: The branch opens at 9:00.
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: handbook, clause: "3", says: 'The branch opens at 9:00.'}
+questions:
+  Q-1:
+    question: Section 2.1 says "It must be returned to the branch that lent it.", and does not name what it commits; which element is it?
+    kind: decision
+    priority: must
+    blocks: [requirements]
+    decidedBy: system-owner
+    why: A sentence that names its subject only by a word such as it or they cannot be placed as one element without guessing.
+    cites:
+      - {source: handbook, clause: "2.1", says: It must be returned to the branch that lent it.}
+  Q-2:
+    question: 'Which kind is each requirement read from the document: HANDBOOK-1, HANDBOOK-2, HANDBOOK-3, HANDBOOK-4? Functional, quality, interface or constraint.'
+    kind: decision
+    priority: must
+    blocks: ['#/requirements/HANDBOOK-1/kind', '#/requirements/HANDBOOK-2/kind', '#/requirements/HANDBOOK-3/kind', '#/requirements/HANDBOOK-4/kind']
+    decidedBy: system-owner
+    why: A document states what is committed, not which kind of requirement it is.

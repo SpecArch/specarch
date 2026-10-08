@@ -1,0 +1,7 @@
+command: merge
+level: system
+scenario: golden
+given: "a code tree whose loans checks move a date by 14, 2 and 60 days, and a documents tree whose requirements say the loan period is 21 days, the reminder period two days and the period for a lost book 90 days"
+when: "merge is run on the two trees"
+then: "the check whose name holds the reminder period satisfies its requirement, the loan period's statement is left out with one must question citing both, the lost book period matches no check and is kept as it is, and it exits 0"
+verifies: [SA-11]

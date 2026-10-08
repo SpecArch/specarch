@@ -68,7 +68,7 @@ layout:
   idioms:
     description: The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set.
   internal/extract:
-    description: "The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database and router readers, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry."
+    description: "The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router and documents readers, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, and a requirement that gives a number of days joined to the one check that names it."
   internal/source:
     description: Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys.
   internal/spec:
@@ -134,7 +134,7 @@ mappings:
   "#/commands/version": { target: main.runVersion }
   "#/commands/document": { target: main.runDocument }
   "#/commands/generate": { target: main.runGenerate, description: "Refuses through main.gate while a question blocks what the target reads or the approval is missing or void; then runs the plug-in with main.runPlugin; the request and answer are the pluginRequest and pluginResponse structs." }
-  "#/commands/extract": { target: main.runExtract, description: "Runs the reader of the source, extract.Outline, extract.Database or extract.Router, after extract.Open has named the commit read and refused what no commit names; extract.Tree writes the tree from ordered YAML nodes." }
+  "#/commands/extract": { target: main.runExtract, description: "Runs the reader of the source, extract.Outline, extract.Database, extract.Router or extract.Documents, after extract.Open has named the commit read and refused what no commit names; extract.Tree writes the tree from ordered YAML nodes." }
   "#/commands/merge": { target: main.runMerge, description: "Loads each tree with spec.Load and refuses one validate.CheckSpec reports an error in; extract.Merge joins the sources, the elements and the questions, and extract.Tree writes the result." }
   "#/commands/derive": { target: main.runDerive, description: "Writes validate.Drafts, the drafts of the cases the warnings name." }
   "#/commands/idioms": { target: main.runIdioms, description: "Prints validate.IdiomUses, the idioms each implementation file resolves to." }

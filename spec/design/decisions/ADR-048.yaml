@@ -1,0 +1,65 @@
+decisions:
+  ADR-048:
+    title: extract documents reads a Markdown document's outline, its commitment sentences as requirements and its tables of fields, and merge joins a number of days to the one check that names it
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Step 6 of docs/extraction.md, Building extract, reads the documents:
+      the outline as clauses, a sentence that makes a commitment as an
+      element citing its clause, and a field's sensitivity from a table
+      or a sentence, so that a manual merged with the code shows where
+      they disagree. The lending desk's manual gives a loan period of 21
+      days; the database checks 14. The manual's sentence is a
+      requirement and the database's rule a check on an entity, and the
+      merge matches elements by name within one section, so the two never
+      met.
+    decision: |
+      extract documents reads one Markdown file into one document source,
+      at the commit that last changed it. Its headings and numbered
+      paragraphs are the clauses, a parent listed only when it holds text
+      of its own. A sentence with a modal of obligation, a number followed
+      by what it counts, a time of day, once or twice, or a time limit
+      becomes a requirement with the sentence as its statement, must
+      unless it says should, accepted, citing its clause; its kind is a
+      must question, and a commitment whose subject is a pronoun is a
+      question. A table headed Field and any of Type, Required,
+      Sensitivity and Description gives an entity named after its
+      section's heading; its primary key is a question, and so is a
+      sensitivity neither a column nor a sentence gives. The owner chose
+      the link to the code: merge compares a documents-side requirement
+      that gives one number of days with the code-side check constraints
+      that move a date by one number of whole days, and when exactly one
+      has every word of the statement's subject in its name, the check
+      satisfies the requirement; different numbers leave the statement
+      out with one must question citing both.
+    why: |
+      A Markdown reader needs no dependency: headings, paragraphs, lists,
+      tables and fences are read line by line, while PDF and slide decks
+      wait for a reader that passes the dependency rules. The commit of
+      the file as its edition, for the same reason as the code readers': a
+      citation is only true of the text it was read from. A parent
+      heading is listed only with text of its own, since
+      docs/from-sources.md lists the leaves of an outline and a parent
+      beside its children would show as producing nothing. The sentence
+      as written is the statement, since rewriting it would be a guess;
+      the kind is asked, since a document says what is committed and not
+      how to classify it, and a must question is the one that covers a
+      missing required key. A pronoun subject is asked about because the
+      element it names is in another sentence. The entity takes its
+      section's heading in PascalCase because the database reader names
+      a table that way, so a manual's Members meet the code's Members. The
+      link by days and by the words of the subject in a check's name,
+      because the merge matches by name everywhere else and a check's
+      name is the code's own name for the rule; the comparison is narrow,
+      a number of days on both sides and exactly one candidate, so a
+      wrong pairing can only cost a question and never set a value. The
+      check keeps its expression because it is what the system runs, and
+      a question is about one stage, so it blocks the requirement's
+      statement.
+    consequences: |
+      The lending desk's manual merged with its database and router
+      trees gives the loan period as one must question citing the
+      manual's clause 3.3 and the loans table. A disagreement in any other
+      unit, or about a rule the code holds in a function rather than a
+      check, is not found by the merge and stays for the reviewer.
+    satisfies: [SA-11, SA-44, SA-45]

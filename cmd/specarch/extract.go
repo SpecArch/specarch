@@ -12,7 +12,7 @@ import (
 
 // extractSources are the surfaces this build reads, in the order the usage
 // text lists them.
-var extractSources = []string{"outline", "database", "router"}
+var extractSources = []string{"outline", "database", "router", "documents"}
 
 var sourceKey = regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
 
@@ -26,7 +26,7 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	source := args[0]
-	out, key := "", "code"
+	out, key := "", ""
 	var paths []string
 	rest := args[1:]
 	for i := 0; i < len(rest); i++ {
@@ -68,7 +68,7 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case len(paths) == 0:
 		fmt.Fprintf(stderr, "specarch extract %s needs at least one path\n\n%s", source, usage)
 		return 2
-	case !sourceKey.MatchString(key):
+	case key != "" && !sourceKey.MatchString(key):
 		fmt.Fprintf(stderr, "specarch extract: --source-key %s is not a source key; write it in kebab-case, such as code\n", key)
 		return 2
 	case source == "database" && len(paths) != 1:
@@ -77,6 +77,12 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case source == "router" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract router reads one route table, and was given %d paths\n", len(paths))
 		return 2
+	case source == "documents" && len(paths) != 1:
+		fmt.Fprintf(stderr, "specarch extract documents reads one document, and was given %d paths; one source is written per document file\n", len(paths))
+		return 2
+	}
+	if key == "" && source != "documents" {
+		key = "code"
 	}
 	var res *extract.Result
 	var err error
@@ -87,6 +93,8 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		res, err = extract.Database(paths[0], out, key)
 	case "router":
 		res, err = extract.Router(paths[0], out, key)
+	case "documents":
+		res, err = extract.Documents(paths[0], out, key)
 	}
 	if err != nil {
 		var refusal *extract.Refusal

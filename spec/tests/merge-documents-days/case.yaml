@@ -1,0 +1,9 @@
+arguments: [merge, --out, spec, trees/code, trees/handbook]
+exitStatus: 0
+standardOutput: |
+  tree trees/code: Branch code, on the code side: 2 elements and 0 questions
+  tree trees/handbook: Branch handbook, on the documents side: 3 elements and 0 questions
+  joined: HANDBOOK-2 and the check loans_reminder_period of Loans both say 2 days
+  merged 5 elements, each an entry of a section or an operation: 0 in more than one tree, and 0 keys the trees disagree on
+  wrote 1 question: 0 from the trees, numbered again in the order the trees are given, and 1 the merge asked
+  question Q-1 (must): #/requirements/HANDBOOK-1/statement: the document says 21 days, the check loans_loan_period of Loans says 14

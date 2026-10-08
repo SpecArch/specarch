@@ -1,0 +1,25 @@
+requirements:
+  HANDBOOK-1:
+    statement: The loan period is 21 days.
+    kind: functional
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: handbook, clause: "2.1", says: The loan period is 21 days.}
+  HANDBOOK-2:
+    statement: The reminder period is two days.
+    kind: functional
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: handbook, clause: "2.2", says: The reminder period is two days.}
+  HANDBOOK-3:
+    statement: The period for a lost book is 90 days.
+    kind: functional
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: handbook, clause: "2.3", says: The period for a lost book is 90 days.}

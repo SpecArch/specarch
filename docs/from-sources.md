@@ -158,8 +158,13 @@ tree whose sources are all code is the code side, any other the
 documents side. An element only one side has is compared only where the
 other side has elements of the same section, or for a field the same
 entity, since a reader that never read a surface says nothing about it.
-Two code trees of one repository, read at different commits, become one
-source at the newest commit, once git shows that every path each tree
+A requirement of the documents side that gives a number of days, such
+as "The loan period is 21 days.", is compared with the code's check
+constraints that move a date by days: when exactly one has every word of
+the statement's subject in its name (`loans_loan_period`), it satisfies
+the requirement, and a different number leaves the statement out with a
+`must` question citing both. Two code trees of one repository, read at
+different commits, become one source at the newest commit, once git shows that every path each tree
 read is unchanged up to it. Where two trees give one key different
 values, the key is left out and a `must` question cites both, whichever
 side they are on. The trees' questions are numbered again in the order

@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.5.0-dev of the specification: 252 design tests, 89 golden and 163 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.5.0-dev of the specification: 255 design tests, 91 golden and 164 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 248 |
+| system | 251 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -475,6 +475,22 @@ Scenario: golden; level: system; verifies SA-44.
 - When: extract database is run on the dump
 - Then: it writes one entity per table, with the types, keys, relations and constraints it can hold, a question for every constraint message and for the missing primary key, names the commit, counts what it read, prints a line for the money column, the fixed width, the default it cannot hold, the index and the view, and exits 0
 
+#### extract-documents-not-markdown
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: a handbook kept as plain text rather than Markdown
+- When: extract documents is run on it
+- Then: it says this build reads Markdown documents, writes nothing and exits 1
+
+#### extract-documents-writes-tree
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository holding a Markdown handbook with numbered headings and paragraphs, sentences with shall, must, should, a number of days and a time of day, a commitment that names its subject only as it, two tables of fields, one with a sensitivity column and one whose sensitivity a sentence gives for one field, a field of a type the meta-model does not hold, a table of another header and a code block
+- When: extract documents is run on the handbook
+- Then: it writes the outline as clauses at the commit read, one requirement per commitment citing its clause, the fields of each table as an entity with the sensitivity the document gives, and a question for the commitment it cannot place, the requirements' kind, each entity's primary key and the sensitivity not given, prints a line for the type, the table and the code block it does not hold, and exits 0
+
 #### extract-exit-1
 
 Scenario: red; level: system; covers exit 1; verifies SA-44.
@@ -836,6 +852,14 @@ Scenario: golden; level: system; verifies SA-45.
 - Given: a tree read from code and a tree written from a manual and a published interface, the interface marked givenOutside: they give one entity's card number and one path parameter different lengths, require different fields and describe one permission differently; only the code has a plain entity and an operation, and only the documents have a personal field and an entity from the interface
 - When: merge is run on the two trees
 - Then: it writes the elements of both with both citations, leaves out each key they disagree on with a must question citing both, writes the code's entity and operation inferred as undocumented, with a should question for the entity and a must question for the operation, keeps the documents' field and entity with a must Not built yet question for each in implementation/questions.yaml, and exits 0
+
+#### merge-documents-days
+
+Scenario: golden; level: system; verifies SA-11.
+
+- Given: a code tree whose loans checks move a date by 14, 2 and 60 days, and a documents tree whose requirements say the loan period is 21 days, the reminder period two days and the period for a lost book 90 days
+- When: merge is run on the two trees
+- Then: the check whose name holds the reminder period satisfies its requirement, the loan period's statement is left out with one must question citing both, the lost book period matches no check and is kept as it is, and it exits 0
 
 #### merge-joins-commits
 

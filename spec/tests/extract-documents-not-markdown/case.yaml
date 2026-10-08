@@ -1,0 +1,3 @@
+arguments: [extract, documents, --out, spec, handbook.txt]
+exitStatus: 1
+standardOutput: ""

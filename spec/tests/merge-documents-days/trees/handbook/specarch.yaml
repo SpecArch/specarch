@@ -1,0 +1,15 @@
+specarch: "0.1"
+info:
+  title: Branch handbook
+  version: 0.1.0
+  tracksOrigin: true
+stages: [requirements]
+sources:
+  handbook:
+    kind: document
+    title: Branch handbook
+    edition: "4"
+    clauses:
+      - {clause: "2.1", title: Loans}
+      - {clause: "2.2", title: Loans}
+      - {clause: "2.3", title: Loans}

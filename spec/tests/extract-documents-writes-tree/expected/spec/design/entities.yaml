@@ -1,0 +1,41 @@
+entities:
+  Members:
+    type: object
+    properties:
+      cardNumber: {type: string, sensitivity: internal}
+      fullName: {type: string, sensitivity: personal}
+    required: [cardNumber, fullName]
+    origin: stated
+    cites:
+      - {source: handbook, clause: "1.1", says: 'A table of the fields of Members: card number, full name.'}
+  Loans:
+    type: object
+    properties:
+      loanedOn: {type: string, format: date}
+      phoneNumber: {type: string, sensitivity: personal}
+    required: [loanedOn]
+    origin: stated
+    cites:
+      - {source: handbook, clause: "2.1", says: 'A table of the fields of Loans: loaned on, fee, phone number.'}
+questions:
+  Q-3:
+    question: Which fields identify one Members, its primary key?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Members/primaryKey']
+    decidedBy: system-owner
+    why: A table of fields does not say which of them identify a record.
+  Q-4:
+    question: Which fields identify one Loans, its primary key?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loans/primaryKey']
+    decidedBy: system-owner
+    why: A table of fields does not say which of them identify a record.
+  Q-5:
+    question: 'How sensitive is each of these fields of Loans: loanedOn? Public, internal, personal or credential.'
+    kind: decision
+    priority: should
+    blocks: ['#/entities/Loans/properties/loanedOn/sensitivity']
+    decidedBy: system-owner
+    why: The document has no sensitivity column for them and no sentence that calls them personal or a credential.

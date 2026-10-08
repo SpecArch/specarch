@@ -112,7 +112,7 @@ For each section, in order:
    `origin: inferred` and a `why` that says from what, or do not write it.
    Never fill a gap with a plausible value.
 3. Where the section leaves open something an element needs, write the
-   element as far as it is known and add a question (section 3.4).
+   element as far as it is known and add a question (section 3.5).
 4. Where two documents disagree, add a question that cites both.
 
 A section that holds nothing the specification needs is still read; it
@@ -140,7 +140,104 @@ Never choose between a document and the code. Whichever is right is the
 owner's decision, recorded as a decision record when it is answered
 (`docs/refinement.md`, The decision that closes a question).
 
-### 3.3 Write the implementation file from the code
+### 3.3 The keywords for what the sources show
+
+Some facts have a keyword of their own, and an agent that writes them as
+prose or leaves them out loses the checks and the generated code that
+come with the keyword. Look for each of these in both the documents and
+the code, and cite where it was read. `docs/conventions.md` has every
+rule, in its sections "Sensitive data, encryption at rest, audit fields
+and soft delete", "Lists, limits and problem types", "Jobs and menus"
+and "Views"; `docs/idioms.md` has the idioms.
+
+#### Sensitive data
+
+Give every field a `sensitivity`: `public`, `internal` (for
+staff only), `personal` (about a person) or `credential` (a password, a
+token, a secret, a key). A credential the system receives and never
+returns is `writeOnly: true`; the validator refuses a response that can
+carry a credential otherwise, and warns about a personal field answered by
+a public operation. In code, look at the struct tags and serializers that
+leave a field out of a response, the log masking, and the columns a
+password hash or token is kept in. Where the code returns a credential and
+the documents say it must not, that is a `must` question.
+
+#### Encryption at rest
+
+A field stored encrypted is `atRest: encrypted`;
+when the code still finds a record by it (a login by email, a lookup by
+national number), it keeps a hash beside it, which is `lookup: hash`. Read
+the migrations and the repository code for an encrypted column and a hash
+column next to it. What cipher and key are used is an implementation
+detail, written in the implementation file, not in the design.
+
+#### Audit and soft delete
+
+An entity whose records carry who created and
+last changed them, and when, is `audited: true`; do not declare those four
+fields, since the keyword says them. An entity whose delete sets a flag
+and keeps the row is `deletion: soft`. Read the table definitions and the
+delete handlers; a document that says "records are never removed" and code
+that runs `DELETE` disagree, and that is a question.
+
+#### Lists
+
+An operation that answers a
+page of records is `listOf`, with the fields the code actually lets a
+caller search, filter and sort by, and the default and largest page size.
+Read the query builder's whitelist, not the handler's parameter names: a
+parameter the code ignores is not filterable.
+
+#### Limits
+
+The largest request body is `limits.maxRequestBytes`, and a
+rate limit is `limits.rate` (`requests` per a duration, with a `burst`).
+For a service that signs people in, a limit on the sign-in and the
+password-reset operations is among the first things to find; read the
+middleware and its configuration. A limit the documents promise and the
+code does not apply is "Not built yet." (section 3.2).
+
+#### Problem types
+
+The catalogue of errors the system answers is `errors`,
+in the shape of RFC 9457: a kebab-case name, the HTTP `status`, a short
+`title` and the `condition`. Each 4xx and 5xx response names its type
+under `problem`. Read the error constants and the code that maps them to
+statuses; two codes with the same meaning are one problem type, and a
+question if the documents name them differently.
+
+#### Jobs and menus
+
+Work the system does on its own, a
+schedule, a worker on a queue, a retry loop, is a job under `jobs`, with
+its `trigger`, the `role` it acts as, what it reads and writes, and its
+`retries`. Read the scheduler set-up and the worker entry points; a cron
+expression is written in UTC. The navigation of an application with
+screens is `menus`, a tree whose leaves open `pages`.
+
+#### Views
+
+A list that shows a record with names and counts joined
+from related records reads from a view, under `views`: `from` one entity,
+and properties that are a `path` through relations to one record or a
+`count` of a relation to many. Read the database views and the joins of
+the list queries; a view the code writes through is not a SpecArch view,
+and is a question.
+
+#### Idioms
+
+How a stack does a common job (the column types of each SQL
+dialect, the audit columns, the soft-delete flag, the problem body, the
+list's parameter names and envelope) comes from the shipped idioms, which
+apply without being declared (`docs/idioms.md`). Run `specarch idioms
+spec` to see which apply to the implementation file. Where the code does
+it differently, record that in the implementation file under `idioms`: an
+`override` naming a file in the project's idioms folder, which replaces
+only the parts that differ and may add to an idiom's contract but not
+weaken it, or `exclude: true` with a `why` and a project idiom of its own.
+Each is cited to the code it was read from, like a mapping.
+
+### 3.4 Write the implementation file from the code
 
 The as-built implementation file, `spec/implementation/go/<name>.go.specarch-implementation.yaml`,
 holds what only the builders need: the language and its version, the
@@ -158,7 +255,7 @@ mapping carries `origin: stated` and cites the line it was read from:
 An element of the design that no mapping names is not built, and has the
 question of section 3.2 saying so.
 
-### 3.4 Questions
+### 3.5 Questions
 
 A question says what is unknown, who decides it, and what waits on it:
 
@@ -183,7 +280,7 @@ A question sits in the stage folder of what it blocks. `decidedBy` names a
 stakeholder by role, never a person. `docs/conventions.md`, Open
 questions, has every rule.
 
-### 3.5 Check after every step
+### 3.6 Check after every step
 
     specarch validate spec
 
@@ -244,6 +341,10 @@ with the pinned version and checksum filled in:
       code file and line it came from. Nothing is invented: what the
       sources do not say is a question, and a disagreement between a
       document and the code is a must question citing both.
+    - Use the keywords of section 3.3 for sensitivity (credentials
+      writeOnly), encryption at rest, audit, soft delete, lists, limits,
+      problem types, jobs, menus and views, and record where the code
+      departs from a shipped idiom under idioms in the implementation file.
     - Code only: origin inferred, why "Undocumented, from code. ...", and
       a should question. Documents only: a should question in
       spec/implementation/questions.yaml, "Not built yet. ...".

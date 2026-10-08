@@ -39,4 +39,4 @@ commands:
       "1": the surface could not be read as the source expects
       "2": usage error, a source this build does not offer, or a path that could not be read or written
     satisfies: [SA-11]
-    why: Existing systems enter SpecArch by extraction, so the verb exists from the start; building it waits for the real projects that show which readers repeat.
+    why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it.

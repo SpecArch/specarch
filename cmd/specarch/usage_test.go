@@ -16,10 +16,14 @@ func TestUsageMarksExtractNotBuilt(t *testing.T) {
 	lines := strings.Split(stdout.String(), "\n")
 	for i, line := range lines {
 		if strings.HasPrefix(strings.TrimSpace(line), "specarch extract ") {
-			if i+1 < len(lines) && strings.Contains(lines[i+1], "designed, not built") {
-				return
+			entry := line
+			if i+1 < len(lines) {
+				entry += "\n" + lines[i+1]
 			}
-			t.Fatalf("the extract line of the usage does not say it is designed, not built:\n%s\n%s", line, lines[i+1])
+			if !strings.Contains(entry, "designed, not built") {
+				t.Fatalf("the extract entry of the usage does not say it is designed, not built:\n%s", entry)
+			}
+			return
 		}
 	}
 	t.Fatal("the usage has no extract line")

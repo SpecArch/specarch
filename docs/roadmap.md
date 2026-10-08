@@ -155,10 +155,10 @@ collected across the applications, are the input to meta-model 0.2. Being
 personal projects, the resulting specifications can be published here as
 examples.
 
-Extraction stays a manual method with scripts kept in each project until
-these first projects show which readers repeat; those become the readers of
-`specarch extract <source>`, the verb that is designed in `spec/` and built
-then. What the extraction cannot settle becomes open questions, and the
+Until its readers are built, extraction is a manual method with scripts
+kept in each project. `specarch extract <source>` is built one reader at a
+time for the first real project that needs it, in the steps of
+`docs/extraction.md`, Building extract. What the extraction cannot settle becomes open questions, and the
 path from there to approved code is `docs/refinement.md`: `gaps`, the
 decisions that answer questions, `approve` and the gate on `generate` are
 built; `specarch decide`, `gaps --json` for the agent queue, and the

@@ -537,7 +537,7 @@ reader at a time, in the steps of docs/extraction.md; until the
 first reader is built every build answers with status 2, and its
 line in the usage text says it is designed, not built.
 
-**Insight:** Existing systems enter SpecArch by extraction, so the verb exists from the start; building it waits for the real projects that show which readers repeat.
+**Insight:** Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it.
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
@@ -2825,22 +2825,31 @@ replace. The project asked for seven readers and a merge.
 
 Decision: extract is built in the steps of docs/extraction.md, Building
 extract. Each reader reads one surface into a partial specification
-tree that tracks origin; a code source's edition is the commit that
-last changed the path read, and a path with changes not committed
-is refused. The output is byte-identical for the same sources at the
+tree that tracks origin; a code source's edition is the newest of
+the commits that last changed each path read, and a path with
+changes not committed, untracked files or a shallow history is
+refused. The output is byte-identical for the same sources at the
 same commit. Standard output adds the commit read and every count
 with how it was counted to the lines for what the meta-model could
 not hold. The trees of several readers are merged into one
-specification by the rules of docs/from-sources.md, section 3.2.
-The usage text marks extract designed, not built, until the first
-reader is built.
+specification by a verb of its own, specarch merge, by the rules of
+docs/from-sources.md, section 3.2, except that a question about an
+element only one source has is must when the element concerns
+security or the source was given to parties outside, and should
+otherwise. The database is read from a catalogue dump and the
+router from the route table it prints, each naming the commit it
+was made from. A source no reader reads yet is recorded by its
+outline, so it shows as not read. An element another team owns is
+marked on its mapping, one element at a time, so it is compared but
+not generated. The usage text marks extract designed, not built,
+until the first reader is built.
 
 Consequences: Each reader can be built, checked and released on its own, and the
 merge is written once for all of them. A reader whose output the
 meta-model cannot hold yet, such as workflow definitions, waits for
 the meta-model rather than writing prose.
 
-**Insight:** One tree per reader keeps each reader small and testable on its own sources, and keeps the comparison between sources in one place, the merge, where a disagreement becomes a question. The commit that last changed the path, rather than the repository's head, because a citation is only true for the content it was read from, and a commit elsewhere in the repository does not change that content; a head commit would make every committed extraction stale on each unrelated commit. Uncommitted changes are refused because no commit names them, so a citation to them could never be checked again. Byte-identical output, because extraction is rerun to see what changed, and a difference that is not a change in the sources hides the one that is. The database first and the router next, because the meta-model holds their output as it is, and the merge needs two code readers to be tested against. Marking the verb in the usage text, because a reader of the help plans around what it lists.
+**Insight:** One tree per reader keeps each reader small and testable on its own sources, and keeps the comparison between sources in one place, the merge, where a disagreement becomes a question. The commit that last changed the path, rather than the repository's head, because a citation is only true for the content it was read from, and a commit elsewhere in the repository does not change that content; a head commit would make every committed extraction stale on each unrelated commit. Uncommitted changes are refused because no commit names them, so a citation to them could never be checked again. Byte-identical output, because extraction is rerun to see what changed, and a difference that is not a change in the sources hides the one that is. The database first and the router next, because the meta-model holds their output as it is, and the merge needs two code readers to be tested against. A dump rather than a connection, because a connection string is not a path, puts credentials on the command line and needs a database driver, while a dump can be kept with its commit and read again offline. A route table the running router prints, because only routes actually registered appear in it. merge as a verb of its own, because its input is specifications, and each source's tree can be checked before they meet. must for security and for what was promised outside, because an undocumented route is how an open endpoint is usually found, and a broken promise outside is not the project's alone to accept. The ownership mark per element, because one file often holds a single part another team owns. Marking the verb in the usage text, because a reader of the help plans around what it lists.
 
 ## 10. Quality requirements
 

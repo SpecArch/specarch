@@ -43,13 +43,13 @@ spec first.
 | algorithms | the code, with the numbers from an existing test or a real record | the record becomes the first worked example |
 | decisions | commit history, review threads, chat | the only surface that is written by hand |
 
-Extraction is a manual method with this checklist for the first projects.
-Each surface's reader is a small script kept in that project's repository.
-The readers that prove general become `specarch extract <source>`, the verb
-that goes from existing code or documents to a specification; it is
-designed in `spec/design/commands/extract.yaml` and built in the steps of
-"Building extract" below. Until a reader is built, every build answers it
-with status 2.
+Until its readers are built, extraction is a manual method with this
+checklist, and each surface's reader is a small script kept in the
+project's repository. `specarch extract <source>`, the verb that goes from
+existing code or documents to a specification, is designed in
+`spec/design/commands/extract.yaml` and built one reader at a time in the
+steps of "Building extract" below. Until a reader is built, every build
+answers it with status 2.
 
 ## Building extract
 
@@ -68,11 +68,18 @@ Every reader shares these rules:
   file and one per code repository, and every element `origin: stated`
   with `cites`, or `origin: inferred` with `why`. What the surface does not
   say is a question, never a value.
-- A code source's `edition` is the full hash of the commit the reader
-  read, and the reader prints it. It is the last commit that changed the
-  path read, so a commit elsewhere in the repository leaves the output as
-  it was; a path with changes not committed is refused, since no commit
-  names what was read.
+- A code source is one repository, and its `edition` is the full hash
+  of the commit the reader read, which the reader prints. It is the
+  newest of the commits that last changed each path read, so a commit
+  elsewhere in the repository leaves the output as it was. Git runs in
+  the repository that holds the path, a submodule's own when the path is
+  in one. Only tracked files are read; a path with changes not committed,
+  or with files that are neither tracked nor ignored, is refused, since no
+  commit names what was read, and so is a shallow clone, whose history
+  cannot name the last change. A dump made from code, such as a
+  catalogue or a route table, is itself committed and names the commit
+  and the path it was made from; that commit is its edition, and a dump
+  older than the last change to that path is refused as stale.
 - Standard output is one line per object the meta-model could not hold,
   one line naming the commit read, and every count with what was counted
   and how.
@@ -85,59 +92,120 @@ Every reader shares these rules:
   be edited names that source; the reader reports it, so it is read and
   reconciled too.
 
+Merging is a verb of its own, `specarch merge --out <folder> <tree>...`,
+since its input is specifications and not a surface: each tree is
+extracted and checked on its own, then merged, and the merge is reviewed
+apart from the readers. The same entity or operation from two trees
+becomes one element with both citations. Where the sources disagree, or
+only one of them has an element, the merge follows the table of
+`docs/from-sources.md`, section 3.2, whose priority rule step 4 brings
+to this: the question is `must` when the element concerns security (a role, a
+permission, an operation, a limit, or a field that is personal or a
+credential) or when the source that has it is one the system's owners
+gave to parties outside, such as a published interface or a contract;
+otherwise it is `should`. An undocumented route the code serves is the
+usual way an open endpoint is found, so it is never left at `should`.
+
 Steps, in order:
 
 1. Built. The usage text marks `extract` as designed, not built, in both
-   builds, and the Swift build no longer says the Go build has it.
-2. The shared core and the database reader. A requirement of its own for
-   extraction, `extract.yaml` rewritten to the rules above, and
-   `extract database`, which reads the catalogue of a database with every
-   migration applied into entities: columns, types, nullability,
-   defaults, primary, foreign and unique keys, indexes and checks. Done
-   when `extract database` on the lending desk's catalogue writes a tree
-   that `specarch validate` accepts with no errors, twice byte-identical,
-   and a column type the meta-model cannot hold prints a line.
+   builds, and both builds refuse it with the same message.
+2. The shared core, the outline reader and the database reader. A
+   requirement of its own for extraction, and `extract.yaml` rewritten to
+   the rules above. `extract outline` writes a source with its files as
+   clauses and no elements, for a surface no reader reads yet, such as
+   workflow definitions, so that `specarch gaps` lists it as not read
+   rather than losing it. `extract database` reads a catalogue dump into
+   entities: columns, types, nullability, defaults, primary, foreign and
+   unique keys, indexes and checks. SpecArch ships the catalogue query
+   and a script that starts a disposable Postgres under Podman, applies
+   every migration and writes the dump with the commit it was made from;
+   the dump is committed beside the code, so a run can be repeated
+   without a database. The script is run by hand; CI reads the committed
+   dump and needs no Podman. The lending desk's migration gains a check
+   that the due date is fourteen days after the loan date, so the loan
+   period is in the catalogue, and its code source's edition becomes a
+   commit. Conformance cases build a throwaway git repository with a
+   fixed author, committer and dates, so the hash they record never
+   changes, and CI checks out with full history. Done when `extract
+   database` on the lending desk's dump writes a tree that `specarch
+   validate` accepts with no errors, twice byte-identical; a column type
+   the meta-model cannot hold prints a line; a stale dump, an uncommitted
+   change and a shallow clone are each refused; and `extract outline` on a
+   folder makes `specarch gaps` list each of its files as producing
+   nothing.
 3. The router reader, `extract router`: one operation per method and
-   path pair, with its path parameters, from a route table the running
-   router lists. Done when the lending desk's four routes come out as
-   four operations with their parameters, validated and byte-identical.
-4. Merging, which joins the trees of several readers into one
-   specification. The same entity or operation from two readers becomes
-   one element with both citations; the rest follows the table of
-   `docs/from-sources.md`, section 3.2. Done when the database and router
-   trees of the lending desk merge into one specification that validates
-   with no errors and `specarch gaps` reads, and a merge run twice is
-   byte-identical. A release tag after this step lets the first project
-   use the database and router readers.
-5. The documents reader, `extract documents`, for Markdown: the source
-   with its outline as clauses, and what the text states in a form a
-   program can read without guessing. Done when the lending desk manual
-   gives its outline and its stated elements, each cited to its heading,
-   and merged with the code gives the deliberate disagreement on the loan
-   period as one `must` question citing both. PDF and slide decks follow
-   once a reader for them passes the dependency rules.
-6. The OpenAPI reader, `extract openapi`, for OpenAPI 3.0 and 3.1:
+   path pair, with its path parameters and the permission it checks, from
+   a route table the running router prints, so that only routes actually
+   registered appear. SpecArch defines the route table's format, as it
+   ships the catalogue query. Done when the lending desk's four routes
+   come out as four operations with their parameters and permissions,
+   validated and byte-identical.
+4. `specarch merge`, with the priority rule above, written into
+   `docs/from-sources.md` section 3.2 as well, and an optional key on a
+   source that marks it as given to parties outside, added to the 0.1
+   design schema as the other keywords were. Done when the database
+   and router trees of the lending desk merge into one specification
+   that validates with no errors and `specarch gaps` reads, and a merge
+   run twice is byte-identical. A release tag after this step lets the
+   first project use the database and router readers.
+5. A mark on an element that the project describes and compares but does
+   not generate, naming the stakeholder that owns it: on the element's
+   mapping in the implementation file, one element at a time, since one
+   file often holds a single part another team owns; an optional key in
+   the 0.1 implementation schema. Generators skip it; the comparisons and
+   the gates still check it. Done when the lending desk marks one entity
+   as owned by another stakeholder, `generate sql` and `generate openapi`
+   leave it out while `validate` and `gaps` still read it, and a mark
+   naming no stakeholder is a validation error in both builds.
+6. The documents reader, `extract documents`, for Markdown. The source
+   gets its outline as clauses: every heading, and the page or slide where
+   the format has them. A sentence that makes a commitment (shall, must,
+   will, a number, a time limit) becomes an element with `origin: stated`
+   citing its clause; other prose produces no element and shows in the
+   coverage. A commitment sentence the reader cannot place as one element
+   becomes a question, never a guess. A field's sensitivity is read from a
+   table column headed sensitivity, or from a sentence that calls the
+   field personal or a credential; otherwise it is left for a question.
+   Done when the lending desk manual
+   gives its outline and its commitments, and merged with the code gives
+   the deliberate disagreement on the loan period as one `must` question
+   citing both. PDF and slide decks follow once a reader for them passes
+   the dependency rules.
+7. The OpenAPI reader, `extract openapi`, for OpenAPI 3.0 and 3.1:
    operations, parameters, request and response schemas. Where it and
    the router disagree, a question; a document none of whose paths the
-   router serves is reported as a placeholder.
-7. The permissions reader, `extract permissions`: roles and the
+   router serves is reported as a placeholder. Done when an OpenAPI file
+   added to the lending desk, with one path the router does not serve,
+   merges with the router tree into one question naming that path, and a
+   file with only unserved paths is reported as a placeholder.
+8. The permissions reader, `extract permissions`: roles and the
    permissions each grants, from the tables and seed scripts the running
    check reads. A check that runs only when a setting is present, and so
-   passes everything when the setting is empty, is reported.
-8. The pages reader, `extract pages`, for a file-system router tree: one
-   page per route, with dynamic segments as parameters and route groups
-   recognised.
-9. The whole example: `examples/lending-desk/` extracted end to end by a
-   script, with a column the manual has and the database does not, and a
-   route the code serves and the manual does not mention, both listed by
-   `specarch gaps`. CI runs the script twice and compares. A release tag
-   after this step.
+   passes everything when the setting is empty, is reported. The lending
+   desk's roles move from a Go map to a roles table and a seed script.
+   Done when its one role and three permissions come out validated and
+   byte-identical, and a seed that grants a permission no route checks is
+   reported.
+9. The pages reader, `extract pages`, for a file-system router tree such
+   as an `app/` folder: one page per folder that holds a page file, with
+   dynamic segments as parameters and route groups recognised; and where
+   a page has a schema file the component library renders from, the
+   page's content from that schema. Done when an `app/` tree added to the
+   lending desk, with a dynamic segment, a route group and one page with a
+   schema file, gives one page per route with its parameters and that
+   page's fields, validated and byte-identical.
+10. The whole example: `examples/lending-desk/` extracted end to end by a
+    script, with a personal column the manual has and the database does
+    not, and a route the code serves without a permission that the
+    manual does not mention, both listed by `specarch gaps` as `must`
+    questions. CI runs the script twice and compares. A release tag after
+    this step.
 
-Waiting on the owner, and not yet a step: a reader for workflow
-definitions, since meta-model 0.1 has no object for a workflow binding
-(`flows` are a person's navigation across pages), and a way to mark an
-element that the project describes and compares but does not generate,
-for the parts another team owns.
+Not a step yet: a reader for workflow definitions. Meta-model 0.1 has no
+object for a workflow binding (`flows` are a person's navigation across
+pages); the workflow object is a 0.2 item, and until it exists the
+outline reader records the workflow sources as not read.
 
 ## What goes wrong
 

@@ -50,6 +50,10 @@ public func run(_ args: [String], stdout: TextSink, stderr: TextSink) -> Int32 {
         stdout.write("specarch \(programVersion)\nspecifications: meta-model 0.1\nimplementation files: meta-model 0.1\n")
         return 0
     case "extract":
+        if args.count == 1 {
+            stderr.write("specarch extract needs a source and at least one path\n\n\(usage)")
+            return 2
+        }
         stderr.write("specarch extract: this build does not offer extract; it is designed in spec/ and described in docs/extraction.md, and not built yet\n")
         return 2
     case "document", "generate", "gaps", "approve", "diff", "derive", "idioms":

@@ -1,7 +1,7 @@
 decisions:
   ADR-052:
     title: Meta-model 0.2 is built in twelve steps of additions, and the version moves only with the last, which turns a missing test into an error
-    status: proposed
+    status: accepted
     date: "2026-10-09"
     context: |
       Extracting real systems and the first request for generated screens
@@ -16,7 +16,8 @@ decisions:
       docs/meta-model-0.2.md is the plan. Steps 1 to 10 add separation of
       duties, task pages, workflows, maker-checker on a page, the page
       elements, child rows, value objects, the smaller keywords, a name on
-      the wire and a schema per fragment file, each an addition to the one
+      the wire as one rule per specification (info.wireNames) and a schema
+      per fragment file, each an addition to the one
       design schema that a 0.1 file may use. Step 11 makes a derived case
       no test covers an error in a file that says 0.2 and moves every tree
       in the repository to 0.2. Step 12 is the workflows reader of

@@ -1,7 +1,7 @@
 decisions:
   ADR-055:
     title: Meta-model 0.2 turns a derived case no test covers into an error, except where an open question holds up its subject, and reads 0.1 files with warnings until 1.0
-    status: proposed
+    status: accepted
     date: "2026-10-09"
     context: |
       In 0.1 the validator warns for every derived case no test covers,

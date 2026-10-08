@@ -3506,7 +3506,7 @@ this decision is proposed until they are answered.
 
 ### ADR-052: Meta-model 0.2 is built in twelve steps of additions, and the version moves only with the last, which turns a missing test into an error
 
-Status: proposed, 2026-10-09.
+Status: accepted, 2026-10-09.
 
 Context: Extracting real systems and the first request for generated screens
 found what meta-model 0.1 cannot say: permissions one holder must
@@ -3520,7 +3520,8 @@ scenarios as errors, and candidates whose need was not yet shown.
 Decision: docs/meta-model-0.2.md is the plan. Steps 1 to 10 add separation of
 duties, task pages, workflows, maker-checker on a page, the page
 elements, child rows, value objects, the smaller keywords, a name on
-the wire and a schema per fragment file, each an addition to the one
+the wire as one rule per specification (info.wireNames) and a schema
+per fragment file, each an addition to the one
 design schema that a 0.1 file may use. Step 11 makes a derived case
 no test covers an error in a file that says 0.2 and moves every tree
 in the repository to 0.2. Step 12 is the workflows reader of
@@ -3573,7 +3574,7 @@ run time is the system's.
 
 ### ADR-054: A request that finishes after people approve it is a workflow, its own object named workflows, with a sequential subset of BPMN 2.0 and a four-eyes rule on every approval
 
-Status: proposed, 2026-10-09.
+Status: accepted, 2026-10-09.
 
 Context: Administrative changes in a real system ran as approval workflows in
 an external engine: an approval assigned to a role, a deadline, then
@@ -3607,7 +3608,7 @@ are written with a question until a real workflow asks for them.
 
 ### ADR-055: Meta-model 0.2 turns a derived case no test covers into an error, except where an open question holds up its subject, and reads 0.1 files with warnings until 1.0
 
-Status: proposed, 2026-10-09.
+Status: accepted, 2026-10-09.
 
 Context: In 0.1 the validator warns for every derived case no test covers,
 and specarch derive writes the missing tests as drafts, leaving out

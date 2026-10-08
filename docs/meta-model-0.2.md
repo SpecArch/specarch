@@ -214,12 +214,14 @@ key.
 
 ### A name on the wire
 
-Owner's choice, asked on the item. A property's name must be camelCase, and
-an API whose wire names are snake_case cannot be specified without renaming
-its contract. The recommendation is one rule per specification,
-`info.wireNames: snake_case`, applied to every property of every body,
-parameter and message, with the validator refusing two properties that
-map to one wire name. The alternative is a `wireName` per property.
+A property's name must be camelCase, and an API whose wire names are
+snake_case cannot be specified without renaming its contract. One rule per
+specification says it: `info.wireNames: snake_case`, applied to every
+property of every body, parameter and message, with the validator refusing
+two properties that map to one wire name. One rule rather than a name per
+property, because an API names its properties one way throughout, and a
+name per property would be a second way to say the same thing on every
+field.
 
 ### A schema per fragment file
 
@@ -235,7 +237,7 @@ maintain by hand.
 | Candidate | Why it waits |
 |---|---|
 | `guard` | Built. The only open point, a postcondition, is checked by the guarded operational scripts after the change (`docs/generators.md`), so it is the scripts generator's work, which no longer waits on the meta-model. |
-| row-level permissions, gates by client identity or a signed header, token formats | Each needs the caller as something an expression can name: who is asking, through which client, with which claims. They are designed together in 0.3, around that one concept (owner's choice, asked on the item). The four-eyes rule of a workflow needs no expression, so it does not wait. |
+| row-level permissions, gates by client identity or a signed header, token formats | Each needs the caller as something an expression can name: who is asking, through which client, with which claims. They are designed together in 0.3, around that one concept. The four-eyes rule of a workflow needs no expression, so it does not wait. |
 | golden tests of a designed but unbuilt command | Already settled: each extract step brings its own golden tests, `extract-not-offered` covers the sources not read yet, and `spec/` validates with no warning. |
 | a fixed expression grammar | The expression subset is fixed by its table in `docs/conventions.md` and by the conformance cases both builds pass. A grammar written beside them would be a second definition to keep equal, and the conformance suite is the one both builds are held to. |
 | interfaces beyond HTTP, messaging and the command line | No project being specified uses gRPC, file exchange or a serial protocol. The menu-bar application on the roadmap will show what a menu-bar interface needs when it is extracted. |
@@ -302,7 +304,8 @@ and a history entry. Steps 1 to 10 are additions to the 0.1 schema.
    `generate sql` writes the partial unique index in PostgreSQL and SQL
    Server and refuses it in Oracle and MariaDB, and the test plan groups
    the requirements by release.
-9. A name on the wire, in the form the owner chooses. Done when the lending
+9. A name on the wire, `info.wireNames`. Done when two properties that map
+   to one wire name are refused in both builds (red), and the lending
    desk's OpenAPI document with snake_case properties extracts without a
    left-out line and `generate openapi` writes the same wire names back.
 10. A schema per fragment file, written from the design schema by a script,

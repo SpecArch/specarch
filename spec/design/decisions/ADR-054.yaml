@@ -1,7 +1,7 @@
 decisions:
   ADR-054:
     title: A request that finishes after people approve it is a workflow, its own object named workflows, with a sequential subset of BPMN 2.0 and a four-eyes rule on every approval
-    status: proposed
+    status: accepted
     date: "2026-10-09"
     context: |
       Administrative changes in a real system ran as approval workflows in

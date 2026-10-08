@@ -234,15 +234,17 @@ With a target, the validator checks what the design decides (`accessibility`):
   label);
 - every action has a label, and no two actions of a page share one, so a
   screen reader can tell them apart (4.1.2);
-- the contrast of every pair of colour tokens the theme declares as text
-  on a background is at least 4.5:1, and 3:1 for large text and control
-  parts (1.4.3, 1.4.11), computed by WCAG's own formula for relative
-  luminance;
-- a state is never told by colour alone: a status column whose enum has a
-  colour token per value also has its text (1.4.1).
+- the contrast of every pair of colour tokens the theme declares is at
+  least what its use asks at the target's level: 4.5:1 for text and 3:1
+  for large text and the parts of a control at AA (1.4.3, 1.4.11), 7:1
+  and 4.5:1 for text at AAA (1.4.6), in every mode, computed by WCAG's
+  own formula for relative luminance on 8-bit sRGB values. A theme
+  without a target is held to AA, the level laws ask for.
 
 Whether a problem is about one field the validator cannot tell, so a
-failed state names its `field` when the analyst knows it.
+failed state names its `field` when the analyst knows it. Whether a state
+is told by colour alone (1.4.1) depends on how a stack draws it, so it is
+the generator's.
 
 What it cannot check (a target size on the screen, the focus order as
 built, the names a component library gives) is the generator's to honour
@@ -253,29 +255,39 @@ it, so the owner sees what is left to test by hand.
 ### The visual design: tokens
 
 The theme is a design file of its own, `design/theme.yaml`, in the
-format of the Design Tokens Community Group, written as YAML:
+format of the Design Tokens Community Group (Format Module 2025.10),
+written as YAML:
 
-    tokens:
-      color:
-        $type: color
-        text: { $value: "#1b1f24" }
-        background: { $value: "#ffffff" }
-        accent: { $value: "#0b5cad" }
-        danger: { $value: "#b3261e" }
-      space:
-        $type: dimension
-        small: { $value: { value: 8, unit: px } }
-    modes:
-      dark:
-        color.text: "#e6e8eb"
-        color.background: "#101214"
-    pairs:
-      - { text: color.text, background: color.background }
-      - { text: color.accent, background: color.background, size: large }
+    theme:
+      tokens:
+        color:
+          $type: color
+          text: { $value: { colorSpace: srgb, components: [0.1059, 0.1216, 0.1412], hex: "#1b1f24" } }
+          background: { $value: { colorSpace: srgb, components: [1, 1, 1], hex: "#ffffff" } }
+          accent: { $value: { colorSpace: srgb, components: [0.0431, 0.3608, 0.6784], hex: "#0b5cad" } }
+          link: { $value: "{color.accent}" }
+        space:
+          $type: dimension
+          small: { $value: { value: 8, unit: px } }
+      modes:
+        dark:
+          color.text: { colorSpace: srgb, components: [0.902, 0.9098, 0.9216], hex: "#e6e8eb" }
+          color.background: { colorSpace: srgb, components: [0.0627, 0.0706, 0.0784], hex: "#101214" }
+      pairs:
+        - { text: color.text, background: color.background, use: text }
+        - { text: color.link, background: color.background, use: text }
+
+A colour is the format's object: its colour space, its components and,
+optionally, its `alpha` and its `hex`. SpecArch takes the srgb space
+only, the one WCAG computes contrast in, and checks that a `hex`, when
+given, is the colour the components give. A token may be an alias of
+another, `{group.token}`, as the format allows. The types taken are
+color, dimension, fontFamily, fontWeight, duration and number.
 
 `modes` gives a token another value in a mode, light being the default.
-`pairs` names which colours are used as text on which background, which
-is what the contrast check reads. The design file holds values and names
+`pairs` names which colours are shown on which background and for what
+`use`: text, large text, or the parts of a control. That is what the
+contrast check reads. The design file holds values and names
 only; a token is used by a stack through the token-rendering idiom (CSS
 custom properties for the web, an asset catalogue and a `Color` extension
 for SwiftUI). A specification without a theme is valid: the stack's own
@@ -348,7 +360,7 @@ before it.
 | D4 | `sections` replaces `fields` on a form or view when fields are grouped, and its order is the focus order | confirm |
 | D5 | One screen class, compact, with `compactColumns`; the stack sets its size | confirm |
 | D6 | `accessibility: { standard: WCAG 2.2, level: AA }` in the design turns on the checks listed above; without it nothing is checked | confirm |
-| D7 | The theme is `design/theme.yaml` in the Design Tokens Community Group format, `$type` and `$value` kept, with `modes` and `pairs` as SpecArch's | confirm |
+| D7 | The theme is `design/theme.yaml` in the Design Tokens Community Group format, `$type` and `$value` kept, srgb colours only, with `modes` and `pairs` as SpecArch's | confirm |
 | D8 | No wireframe images in the documents; the structure table and the diagrams instead | confirm |
 | D9 | The first UI generator is SwiftUI, against a hand-built screen of an existing app; the web one follows | the owner picks |
 

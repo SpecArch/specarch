@@ -108,6 +108,7 @@ const (
 	RuleFlow                   Rule = "flow"
 	RuleState                  Rule = "state"
 	RuleAccessibility          Rule = "accessibility"
+	RuleTheme                  Rule = "theme"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -208,6 +209,7 @@ var Rules = []Rule{
 	RuleFlow,
 	RuleState,
 	RuleAccessibility,
+	RuleTheme,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

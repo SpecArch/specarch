@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.5.0-dev of the specification: 42 requirements, 3 entities, 11 commands, 6 algorithms, 223 tests, 37 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.5.0-dev of the specification: 42 requirements, 3 entities, 11 commands, 6 algorithms, 224 tests, 38 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -273,6 +273,7 @@ Primary key: path.
 | Rule | flow | a page event is on a page or an action that does not raise it, leads to a page the specification does not have, or does not give that page exactly its route parameters from fields of the page's entity |
 | Rule | state | a page's states leave out the empty state a list shows or the filtered empty state its filters can reach, name one it cannot reach, leave a problem type the page can meet without a message and without a default, name a problem type it cannot meet, put a field on a page that is not a form or that the form does not show, or give a message that is not a full sentence |
 | Rule | accessibility | once the specification names its accessibility target, a field a page shows has no title, or two actions of a page share a label |
+| Rule | theme | a design token has no type, a type SpecArch does not take, or a value not of its type, an alias names no token or one of another type or leads back to itself, a mode gives a token that does not exist, or a pair of colours is translucent or has less contrast than WCAG 2.2 asks of its use |
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
@@ -2636,6 +2637,45 @@ criteria once a theme declares its colours.
 
 **Insight:** Checking only when a target is named keeps specifications without a user interface, or written before this keyword, free of warnings they cannot act on. JSON Schema's title is the standard place for a human-readable name of a value, so a label needs no keyword of SpecArch's and reaches the OpenAPI document as it is. A field's name made readable would be a guess, and a guess is not a label.
 
+### ADR-038: The theme is design tokens in the W3C Design Tokens format, and its pairs of colours are checked for contrast
+
+Status: proposed, 2026-10-08.
+
+Context: The visual design of an application is a set of named values,
+colours, spaces, fonts and durations, that a design tool and several
+code bases all need. The W3C Design Tokens Community Group's Format
+Module (2025.10, the first stable version) is the format design tools
+and token build tools read: a tree of groups and tokens, each token a
+$type and a $value, aliases written {group.token}, and a colour an
+object of a colour space, components and an optional alpha and hex.
+WCAG 2.2 sets a floor on the contrast of text (1.4.3: 4.5:1, 3:1 for
+large text; 1.4.6 at AAA: 7:1 and 4.5:1) and of the parts of a
+control (1.4.11: 3:1), computed from the relative luminance of 8-bit
+sRGB values.
+
+Decision: theme, one object in the design, holds tokens in the format, its $
+keys kept; modes, each giving tokens by path another value, the
+tokens' own values being the default; and pairs, each a text colour,
+a background colour and its use (text, largeText or control). The
+types taken are color, dimension, fontFamily, fontWeight, duration
+and number, and a colour is in the srgb space. The validator checks
+every token's type and value, every alias, every mode, and the
+contrast of every pair in every mode against the floor of its use at
+the accessibility target's level, AA when none is named; a
+translucent pair is refused, since its contrast depends on what lies
+beneath (theme). The techspec lists the tokens per mode and each
+pair's contrast. This decision is D7 of docs/ui-design.md and waits
+for the owner to confirm or veto it.
+
+Consequences: A contrast that fails is caught when the colour is chosen, in every
+mode, rather than by a person with a tool after the screens exist,
+and the techspec shows the owner the ratios. A token file a design
+tool exports can be pasted in, as long as its colours are srgb.
+Typography, shadows, borders and gradients wait for a real
+specification that needs them.
+
+**Insight:** Taking the format as it is costs a designer nothing new, and keeps the theme readable by the tools that already build tokens into CSS, asset catalogues and resources. srgb only, because WCAG's luminance is defined on sRGB and a contrast computed from another space would be a conversion SpecArch would have to choose. Components are read as 8-bit values, as WCAG's formula expects, and the luminance of each is a fixed table, so both validator builds compute the same ratio.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -2850,6 +2890,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-test-data-valid | command validate | system | golden | a test with a fixture, an input and an expected status, body, state and message, each naming what the design has with values of the right type | validate is run | it reports no test_data and exits 0 |
 | validate-test-subject | command validate | system | red | a test about an operation that does not exist | validate is run | it reports test_subject and exits 1 |
 | validate-test-subject-no-state-machine | command validate | system | red | a test about entity Book alone, which has no transitions | validate is run | it reports test_subject, saying Book has no state machine path, and exits 1 |
+| validate-theme | command validate | system | red | a theme of design tokens with a dark mode and pairs of colours, at the AA target, holding a hex that is not its components, a colour outside srgb, an alias that leads back to itself and one to a token of another type, a dimension in a unit not taken, a token with no type, one of a type not taken, a misspelt $value, a mode naming a token that does not exist, pairs below the contrast their use asks for in the default and the dark mode, a translucent pair, and a pair naming a dimension | validate is run | it reports theme thirteen times and schema once, and exits 1 |
 | validate-traceability-warnings | command validate | system | golden | a need no requirement refines, a requirement without acceptance criteria, an entity that satisfies nothing and a test that verifies nothing | validate is run | it warns once for each gap and exits 0, since the file stays valid |
 | validate-tree-valid | command validate | system | golden | a tree with four stages, one object per file, an implementation file under implementation/go/, and a test folder whose data holds a decoy specarch.yaml | validate is run on the root folder | it reads the tree as one specification, ignores the test data, prints nothing and exits 0 |
 | validate-trigger | command validate | system | red | a transition whose trigger names nothing in the file | validate is run | it reports trigger and exits 1 |
@@ -2916,7 +2957,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-39 | specarch generate openapi shall write, for an openapi target of the dxlib dialect, the document dxlib's OpenAPI reader binds, saying only what dxlib's server enforces and listing on each field what it does not. | functional | should | accepted | test | Every operation is a POST at /<operationId> with all of its parameters in one JSON body, carries its endpoint type and its privileges, and answers a refusal with dxlib's error body named by its problem type and a list in dxlib's list envelope. Every field carries its dxlib type, no field carries a constraint dxlib's validator does not apply, and each such constraint is listed under x-specarch-unenforced on the field. dxlib's own reader reads and validates the document, where a dxlib checkout is at hand. | NEED-2 |
 | SA-40 | specarch generate go-dxlib shall write, for a go-dxlib target, one Go file a service on dxlib compiles beside its own code, holding the tables, a handler per operation, the privileges, roles and menu as data, and a task per repeating job. | functional | should | accepted | test | Each entity is a dxlib table, a DXTable when audited or softly deleted and a DXRawTable otherwise, with the search, order and filter fields its lists allow. An entity listed through a view pages through it as the table's list view, named as specarch-gen-sql names the view; an entity listed through two views, or both directly and through a view, is refused, since dxlib reads a table through one list view. Each operation has a handler registered by its operationId that reads every parameter with dxlib's typed getters, checks every constraint the dxlib dialect lists as unenforced, and runs dxlib's standard list, create or read operation where the design gives one, and otherwise calls a body the service writes. Each permission and role is a seed row, public excluded, each menu entry is a menu item, and each job that repeats at an interval is a dxlib task calling a job function the service writes; any other job is reported and left out. The file compiles against dxlib, where a dxlib checkout is at hand. | NEED-2 |
 | SA-41 | A specification shall declare a read model under views, an entity's row with fields read through its relations and counts of its related records added, which is never written, and specarch validate shall check every path, count and use of a view. | functional | should | accepted | test | A view names the entity it reads from, and adds properties that are either a path through many-to-one or one-to-one relations ending in a field, or a count of a one-to-many or many-to-many relation; it carries every field of its entity besides. A path through a relation that does not exist or does not lead to one record, a count of a relation that does not lead to many, a property that repeats a field of the entity, and a view named like an entity are refused (view). A list may read from a view, with its whitelists naming the view's fields; a view under a request body is refused, since a view is never written. The techspec shows each view with the source and the type of every added property. | NEED-2 |
-| SA-42 | A specification shall define the behaviour, structure and rules of a user interface without naming a stack, the events of a page and where each leads among them, and specarch validate shall check them. | functional | should | accepted | test | A form's onSubmitted, a list's onSelect and an operation action's then lead to a page with exactly that page's route parameters, each from a field of the page's entity, and may carry a message; an event on a page or action that does not raise it, a page that does not exist, a route parameter missing or not the target's, and a field the entity lacks are refused (flow). A flow names a task across pages, its actor and its steps, each a page and the event on it that leads to the next step's page; an actor that is not a role or may not open a page on the way, a page that does not exist, an event the page does not raise and an event that leads elsewhere are refused (flow). A test may name a flow as its subject. A page may declare its states, each with a message in a full sentence; once it does, a list has empty, a list with filters has filteredEmpty, and every problem type the page's operations answer has a message under failed or a default, and a failed state of a form may name the field it is about; anything else is refused (state). Each state is a derived case of the page. A list may name compactColumns, the columns a compact screen keeps, each one of its columns; on another page, or naming another column, it is refused (page). A specification may name its accessibility target, WCAG 2.2 at level A, AA or AAA; with it, a field a page shows without a title and two actions of a page with one label are refused (accessibility), and the techspec lists every criterion of the level with who meets it. The techspec's screen-flow diagram draws every event, and each flow is drawn as its steps. | NEED-2 |
+| SA-42 | A specification shall define the behaviour, structure and rules of a user interface without naming a stack, the events of a page and where each leads among them, and specarch validate shall check them. | functional | should | accepted | test | A form's onSubmitted, a list's onSelect and an operation action's then lead to a page with exactly that page's route parameters, each from a field of the page's entity, and may carry a message; an event on a page or action that does not raise it, a page that does not exist, a route parameter missing or not the target's, and a field the entity lacks are refused (flow). A flow names a task across pages, its actor and its steps, each a page and the event on it that leads to the next step's page; an actor that is not a role or may not open a page on the way, a page that does not exist, an event the page does not raise and an event that leads elsewhere are refused (flow). A test may name a flow as its subject. A page may declare its states, each with a message in a full sentence; once it does, a list has empty, a list with filters has filteredEmpty, and every problem type the page's operations answer has a message under failed or a default, and a failed state of a form may name the field it is about; anything else is refused (state). Each state is a derived case of the page. A list may name compactColumns, the columns a compact screen keeps, each one of its columns; on another page, or naming another column, it is refused (page). A specification may name its accessibility target, WCAG 2.2 at level A, AA or AAA; with it, a field a page shows without a title and two actions of a page with one label are refused (accessibility), and the techspec lists every criterion of the level with who meets it. A theme holds design tokens in the W3C Design Tokens format, modes and pairs of colours; a token without a type or with a value not of its type, a colour outside srgb, a hex that is not its components, a broken or circular alias, a mode naming no token, and a pair below the contrast WCAG 2.2 asks of its use, in any mode, are refused (theme), and the techspec lists the tokens and each pair's contrast. The techspec's screen-flow diagram draws every event, and each flow is drawn as its steps. | NEED-2 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -3077,7 +3118,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-39 | decisions ADR-031 | tests generate-openapi-dxlib |
 | SA-40 | decisions ADR-032 | tests generate-go-dxlib |
 | SA-41 | enums Rule; decisions ADR-033 | tests validate-views; tests validate-views-valid |
-| SA-42 | decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037 | tests validate-accessibility; tests validate-compact-columns; tests validate-flows; tests validate-page-events; tests validate-page-states |
+| SA-42 | decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038 | tests validate-accessibility; tests validate-compact-columns; tests validate-flows; tests validate-page-events; tests validate-page-states; tests validate-theme |
 
 ## Sources
 

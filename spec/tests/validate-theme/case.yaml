@@ -1,0 +1,17 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |+
+  specarch.yaml:15: error: /theme/tokens/color/wrongHex/$value: theme: color.wrongHex: hex #000001 is not the colour the components give, #000000; correct one of them
+  specarch.yaml:16: error: /theme/tokens/color/p3/$value: theme: color.p3: a colour here is in the srgb colour space, the one WCAG 2.2 computes contrast in; give colorSpace: srgb and its three components
+  specarch.yaml:17: error: /theme/tokens/color/loop/$value: theme: color.loop: the aliases lead back to color.loop
+  specarch.yaml:19: error: /theme/tokens/color/gap/$value: theme: color.gap: space.small is a dimension token, and this one is a color
+  specarch.yaml:23: error: /theme/tokens/space/large/$value: theme: space.large: a dimension is a value and a unit, px or rem
+  specarch.yaml:27: error: /theme/tokens/font/untyped: theme: font.untyped has no $type, and no group above it gives one; give it the type of its value
+  specarch.yaml:28: error: /theme/tokens/font/typo/$valu: schema: $valu is not a key this object can have; remove it or correct its spelling
+  specarch.yaml:30: error: /theme/tokens/motion/ease: theme: motion.ease is a cubicBezier token, which SpecArch does not take yet; it takes color, dimension, fontFamily, fontWeight, duration and number
+  specarch.yaml:36: error: /theme/modes/dark/color.missing: theme: color.missing is not a token of the theme
+  specarch.yaml:39: error: /theme/pairs/1: theme: color.link on color.background has a contrast of 2.81:1 in the dark mode, below the 4.5:1 WCAG 2.2 asks of text at level AA (1.4.3)
+  specarch.yaml:40: error: /theme/pairs/2: theme: color.muted on color.background has a contrast of 2.84:1, below the 4.5:1 WCAG 2.2 asks of text at level AA (1.4.3)
+  specarch.yaml:41: error: /theme/pairs/3: theme: color.muted on color.background has a contrast of 2.84:1, below the 3:1 WCAG 2.2 asks of large text at level AA (1.4.3)
+  specarch.yaml:42: error: /theme/pairs/4: theme: color.veil on color.background is translucent, so its contrast depends on what lies beneath; pair opaque colours
+  specarch.yaml:43: error: /theme/pairs/5/text: theme: space.small is a dimension token, and a pair is of colours

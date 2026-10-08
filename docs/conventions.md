@@ -406,6 +406,8 @@ redefined.
 | `states`, `empty`, `filteredEmpty`, `failed`, `message`, `field` | SpecArch | what a page shows when it is empty or fails |
 | `compactColumns` | SpecArch, after the compact size class of Apple's Human Interface Guidelines and Material Design 3 | the columns a list keeps on a compact screen |
 | `accessibility`, `standard`, `level` | WCAG 2.2 | the accessibility the user interface conforms to |
+| `theme`, `tokens`, `$type`, `$value`, `$description`, `colorSpace`, `components`, `alpha`, `hex`, `unit` | W3C Design Tokens Community Group, Format Module 2025.10 | the visual design as design tokens |
+| `modes`, `pairs`, `text`, `background`, `use` | SpecArch | the values a mode gives tokens, and the colours shown together, whose contrast is checked |
 | `algorithms`, `inputs`, `output`, `formula`, `examples` (of an algorithm), `pseudocode` | SpecArch | IEEE 1016 algorithm viewpoint, made testable |
 | `decisions` and the ADR fields | SpecArch, after Michael Nygard's record | the common ADR shape: context, decision, consequences, plus `why` |
 | `tests`, `scenario`, `level`, `given`, `when`, `then`, `covers`, `notApplicable` | SpecArch, after ISO/IEC/IEEE 29119 and Gherkin | design tests; the levels are 29119-1's; given, when and then are the Gherkin words, without Gherkin's file format |
@@ -735,6 +737,43 @@ and no two actions of a page share a label (4.1.2); both are
 `accessibility`. Without it, neither is checked. The techspec lists every
 criterion of the level and whether the design, the generator or a person
 meets it.
+
+### Theme
+
+The visual design is one object, `theme`, in `design/theme.yaml`. Its
+`tokens` are in the format of the W3C Design Tokens Community Group:
+groups and tokens, each token a `$value` and a `$type` given by it or a
+group above it, and an alias of another token written `{group.token}`:
+
+    theme:
+      tokens:
+        color:
+          $type: color
+          text: { $value: { colorSpace: srgb, components: [0.1059, 0.1216, 0.1412], hex: "#1b1f24" } }
+          background: { $value: { colorSpace: srgb, components: [1, 1, 1], hex: "#ffffff" } }
+          link: { $value: "{color.accent}" }
+        space:
+          $type: dimension
+          small: { $value: { value: 8, unit: px } }
+      modes:
+        dark:
+          color.text: { colorSpace: srgb, components: [0.902, 0.9098, 0.9216], hex: "#e6e8eb" }
+      pairs:
+        - { text: color.text, background: color.background, use: text }
+
+The types taken are color (in the srgb space, three components from 0 to
+1, and an `alpha` and a `hex` that must be the components' colour),
+dimension (px or rem), fontFamily, fontWeight, duration (ms or s) and
+number. `modes` gives tokens, by path, another value; the tokens' own
+values are the default. Each pair is a `text` colour on a `background`
+colour, with its `use`: `text`, `largeText` (18 point, or 14 point bold)
+or `control` (the parts of a control and graphics). Its contrast must
+reach what WCAG 2.2 asks of the use at the accessibility target's level,
+AA when none is named, in every mode: 4.5:1 for text, 3:1 for large text
+and controls, and at AAA 7:1 and 4.5:1 for text (1.4.3, 1.4.6, 1.4.11).
+A translucent colour in a pair is refused, since its contrast depends on
+what lies beneath. Every rule here is `theme`. How a token becomes code is
+the stack's.
 
 ### Views
 

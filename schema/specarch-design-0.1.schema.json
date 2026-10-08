@@ -275,6 +275,39 @@
       },
       "additionalProperties": false
     },
+    "theme": {
+      "description": "SpecArch keyword. The visual design as design tokens in the format of the W3C Design Tokens Community Group, the modes that give a token another value, and the pairs of colours shown as text or controls on a background, whose contrast the validator checks against WCAG 2.2. How a token becomes code is the stack's.",
+      "type": "object",
+      "properties": {
+        "tokens": {
+          "$ref": "#/$defs/tokenGroup"
+        },
+        "modes": {
+          "description": "Other modes, such as dark, keyed by camelCase name: each gives tokens, by path, another value. The tokens' own values are the default mode.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "minProperties": 1
+          }
+        },
+        "pairs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/colorPair"
+          }
+        }
+      },
+      "required": [
+        "tokens"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
     "algorithms": {
       "description": "SpecArch keyword. Computations that must be specified before they are written by hand, keyed by camelCase name.",
       "type": "object",
@@ -2773,6 +2806,84 @@
       "patternProperties": {
         "^x-": {}
       },
+      "additionalProperties": false
+    },
+    "tokenGroup": {
+      "description": "A group of design tokens, after the W3C Design Tokens Community Group's Format Module 2025.10: $type gives the type of every token it holds that does not give its own, and every other key is a token, which has a $value, or a group.",
+      "type": "object",
+      "properties": {
+        "$type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "$description": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^[^${}.][^{}.]*$": {
+          "if": {
+            "type": "object",
+            "required": [
+              "$value"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/designToken"
+          },
+          "else": {
+            "$ref": "#/$defs/tokenGroup"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "designToken": {
+      "description": "A design token: its $value, of its type or an alias of another token written {group.token}, its $type when no group gives it, and a $description.",
+      "type": "object",
+      "properties": {
+        "$value": {},
+        "$type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "$description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "$value"
+      ],
+      "additionalProperties": false
+    },
+    "colorPair": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "description": "The colour token used as text or as the part of a control, by its path.",
+          "type": "string",
+          "minLength": 1
+        },
+        "background": {
+          "description": "The colour token it is shown on.",
+          "type": "string",
+          "minLength": 1
+        },
+        "use": {
+          "description": "text asks 4.5:1 at AA (1.4.3) and 7:1 at AAA (1.4.6); largeText, 18 point or 14 point bold, asks 3:1 and 4.5:1; control, the parts of a control and graphics, asks 3:1 (1.4.11).",
+          "type": "string",
+          "enum": [
+            "text",
+            "largeText",
+            "control"
+          ]
+        }
+      },
+      "required": [
+        "text",
+        "background",
+        "use"
+      ],
       "additionalProperties": false
     },
     "algorithm": {

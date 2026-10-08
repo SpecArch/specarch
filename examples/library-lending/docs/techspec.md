@@ -717,7 +717,8 @@ The user interface conforms to WCAG 2.2 at level AA. What the design decides is 
 | 1.1.1 Non-text content | A | a person | an image's text alternative is written where the image is chosen |
 | 1.3.1 Info and relationships | A | the generator | a page's title, its labels and its order become the stack's headings and labelled controls |
 | 1.4.1 Use of color | A | the generator | a state or a value is shown in text as well as in colour |
-| 1.4.3 Contrast (minimum) | AA | the generator | the stack's own colours, which a person checks |
+| 1.4.3 Contrast (minimum) | AA | the design, checked | every pair of colours the theme declares has the contrast its use asks for, in every mode |
+| 1.4.11 Non-text contrast | AA | the design, checked | every pair of colours the theme declares has the contrast its use asks for, in every mode |
 | 2.1.1 Keyboard | A | the generator | every action and field is reachable without a pointer |
 | 2.4.3 Focus order | A | the design | the order of a page's fields and columns is its focus order |
 | 2.4.6 Headings and labels | AA | the design, checked | every page has a title, every field it shows a title, and every action a label of its own |
@@ -727,6 +728,32 @@ The user interface conforms to WCAG 2.2 at level AA. What the design decides is 
 | 3.3.2 Labels or instructions | A | the design, checked | every field a page shows has a title |
 | 4.1.2 Name, role, value | A | the design, checked, and the generator | every action has a label of its own; the generator gives each control its role |
 | 4.1.3 Status messages | AA | the design and the generator | every event's message and every state is text, which the generator announces without moving focus |
+
+### Theme
+
+The design tokens, in the format of the W3C Design Tokens Community Group. A mode's column shows the value it gives a token, and is empty where the token keeps its own.
+
+| Token | Type | Value | dark |
+|---|---|---|---|
+| color.text | color | #1b1f24 | #e6e8eb |
+| color.background | color | #ffffff | #101214 |
+| color.accent | color | #0b5cad | #6cb0f5 |
+| color.danger | color | #b3261e | #f2b8b5 |
+| color.border | color | #6e7781 | #8c959f |
+| color.link | color | same as color.accent |   |
+| space.small | dimension | 8px |   |
+| space.medium | dimension | 16px |   |
+| font.body | fontFamily | system-ui, sans-serif |   |
+| font.strong | fontWeight | 600 |   |
+
+The pairs of colours shown together, with their contrast in each mode:
+
+| Text | Background | Use | Contrast | dark |
+|---|---|---|---|---|
+| color.text | color.background | text | 16.56:1 | 15.29:1 |
+| color.link | color.background | text | 6.66:1 | 8.19:1 |
+| color.danger | color.background | text | 6.53:1 | 10.99:1 |
+| color.border | color.background | control | 4.54:1 | 6.18:1 |
 
 ### Algorithm lateFee
 

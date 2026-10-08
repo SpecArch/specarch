@@ -2,11 +2,14 @@ package generate
 
 import (
 	"fmt"
+	"math"
+	"strconv"
 	"strings"
 
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/source"
+	"github.com/SpecArch/specarch/internal/validate"
 )
 
 // CompanionName is the hand-written explanation beside a specification's
@@ -631,7 +634,10 @@ func crossCutting(d *doc, root *yaml.Node) {
 		d.explain(f.Value)
 	}
 	if a := get(root, "accessibility"); a != nil {
-		accessibilityTable(d, a)
+		accessibilityTable(d, a, len(items(get(root, "theme"), "pairs")) > 0)
+	}
+	if get(root, "theme") != nil {
+		themeTables(d, root)
 	}
 	for _, a := range algs {
 		d.heading(3, "Algorithm "+a.Key.Value)
@@ -974,6 +980,7 @@ var wcagCriteria = []struct{ id, name, level, who, how string }{
 	{"1.3.1", "Info and relationships", "A", "the generator", "a page's title, its labels and its order become the stack's headings and labelled controls"},
 	{"1.4.1", "Use of color", "A", "the generator", "a state or a value is shown in text as well as in colour"},
 	{"1.4.3", "Contrast (minimum)", "AA", "the generator", "the stack's own colours, which a person checks"},
+	{"1.4.11", "Non-text contrast", "AA", "the generator", "the stack's own colours for the parts of controls, which a person checks"},
 	{"2.1.1", "Keyboard", "A", "the generator", "every action and field is reachable without a pointer"},
 	{"2.4.3", "Focus order", "A", "the design", "the order of a page's fields and columns is its focus order"},
 	{"2.4.6", "Headings and labels", "AA", "the design, checked", "every page has a title, every field it shows a title, and every action a label of its own"},
@@ -987,7 +994,7 @@ var wcagCriteria = []struct{ id, name, level, who, how string }{
 
 // accessibilityTable lists the criteria of the target's level and who
 // meets each.
-func accessibilityTable(d *doc, a *yaml.Node) {
+func accessibilityTable(d *doc, a *yaml.Node, pairs bool) {
 	level := str(a, "level")
 	d.heading(3, "Accessibility")
 	d.para("The user interface conforms to " + str(a, "standard") + " at level " + level + ". What the design decides is in the specification, and the validator checks what it can; the rest is the generator's to build and a person's to check at commissioning.")
@@ -997,7 +1004,113 @@ func accessibilityTable(d *doc, a *yaml.Node) {
 		if len(c.level) > len(level) {
 			continue
 		}
-		d.line("| %s %s | %s | %s | %s |", c.id, c.name, c.level, c.who, c.how)
+		who, how := c.who, c.how
+		if pairs && (c.id == "1.4.3" || c.id == "1.4.11") {
+			who, how = "the design, checked", "every pair of colours the theme declares has the contrast its use asks for, in every mode"
+		}
+		d.line("| %s %s | %s | %s | %s |", c.id, c.name, c.level, who, how)
+	}
+	d.blank()
+}
+
+// tokenText writes a token's value as a reader reads it: a colour as its
+// hex, a dimension or a duration with its unit, an alias as the token it
+// names.
+func tokenText(v *yaml.Node) string {
+	if v == nil {
+		return ""
+	}
+	if v.Kind == yaml.ScalarNode && strings.HasPrefix(v.Value, "{") && strings.HasSuffix(v.Value, "}") {
+		return "same as " + strings.Trim(v.Value, "{}")
+	}
+	if cs := items(v, "components"); len(cs) == 3 {
+		var hex strings.Builder
+		hex.WriteString("#")
+		for _, c := range cs {
+			f, err := strconv.ParseFloat(c.Value, 64)
+			if err != nil {
+				return ""
+			}
+			fmt.Fprintf(&hex, "%02x", int(math.Round(f*255)))
+		}
+		return hex.String()
+	}
+	if u := str(v, "unit"); u != "" {
+		return str(v, "value") + u
+	}
+	if v.Kind == yaml.SequenceNode {
+		var names []string
+		for _, n := range v.Content {
+			names = append(names, n.Value)
+		}
+		return strings.Join(names, ", ")
+	}
+	return v.Value
+}
+
+// themeTables lists the theme's tokens with their value in each mode, and
+// its pairs of colours with their contrast in each.
+func themeTables(d *doc, root *yaml.Node) {
+	theme := get(root, "theme")
+	d.heading(3, "Theme")
+	var rows []string
+	var walk func(group *yaml.Node, prefix, typ string)
+	walk = func(group *yaml.Node, prefix, typ string) {
+		if t := str(group, "$type"); t != "" {
+			typ = t
+		}
+		for _, p := range pairsOf(group) {
+			if strings.HasPrefix(p.Key.Value, "$") {
+				continue
+			}
+			path := strings.TrimPrefix(prefix+"."+p.Key.Value, ".")
+			if get(p.Value, "$value") == nil {
+				walk(p.Value, path, typ)
+				continue
+			}
+			t := typ
+			if own := str(p.Value, "$type"); own != "" {
+				t = own
+			}
+			row := fmt.Sprintf("| %s | %s | %s |", path, t, cell(tokenText(get(p.Value, "$value"))))
+			for _, m := range pairs(theme, "modes") {
+				row += " " + cell(tokenText(get(m.Value, path))) + " |"
+			}
+			rows = append(rows, row)
+		}
+	}
+	walk(get(theme, "tokens"), "", "")
+	modes := pairs(theme, "modes")
+	head, rule := "| Token | Type | Value |", "|---|---|---|"
+	for _, m := range modes {
+		head += " " + m.Key.Value + " |"
+		rule += "---|"
+	}
+	d.para("The design tokens, in the format of the W3C Design Tokens Community Group. A mode's column shows the value it gives a token, and is empty where the token keeps its own.")
+	d.line("%s", head)
+	d.line("%s", rule)
+	for _, r := range rows {
+		d.line("%s", r)
+	}
+	d.blank()
+	contrasts, modeNames := validate.ThemeContrasts(root)
+	if len(contrasts) == 0 {
+		return
+	}
+	head, rule = "| Text | Background | Use | Contrast |", "|---|---|---|---|"
+	for _, m := range modeNames {
+		head += " " + m + " |"
+		rule += "---|"
+	}
+	d.para("The pairs of colours shown together, with their contrast in each mode:")
+	d.line("%s", head)
+	d.line("%s", rule)
+	for _, p := range contrasts {
+		row := fmt.Sprintf("| %s | %s | %s |", p.Text, p.Background, p.Use)
+		for _, r := range p.Ratios {
+			row += " " + r + " |"
+		}
+		d.line("%s", row)
 	}
 	d.blank()
 }

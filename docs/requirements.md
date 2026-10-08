@@ -329,6 +329,7 @@ Acceptance criteria:
 - A page may declare its states, each with a message in a full sentence; once it does, a list has empty, a list with filters has filteredEmpty, and every problem type the page's operations answer has a message under failed or a default, and a failed state of a form may name the field it is about; anything else is refused (state). Each state is a derived case of the page.
 - A list may name compactColumns, the columns a compact screen keeps, each one of its columns; on another page, or naming another column, it is refused (page).
 - A specification may name its accessibility target, WCAG 2.2 at level A, AA or AAA; with it, a field a page shows without a title and two actions of a page with one label are refused (accessibility), and the techspec lists every criterion of the level with who meets it.
+- A theme holds design tokens in the W3C Design Tokens format, modes and pairs of colours; a token without a type or with a value not of its type, a colour outside srgb, a hex that is not its components, a broken or circular alias, a mode naming no token, and a pair below the contrast WCAG 2.2 asks of its use, in any mode, are refused (theme), and the techspec lists the tokens and each pair's contrast.
 - The techspec's screen-flow diagram draws every event, and each flow is drawn as its steps.
 
 **Insight:** Where a person goes after each step is decided today by whoever builds the screen, so screens of one application drift apart, and no reviewer sees the flow until it runs.

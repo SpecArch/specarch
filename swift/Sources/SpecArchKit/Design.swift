@@ -200,6 +200,7 @@ extension Checker {
         checkPageStates(d)
         checkCompactColumns(d)
         checkAccessibility(d)
+        checkTheme(d)
         checkDecisions(d)
         checkAccess(d)
         checkExpressions(d)

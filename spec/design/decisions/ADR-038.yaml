@@ -1,0 +1,47 @@
+decisions:
+  ADR-038:
+    title: The theme is design tokens in the W3C Design Tokens format, and its pairs of colours are checked for contrast
+    status: proposed
+    date: "2026-10-08"
+    context: |
+      The visual design of an application is a set of named values,
+      colours, spaces, fonts and durations, that a design tool and several
+      code bases all need. The W3C Design Tokens Community Group's Format
+      Module (2025.10, the first stable version) is the format design tools
+      and token build tools read: a tree of groups and tokens, each token a
+      $type and a $value, aliases written {group.token}, and a colour an
+      object of a colour space, components and an optional alpha and hex.
+      WCAG 2.2 sets a floor on the contrast of text (1.4.3: 4.5:1, 3:1 for
+      large text; 1.4.6 at AAA: 7:1 and 4.5:1) and of the parts of a
+      control (1.4.11: 3:1), computed from the relative luminance of 8-bit
+      sRGB values.
+    decision: |
+      theme, one object in the design, holds tokens in the format, its $
+      keys kept; modes, each giving tokens by path another value, the
+      tokens' own values being the default; and pairs, each a text colour,
+      a background colour and its use (text, largeText or control). The
+      types taken are color, dimension, fontFamily, fontWeight, duration
+      and number, and a colour is in the srgb space. The validator checks
+      every token's type and value, every alias, every mode, and the
+      contrast of every pair in every mode against the floor of its use at
+      the accessibility target's level, AA when none is named; a
+      translucent pair is refused, since its contrast depends on what lies
+      beneath (theme). The techspec lists the tokens per mode and each
+      pair's contrast. This decision is D7 of docs/ui-design.md and waits
+      for the owner to confirm or veto it.
+    consequences: |
+      A contrast that fails is caught when the colour is chosen, in every
+      mode, rather than by a person with a tool after the screens exist,
+      and the techspec shows the owner the ratios. A token file a design
+      tool exports can be pasted in, as long as its colours are srgb.
+      Typography, shadows, borders and gradients wait for a real
+      specification that needs them.
+    why: |
+      Taking the format as it is costs a designer nothing new, and keeps
+      the theme readable by the tools that already build tokens into CSS,
+      asset catalogues and resources. srgb only, because WCAG's luminance
+      is defined on sRGB and a contrast computed from another space would be
+      a conversion SpecArch would have to choose. Components are read as
+      8-bit values, as WCAG's formula expects, and the luminance of each is
+      a fixed table, so both validator builds compute the same ratio.
+    satisfies: [SA-42]

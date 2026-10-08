@@ -1,0 +1,43 @@
+specarch: "0.1"
+info: { title: Member desk, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+accessibility: { standard: WCAG 2.2, level: AA }
+theme:
+  tokens:
+    color:
+      $type: color
+      text: { $value: { colorSpace: srgb, components: [0.106, 0.122, 0.141], hex: "#1b1f24" } }
+      background: { $value: { colorSpace: srgb, components: [1, 1, 1] } }
+      accent: { $value: { colorSpace: srgb, components: [0.043, 0.361, 0.678] } }
+      muted: { $value: { colorSpace: srgb, components: [0.6, 0.6, 0.6] } }
+      link: { $value: "{color.accent}" }
+      wrongHex: { $value: { colorSpace: srgb, components: [0, 0, 0], hex: "#000001" } }
+      p3: { $value: { colorSpace: display-p3, components: [1, 0, 0] } }
+      loop: { $value: "{color.loop}" }
+      veil: { $value: { colorSpace: srgb, components: [0, 0, 0], alpha: 0.5 } }
+      gap: { $value: "{space.small}" }
+    space:
+      $type: dimension
+      small: { $value: { value: 8, unit: px } }
+      large: { $value: { value: 2, unit: em } }
+    font:
+      body: { $type: fontFamily, $value: [Inter, system-ui] }
+      weight: { $type: fontWeight, $value: bold }
+      untyped: { $value: 12 }
+      typo: { $type: number, $valu: 12 }
+    motion:
+      ease: { $type: cubicBezier, $value: [0.5, 0, 1, 1] }
+  modes:
+    dark:
+      color.text: { colorSpace: srgb, components: [0.902, 0.91, 0.922] }
+      color.background: { colorSpace: srgb, components: [0.063, 0.071, 0.078] }
+      color.accent: { colorSpace: srgb, components: [0.043, 0.361, 0.678] }
+      color.missing: { colorSpace: srgb, components: [0, 0, 0] }
+  pairs:
+    - { text: color.text, background: color.background, use: text }
+    - { text: color.link, background: color.background, use: text }
+    - { text: color.muted, background: color.background, use: text }
+    - { text: color.muted, background: color.background, use: largeText }
+    - { text: color.veil, background: color.background, use: control }
+    - { text: space.small, background: color.background, use: text }

@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a theme of design tokens with a dark mode and pairs of colours, at the AA target, holding a hex that is not its components, a colour outside srgb, an alias that leads back to itself and one to a token of another type, a dimension in a unit not taken, a token with no type, one of a type not taken, a misspelt $value, a mode naming a token that does not exist, pairs below the contrast their use asks for in the default and the dark mode, a translucent pair, and a pair naming a dimension"
+when: "validate is run"
+then: "it reports theme thirteen times and schema once, and exits 1"
+verifies: [SA-42]

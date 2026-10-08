@@ -1,0 +1,47 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.], harm: [privacy] }
+entities:
+  Member:
+    type: object
+    properties:
+      cardNumber: { type: string, maxLength: 10, atRest: encrypted, lookup: hash }
+      email: { type: string, format: email, sensitivity: personal }
+      password: { type: string, maxLength: 200, sensitivity: credential, writeOnly: true }
+    primaryKey: [cardNumber]
+    audited: true
+    deletion: soft
+    satisfies: [CASE-1]
+permissions:
+  members.read: { description: See members. }
+roles:
+  desk: { description: The desk., permissions: [members.read] }
+paths:
+  /members:
+    get:
+      operationId: listMembers
+      summary: The members
+      permission: members.read
+      responses:
+        "200":
+          description: The members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+      satisfies: [CASE-1]
+  /members/{cardNumber}:
+    parameters:
+      - { name: cardNumber, in: path, required: true, schema: { type: string, maxLength: 10 } }
+    get:
+      operationId: getMember
+      summary: One member
+      permission: members.read
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+        "404": { description: No such member. }
+      satisfies: [CASE-1]

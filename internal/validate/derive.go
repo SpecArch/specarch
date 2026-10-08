@@ -357,6 +357,9 @@ func (d *design) operationSubject(o operation) *subject {
 				}
 			}
 		}
+		if source.Str(source.Child(d.entities[ent], "deletion")) == "soft" && o.method == "get" {
+			d.softDeleteCases(s, o, ent, call)
+		}
 		if o.method == "post" && source.Child(source.Child(o.node, "responses"), "201") != nil {
 			for _, c := range source.Pairs(source.Child(d.entities[ent], "constraints")) {
 				if source.Str(source.Child(c.Value, "kind")) == "unique" {
@@ -395,6 +398,43 @@ func (d *design) operationSubject(o operation) *subject {
 		}
 	}
 	return s
+}
+
+// softDeleteCases are the cases of a read of an entity with soft deletion:
+// a list leaves a deleted record out, and a read by id answers as for a
+// record that does not exist.
+func (d *design) softDeleteCases(s *subject, o operation, ent, call string) {
+	deleted := "a " + ent + " that is deleted"
+	if d.responseIsList(o.node) {
+		s.cases = append(s.cases, derivedCase{name: "deleted " + ent + " not listed", scenario: "golden", given: deleted, when: call,
+			then: "the deleted " + ent + " is not in the answer", frequency: occasional})
+		return
+	}
+	for _, p := range append(source.Items(source.Child(o.pathItem, "parameters")), source.Items(source.Child(o.node, "parameters"))...) {
+		if source.Str(source.Child(p, "in")) == "path" {
+			then := failureResponse(o.node, "404")
+			if then == "..." {
+				then = "it is refused as not found"
+			}
+			s.red("deleted "+ent+" read", occasional, deleted, o.id+" is called with its "+source.Str(source.Child(p, "name")), then)
+			return
+		}
+	}
+}
+
+// responseIsList reports whether a successful response returns a list.
+func (d *design) responseIsList(op *yaml.Node) bool {
+	for _, r := range source.Pairs(source.Child(op, "responses")) {
+		if !strings.HasPrefix(r.Key.Value, "2") {
+			continue
+		}
+		for _, c := range source.Pairs(source.Child(r.Value, "content")) {
+			if source.Child(source.Child(c.Value, "schema"), "items") != nil {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // requestFields returns the request body's fields and its required ones.

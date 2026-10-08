@@ -1,0 +1,55 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+entities:
+  Member:
+    type: object
+    properties:
+      cardNumber: { type: string, maxLength: 10, atRest: encrypted }
+      email: { type: string, format: email, sensitivity: personal }
+      password: { type: string, maxLength: 200, sensitivity: credential }
+      nickname: { type: string, maxLength: 40, lookup: hash }
+      createdAt: { type: string, format: date-time, readOnly: true }
+      deleted: { type: boolean, readOnly: true }
+    primaryKey: [cardNumber]
+    audited: true
+    deletion: soft
+    satisfies: [CASE-1]
+permissions:
+  members.read: { description: See members. }
+  public: { description: Open to everyone. }
+roles:
+  desk: { description: The desk., permissions: [members.read] }
+paths:
+  /members/{cardNumber}:
+    parameters:
+      - { name: cardNumber, in: path, required: true, schema: { type: string, maxLength: 10 } }
+    get:
+      operationId: getMember
+      summary: One member
+      permission: members.read
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+      satisfies: [CASE-1]
+  /directory:
+    get:
+      operationId: listDirectory
+      summary: The directory
+      permission: public
+      responses:
+        "200":
+          description: Names and addresses.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    email: { type: string, format: email, sensitivity: personal }
+      satisfies: [CASE-1]

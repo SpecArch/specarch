@@ -281,6 +281,9 @@ extension Design {
                     }
                 }
             }
+            if str(child(entities[ent], "deletion")) == "soft" && o.method == "get" {
+                softDeleteCases(s, o, ent, call)
+            }
             if o.method == "post" && child(o.node.child("responses"), "201") != nil {
                 for c in pairs(child(entities[ent], "constraints")) where str(c.value.child("kind")) == "unique" {
                     s.red("duplicate " + c.key.value, occasional, "a " + ent + " that " + c.key.value + " would clash with exists", call, "it is refused as a duplicate")
@@ -316,6 +319,34 @@ extension Design {
             }
         }
         return s
+    }
+
+    /// The cases of a read of an entity with soft deletion: a list leaves a
+    /// deleted record out, and a read by id answers as for a record that
+    /// does not exist.
+    func softDeleteCases(_ s: Subject, _ o: Operation, _ ent: String, _ call: String) {
+        let deleted = "a " + ent + " that is deleted"
+        if responseIsList(o.node) {
+            s.cases.append(DerivedCase(name: "deleted " + ent + " not listed", scenario: "golden", given: deleted, when: call,
+                                       then: "the deleted " + ent + " is not in the answer", frequency: occasional))
+            return
+        }
+        for p in items(o.pathItem.child("parameters")) + items(o.node.child("parameters")) where str(p.child("in")) == "path" {
+            var then = failureResponse(o.node, "404")
+            if then == "..." { then = "it is refused as not found" }
+            s.red("deleted " + ent + " read", occasional, deleted, o.id + " is called with its " + str(p.child("name")), then)
+            return
+        }
+    }
+
+    /// Whether a successful response returns a list.
+    func responseIsList(_ op: YNode) -> Bool {
+        for r in pairs(op.child("responses")) where r.key.value.hasPrefix("2") {
+            for c in pairs(r.value.child("content")) where child(c.value.child("schema"), "items") != nil {
+                return true
+            }
+        }
+        return false
     }
 
     /// The request body's fields and its required ones. For a $ref to an

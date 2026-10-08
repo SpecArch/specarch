@@ -1,0 +1,14 @@
+requirements:
+  SA-33:
+    statement: A specification shall be able to say how sensitive a field is, that it is encrypted at rest and how it is still found, and that an entity is audited or deleted softly, and specarch validate shall check each against the design and derive the cases a soft delete implies.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A credential field that a response can carry and that is not writeOnly is reported as sensitivity_exposed; a personal field in the response of a public operation is warned about.
+      - A lookup on a field that is not encrypted, and an encrypted key or unique field without lookup hash, are reported as at_rest.
+      - An audited entity that declares createdAt, createdBy, lastModifiedAt or lastModifiedBy, and one with soft deletion that declares deleted, is reported as audited.
+      - A list of an entity with soft deletion gets the case deleted record not listed, and a read by id the case deleted record read, answered as not found.
+    verification: test
+    needs: [NEED-1, NEED-2]
+    why: Which fields are personal, which are encrypted and whether a delete can be undone are facts a client, a tester and an auditor need; written in the design, they are checked where a mistake would leak data, and the tests follow from them.

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.4.0-dev of the specification: 32 requirements, 3 entities, 11 commands, 6 algorithms, 205 tests, 23 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.4.0-dev of the specification: 33 requirements, 3 entities, 11 commands, 6 algorithms, 207 tests, 24 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -261,6 +261,9 @@ Primary key: path.
 | Rule | idiom_stack | an override renders a stack that is not the implementation file's: its language, the dialect of one of its targets, or `any` |
 | Rule | idiom_version_behind | an override was copied from an older version of the shipped idiom and does not say it stays behind on purpose (a warning) |
 | Rule | idiom_contract | an override changes a shipped contract statement, or a field has no row in a type rendering for a stack of the implementation file |
+| Rule | sensitivity_exposed | a credential field that is not writeOnly can appear in a response; a personal field can appear in the response of a public operation (a warning) |
+| Rule | at_rest | lookup without atRest encrypted, or an encrypted field that is a key or unique without lookup hash |
+| Rule | audited | an audited entity declares a field the system sets (createdAt, createdBy, lastModifiedAt, lastModifiedBy), or one with soft deletion declares deleted |
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
@@ -2090,6 +2093,37 @@ not yet join the derived cases.
 
 **Insight:** Matching on the field's own keys, not on a type the validator infers, keeps the two builds equal without a shared library. A format that a row names is a type of its own on that stack (a decimal, a date, a UUID), so letting the general text row take it would hide the one thing the check is for. Placeholders are forbidden in data, but a render pattern is a function of the field, filled by a generator and never left in output. staysBehind is a key rather than a phrase in why, because prose cannot be checked.
 
+### ADR-024: Sensitivity, encryption at rest, audit fields and soft delete are design, and their mechanics are idioms
+
+Status: accepted, 2026-10-08.
+
+Context: The dxlib study found four facts about stored data that a client or a
+tester needs and that the design could not say: which fields are
+personal or secret, which are encrypted, who changed a record and
+when, and whether a delete can be undone.
+
+Decision: A field may carry sensitivity (public, internal, personal or
+credential), atRest: encrypted, and with it lookup: hash. An entity
+may carry audited: true and deletion: soft. The validator refuses a
+credential field a response can carry unless it is writeOnly, warns
+for a personal field in a public operation's response, refuses lookup
+without encryption and an encrypted key or unique field without
+lookup hash, and refuses an audited or softly deleted entity that
+declares the fields the system sets. A read of a softly deleted entity
+gets two derived cases, deleted record not listed and deleted record
+read.
+
+Consequences: The audit fields, createdAt, createdBy, lastModifiedAt and
+lastModifiedBy, and the deleted flag are not declared by the entity:
+the audit-fields and soft-delete idioms give their columns, and the
+techspec shows them. A test cannot yet name them in a fixture. The
+masking per sensitivity, the engine function of an encrypted column
+and its key are the pii-in-logs and encrypted-column idioms, not
+built yet. The meta-model stays at 0.1; the keywords are additions no
+existing file breaks on.
+
+**Insight:** Declaring the audit fields and also marking the entity audited would be two ways to say one thing, so the keyword wins and the fields are implied. A credential arrives in a request body by design, so only responses are checked; writeOnly is JSON Schema's own word for a value that is sent and never returned. An encrypted value cannot be compared in storage, so it can be a key or unique only through a hash of it.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -2281,6 +2315,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-stakeholder | command validate | system | red | a need whose stakeholders name a stakeholder that does not exist | validate is run | it reports stakeholder and exits 1 |
 | validate-state-field | command validate | system | red | a state field that is not an enum | validate is run | it reports state_field and exits 1 |
 | validate-state-value | command validate | system | red | a transition to a value the enum does not have | validate is run | it reports state_value and exits 1 |
+| validate-stored-data | command validate | system | red | an audited entity with soft deletion that declares createdAt and deleted, an encrypted primary key without lookup hash, a lookup on a field that is not encrypted, an operation whose response carries a credential that is not writeOnly, and a public operation whose response carries a personal field | validate is run | it reports audited twice, at_rest twice and sensitivity_exposed for the credential, warns sensitivity_exposed for the personal field, and exits 1 |
+| validate-stored-data-valid | command validate | system | golden | an audited entity with soft deletion that declares neither the audit fields nor deleted, an encrypted key looked up by hash, a credential that is writeOnly, a personal field shown only behind a permission, and a requirement with a harm that the list and the read satisfy | validate is run | it reports no error and warns that no test covers the derived cases deleted Member not listed and deleted Member read, among the others, and exits 0 |
 | validate-suite | command validate | system | red | an implementation suite that names a design test that does not exist | validate is run | it reports suite and exits 1 |
 | validate-test-case | command validate | system | red | a test that covers a case its operation does not have | validate is run | it reports test_case with the cases it has, warns for the case now uncovered, and exits 1 |
 | validate-test-data | command validate | system | red | tests whose fixture names an unknown role, entity and field and holds a record the check constraint refuses, whose input names an unknown body field and carries a number for a string, whose expect names a response, exit code, message and body values the design does not have and says emits and emitsNothing both, and a constraint test with input | validate is run | it reports test_data at each and exits 1 |
@@ -2343,6 +2379,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-27 | A design test may carry its fixture, input and expected outcome as structured data in the design's own vocabulary, and the validator shall check that data against the design. | functional | should | accepted | test | A fixture naming a field the entity does not have, a value of the wrong type, or a record a check constraint refuses is reported as test_data. An input naming a parameter the operation does not have, or an expected status that is not one of its responses, is reported as test_data. A test with input and an input/ folder beside it is reported as test_data. | NEED-9 |
 | SA-21 | specarch validate shall rank every test case it derives as critical, frequent or other, from the harm of the requirements its subject satisfies and from how often users get its field wrong, and shall warn only for the critical and frequent cases no test covers. | functional | must | accepted | test | An operation that satisfies no requirement with harm gets no warning for the boundary cases of its fields, and still gets one for a missing required field and for a caller without the permission. The same operation, once it satisfies a requirement with harm, gets a warning for every derived case no test covers. A field with mistakes rare loses the warnings for its cases, and a field with mistakes frequent gains them. A failing channel is warned about whatever the harm of the operation. | NEED-9 |
 | SA-22 | specarch document shall list in the test plan, under Derived cases left out, every derived case of rank other that no test covers, with its subject and the reason it was left out, and shall show each requirement's harm in the traceability matrix once a requirement names one. | functional | must | accepted | test | The test plan of a specification with an uncovered boundary case on a subject with no harm has a row for that case, and the row is gone once a test covers it. The traceability matrix of a specification with a requirement that names a harm has a Harm column, and one without has none. | NEED-9, NEED-3 |
+| SA-33 | A specification shall be able to say how sensitive a field is, that it is encrypted at rest and how it is still found, and that an entity is audited or deleted softly, and specarch validate shall check each against the design and derive the cases a soft delete implies. | functional | must | accepted | test | A credential field that a response can carry and that is not writeOnly is reported as sensitivity_exposed; a personal field in the response of a public operation is warned about. A lookup on a field that is not encrypted, and an encrypted key or unique field without lookup hash, are reported as at_rest. An audited entity that declares createdAt, createdBy, lastModifiedAt or lastModifiedBy, and one with soft deletion that declares deleted, is reported as audited. A list of an entity with soft deletion gets the case deleted record not listed, and a read by id the case deleted record read, answered as not found. | NEED-1, NEED-2 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -2391,6 +2428,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Note on SA-21:** From ISO/IEC/IEEE 29119-4, Software and systems engineering, Software testing, Part 4, Test techniques, 2021, clause 5.4.1: Error guessing designs test cases from knowledge of the mistakes that are commonly made.
 
 **Insight on SA-22:** A case left out is a decision, and a decision the reader cannot see is one nobody can question.
+
+**Insight on SA-33:** Which fields are personal, which are encrypted and whether a delete can be undone are facts a client, a tester and an auditor need; written in the design, they are checked where a mistake would leak data, and the tests follow from them.
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
@@ -2472,6 +2511,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-30 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests validate-mapping-origin |
 | SA-31 | commands generate | tests generate-stack-fallback; tests generate-stack-plugin |
 | SA-32 | commands idioms; commands idioms diff; decisions ADR-023 | tests idioms-diff; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems |
+| SA-33 | decisions ADR-024 | tests validate-stored-data; tests validate-stored-data-valid |
 
 ## Sources
 

@@ -173,6 +173,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkRequirementsStage(d)
 	c.checkEnums(d)
 	c.checkEntities(d)
+	c.checkLookups(d)
 	c.checkOperations(d)
 	c.checkCommands(d)
 	c.checkDependencies(d)
@@ -339,6 +340,7 @@ func (c *checker) checkEntities(d *design) {
 		}
 		c.checkStates(d, name, e, fields)
 		c.checkValidity(name, e, fields)
+		c.checkStored(name, e, fields)
 	}
 }
 
@@ -467,6 +469,7 @@ func (c *checker) checkOperations(d *design) {
 		c.checkPathParameters(o)
 		c.checkCalls(d, o)
 		c.checkIdempotencyKey(o)
+		c.checkExposed(d, o)
 		c.checkGuard(d, source.Child(o.node, "guard"), o.pointer("guard"))
 	}
 }

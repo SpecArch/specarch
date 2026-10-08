@@ -1,0 +1,38 @@
+decisions:
+  ADR-024:
+    title: Sensitivity, encryption at rest, audit fields and soft delete are design, and their mechanics are idioms
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      The dxlib study found four facts about stored data that a client or a
+      tester needs and that the design could not say: which fields are
+      personal or secret, which are encrypted, who changed a record and
+      when, and whether a delete can be undone.
+    decision: |
+      A field may carry sensitivity (public, internal, personal or
+      credential), atRest: encrypted, and with it lookup: hash. An entity
+      may carry audited: true and deletion: soft. The validator refuses a
+      credential field a response can carry unless it is writeOnly, warns
+      for a personal field in a public operation's response, refuses lookup
+      without encryption and an encrypted key or unique field without
+      lookup hash, and refuses an audited or softly deleted entity that
+      declares the fields the system sets. A read of a softly deleted entity
+      gets two derived cases, deleted record not listed and deleted record
+      read.
+    consequences: |
+      The audit fields, createdAt, createdBy, lastModifiedAt and
+      lastModifiedBy, and the deleted flag are not declared by the entity:
+      the audit-fields and soft-delete idioms give their columns, and the
+      techspec shows them. A test cannot yet name them in a fixture. The
+      masking per sensitivity, the engine function of an encrypted column
+      and its key are the pii-in-logs and encrypted-column idioms, not
+      built yet. The meta-model stays at 0.1; the keywords are additions no
+      existing file breaks on.
+    why: |
+      Declaring the audit fields and also marking the entity audited would
+      be two ways to say one thing, so the keyword wins and the fields are
+      implied. A credential arrives in a request body by design, so only
+      responses are checked; writeOnly is JSON Schema's own word for a value
+      that is sent and never returned. An encrypted value cannot be compared
+      in storage, so it can be a key or unique only through a hash of it.
+    satisfies: [SA-33]

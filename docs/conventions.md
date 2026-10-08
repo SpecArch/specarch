@@ -382,6 +382,7 @@ redefined.
 | `idempotencyKey` | SpecArch, after RFC 9110 9.2.2 and the IETF Idempotency-Key header draft | a header that tells a repeated request from a new one, on a method that is not idempotent by itself |
 | `validity`, `from`, `until` | SpecArch | the fields that bound when a record is current |
 | `guard`, `precondition`, `recordsChanged` | SpecArch | what is checked together with a data change |
+| `sensitivity`, `atRest`, `lookup`, `audited`, `deletion` | SpecArch | how sensitive a field is and how it is stored, and what the system keeps about each record of an entity |
 | a duration (`timeout`, `idleTimeout`, `absoluteTimeout`) | ISO 8601, the form JSON Schema's `format: duration` names | days, hours, minutes and seconds only (`PT5S`, `P1DT12H`): weeks, months and years depend on the calendar, so a limit written in them would not mean the same every day |
 | `emits`, `algorithm` | SpecArch | links from an operation to its events and its computation |
 | `pages`, `kind`, `route`, `entity`, `source`, `submit`, `columns`, `fields`, `filters`, `actions` | SpecArch | UI page definitions |
@@ -523,6 +524,40 @@ fields, and gives true or false (`expression_syntax`, `expression_name`,
 there is a precondition, and `concurrent write`, which is critical whatever
 the subject's harm. The guard is also what the guarded operational scripts
 of `docs/generators.md` are emitted from.
+
+### Sensitive data, encryption at rest, audit fields and soft delete
+
+A field says how sensitive its value is, and whether it is stored
+encrypted:
+
+    email: { type: string, format: email, sensitivity: personal, atRest: encrypted, lookup: hash }
+
+`sensitivity` is `public`, `internal` (for staff only), `personal` (about a
+person: masked in logs, shown only to who may see it) or `credential` (a
+password, a token). A response that can carry a credential, through a
+`$ref` to its entity or inline, is refused unless the field is `writeOnly`,
+JSON Schema's word for a value that is sent and never returned; a personal
+field in the response of a public operation is warned about
+(`sensitivity_exposed`). Request bodies are not checked, since a credential
+arrives in one by design.
+
+`atRest: encrypted` stores the value encrypted, so it cannot be compared in
+storage. `lookup: hash` keeps a salted hash beside it, so it can still be a
+key, unique, or found by equality. An encrypted field in a primary key or a
+unique constraint needs the lookup, and a lookup on a field that is not
+encrypted is refused (`at_rest`).
+
+An entity may be `audited: true`: every record carries `createdAt`,
+`createdBy`, `lastModifiedAt` and `lastModifiedBy`, set by the system and
+never by a caller. With `deletion: soft`, a delete sets a `deleted` flag and
+keeps the record; a deleted record is not listed and reads as not found.
+The entity does not declare those fields, since the keyword already says
+them (`audited`). The derivation gives a list of such an entity the golden
+case `deleted <Entity> not listed`, and a read of one by id the red case
+`deleted <Entity> read`. How each is done on a stack (the mask rules, the
+engine's encryption and key, the column names) is an idiom
+(`docs/idioms.md`): pii-in-logs, encrypted-column, audit-fields and
+soft-delete.
 
 ### Secrets
 
@@ -690,6 +725,8 @@ mistake:
 | an `idempotencyKey` | `repeated with the same <key>` | golden | frequent |
 | | `<key> reused for another request` | red | occasional |
 | a body field that is the `via` of a relation to an entity with `validity` | `expired <field>`, and with `from` `not yet valid <field>` | red | occasional |
+| a GET answering a list of an entity with `deletion: soft` | `deleted <Entity> not listed` | golden | occasional |
+| a GET by a path parameter answering an entity with `deletion: soft` | `deleted <Entity> read` | red | occasional |
 | a `session`, for every permission other than `public` | `denied with expired session` | red | frequent |
 | a `guard` with a precondition | `guard precondition fails` | red | occasional |
 | a `guard` | `concurrent write` | red | rare |

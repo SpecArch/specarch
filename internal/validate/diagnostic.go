@@ -96,6 +96,9 @@ const (
 	RuleIdiomStack             Rule = "idiom_stack"
 	RuleIdiomVersionBehind     Rule = "idiom_version_behind"
 	RuleIdiomContract          Rule = "idiom_contract"
+	RuleSensitivityExposed     Rule = "sensitivity_exposed"
+	RuleAtRest                 Rule = "at_rest"
+	RuleAudited                Rule = "audited"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -184,6 +187,9 @@ var Rules = []Rule{
 	RuleIdiomStack,
 	RuleIdiomVersionBehind,
 	RuleIdiomContract,
+	RuleSensitivityExposed,
+	RuleAtRest,
+	RuleAudited,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

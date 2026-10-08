@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: "an audited entity with soft deletion that declares neither the audit fields nor deleted, an encrypted key looked up by hash, a credential that is writeOnly, a personal field shown only behind a permission, and a requirement with a harm that the list and the read satisfy"
+when: "validate is run"
+then: "it reports no error and warns that no test covers the derived cases deleted Member not listed and deleted Member read, among the others, and exits 0"
+verifies: [SA-33]

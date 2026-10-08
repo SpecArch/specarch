@@ -8,8 +8,15 @@ entities:
         type: string
         pattern: "^[0-9]{8}$"
         description: Printed on the card; assigned when the member joins.
-      fullName: { type: string, minLength: 1, maxLength: 200 }
-      email: { type: string, format: email, maxLength: 320 }
+      fullName: { type: string, minLength: 1, maxLength: 200, sensitivity: personal }
+      email:
+        type: string
+        format: email
+        maxLength: 320
+        sensitivity: personal
+        atRest: encrypted
+        lookup: hash
+        description: Encrypted at rest, and found by a salted hash of it, since it must stay unique.
       tier: { $ref: "#/enums/MembershipTier" }
       joinedOn: { type: string, format: date, readOnly: true }
       membershipEndsOn:
@@ -27,6 +34,8 @@ entities:
     required: [id, cardNumber, fullName, email, tier, joinedOn, membershipEndsOn, outstandingFees]
     primaryKey: [id]
     validity: { from: joinedOn, until: membershipEndsOn }
+    audited: true
+    deletion: soft
     relations:
       loans: { target: Loan, kind: one-to-many, via: memberId }
     constraints:

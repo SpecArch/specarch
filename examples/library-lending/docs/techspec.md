@@ -176,7 +176,7 @@ A person with a library card.
 | id | uuid | yes | set by the system |   |
 | cardNumber | string | yes | matches `^[0-9]{8}$` | Printed on the card; assigned when the member joins. |
 | fullName | string | yes | at least 1 character, at most 200 characters |   |
-| email | string | yes | at most 320 characters, a valid email |   |
+| email | string | yes | at most 320 characters, a valid email | Encrypted at rest, and found by a salted hash of it, since it must stay unique. |
 | tier | MembershipTier | yes |   |   |
 | joinedOn | date | yes | set by the system |   |
 | membershipEndsOn | date | yes | set by the system | The last day the card is valid; set a year after joining and moved on by each renewal. |
@@ -185,6 +185,10 @@ A person with a library card.
 Primary key: id.
 
 Validity: a record is current from its joinedOn until its membershipEndsOn; outside that it is refused where it is used.
+
+Audited: every record also carries createdAt, createdBy, lastModifiedAt and lastModifiedBy, set by the system and never by a caller (the audit-fields idiom).
+
+Deletion is soft: a deleted record keeps a deleted flag set by the system, is not listed, and reads as not found (the soft-delete idiom).
 
 | Relation | Kind | Target | Via | On delete |
 |---|---|---|---|---|
@@ -551,6 +555,15 @@ Decision: Every decimal field becomes `numeric(precision, scale)` in PostgreSQL 
 Consequences: Sums in SQL and in Go agree to the cent.
 
 ## 8. Cross-cutting concepts
+
+### Sensitive data
+
+The entity fields that are not public, and the ones encrypted at rest. A personal field is masked in logs and shown only to who may see it; a credential is never answered (the pii-in-logs and encrypted-column idioms).
+
+| Field | Sensitivity | At rest |
+|---|---|---|
+| Member.fullName | personal |  |
+| Member.email | personal | encrypted, found by hash |
 
 ### Permissions
 

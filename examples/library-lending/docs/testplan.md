@@ -846,10 +846,12 @@ stateDiagram-v2
 
 ## 4. Derived cases left out
 
-15 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+17 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
+| operation listMembers | deleted Member not listed | golden | occasional case, and operation listMembers satisfies no requirement with a harm |
+| operation getMember | deleted Member read | red | occasional case, and operation getMember satisfies no requirement with a harm |
 | operation returnLoan | guard precondition fails | red | occasional case, and operation returnLoan satisfies no requirement with a harm |
 | operation returnLoan | response 503 | red | occasional case, and operation returnLoan satisfies no requirement with a harm |
 | operation reportLost | guard precondition fails | red | occasional case, and operation reportLost satisfies no requirement with a harm |

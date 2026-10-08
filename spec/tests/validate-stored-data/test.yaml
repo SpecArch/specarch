@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an audited entity with soft deletion that declares createdAt and deleted, an encrypted primary key without lookup hash, a lookup on a field that is not encrypted, an operation whose response carries a credential that is not writeOnly, and a public operation whose response carries a personal field"
+when: "validate is run"
+then: "it reports audited twice, at_rest twice and sensitivity_exposed for the credential, warns sensitivity_exposed for the personal field, and exits 1"
+verifies: [SA-33]

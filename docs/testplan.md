@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.4.0-dev of the specification: 205 design tests, 66 golden and 138 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.4.0-dev of the specification: 207 design tests, 67 golden and 139 red, about 12 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.4.0-dev of the specification: 205 design tests, 66 golden and 138 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 201 |
+| system | 203 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1537,6 +1537,22 @@ Scenario: red; level: system; covers exit 1.
 - When: validate is run
 - Then: it reports state_value and exits 1
 
+#### validate-stored-data
+
+Scenario: red; level: system; covers exit 1; verifies SA-33.
+
+- Given: an audited entity with soft deletion that declares createdAt and deleted, an encrypted primary key without lookup hash, a lookup on a field that is not encrypted, an operation whose response carries a credential that is not writeOnly, and a public operation whose response carries a personal field
+- When: validate is run
+- Then: it reports audited twice, at_rest twice and sensitivity_exposed for the credential, warns sensitivity_exposed for the personal field, and exits 1
+
+#### validate-stored-data-valid
+
+Scenario: golden; level: system; verifies SA-33.
+
+- Given: an audited entity with soft deletion that declares neither the audit fields nor deleted, an encrypted key looked up by hash, a credential that is writeOnly, a personal field shown only behind a permission, and a requirement with a harm that the list and the read satisfy
+- When: validate is run
+- Then: it reports no error and warns that no test covers the derived cases deleted Member not listed and deleted Member read, among the others, and exits 0
+
 #### validate-suite
 
 Scenario: red; level: system; covers exit 1.
@@ -1701,7 +1717,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-75 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+79 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1721,6 +1737,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-21 | acceptance 4 | golden | SA-21 names no harm |
 | requirement SA-22 | acceptance 1 | golden | SA-22 names no harm |
 | requirement SA-22 | acceptance 2 | golden | SA-22 names no harm |
+| requirement SA-33 | acceptance 1 | golden | SA-33 names no harm |
+| requirement SA-33 | acceptance 2 | golden | SA-33 names no harm |
+| requirement SA-33 | acceptance 3 | golden | SA-33 names no harm |
+| requirement SA-33 | acceptance 4 | golden | SA-33 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

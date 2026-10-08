@@ -89,6 +89,9 @@ enums:
       - idiom_stack
       - idiom_version_behind
       - idiom_contract
+      - sensitivity_exposed
+      - at_rest
+      - audited
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: the file is not well-formed YAML
@@ -174,4 +177,7 @@ enums:
       idiom_stack: "an override renders a stack that is not the implementation file's: its language, the dialect of one of its targets, or `any`"
       idiom_version_behind: "an override was copied from an older version of the shipped idiom and does not say it stays behind on purpose (a warning)"
       idiom_contract: "an override changes a shipped contract statement, or a field has no row in a type rendering for a stack of the implementation file"
+      sensitivity_exposed: "a credential field that is not writeOnly can appear in a response; a personal field can appear in the response of a public operation (a warning)"
+      at_rest: "lookup without atRest encrypted, or an encrypted field that is a key or unique without lookup hash"
+      audited: "an audited entity declares a field the system sets (createdAt, createdBy, lastModifiedAt, lastModifiedBy), or one with soft deletion declares deleted"
     satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29]

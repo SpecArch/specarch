@@ -363,31 +363,36 @@ with a validator rule or a generator that reads it.
    never writes a credential at all. The classification is design: a privacy
    requirement with `harm: [privacy]` has to name the fields it protects,
    and a tester needs to know which responses are masked for whom. The rule
-   is an idiom. Proposed: `sensitivity` on a field, one of `public`,
+   is an idiom. Built: `sensitivity` on a field, one of `public`,
    `internal`, `personal`, `credential`; the validator refuses a `credential`
-   field in any response body and warns for a `personal` field in an
-   operation whose permission is `public` (`sensitivity_exposed`); the
-   techspec lists the personal fields in chapter 8. The masking rule per
+   field a response can carry unless it is `writeOnly`, and warns for a
+   `personal` field in the response of an operation whose permission is
+   `public` (`sensitivity_exposed`); the techspec lists the fields that are
+   not public in chapter 8. The masking rule per
    sensitivity, and the role that sees the clear value, is the `pii-in-logs`
    idiom.
 2. **Encryption at rest.** dxlib encrypts a column in the engine with a
    session key from secure memory and keeps a salted hash beside it so the
    value can still be looked up. Which fields are encrypted is a compliance
    fact, so it is design; the engine function, the key source and the hash
-   are an idiom. Proposed: `atRest: encrypted` on a field, with `lookup:
-   hash` when it must stay searchable. The `sql` target renders through the
-   `encrypted-column` idiom or fails for a dialect the idiom does not cover.
+   are an idiom. Built: `atRest: encrypted` on a field, with `lookup:
+   hash` when it must stay a key, unique or searchable by equality, which
+   the validator requires (`at_rest`). The `sql` target will render through
+   the `encrypted-column` idiom or fail for a dialect the idiom does not
+   cover.
 3. **Audit fields and soft delete.** Every dxlib table of the audited kind
    carries `is_deleted`, `created_at`, `created_by_user_id`,
    `created_by_user_nameid`, `last_modified_at` and the two last-modified
    fields, set by the library and never by the caller, so a client cannot
    forge a timestamp or undelete a row by passing a field. A client needs
    to know that a delete is reversible and that rows carry an author; the
-   column names are an idiom. Proposed: `audited: true` and `deletion:
-   soft` on an entity. The validator derives the `created` and
-   `lastModified` read-only fields and refuses a body that writes them; the
-   test derivation adds `deleted row not listed` and `deleted row read by
-   id` cases; the `audit-fields` and `soft-delete` idioms give the columns.
+   column names are an idiom. Built: `audited: true` and `deletion:
+   soft` on an entity. The entity does not declare `createdAt`,
+   `createdBy`, `lastModifiedAt`, `lastModifiedBy` or `deleted`, since the
+   keyword says them, so no request body can write them (`audited`); the
+   test derivation adds `deleted <Entity> not listed` and `deleted <Entity>
+   read`; the `audit-fields` and `soft-delete` idioms will give the
+   columns.
 4. **List operations.** dxlib's list endpoint is one shape everywhere:
    `search_text` over the table's search fields, `filter_key_values` over
    its filterable fields with the operators equal, in, greater, less,

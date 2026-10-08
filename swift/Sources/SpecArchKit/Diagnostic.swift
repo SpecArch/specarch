@@ -87,6 +87,9 @@ public enum Rule: String, CaseIterable, Sendable {
     case idiomStack = "idiom_stack"
     case idiomVersionBehind = "idiom_version_behind"
     case idiomContract = "idiom_contract"
+    case sensitivityExposed = "sensitivity_exposed"
+    case atRest = "at_rest"
+    case audited = "audited"
 }
 
 /// Whether a diagnostic makes the file invalid.

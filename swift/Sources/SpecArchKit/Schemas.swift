@@ -1151,6 +1151,30 @@ let designSchemaJSON = #"""
             "frequent",
             "rare"
           ]
+        },
+        "sensitivity": {
+          "description": "SpecArch keyword. How sensitive the value is: public; internal, for staff only; personal, data about a person, masked in logs and shown only to who may see it; credential, a secret such as a password or a token, which no response carries unless the field is writeOnly. The masking per sensitivity is the pii-in-logs idiom.",
+          "type": "string",
+          "enum": [
+            "public",
+            "internal",
+            "personal",
+            "credential"
+          ]
+        },
+        "atRest": {
+          "description": "SpecArch keyword. encrypted: the value is stored encrypted, so it cannot be searched, sorted or compared in storage unless lookup gives a way. The engine function and the key are the encrypted-column idiom.",
+          "type": "string",
+          "enum": [
+            "encrypted"
+          ]
+        },
+        "lookup": {
+          "description": "SpecArch keyword. With atRest encrypted: hash, a salted hash kept beside the value, so the field can be a key, unique or filtered by equality.",
+          "type": "string",
+          "enum": [
+            "hash"
+          ]
         }
       },
       "oneOf": [
@@ -1391,6 +1415,17 @@ let designSchemaJSON = #"""
         },
         "validity": {
           "$ref": "#/$defs/validity"
+        },
+        "audited": {
+          "description": "SpecArch keyword. true: every record carries who created and last changed it and when, set by the system and never by a caller: createdAt, createdBy, lastModifiedAt and lastModifiedBy, which the entity does not declare itself. The columns are the audit-fields idiom.",
+          "const": true
+        },
+        "deletion": {
+          "description": "SpecArch keyword. soft: a delete marks the record deleted and keeps it; a deleted record is not listed and reads as not found. The flag, deleted, is not declared by the entity. The column is the soft-delete idiom.",
+          "type": "string",
+          "enum": [
+            "soft"
+          ]
         },
         "satisfies": {
           "$ref": "#/$defs/satisfies"

@@ -289,6 +289,12 @@ func buildingBlocks(d *doc, root *yaml.Node) {
 				d.para(fmt.Sprintf("Validity: a record is current until its %s; after that it is refused where it is used.", str(v, "until")))
 			}
 		}
+		if str(e.Value, "audited") == "true" {
+			d.para("Audited: every record also carries createdAt, createdBy, lastModifiedAt and lastModifiedBy, set by the system and never by a caller (the audit-fields idiom).")
+		}
+		if str(e.Value, "deletion") == "soft" {
+			d.para("Deletion is soft: a deleted record keeps a deleted flag set by the system, is not listed, and reads as not found (the soft-delete idiom).")
+		}
 		if rels := pairs(e.Value, "relations"); len(rels) > 0 {
 			d.line("| Relation | Kind | Target | Via | On delete |")
 			d.line("|---|---|---|---|---|")
@@ -448,10 +454,21 @@ func crossCutting(d *doc, root *yaml.Node) {
 	pages := pairs(root, "pages")
 	algs := pairs(root, "algorithms")
 	session := get(root, "session")
-	if perms == "" && session == nil && len(pages)+len(algs) == 0 {
+	sensitive := sensitiveFields(root)
+	if perms == "" && session == nil && len(pages)+len(algs)+len(sensitive) == 0 {
 		return
 	}
 	d.heading(2, "8. Cross-cutting concepts")
+	if len(sensitive) > 0 {
+		d.heading(3, "Sensitive data")
+		d.para("The entity fields that are not public, and the ones encrypted at rest. A personal field is masked in logs and shown only to who may see it; a credential is never answered (the pii-in-logs and encrypted-column idioms).")
+		d.line("| Field | Sensitivity | At rest |")
+		d.line("|---|---|---|")
+		for _, row := range sensitive {
+			d.line("| %s | %s | %s |", row[0], row[1], row[2])
+		}
+		d.blank()
+	}
 	if perms != "" {
 		d.heading(3, "Permissions")
 		d.para("Access is fail-closed: every operation, command and page names the one permission it needs, and only the roles below grant one.")
@@ -722,4 +739,28 @@ func traceLinks(root *yaml.Node, impls []Implementation) (satisfied, verified ma
 		walk(i.Node, "implementation "+str(get(i.Node, "info"), "title"))
 	}
 	return satisfied, verified
+}
+
+// sensitiveFields lists every entity field with a sensitivity other than
+// public, or encrypted at rest: its name, its sensitivity and how it is
+// stored.
+func sensitiveFields(root *yaml.Node) [][3]string {
+	var out [][3]string
+	for _, e := range pairs(root, "entities") {
+		for _, f := range pairs(e.Value, "properties") {
+			sens := str(f.Value, "sensitivity")
+			at := str(f.Value, "atRest")
+			if (sens == "" || sens == "public") && at == "" {
+				continue
+			}
+			if at != "" && str(f.Value, "lookup") != "" {
+				at += ", found by " + str(f.Value, "lookup")
+			}
+			if sens == "" {
+				sens = "not stated"
+			}
+			out = append(out, [3]string{e.Key.Value + "." + f.Key.Value, sens, at})
+		}
+	}
+	return out
 }

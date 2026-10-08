@@ -185,6 +185,7 @@ extension Checker {
         checkRequirementsStage(d)
         checkEnums(d)
         checkEntities(d)
+        checkLookups(d)
         checkOperations(d)
         checkCommands(d)
         checkDependencies(d)
@@ -398,6 +399,7 @@ extension Checker {
             }
             checkStates(d, name, e, fields)
             checkValidity(name, e, fields)
+            checkStored(name, e, fields)
         }
     }
 
@@ -483,6 +485,7 @@ extension Checker {
             checkPathParameters(o)
             checkCalls(d, o)
             checkIdempotencyKey(o)
+            checkExposed(d, o)
             checkGuard(d, o.node.child("guard"), o.pointer("guard"))
         }
     }

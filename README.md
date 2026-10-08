@@ -135,6 +135,7 @@ a defect in the roadmap, not an accepted state.
 | `docs/test-generation.md` | tests from the specification: the golden paths, which red paths are written and why, structured test data, the derive verb and the tests target, as designed |
 | `docs/dxlib-lessons.md` | what SpecArch takes from dxlib, the owner's Go library: one type rendered to many targets, the design keywords it proves are needed, a Go implementation on dxlib, and what is left behind |
 | `docs/idioms.md` | idioms: how each recurring implementation concern is done the same way everywhere, shipped with SpecArch and overridable per project |
+| `docs/ui-design.md` | what an analyst writes about a user interface: page states, events and screen flows, sections, compact screens, accessibility to WCAG 2.2 and a theme of design tokens, and the first UI generator |
 | `docs/authoring-layer-evaluation.md` | TypeSpec, CUE and Pkl as an optional authoring layer |
 | `docs/generators.md` | the rules every document and code target follows, and the plug-in protocol |
 | `docs/sync-gates.md` | the CI checks that keep a spec and its code equal |

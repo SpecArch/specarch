@@ -93,6 +93,9 @@ paths:
               schema: { $ref: "#/components/schemas/Loan" }
         "409":
           description: The loan was renewed already, or is past its due date.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RenewalRefusal" }
 components:
   securitySchemes:
     deskStaff:
@@ -115,3 +118,10 @@ components:
         dueOn: { type: string, format: date }
         returnedOn: { type: string, format: date, nullable: true }
       required: [id, cardNumber, barcode, loanedOn, dueOn]
+    RenewalRefusal:
+      type: object
+      description: Why a loan cannot be renewed, answered to the desk and never kept.
+      properties:
+        reason: { type: string, enum: [renewed_already, past_due] }
+        dueOn: { type: string, format: date }
+      required: [reason, dueOn]

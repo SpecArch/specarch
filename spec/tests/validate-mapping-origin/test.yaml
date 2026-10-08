@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification built from a manual and from code, whose implementation file maps one entity stated without a citation and one inferred without a reason"
+when: "validate is run"
+then: "it reports origin_citation and origin_reason on the two mappings, and exits 1"
+verifies: [SA-30]

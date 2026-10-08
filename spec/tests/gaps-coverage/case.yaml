@@ -1,0 +1,49 @@
+arguments: [gaps, project]
+exitStatus: 0
+standardOutput: |+
+  # Case: open questions
+
+  Version 1.0.0 of the specification has no open question: nothing it says waits on a decision or on material from a stakeholder.
+
+  Elements by origin: 5 stated, 0 inferred, 0 decided, 0 without origin.
+
+  ## 1. Coverage
+
+  What each source's sections produced: the elements that cite a clause, or the clauses under it. A clause that produced nothing is either not read yet or holds nothing the specification needs; say which by citing it from an element or a question.
+
+  ### The desk manual (manual)
+
+  1 clause of 4 produced nothing.
+
+  | Clause | Title | Produced |
+  |---|---|---|
+  | 1 | Members | #/stakeholders/owner |
+  | 2 | Loans | #/requirements/CASE-2 |
+  | 2.1 | The loan limit | #/requirements/CASE-1 |
+  | 3 | Opening hours | nothing |
+
+  Cited outside the listed clauses: #/requirements/CASE-3 (4.2). Add the clause to the source's clauses, or correct the citation.
+
+  ### The service (service)
+
+  1 clause of 2 produced nothing.
+
+  | Clause | Title | Produced |
+  |---|---|---|
+  | model.go | The records | #/entities/Loan, #/requirements/CASE-1, mapping of #/entities/Loan |
+  | seed.sql | The roles | nothing |
+
+  ## 2. Outputs
+
+  What can be made from the specification now. A document is a draft while a must or should question blocks what it reads; code generation waits for those questions and for the approval.
+
+  | Output | State | Waits on |
+  |---|---|---|
+  | techspec document | ready | |
+  | requirements document | ready | |
+  | testplan document | ready | |
+  | traceability document | ready | |
+  | deployment document | ready | |
+  | commissioning document | ready | |
+  | code generation | waits | not approved: there is no records/approvals/1.0.0.yaml beside the specification |
+

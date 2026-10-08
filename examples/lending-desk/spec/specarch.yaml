@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.2.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+
+info:
+  title: Lending Desk
+  version: 0.1.0
+  tracksOrigin: true
+  description: |
+    The as-built specification of a small lending desk, written from its
+    desk manual and its code by the procedure in docs/from-sources.md. Every
+    element says how it is known and cites the manual section or the code
+    file and line it came from. Where the two disagree, or a source is
+    silent, the specification asks instead of choosing. It is an example,
+    not a real library's system.
+
+stages: [requirements, design, implementation]
+
+sources:
+  desk-manual:
+    kind: document
+    title: Lending desk manual
+    edition: "2025"
+    author: The desk team
+    url: ../sources/manual.md
+    clauses:
+      - { clause: "1", title: Purpose }
+      - { clause: "2.1", title: Who may borrow }
+      - { clause: "2.2", title: Registering members }
+      - { clause: "3.1", title: Lending a book }
+      - { clause: "3.2", title: The five-book limit }
+      - { clause: "3.3", title: The loan period }
+      - { clause: "4.1", title: Renewals }
+      - { clause: "5.1", title: Returns }
+      - { clause: "6", title: Opening hours }
+  desk-code:
+    kind: code
+    title: The lending desk service
+    edition: the copy beside this example
+    author: The desk team
+    url: ../sources/code
+    clauses:
+      - { clause: lending/model.go, title: The records and the lending limits }
+      - { clause: lending/routes.go, title: The served routes and their handlers }
+      - { clause: lending/roles.go, title: The seed of the roles table }
+      - { clause: migrations/001_init.sql, title: The tables }
+
+questions:
+  Q-5:
+    question: Which cases must the service be tested on, and with what data? Twenty-two cases follow from the design (run specarch validate to list them; specarch derive writes them as drafts).
+    kind: material
+    priority: should
+    blocks: [tests]
+    decidedBy: desk-manager
+    why: The code has no tests to read cases from, and the manual describes no checks.

@@ -1,0 +1,57 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0, tracksOrigin: true }
+stages: [implementation]
+sources:
+  manual:
+    kind: document
+    title: The desk manual
+    edition: "2025"
+    clauses:
+      - { clause: "1", title: Members }
+      - { clause: "2", title: Loans }
+      - { clause: "2.1", title: The loan limit }
+      - { clause: "3", title: Opening hours }
+  service:
+    kind: code
+    title: The service
+    edition: 1a2b3c4
+    clauses:
+      - { clause: model.go, title: The records }
+      - { clause: seed.sql, title: The roles }
+stakeholders:
+  owner: { description: The product owner., origin: stated, cites: [{ source: manual, clause: "1", says: "The owner decides." }] }
+requirements:
+  CASE-1:
+    statement: A member shall have at most five books on loan.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A sixth loan is refused.]
+    origin: stated
+    cites:
+      - { source: manual, clause: "2.1", says: "Five books at a time." }
+      - { source: service, clause: "model.go:4", says: "MaxLoans is 5." }
+  CASE-2:
+    statement: A loan shall end when the book is returned.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A returned loan is closed.]
+    origin: stated
+    cites: [{ source: manual, clause: "2 Returns", says: "A return closes the loan." }]
+  CASE-3:
+    statement: A member shall be told when a loan is overdue.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance: [A notice is sent.]
+    origin: stated
+    cites: [{ source: manual, clause: "4.2", says: "Overdue loans are notified." }]
+entities:
+  Loan:
+    type: object
+    properties: { id: { type: string } }
+    primaryKey: [id]
+    satisfies: [CASE-1, CASE-2, CASE-3]
+    origin: stated
+    cites: [{ source: service, clause: "model.go:9", says: "type Loan." }]

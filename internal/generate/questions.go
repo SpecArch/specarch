@@ -300,6 +300,8 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 		}
 	}
 
+	d.coverage(root, impls)
+
 	d.section("Outputs")
 	d.para("What can be made from the specification now. A document is a draft while a must or should question blocks what it reads; code generation waits for those questions and for the approval.")
 	d.line("| Output | State | Waits on |")

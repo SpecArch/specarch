@@ -1,0 +1,12 @@
+questions:
+  Q-4:
+    question: Renewing a loan is in the manual but not in the service. Build it as the manual describes, or take it out of the manual?
+    kind: decision
+    priority: should
+    blocks: [implementation]
+    decidedBy: desk-manager
+    options: ["Build it", "Take it out of the manual and the specification"]
+    why: Not built yet. The manual describes renewal (clause 4.1); the service serves no renew route and has no handler for one (lending/routes.go:14).
+    cites:
+      - { source: desk-manual, clause: "4.1", says: "A member may renew a loan once." }
+      - { source: desk-code, clause: "lending/routes.go:14", says: "Routes serves no renew route." }

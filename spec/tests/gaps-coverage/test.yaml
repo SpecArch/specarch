@@ -1,0 +1,7 @@
+command: gaps
+level: system
+scenario: golden
+given: "a specification that tracks origin, built from a manual and from code that both list their clauses; one clause of each is cited by nothing, one citation names a clause outside the outline, and the implementation file's mapping cites the code"
+when: "gaps is run"
+then: "it shows, per source, the elements each clause produced, counts the clauses that produced nothing, names the citation outside the outline, and exits 0"
+verifies: [SA-30]

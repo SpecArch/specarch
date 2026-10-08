@@ -1,0 +1,51 @@
+decisions:
+  ADR-022:
+    title: A specification built from documents and code cites both, by section and by file and line
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      An existing system usually has prose documents and code, and the two
+      rarely agree everywhere. An agent writing its specification has to
+      say for every element where it came from, mark what only the code
+      has and what only the documents have, and never choose silently
+      where they disagree. The meta-model had origin and questions, but
+      no kind of source for code, no outline of a source to find what it
+      left unread, and no origin on an implementation file's mappings,
+      where the as-built facts of the code go.
+    decision: |
+      A source may be of kind `code`: the source code of a system, read at
+      one commit, named as its `edition`; a citation of it names a file
+      and line, or a package and function, as its `clause`. A source may
+      list its `clauses`, each with a `title`: the numbered sections of a
+      document, or the files and folders of code. A mapping of an
+      implementation file may carry `why`, `cites`, `origin` and
+      `decidedIn`, as libraries, bindings and targets already do.
+      `specarch gaps` adds a Coverage section: per source with clauses,
+      the elements each clause produced, the clauses that produced
+      nothing, and the citations that fall outside the outline. A
+      citation falls under the longest listed clause it equals or starts
+      with, followed by a dot, a colon, a slash or a space, so that
+      `4.2` falls under `4` and `lending/routes.go:17` under
+      `lending/routes.go` or `lending`.
+    consequences: |
+      The four cases of two sources are said with what exists. Where
+      both agree, one element cites both. Where they disagree, a question
+      cites both and the element waits for it. What only the code has is
+      an element with origin inferred, a why that starts "Undocumented,
+      from code", and a should question for the owner to confirm. What
+      only the documents have is stated from them, and a should question
+      in the implementation stage says it is not built yet.
+      `docs/from-sources.md` is the procedure. A citation outside the
+      outline is a line in gaps and not yet a validator rule; the rule
+      waits until a real project shows whether outlines stay complete.
+    why: |
+      A source of kind `system` is a running system that was observed,
+      which code is not: code is read, at a commit, and its citation is a
+      line that anyone can open. Undocumented and not built are not new
+      origins, because they are not new ways of knowing: the first is a
+      conclusion from the code, which is what inferred means, and the
+      second is a fact the documents state about something the code
+      lacks; both are things the owner must confirm, which is what a
+      should question is. One way to say each thing keeps the agent from
+      choosing between two.
+    satisfies: [SA-30]

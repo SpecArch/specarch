@@ -29,7 +29,9 @@ spec first.
    stakeholder has answered. `specarch gaps` lists what is still open and
    which outputs can already be made; code is generated only once the
    questions are answered and the owner has approved the documents.
-   `docs/refinement.md` is the design of that path.
+   `docs/refinement.md` is the design of that path, and
+   `docs/from-sources.md` the procedure an agent follows when the system
+   has both documents and code.
 
 | Surface | Authoritative source | How to read it |
 |---|---|---|

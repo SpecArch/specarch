@@ -94,7 +94,8 @@ against under `implements`, and holds everything that depends on the stack
 and nothing else: the language and toolchain with versions (`stack`), every
 library with its version and licence (`libraries`), the package layout and
 the design objects each package implements (`layout`), how each design
-object maps onto the stack (`mappings`), the framework per interface kind
+object maps onto the stack (`mappings`, each of which may carry `why`,
+`cites` and `origin` like any element), the framework per interface kind
 (`bindings`), the document and code targets with their folders and settings
 (`targets`), build, test and CI commands (`tasks`), the test suites with
 their levels (`testing`), real servers, hosts, ports and the values of
@@ -188,10 +189,18 @@ elements by ID only, so it carries none.
 
 Sources are declared once under `sources` in the root file, keyed by
 kebab-case name, with their `kind` (standard, regulation, document,
-interview, system, or requirement-set, change-set or defect-set for an
-external tracker, each with its `prefix`), `title`, `edition`, `author`,
+interview, system, code, or requirement-set, change-set or defect-set for
+an external tracker, each with its `prefix`), `title`, `edition`, `author`,
 `date` and `url`. A citation of a source that is not
-declared is refused (`source`). Decisions keep their context, decision and
+declared is refused (`source`). A `system` is a running system that was
+observed; `code` is a system's source code, read at the commit its
+`edition` names, and a citation of it names a file and line, or a package
+and function, as its clause. A source may list its `clauses`, each with a
+`title`: the numbered sections of a document, or the files and folders of
+code. `specarch gaps` then shows which elements each clause produced and
+which clauses produced nothing; a citation falls under the longest listed
+clause it equals or starts with, followed by a dot, a colon, a slash or a
+space. `docs/from-sources.md` is the procedure that uses them. Decisions keep their context, decision and
 consequences: the context is what was true and at stake, `why` the
 reasoning that led from it to the decision. A decision that answers open
 questions names them under `answers` and the stakeholder who decided under

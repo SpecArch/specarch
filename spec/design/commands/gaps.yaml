@@ -9,8 +9,10 @@ commands:
       specification tracks it, the questions grouped by stage in
       life-cycle order and within a stage by priority then ID, each with
       who decides, what it blocks (and for a blocked element, which keys
-      are missing there), its options, its Insight and Notes; then the
-      outputs, one row per document target and per code target the
+      are missing there), its options, its Insight and Notes; then, when
+      a source lists its clauses, the coverage: per such source, the
+      elements each clause produced, how many clauses produced nothing,
+      and the citations outside the listed clauses; then the outputs, one row per document target and per code target the
       implementation files name, each ready, a draft (the questions that
       concern it) or waiting (the questions, and the approval that is
       missing or void).
@@ -30,7 +32,7 @@ commands:
       "0": no must or should question is open
       "1": at least one must or should question is open
       "2": usage error, a path that could not be read, or a specification with errors
-    satisfies: [SA-19]
+    satisfies: [SA-19, SA-30]
     why: |
       The owner and the agent run validate after every edit, so validate
       counts the open questions and lists none; this verb is the list, with

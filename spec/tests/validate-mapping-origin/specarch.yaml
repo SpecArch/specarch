@@ -1,0 +1,32 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0, tracksOrigin: true }
+stages: [implementation]
+sources:
+  manual: { kind: document, title: The desk manual, edition: "2025", clauses: [{ clause: "1", title: Members }] }
+  service: { kind: code, title: The service, edition: 1a2b3c4, clauses: [{ clause: model.go, title: The records }] }
+stakeholders:
+  owner: { description: The product owner., origin: stated, cites: [{ source: manual, clause: "1", says: "The owner decides." }] }
+requirements:
+  CASE-1:
+    statement: One.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [One.]
+    origin: stated
+    cites: [{ source: manual, clause: "1", says: "One." }]
+entities:
+  Loan:
+    type: object
+    properties: { id: { type: string } }
+    primaryKey: [id]
+    satisfies: [CASE-1]
+    origin: stated
+    cites: [{ source: service, clause: "model.go:3", says: "type Loan." }]
+  Member:
+    type: object
+    properties: { id: { type: string } }
+    primaryKey: [id]
+    satisfies: [CASE-1]
+    origin: stated
+    cites: [{ source: service, clause: "model.go:9", says: "type Member." }]

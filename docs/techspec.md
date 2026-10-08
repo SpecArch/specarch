@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.3.0-dev of the specification: 29 requirements, 3 entities, 9 commands, 6 algorithms, 194 tests, 21 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.3.0-dev of the specification: 30 requirements, 3 entities, 9 commands, 6 algorithms, 196 tests, 22 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -551,8 +551,10 @@ the counts by priority, the elements by origin when the
 specification tracks it, the questions grouped by stage in
 life-cycle order and within a stage by priority then ID, each with
 who decides, what it blocks (and for a blocked element, which keys
-are missing there), its options, its Insight and Notes; then the
-outputs, one row per document target and per code target the
+are missing there), its options, its Insight and Notes; then, when
+a source lists its clauses, the coverage: per such source, the
+elements each clause produced, how many clauses produced nothing,
+and the citations outside the listed clauses; then the outputs, one row per document target and per code target the
 implementation files name, each ready, a draft (the questions that
 concern it) or waiting (the questions, and the approval that is
 missing or void).
@@ -1903,6 +1905,47 @@ additions no existing file breaks on.
 
 **Note:** From OWASP Session Management Cheat Sheet: All sessions should implement an idle timeout and an absolute timeout. <https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html>
 
+### ADR-022: A specification built from documents and code cites both, by section and by file and line
+
+Status: accepted, 2026-10-08.
+
+Context: An existing system usually has prose documents and code, and the two
+rarely agree everywhere. An agent writing its specification has to
+say for every element where it came from, mark what only the code
+has and what only the documents have, and never choose silently
+where they disagree. The meta-model had origin and questions, but
+no kind of source for code, no outline of a source to find what it
+left unread, and no origin on an implementation file's mappings,
+where the as-built facts of the code go.
+
+Decision: A source may be of kind `code`: the source code of a system, read at
+one commit, named as its `edition`; a citation of it names a file
+and line, or a package and function, as its `clause`. A source may
+list its `clauses`, each with a `title`: the numbered sections of a
+document, or the files and folders of code. A mapping of an
+implementation file may carry `why`, `cites`, `origin` and
+`decidedIn`, as libraries, bindings and targets already do.
+`specarch gaps` adds a Coverage section: per source with clauses,
+the elements each clause produced, the clauses that produced
+nothing, and the citations that fall outside the outline. A
+citation falls under the longest listed clause it equals or starts
+with, followed by a dot, a colon, a slash or a space, so that
+`4.2` falls under `4` and `lending/routes.go:17` under
+`lending/routes.go` or `lending`.
+
+Consequences: The four cases of two sources are said with what exists. Where
+both agree, one element cites both. Where they disagree, a question
+cites both and the element waits for it. What only the code has is
+an element with origin inferred, a why that starts "Undocumented,
+from code", and a should question for the owner to confirm. What
+only the documents have is stated from them, and a should question
+in the implementation stage says it is not built yet.
+`docs/from-sources.md` is the procedure. A citation outside the
+outline is a line in gaps and not yet a validator rule; the rule
+waits until a real project shows whether outlines stay complete.
+
+**Insight:** A source of kind `system` is a running system that was observed, which code is not: code is read, at a commit, and its citation is a line that anyone can open. Undocumented and not built are not new origins, because they are not new ways of knowing: the first is a conclusion from the code, which is what inferred means, and the second is a fact the documents state about something the code lacks; both are things the owner must confirm, which is what a should question is. One way to say each thing keeps the agent from choosing between two.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -1963,6 +2006,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-exit-1 | command extract | system | red | not applicable |   | Status 1, a surface that cannot be read as the source expects, can only happen once extract is built; this build answers every call with status 2. |
 | extract-not-offered | command extract | system | red | a build that does not offer extract | extract openapi is run on a file | it says extract is not built yet and exits 2 |
 | extract-usage-error | command extract | system | red | no source | extract is run without arguments | it prints how to use it and exits 2 |
+| gaps-coverage | command gaps | system | golden | a specification that tracks origin, built from a manual and from code that both list their clauses; one clause of each is cited by nothing, one citation names a clause outside the outline, and the implementation file's mapping cites the code | gaps is run | it shows, per source, the elements each clause produced, counts the clauses that produced nothing, names the citation outside the outline, and exits 0 |
 | gaps-invalid-spec | command gaps | system | red | a specification with an error | gaps is run | it prints the error and exits 2, since the questions of an invalid specification cannot be trusted |
 | gaps-lists-questions | command gaps | system | red | a specification that tracks origin, with two must questions in two stages, one of them blocking an entity that is only a name, a could question, and an implementation file whose code target echo reads only the requirements | gaps is run | it prints the questions by stage with the missing keys of the blocked entity, the elements by origin, and the outputs with what each waits on, and exits 1 |
 | gaps-none | command gaps | system | golden | a specification without open questions and without an approval | gaps is run | it prints that there is no open question, that every document is ready and that code generation waits on the approval, and exits 0 |
@@ -2033,6 +2077,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-layout-stage-not-listed | command validate | system | red | a design/ folder that stages in specarch.yaml does not list | validate is run | it reports layout at stages and exits 1 |
 | validate-layout-subfolder-section | command validate | system | red | a file under design/entities/ that holds enums | validate is run | it reports layout naming the folder the enums belong in and exits 1 |
 | validate-layout-test-without-file | command validate | system | red | a test folder that holds data but no test.yaml | validate is run | it reports layout at the folder and exits 1 |
+| validate-mapping-origin | command validate | system | red | a specification built from a manual and from code, whose implementation file maps one entity stated without a citation and one inferred without a reason | validate is run | it reports origin_citation and origin_reason on the two mappings, and exits 1 |
 | validate-monitor-environment | command validate | system | red | a monitor whose environment is not one of the specification's | validate is run | it reports environment at the monitor's environment and exits 1 |
 | validate-monitor-not-declared | command validate | system | red | an installation that watches a monitor the specification does not declare | validate is run | it reports monitor with the name it probably meant and exits 1 |
 | validate-monitor-valid | command validate | system | golden | an operation stage with a monitor that verifies the one requirement, and an installation that watches it | validate is run | it prints nothing, since the monitor counts as verifying the requirement, and exits 0 |
@@ -2160,6 +2205,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-18 | Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision. | functional | must | accepted | test | An element with origin stated and no citation, one with origin inferred and no why, and one with origin decided naming no decision or a proposed one, are each reported. When the root file says the specification tracks origin, every element of a section without one is reported as a warning. | NEED-8 |
 | SA-19 | specarch gaps shall list the open questions by stage with what each blocks and who decides, and shall say for every document and code target whether it is ready, a draft or waiting; the same text shall be the document target questions, and every other document shall mark the open questions about its elements. | functional | must | accepted | test | A specification with two must questions in two stages prints them under their stages, lists the missing keys of a blocked element, and exits 1. A specification without open questions prints that it has none and exits 0. A requirements document whose requirement a question blocks starts with a Draft notice and shows the question under the requirement. | NEED-8, NEED-3 |
 | SA-20 | specarch generate shall refuse to run a target while a must or should question blocks a section it reads, and shall refuse without a record that a stakeholder read the current documents and approved the specification's files as they are, unless --unapproved is given; specarch approve shall write that record only when the documents on disk are current. | functional | must | accepted | test | generate on a specification with an approval record whose digest matches writes its files; after one byte of one file changes it refuses, and runs with --unapproved. approve refuses while a configured document differs from what the specification generates, and writes records/approvals/<version>.yaml once the documents are current. | NEED-8 |
+| SA-30 | A specification built from existing documents and existing code shall cite each element to the document section or the code file and line it came from, mappings of an implementation file included, and specarch gaps shall show for every source that lists its outline which elements each section or file produced and which produced nothing. | functional | must | accepted | test | A mapping stated without a citation is reported as origin_citation, and one inferred without a reason as origin_reason, in both builds. gaps on a specification whose manual and code list their clauses prints, per source, the elements under each clause, the count of clauses that produced nothing, and every citation that names a clause outside the outline. | NEED-8 |
 | SA-1 | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. | functional | must | accepted | test | A file that breaks the schema is reported with rule schema, its file, line and YAML path. A file that passes the schema and every other rule produces no output and status 0. | NEED-1 |
 | SA-2 | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. | functional | must | accepted | test | A misspelt relation target, enum, operation, page, algorithm, decision, requirement, need, stakeholder, source or environment is reported with its own rule, naming the file and line of the reference. A name defined in two files of the specification is reported with both files. | NEED-1, NEED-4 |
 | SA-3 | Every check constraint and formula shall parse and type-check in the fixed expression language. | functional | must | accepted | test | An expression outside the subset is refused with a message naming the construct. An expression that mixes types without a written conversion is refused with the conversion to write. | NEED-1 |
@@ -2223,6 +2269,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Note on SA-20:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3.3.6: Requirements validation is subject to approval by the project authority and the key stakeholders. <https://www.iso.org/standard/72089.html>
 
+**Insight on SA-30:** The owner of an existing system reads a partial specification to find out what the documents and the code really say and where they part; a section of either that produced nothing is the first thing to look at, and it cannot be seen without the outline.
+
 **Insight on SA-1:** The schema is the one definition of a file's shape; checking it first means every later rule can assume the shape.
 
 **Note on SA-6:** From The go command, Go documentation, 1.26: The Go tools print one problem per line as file:line, which editors and CI already parse. <https://go.dev/doc/>
@@ -2262,6 +2310,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-27 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
 | SA-28 | commands derive | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-root-tests; tests derive-skips-blocked; tests derive-usage-error; tests derive-writes-drafts |
 | SA-29 | enums Rule; commands validate; decisions ADR-021 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
+| SA-30 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests validate-mapping-origin |
 
 ## Sources
 

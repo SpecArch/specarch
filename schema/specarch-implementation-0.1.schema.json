@@ -362,6 +362,18 @@
         "settings": {
           "description": "Generator- or framework-specific settings for this object, such as code-generator extensions.",
           "type": "object"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [

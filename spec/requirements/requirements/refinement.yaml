@@ -54,3 +54,14 @@ requirements:
       - source: iso-29148
         clause: "6.3.3.6"
         says: "Requirements validation is subject to approval by the project authority and the key stakeholders."
+  SA-30:
+    statement: A specification built from existing documents and existing code shall cite each element to the document section or the code file and line it came from, mappings of an implementation file included, and specarch gaps shall show for every source that lists its outline which elements each section or file produced and which produced nothing.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A mapping stated without a citation is reported as origin_citation, and one inferred without a reason as origin_reason, in both builds.
+      - gaps on a specification whose manual and code list their clauses prints, per source, the elements under each clause, the count of clauses that produced nothing, and every citation that names a clause outside the outline.
+    verification: test
+    needs: [NEED-8]
+    why: The owner of an existing system reads a partial specification to find out what the documents and the code really say and where they part; a section of either that produced nothing is the first thing to look at, and it cannot be seen without the outline.

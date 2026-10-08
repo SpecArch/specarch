@@ -137,8 +137,10 @@ a defect in the roadmap, not an accepted state.
 | `docs/generators.md` | the rules every document and code target follows, and the plug-in protocol |
 | `docs/sync-gates.md` | the CI checks that keep a spec and its code equal |
 | `docs/extraction.md` | how an existing system gets its as-built spec, and what goes wrong |
+| `docs/from-sources.md` | the procedure an agent follows to write a specification from existing documents and code, with how to install and pin `specarch` |
 | `docs/roadmap.md` | document targets, code targets, sync gates, first real projects, the next meta-model |
 | `examples/library-lending/` | a small complete example: a specification with every stage in `spec/`, its document in `docs/` |
+| `examples/lending-desk/` | a partial specification written from a desk manual and a small Go service that disagree, by `docs/from-sources.md` |
 
 ## Installing and running
 

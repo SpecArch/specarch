@@ -485,7 +485,7 @@ let designSchemaJSON = #"""
       "type": "object",
       "properties": {
         "kind": {
-          "description": "What the source is: a published standard; a law or regulation; a document (a book, a manual, a report, an internal document); an interview with a stakeholder; an existing system that was observed; or an external tracker that links point into: a requirement set for requirement links, a change set for the change requests and a defect set for the defects that records name.",
+          "description": "What the source is: a published standard; a law or regulation; a document (a book, a manual, a report, an internal document); an interview with a stakeholder; an existing system that was observed running; the source code of an existing system, read at one commit (the edition), whose citations name a file and line or a package and function as the clause; or an external tracker that links point into: a requirement set for requirement links, a change set for the change requests and a defect set for the defects that records name.",
           "type": "string",
           "enum": [
             "standard",
@@ -493,6 +493,7 @@ let designSchemaJSON = #"""
             "document",
             "interview",
             "system",
+            "code",
             "requirement-set",
             "change-set",
             "defect-set"
@@ -527,6 +528,31 @@ let designSchemaJSON = #"""
           "description": "For kind requirement-set, change-set or defect-set: the prefix of the IDs in that set, such as JIRA, so that a link JIRA-12 resolves to it. One tracker that holds several kinds is declared once per kind, and the prefixes may be the same.",
           "type": "string",
           "pattern": "^[A-Z][A-Z0-9]{1,15}$"
+        },
+        "clauses": {
+          "description": "SpecArch keyword. The outline of a document or of code: every section a document numbers or heads, or every package, folder or file of code, each once, so that specarch gaps can show which of them the specification cites and which produced nothing. A citation's clause falls under the longest listed clause it equals or starts with, followed by a dot, a colon, a slash or a space.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "clause": {
+                "description": "The clause as citations name it: a section number or heading, or a path in the code.",
+                "type": "string",
+                "minLength": 1
+              },
+              "title": {
+                "description": "The heading of the section, or what the code there does.",
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "clause",
+              "title"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
         },
         "description": {
           "$ref": "#/$defs/markdown"
@@ -3990,6 +4016,18 @@ let implementationSchemaJSON = #"""
         "settings": {
           "description": "Generator- or framework-specific settings for this object, such as code-generator extensions.",
           "type": "object"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
         }
       },
       "required": [

@@ -343,13 +343,13 @@ separate comparison format:
 | added or corrected | elements with `origin: decided`: added when the decision's context says the source was silent, corrected when it says the source was wrong; the decision's `why` is the reason |
 | dropped | clauses of the old document that no element cites |
 
-The fourth bucket needs one thing the sources do not have yet: the outline of
-the old document, so that an uncited clause can be found. A source of kind
-`document` will be able to list its `clauses`, each a number and a title, and
-the comparison will name the ones nothing cites. That field, and the
-document target `comparison` that writes the four buckets, are follow-up
-items; the first three buckets need nothing beyond `origin`, `cites` and the
-decisions.
+The fourth bucket needs the outline of the old document, so that an
+uncited clause can be found. A source lists it as its `clauses`, each a
+number and a title, and `specarch gaps` already shows, per source, the
+elements each clause produced and the clauses that produced nothing
+(`docs/from-sources.md`). The document target `comparison` that writes the
+four buckets side by side is a follow-up item; the first three buckets need
+nothing beyond `origin`, `cites` and the decisions.
 
 ## Stack-neutral and stack-specific
 
@@ -410,8 +410,9 @@ For the dispatcher to queue, in this order:
 2. `specarch gaps --json`, and the dispatcher turning its questions into
    questions to the people who decide, with options, and feeding the
    answers back.
-3. `clauses` on a source of kind `document`, and the document target
-   `comparison` with the four buckets above.
+3. The document target `comparison` with the four buckets above, and a
+   validator rule for a citation that names a clause its source does not
+   list.
 4. The approval record in the record schema of `docs/maintenance.md`, when
    that schema is built (its item 2), with the rule that an approval's
    version is the specification's.

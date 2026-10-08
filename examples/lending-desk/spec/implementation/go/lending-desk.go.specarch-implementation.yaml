@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.2.0/schema/specarch-implementation-0.1.schema.json
+specarchImplementation: "0.1"
+
+info:
+  title: Lending Desk in Go, as built
+  version: 0.1.0
+  description: |
+    How the service beside this specification builds it, read from its code.
+    Every mapping cites the file and line it was read from.
+
+implements:
+  file: ../../specarch.yaml
+  version: 0.1.0
+
+stack:
+  language: { name: Go, version: "1.26" }
+
+mappings:
+  "#/entities/Member":
+    target: table members, type lending.Member
+    origin: stated
+    cites:
+      - { source: desk-code, clause: "migrations/001_init.sql:1", says: "CREATE TABLE members." }
+      - { source: desk-code, clause: "lending/model.go:14", says: "type Member." }
+  "#/entities/Book":
+    target: table books, type lending.Book
+    origin: stated
+    cites:
+      - { source: desk-code, clause: "migrations/001_init.sql:6", says: "CREATE TABLE books." }
+      - { source: desk-code, clause: "lending/model.go:20", says: "type Book." }
+  "#/entities/Loan":
+    target: table loans, type lending.Loan
+    origin: stated
+    cites:
+      - { source: desk-code, clause: "migrations/001_init.sql:11", says: "CREATE TABLE loans." }
+      - { source: desk-code, clause: "lending/model.go:26", says: "type Loan." }
+  "#/roles/desk-staff":
+    target: lending.Roles, the seed of the roles table
+    origin: stated
+    cites:
+      - { source: desk-code, clause: "lending/roles.go:6", says: "The desk-staff row." }
+  "#/paths/~1members/post":
+    target: lending.Server.RegisterMember
+    origin: stated
+    cites:
+      - { source: desk-code, clause: "lending/routes.go:16", says: "The route." }
+  "#/paths/~1loans/post":
+    target: lending.Server.LendBook
+    origin: stated
+    cites:
+      - { source: desk-code, clause: "lending/routes.go:17", says: "The route." }
+  "#/paths/~1loans~1{loanId}~1return/post":
+    target: lending.Server.ReturnBook
+    origin: stated
+    cites:
+      - { source: desk-code, clause: "lending/routes.go:18", says: "The route." }
+  "#/paths/~1members~1{cardNumber}~1loans/get":
+    target: lending.Server.ListMemberLoans
+    origin: stated
+    cites:
+      - { source: desk-code, clause: "lending/routes.go:19", says: "The route." }
+
+targets:
+  techspec:
+    output: ../../../docs
+  requirements:
+    output: ../../../docs
+  traceability:
+    output: ../../../docs
+  questions:
+    output: ../../../docs

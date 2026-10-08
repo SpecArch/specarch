@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.3.0-dev of the specification: 194 design tests, 60 golden and 133 red, about 10 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.3.0-dev of the specification: 196 design tests, 61 golden and 134 red, about 10 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.3.0-dev of the specification: 194 design tests, 60 golden and 133 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 190 |
+| system | 192 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -478,6 +478,14 @@ Scenario: red; level: system; covers usage error, exit 2.
 - Then: it prints how to use it and exits 2
 
 ### Command gaps
+
+#### gaps-coverage
+
+Scenario: golden; level: system; verifies SA-30.
+
+- Given: a specification that tracks origin, built from a manual and from code that both list their clauses; one clause of each is cited by nothing, one citation names a clause outside the outline, and the implementation file's mapping cites the code
+- When: gaps is run
+- Then: it shows, per source, the elements each clause produced, counts the clauses that produced nothing, names the citation outside the outline, and exits 0
 
 #### gaps-invalid-spec
 
@@ -1043,6 +1051,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-11.
 - When: validate is run
 - Then: it reports layout at the folder and exits 1
 
+#### validate-mapping-origin
+
+Scenario: red; level: system; covers exit 1; verifies SA-30.
+
+- Given: a specification built from a manual and from code, whose implementation file maps one entity stated without a citation and one inferred without a reason
+- When: validate is run
+- Then: it reports origin_citation and origin_reason on the two mappings, and exits 1
+
 #### validate-monitor-environment
 
 Scenario: red; level: system; covers exit 1; verifies SA-12.
@@ -1607,7 +1623,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-68 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+70 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1664,6 +1680,8 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-19 | acceptance 3 | golden | SA-19 names no harm |
 | requirement SA-20 | acceptance 1 | golden | SA-20 names no harm |
 | requirement SA-20 | acceptance 2 | golden | SA-20 names no harm |
+| requirement SA-30 | acceptance 1 | golden | SA-30 names no harm |
+| requirement SA-30 | acceptance 2 | golden | SA-30 names no harm |
 | requirement SA-1 | acceptance 1 | golden | SA-1 names no harm |
 | requirement SA-1 | acceptance 2 | golden | SA-1 names no harm |
 | requirement SA-2 | acceptance 1 | golden | SA-2 names no harm |

@@ -645,7 +645,23 @@ func (d *design) pageSubject(p source.Pair) *subject {
 		s.red("not found "+m[1], frequent, "no record has that "+m[1], open+" for that "+m[1], "it says the record was not found")
 	}
 	d.stateCases(s, p.Value, open)
+	childRowCases(s, p.Value)
 	return s
+}
+
+// childRowCases are the cases of a form's child rows: one row past the
+// maximum of each that has one.
+func childRowCases(s *subject, pg *yaml.Node) {
+	if source.Str(source.Child(pg, "kind")) != "form" {
+		return
+	}
+	for _, row := range source.Items(source.Child(pg, "childRows")) {
+		rel, max := source.Str(source.Child(row, "relation")), source.Str(source.Child(row, "maximum"))
+		if max == "" {
+			continue
+		}
+		s.red(rel+" with more than "+max+" rows", occasional, "the form holds "+max+" rows of "+rel, "a row of "+rel+" is added", "it is refused: the form holds at most "+max+" rows of "+rel)
+	}
 }
 
 // stateCases are the cases of a page's states, when it declares them: its

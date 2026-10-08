@@ -126,7 +126,7 @@ enums:
       session: a session's idle or absolute timeout is zero
       guard: a `guard` names an entity that does not exist (its precondition is checked as a check constraint is)
       operation: a `source`, `submit` or operation action names an operationId that does not exist
-      page: "a navigate action names a page that does not exist, compactColumns is on a page that is not a list or names a column the list lacks, or a page gives its fields as neither or both of fields and sections, shows a field in two sections, or is a list with sections"
+      page: "a navigate action names a page that does not exist, compactColumns is on a page that is not a list or names a column the list lacks, or a page gives its fields as neither or both of fields and sections, shows a field in two sections, or is a list with sections, or childRows are on a page that is not a form, name a relation twice, or name one the form's entity lacks or one that is not one-to-many"
       algorithm: an `algorithm` reference names an algorithm that does not exist
       decision: a `supersededBy` names a decision that does not exist, or an implementation decision reuses a design decision's ID
       enum_value: a `valueDescriptions` key is not a value of its enum

@@ -202,6 +202,7 @@ extension Checker {
         checkAccessibility(d)
         checkTheme(d)
         checkSections(d)
+        checkChildRows(d)
         checkDecisions(d)
         checkAccess(d)
         checkExpressions(d)

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: member-loans
+level: system
+scenario: red
+covers: [fails with lending-refused]
+given: a librarian, and a member with outstanding fees
+when: a row is added and the form is submitted
+then: "it shows: This member cannot borrow these copies now: the loan limit is reached, fees are outstanding, or a copy is not available."
+verifies: [LIB-3]

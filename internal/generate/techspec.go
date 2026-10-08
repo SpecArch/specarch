@@ -604,6 +604,7 @@ func crossCutting(d *doc, root *yaml.Node) {
 			if compact := strs(p.Value, "compactColumns"); len(compact) > 0 {
 				text += "; on a compact screen " + strings.Join(compact, ", ")
 			}
+			text += childRowsText(p.Value)
 			d.line("| %s | %s | %s | %s | %s | %s |", p.Key.Value, str(p.Value, "kind"), cell(str(p.Value, "route")), str(p.Value, "entity"), str(p.Value, "permission"), cell(text))
 		}
 		d.blank()
@@ -1121,4 +1122,21 @@ func themeTables(d *doc, root *yaml.Node) {
 		d.line("%s", row)
 	}
 	d.blank()
+}
+
+// childRowsText is what the child rows of a form add to its row of the
+// pages table: each relation's title, fields, maximum and whether the
+// loaded rows are locked.
+func childRowsText(pg *yaml.Node) string {
+	var b strings.Builder
+	for _, row := range items(pg, "childRows") {
+		fmt.Fprintf(&b, "; %s, rows of %s: %s", str(row, "title"), str(row, "relation"), strings.Join(strs(row, "fields"), ", "))
+		if max := str(row, "maximum"); max != "" {
+			b.WriteString(", at most " + max)
+		}
+		if str(row, "lockLoadedRows") == "true" {
+			b.WriteString(", the loaded rows locked")
+		}
+	}
+	return b.String()
 }

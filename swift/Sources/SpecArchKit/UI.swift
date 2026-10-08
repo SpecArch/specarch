@@ -284,6 +284,16 @@ extension Checker {
                     if l.last != name { shownOn[k] = l + [name] }
                 }
             }
+            for row in items(pg.child("childRows")) {
+                let target = d.childRowTarget(pg, row)
+                for f in items(row.child("fields")) {
+                    let k = target + "." + f.value
+                    let l = shownOn[k] ?? []
+                    if target.isEmpty || l.last == name { continue }
+                    if l.isEmpty { order.append(k) }
+                    shownOn[k] = l + [name]
+                }
+            }
             var seen = Set<String>()
             for (i, a) in items(pg.child("actions")).enumerated() {
                 guard let l = a.child("label") else { continue }
@@ -346,5 +356,57 @@ extension Checker {
                 }
             }
         }
+    }
+}
+
+extension Checker {
+    /// Checks the child rows of a form: only a form has them, each names a
+    /// one-to-many relation of the form's entity once, and its fields are
+    /// fields of the entity the relation reaches.
+    func checkChildRows(_ d: Design) {
+        for p in pairs(d.root.child("pages")) {
+            let name = p.key.value, pg = p.value
+            guard let rows = pg.child("childRows") else { continue }
+            let kind = str(pg.child("kind"))
+            if kind != "form" {
+                add(pg.key("childRows"), pointer("pages", name, "childRows"), .page, "\(name) is a \(kind), and childRows are the records of a relation edited under a form; leave them out")
+                continue
+            }
+            let ent = str(pg.child("entity"))
+            guard let e = d.entities[ent] else { continue } // the entity check reports it
+            var relations: [String: YNode] = [:]
+            for r in pairs(e.child("relations")) { relations[r.key.value] = r.value }
+            var seen = Set<String>()
+            for (i, row) in items(rows).enumerated() {
+                let at = ["pages", name, "childRows", "\(i)"]
+                guard let rn = row.child("relation") else { continue } // the schema asks for it
+                let rel = str(rn)
+                if seen.contains(rel) {
+                    add(rn, pointer(at + ["relation"]), .page, "\(name) has child rows of \(rel) already; edit the rows of a relation once")
+                    continue
+                }
+                seen.insert(rel)
+                guard let r = relations[rel] else {
+                    add(rn, pointer(at + ["relation"]), .page, "\(rel) is not a relation of \(ent), the entity of \(name)\(suggest(rel, relations))")
+                    continue
+                }
+                let k = str(r.child("kind"))
+                if k != "one-to-many" {
+                    add(rn, pointer(at + ["relation"]), .page, "\(rel) is a \(k) relation of \(ent), and child rows are the records of a one-to-many relation")
+                    continue
+                }
+                let target = str(r.child("target"))
+                guard let t = d.entities[target] else { continue } // the relation check reports it
+                checkFieldList(row.child("fields"), at + ["fields"], fieldsOf(t), target, "shown in the rows of " + rel)
+            }
+        }
+    }
+}
+
+extension Design {
+    /// The entity the child rows of a form reach through their relation, or
+    /// "" when the relation does not resolve.
+    func childRowTarget(_ pg: YNode, _ row: YNode) -> String {
+        str(entities[str(pg.child("entity"))]?.child("relations")?.child(str(row.child("relation")))?.child("target"))
     }
 }

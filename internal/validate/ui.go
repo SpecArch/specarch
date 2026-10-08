@@ -383,6 +383,19 @@ func (c *checker) checkAccessibility(d *design) {
 				}
 			}
 		}
+		for _, row := range source.Items(source.Child(pg, "childRows")) {
+			target := d.childRowTarget(pg, row)
+			for _, f := range source.Items(source.Child(row, "fields")) {
+				k := target + "." + f.Value
+				if target == "" || shownOn[k] != nil && shownOn[k][len(shownOn[k])-1] == name {
+					continue
+				}
+				if len(shownOn[k]) == 0 {
+					order = append(order, k)
+				}
+				shownOn[k] = append(shownOn[k], name)
+			}
+		}
 		seen := map[string]bool{}
 		for i, a := range source.Items(source.Child(pg, "actions")) {
 			l := source.Child(a, "label")
@@ -455,4 +468,65 @@ func (c *checker) checkSections(d *design) {
 			}
 		}
 	}
+}
+
+// checkChildRows checks the child rows of a form: only a form has them,
+// each names a one-to-many relation of the form's entity once, and its
+// fields are fields of the entity the relation reaches.
+func (c *checker) checkChildRows(d *design) {
+	for _, p := range source.Pairs(source.Child(d.root, "pages")) {
+		name, pg := p.Key.Value, p.Value
+		rows := source.Child(pg, "childRows")
+		if rows == nil {
+			continue
+		}
+		if kind := source.Str(source.Child(pg, "kind")); kind != "form" {
+			c.add(source.Key(pg, "childRows"), source.Pointer("pages", name, "childRows"), RulePage, "%s is a %s, and childRows are the records of a relation edited under a form; leave them out", name, kind)
+			continue
+		}
+		ent := source.Str(source.Child(pg, "entity"))
+		e := d.entities[ent]
+		if e == nil {
+			continue // the entity check reports it
+		}
+		relations := map[string]*yaml.Node{}
+		for _, r := range source.Pairs(source.Child(e, "relations")) {
+			relations[r.Key.Value] = r.Value
+		}
+		seen := map[string]bool{}
+		for i, row := range source.Items(rows) {
+			at := []string{"pages", name, "childRows", fmt.Sprint(i)}
+			rn := source.Child(row, "relation")
+			rel := source.Str(rn)
+			if rn == nil {
+				continue // the schema asks for it
+			}
+			if seen[rel] {
+				c.add(rn, source.Pointer(append(at, "relation")...), RulePage, "%s has child rows of %s already; edit the rows of a relation once", name, rel)
+				continue
+			}
+			seen[rel] = true
+			r := relations[rel]
+			if r == nil {
+				c.add(rn, source.Pointer(append(at, "relation")...), RulePage, "%s is not a relation of %s, the entity of %s%s", rel, ent, name, suggest(rel, relations))
+				continue
+			}
+			if k := source.Str(source.Child(r, "kind")); k != "one-to-many" {
+				c.add(rn, source.Pointer(append(at, "relation")...), RulePage, "%s is a %s relation of %s, and child rows are the records of a one-to-many relation", rel, k, ent)
+				continue
+			}
+			target := source.Str(source.Child(r, "target"))
+			if d.entities[target] == nil {
+				continue // the relation check reports it
+			}
+			c.checkFieldList(source.Child(row, "fields"), append(at, "fields"), fieldsOf(d.entities[target]), target, "shown in the rows of "+rel)
+		}
+	}
+}
+
+// childRowTarget is the entity the child rows of a form reach through
+// their relation, or "" when the relation does not resolve.
+func (d *design) childRowTarget(pg, row *yaml.Node) string {
+	r := source.Child(source.Child(d.entities[source.Str(source.Child(pg, "entity"))], "relations"), source.Str(source.Child(row, "relation")))
+	return source.Str(source.Child(r, "target"))
 }

@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 101 design tests, 31 golden and 69 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 114 design tests, 33 golden and 80 red, about 30 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.1.0 of the specification: 101 design tests, 31 golden and 69 red, abou
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 97 |
+| system | 110 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -351,6 +351,64 @@ Scenario: red; level: acceptance; verifies LIB-7.
 
 **Insight:** The flow's last step calls createLoan, whose refusal lending-refused is the failure a librarian meets most at the desk.
 
+### Operation lendCopies
+
+#### lend-copies
+
+Scenario: golden; level: system; verifies LIB-3.
+
+- Given: an extended-tier member with two open loans and no fees, and two books with a copy available each
+- When: lendCopies is called for both books
+- Then: two open loans are created, each due on the date the member's tier sets
+
+#### lend-copies-bad-loans
+
+Scenario: red; level: system; covers missing loans, loans with fewer than 1 items, loans with more than 6 items.
+
+- Given: a librarian
+- When: lendCopies is called without loans, with no loan, and with seven
+- Then: each is refused as invalid input, and no loan is created
+
+#### lend-copies-bad-member-id
+
+Scenario: red; level: system; covers memberId not a valid uuid.
+
+- Given: a librarian
+- When: lendCopies is called with memberId abc
+- Then: it is refused as invalid input
+
+#### lend-copies-denied
+
+Scenario: red; level: system; covers denied without loans.create.
+
+- Given: a caller holding only the member role
+- When: lendCopies is called
+- Then: it is refused as not allowed
+
+#### lend-copies-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session.
+
+- Given: a librarian whose session expired after half an hour without a request
+- When: lendCopies is called for a member and a book that exist
+- Then: it is refused as not signed in, and nothing changes
+
+#### lend-copies-limit-reached
+
+Scenario: red; level: system; covers response 409; verifies LIB-3.
+
+- Given: a standard-tier member with two open loans
+- When: lendCopies is called for two more books
+- Then: it answers 409 and neither loan is created
+
+#### lend-copies-unknown-member
+
+Scenario: red; level: system; covers not found memberId, response 404.
+
+- Given: a librarian
+- When: lendCopies is called with a memberId no member has
+- Then: it answers 404 and no loan is created
+
 ### Operation listLoans
 
 #### list-loans
@@ -640,6 +698,56 @@ Scenario: golden; level: system.
 - Given: a librarian
 - When: the page member-form is filled in and sent
 - Then: the member is registered
+
+### Page member-loans
+
+#### member-loans-denied
+
+Scenario: red; level: system; covers denied without loans.create.
+
+- Given: a caller holding only the member role
+- When: the page member-loans is opened
+- Then: it is refused as not allowed
+
+#### member-loans-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session.
+
+- Given: a librarian whose session expired after half an hour without a request
+- When: the page member-loans is opened
+- Then: it is refused as not signed in
+
+#### member-loans-not-found
+
+Scenario: red; level: system; covers not found memberId, fails with member-not-found.
+
+- Given: a librarian
+- When: the page member-loans is opened for an id no member has
+- Then: it shows: There is no member with this card.
+
+#### member-loans-refused
+
+Scenario: red; level: system; covers fails with lending-refused; verifies LIB-3.
+
+- Given: a librarian, and a member with outstanding fees
+- When: a row is added and the form is submitted
+- Then: it shows: This member cannot borrow these copies now: the loan limit is reached, fees are outstanding, or a copy is not available.
+
+#### member-loans-shown
+
+Scenario: golden; level: system; verifies LIB-3.
+
+- Given: a librarian, and a member with two open loans
+- When: the page member-loans is opened for that member
+- Then: it shows the two loans, which cannot be changed, and a row to add a copy
+
+#### member-loans-six-rows
+
+Scenario: red; level: system; covers loans with more than 6 rows; verifies LIB-3.
+
+- Given: a librarian, and a member with four loans loaded and two rows added
+- When: a seventh row of loans is added
+- Then: it is refused: the form holds at most 6 rows of loans
 
 ### Page member-view
 

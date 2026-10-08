@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: lendCopies
+level: system
+scenario: golden
+given: "an extended-tier member with two open loans and no fees, and two books with a copy available each"
+when: lendCopies is called for both books
+then: "two open loans are created, each due on the date the member's tier sets"
+verifies: [LIB-3]
+expect: { status: 201 }

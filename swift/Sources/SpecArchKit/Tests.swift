@@ -544,7 +544,19 @@ extension Design {
             s.red("not found " + param, frequent, "no record has that " + param, open + " for that " + param, "it says the record was not found")
         }
         stateCases(s, p.value, open)
+        childRowCases(s, p.value)
         return s
+    }
+
+    /// The cases of a form's child rows: one row past the maximum of each
+    /// that has one.
+    func childRowCases(_ s: Subject, _ pg: YNode) {
+        guard str(pg.child("kind")) == "form" else { return }
+        for row in items(pg.child("childRows")) {
+            let rel = str(row.child("relation")), max = str(row.child("maximum"))
+            if max.isEmpty { continue }
+            s.red(rel + " with more than " + max + " rows", occasional, "the form holds " + max + " rows of " + rel, "a row of " + rel + " is added", "it is refused: the form holds at most " + max + " rows of " + rel)
+        }
     }
 
     /// The cases of a page's states, when it declares them: its empty and

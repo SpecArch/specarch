@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: lendCopies
+level: system
+scenario: red
+covers: [not found memberId, response 404]
+given: a librarian
+when: lendCopies is called with a memberId no member has
+then: it answers 404 and no loan is created
+expect: { status: 404 }

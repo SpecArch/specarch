@@ -74,6 +74,48 @@ paths:
               schema: { $ref: "#/entities/Member" }
         "404": { description: No such member., problem: member-not-found }
 
+  /members/{memberId}/loans:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: lendCopies
+      summary: Lend several copies to a member at once
+      description: |
+        Lends every copy asked for, or none: refused when the loans would take
+        the member past the open loans their tier allows, the member has
+        outstanding fees, or a book has no copy available.
+      permission: loans.create
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                loans:
+                  type: array
+                  minItems: 1
+                  maxItems: 6
+                  items:
+                    type: object
+                    properties:
+                      bookId: { type: string, format: uuid }
+                    required: [bookId]
+              required: [loans]
+      responses:
+        "201":
+          description: The new loans, each with its due date set from the member's tier.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  loans: { type: array, items: { $ref: "#/entities/Loan" } }
+                required: [loans]
+        "404": { description: No such member., problem: member-not-found }
+        "409": { description: "Loan limit reached, fees outstanding, or no copy available.", problem: lending-refused }
+      satisfies: [LIB-3]
+
   /loans:
     get:
       operationId: listLoans

@@ -459,6 +459,7 @@ redefined.
 | `states`, `empty`, `filteredEmpty`, `failed`, `message`, `field` | SpecArch | what a page shows when it is empty or fails |
 | `sections`, `title`, `fields` | SpecArch | a form's or a view's fields in titled groups, in reading order |
 | `compactColumns` | SpecArch, after the compact size class of Apple's Human Interface Guidelines and Material Design 3 | the columns a list keeps on a compact screen |
+| `childRows`, `relation`, `maximum`, `lockLoadedRows` | SpecArch | the records of a one-to-many relation edited as rows under a form |
 | `accessibility`, `standard`, `level` | WCAG 2.2 | the accessibility the user interface conforms to |
 | `theme`, `tokens`, `$type`, `$value`, `$description`, `colorSpace`, `components`, `alpha`, `hex`, `unit` | W3C Design Tokens Community Group, Format Module 2025.10 | the visual design as design tokens |
 | `modes`, `pairs`, `text`, `background`, `use` | SpecArch | the values a mode gives tokens, and the colours shown together, whose contrast is checked |
@@ -797,6 +798,29 @@ A list says which of its columns a compact screen keeps, in order:
 Each must be one of the list's columns, and only a list has them
 (`page`). How small compact is, and how a compact row is laid out, are the
 stack's.
+
+### Child rows
+
+A form edits the records of a one-to-many relation of its entity as rows
+under it, each with a `title`, the `fields` of the relation's target shown
+in a row, the `maximum` number of rows, loaded and new together, and
+`lockLoadedRows: true` when the rows loaded with the record cannot be
+changed or removed, so only new ones change:
+
+    member-loans:
+      kind: form
+      entity: Member
+      childRows:
+        - { relation: loans, title: Loans, fields: [bookId, dueOn], maximum: 6, lockLoadedRows: true }
+
+Each row is validated by the target entity's own schema. Child rows on a
+page that is not a form, a relation named twice, and a relation the
+form's entity lacks or that is not one-to-many are refused (`page`); a
+field the target lacks is refused (`field`). A many-to-one or one-to-one
+relation holds one record, not rows, and the rows of a many-to-many
+relation are records of its join entity. A maximum gives the page the
+derived case `<relation> with more than <maximum> rows`. Whether rows are
+edited inline or in a dialog is the stack's.
 
 ### Accessibility
 

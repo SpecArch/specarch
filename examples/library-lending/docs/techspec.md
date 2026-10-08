@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 7 requirements, 3 entities, 8 HTTP operations, 2 channels, 1 dependency, 5 pages, 1 flow, 1 algorithm, 101 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 7 requirements, 3 entities, 9 HTTP operations, 2 channels, 1 dependency, 6 pages, 1 flow, 1 algorithm, 114 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -54,6 +54,7 @@ The interfaces the system offers, as its clients see them.
 | GET /members | listMembers | List members | members.read |
 | POST /members | createMember | Register a new member | members.write |
 | GET /members/{memberId} | getMember | One member with their loans | members.read |
+| POST /members/{memberId}/loans | lendCopies | Lend several copies to a member at once | loans.create |
 | GET /loans | listLoans | List loans | loans.read |
 | POST /loans | createLoan | Lend a copy to a member | loans.create |
 | POST /loans/{loanId}/return | returnLoan | Record the return of a copy | loans.return |
@@ -282,6 +283,22 @@ sequenceDiagram
   participant S as Library Lending
   C->>S: GET /members/{memberId}
   S-->>C: 200 Member
+```
+
+### lendCopies (POST /members/{memberId}/loans)
+
+Lends every copy asked for, or none: refused when the loans would take
+the member past the open loans their tier allows, the member has
+outstanding fees, or a book has no copy available.
+
+Refuses with 404 member-not-found and 409 lending-refused.
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant S as Library Lending
+  C->>S: POST /members/{memberId}/loans
+  S-->>C: 201 object
 ```
 
 ### listLoans (GET /loans)
@@ -648,6 +665,7 @@ flowchart LR
   loan_form["Lend a copy (form)"]
   loans_list["Loans (list)"]
   member_form["Register member (form)"]
+  member_loans["Lend copies (form)"]
   member_view["Member (view)"]
   members_list["Members (list)"]
   op_createLoan(["createLoan"])
@@ -660,6 +678,9 @@ flowchart LR
   op_createMember(["createMember"])
   member_form -.->|"submit"| op_createMember
   op_createMember -->|"submitted"| member_view
+  op_lendCopies(["lendCopies"])
+  member_loans -.->|"submit"| op_lendCopies
+  op_lendCopies -->|"submitted"| member_view
   member_view -->|"Lend a book"| loan_form
   members_list -->|"select"| member_view
   members_list -->|"New member"| member_form
@@ -679,6 +700,7 @@ The menu, each entry shown to who may open its page:
 | loan-form | form | /loans/new | Loan | loans.create | memberId, bookId |
 | loans-list | list | /loans | Loan | loans.read | memberId, bookId, loanedAt, dueOn, status, lateFee; on a compact screen memberId, dueOn, status |
 | member-form | form | /members/new | Member | members.write | fullName, email, tier |
+| member-loans | form | /members/{memberId}/loans | Member | loans.create | membershipEndsOn, outstandingFees; Loans, rows of loans: bookId, dueOn, at most 6, the loaded rows locked |
 | member-view | view | /members/{memberId} | Member | members.read | Member: cardNumber, fullName, email, tier; Membership: joinedOn, membershipEndsOn, outstandingFees |
 | members-list | list | /members | Member | members.read | cardNumber, fullName, email, tier, outstandingFees |
 
@@ -692,6 +714,8 @@ What each page shows when it is empty or fails; while it loads or submits, the s
 | loans-list | failed: loan-closed | This loan was already closed, so nothing changed. |
 | loans-list | failed: default | The loans cannot be shown or changed right now. Try again in a moment. |
 | member-form | failed: email-taken, beside email | Another member already has this email address. |
+| member-loans | failed: member-not-found | There is no member with this card. |
+| member-loans | failed: lending-refused | This member cannot borrow these copies now: the loan limit is reached, fees are outstanding, or a copy is not available. |
 | member-view | failed: member-not-found | There is no member with this card. |
 | members-list | empty | No members yet. Register the first one. |
 | members-list | filtered empty | No member is in this tier. |
@@ -844,6 +868,13 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | lend-a-copy-at-the-desk |   | acceptance | golden | a librarian at the desk, and a member with no loans and no fees | the librarian selects the member in the members list, chooses Lend a book on their record, and submits the loan form for an available copy | the member's record opens again with the new loan and the message that the copy is lent |
 | lend-a-copy-limit-reached |   | acceptance | red | a librarian at the desk, and a member who has reached the loan limit of their tier | the librarian goes through the flow and submits the loan form | the form stays open and says the loan is refused, and no loan is recorded |
 | lend-bad-ids | operation createLoan | system | red | a librarian | createLoan is called with memberId abc and again with bookId abc | both are refused as invalid input |
+| lend-copies | operation lendCopies | system | golden | an extended-tier member with two open loans and no fees, and two books with a copy available each | lendCopies is called for both books | two open loans are created, each due on the date the member's tier sets |
+| lend-copies-bad-loans | operation lendCopies | system | red | a librarian | lendCopies is called without loans, with no loan, and with seven | each is refused as invalid input, and no loan is created |
+| lend-copies-bad-member-id | operation lendCopies | system | red | a librarian | lendCopies is called with memberId abc | it is refused as invalid input |
+| lend-copies-denied | operation lendCopies | system | red | a caller holding only the member role | lendCopies is called | it is refused as not allowed |
+| lend-copies-denied-with-expired-session | operation lendCopies | system | red | a librarian whose session expired after half an hour without a request | lendCopies is called for a member and a book that exist | it is refused as not signed in, and nothing changes |
+| lend-copies-limit-reached | operation lendCopies | system | red | a standard-tier member with two open loans | lendCopies is called for two more books | it answers 409 and neither loan is created |
+| lend-copies-unknown-member | operation lendCopies | system | red | a librarian | lendCopies is called with a memberId no member has | it answers 404 and no loan is created |
 | lend-denied | operation createLoan | system | red | a caller holding only the member role | createLoan is called | it is refused as not allowed |
 | lend-event-not-delivered | operation createLoan | system | red | the loan.lifecycle channel is unavailable | createLoan is called | no loan is created and the call fails, so a loan never exists without its event |
 | lend-limit-reached | operation createLoan | system | red | a standard-tier member with three open loans | createLoan is called for a fourth book | it answers 409 and no loan is created |
@@ -882,6 +913,12 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | member-form-denied | page member-form | system | red | a caller holding only the member role | the page member-form is opened | it is not shown |
 | member-form-denied-with-expired-session | page member-form | system | red | a librarian whose session expired after half an hour without a request | the page member-form is opened | it is not shown, and the sign-in page is shown instead |
 | member-form-shown | page member-form | system | golden | a librarian | the page member-form is filled in and sent | the member is registered |
+| member-loans-denied | page member-loans | system | red | a caller holding only the member role | the page member-loans is opened | it is refused as not allowed |
+| member-loans-denied-with-expired-session | page member-loans | system | red | a librarian whose session expired after half an hour without a request | the page member-loans is opened | it is refused as not signed in |
+| member-loans-not-found | page member-loans | system | red | a librarian | the page member-loans is opened for an id no member has | it shows: There is no member with this card. |
+| member-loans-refused | page member-loans | system | red | a librarian, and a member with outstanding fees | a row is added and the form is submitted | it shows: This member cannot borrow these copies now: the loan limit is reached, fees are outstanding, or a copy is not available. |
+| member-loans-shown | page member-loans | system | golden | a librarian, and a member with two open loans | the page member-loans is opened for that member | it shows the two loans, which cannot be changed, and a row to add a copy |
+| member-loans-six-rows | page member-loans | system | red | a librarian, and a member with four loans loaded and two rows added | a seventh row of loans is added | it is refused: the form holds at most 6 rows of loans |
 | member-view-denied | page member-view | system | red | a caller holding only the member role | the page member-view is opened | it is not shown |
 | member-view-denied-with-expired-session | page member-view | system | red | a librarian whose session expired after half an hour without a request | the page member-view is opened | it is not shown, and the sign-in page is shown instead |
 | member-view-not-found | page member-view | system | red | a librarian | the page member-view is opened for an id no member has | it says the member was not found |
@@ -1005,7 +1042,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 |---|---|---|---|
 | LIB-1 |   | entities Member constraints member_card_number_unique; entities Member; paths /members post | tests register-member; tests register-member-email-taken; checks lend-and-return; checks migrated-members |
 | LIB-2 |   | entities Book; permissions public; paths /books get | tests browse-catalogue; checks service-answers |
-| LIB-3 | money | entities Loan; paths /loans post; migrations add-membership-tier | tests create-loan-rate-exceeded; tests create-loan-repeated-with-the-same-idempotency-key; tests create-loan-request-larger-than-1024-bytes; tests fees-block-lending; tests lend-a-copy; tests lend-limit-reached; tests lending-limit-accepted; checks lend-and-return |
+| LIB-3 | money | entities Loan; paths /members/{memberId}/loans post; paths /loans post; pages member-loans; migrations add-membership-tier | tests create-loan-rate-exceeded; tests create-loan-repeated-with-the-same-idempotency-key; tests create-loan-request-larger-than-1024-bytes; tests fees-block-lending; tests lend-a-copy; tests lend-copies; tests lend-copies-limit-reached; tests lend-limit-reached; tests lending-limit-accepted; tests member-loans-refused; tests member-loans-shown; tests member-loans-six-rows; checks lend-and-return |
 | LIB-4 |   | entities Loan transitions 1; entities Loan; paths /loans/{loanId}/return post; channels loan.overdue; channels loan.overdue messages LoanOverdue; jobs markOverdue; configuration notificationChannelUrl | tests loan-becomes-overdue; tests mark-overdue-runs-twice; tests mark-overdue-succeeds; monitors overdue-notices-sent |
 | LIB-5 |   | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; configuration dailyRate | tests loan-lent-and-returned; tests return-late; checks lend-and-return |
 | LIB-6 |   | roles member; session | checks member-sees-own-loans |

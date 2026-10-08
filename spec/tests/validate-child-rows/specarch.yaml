@@ -1,0 +1,108 @@
+specarch: "0.1"
+info: { title: Lending desk, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      fullName: { type: string, minLength: 1, maxLength: 200 }
+    required: [id, fullName]
+    primaryKey: [id]
+    relations:
+      loans: { target: Loan, kind: one-to-many, via: memberId }
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      memberId: { type: string, format: uuid }
+      bookId: { type: string, format: uuid }
+      dueOn: { type: string, format: date, readOnly: true }
+    required: [id, memberId, bookId, dueOn]
+    primaryKey: [id]
+    relations:
+      member: { target: Member, kind: many-to-one, via: memberId }
+errors:
+  member-not-found: { status: 404, title: Member not found, condition: no member has that identifier }
+permissions:
+  loans.create: { description: Lend copies. }
+roles:
+  desk: { description: The desk., permissions: [loans.create] }
+paths:
+  /members/{memberId}:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getMember
+      summary: One member with their loans
+      permission: loans.create
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+        "404": { description: No such member., problem: member-not-found }
+pages:
+  lend-copies:
+    kind: form
+    title: Lend copies
+    route: /members/{memberId}/loans
+    entity: Member
+    permission: loans.create
+    source: getMember
+    submit: getMember
+    fields: [fullName]
+    childRows:
+      - { relation: loans, title: Loans, fields: [bookId, dueOn], maximum: 6, lockLoadedRows: true }
+  loan-rows:
+    kind: form
+    title: Loans of a member
+    route: /members/{memberId}/loan-rows
+    entity: Member
+    permission: loans.create
+    source: getMember
+    submit: getMember
+    fields: [fullName]
+    childRows:
+      - { relation: loans, title: Loans, fields: [bookId, fullName] }
+      - { relation: loans, title: More loans, fields: [bookId] }
+      - { relation: lones, title: Loans again, fields: [bookId] }
+  loan-member:
+    kind: form
+    title: Member of a loan
+    route: /loans/{loanId}/member
+    entity: Loan
+    permission: loans.create
+    submit: getMember
+    fields: [bookId]
+    childRows:
+      - { relation: member, title: Member, fields: [fullName] }
+  member-view:
+    kind: view
+    title: Member
+    route: /members/{memberId}
+    entity: Member
+    permission: loans.create
+    source: getMember
+    fields: [fullName]
+    childRows:
+      - { relation: loans, title: Loans, fields: [bookId] }
+tests:
+  lend-copies-loans-over-maximum:
+    page: lend-copies
+    level: system
+    scenario: red
+    covers: [loans with more than 6 rows]
+    given: the form holds 6 rows of loans
+    when: a row of loans is added
+    then: "it is refused: the form holds at most 6 rows of loans"
+  lend-copies-loans-unknown:
+    page: lend-copies
+    level: system
+    scenario: red
+    covers: [loans with more than 7 rows]
+    given: the form holds 7 rows of loans
+    when: a row of loans is added
+    then: it is refused

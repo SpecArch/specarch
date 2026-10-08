@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: member-loans
+level: system
+scenario: red
+covers: [loans with more than 6 rows]
+given: a librarian, and a member with four loans loaded and two rows added
+when: a seventh row of loans is added
+then: "it is refused: the form holds at most 6 rows of loans"
+verifies: [LIB-3]

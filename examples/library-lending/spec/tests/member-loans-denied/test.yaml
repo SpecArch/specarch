@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: member-loans
+level: system
+scenario: red
+covers: [denied without loans.create]
+given: a caller holding only the member role
+when: the page member-loans is opened
+then: it is refused as not allowed

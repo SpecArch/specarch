@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: member-loans
+level: system
+scenario: red
+covers: [not found memberId, fails with member-not-found]
+given: a librarian
+when: the page member-loans is opened for an id no member has
+then: "it shows: There is no member with this card."

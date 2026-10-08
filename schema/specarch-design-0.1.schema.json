@@ -2483,6 +2483,14 @@
           },
           "minItems": 1
         },
+        "childRows": {
+          "description": "For a form: the records of a one-to-many relation of its entity, edited as rows under it, one entry per relation, in the order a person reads them.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/childRows"
+          },
+          "minItems": 1
+        },
         "filters": {
           "description": "For a list: fields the user can filter on.",
           "type": "array",
@@ -2836,6 +2844,49 @@
         }
       },
       "required": [
+        "title",
+        "fields"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "childRows": {
+      "description": "SpecArch keyword. The records of one relation of a form's entity, edited as rows under the form: added, changed and removed with it. Each row is validated by the target entity's own schema.",
+      "type": "object",
+      "properties": {
+        "relation": {
+          "description": "A one-to-many relation of the form's entity; its target is the entity of each row.",
+          "$ref": "#/$defs/memberName"
+        },
+        "title": {
+          "description": "The heading of the rows.",
+          "type": "string",
+          "minLength": 1
+        },
+        "fields": {
+          "description": "The fields of the relation's target shown in each row, in order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "maximum": {
+          "description": "The most rows the form holds, loaded and new together; a row past it is refused.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "lockLoadedRows": {
+          "description": "true: the rows loaded with the record are shown and cannot be changed or removed; only rows added on the form change.",
+          "const": true
+        }
+      },
+      "required": [
+        "relation",
         "title",
         "fields"
       ],

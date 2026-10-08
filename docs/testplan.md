@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 269 design tests, 101 golden and 168 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 270 design tests, 101 golden and 169 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 265 |
+| system | 266 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1030,6 +1030,14 @@ Scenario: golden; level: system.
 - Given: a description that says how the file changed
 - When: validate is run
 - Then: it warns with change_log and exits 0, since the file is still valid
+
+#### validate-child-rows
+
+Scenario: red; level: system; covers exit 1; verifies SA-42.
+
+- Given: a form with child rows of a relation, a maximum and locked loaded rows; child rows with a field the relation's entity lacks, a relation named twice and a relation the entity lacks; child rows of a many-to-one relation; child rows on a view; and a test covering a case past the maximum the form does not have
+- When: validate is run
+- Then: it reports field once, page four times and test_case once, names loans with more than 6 rows among the form's cases, and exits 1
 
 #### validate-cites
 

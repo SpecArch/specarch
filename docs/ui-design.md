@@ -43,7 +43,7 @@ for the web, as ADR-040.
 
 | Keyword | What it says | Checked |
 |---|---|---|
-| `pages` | `kind` (list, form, view), `title`, `route`, `entity`, `permission`, `source` (the operation a list or view reads), `submit` (the operation a form calls), `columns`, `fields`, `filters`, `actions` (each a `label`, `kind` operation or navigate, `target`, `permission`, `confirm`) | targets exist, fields are the entity's, permissions exist and are fail-closed |
+| `pages` | `kind` (list, form, view), `title`, `route`, `entity`, `permission`, `source` (the operation a list or view reads), `submit` (the operation a form calls), `columns`, `fields`, `filters`, `actions` (each a `label`, `kind` operation or navigate, `target`, `permission`, `confirm`), `childRows` (a form's one-to-many relation edited as rows, with its `fields`, `maximum` and `lockLoadedRows`) | targets exist, fields are the entity's, permissions exist and are fail-closed |
 | `menus` | a tree of entries, each a `title` with a `page` or `items` | every page exists; an entry shows to who may open its page |
 | design tests | a page is a test subject, with route parameters and an action as its input | the action and the parameters exist |
 | techspec | a flowchart of pages, their navigate actions and the operations they call, and a table per page | |

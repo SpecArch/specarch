@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: lendCopies
+level: system
+scenario: red
+covers: [response 409]
+given: a standard-tier member with two open loans
+when: lendCopies is called for two more books
+then: it answers 409 and neither loan is created
+verifies: [LIB-3]
+expect: { status: 409 }

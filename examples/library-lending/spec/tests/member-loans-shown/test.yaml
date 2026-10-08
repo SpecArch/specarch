@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: member-loans
+level: system
+scenario: golden
+given: a librarian, and a member with two open loans
+when: the page member-loans is opened for that member
+then: "it shows the two loans, which cannot be changed, and a row to add a copy"
+verifies: [LIB-3]

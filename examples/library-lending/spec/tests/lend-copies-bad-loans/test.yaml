@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: lendCopies
+level: system
+scenario: red
+covers: [missing loans, loans with fewer than 1 items, loans with more than 6 items]
+given: a librarian
+when: lendCopies is called without loans, with no loan, and with seven
+then: each is refused as invalid input, and no loan is created

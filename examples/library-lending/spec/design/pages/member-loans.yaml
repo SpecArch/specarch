@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.1.schema.json
+pages:
+  member-loans:
+    kind: form
+    title: Lend copies
+    description: The member's loans are loaded and shown locked; the desk adds a row per copy lent, up to the six open loans the extended tier allows. The member's own tier limit is the server's check.
+    route: /members/{memberId}/loans
+    entity: Member
+    permission: loans.create
+    source: getMember
+    submit: lendCopies
+    fields: [membershipEndsOn, outstandingFees]
+    childRows:
+      - { relation: loans, title: Loans, fields: [bookId, dueOn], maximum: 6, lockLoadedRows: true }
+    states:
+      failed:
+        member-not-found: { message: There is no member with this card. }
+        lending-refused: { message: "This member cannot borrow these copies now: the loan limit is reached, fees are outstanding, or a copy is not available." }
+    onSubmitted: { navigate: member-view, with: { memberId: id }, message: The copies are lent. }
+    satisfies: [LIB-3]

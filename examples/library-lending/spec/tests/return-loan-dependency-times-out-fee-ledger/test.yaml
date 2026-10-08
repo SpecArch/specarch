@@ -1,0 +1,7 @@
+operation: returnLoan
+level: system
+scenario: red
+covers: [dependency times out feeLedger]
+given: an open loan, and a fee ledger that does not answer within 5 seconds
+when: returnLoan is called for it
+then: it gives up the call, answers 503, the loan stays open, and no event is published

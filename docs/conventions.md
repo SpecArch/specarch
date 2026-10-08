@@ -362,6 +362,12 @@ redefined.
 | `valueDescriptions` | SpecArch | per-value meaning of an enum |
 | `commands`, `arguments`, `options`, `reads`, `writes`, `standardOutput`, `standardError`, `exitCodes`, `repeatable` | SpecArch | command-line interfaces; no standard describes one |
 | `permissions`, `roles`, `permission` | SpecArch | OpenAPI's `security` names a scheme, not a right; SpecArch needs the right |
+| `session`, `idleTimeout`, `absoluteTimeout` | SpecArch, after the OWASP Session Management Cheat Sheet | how a signed-in session ends; the two timeouts are the cheat sheet's |
+| `dependencies`, `timeout`, `calls` | SpecArch | external systems an operation calls, each with a time limit per call |
+| `idempotencyKey` | SpecArch, after RFC 9110 9.2.2 and the IETF Idempotency-Key header draft | a header that tells a repeated request from a new one, on a method that is not idempotent by itself |
+| `validity`, `from`, `until` | SpecArch | the fields that bound when a record is current |
+| `guard`, `precondition`, `recordsChanged` | SpecArch | what is checked together with a data change |
+| a duration (`timeout`, `idleTimeout`, `absoluteTimeout`) | ISO 8601, the form JSON Schema's `format: duration` names | days, hours, minutes and seconds only (`PT5S`, `P1DT12H`): weeks, months and years depend on the calendar, so a limit written in them would not mean the same every day |
 | `emits`, `algorithm` | SpecArch | links from an operation to its events and its computation |
 | `pages`, `kind`, `route`, `entity`, `source`, `submit`, `columns`, `fields`, `filters`, `actions` | SpecArch | UI page definitions |
 | `algorithms`, `inputs`, `output`, `formula`, `examples` (of an algorithm), `pseudocode` | SpecArch | IEEE 1016 algorithm viewpoint, made testable |
@@ -403,6 +409,105 @@ everyone and must be written out; there is no default. A role lists the
 permissions it grants and cannot be empty. Row-level rules (a member sees only
 their own loans) are not in the meta-model yet; they are described in prose and
 enforced by the service, and are on the list in `docs/roadmap.md`.
+
+### Sessions
+
+A specification may declare how a signed-in session ends:
+
+    session:
+      idleTimeout: PT30M
+      absoluteTimeout: PT12H
+
+`idleTimeout` is the time without a request after which the session expires,
+`absoluteTimeout` the time after signing in after which it expires whatever
+the caller does; at least one is given, and neither is zero (`session`).
+The two are the OWASP Session Management Cheat Sheet's, which asks for
+both. Once a session is declared, every operation, command and page whose
+permission is not `public` gets the derived red case `denied with expired
+session`, so that a session that outlives its limit is a test, not a hope.
+
+### Dependencies
+
+An external system the operations call is declared once, with the time
+limit of one call, and an operation names the ones it calls:
+
+    dependencies:
+      feeLedger:
+        description: The finance system's ledger, where a late fee is posted.
+        timeout: PT5S
+
+    post:
+      operationId: returnLoan
+      calls: [feeLedger]
+
+A `calls` entry must name a declared dependency, and a `timeout` is never
+zero (`dependency`). The limit is on the dependency, not on the call site,
+so that one system has one limit wherever it is called. An operation that
+calls a dependency gets two derived red cases, `dependency fails <name>`
+and `dependency times out <name>`, both critical whatever the operation's
+harm, because they are the cases nobody exercises by hand; the expected
+outcome is the operation's 502, 503 or 504 response when it declares one.
+
+### Idempotency
+
+GET, PUT and DELETE are idempotent by RFC 9110 (9.2.2): the same request
+twice has the effect of once. A POST or PATCH is not, and a client that
+loses the answer cannot safely retry it. An operation makes a retry safe by
+naming a header parameter as its idempotency key:
+
+    post:
+      operationId: createLoan
+      idempotencyKey: Idempotency-Key
+      parameters:
+        - { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
+
+A request repeated with the same key is answered as the first was and has
+no second effect; a different request with a key already used is refused.
+The key must be a header parameter of the operation (`in: header`), and the
+keyword is refused on a method RFC 9110 already makes idempotent
+(`idempotency_key`). The header's name follows the IETF HTTP API working
+group's Idempotency-Key draft; the project chooses it. The derived cases
+are the golden `repeated with the same <key>` and the red `<key> reused
+for another request`.
+
+### Validity
+
+An entity whose records are current for a period names the fields that
+bound it:
+
+    Member:
+      validity: { from: joinedOn, until: membershipEndsOn }
+
+`until` is the date or instant after which a record is expired; `from`,
+which may be left out, the one before which it is not yet valid. Both are
+fields of the entity, of one format, `date` or `date-time` (`validity`).
+Validity sits on the entity, not on a field, because a record is current or
+not as a whole. The derivation uses it where a record is taken as input:
+an operation whose body names such a record through a relation of the
+entity it returns gets the red cases `expired <field>` and, with `from`,
+`not yet valid <field>`.
+
+### Guards
+
+An operation or a command that changes data may carry a guard: the entity
+it writes, a precondition over that entity's fields that must hold on each
+record as it is at the moment of the change, and the exact number of
+records it changes:
+
+    post:
+      operationId: returnLoan
+      guard: { entity: Loan, precondition: 'status == "open" || status == "overdue"', recordsChanged: 1 }
+
+The checks run with the change itself, so a writer who read a record before
+another writer changed it is refused rather than overwriting the other's
+change, and a change that would touch more records than expected is refused
+as a whole. The entity must exist (`guard`), and the precondition is checked
+as a check constraint of the entity is: it parses, names the entity's
+fields, and gives true or false (`expression_syntax`, `expression_name`,
+`expression_type`). The derived cases are `guard precondition fails`, when
+there is a precondition, and `concurrent write`, which is critical whatever
+the subject's harm. The guard is also what the guarded operational scripts
+of `docs/generators.md` are emitted from.
 
 ### Secrets
 
@@ -566,6 +671,13 @@ mistake:
 | a body field that is the `via` of a relation of the entity the operation returns | `not found <field>` | red | frequent |
 | a unique constraint of the entity a POST with a 201 response creates | `duplicate <constraint>` | red | occasional |
 | a channel the operation `emits` on | `dependency fails <channel>` | red | rare |
+| a dependency the operation `calls` | `dependency fails <dependency>`, `dependency times out <dependency>` | red | rare |
+| an `idempotencyKey` | `repeated with the same <key>` | golden | frequent |
+| | `<key> reused for another request` | red | occasional |
+| a body field that is the `via` of a relation to an entity with `validity` | `expired <field>`, and with `from` `not yet valid <field>` | red | occasional |
+| a `session`, for every permission other than `public` | `denied with expired session` | red | frequent |
+| a `guard` with a precondition | `guard precondition fails` | red | occasional |
+| a `guard` | `concurrent write` | red | rare |
 | a 4xx or 5xx response | `response <status>` | red | occasional |
 | a command | `usage error`, and `exit <status>` for each non-zero exit code | red | frequent |
 | a check constraint / a unique constraint | `violates <constraint>` / `duplicate <constraint>` | red | occasional |
@@ -605,7 +717,8 @@ requirement, not what its failure costs.
 
 Each derived case then has a rank. It is `critical` when its subject
 satisfies, under its own `satisfies`, a requirement with a harm, or when
-it is a failing dependency; `frequent` when its frequency is frequent; and
+it is a case nobody exercises by hand (a failing or slow dependency, two
+writers on one record); `frequent` when its frequency is frequent; and
 `other` otherwise. The validator warns once for every critical or frequent
 case no test lists under `covers` (`test_case_missing`), with a test to
 copy. The cases of rank `other` that no test covers are left out: the test

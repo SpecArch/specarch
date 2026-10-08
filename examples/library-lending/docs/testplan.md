@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 71 design tests, 27 golden and 43 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 94 design tests, 28 golden and 65 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.1.0 of the specification: 71 design tests, 27 golden and 43 red, about
 | Level | Design tests |
 |---|---|
 | acceptance | 2 |
-| system | 69 |
+| system | 92 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -71,25 +71,55 @@ Scenario: red; level: system; covers q longer than 200 characters.
 - When: listBooks is called with a 201-character q
 - Then: it is refused as invalid input
 
-### Requirement LIB-3
-
-#### fees-block-lending
-
-Scenario: golden; level: acceptance; covers acceptance 2; verifies LIB-3.
-
-- Given: a member who owes a late fee
-- When: the librarian lends them a copy
-- Then: A member with outstanding fees is refused a loan with 409.
-
-#### lending-limit-accepted
-
-Scenario: golden; level: acceptance; covers acceptance 1; verifies LIB-3.
-
-- Given: a standard-tier member with three open loans
-- When: the librarian lends them a fourth copy
-- Then: A standard-tier member with three open loans is refused a fourth with 409.
-
 ### Operation createLoan
+
+#### create-loan-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session.
+
+- Given: a librarian whose session expired after half an hour without a request
+- When: createLoan is called for a member and a book that exist
+- Then: it is refused as not signed in, and nothing changes
+
+#### create-loan-expired-member-id
+
+Scenario: red; level: system; covers expired memberId.
+
+- Given: a member whose membershipEndsOn was yesterday, and a book with a copy available
+- When: createLoan is called for them
+- Then: it is refused as expired and no loan is created
+
+#### create-loan-idempotency-key-not-a-valid-uuid
+
+Scenario: red; level: system; covers Idempotency-Key not a valid uuid.
+
+- Given: a member and a book that exist
+- When: createLoan is called with an Idempotency-Key that is not a UUID
+- Then: it is refused and no loan is created
+
+#### create-loan-idempotency-key-reused-for-another-request
+
+Scenario: red; level: system; covers Idempotency-Key reused for another request.
+
+- Given: a loan was created under an Idempotency-Key
+- When: createLoan is called with the same Idempotency-Key for another book
+- Then: it is refused and no loan is created
+
+#### create-loan-not-yet-valid-member-id
+
+Scenario: red; level: system; covers not yet valid memberId.
+
+- Given: a member registered with a joinedOn of tomorrow, and a book with a copy available
+- When: createLoan is called for them
+- Then: it is refused as not yet valid and no loan is created
+
+#### create-loan-repeated-with-the-same-idempotency-key
+
+Scenario: golden; level: system; covers repeated with the same Idempotency-Key; verifies LIB-3.
+
+- Given: a loan was created for a member and a book under an Idempotency-Key, and the client never saw the answer
+- When: createLoan is called again with the same Idempotency-Key, member and book
+- Then: it answers 201 with the loan already created, no second loan exists, and the book's copies available are unchanged
 
 #### lend-a-copy
 
@@ -147,6 +177,130 @@ Scenario: red; level: system; covers not found memberId, not found bookId.
 - When: createLoan is called with a memberId and then a bookId that no record has
 - Then: both are refused as not found
 
+### Operation createMember
+
+#### create-member-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session.
+
+- Given: a librarian whose session expired after half an hour without a request
+- When: createMember is called
+- Then: it is refused as not signed in, and nothing changes
+
+#### register-member
+
+Scenario: golden; level: system; covers fullName of 1 character, fullName of 200 characters; verifies LIB-1.
+
+- Given: a librarian
+- When: createMember is called for a standard-tier member with a one-letter name, and again with a 200-character name
+- Then: both members are created, each with a new eight-digit card number and no fees
+
+#### register-member-bad-values
+
+Scenario: red; level: system; covers email not a valid email, tier not one of its values.
+
+- Given: a librarian
+- When: createMember is called with email set to 'not-an-address', and with tier set to gold
+- Then: both are refused as invalid input
+
+#### register-member-card-number-clash
+
+Scenario: red; level: system; covers duplicate member_card_number_unique.
+
+Not applicable: The card number is assigned by the system, never sent by a client, so a request cannot clash on it. The constraint itself is tested under member-card-number-twice.
+
+#### register-member-denied
+
+Scenario: red; level: system; covers denied without members.write.
+
+- Given: a caller holding only the member role
+- When: createMember is called
+- Then: it is refused as not allowed
+
+#### register-member-email-taken
+
+Scenario: red; level: system; covers duplicate member_email_unique, response 409; verifies LIB-1.
+
+- Given: a member registered with ana@example.org
+- When: createMember is called with the same email address
+- Then: it answers 409 and no member is created
+
+#### register-member-missing-field
+
+Scenario: red; level: system; covers missing fullName, missing email, missing tier.
+
+- Given: a librarian
+- When: createMember is called three times each time without one of fullName and email and tier
+- Then: each call is refused as invalid input
+
+#### register-member-name-length
+
+Scenario: red; level: system; covers fullName shorter than 1 character, fullName longer than 200 characters.
+
+- Given: a librarian
+- When: createMember is called with an empty fullName and with a 201-character one
+- Then: both are refused as invalid input
+
+### Requirement LIB-3
+
+#### fees-block-lending
+
+Scenario: golden; level: acceptance; covers acceptance 2; verifies LIB-3.
+
+- Given: a member who owes a late fee
+- When: the librarian lends them a copy
+- Then: A member with outstanding fees is refused a loan with 409.
+
+#### lending-limit-accepted
+
+Scenario: golden; level: acceptance; covers acceptance 1; verifies LIB-3.
+
+- Given: a standard-tier member with three open loans
+- When: the librarian lends them a fourth copy
+- Then: A standard-tier member with three open loans is refused a fourth with 409.
+
+### Operation getMember
+
+#### get-member-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session.
+
+- Given: a librarian whose session expired after half an hour without a request
+- When: getMember is called for a member that exists
+- Then: it is refused as not signed in, and nothing changes
+
+#### show-member
+
+Scenario: golden; level: system.
+
+- Given: a member and a librarian
+- When: getMember is called with the member's id
+- Then: the member is answered
+
+#### show-member-bad-id
+
+Scenario: red; level: system; covers memberId not a valid uuid.
+
+- Given: a librarian
+- When: getMember is called with memberId abc
+- Then: it is refused as invalid input
+
+#### show-member-denied
+
+Scenario: red; level: system; covers denied without members.read.
+
+- Given: a caller holding only the member role
+- When: getMember is called
+- Then: it is refused as not allowed
+
+#### show-member-not-found
+
+Scenario: red; level: system; covers not found memberId, response 404.
+
+- Given: a librarian and no member with a given id
+- When: getMember is called with that id
+- Then: it answers 404
+
 ### Operation listLoans
 
 #### list-loans
@@ -173,6 +327,14 @@ Scenario: red; level: system; covers denied without loans.read.
 - When: listLoans is called
 - Then: it is refused as not allowed
 
+#### list-loans-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session.
+
+- Given: a librarian whose session expired after half an hour without a request
+- When: listLoans is called
+- Then: it is refused as not signed in, and nothing changes
+
 ### Operation listMembers
 
 #### list-members
@@ -190,6 +352,14 @@ Scenario: red; level: system; covers denied without members.read.
 - Given: a caller holding only the member role
 - When: listMembers is called
 - Then: it is refused as not allowed
+
+#### list-members-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session.
+
+- Given: a librarian whose session expired after half an hour without a request
+- When: listMembers is called
+- Then: it is refused as not signed in, and nothing changes
 
 ### Loan open to overdue
 
@@ -236,6 +406,14 @@ Scenario: red; level: system; covers denied without loans.create.
 - Given: a caller holding only the member role
 - When: the page loan-form is opened
 - Then: it is not shown
+
+#### loan-form-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session.
+
+- Given: a librarian whose session expired after half an hour without a request
+- When: the page loan-form is opened
+- Then: it is not shown, and the sign-in page is shown instead
 
 #### loan-form-shown
 
@@ -301,6 +479,14 @@ Scenario: red; level: system; covers denied without loans.read.
 - When: the page loans-list is opened
 - Then: it is not shown
 
+#### loans-list-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session.
+
+- Given: a librarian whose session expired after half an hour without a request
+- When: the page loans-list is opened
+- Then: it is not shown, and the sign-in page is shown instead
+
 #### loans-list-shown
 
 Scenario: golden; level: system.
@@ -355,6 +541,14 @@ Scenario: red; level: system; covers denied without members.write.
 - When: the page member-form is opened
 - Then: it is not shown
 
+#### member-form-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session.
+
+- Given: a librarian whose session expired after half an hour without a request
+- When: the page member-form is opened
+- Then: it is not shown, and the sign-in page is shown instead
+
 #### member-form-shown
 
 Scenario: golden; level: system.
@@ -372,6 +566,14 @@ Scenario: red; level: system; covers denied without members.read.
 - Given: a caller holding only the member role
 - When: the page member-view is opened
 - Then: it is not shown
+
+#### member-view-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session.
+
+- Given: a librarian whose session expired after half an hour without a request
+- When: the page member-view is opened
+- Then: it is not shown, and the sign-in page is shown instead
 
 #### member-view-not-found
 
@@ -398,6 +600,14 @@ Scenario: red; level: system; covers denied without members.read.
 - Given: a caller holding only the member role
 - When: the page members-list is opened
 - Then: it is not shown
+
+#### members-list-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session.
+
+- Given: a librarian whose session expired after half an hour without a request
+- When: the page members-list is opened
+- Then: it is not shown, and the sign-in page is shown instead
 
 #### members-list-shown
 
@@ -461,62 +671,6 @@ Scenario: red; level: system; covers from wrong state.
 - When: returnLoan is called again
 - Then: it is refused and the fee is not charged twice
 
-### Operation createMember
-
-#### register-member
-
-Scenario: golden; level: system; covers fullName of 1 character, fullName of 200 characters; verifies LIB-1.
-
-- Given: a librarian
-- When: createMember is called for a standard-tier member with a one-letter name, and again with a 200-character name
-- Then: both members are created, each with a new eight-digit card number and no fees
-
-#### register-member-bad-values
-
-Scenario: red; level: system; covers email not a valid email, tier not one of its values.
-
-- Given: a librarian
-- When: createMember is called with email set to 'not-an-address', and with tier set to gold
-- Then: both are refused as invalid input
-
-#### register-member-card-number-clash
-
-Scenario: red; level: system; covers duplicate member_card_number_unique.
-
-Not applicable: The card number is assigned by the system, never sent by a client, so a request cannot clash on it. The constraint itself is tested under member-card-number-twice.
-
-#### register-member-denied
-
-Scenario: red; level: system; covers denied without members.write.
-
-- Given: a caller holding only the member role
-- When: createMember is called
-- Then: it is refused as not allowed
-
-#### register-member-email-taken
-
-Scenario: red; level: system; covers duplicate member_email_unique, response 409; verifies LIB-1.
-
-- Given: a member registered with ana@example.org
-- When: createMember is called with the same email address
-- Then: it answers 409 and no member is created
-
-#### register-member-missing-field
-
-Scenario: red; level: system; covers missing fullName, missing email, missing tier.
-
-- Given: a librarian
-- When: createMember is called three times each time without one of fullName and email and tier
-- Then: each call is refused as invalid input
-
-#### register-member-name-length
-
-Scenario: red; level: system; covers fullName shorter than 1 character, fullName longer than 200 characters.
-
-- Given: a librarian
-- When: createMember is called with an empty fullName and with a 201-character one
-- Then: both are refused as invalid input
-
 ### Operation reportLost
 
 #### report-lost
@@ -535,6 +689,14 @@ Scenario: red; level: system; covers response 409.
 - When: reportLost is called on it
 - Then: it answers 409 and nothing is charged twice
 
+#### report-lost-concurrent-write
+
+Scenario: red; level: system; covers concurrent write.
+
+- Given: an open loan that a second librarian closed after the first librarian's screen showed it open
+- When: reportLost is called by the first librarian for it
+- Then: it is refused, the loan stays as the second librarian left it, and no second fee is charged
+
 #### report-lost-denied
 
 Scenario: red; level: system; covers denied without loans.return.
@@ -542,6 +704,30 @@ Scenario: red; level: system; covers denied without loans.return.
 - Given: a caller holding only the member role
 - When: reportLost is called
 - Then: it is refused as not allowed
+
+#### report-lost-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session.
+
+- Given: a librarian whose session expired after half an hour without a request
+- When: reportLost is called for an open loan
+- Then: it is refused as not signed in, and nothing changes
+
+#### report-lost-dependency-fails-fee-ledger
+
+Scenario: red; level: system; covers dependency fails feeLedger.
+
+- Given: an open loan, and a fee ledger that answers every call with an error
+- When: reportLost is called for it
+- Then: it answers 503, the loan stays open, and no event is published
+
+#### report-lost-dependency-times-out-fee-ledger
+
+Scenario: red; level: system; covers dependency times out feeLedger.
+
+- Given: an open loan, and a fee ledger that does not answer within 5 seconds
+- When: reportLost is called for it
+- Then: it gives up the call, answers 503, the loan stays open, and no event is published
 
 #### report-lost-event-not-delivered
 
@@ -593,6 +779,38 @@ Scenario: golden; level: system; verifies LIB-5.
 - When: returnLoan is called
 - Then: the loan is returned with a late fee of 3.50, the copy is available again, and LoanReturned is published
 
+#### return-loan-concurrent-write
+
+Scenario: red; level: system; covers concurrent write.
+
+- Given: an open loan that a second librarian closed after the first librarian's screen showed it open
+- When: returnLoan is called by the first librarian for it
+- Then: it is refused, the loan stays as the second librarian left it, and no second fee is charged
+
+#### return-loan-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session.
+
+- Given: a librarian whose session expired after half an hour without a request
+- When: returnLoan is called for an open loan
+- Then: it is refused as not signed in, and nothing changes
+
+#### return-loan-dependency-fails-fee-ledger
+
+Scenario: red; level: system; covers dependency fails feeLedger.
+
+- Given: an open loan, and a fee ledger that answers every call with an error
+- When: returnLoan is called for it
+- Then: it answers 503, the loan stays open, and no event is published
+
+#### return-loan-dependency-times-out-fee-ledger
+
+Scenario: red; level: system; covers dependency times out feeLedger.
+
+- Given: an open loan, and a fee ledger that does not answer within 5 seconds
+- When: returnLoan is called for it
+- Then: it gives up the call, answers 503, the loan stays open, and no event is published
+
 #### return-unknown-loan
 
 Scenario: red; level: system; covers not found loanId, loanId not a valid uuid.
@@ -600,40 +818,6 @@ Scenario: red; level: system; covers not found loanId, loanId not a valid uuid.
 - Given: a librarian
 - When: returnLoan is called with an id no loan has and again with abc
 - Then: the first is refused as not found and the second as invalid input
-
-### Operation getMember
-
-#### show-member
-
-Scenario: golden; level: system.
-
-- Given: a member and a librarian
-- When: getMember is called with the member's id
-- Then: the member is answered
-
-#### show-member-bad-id
-
-Scenario: red; level: system; covers memberId not a valid uuid.
-
-- Given: a librarian
-- When: getMember is called with memberId abc
-- Then: it is refused as invalid input
-
-#### show-member-denied
-
-Scenario: red; level: system; covers denied without members.read.
-
-- Given: a caller holding only the member role
-- When: getMember is called
-- Then: it is refused as not allowed
-
-#### show-member-not-found
-
-Scenario: red; level: system; covers not found memberId, response 404.
-
-- Given: a librarian and no member with a given id
-- When: getMember is called with that id
-- Then: it answers 404
 
 ## 3. State machines
 
@@ -662,10 +846,14 @@ stateDiagram-v2
 
 ## 4. Derived cases left out
 
-11 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a failing dependency, and none is a mistake users make often. Writing a test that covers one removes it from this list.
+15 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
+| operation returnLoan | guard precondition fails | red | occasional case, and operation returnLoan satisfies no requirement with a harm |
+| operation returnLoan | response 503 | red | occasional case, and operation returnLoan satisfies no requirement with a harm |
+| operation reportLost | guard precondition fails | red | occasional case, and operation reportLost satisfies no requirement with a harm |
+| operation reportLost | response 503 | red | occasional case, and operation reportLost satisfies no requirement with a harm |
 | Loan state machine | open to overdue to returned | golden | no transition on the path satisfies a requirement with a harm |
 | Loan state machine | open to overdue to lost | golden | no transition on the path satisfies a requirement with a harm |
 | Loan state machine | open to lost | golden | no transition on the path satisfies a requirement with a harm |

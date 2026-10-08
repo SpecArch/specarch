@@ -1,0 +1,8 @@
+operation: createLoan
+level: system
+scenario: golden
+covers: [repeated with the same Idempotency-Key]
+given: a loan was created for a member and a book under an Idempotency-Key, and the client never saw the answer
+when: createLoan is called again with the same Idempotency-Key, member and book
+then: it answers 201 with the loan already created, no second loan exists, and the book's copies available are unchanged
+verifies: [LIB-3]

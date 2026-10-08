@@ -1,0 +1,7 @@
+command: validate
+level: system
+scenario: golden
+given: a session, a dependency an operation calls, an idempotency key on that operation, a guard on it, and a validity on the entity its body names, with no tests
+when: validate is run
+then: "it warns for the expired session, the dependency failing and timing out with the 503 the operation declares, the repeated request, the concurrent write, and the caller without the permission, each with a test to copy; the expired record and the reused key, occasional cases of an operation with no harm, are left to the test plan; and it exits 0"
+verifies: [SA-29]

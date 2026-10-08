@@ -1,0 +1,7 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:6: error: /dependencies/registry/timeout: dependency: PT0S is no time at all; give the call a limit above zero
+  specarch.yaml:10: warning: /paths/~1cards/get: test_golden_missing: operation listCards has no golden scenario; add one under tests, for example list-cards-succeeds: { operation: listCards, scenario: golden, given: "any caller", when: "listCards is called", then: "it answers 200: The cards." }
+  specarch.yaml:10: warning: /paths/~1cards/get: test_red_missing: operation listCards has no red scenario; add one under tests, for example list-cards-refused: { operation: listCards, scenario: red, given: "...", when: "...", then: "it is refused" }
+  specarch.yaml:15: error: /paths/~1cards/get/calls/0: dependency: registri is not a dependency of the specification; declare it under dependencies with its timeout; did you mean registry?

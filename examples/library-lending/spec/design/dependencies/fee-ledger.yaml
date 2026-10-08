@@ -1,0 +1,5 @@
+dependencies:
+  feeLedger:
+    description: The finance system's ledger, where a late fee or a replacement charge is posted the moment it is charged.
+    timeout: PT5S
+    why: The desk waits for the answer, so a call that takes longer than a few seconds is given up and the return is refused rather than left half done.

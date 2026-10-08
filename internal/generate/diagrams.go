@@ -154,7 +154,15 @@ func operationSequence(root *yaml.Node, o operation) string {
 	for _, ch := range chOrder {
 		fmt.Fprintf(&b, "  participant %s as %s\n", channels[ch], ch)
 	}
+	calls := strs(o.node, "calls")
+	for i, dep := range calls {
+		fmt.Fprintf(&b, "  participant D%d as %s\n", i+1, dep)
+	}
 	fmt.Fprintf(&b, "  C->>S: %s %s\n", strings.ToUpper(o.method), o.path)
+	for i, dep := range calls {
+		fmt.Fprintf(&b, "  S->>D%d: call, within %s\n", i+1, str(get(get(root, "dependencies"), dep), "timeout"))
+		fmt.Fprintf(&b, "  D%d-->>S: answer\n", i+1)
+	}
 	if alg := str(o.node, "algorithm"); alg != "" {
 		var inputs []string
 		for _, p := range pairs(get(get(root, "algorithms"), alg), "inputs") {

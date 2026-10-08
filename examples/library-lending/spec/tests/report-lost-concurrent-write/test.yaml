@@ -1,0 +1,7 @@
+operation: reportLost
+level: system
+scenario: red
+covers: [concurrent write]
+given: an open loan that a second librarian closed after the first librarian's screen showed it open
+when: reportLost is called by the first librarian for it
+then: it is refused, the loan stays as the second librarian left it, and no second fee is charged

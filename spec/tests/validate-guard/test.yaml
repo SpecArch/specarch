@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a guard naming an entity that does not exist, and a guard whose precondition compares a string with a number
+when: validate is run
+then: it reports guard for the entity and expression_type for the precondition, and exits 1
+verifies: [SA-29]

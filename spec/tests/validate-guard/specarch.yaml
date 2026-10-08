@@ -1,0 +1,27 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  public: { description: Open to everyone. }
+entities:
+  Card:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      holder: { type: string, maxLength: 80 }
+    required: [id, holder]
+    primaryKey: [id]
+paths:
+  /cards:
+    post:
+      operationId: issueCard
+      summary: Issue a card
+      permission: public
+      responses:
+        "201": { description: Issued. }
+      guard: { entity: Cards, recordsChanged: 1 }
+commands:
+  backfill:
+    summary: Backfill the holders
+    permission: public
+    exitCodes: { "0": done }
+    guard: { entity: Card, precondition: "holder > 3", recordsChanged: 1 }

@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a dependency whose timeout is zero, and an operation that calls a dependency that is not declared
+when: validate is run
+then: it reports dependency for the timeout and for the call, naming the declared dependency it resembles, and exits 1
+verifies: [SA-29]

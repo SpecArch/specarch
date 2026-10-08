@@ -26,7 +26,7 @@ Scenario: red; level: system; covers name longer than 40 characters.
 
 ## 3. Derived cases left out
 
-3 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a failing dependency, and none is a mistake users make often. Writing a test that covers one removes it from this list.
+3 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|

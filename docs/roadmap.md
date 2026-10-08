@@ -167,8 +167,8 @@ already asked for three concepts, and they go first. Each is a new object
 that only the validator CLI or an emitter can enforce, which is why they wait
 for 0.2 rather than being written into 0.1 unchecked:
 
-- `guards`: preconditions and postconditions on a data change, with exact
-  expected counts; the input to generator 8;
+- `guard`: built, as a precondition and an exact record count checked with
+  a data change on an operation or a command; the input to generator 8;
 - `separationOfDuties`: sets of permissions one holder must never have
   together; the validator checks that no role grants two of them;
 - `flows`: a workflow binding (trigger, form schema, steps) as an object of
@@ -200,12 +200,11 @@ Other known candidates:
   operations, a problem catalogue for error responses, limits on an
   operation, menus, and a read model;
 - configuration and settings as a first-class concept;
-- the concepts the red paths of `docs/test-generation.md` wait for:
-  external dependencies an operation calls, with a time limit per call
-  (dependency down, timeout); idempotency on an operation (a repeated
-  request that is not a duplicate); validity on a field or an entity
-  (expired data); sessions on access (session expiry); the guard above
-  (two writers, one record).
+- built: the concepts the red paths of `docs/test-generation.md` needed,
+  `dependencies` with a time limit per call, `idempotencyKey`, `validity`
+  on an entity, `session`, and the guard above, each with its derived
+  cases; a postcondition on a guard, which a test cannot set up from
+  outside, is still open.
 
 ## 6. Changes, defects, releases and operation
 

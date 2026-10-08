@@ -1,0 +1,7 @@
+operation: createLoan
+level: system
+scenario: red
+covers: [expired memberId]
+given: a member whose membershipEndsOn was yesterday, and a book with a copy available
+when: createLoan is called for them
+then: it is refused as expired and no loan is created

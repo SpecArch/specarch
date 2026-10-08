@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 7 requirements, 3 entities, 8 HTTP operations, 2 channels, 5 pages, 1 algorithm, 71 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 7 requirements, 3 entities, 8 HTTP operations, 2 channels, 1 dependency, 5 pages, 1 algorithm, 94 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -68,6 +68,16 @@ The interfaces the system offers, as its clients see them.
 | loan.lifecycle | LoanLost | A copy was reported lost. |
 | loan.overdue | LoanOverdue | A loan became overdue. |
 
+### Dependencies
+
+External systems the operations call. A call that fails, or that does not answer within its time limit, is given up, and the operation answers as its failure response says.
+
+| Dependency | Time limit per call | Called by | Description |
+|---|---|---|---|
+| feeLedger | PT5S | returnLoan, reportLost | The finance system's ledger, where a late fee or a replacement charge is posted the moment it is charged. |
+
+**Insight on feeLedger:** The desk waits for the answer, so a call that takes longer than a few seconds is given up and the return is refused rather than left half done.
+
 ## 5. Building blocks
 
 ```mermaid
@@ -100,6 +110,7 @@ erDiagram
     string email
     MembershipTier tier
     date joinedOn
+    date membershipEndsOn
     decimal outstandingFees
   }
 ```
@@ -168,9 +179,12 @@ A person with a library card.
 | email | string | yes | at most 320 characters, a valid email |   |
 | tier | MembershipTier | yes |   |   |
 | joinedOn | date | yes | set by the system |   |
+| membershipEndsOn | date | yes | set by the system | The last day the card is valid; set a year after joining and moved on by each renewal. |
 | outstandingFees | decimal(10, 2) | yes | set by the system | Sum of unpaid late fees and replacement charges, in the library's currency. |
 
 Primary key: id.
+
+Validity: a record is current from its joinedOn until its membershipEndsOn; outside that it is refused where it is used.
 
 | Relation | Kind | Target | Via | On delete |
 |---|---|---|---|---|
@@ -263,6 +277,8 @@ sequenceDiagram
 Refused when the member already holds the maximum open loans for their
 tier, has outstanding fees, or the book has no copy available.
 
+Idempotent by the Idempotency-Key header: a request repeated with the same key is answered as the first was and has no second effect; a different request with a key already used is refused.
+
 ```mermaid
 sequenceDiagram
   participant C as Client
@@ -275,12 +291,19 @@ sequenceDiagram
 
 ### returnLoan (POST /loans/{loanId}/return)
 
+Calls feeLedger (within PT5S).
+
+Guard: the change writes 1 Loan record, and `status == "open" || status == "overdue"` must hold on each as it is at the moment of the change; a change that finds otherwise is refused and changes nothing, so a second writer on the same record is refused rather than overwriting the first.
+
 ```mermaid
 sequenceDiagram
   participant C as Client
   participant S as Library Lending
   participant Q1 as loan.lifecycle
+  participant D1 as feeLedger
   C->>S: POST /loans/{loanId}/return
+  S->>D1: call, within PT5S
+  D1-->>S: answer
   S->>S: lateFee(daysLate, dailyRate, replacementCost)
   S-->>Q1: LoanReturned
   S-->>C: 200 Loan
@@ -288,12 +311,19 @@ sequenceDiagram
 
 ### reportLost (POST /loans/{loanId}/lost)
 
+Calls feeLedger (within PT5S).
+
+Guard: the change writes 1 Loan record, and `status == "open" || status == "overdue"` must hold on each as it is at the moment of the change; a change that finds otherwise is refused and changes nothing, so a second writer on the same record is refused rather than overwriting the first.
+
 ```mermaid
 sequenceDiagram
   participant C as Client
   participant S as Library Lending
   participant Q1 as loan.lifecycle
+  participant D1 as feeLedger
   C->>S: POST /loans/{loanId}/lost
+  S->>D1: call, within PT5S
+  D1-->>S: answer
   S-->>Q1: LoanLost
   S-->>C: 200 Loan
 ```
@@ -530,6 +560,16 @@ Access is fail-closed: every operation, command and page names the one permissio
 
 **Insight on member:** The row-level rule, a member sees only loans whose memberId is their own, is not in the meta-model yet; the service enforces it and this role is where it is written down.
 
+### Sessions
+
+A librarian or a member signs in once and works in a session.
+
+A caller's session expires after PT30M without a request, and after PT12H from signing in, whatever the caller does. Every operation, command and page with a permission other than public refuses a caller whose session has expired.
+
+**Insight:** A desk terminal left unattended must not keep showing member records, so a session ends after half an hour without a request; a day's shift never needs more than twelve hours.
+
+**Note:** From The data-protection rules the library is bound by, 2024: Personal data is shown only to the person it is about and to the staff who need it.
+
 ### Pages
 
 ```mermaid
@@ -552,7 +592,7 @@ flowchart LR
 | loan-form | form | /loans/new | Loan | loans.create | memberId, bookId |
 | loans-list | list | /loans | Loan | loans.read | memberId, bookId, loanedAt, dueOn, status, lateFee |
 | member-form | form | /members/new | Member | members.write | fullName, email, tier |
-| member-view | view | /members/{memberId} | Member | members.read | cardNumber, fullName, email, tier, joinedOn, outstandingFees |
+| member-view | view | /members/{memberId} | Member | members.read | cardNumber, fullName, email, tier, joinedOn, membershipEndsOn, outstandingFees |
 | members-list | list | /members | Member | members.read | cardNumber, fullName, email, tier, outstandingFees |
 
 ### Algorithm lateFee
@@ -627,7 +667,15 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | book-isbn-twice | Book constraint book_isbn_unique | system | red | a book with ISBN 9780000000001 | another book with that ISBN is saved | it is refused |
 | browse-catalogue | operation listBooks | system | golden | three books by two authors, and a visitor without a card | listBooks is called with q set to one author's name, and again with a 200-character q | the first call answers that author's books, the second an empty list |
 | browse-catalogue-query-too-long | operation listBooks | system | red | a visitor | listBooks is called with a 201-character q | it is refused as invalid input |
+| create-loan-denied-with-expired-session | operation createLoan | system | red | a librarian whose session expired after half an hour without a request | createLoan is called for a member and a book that exist | it is refused as not signed in, and nothing changes |
+| create-loan-expired-member-id | operation createLoan | system | red | a member whose membershipEndsOn was yesterday, and a book with a copy available | createLoan is called for them | it is refused as expired and no loan is created |
+| create-loan-idempotency-key-not-a-valid-uuid | operation createLoan | system | red | a member and a book that exist | createLoan is called with an Idempotency-Key that is not a UUID | it is refused and no loan is created |
+| create-loan-idempotency-key-reused-for-another-request | operation createLoan | system | red | a loan was created under an Idempotency-Key | createLoan is called with the same Idempotency-Key for another book | it is refused and no loan is created |
+| create-loan-not-yet-valid-member-id | operation createLoan | system | red | a member registered with a joinedOn of tomorrow, and a book with a copy available | createLoan is called for them | it is refused as not yet valid and no loan is created |
+| create-loan-repeated-with-the-same-idempotency-key | operation createLoan | system | golden | a loan was created for a member and a book under an Idempotency-Key, and the client never saw the answer | createLoan is called again with the same Idempotency-Key, member and book | it answers 201 with the loan already created, no second loan exists, and the book's copies available are unchanged |
+| create-member-denied-with-expired-session | operation createMember | system | red | a librarian whose session expired after half an hour without a request | createMember is called | it is refused as not signed in, and nothing changes |
 | fees-block-lending | requirement LIB-3 | acceptance | golden | a member who owes a late fee | the librarian lends them a copy | A member with outstanding fees is refused a loan with 409. |
+| get-member-denied-with-expired-session | operation getMember | system | red | a librarian whose session expired after half an hour without a request | getMember is called for a member that exists | it is refused as not signed in, and nothing changes |
 | lend-a-copy | operation createLoan | system | golden | a standard-tier member with no loans and no fees, and a book with one copy available | createLoan is called for them | an open loan due in 21 days is created, the book has no copy available, and LoanCreated is published |
 | lend-bad-ids | operation createLoan | system | red | a librarian | createLoan is called with memberId abc and again with bookId abc | both are refused as invalid input |
 | lend-denied | operation createLoan | system | red | a caller holding only the member role | createLoan is called | it is refused as not allowed |
@@ -639,12 +687,15 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | list-loans | operation listLoans | system | golden | an open loan and a returned loan | listLoans is called with status open | only the open loan is answered |
 | list-loans-bad-filter | operation listLoans | system | red | a librarian | listLoans is called with status lent and again with memberId abc | both are refused as invalid input |
 | list-loans-denied | operation listLoans | system | red | a caller holding no role | listLoans is called | it is refused as not allowed |
+| list-loans-denied-with-expired-session | operation listLoans | system | red | a librarian whose session expired after half an hour without a request | listLoans is called | it is refused as not signed in, and nothing changes |
 | list-members | operation listMembers | system | golden | two members and a librarian | listMembers is called | both members are answered |
 | list-members-denied | operation listMembers | system | red | a caller holding only the member role | listMembers is called | it is refused as not allowed |
+| list-members-denied-with-expired-session | operation listMembers | system | red | a librarian whose session expired after half an hour without a request | listMembers is called | it is refused as not signed in, and nothing changes |
 | loan-becomes-overdue | Loan open to overdue | system | golden | an open loan due yesterday | the nightly job runs | the loan is overdue and LoanOverdue is published |
 | loan-due-after-loaned | Loan constraint loan_due_after_loaned | system | golden | a loan made on 2026-10-07 | it is saved due on 2026-10-28 | it is saved |
 | loan-due-on-loan-day | Loan constraint loan_due_after_loaned | system | red | a loan made on 2026-10-07 | it is saved due on 2026-10-07 | it is refused |
 | loan-form-denied | page loan-form | system | red | a caller holding only the member role | the page loan-form is opened | it is not shown |
+| loan-form-denied-with-expired-session | page loan-form | system | red | a librarian whose session expired after half an hour without a request | the page loan-form is opened | it is not shown, and the sign-in page is shown instead |
 | loan-form-shown | page loan-form | system | golden | a librarian | the page loan-form is filled in and sent | the copy is lent |
 | loan-lent-and-returned | Loan state machine | system | golden | a Loan that is open | returnLoan happens before the due date | the Loan ends returned, with no late fee |
 | loan-overdue-only-from-open | Loan open to overdue | system | red | a returned loan due last week | the nightly job runs | the loan stays returned |
@@ -653,17 +704,21 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | loan-returned-on-time | Loan open to returned | system | golden | an open loan | returnLoan is called | the loan is returned with no fee |
 | loan-returned-only-when-out | Loan open to returned | system | red | a lost loan | returnLoan is called | it is refused and the loan stays lost |
 | loans-list-denied | page loans-list | system | red | a caller holding no role | the page loans-list is opened | it is not shown |
+| loans-list-denied-with-expired-session | page loans-list | system | red | a librarian whose session expired after half an hour without a request | the page loans-list is opened | it is not shown, and the sign-in page is shown instead |
 | loans-list-shown | page loans-list | system | golden | a librarian and some loans | the page loans-list is opened | it lists the loans with their due dates, states and fees |
 | member-card-number-once | Member constraint member_card_number_unique | system | golden | no member with card number 00000001 | a member with that card number is saved | it is saved |
 | member-card-number-twice | Member constraint member_card_number_unique | system | red | a member with card number 00000001 | another member with that card number is saved | it is refused |
 | member-email-once | Member constraint member_email_unique | system | golden | no member with ana@example.org | a member with that address is saved | it is saved |
 | member-email-twice | Member constraint member_email_unique | system | red | a member with ana@example.org | another member with that address is saved | it is refused |
 | member-form-denied | page member-form | system | red | a caller holding only the member role | the page member-form is opened | it is not shown |
+| member-form-denied-with-expired-session | page member-form | system | red | a librarian whose session expired after half an hour without a request | the page member-form is opened | it is not shown, and the sign-in page is shown instead |
 | member-form-shown | page member-form | system | golden | a librarian | the page member-form is filled in and sent | the member is registered |
 | member-view-denied | page member-view | system | red | a caller holding only the member role | the page member-view is opened | it is not shown |
+| member-view-denied-with-expired-session | page member-view | system | red | a librarian whose session expired after half an hour without a request | the page member-view is opened | it is not shown, and the sign-in page is shown instead |
 | member-view-not-found | page member-view | system | red | a librarian | the page member-view is opened for an id no member has | it says the member was not found |
 | member-view-shown | page member-view | system | golden | a librarian and a member | the page member-view is opened for that member | it shows the member and offers Lend a book |
 | members-list-denied | page members-list | system | red | a caller holding only the member role | the page members-list is opened | it is not shown |
+| members-list-denied-with-expired-session | page members-list | system | red | a librarian whose session expired after half an hour without a request | the page members-list is opened | it is not shown, and the sign-in page is shown instead |
 | members-list-shown | page members-list | system | golden | a librarian | the page members-list is opened | it lists members with card number, name, email, tier and fees |
 | open-loan-lost | Loan open to lost | system | golden | an open loan | reportLost is called | the loan is lost and the replacement cost is charged |
 | open-loan-lost-after-return | Loan open to lost | system | red | a returned loan | reportLost is called | it is refused and the loan stays returned |
@@ -680,13 +735,21 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | register-member-name-length | operation createMember | system | red | a librarian | createMember is called with an empty fullName and with a 201-character one | both are refused as invalid input |
 | report-lost | operation reportLost | system | golden | an open loan of a book whose replacement cost is 25.00 | reportLost is called | the loan is lost and 25.00 is added to the member's outstanding fees |
 | report-lost-already-closed | operation reportLost | system | red | a loan already lost | reportLost is called on it | it answers 409 and nothing is charged twice |
+| report-lost-concurrent-write | operation reportLost | system | red | an open loan that a second librarian closed after the first librarian's screen showed it open | reportLost is called by the first librarian for it | it is refused, the loan stays as the second librarian left it, and no second fee is charged |
 | report-lost-denied | operation reportLost | system | red | a caller holding only the member role | reportLost is called | it is refused as not allowed |
+| report-lost-denied-with-expired-session | operation reportLost | system | red | a librarian whose session expired after half an hour without a request | reportLost is called for an open loan | it is refused as not signed in, and nothing changes |
+| report-lost-dependency-fails-fee-ledger | operation reportLost | system | red | an open loan, and a fee ledger that answers every call with an error | reportLost is called for it | it answers 503, the loan stays open, and no event is published |
+| report-lost-dependency-times-out-fee-ledger | operation reportLost | system | red | an open loan, and a fee ledger that does not answer within 5 seconds | reportLost is called for it | it gives up the call, answers 503, the loan stays open, and no event is published |
 | report-lost-event-not-delivered | operation reportLost | system | red | the loan.lifecycle channel is unavailable | reportLost is called | the loan stays open, nothing is charged, and the call fails |
 | report-lost-unknown-loan | operation reportLost | system | red | a librarian | reportLost is called with an id no loan has and again with abc | the first is refused as not found and the second as invalid input |
 | return-already-closed | operation returnLoan | system | red | a loan already returned | returnLoan is called on it | it answers 409 and nothing changes |
 | return-denied | operation returnLoan | system | red | a caller holding only the member role | returnLoan is called | it is refused as not allowed |
 | return-event-not-delivered | operation returnLoan | system | red | the loan.lifecycle channel is unavailable | returnLoan is called | the loan stays open and the call fails |
 | return-late | operation returnLoan | system | golden | an overdue loan returned 7 days late, a daily rate of 0.50 and a replacement cost of 25.00 | returnLoan is called | the loan is returned with a late fee of 3.50, the copy is available again, and LoanReturned is published |
+| return-loan-concurrent-write | operation returnLoan | system | red | an open loan that a second librarian closed after the first librarian's screen showed it open | returnLoan is called by the first librarian for it | it is refused, the loan stays as the second librarian left it, and no second fee is charged |
+| return-loan-denied-with-expired-session | operation returnLoan | system | red | a librarian whose session expired after half an hour without a request | returnLoan is called for an open loan | it is refused as not signed in, and nothing changes |
+| return-loan-dependency-fails-fee-ledger | operation returnLoan | system | red | an open loan, and a fee ledger that answers every call with an error | returnLoan is called for it | it answers 503, the loan stays open, and no event is published |
+| return-loan-dependency-times-out-fee-ledger | operation returnLoan | system | red | an open loan, and a fee ledger that does not answer within 5 seconds | returnLoan is called for it | it gives up the call, answers 503, the loan stays open, and no event is published |
 | return-unknown-loan | operation returnLoan | system | red | a librarian | returnLoan is called with an id no loan has and again with abc | the first is refused as not found and the second as invalid input |
 | show-member | operation getMember | system | golden | a member and a librarian | getMember is called with the member's id | the member is answered |
 | show-member-bad-id | operation getMember | system | red | a librarian | getMember is called with memberId abc | it is refused as invalid input |
@@ -749,10 +812,10 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 |---|---|---|---|
 | LIB-1 |   | entities Member constraints member_card_number_unique; entities Member; paths /members post | tests register-member; tests register-member-email-taken; checks lend-and-return; checks migrated-members |
 | LIB-2 |   | entities Book; permissions public; paths /books get | tests browse-catalogue; checks service-answers |
-| LIB-3 | money | entities Loan; paths /loans post; migrations add-membership-tier | tests fees-block-lending; tests lend-a-copy; tests lend-limit-reached; tests lending-limit-accepted; checks lend-and-return |
+| LIB-3 | money | entities Loan; paths /loans post; migrations add-membership-tier | tests create-loan-repeated-with-the-same-idempotency-key; tests fees-block-lending; tests lend-a-copy; tests lend-limit-reached; tests lending-limit-accepted; checks lend-and-return |
 | LIB-4 |   | entities Loan transitions 1; entities Loan; paths /loans/{loanId}/return post; channels loan.overdue; channels loan.overdue messages LoanOverdue; configuration notificationChannelUrl | tests loan-becomes-overdue; monitors overdue-notices-sent |
 | LIB-5 |   | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; configuration dailyRate | tests loan-lent-and-returned; tests return-late; checks lend-and-return |
-| LIB-6 |   | roles member | checks member-sees-own-loans |
+| LIB-6 |   | roles member; session | checks member-sees-own-loans |
 | LIB-7 |   | pages loan-form; pages member-form | checks lend-and-return; monitors catalogue-latency |
 
 ## Sources

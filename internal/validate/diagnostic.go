@@ -28,6 +28,11 @@ const (
 	RuleTrigger                Rule = "trigger"
 	RuleRequirement            Rule = "requirement"
 	RuleEmits                  Rule = "emits"
+	RuleDependency             Rule = "dependency"
+	RuleIdempotencyKey         Rule = "idempotency_key"
+	RuleValidity               Rule = "validity"
+	RuleSession                Rule = "session"
+	RuleGuard                  Rule = "guard"
 	RuleOperation              Rule = "operation"
 	RulePage                   Rule = "page"
 	RuleAlgorithm              Rule = "algorithm"
@@ -105,6 +110,11 @@ var Rules = []Rule{
 	RuleTrigger,
 	RuleRequirement,
 	RuleEmits,
+	RuleDependency,
+	RuleIdempotencyKey,
+	RuleValidity,
+	RuleSession,
+	RuleGuard,
 	RuleOperation,
 	RulePage,
 	RuleAlgorithm,

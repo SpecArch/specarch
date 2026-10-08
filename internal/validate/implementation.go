@@ -17,11 +17,12 @@ var designKeys = map[string]bool{
 	"specarch": true, "stages": true, "sources": true,
 	"stakeholders": true, "needs": true, "requirements": true, "glossary": true, "assumptions": true,
 	"enums": true, "entities": true, "permissions": true, "roles": true, "paths": true, "commands": true,
-	"channels": true, "pages": true, "algorithms": true, "tests": true,
+	"channels": true, "dependencies": true, "session": true, "pages": true, "algorithms": true, "tests": true,
 	"environments": true, "release": true, "rollback": true, "migrations": true, "checks": true, "signoff": true,
 	"relations": true, "constraints": true, "transitions": true, "operationId": true, "responses": true,
 	"requestBody": true, "parameters": true, "permission": true, "formula": true, "examples": true,
 	"properties": true, "primaryKey": true, "stateField": true, "messages": true, "payload": true,
+	"calls": true, "idempotencyKey": true, "guard": true, "validity": true,
 }
 
 // namedMaps are the implementation file's maps whose keys the author

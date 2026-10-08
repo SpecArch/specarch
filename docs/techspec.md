@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.3.0-dev of the specification: 28 requirements, 3 entities, 9 commands, 6 algorithms, 188 tests, 20 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.3.0-dev of the specification: 29 requirements, 3 entities, 9 commands, 6 algorithms, 194 tests, 21 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -191,6 +191,11 @@ Primary key: path.
 | Rule | trigger | a transition's trigger is not an operation, command, channel message or algorithm |
 | Rule | requirement | a `satisfies` or `verifies` link names a requirement that is neither in the specification nor in a declared requirement set |
 | Rule | emits | an `emits` entry names a channel or message that does not exist |
+| Rule | dependency | a `calls` entry names a dependency that is not declared, or a dependency's timeout is zero |
+| Rule | idempotency_key | an `idempotencyKey` names no header parameter of its operation, or sits on a method that RFC 9110 already makes idempotent |
+| Rule | validity | a `validity` names a field the entity does not have, one that is not a date or a date-time, or a `from` and an `until` of different formats |
+| Rule | session | a session's idle or absolute timeout is zero |
+| Rule | guard | a `guard` names an entity that does not exist (its precondition is checked as a check constraint is) |
 | Rule | operation | a `source`, `submit` or operation action names an operationId that does not exist |
 | Rule | page | a navigate action names a page that does not exist |
 | Rule | algorithm | an `algorithm` reference names an algorithm that does not exist |
@@ -1860,6 +1865,44 @@ satisfy it. The rank says nothing of a case a test already covers.
 
 **Note:** From ISO/IEC/IEEE 29119-4, Software and systems engineering, Software testing, Part 4, Test techniques, 2021, clause 5.4.1: Error guessing designs test cases from knowledge of the mistakes that are commonly made.
 
+### ADR-021: The waiting red paths get five concepts, each the smallest a test can be derived from
+
+Status: accepted, 2026-10-08.
+
+Context: Five red paths every reviewer asks for could not be derived, because
+the meta-model had no word for what they rest on: a dependency that
+is down or slow, a request sent twice, a record past its date, a
+session past its limit, and two writers on one record. Each was a
+test written by hand or forgotten.
+
+Decision: `dependencies` is a design section of external systems, each with a
+`timeout`, and an operation lists the ones it `calls`. An operation
+on a method that RFC 9110 does not make idempotent may name an
+`idempotencyKey`, a header parameter of its own. An entity may name
+the fields that bound its `validity`, `from` and `until`. A
+specification may declare its `session`, with an `idleTimeout` and an
+`absoluteTimeout`. An operation or a command may carry a `guard`:
+the entity it writes, a `precondition` over that entity's fields,
+and the exact `recordsChanged`. Every duration is an ISO 8601
+duration in days, hours, minutes and seconds, never zero. Each
+concept has one rule and its derived cases; the failing, slow and
+concurrent cases are critical on their own.
+
+Consequences: A specification can say the five things in its own words, and the
+validator asks for their tests. A guard's postcondition is not a
+derived case, since a test cannot set it up from outside; it waits
+for the emitted script. The meta-model stays at 0.1, as it did for
+harm, mistakes and the structured test data; the keywords are
+additions no existing file breaks on.
+
+**Insight:** The limit sits on the dependency and not on the call site, so one system has one limit wherever it is called. The idempotency key is refused on GET, PUT and DELETE because RFC 9110 already makes them idempotent, and saying it twice would be two ways to say one thing. Validity sits on the entity because a record is current or not as a whole. The session's two timeouts are the ones the OWASP cheat sheet asks for, and one of them is enough to declare a session. A guard joins the precondition and the record count because both are checked with the change itself, which is what refuses the second writer. A duration leaves out weeks, months and years because their length depends on the calendar, and a limit must mean the same every day; both validator builds check the one narrow form, where the general duration format of JSON Schema is asserted by one build's library and not the other's.
+
+**Note:** From RFC 9110, HTTP Semantics, 2022, clause 9.2.2: Idempotent methods are distinguished because the request can be repeated automatically if a communication failure occurs before any response is received. <https://www.rfc-editor.org/rfc/rfc9110>
+
+**Note:** From The Idempotency-Key HTTP Header Field, an Internet-Draft of the IETF HTTP API working group: If the Idempotency-Key request header is used with a request payload that differs from the first request's, the server should reject the request. <https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/>
+
+**Note:** From OWASP Session Management Cheat Sheet: All sessions should implement an idle timeout and an absolute timeout. <https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -1938,9 +1981,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-change-log-warning | command validate | system | golden | a description that says how the file changed | validate is run | it warns with change_log and exits 0, since the file is still valid |
 | validate-cites | command validate | system | golden | elements that carry why and citations of declared sources | validate is run | it prints nothing and exits 0 |
 | validate-commissioning-record | command validate | system | red | a commissioning record whose results name a check that does not exist and whose version is not a release | validate is run | it reports commissioning_record for each and exits 1 |
+| validate-concept-cases-listed | command validate | system | golden | a session, a dependency an operation calls, an idempotency key on that operation, a guard on it, and a validity on the entity its body names, with no tests | validate is run | it warns for the expired session, the dependency failing and timing out with the 503 the operation declares, the repeated request, the concurrent write, and the caller without the permission, each with a test to copy; the expired record and the reused key, occasional cases of an operation with no harm, are left to the test plan; and it exits 0 |
 | validate-decision | command validate | system | red | a decision superseded by one that does not exist | validate is run | it reports decision and exits 1 |
 | validate-defect-duplicate | command validate | system | red | a duplicate that names no defect, one that repeats a duplicate, and one that repeats a defect that does not exist | validate is run | it reports defect_duplicate for each and exits 1 |
 | validate-defect-test | command validate | system | red | a fixed defect that names no test, and a fixed defect that violates a permission and names a test about a command | validate is run | it reports defect_test for each and exits 1 |
+| validate-dependency | command validate | system | red | a dependency whose timeout is zero, and an operation that calls a dependency that is not declared | validate is run | it reports dependency for the timeout and for the call, naming the declared dependency it resembles, and exits 1 |
 | validate-deployment-environment-missing | command validate | system | red | an implementation deployment that names no environment while the specification declares them | validate is run | it reports environment at the deployment and exits 1 |
 | validate-deployment-valid | command validate | system | golden | a specification with environments, configuration, release, rollback, a migration, a check and a sign-off, and an implementation file whose deployment names its environment and gives the non-secret setting a value | validate is run | it prints nothing and exits 0 |
 | validate-derived-acceptance | command validate | system | golden | a requirement with a harm and two acceptance criteria, one with a test, and a requirement without a harm and no test | validate is run | it warns only for the second criterion of the requirement with a harm, naming requirement and acceptance 2 in the test to copy, and exits 0 |
@@ -1974,6 +2019,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-folder-search | command validate | system | golden | a folder holding a design file two levels down and a text file | validate is run on the folder | it finds and checks the design file, ignores the text file, and exits 0 |
 | validate-formula-output-scale | command validate | system | red | a formula whose decimal result has no fixed scale and is not rounded | validate is run | it reports expression_type asking for round and exits 1 |
 | validate-fragment-given-by-name | command validate | system | red | a file of a tree given by name instead of the tree's folder | validate is run on it | it reports file_kind naming the folder to run on and exits 1 |
+| validate-guard | command validate | system | red | a guard naming an entity that does not exist, and a guard whose precondition compares a string with a number | validate is run | it reports guard for the entity and expression_type for the precondition, and exits 1 |
+| validate-idempotency-key | command validate | system | red | an idempotency key on a GET, and one on a POST that names a query parameter rather than a header | validate is run | it reports idempotency_key for both, saying that GET is idempotent by itself and that the key is not a header parameter, and exits 1 |
 | validate-implements | command validate | system | red | an implementation file written against an older version of its design | validate is run | it reports implements and exits 1 |
 | validate-incident-link | command validate | system | golden | a resolved incident that names no defect and no change and gives no noChange reason | validate is run | it warns with incident_link and exits 0, since the record is still valid |
 | validate-layout-folder-missing | command validate | system | red | stages that list deployment with no deployment/ folder | validate is run | it reports layout at stages and exits 1 |
@@ -2029,6 +2076,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-schema-untyped-integer | command validate | system | red | an integer field without a format | validate is run | it reports the missing format with rule schema and exits 1 |
 | validate-secret-in-deployment | command validate | system | red | an implementation deployment that gives a value to a secret setting | validate is run | it reports secret_value and exits 1 |
 | validate-secret-value | command validate | system | red | a setting marked secret with a default value | validate is run | it reports secret_value and exits 1 |
+| validate-session | command validate | system | red | a session whose idle timeout is zero | validate is run | it reports session and exits 1 |
 | validate-setting | command validate | system | red | an implementation deployment that gives a value to a setting the specification does not declare | validate is run | it reports setting and exits 1 |
 | validate-source | command validate | system | red | a citation of a source that is not declared | validate is run | it reports source and exits 1 |
 | validate-stack-key | command validate | system | red | a design file with an x-oapi-codegen key on an operation | validate is run | it reports stack_key and exits 1 |
@@ -2051,6 +2099,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-usage-error | command validate | system | red | no file or folder | validate is run without arguments | it prints how to use it and exits 2, with nothing on standard output |
 | validate-valid-design | command validate | system | golden | a design file with only specarch and info | validate is run on its folder | it prints nothing and exits 0 |
 | validate-valid-implementation | command validate | system | golden | a design file and an implementation file that names it at the same version | validate is run on their folder | it prints nothing and exits 0 |
+| validate-validity | command validate | system | red | an entity whose validity names a date-time and a date, and one whose validity names a field it does not have and a field with no format | validate is run | it reports validity for each, and exits 1 |
 | validate-yaml-syntax | command validate | system | red | a flow mapping that is never closed | validate is run | it reports yaml_syntax with the line and exits 1 |
 | version-prints-versions | command version | system | golden | the program | version is run | it prints the program version and the meta-model versions it reads, and exits 0 |
 | version-usage-error | command version | system | red | the program | version is run with an argument | it prints how to use it and exits 2 |
@@ -2090,6 +2139,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 | Requirement | Statement | Kind | Priority | Status | Verification | Acceptance | Needs |
 |---|---|---|---|---|---|---|---|
+| SA-29 | A specification shall be able to declare the dependencies an operation calls with a time limit per call, an idempotency key on an operation, the validity of an entity's records, how a session ends, and a guard on a data change, and specarch validate shall check each against the design and derive the red cases each implies. | functional | must | accepted | test | A calls entry naming no declared dependency, an idempotency key naming no header parameter or sitting on a GET, a validity naming a field that is not a date, a timeout of zero, and a guard naming no entity are each reported under their rule. An operation that calls a dependency gets the cases dependency fails and dependency times out, one with an idempotency key the repeated and reused cases, one taking a record of an entity with validity the expired case, one with a guard the concurrent write case, and every non-public subject the expired session case once a session is declared. | NEED-9 |
 | SA-28 | specarch derive shall write a draft test for every derived case that no test covers, and shall never overwrite a test or write one for a subject an open must or should question holds up. | functional | should | accepted | test | A specification with uncovered chosen cases gets one test folder per case, each marked origin inferred, and validates afterwards. A test folder that exists is kept as it is. A subject a must question blocks gets no test, and derive names it. | NEED-9 |
 | SA-27 | A design test may carry its fixture, input and expected outcome as structured data in the design's own vocabulary, and the validator shall check that data against the design. | functional | should | accepted | test | A fixture naming a field the entity does not have, a value of the wrong type, or a record a check constraint refuses is reported as test_data. An input naming a parameter the operation does not have, or an expected status that is not one of its responses, is reported as test_data. A test with input and an input/ folder beside it is reported as test_data. | NEED-9 |
 | SA-21 | specarch validate shall rank every test case it derives as critical, frequent or other, from the harm of the requirements its subject satisfies and from how often users get its field wrong, and shall warn only for the critical and frequent cases no test covers. | functional | must | accepted | test | An operation that satisfies no requirement with harm gets no warning for the boundary cases of its fields, and still gets one for a missing required field and for a caller without the permission. The same operation, once it satisfies a requirement with harm, gets a warning for every derived case no test covers. A field with mistakes rare loses the warnings for its cases, and a field with mistakes frequent gains them. A failing channel is warned about whatever the harm of the operation. | NEED-9 |
@@ -2118,6 +2168,12 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-6 | Every problem shall be reported, one line each, with file, line, YAML path and rule; the exit status is 0 when valid, 1 when invalid, 2 on a usage or read error. | interface | must | accepted | test | A run on a folder with three problems in two files prints three lines and exits 1. A run with no arguments prints how to use the command and exits 2. | NEED-1 |
 | SA-9 | A specification and its implementations shall be separate files; a specification holds no stack-specific key and an implementation file adds no design. | constraint | must | accepted | test | A stack-specific extension key in a specification is reported as stack_key. A design keyword in an implementation file is reported as design_key. | NEED-2 |
 | SA-10 | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. | functional | must | accepted | test | An implementation written against an older version of its specification is reported as implements. A pointer to an object the specification does not have is reported as design_ref. | NEED-2 |
+
+**Insight on SA-29:** The red paths a specification could not express, a dependency down or slow, a retry, expired data, an expired session, two writers on one record, are the ones a tester forgets and a live system meets; once the design says them, the tests follow from it like every other case.
+
+**Note on SA-29:** From RFC 9110, HTTP Semantics, 2022, clause 9.2.2: A request method is idempotent if the intended effect on the server of multiple identical requests with that method is the same as the effect for a single such request; PUT, DELETE and the safe methods are idempotent. <https://www.rfc-editor.org/rfc/rfc9110>
+
+**Note on SA-29:** From OWASP Session Management Cheat Sheet: All sessions should implement an idle timeout and an absolute timeout. <https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html>
 
 **Insight on SA-28:** The tests a specification implies are only worth listing if writing them out is cheap; a draft the author completes is cheaper than a warning the author copies.
 
@@ -2205,6 +2261,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-26 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-releases |
 | SA-27 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
 | SA-28 | commands derive | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-root-tests; tests derive-skips-blocked; tests derive-usage-error; tests derive-writes-drafts |
+| SA-29 | enums Rule; commands validate; decisions ADR-021 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
 
 ## Sources
 
@@ -2219,6 +2276,7 @@ Every source a Note in this document cites.
 | go-tool | The go command, Go documentation | 1.26 | The Go project | https://go.dev/doc/ |
 | iec-62381 | IEC 62381, Automation systems in the process industry, Factory acceptance test (FAT), site acceptance test (SAT) and site integration test (SIT) | 2024 | IEC |   |
 | ieee-830 | IEEE Std 830-1998, IEEE Recommended Practice for Software Requirements Specifications | 1998 | IEEE |   |
+| ietf-idempotency-key | The Idempotency-Key HTTP Header Field, an Internet-Draft of the IETF HTTP API working group |   | IETF HTTP API working group | https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/ |
 | iso-12207 | ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes | 2017 | ISO, IEC and IEEE | https://www.iso.org/standard/63712.html |
 | iso-29119-1 | ISO/IEC/IEEE 29119-1, Software and systems engineering, Software testing, Part 1, General concepts | 2022 | ISO, IEC and IEEE |   |
 | iso-29119-3 | ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation | 2021 | ISO, IEC and IEEE | https://www.iso.org/standard/79429.html |
@@ -2228,6 +2286,8 @@ Every source a Note in this document cites.
 | mil-std-961 | MIL-STD-961E, Defense and program-unique specifications format and content | 2003, with change 3 of 2020 | United States Department of Defense |   |
 | moscow | MoSCoW prioritisation, in the DSDM Agile Project Framework handbook | 2014 | Agile Business Consortium | https://www.agilebusiness.org/dsdm-project-framework/moscow-prioritisation.html |
 | openapi | OpenAPI Specification | 3.1.0 | OpenAPI Initiative | https://spec.openapis.org/oas/v3.1.0 |
+| owasp-session-management | OWASP Session Management Cheat Sheet |   | OWASP | https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html |
 | protoc-plugins | Protocol buffers compiler plug-in protocol, plugin.proto | 2024 | The protocol buffers project | https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto |
+| rfc-9110 | RFC 9110, HTTP Semantics | 2022 | IETF | https://www.rfc-editor.org/rfc/rfc9110 |
 | semver | Semantic Versioning | 2.0.0 | The Semantic Versioning project | https://semver.org/spec/v2.0.0.html |
 

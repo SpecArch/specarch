@@ -1,0 +1,7 @@
+page: member-view
+level: system
+scenario: red
+covers: [denied with expired session]
+given: a librarian whose session expired after half an hour without a request
+when: the page member-view is opened
+then: it is not shown, and the sign-in page is shown instead

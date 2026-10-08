@@ -1,0 +1,55 @@
+decisions:
+  ADR-021:
+    title: The waiting red paths get five concepts, each the smallest a test can be derived from
+    status: accepted
+    date: "2026-10-08"
+    context: |
+      Five red paths every reviewer asks for could not be derived, because
+      the meta-model had no word for what they rest on: a dependency that
+      is down or slow, a request sent twice, a record past its date, a
+      session past its limit, and two writers on one record. Each was a
+      test written by hand or forgotten.
+    decision: |
+      `dependencies` is a design section of external systems, each with a
+      `timeout`, and an operation lists the ones it `calls`. An operation
+      on a method that RFC 9110 does not make idempotent may name an
+      `idempotencyKey`, a header parameter of its own. An entity may name
+      the fields that bound its `validity`, `from` and `until`. A
+      specification may declare its `session`, with an `idleTimeout` and an
+      `absoluteTimeout`. An operation or a command may carry a `guard`:
+      the entity it writes, a `precondition` over that entity's fields,
+      and the exact `recordsChanged`. Every duration is an ISO 8601
+      duration in days, hours, minutes and seconds, never zero. Each
+      concept has one rule and its derived cases; the failing, slow and
+      concurrent cases are critical on their own.
+    consequences: |
+      A specification can say the five things in its own words, and the
+      validator asks for their tests. A guard's postcondition is not a
+      derived case, since a test cannot set it up from outside; it waits
+      for the emitted script. The meta-model stays at 0.1, as it did for
+      harm, mistakes and the structured test data; the keywords are
+      additions no existing file breaks on.
+    why: |
+      The limit sits on the dependency and not on the call site, so one
+      system has one limit wherever it is called. The idempotency key is
+      refused on GET, PUT and DELETE because RFC 9110 already makes them
+      idempotent, and saying it twice would be two ways to say one thing.
+      Validity sits on the entity because a record is current or not as a
+      whole. The session's two timeouts are the ones the OWASP cheat sheet
+      asks for, and one of them is enough to declare a session. A guard
+      joins the precondition and the record count because both are checked
+      with the change itself, which is what refuses the second writer. A
+      duration leaves out weeks, months and years because their length
+      depends on the calendar, and a limit must mean the same every day;
+      both validator builds check the one narrow form, where the general
+      duration format of JSON Schema is asserted by one build's library
+      and not the other's.
+    satisfies: [SA-29]
+    cites:
+      - source: rfc-9110
+        clause: "9.2.2"
+        says: "Idempotent methods are distinguished because the request can be repeated automatically if a communication failure occurs before any response is received."
+      - source: ietf-idempotency-key
+        says: "If the Idempotency-Key request header is used with a request payload that differs from the first request's, the server should reject the request."
+      - source: owasp-session-management
+        says: "All sessions should implement an idle timeout and an absolute timeout."

@@ -31,6 +31,13 @@ final class Subject {
         cases.append(DerivedCase(name: name, scenario: "red", given: given, when: when, then: then, frequency: frequency))
     }
 
+    /// A red case that is critical on its own.
+    func byNature(_ name: String, _ given: String, _ when: String, _ then: String) {
+        var dc = DerivedCase(name: name, scenario: "red", given: given, when: when, then: then, frequency: rare)
+        dc.critical = true
+        cases.append(dc)
+    }
+
     /// A case about one field, whose mistakes key may replace the frequency.
     func fieldCase(_ scenario: String, _ name: String, _ frequency: String, _ fieldName: String, _ field: YNode?,
                    _ given: String, _ when: String, _ then: String) {
@@ -38,10 +45,10 @@ final class Subject {
                                  frequency: frequency, field: field, fieldName: fieldName))
     }
 
-    /// Critical for a case of a critical subject or a failing dependency,
-    /// frequent for a case users get wrong often, other otherwise.
+    /// Critical for a case of a critical subject or a case critical on its
+    /// own, frequent for a case users get wrong often, other otherwise.
     func rank(_ dc: DerivedCase) -> String {
-        if critical || dc.critical || dc.name.hasPrefix("dependency fails ") { return rankCritical }
+        if critical || dc.critical { return rankCritical }
         let m = dc.mistakes
         return (m.isEmpty ? dc.frequency : m) == frequent ? rankFrequent : rankOther
     }
@@ -71,7 +78,8 @@ struct DerivedCase {
     var field: YNode? = nil
     var fieldName = ""
     /// Marks one case critical on its own: a path through a transition that
-    /// satisfies a requirement with a harm.
+    /// satisfies a requirement with a harm, or a case nobody exercises by hand
+    /// (a failing dependency, two writers on one record).
     var critical = false
 
     /// The field's own frequency, or "".
@@ -112,12 +120,40 @@ private func golden(_ given: String, _ when: String, _ then: String) -> DerivedC
     DerivedCase(name: "succeeds", scenario: "golden", given: given, when: when, then: then, frequency: "")
 }
 
-private func denied(_ s: Subject, _ perm: String, _ what: String) {
-    if perm.isEmpty || perm == "public" { return }
-    s.red("denied without " + perm, frequent, "a caller without " + perm, what, "it is refused as not allowed")
+/// The cases of a guard on an operation or a command: the precondition not
+/// holding, and a second writer on the same record.
+private func guardCases(_ s: Subject, _ g: YNode?, _ what: String) {
+    guard let g else { return }
+    let ent = str(g.child("entity"))
+    let pre = str(g.child("precondition"))
+    if !pre.isEmpty {
+        s.red("guard precondition fails", occasional, "a " + ent + " for which " + pre + " does not hold", what, "it is refused and no " + ent + " changes")
+    }
+    s.byNature("concurrent write", "another caller changed the " + ent + " after this caller read it", what, "it is refused and the other caller's change stands")
+}
+
+/// The response an operation gives when a dependency fails or does not
+/// answer in time, when the design declares one of the statuses given, or
+/// "...".
+private func failureResponse(_ op: YNode, _ statuses: String...) -> String {
+    for code in statuses {
+        if let r = op.child("responses")?.child(code) { return "it answers " + code + ": " + str(r.child("description")) }
+    }
+    return "..."
 }
 
 extension Design {
+    /// The cases of a permission other than public: a caller without it,
+    /// and, once the specification declares a session, a caller whose session
+    /// has expired.
+    func denied(_ s: Subject, _ perm: String, _ what: String) {
+        if perm.isEmpty || perm == "public" { return }
+        s.red("denied without " + perm, frequent, "a caller without " + perm, what, "it is refused as not allowed")
+        if root.child("session") != nil {
+            s.red("denied with expired session", frequent, "a caller whose session has expired", what, "it is refused as not signed in")
+        }
+    }
+
     /// Every subject of the file with its derived cases: operations,
     /// commands, pages, then each entity's constraints and transitions.
     func subjects() -> [Subject] {
@@ -234,7 +270,15 @@ extension Design {
             for r in pairs(child(entities[ent], "relations")) {
                 let kind = str(r.value.child("kind")), via = str(r.value.child("via"))
                 if (kind == "many-to-one" || kind == "one-to-one") && body[via] != nil {
-                    s.fieldCase("red", "not found " + via, frequent, via, body[via], "no " + str(r.value.child("target")) + " has that " + via, o.id + " is called with that " + via, "it is refused as not found")
+                    let target = str(r.value.child("target"))
+                    s.fieldCase("red", "not found " + via, frequent, via, body[via], "no " + target + " has that " + via, o.id + " is called with that " + via, "it is refused as not found")
+                    if let v = child(entities[target], "validity") {
+                        s.fieldCase("red", "expired " + via, occasional, via, body[via], "the " + target + " that " + via + " names is past its " + str(v.child("until")), o.id + " is called with that " + via, "it is refused as expired")
+                        let from = str(v.child("from"))
+                        if !from.isEmpty {
+                            s.fieldCase("red", "not yet valid " + via, occasional, via, body[via], "the " + target + " that " + via + " names is before its " + from, o.id + " is called with that " + via, "it is refused as not yet valid")
+                        }
+                    }
                 }
             }
             if o.method == "post" && child(o.node.child("responses"), "201") != nil {
@@ -249,9 +293,22 @@ extension Design {
             let ch = String(e.value.split(separator: "/", maxSplits: 1, omittingEmptySubsequences: false)[0])
             if !seenChannel.contains(ch) {
                 seenChannel.insert(ch)
-                s.red("dependency fails " + ch, rare, ch + " cannot take the message", call, "...")
+                s.byNature("dependency fails " + ch, ch + " cannot take the message", call, "...")
             }
         }
+        for e in items(o.node.child("calls")) {
+            guard let dep = dependencies[e.value] else { continue }
+            s.byNature("dependency fails " + e.value, e.value + " answers with an error", call, failureResponse(o.node, "502", "503"))
+            s.byNature("dependency times out " + e.value, e.value + " does not answer within " + str(dep.child("timeout")), call, failureResponse(o.node, "504", "503"))
+        }
+        let key = str(o.node.child("idempotencyKey"))
+        if !key.isEmpty {
+            let schema = headerParameter(o, key)?.child("schema")
+            let given = o.id + " has answered a request that carried " + key
+            s.fieldCase("golden", "repeated with the same " + key, frequent, key, schema, given, o.id + " is called again with the same " + key + " and the same request", "it answers as the first call did and nothing changes a second time")
+            s.fieldCase("red", key + " reused for another request", occasional, key, schema, given, o.id + " is called with the same " + key + " and a different request", "it is refused")
+        }
+        guardCases(s, o.node.child("guard"), call)
         for r in pairs(o.node.child("responses")) {
             let code = r.key.value
             if code.count == 3, code.first == "4" || code.first == "5" {
@@ -362,6 +419,7 @@ extension Design {
             s.red("exit " + c.key.value, frequent, "...", run, "it exits " + c.key.value + ": " + str(c.value))
         }
         denied(s, str(p.value.child("permission")), run)
+        guardCases(s, p.value.child("guard"), run)
         return s
     }
 

@@ -39,7 +39,7 @@ func (c Change) String() string {
 var notCompared = map[string]bool{"specarch": true, "info": true, "stages": true}
 
 // singleSections are the sections that are one object.
-var singleSections = map[string]bool{"release": true, "rollback": true, "signoff": true}
+var singleSections = map[string]bool{"session": true, "release": true, "rollback": true, "signoff": true}
 
 var methods = []string{"get", "post", "put", "patch", "delete"}
 

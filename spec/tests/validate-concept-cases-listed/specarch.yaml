@@ -1,0 +1,56 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  cards.renew: { description: Renew a card. }
+roles:
+  clerk: { description: Staff., permissions: [cards.renew] }
+session: { idleTimeout: PT30M, absoluteTimeout: PT12H }
+dependencies:
+  registry: { description: The national card registry., timeout: PT5S }
+entities:
+  Card:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      holder: { type: string, maxLength: 80 }
+      validUntil: { type: string, format: date }
+      issuedOn: { type: string, format: date }
+    required: [id, holder, validUntil, issuedOn]
+    primaryKey: [id]
+    validity: { from: issuedOn, until: validUntil }
+  Renewal:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      cardId: { type: string, format: uuid }
+    required: [id, cardId]
+    primaryKey: [id]
+    relations:
+      card: { target: Card, kind: many-to-one, via: cardId }
+paths:
+  /renewals:
+    post:
+      operationId: renewCard
+      summary: Renew a card
+      permission: cards.renew
+      idempotencyKey: Idempotency-Key
+      parameters:
+        - { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cardId: { type: string, format: uuid }
+              required: [cardId]
+      responses:
+        "201":
+          description: Renewed.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Renewal" }
+        "401": { description: Not signed in. }
+        "503": { description: The registry is unavailable. }
+      calls: [registry]
+      guard: { entity: Card, precondition: "holder != ''", recordsChanged: 1 }

@@ -1,0 +1,9 @@
+session:
+  description: A librarian or a member signs in once and works in a session.
+  idleTimeout: PT30M
+  absoluteTimeout: PT12H
+  satisfies: [LIB-6]
+  why: A desk terminal left unattended must not keep showing member records, so a session ends after half an hour without a request; a day's shift never needs more than twelve hours.
+  cites:
+    - source: data-protection-rules
+      says: "Personal data is shown only to the person it is about and to the staff who need it."

@@ -113,6 +113,7 @@ func contents(root *yaml.Node) string {
 	count(len(operations(root)), "HTTP operation", "HTTP operations")
 	count(len(pairs(root, "commands")), "command", "commands")
 	count(len(pairs(root, "channels")), "channel", "channels")
+	count(len(pairs(root, "dependencies")), "dependency", "dependencies")
 	count(len(pairs(root, "pages")), "page", "pages")
 	count(len(pairs(root, "algorithms")), "algorithm", "algorithms")
 	count(len(pairs(root, "tests")), "test", "tests")
@@ -181,7 +182,8 @@ func context(d *doc, root *yaml.Node) {
 	ops := operations(root)
 	cmds := pairs(root, "commands")
 	chans := pairs(root, "channels")
-	if len(ops)+len(cmds)+len(chans) == 0 {
+	deps := pairs(root, "dependencies")
+	if len(ops)+len(cmds)+len(chans)+len(deps) == 0 {
 		return
 	}
 	d.heading(2, "3. Context")
@@ -223,6 +225,25 @@ func context(d *doc, root *yaml.Node) {
 		d.blank()
 		d.explainRows(rows)
 	}
+	if len(deps) > 0 {
+		d.heading(3, "Dependencies")
+		d.para("External systems the operations call. A call that fails, or that does not answer within its time limit, is given up, and the operation answers as its failure response says.")
+		d.line("| Dependency | Time limit per call | Called by | Description |")
+		d.line("|---|---|---|---|")
+		for _, dep := range deps {
+			var callers []string
+			for _, o := range ops {
+				for _, c := range strs(o.node, "calls") {
+					if c == dep.Key.Value {
+						callers = append(callers, o.id)
+					}
+				}
+			}
+			d.line("| %s | %s | %s | %s |", dep.Key.Value, str(dep.Value, "timeout"), cell(strings.Join(callers, ", ")), cell(str(dep.Value, "description")))
+		}
+		d.blank()
+		d.explainRows(rowsOf(deps))
+	}
 }
 
 func buildingBlocks(d *doc, root *yaml.Node) {
@@ -252,6 +273,13 @@ func buildingBlocks(d *doc, root *yaml.Node) {
 		}
 		d.blank()
 		d.para("Primary key: " + strings.Join(strs(e.Value, "primaryKey"), ", ") + ".")
+		if v := get(e.Value, "validity"); v != nil {
+			if from := str(v, "from"); from != "" {
+				d.para(fmt.Sprintf("Validity: a record is current from its %s until its %s; outside that it is refused where it is used.", from, str(v, "until")))
+			} else {
+				d.para(fmt.Sprintf("Validity: a record is current until its %s; after that it is refused where it is used.", str(v, "until")))
+			}
+		}
 		if rels := pairs(e.Value, "relations"); len(rels) > 0 {
 			d.line("| Relation | Kind | Target | Via | On delete |")
 			d.line("|---|---|---|---|---|")
@@ -321,6 +349,7 @@ func runtime(d *doc, root *yaml.Node) {
 		d.heading(3, fmt.Sprintf("%s (%s %s)", o.id, strings.ToUpper(o.method), o.path))
 		d.para(str(o.node, "description"))
 		d.explain(o.node)
+		operationDetails(d, root, o.node)
 		d.block(operationSequence(root, o))
 	}
 	for _, c := range cmds {
@@ -328,8 +357,39 @@ func runtime(d *doc, root *yaml.Node) {
 		d.para(str(c.Value, "description"))
 		d.explain(c.Value)
 		commandDetails(d, c.Value)
+		guardText(d, c.Value)
 		d.block(commandSequence(root, c.Key.Value, c.Value))
 	}
+}
+
+// operationDetails writes what an operation calls, how a repeat is told
+// from a new request, and its guard.
+func operationDetails(d *doc, root *yaml.Node, op *yaml.Node) {
+	if calls := strs(op, "calls"); len(calls) > 0 {
+		var parts []string
+		for _, c := range calls {
+			parts = append(parts, fmt.Sprintf("%s (within %s)", c, str(get(get(root, "dependencies"), c), "timeout")))
+		}
+		d.para("Calls " + strings.Join(parts, ", ") + ".")
+	}
+	if key := str(op, "idempotencyKey"); key != "" {
+		d.para(fmt.Sprintf("Idempotent by the %s header: a request repeated with the same key is answered as the first was and has no second effect; a different request with a key already used is refused.", key))
+	}
+	guardText(d, op)
+}
+
+// guardText writes a guard: what the change writes, what must hold, and
+// how many records it touches.
+func guardText(d *doc, n *yaml.Node) {
+	g := get(n, "guard")
+	if g == nil {
+		return
+	}
+	text := fmt.Sprintf("Guard: the change writes %s %s %s", str(g, "recordsChanged"), str(g, "entity"), map[bool]string{true: "record", false: "records"}[str(g, "recordsChanged") == "1"])
+	if pre := str(g, "precondition"); pre != "" {
+		text += ", and `" + pre + "` must hold on each as it is at the moment of the change"
+	}
+	d.para(text + "; a change that finds otherwise is refused and changes nothing, so a second writer on the same record is refused rather than overwriting the first.")
 }
 
 func commandDetails(d *doc, c *yaml.Node) {
@@ -378,7 +438,8 @@ func crossCutting(d *doc, root *yaml.Node) {
 	perms := permissionsTable(root)
 	pages := pairs(root, "pages")
 	algs := pairs(root, "algorithms")
-	if perms == "" && len(pages)+len(algs) == 0 {
+	session := get(root, "session")
+	if perms == "" && session == nil && len(pages)+len(algs) == 0 {
 		return
 	}
 	d.heading(2, "8. Cross-cutting concepts")
@@ -387,6 +448,19 @@ func crossCutting(d *doc, root *yaml.Node) {
 		d.para("Access is fail-closed: every operation, command and page names the one permission it needs, and only the roles below grant one.")
 		d.block(perms)
 		d.explainRows(append(pairRows(root, "permissions"), pairRows(root, "roles")...))
+	}
+	if session != nil {
+		d.heading(3, "Sessions")
+		d.para(str(session, "description"))
+		var ends []string
+		if t := str(session, "idleTimeout"); t != "" {
+			ends = append(ends, "after "+t+" without a request")
+		}
+		if t := str(session, "absoluteTimeout"); t != "" {
+			ends = append(ends, "after "+t+" from signing in, whatever the caller does")
+		}
+		d.para("A caller's session expires " + strings.Join(ends, ", and ") + ". Every operation, command and page with a permission other than public refuses a caller whose session has expired.")
+		d.explain(session)
 	}
 	if len(pages) > 0 {
 		d.heading(3, "Pages")

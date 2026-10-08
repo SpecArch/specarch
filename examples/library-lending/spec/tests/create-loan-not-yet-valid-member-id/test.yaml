@@ -1,0 +1,7 @@
+operation: createLoan
+level: system
+scenario: red
+covers: [not yet valid memberId]
+given: a member registered with a joinedOn of tomorrow, and a book with a copy available
+when: createLoan is called for them
+then: it is refused as not yet valid and no loan is created

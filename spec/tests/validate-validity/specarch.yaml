@@ -1,0 +1,20 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+entities:
+  Card:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      issuedAt: { type: string, format: date-time }
+      validUntil: { type: string, format: date }
+    required: [id]
+    primaryKey: [id]
+    validity: { from: issuedAt, until: validUntil }
+  Pass:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      until: { type: string }
+    required: [id]
+    primaryKey: [id]
+    validity: { from: issued, until: until }

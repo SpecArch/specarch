@@ -25,7 +25,7 @@ var documentReads = map[string][]string{
 	"techspec":      {"*"},
 	"requirements":  {"stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints"},
 	"testplan":      {"tests", "requirements"},
-	"traceability":  {"needs", "requirements", "tests", "checks", "monitors", "enums", "entities", "permissions", "roles", "paths", "commands", "channels", "pages", "algorithms", "decisions"},
+	"traceability":  {"needs", "requirements", "tests", "checks", "monitors", "enums", "entities", "permissions", "roles", "session", "paths", "commands", "channels", "dependencies", "pages", "algorithms", "decisions"},
 	"deployment":    {"environments", "configuration", "release", "rollback", "migrations", "monitors"},
 	"commissioning": {"checks", "signoff"},
 }

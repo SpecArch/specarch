@@ -5,7 +5,7 @@ let designSchemaJSON = #"""
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.1.schema.json",
   "title": "SpecArch specification, meta-model 0.1",
-  "description": "A SpecArch specification describes one system through its whole life cycle: the sources it rests on, the requirements (stakeholders, needs, requirements, glossary, assumptions, constraints), the design (enums, entities, permissions, roles, endpoints, commands, channels, pages, algorithms, decisions), the tests, the deployment (environments, configuration, release, rollback, migrations) and the commissioning (checks, sign-off). On disk it is a folder whose root file is specarch.yaml; each stage listed under 'stages' lives in a folder of that name, and a stage not listed may be written inside specarch.yaml itself. The validator merges the tree into one document that this schema describes. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "description": "A SpecArch specification describes one system through its whole life cycle: the sources it rests on, the requirements (stakeholders, needs, requirements, glossary, assumptions, constraints), the design (enums, entities, permissions, roles, session, endpoints, commands, channels, dependencies, pages, algorithms, decisions), the tests, the deployment (environments, configuration, release, rollback, migrations) and the commissioning (checks, sign-off). On disk it is a folder whose root file is specarch.yaml; each stage listed under 'stages' lives in a folder of that name, and a stage not listed may be written inside specarch.yaml itself. The validator merges the tree into one document that this schema describes. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
     "specarch": {
@@ -143,6 +143,10 @@ let designSchemaJSON = #"""
         "$ref": "#/$defs/role"
       }
     },
+    "session": {
+      "description": "SpecArch keyword. How a caller's signed-in session ends: 'idleTimeout', the time without a request after which it expires, and 'absoluteTimeout', the time after signing in after which it expires whatever the caller does; at least one of the two (OWASP Session Management Cheat Sheet). Once a session is declared, every operation, command and page whose permission is not 'public' gets the derived red case 'denied with expired session'.",
+      "$ref": "#/$defs/session"
+    },
     "paths": {
       "description": "OpenAPI keyword. HTTP endpoints keyed by path template.",
       "type": "object",
@@ -171,6 +175,16 @@ let designSchemaJSON = #"""
       },
       "additionalProperties": {
         "$ref": "#/$defs/channel"
+      }
+    },
+    "dependencies": {
+      "description": "SpecArch keyword. External systems the operations call, keyed by camelCase name: a payment gateway, a directory, a ledger. Each has a time limit per call. An operation names the ones it calls under 'calls'; the validator derives the cases where one fails and where one does not answer in time.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/memberName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/dependency"
       }
     },
     "pages": {
@@ -322,6 +336,11 @@ let designSchemaJSON = #"""
       "description": "SpecArch keyword. The ID of a requirement, need, assumption or constraint: an upper-case prefix of 2 to 16 letters or digits, a dash, and an ID, such as SA-1 or NEED-12.",
       "type": "string",
       "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+    },
+    "duration": {
+      "description": "SpecArch keyword. A length of time as ISO 8601 writes it, in days, hours, minutes and seconds only and never zero: PT5S, PT30M, P1DT12H. Weeks, months and years are not allowed, because their length depends on the calendar, and a limit must mean the same every day.",
+      "type": "string",
+      "pattern": "^P(?:[0-9]+D|(?:[0-9]+D)?T(?:[0-9]+H(?:[0-9]+M)?(?:[0-9]+S)?|[0-9]+M(?:[0-9]+S)?|[0-9]+S))$"
     },
     "questionId": {
       "description": "SpecArch keyword. The ID of an open question: an upper-case prefix of 1 to 16 letters or digits, a dash, and an ID, such as Q-12 or OPEN-3.",
@@ -1344,6 +1363,9 @@ let designSchemaJSON = #"""
           },
           "minItems": 1
         },
+        "validity": {
+          "$ref": "#/$defs/validity"
+        },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
         },
@@ -1585,6 +1607,24 @@ let designSchemaJSON = #"""
       },
       "additionalProperties": false
     },
+    "validity": {
+      "description": "SpecArch keyword. The fields that bound when a record is current: 'from', the date or instant from which it is valid, which may be left out, and 'until', the date or instant after which it is expired. Both name fields of this entity with the same format, date or date-time. A record used outside its validity is refused; the validator derives that case for every operation that takes one.",
+      "type": "object",
+      "properties": {
+        "from": {
+          "description": "The field holding the date or instant from which the record is valid.",
+          "$ref": "#/$defs/memberName"
+        },
+        "until": {
+          "description": "The field holding the date or instant after which the record is expired.",
+          "$ref": "#/$defs/memberName"
+        }
+      },
+      "required": [
+        "until"
+      ],
+      "additionalProperties": false
+    },
     "permission": {
       "type": "object",
       "properties": {
@@ -1654,6 +1694,59 @@ let designSchemaJSON = #"""
       "required": [
         "description",
         "permissions"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "session": {
+      "description": "SpecArch keyword. The one session object of a specification.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "idleTimeout": {
+          "description": "The time without a request after which the session expires.",
+          "$ref": "#/$defs/duration"
+        },
+        "absoluteTimeout": {
+          "description": "The time after signing in after which the session expires, whatever the caller does.",
+          "$ref": "#/$defs/duration"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "idleTimeout"
+          ]
+        },
+        {
+          "required": [
+            "absoluteTimeout"
+          ]
+        }
       ],
       "propertyNames": {
         "not": {
@@ -1835,6 +1928,22 @@ let designSchemaJSON = #"""
           },
           "uniqueItems": true
         },
+        "calls": {
+          "description": "SpecArch keyword. The dependencies this operation calls, by their names under 'dependencies'.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "uniqueItems": true
+        },
+        "idempotencyKey": {
+          "description": "SpecArch keyword. The name of a header parameter of this operation by which a repeated request is told from a new one: a request repeated with the same key is answered as the first was and has no second effect, and a different request with a key already used is refused. Only on a method that is not idempotent by itself (RFC 9110, 9.2.2): post or patch.",
+          "type": "string",
+          "minLength": 1
+        },
+        "guard": {
+          "$ref": "#/$defs/guard"
+        },
         "algorithm": {
           "description": "SpecArch keyword. The algorithm this operation runs, if any.",
           "$ref": "#/$defs/memberName"
@@ -1952,6 +2061,31 @@ let designSchemaJSON = #"""
       },
       "minProperties": 1
     },
+    "guard": {
+      "description": "SpecArch keyword. What is checked together with a data change: the entity it writes, a precondition over that entity's fields that must hold on the records as they are at the moment of the change, and the exact number of records it changes. The checks run with the change itself, so a writer who read a record before another writer changed it is refused rather than overwriting the other's change, and a change that would touch more records than expected is refused as a whole. The validator derives the cases 'guard precondition fails' and 'concurrent write'.",
+      "type": "object",
+      "properties": {
+        "entity": {
+          "description": "The entity whose records the change writes.",
+          "$ref": "#/$defs/typeName"
+        },
+        "precondition": {
+          "description": "One expression in SpecArch's subset of CEL (docs/conventions.md) over the entity's fields, giving true or false, that must hold on each record as it is when the change is made.",
+          "type": "string",
+          "minLength": 1
+        },
+        "recordsChanged": {
+          "description": "The exact number of records of the entity the change writes.",
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "entity",
+        "recordsChanged"
+      ],
+      "additionalProperties": false
+    },
     "channel": {
       "description": "AsyncAPI keywords.",
       "type": "object",
@@ -2031,6 +2165,47 @@ let designSchemaJSON = #"""
       "required": [
         "summary",
         "payload"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "dependency": {
+      "description": "SpecArch keyword. One external system an operation calls.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "timeout": {
+          "description": "The time limit of one call: after it, the call is given up and the operation answers as it does when the dependency fails.",
+          "$ref": "#/$defs/duration"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description",
+        "timeout"
       ],
       "propertyNames": {
         "not": {
@@ -2586,6 +2761,9 @@ let designSchemaJSON = #"""
           "required": [
             "0"
           ]
+        },
+        "guard": {
+          "$ref": "#/$defs/guard"
         },
         "algorithm": {
           "description": "SpecArch keyword. The algorithm this command runs, if any.",
@@ -3912,9 +4090,11 @@ let implementationSchemaJSON = #"""
               "entities",
               "permissions",
               "roles",
+              "session",
               "paths",
               "commands",
               "channels",
+              "dependencies",
               "pages",
               "algorithms",
               "tests",

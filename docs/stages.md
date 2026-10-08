@@ -42,10 +42,12 @@ prefix.
 
 ## Design
 
-Sections: `enums`, `entities`, `permissions`, `roles`, `paths`, `commands`,
-`channels`, `pages`, `algorithms`, `decisions`. Standards: JSON Schema,
-OpenAPI, AsyncAPI, the common decision record of Michael Nygard, and the
-algorithm viewpoint of IEEE 1016, made testable with worked examples.
+Sections: `enums`, `entities`, `permissions`, `roles`, `session`, `paths`,
+`commands`, `channels`, `dependencies`, `pages`, `algorithms`, `decisions`.
+Standards: JSON Schema, OpenAPI, AsyncAPI, RFC 9110 for idempotency, the
+OWASP Session Management Cheat Sheet, the common decision record of
+Michael Nygard, and the algorithm viewpoint of IEEE 1016, made testable
+with worked examples.
 
 Every design element names the requirements it satisfies. The word is the
 satisfy relation of requirements engineering and SysML, so that the two

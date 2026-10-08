@@ -223,8 +223,30 @@ extension Checker {
                 }
             }
         }
+        for g in d.guards() {
+            checkPrecondition(d, g)
+        }
         for a in pairs(d.root.child("algorithms")) {
             checkAlgorithm(d, a.key.value, a.value)
+        }
+    }
+
+    /// Checks a guard's precondition as a check constraint of its entity: it
+    /// parses, names the entity's fields, and gives true or false.
+    func checkPrecondition(_ d: Design, _ g: Guard) {
+        guard let n = g.node.child("precondition"), n.kind == .scalar, let ent = d.entities[str(g.node.child("entity"))] else { return }
+        var env: ExprEnv = [:]
+        for (name, f) in fieldsOf(ent) { env[name] = d.fieldType(f) }
+        let ptr = g.ptr + "/precondition"
+        let (tree, perrs) = parseExpr(n.value)
+        guard let tree, perrs.isEmpty else {
+            exprErrors(n, ptr, "the precondition", perrs)
+            return
+        }
+        let (t, errs) = checkExpr(tree, env)
+        exprErrors(n, ptr, "the precondition", errs)
+        if errs.isEmpty && (t.kind != .bool || t.nullable) {
+            addFile(fileOf(n), exprLine(n, 1), ptr, .expressionType, "the precondition gives \(t), but a precondition must give true or false; compare the values with ==, <, > or similar")
         }
     }
 

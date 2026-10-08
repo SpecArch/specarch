@@ -1,0 +1,15 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  public: { description: Open to everyone. }
+dependencies:
+  registry: { description: The national card registry., timeout: PT0S }
+paths:
+  /cards:
+    get:
+      operationId: listCards
+      summary: List cards
+      permission: public
+      responses:
+        "200": { description: The cards. }
+      calls: [registri]

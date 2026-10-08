@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.3.0-dev of the specification: 9 needs, 28 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.3.0-dev of the specification: 9 needs, 29 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 ## 1. Needs to requirements
 
@@ -16,7 +16,7 @@ Version 0.3.0-dev of the specification: 9 needs, 28 requirements, and 0 gaps. Ea
 | NEED-6 | accepted | SA-15, SA-13 |
 | NEED-7 | accepted | SA-14 |
 | NEED-8 | accepted | SA-17, SA-18, SA-19, SA-20 |
-| NEED-9 | accepted | SA-28, SA-27, SA-21, SA-22 |
+| NEED-9 | accepted | SA-29, SA-28, SA-27, SA-21, SA-22 |
 
 ## 2. Requirements to design and verification
 
@@ -50,6 +50,7 @@ Version 0.3.0-dev of the specification: 9 needs, 28 requirements, and 0 gaps. Ea
 | SA-26 | NEED-3, NEED-5 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-releases |
 | SA-27 | NEED-9 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
 | SA-28 | NEED-9 | commands derive | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-root-tests; tests derive-skips-blocked; tests derive-usage-error; tests derive-writes-drafts |
+| SA-29 | NEED-9 | enums Rule; commands validate; decisions ADR-021 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
 
 ## 3. Gaps
 

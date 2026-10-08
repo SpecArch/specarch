@@ -1,0 +1,7 @@
+operation: createLoan
+level: system
+scenario: red
+covers: [Idempotency-Key not a valid uuid]
+given: a member and a book that exist
+when: createLoan is called with an Idempotency-Key that is not a UUID
+then: it is refused and no loan is created

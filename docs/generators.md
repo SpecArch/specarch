@@ -206,8 +206,10 @@ script has preconditions that raise when the system is not in the expected
 state, a dry run as the default, postconditions that check exact row counts,
 and no effect on a second run.
 
-This target needs the `guard` concept, which meta-model 0.1 does not have.
-It is a named 0.2 item in `docs/roadmap.md`, and the emitter follows it.
+The `guard` on an operation or a command (`docs/conventions.md`, Guards)
+is what the script is emitted from: its `precondition` becomes the check
+that raises, its `recordsChanged` the exact count the postcondition
+asserts. The emitter is a later item.
 
 ## Other formats
 

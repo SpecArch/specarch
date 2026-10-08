@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.3.0-dev of the specification: 5 stakeholders, 9 needs and 28 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.3.0-dev of the specification: 5 stakeholders, 9 needs and 29 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 ## 1. Purpose and scope
 
@@ -39,12 +39,13 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-17, SA-18, SA-19, SA-20 |
-| NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-28, SA-27, SA-21, SA-22 |
+| NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-29, SA-28, SA-27, SA-21, SA-22 |
 
 ## 4. Requirements
 
 | Requirement | Kind | Priority | Status | Statement |
 |---|---|---|---|---|
+| SA-29 | functional | must | accepted | A specification shall be able to declare the dependencies an operation calls with a time limit per call, an idempotency key on an operation, the validity of an entity's records, how a session ends, and a guard on a data change, and specarch validate shall check each against the design and derive the red cases each implies. |
 | SA-28 | functional | should | accepted | specarch derive shall write a draft test for every derived case that no test covers, and shall never overwrite a test or write one for a subject an open must or should question holds up. |
 | SA-27 | functional | should | accepted | A design test may carry its fixture, input and expected outcome as structured data in the design's own vocabulary, and the validator shall check that data against the design. |
 | SA-21 | functional | must | accepted | specarch validate shall rank every test case it derives as critical, frequent or other, from the harm of the requirements its subject satisfies and from how often users get its field wrong, and shall warn only for the critical and frequent cases no test covers. |
@@ -73,6 +74,23 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-6 | interface | must | accepted | Every problem shall be reported, one line each, with file, line, YAML path and rule; the exit status is 0 when valid, 1 when invalid, 2 on a usage or read error. |
 | SA-9 | constraint | must | accepted | A specification and its implementations shall be separate files; a specification holds no stack-specific key and an implementation file adds no design. |
 | SA-10 | functional | must | accepted | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. |
+
+### SA-29
+
+A specification shall be able to declare the dependencies an operation calls with a time limit per call, an idempotency key on an operation, the validity of an entity's records, how a session ends, and a guard on a data change, and specarch validate shall check each against the design and derive the red cases each implies.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-9.
+
+Acceptance criteria:
+
+- A calls entry naming no declared dependency, an idempotency key naming no header parameter or sitting on a GET, a validity naming a field that is not a date, a timeout of zero, and a guard naming no entity are each reported under their rule.
+- An operation that calls a dependency gets the cases dependency fails and dependency times out, one with an idempotency key the repeated and reused cases, one taking a record of an entity with validity the expired case, one with a guard the concurrent write case, and every non-public subject the expired session case once a session is declared.
+
+**Insight:** The red paths a specification could not express, a dependency down or slow, a retry, expired data, an expired session, two writers on one record, are the ones a tester forgets and a live system meets; once the design says them, the tests follow from it like every other case.
+
+**Note:** From RFC 9110, HTTP Semantics, 2022, clause 9.2.2: A request method is idempotent if the intended effect on the server of multiple identical requests with that method is the same as the effect for a single such request; PUT, DELETE and the safe methods are idempotent. <https://www.rfc-editor.org/rfc/rfc9110>
+
+**Note:** From OWASP Session Management Cheat Sheet: All sessions should implement an idle timeout and an absolute timeout. <https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html>
 
 ### SA-28
 
@@ -498,6 +516,8 @@ Every source a Note in this document cites.
 | iso-29148 | ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering | 2018 | ISO, IEC and IEEE | https://www.iso.org/standard/72089.html |
 | json-schema | JSON Schema, a media type for describing JSON documents | 2020-12 | The JSON Schema project | https://json-schema.org/specification |
 | openapi | OpenAPI Specification | 3.1.0 | OpenAPI Initiative | https://spec.openapis.org/oas/v3.1.0 |
+| owasp-session-management | OWASP Session Management Cheat Sheet |   | OWASP | https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html |
 | protoc-plugins | Protocol buffers compiler plug-in protocol, plugin.proto | 2024 | The protocol buffers project | https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto |
+| rfc-9110 | RFC 9110, HTTP Semantics | 2022 | IETF | https://www.rfc-editor.org/rfc/rfc9110 |
 | semver | Semantic Versioning | 2.0.0 | The Semantic Versioning project | https://semver.org/spec/v2.0.0.html |
 

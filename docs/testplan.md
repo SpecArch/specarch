@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.3.0-dev of the specification: 188 design tests, 59 golden and 128 red, about 10 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.3.0-dev of the specification: 194 design tests, 60 golden and 133 red, about 10 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.3.0-dev of the specification: 188 design tests, 59 golden and 128 red,
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 184 |
+| system | 190 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -627,6 +627,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-23.
 - When: validate is run
 - Then: it reports commissioning_record for each and exits 1
 
+#### validate-concept-cases-listed
+
+Scenario: golden; level: system; verifies SA-29.
+
+- Given: a session, a dependency an operation calls, an idempotency key on that operation, a guard on it, and a validity on the entity its body names, with no tests
+- When: validate is run
+- Then: it warns for the expired session, the dependency failing and timing out with the 503 the operation declares, the repeated request, the concurrent write, and the caller without the permission, each with a test to copy; the expired record and the reused key, occasional cases of an operation with no harm, are left to the test plan; and it exits 0
+
 #### validate-decision
 
 Scenario: red; level: system; covers exit 1.
@@ -650,6 +658,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-23.
 - Given: a fixed defect that names no test, and a fixed defect that violates a permission and names a test about a command
 - When: validate is run
 - Then: it reports defect_test for each and exits 1
+
+#### validate-dependency
+
+Scenario: red; level: system; covers exit 1; verifies SA-29.
+
+- Given: a dependency whose timeout is zero, and an operation that calls a dependency that is not declared
+- When: validate is run
+- Then: it reports dependency for the timeout and for the call, naming the declared dependency it resembles, and exits 1
 
 #### validate-deployment-environment-missing
 
@@ -914,6 +930,22 @@ Scenario: red; level: system; covers exit 1.
 - Given: a file of a tree given by name instead of the tree's folder
 - When: validate is run on it
 - Then: it reports file_kind naming the folder to run on and exits 1
+
+#### validate-guard
+
+Scenario: red; level: system; covers exit 1; verifies SA-29.
+
+- Given: a guard naming an entity that does not exist, and a guard whose precondition compares a string with a number
+- When: validate is run
+- Then: it reports guard for the entity and expression_type for the precondition, and exits 1
+
+#### validate-idempotency-key
+
+Scenario: red; level: system; covers exit 1; verifies SA-29.
+
+- Given: an idempotency key on a GET, and one on a POST that names a query parameter rather than a header
+- When: validate is run
+- Then: it reports idempotency_key for both, saying that GET is idempotent by itself and that the key is not a header parameter, and exits 1
 
 #### validate-implements
 
@@ -1355,6 +1387,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-12.
 - When: validate is run
 - Then: it reports secret_value and exits 1
 
+#### validate-session
+
+Scenario: red; level: system; covers exit 1; verifies SA-29.
+
+- Given: a session whose idle timeout is zero
+- When: validate is run
+- Then: it reports session and exits 1
+
 #### validate-setting
 
 Scenario: red; level: system; covers exit 1; verifies SA-10.
@@ -1531,6 +1571,14 @@ Scenario: golden; level: system.
 - When: validate is run on their folder
 - Then: it prints nothing and exits 0
 
+#### validate-validity
+
+Scenario: red; level: system; covers exit 1; verifies SA-29.
+
+- Given: an entity whose validity names a date-time and a date, and one whose validity names a field it does not have and a field with no format
+- When: validate is run
+- Then: it reports validity for each, and exits 1
+
 #### validate-yaml-syntax
 
 Scenario: red; level: system; covers exit 1; verifies SA-6.
@@ -1559,10 +1607,12 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-66 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a failing dependency, and none is a mistake users make often. Writing a test that covers one removes it from this list.
+68 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
+| requirement SA-29 | acceptance 1 | golden | SA-29 names no harm |
+| requirement SA-29 | acceptance 2 | golden | SA-29 names no harm |
 | requirement SA-28 | acceptance 1 | golden | SA-28 names no harm |
 | requirement SA-28 | acceptance 2 | golden | SA-28 names no harm |
 | requirement SA-28 | acceptance 3 | golden | SA-28 names no harm |

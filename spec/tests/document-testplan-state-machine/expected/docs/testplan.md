@@ -57,7 +57,7 @@ stateDiagram-v2
 
 ## 4. Derived cases left out
 
-1 case the design implies has no test and is not written by default: none is about a subject that satisfies a requirement with a harm, none is a failing dependency, and none is a mistake users make often. Writing a test that covers one removes it from this list.
+1 case the design implies has no test and is not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|

@@ -66,8 +66,10 @@ func Drafts(root *yaml.Node) []Draft {
 // chosenReason says why a chosen case is written.
 func (s *subject) chosenReason(dc derivedCase) string {
 	switch {
-	case strings.HasPrefix(dc.name, "dependency fails "):
+	case strings.HasPrefix(dc.name, "dependency fails ") || strings.HasPrefix(dc.name, "dependency times out "):
 		return "a failing dependency is always written"
+	case dc.name == "concurrent write":
+		return "two writers on one record is a case nobody exercises by hand, so it is always written"
 	case s.critical || dc.critical:
 		return s.label + " is at stake in a requirement that names a harm, so its cases are written"
 	}
@@ -161,6 +163,14 @@ func (d *design) draftData(root *yaml.Node, s *subject, dc derivedCase) (caller,
 		}
 	case strings.HasPrefix(dc.name, "response "):
 		return "", "status: " + strings.TrimPrefix(dc.name, "response ")
+	case strings.HasPrefix(dc.name, "repeated with the same "):
+		for _, r := range source.Pairs(source.Child(op, "responses")) {
+			if strings.HasPrefix(r.Key.Value, "2") {
+				return "", "status: " + r.Key.Value
+			}
+		}
+	case dc.name == "denied with expired session" && has("401"):
+		return "", "status: 401"
 	case strings.HasPrefix(dc.name, "not found ") && has("404"):
 		return "", "status: 404"
 	case strings.HasPrefix(dc.name, "denied without "):

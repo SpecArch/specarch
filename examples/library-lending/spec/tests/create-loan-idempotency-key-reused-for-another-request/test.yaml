@@ -1,0 +1,7 @@
+operation: createLoan
+level: system
+scenario: red
+covers: [Idempotency-Key reused for another request]
+given: a loan was created under an Idempotency-Key
+when: createLoan is called with the same Idempotency-Key for another book
+then: it is refused and no loan is created

@@ -6,6 +6,6 @@ pages:
     entity: Member
     permission: members.read
     source: getMember
-    fields: [cardNumber, fullName, email, tier, joinedOn, outstandingFees]
+    fields: [cardNumber, fullName, email, tier, joinedOn, membershipEndsOn, outstandingFees]
     actions:
       - { label: Lend a book, kind: navigate, target: loan-form, permission: loans.create }

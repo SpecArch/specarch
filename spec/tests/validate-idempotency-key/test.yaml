@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: an idempotency key on a GET, and one on a POST that names a query parameter rather than a header
+when: validate is run
+then: it reports idempotency_key for both, saying that GET is idempotent by itself and that the key is not a header parameter, and exits 1
+verifies: [SA-29]

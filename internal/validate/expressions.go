@@ -136,8 +136,37 @@ func (c *checker) checkExpressions(d *design) {
 			}
 		}
 	}
+	for _, g := range d.guards() {
+		c.checkPrecondition(d, g)
+	}
 	for _, a := range source.Pairs(source.Child(d.root, "algorithms")) {
 		c.checkAlgorithm(d, a.Key.Value, a.Value)
+	}
+}
+
+// checkPrecondition checks a guard's precondition as a check constraint
+// of its entity: it parses, names the entity's fields, and gives true or
+// false.
+func (c *checker) checkPrecondition(d *design, g guard) {
+	n := source.Child(g.node, "precondition")
+	ent := d.entities[source.Str(source.Child(g.node, "entity"))]
+	if n == nil || !source.IsScalar(n) || ent == nil {
+		return
+	}
+	env := map[string]expr.Type{}
+	for name, f := range fieldsOf(ent) {
+		env[name] = d.fieldType(f)
+	}
+	ptr := g.ptr + "/precondition"
+	tree, errs := expr.Parse(n.Value)
+	if len(errs) > 0 {
+		c.exprErrors(n, ptr, "the precondition", errs)
+		return
+	}
+	t, errs := expr.Check(tree, env)
+	c.exprErrors(n, ptr, "the precondition", errs)
+	if len(errs) == 0 && (t.Kind != expr.Bool || t.Nullable) {
+		c.addFile(c.fileOf(n), exprLine(n, 1), ptr, RuleExpressionType, "the precondition gives %s, but a precondition must give true or false; compare the values with ==, <, > or similar", t)
 	}
 }
 

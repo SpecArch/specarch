@@ -74,6 +74,7 @@ erDiagram
     string email
     MembershipTier tier
     date joinedOn
+    date membershipEndsOn
     decimal outstandingFees
   }
 ```
@@ -105,7 +106,10 @@ sequenceDiagram
   participant C as Client
   participant S as Library Lending
   participant Q1 as loan.lifecycle
+  participant D1 as feeLedger
   C->>S: POST /loans/{loanId}/return
+  S->>D1: call, within PT5S
+  D1-->>S: answer
   S->>S: lateFee(daysLate, dailyRate, replacementCost)
   S-->>Q1: LoanReturned
   S-->>C: 200 Loan

@@ -42,6 +42,23 @@ sources:
     title: ISO/IEC/IEEE 29119-4, Software and systems engineering, Software testing, Part 4, Test techniques
     edition: "2021"
     author: ISO, IEC and IEEE
+  rfc-9110:
+    kind: standard
+    title: RFC 9110, HTTP Semantics
+    edition: "2022"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc9110
+  ietf-idempotency-key:
+    kind: document
+    title: The Idempotency-Key HTTP Header Field, an Internet-Draft of the IETF HTTP API working group
+    author: IETF HTTP API working group
+    url: https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/
+    description: A draft, not a standard; cited for the header's name and the rule that a key reused for a different request is refused.
+  owasp-session-management:
+    kind: document
+    title: OWASP Session Management Cheat Sheet
+    author: OWASP
+    url: https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html
   iso-12207:
     kind: standard
     title: ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes

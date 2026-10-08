@@ -88,6 +88,13 @@ paths:
         Refused when the member already holds the maximum open loans for their
         tier, has outstanding fees, or the book has no copy available.
       permission: loans.create
+      idempotencyKey: Idempotency-Key
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Chosen by the client for each new loan, so that a lost answer can be retried without lending twice.
+          schema: { type: string, format: uuid }
       requestBody:
         required: true
         content:
@@ -123,7 +130,10 @@ paths:
             application/json:
               schema: { $ref: "#/entities/Loan" }
         "409": { description: The loan is already closed. }
+        "503": { description: "The fee ledger is unavailable, and the loan stays as it was." }
       emits: [loan.lifecycle/LoanReturned]
+      calls: [feeLedger]
+      guard: { entity: Loan, precondition: 'status == "open" || status == "overdue"', recordsChanged: 1 }
       satisfies: [LIB-4, LIB-5]
 
   /loans/{loanId}/lost:
@@ -140,4 +150,7 @@ paths:
             application/json:
               schema: { $ref: "#/entities/Loan" }
         "409": { description: The loan is already closed. }
+        "503": { description: "The fee ledger is unavailable, and the loan stays as it was." }
       emits: [loan.lifecycle/LoanLost]
+      calls: [feeLedger]
+      guard: { entity: Loan, precondition: 'status == "open" || status == "overdue"', recordsChanged: 1 }

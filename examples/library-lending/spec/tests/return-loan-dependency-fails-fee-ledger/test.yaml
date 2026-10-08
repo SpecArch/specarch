@@ -1,0 +1,7 @@
+operation: returnLoan
+level: system
+scenario: red
+covers: [dependency fails feeLedger]
+given: an open loan, and a fee ledger that answers every call with an error
+when: returnLoan is called for it
+then: it answers 503, the loan stays open, and no event is published

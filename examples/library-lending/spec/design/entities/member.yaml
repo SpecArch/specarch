@@ -12,6 +12,11 @@ entities:
       email: { type: string, format: email, maxLength: 320 }
       tier: { $ref: "#/enums/MembershipTier" }
       joinedOn: { type: string, format: date, readOnly: true }
+      membershipEndsOn:
+        type: string
+        format: date
+        readOnly: true
+        description: The last day the card is valid; set a year after joining and moved on by each renewal.
       outstandingFees:
         type: string
         format: decimal
@@ -19,8 +24,9 @@ entities:
         scale: 2
         description: Sum of unpaid late fees and replacement charges, in the library's currency.
         readOnly: true
-    required: [id, cardNumber, fullName, email, tier, joinedOn, outstandingFees]
+    required: [id, cardNumber, fullName, email, tier, joinedOn, membershipEndsOn, outstandingFees]
     primaryKey: [id]
+    validity: { from: joinedOn, until: membershipEndsOn }
     relations:
       loans: { target: Loan, kind: one-to-many, via: memberId }
     constraints:

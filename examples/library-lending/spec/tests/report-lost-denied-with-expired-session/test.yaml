@@ -1,0 +1,7 @@
+operation: reportLost
+level: system
+scenario: red
+covers: [denied with expired session]
+given: a librarian whose session expired after half an hour without a request
+when: reportLost is called for an open loan
+then: it is refused as not signed in, and nothing changes

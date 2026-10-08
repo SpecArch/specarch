@@ -1,0 +1,7 @@
+operation: getMember
+level: system
+scenario: red
+covers: [denied with expired session]
+given: a librarian whose session expired after half an hour without a request
+when: getMember is called for a member that exists
+then: it is refused as not signed in, and nothing changes

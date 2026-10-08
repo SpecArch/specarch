@@ -283,7 +283,7 @@ func Testplan(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	stateMachines(d, root, state)
 	if state != nil && len(state.LeftOut) > 0 {
 		d.section("Derived cases left out")
-		d.para(fmt.Sprintf("%s the design implies %s no test and %s not written by default: none is about a subject that satisfies a requirement with a harm, none is a failing dependency, and none is a mistake users make often. Writing a test that covers one removes it from this list.",
+		d.para(fmt.Sprintf("%s the design implies %s no test and %s not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.",
 			countText(len(state.LeftOut), "case", "cases"), map[bool]string{true: "has", false: "have"}[len(state.LeftOut) == 1], map[bool]string{true: "is", false: "are"}[len(state.LeftOut) == 1]))
 		d.line("| Subject | Case | Scenario | Why it is left out |")
 		d.line("|---|---|---|---|")
@@ -361,7 +361,7 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation) strin
 		}
 	}
 	hasDesign := false
-	for _, s := range []string{"enums", "entities", "permissions", "roles", "paths", "commands", "channels", "pages", "algorithms", "decisions"} {
+	for _, s := range []string{"enums", "entities", "permissions", "roles", "session", "paths", "commands", "channels", "dependencies", "pages", "algorithms", "decisions"} {
 		if get(root, s) != nil {
 			hasDesign = true
 		}

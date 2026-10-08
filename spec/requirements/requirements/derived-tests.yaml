@@ -1,4 +1,21 @@
 requirements:
+  SA-29:
+    statement: A specification shall be able to declare the dependencies an operation calls with a time limit per call, an idempotency key on an operation, the validity of an entity's records, how a session ends, and a guard on a data change, and specarch validate shall check each against the design and derive the red cases each implies.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A calls entry naming no declared dependency, an idempotency key naming no header parameter or sitting on a GET, a validity naming a field that is not a date, a timeout of zero, and a guard naming no entity are each reported under their rule.
+      - An operation that calls a dependency gets the cases dependency fails and dependency times out, one with an idempotency key the repeated and reused cases, one taking a record of an entity with validity the expired case, one with a guard the concurrent write case, and every non-public subject the expired session case once a session is declared.
+    verification: test
+    needs: [NEED-9]
+    why: The red paths a specification could not express, a dependency down or slow, a retry, expired data, an expired session, two writers on one record, are the ones a tester forgets and a live system meets; once the design says them, the tests follow from it like every other case.
+    cites:
+      - source: rfc-9110
+        clause: "9.2.2"
+        says: "A request method is idempotent if the intended effect on the server of multiple identical requests with that method is the same as the effect for a single such request; PUT, DELETE and the safe methods are idempotent."
+      - source: owasp-session-management
+        says: "All sessions should implement an idle timeout and an absolute timeout."
   SA-28:
     statement: specarch derive shall write a draft test for every derived case that no test covers, and shall never overwrite a test or write one for a subject an open must or should question holds up.
     kind: functional

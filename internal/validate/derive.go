@@ -38,11 +38,12 @@ type derivedCase struct {
 	given     string
 	when      string
 	then      string
-	frequency string // how often users make the mistake: frequent, occasional or rare
+	frequency string     // how often users make the mistake: frequent, occasional or rare
 	field     *yaml.Node // the field or parameter schema the case is about, or nil
 	fieldName string
 	// critical marks one case critical on its own: a path through a
-	// transition that satisfies a requirement with a harm.
+	// transition that satisfies a requirement with a harm, or a case nobody
+	// exercises by hand (a failing dependency, two writers on one record).
 	critical bool
 	// reason says why the case is left out, when the general one does not
 	// fit the subject.
@@ -81,10 +82,10 @@ func (dc derivedCase) mistakes() string {
 	return source.Str(source.Child(dc.field, "mistakes"))
 }
 
-// rank is critical for a case of a critical subject or a failing
-// dependency, frequent for a case users get wrong often, other otherwise.
+// rank is critical for a case of a critical subject or a case critical
+// on its own, frequent for a case users get wrong often, other otherwise.
 func (s *subject) rank(dc derivedCase) string {
-	if s.critical || dc.critical || strings.HasPrefix(dc.name, "dependency fails ") {
+	if s.critical || dc.critical {
 		return rankCritical
 	}
 	freq := dc.frequency
@@ -132,10 +133,10 @@ func (d *design) subjects() []*subject {
 		out = append(out, d.withHarm(d.operationSubject(o), o.node))
 	}
 	for _, p := range source.Pairs(source.Child(d.root, "commands")) {
-		out = append(out, d.withHarm(commandSubject(p), p.Value))
+		out = append(out, d.withHarm(d.commandSubject(p), p.Value))
 	}
 	for _, p := range source.Pairs(source.Child(d.root, "pages")) {
-		out = append(out, d.withHarm(pageSubject(p), p.Value))
+		out = append(out, d.withHarm(d.pageSubject(p), p.Value))
 	}
 	for _, e := range source.Pairs(source.Child(d.root, "entities")) {
 		for _, c := range source.Pairs(source.Child(e.Value, "constraints")) {
@@ -210,7 +211,7 @@ func (d *design) flowSubject(e source.Pair) *subject {
 			}
 			s.cases = append(s.cases, derivedCase{name: strings.Join(states, " to "), scenario: "golden",
 				given: "a " + entity + " that is " + states[0], when: strings.Join(triggers, ", then ") + " happen",
-				then: "the " + entity + " ends " + state + ", having been " + joinAnd(states[:len(states)-1]),
+				then:      "the " + entity + " ends " + state + ", having been " + joinAnd(states[:len(states)-1]),
 				frequency: occasional, critical: critical, reason: "no transition on the path satisfies a requirement with a harm"})
 			return
 		}
@@ -238,7 +239,6 @@ func (d *design) flowSubject(e source.Pair) *subject {
 	return s
 }
 
-
 // withHarm marks the subject critical when a requirement its own
 // satisfies names, the node holding that list, has a harm.
 func (d *design) withHarm(s *subject, n *yaml.Node) *subject {
@@ -262,11 +262,47 @@ func golden(given, when, then string) derivedCase {
 	return derivedCase{name: "succeeds", scenario: "golden", given: given, when: when, then: then}
 }
 
-func denied(s *subject, perm, what string) {
+// denied adds the cases of a permission other than public: a caller
+// without it, and, once the specification declares a session, a caller
+// whose session has expired.
+func (d *design) denied(s *subject, perm, what string) {
 	if perm == "" || perm == "public" {
 		return
 	}
 	s.red("denied without "+perm, frequent, "a caller without "+perm, what, "it is refused as not allowed")
+	if source.Child(d.root, "session") != nil {
+		s.red("denied with expired session", frequent, "a caller whose session has expired", what, "it is refused as not signed in")
+	}
+}
+
+// byNature adds a red case that is critical on its own.
+func (s *subject) byNature(name, given, when, then string) {
+	s.cases = append(s.cases, derivedCase{name: name, scenario: "red", given: given, when: when, then: then, frequency: rare, critical: true})
+}
+
+// guardCases adds the cases of a guard on an operation or a command: the
+// precondition not holding, and a second writer on the same record.
+func guardCases(s *subject, g *yaml.Node, what string) {
+	if g == nil {
+		return
+	}
+	ent := source.Str(source.Child(g, "entity"))
+	if pre := source.Str(source.Child(g, "precondition")); pre != "" {
+		s.red("guard precondition fails", occasional, "a "+ent+" for which "+pre+" does not hold", what, "it is refused and no "+ent+" changes")
+	}
+	s.byNature("concurrent write", "another caller changed the "+ent+" after this caller read it", what, "it is refused and the other caller's change stands")
+}
+
+// failureResponse is the response an operation gives when a dependency
+// fails or does not answer in time, when the design declares one of the
+// statuses given, or "...".
+func failureResponse(op *yaml.Node, statuses ...string) string {
+	for _, code := range statuses {
+		if r := source.Child(source.Child(op, "responses"), code); r != nil {
+			return "it answers " + code + ": " + source.Str(source.Child(r, "description"))
+		}
+	}
+	return "..."
 }
 
 func (d *design) operationSubject(o operation) *subject {
@@ -311,7 +347,14 @@ func (d *design) operationSubject(o operation) *subject {
 			kind := source.Str(source.Child(r.Value, "kind"))
 			via := source.Str(source.Child(r.Value, "via"))
 			if (kind == "many-to-one" || kind == "one-to-one") && body[via] != nil {
-				s.fieldCase("red", "not found "+via, frequent, via, body[via], "no "+source.Str(source.Child(r.Value, "target"))+" has that "+via, o.id+" is called with that "+via, "it is refused as not found")
+				target := source.Str(source.Child(r.Value, "target"))
+				s.fieldCase("red", "not found "+via, frequent, via, body[via], "no "+target+" has that "+via, o.id+" is called with that "+via, "it is refused as not found")
+				if v := source.Child(d.entities[target], "validity"); v != nil {
+					s.fieldCase("red", "expired "+via, occasional, via, body[via], "the "+target+" that "+via+" names is past its "+source.Str(source.Child(v, "until")), o.id+" is called with that "+via, "it is refused as expired")
+					if from := source.Str(source.Child(v, "from")); from != "" {
+						s.fieldCase("red", "not yet valid "+via, occasional, via, body[via], "the "+target+" that "+via+" names is before its "+from, o.id+" is called with that "+via, "it is refused as not yet valid")
+					}
+				}
 			}
 		}
 		if o.method == "post" && source.Child(source.Child(o.node, "responses"), "201") != nil {
@@ -322,15 +365,30 @@ func (d *design) operationSubject(o operation) *subject {
 			}
 		}
 	}
-	denied(s, source.Str(source.Child(o.node, "permission")), call)
+	d.denied(s, source.Str(source.Child(o.node, "permission")), call)
 	seenChannel := map[string]bool{}
 	for _, e := range source.Items(source.Child(o.node, "emits")) {
 		ch, _, _ := strings.Cut(e.Value, "/")
 		if !seenChannel[ch] {
 			seenChannel[ch] = true
-			s.red("dependency fails "+ch, rare, ch+" cannot take the message", call, "...")
+			s.byNature("dependency fails "+ch, ch+" cannot take the message", call, "...")
 		}
 	}
+	for _, e := range source.Items(source.Child(o.node, "calls")) {
+		dep := d.dependencies[e.Value]
+		if dep == nil {
+			continue
+		}
+		s.byNature("dependency fails "+e.Value, e.Value+" answers with an error", call, failureResponse(o.node, "502", "503"))
+		s.byNature("dependency times out "+e.Value, e.Value+" does not answer within "+source.Str(source.Child(dep, "timeout")), call, failureResponse(o.node, "504", "503"))
+	}
+	if key := source.Str(source.Child(o.node, "idempotencyKey")); key != "" {
+		schema := source.Child(headerParameter(o, key), "schema")
+		given := o.id + " has answered a request that carried " + key
+		s.fieldCase("golden", "repeated with the same "+key, frequent, key, schema, given, o.id+" is called again with the same "+key+" and the same request", "it answers as the first call did and nothing changes a second time")
+		s.fieldCase("red", key+" reused for another request", occasional, key, schema, given, o.id+" is called with the same "+key+" and a different request", "it is refused")
+	}
+	guardCases(s, source.Child(o.node, "guard"), call)
 	for _, r := range source.Pairs(source.Child(o.node, "responses")) {
 		if code := r.Key.Value; len(code) == 3 && (code[0] == '4' || code[0] == '5') {
 			s.red("response "+code, occasional, "...", call, "it answers "+code+": "+source.Str(source.Child(r.Value, "description")))
@@ -465,7 +523,7 @@ func characters(n string, off int) string {
 	return fmt.Sprintf("of %d characters", v)
 }
 
-func commandSubject(p source.Pair) *subject {
+func (d *design) commandSubject(p source.Pair) *subject {
 	name := p.Key.Value
 	s := &subject{kind: "command", label: "command " + name, node: p.Key, path: source.Pointer("commands", name),
 		yamlKey: "command: " + name, name: kebab(strings.ReplaceAll(name, " ", "-"))}
@@ -480,11 +538,12 @@ func commandSubject(p source.Pair) *subject {
 			s.red("exit "+c.Key.Value, frequent, "...", run, "it exits "+c.Key.Value+": "+source.Str(c.Value))
 		}
 	}
-	denied(s, source.Str(source.Child(p.Value, "permission")), run)
+	d.denied(s, source.Str(source.Child(p.Value, "permission")), run)
+	guardCases(s, source.Child(p.Value, "guard"), run)
 	return s
 }
 
-func pageSubject(p source.Pair) *subject {
+func (d *design) pageSubject(p source.Pair) *subject {
 	name := p.Key.Value
 	s := &subject{kind: "page", label: "page " + name, node: p.Key, path: source.Pointer("pages", name),
 		yamlKey: "page: " + name, name: name}
@@ -493,7 +552,7 @@ func pageSubject(p source.Pair) *subject {
 	if pathParam.MatchString(source.Str(source.Child(p.Value, "route"))) {
 		s.success.when = open + " for a record that exists"
 	}
-	denied(s, source.Str(source.Child(p.Value, "permission")), open)
+	d.denied(s, source.Str(source.Child(p.Value, "permission")), open)
 	for _, m := range pathParam.FindAllStringSubmatch(source.Str(source.Child(p.Value, "route")), -1) {
 		s.red("not found "+m[1], frequent, "no record has that "+m[1], open+" for that "+m[1], "it says the record was not found")
 	}
@@ -648,4 +707,3 @@ func unwrap(expr string) (string, bool) {
 	}
 	return strings.TrimSpace(expr[1 : len(expr)-1]), true
 }
-

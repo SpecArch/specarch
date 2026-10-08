@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a session whose idle timeout is zero
+when: validate is run
+then: it reports session and exits 1
+verifies: [SA-29]

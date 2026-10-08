@@ -22,6 +22,7 @@ type design struct {
 	roles        map[string]*yaml.Node
 	commands     map[string]*yaml.Node
 	channels     map[string]*yaml.Node
+	dependencies map[string]*yaml.Node
 	pages        map[string]*yaml.Node
 	algorithms   map[string]*yaml.Node
 	decisions    map[string]*yaml.Node
@@ -65,6 +66,7 @@ func newDesign(root *yaml.Node) *design {
 		roles:        topMap(root, "roles"),
 		commands:     topMap(root, "commands"),
 		channels:     topMap(root, "channels"),
+		dependencies: topMap(root, "dependencies"),
 		pages:        topMap(root, "pages"),
 		algorithms:   topMap(root, "algorithms"),
 		decisions:    topMap(root, "decisions"),
@@ -173,6 +175,8 @@ func (c *checker) checkDesign(d *design) {
 	c.checkEntities(d)
 	c.checkOperations(d)
 	c.checkCommands(d)
+	c.checkDependencies(d)
+	c.checkSession(d)
 	c.checkPages(d)
 	c.checkDecisions(d)
 	c.checkAccess(d)
@@ -334,6 +338,7 @@ func (c *checker) checkEntities(d *design) {
 			c.checkRelation(d, name, fields, p)
 		}
 		c.checkStates(d, name, e, fields)
+		c.checkValidity(name, e, fields)
 	}
 }
 
@@ -460,6 +465,9 @@ func (c *checker) checkOperations(d *design) {
 			}
 		}
 		c.checkPathParameters(o)
+		c.checkCalls(d, o)
+		c.checkIdempotencyKey(o)
+		c.checkGuard(d, source.Child(o.node, "guard"), o.pointer("guard"))
 	}
 }
 
@@ -508,6 +516,7 @@ func (c *checker) checkCommands(d *design) {
 					"only the last argument may be repeatable; move this argument to the end or make it a single value")
 			}
 		}
+		c.checkGuard(d, source.Child(cmd, "guard"), source.Pointer("commands", name, "guard"))
 	}
 }
 

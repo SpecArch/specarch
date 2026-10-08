@@ -1,0 +1,8 @@
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: an entity whose validity names a date-time and a date, and one whose validity names a field it does not have and a field with no format
+when: validate is run
+then: it reports validity for each, and exits 1
+verifies: [SA-29]

@@ -26,7 +26,7 @@ let methods = ["get", "post", "put", "patch", "delete"]
 final class Design {
     let root: YNode
     var spec: Spec? // the specification on disk, when known
-    let entities, enums, permissions, roles, commands, channels, pages, algorithms, decisions, sources: [String: YNode]
+    let entities, enums, permissions, roles, commands, channels, dependencies, pages, algorithms, decisions, sources: [String: YNode]
     let stakeholders, needs, requirements, environments, settings, checks, monitors, questions: [String: YNode]
     var operations: [String: Operation] = [:] // by operationId, the first definition
     var opList: [Operation] = []              // every operation in document order
@@ -44,6 +44,7 @@ final class Design {
         roles = topMap("roles")
         commands = topMap("commands")
         channels = topMap("channels")
+        dependencies = topMap("dependencies")
         pages = topMap("pages")
         algorithms = topMap("algorithms")
         decisions = topMap("decisions")
@@ -186,6 +187,8 @@ extension Checker {
         checkEntities(d)
         checkOperations(d)
         checkCommands(d)
+        checkDependencies(d)
+        checkSession(d)
         checkPages(d)
         checkDecisions(d)
         checkAccess(d)
@@ -394,6 +397,7 @@ extension Checker {
                 checkRelation(d, name, fields, p)
             }
             checkStates(d, name, e, fields)
+            checkValidity(name, e, fields)
         }
     }
 
@@ -477,6 +481,9 @@ extension Checker {
                 add(e, o.pointer("emits", "\(i)"), .emits, "\(e.value) does not name a channel and one of its messages; write channel/Message for a message declared under channels")
             }
             checkPathParameters(o)
+            checkCalls(d, o)
+            checkIdempotencyKey(o)
+            checkGuard(d, o.node.child("guard"), o.pointer("guard"))
         }
     }
 
@@ -510,6 +517,7 @@ extension Checker {
                 add(a.child("repeatable"), pointer("commands", name, "arguments", "\(i)", "repeatable"), .schema,
                     "only the last argument may be repeatable; move this argument to the end or make it a single value")
             }
+            checkGuard(d, cmd.child("guard"), pointer("commands", name, "guard"))
         }
     }
 

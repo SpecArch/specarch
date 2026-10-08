@@ -15,7 +15,10 @@ success case of every subject, the acceptance case per criterion, the
 paths of a state machine and the decision-table cases of a check
 constraint. So is the third: `fixture`, `input` and `expect` on a test,
 checked against the design. And the fourth: `specarch derive`, which
-writes the drafts. The other items are listed at the end.
+writes the drafts. The sixth is built ahead of the fifth: the concepts the
+waiting red paths needed, dependencies with a time limit, an idempotency
+key, validity, sessions and guards, with their derived cases. The other
+items are listed at the end.
 
 The standards are ISO/IEC/IEEE 29119-4:2021 for the techniques and their
 coverage measures, and ISO/IEC/IEEE 29119-1:2022 for why a test set is a
@@ -170,15 +173,22 @@ not a user mistake.
 | denied without the permission | frequent | every role meets the screen it may not use |
 | not found | frequent | a stale link, a deleted record |
 | duplicate | occasional | a double submit, a re-import |
-| dependency fails | rare | but critical by nature, see below |
+| dependency fails, dependency times out | rare | but critical by nature, see below |
+| repeated with the same key | frequent | a client retries every lost answer |
+| key reused for another request | occasional | a client bug |
+| expired, not yet valid | occasional | a record used past its validity |
+| denied with expired session | frequent | every user meets it after a pause |
+| guard precondition fails | occasional | a stale screen |
+| concurrent write | rare | but critical by nature, see below |
 | response 4xx or 5xx not covered above | occasional | |
 | from wrong state | frequent | a retried request after the state moved on |
 | violates a check constraint | occasional | |
 | usage error, exit N | frequent | a command is typed by hand |
 
-A case that would stop a dependency (`dependency fails`) is treated as
-critical whatever the subject's harm, because it is the case nobody
-exercises by hand.
+A case that would stop a dependency (`dependency fails`, `dependency
+times out`) or that needs two writers at once (`concurrent write`) is
+treated as critical whatever the subject's harm, because it is the case
+nobody exercises by hand.
 
 ## Which red cases are written
 
@@ -186,7 +196,7 @@ Every derived case has a rank:
 
 | Rank | When |
 |---|---|
-| critical | the subject is critical, or the case is a failing dependency |
+| critical | the subject is critical, or the case is one nobody exercises by hand: a failing or slow dependency, two writers on one record |
 | frequent | the case's frequency is frequent, by the table or by `mistakes` |
 | other | everything else |
 
@@ -258,25 +268,30 @@ as `open to overdue to returned`. The paths take the transitions in
 document order and never visit a state twice, so both builds list them
 alike.
 
-## What waits for meta-model 0.2
+## The red paths and the concepts they rest on
 
-The requirement's examples of red paths, marked by what they need:
+The requirement's examples of red paths, each with the concept of the
+meta-model it is derived from (`docs/conventions.md` has each concept):
 
-| Red path | Now or later | Needs |
-|---|---|---|
-| invalid, empty or misspelt input | now | the derivation as it is |
-| permission denied | now | |
-| missing record | now | `not found` |
-| duplicate, double submit, back and retry | now for unique constraints and `from wrong state`; the repeated POST that is not a duplicate waits | an idempotency concept on an operation |
-| limits | now | boundary cases |
-| dependency down | now for channels (`dependency fails`) | external services an operation calls, as a concept, for the rest |
-| timeout | later | the same `dependencies` concept, with a time limit per call |
-| expired data | later | a `validity` on a field or entity: valid from, valid until |
-| session expiry | later | a `session` concept on access: `denied with expired session` for every non-public permission |
-| concurrency | later | the `guard` concept planned for 0.2: two writers, one record |
+| Red path | Derived from |
+|---|---|
+| invalid, empty or misspelt input | the limits, patterns, enums and formats of the fields |
+| permission denied | the permission |
+| missing record | a path parameter, or a body field that is the `via` of a relation (`not found`) |
+| duplicate, double submit, back and retry | a unique constraint (`duplicate`), a transition (`from wrong state`), and an `idempotencyKey` on the operation (`repeated with the same <key>`, `<key> reused for another request`) |
+| limits | the boundary cases |
+| dependency down | a channel the operation `emits` on, or a dependency it `calls` (`dependency fails`) |
+| timeout | the dependency's `timeout` (`dependency times out`) |
+| expired data | `validity` on the entity a body field names (`expired`, `not yet valid`) |
+| session expiry | the `session` (`denied with expired session`, for every permission other than public) |
+| concurrency | the `guard` on the operation or command (`concurrent write`, and `guard precondition fails`) |
 
-Each waiting one is a 0.2 candidate in the roadmap. Until then a tester
-writes such a test by hand, as today, and it is a test like any other.
+Each concept was chosen for what a test can set up from outside: a
+dependency that fails or stalls, a key sent twice, a record past its
+date, a session past its limit, a record changed under a writer. What a
+test cannot set up from outside, a guard's postcondition for one, is not
+derived; the guard's `recordsChanged` is for the emitted script that
+checks it after the change.
 
 ## The verb that writes the tests
 
@@ -391,8 +406,10 @@ validator builds where it adds a rule, and the conformance cases.
    input and expect through the implementation file; worked examples as
    unit tests. One real project's hand-written test is the acceptance
    test of the generator, as `docs/generators.md` asks of every emitter.
-6. The 0.2 concepts the waiting red paths need: dependencies with time
-   limits, idempotency on an operation, validity on a field, sessions on
-   access, and the guard already planned.
+6. Built. The concepts the waiting red paths needed: `dependencies` with
+   a `timeout` and `calls` on an operation, `idempotencyKey` on an
+   operation, `validity` on an entity, `session`, and `guard` on an
+   operation or a command, each with its rule and its derived cases.
+   Both builds, with cases; the techspec shows each.
 7. The Swift and Flutter test plug-ins, once the first project on each
    stack exists.

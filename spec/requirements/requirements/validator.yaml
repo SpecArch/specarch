@@ -48,6 +48,7 @@ requirements:
     acceptance:
       - An operation, command or page without a permission is a schema error.
       - A permission no role grants is reported, also when it has no description; only a must question that blocks the permission itself covers it.
+      - A separation-of-duties set names two or more declared permissions, none of them public, and a cardinality from 2 to the number it names; a role that grants that many of the set is refused (separation_of_duties), and the techspec lists, for each set, the combinations of roles that together reach it, as roles never to be given to one person.
     verification: test
     needs: [NEED-1]
   SA-6:

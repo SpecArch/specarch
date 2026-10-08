@@ -45,7 +45,7 @@ as a set and a cardinality: no one holds that many of the set at once.
     separationOfDuties:
       lend-and-write-off:
         description: Whoever lends a copy must not be able to write the loss off.
-        permissions: [loans.create, loans.writeOff]
+        permissions: [loans.create, loans.writeoff]
         cardinality: 2
 
 `cardinality` is the number of the set's permissions one holder may not

@@ -205,6 +205,7 @@ extension Checker {
         checkChildRows(d)
         checkDecisions(d)
         checkAccess(d)
+        checkSeparationOfDuties(d)
         checkExpressions(d)
         checkTests(d)
         checkTestData(d)

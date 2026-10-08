@@ -3,6 +3,9 @@ roles:
   librarian:
     description: Staff at the desk.
     permissions: [members.read, members.write, catalogue.read, loans.read, loans.create, loans.return]
+  head-librarian:
+    description: Staff who decide what a lost copy costs the library; they do not lend.
+    permissions: [loans.read, loans.writeoff]
   member:
     description: A card holder, limited to their own records by the service.
     permissions: [catalogue.read, loans.read]

@@ -153,6 +153,16 @@ let designSchemaJSON = #"""
         "$ref": "#/$defs/role"
       }
     },
+    "separationOfDuties": {
+      "description": "SpecArch keyword. Sets of permissions one holder must never have together, after the static separation of duty of ANSI INCITS 359, keyed by kebab-case name. No role may grant cardinality or more of a set's permissions; the techspec lists the combinations of roles that together reach a set, as roles never to be given to one person.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/separationName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/separationOfDuties"
+      }
+    },
     "session": {
       "description": "SpecArch keyword. How a caller's signed-in session ends: 'idleTimeout', the time without a request after which it expires, and 'absoluteTimeout', the time after signing in after which it expires whatever the caller does; at least one of the two (OWASP Session Management Cheat Sheet). Once a session is declared, every operation, command and page whose permission is not 'public' gets the derived red case 'denied with expired session'.",
       "$ref": "#/$defs/session"
@@ -443,6 +453,10 @@ let designSchemaJSON = #"""
       "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$"
     },
     "roleName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+    },
+    "separationName": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
     },
@@ -1858,6 +1872,56 @@ let designSchemaJSON = #"""
           },
           "minItems": 1,
           "uniqueItems": true
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description",
+        "permissions"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "separationOfDuties": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "permissions": {
+          "description": "The permissions of the set, each declared and none of them public.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/permissionName"
+          },
+          "minItems": 2,
+          "uniqueItems": true
+        },
+        "cardinality": {
+          "description": "How many of the set's permissions one holder may not reach: at least 2, at most the number the set names, and 2 when left out.",
+          "type": "integer",
+          "minimum": 2
         },
         "satisfies": {
           "$ref": "#/$defs/satisfies"

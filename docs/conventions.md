@@ -439,6 +439,7 @@ redefined.
 | `valueDescriptions` | SpecArch | per-value meaning of an enum |
 | `commands`, `arguments`, `options`, `reads`, `writes`, `standardOutput`, `standardError`, `exitCodes`, `repeatable` | SpecArch | command-line interfaces; no standard describes one |
 | `permissions`, `roles`, `permission` | SpecArch | OpenAPI's `security` names a scheme, not a right; SpecArch needs the right |
+| `separationOfDuties`, `cardinality` | ANSI INCITS 359 (RBAC), static separation of duty | a set and a number no holder may reach; stated over permissions, not roles, because the specification declares the duties and the roles that grant them |
 | `session`, `idleTimeout`, `absoluteTimeout` | SpecArch, after the OWASP Session Management Cheat Sheet | how a signed-in session ends; the two timeouts are the cheat sheet's |
 | `dependencies`, `timeout`, `calls` | SpecArch | external systems an operation calls, each with a time limit per call |
 | `idempotencyKey` | SpecArch, after RFC 9110 9.2.2 and the IETF Idempotency-Key header draft | a header that tells a repeated request from a new one, on a method that is not idempotent by itself |
@@ -503,6 +504,28 @@ everyone and must be written out; there is no default. A role lists the
 permissions it grants and cannot be empty. Row-level rules (a member sees only
 their own loans) are not in the meta-model yet; they are described in prose and
 enforced by the service, and are on the list in `docs/roadmap.md`.
+
+### Separation of duties
+
+`separationOfDuties` holds sets of permissions one holder must never have
+together, after the static separation of duty of the ANSI RBAC standard
+(INCITS 359), which states it as a set and a cardinality: no one holds
+that many of the set at once.
+
+    separationOfDuties:
+      lend-and-write-off:
+        description: Whoever lends a copy must not be able to write the loss off.
+        permissions: [loans.create, loans.writeoff]
+        cardinality: 2
+
+A set names two or more declared permissions, none of them `public`.
+`cardinality` is how many of them one holder may not reach: at least 2, at
+most the number the set names, and 2 when left out. A role that grants
+`cardinality` or more of a set is refused (`separation_of_duties`). The
+validator cannot see one person holding two roles that each grant part of
+a set, because who holds which role is data; the techspec lists, for each
+set, the combinations of roles that together reach it, as roles never to be
+given to one person.
 
 ### Sessions
 

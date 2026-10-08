@@ -1,0 +1,6 @@
+# yaml-language-server: $schema=../../../../schema/specarch-fragment-design-0.1.schema.json
+separationOfDuties:
+  lend-and-write-off:
+    description: Whoever lends a copy must not be able to write the loss off.
+    permissions: [loans.create, loans.writeoff]
+    cardinality: 2

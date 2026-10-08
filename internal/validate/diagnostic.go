@@ -42,6 +42,7 @@ const (
 	RuleDuplicateOperation     Rule = "duplicate_operation"
 	RulePermissionUndeclared   Rule = "permission_undeclared"
 	RulePermissionUngranted    Rule = "permission_ungranted"
+	RuleSeparationOfDuties     Rule = "separation_of_duties"
 	RuleExpressionSyntax       Rule = "expression_syntax"
 	RuleExpressionName         Rule = "expression_name"
 	RuleExpressionType         Rule = "expression_type"
@@ -143,6 +144,7 @@ var Rules = []Rule{
 	RuleDuplicateOperation,
 	RulePermissionUndeclared,
 	RulePermissionUngranted,
+	RuleSeparationOfDuties,
 	RuleExpressionSyntax,
 	RuleExpressionName,
 	RuleExpressionType,

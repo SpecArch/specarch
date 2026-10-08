@@ -636,17 +636,26 @@ The entity fields that are not public, and the ones encrypted at rest. A persona
 
 Access is fail-closed: every operation, command and page names the one permission it needs, and only the roles below grant one.
 
-| Permission | librarian | member | scheduler | public |
-|---|---|---|---|---|
-| members.read | yes | | | |
-| members.write | yes | | | |
-| catalogue.read | yes | yes | | |
-| loans.read | yes | yes | yes | |
-| loans.create | yes | | | |
-| loans.return | yes | | | |
-| public | | | | everyone |
+| Permission | librarian | head-librarian | member | scheduler | public |
+|---|---|---|---|---|---|
+| members.read | yes | | | | |
+| members.write | yes | | | | |
+| catalogue.read | yes | | yes | | |
+| loans.read | yes | yes | yes | yes | |
+| loans.create | yes | | | | |
+| loans.return | yes | | | | |
+| loans.writeoff | | yes | | | |
+| public | | | | | everyone |
 
 **Insight on member:** The row-level rule, a member sees only loans whose memberId is their own, is not in the meta-model yet; the service enforces it and this role is where it is written down.
+
+### Separation of duties
+
+No role grants as many of a set's permissions as its cardinality; the validator refuses one that does. Which person holds which roles is data the specification does not hold, so each set lists the combinations of roles that together reach it: roles never to be given to one person.
+
+| Set | Permissions | Cardinality | Roles never given to one person |
+|---|---|---|---|
+| lend-and-write-off | loans.create, loans.writeoff | 2 | librarian with head-librarian |
 
 ### Sessions
 

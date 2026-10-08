@@ -1,0 +1,40 @@
+specarch: "0.1"
+info: { title: Lending desk, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+permissions:
+  loans.create: { description: Lend a copy. }
+  loans.writeoff: { description: Write a lost copy off. }
+  fees.request: { description: Ask for a fee to be waived. }
+  fees.waive: { description: Waive a fee. }
+  fees.refund: { description: Refund a fee. }
+  public: { description: Open to everyone. }
+roles:
+  clerk:
+    description: Lends and writes off, which the first set forbids.
+    permissions: [loans.create, loans.writeoff, fees.request]
+  supervisor:
+    description: Holds two of a set of three whose cardinality is 3, which is allowed.
+    permissions: [fees.waive, fees.refund]
+  auditor:
+    description: Writes off only.
+    permissions: [loans.writeoff]
+separationOfDuties:
+  lend-and-write-off:
+    description: Whoever lends a copy must not be able to write the loss off.
+    permissions: [loans.create, loans.writeoff]
+  fee-handling:
+    description: No one holds all three steps of a fee.
+    permissions: [fees.request, fees.waive, fees.refund]
+    cardinality: 3
+  misnamed:
+    description: Names a permission that is not declared, and public.
+    permissions: [loans.creat, public]
+  unreachable:
+    description: Asks for more permissions than it names.
+    permissions: [fees.request, fees.waive]
+    cardinality: 3
+  too-small:
+    description: A cardinality of one would forbid holding any of the set.
+    permissions: [fees.waive, fees.refund]
+    cardinality: 1

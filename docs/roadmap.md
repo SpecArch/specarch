@@ -184,8 +184,8 @@ screens. `docs/meta-model-0.2.md` is the plan: what is taken, what waits
 and why, and the steps that build it, each with what done looks like.
 Taken, in the order they are built:
 
-- `separationOfDuties`: sets of permissions one holder must never have
-  together; the validator checks that no role grants them;
+- `separationOfDuties` (built): sets of permissions one holder must never
+  have together; the validator checks that no role grants them;
 - task pages, a page that submits to an operation without loading a
   record (sign-in, a second factor);
 - `workflows`: a request that finishes after people approve it (trigger,

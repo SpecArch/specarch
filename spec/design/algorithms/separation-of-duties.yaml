@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+algorithms:
+  separationOfDuties:
+    description: |
+      Static separation of duty, after ANSI INCITS 359. A set names two or
+      more declared permissions, none of them `public`, and a cardinality
+      from 2 to the number of permissions it names, 2 when left out. A role
+      passes a set when it grants fewer of the set's permissions than the
+      cardinality. One person holding two roles that each grant part of a
+      set is data, not design; the techspec lists those combinations of
+      roles instead.
+    inputs:
+      grantedOfSet: { type: integer, format: int32, minimum: 0 }
+      cardinality: { type: integer, format: int32, minimum: 2 }
+    output: { type: boolean }
+    formula: grantedOfSet < cardinality
+    examples:
+      - name: the librarian lends but does not write off
+        inputs: { grantedOfSet: 1, cardinality: 2 }
+        expected: true
+      - name: a role that both lends and writes off
+        inputs: { grantedOfSet: 2, cardinality: 2 }
+        expected: false
+        note: Whoever lends a copy could write its loss off.
+      - name: two of three where any two are safe together
+        inputs: { grantedOfSet: 2, cardinality: 3 }
+        expected: true
+    pseudocode: |
+      for each set s in separationOfDuties:
+          for each permission p named by s:
+              if p not in permissions:
+                  report separation_of_duties at p
+              else if p is "public":
+                  report separation_of_duties at p
+          if s.cardinality > count of distinct permissions named by s:
+              report separation_of_duties at s.cardinality
+          for each role r:
+              if count of s's permissions r grants >= s.cardinality:
+                  report separation_of_duties at r
+    satisfies: [SA-5]

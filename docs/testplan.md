@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 270 design tests, 101 golden and 169 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 271 design tests, 101 golden and 170 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 266 |
+| system | 267 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1959,6 +1959,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-42.
 - When: validate is run
 - Then: it reports page four times and field once, and exits 1
 
+#### validate-separation-of-duties
+
+Scenario: red; level: system; covers exit 1; verifies SA-5.
+
+- Given: separation-of-duties sets over declared permissions and roles: a role that grants both permissions of a set of two, a set naming a permission that is not declared and one naming public, a cardinality of 3 over two permissions and a cardinality of 1; besides a role holding two of a set of three whose cardinality is 3, which is right
+- When: validate is run
+- Then: it reports separation_of_duties four times and schema once, and exits 1
+
 #### validate-session
 
 Scenario: red; level: system; covers exit 1; verifies SA-29.
@@ -2227,7 +2235,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-139 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+140 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2364,6 +2372,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-4 | acceptance 1 | golden | SA-4 names no harm |
 | requirement SA-5 | acceptance 1 | golden | SA-5 names no harm |
 | requirement SA-5 | acceptance 2 | golden | SA-5 names no harm |
+| requirement SA-5 | acceptance 3 | golden | SA-5 names no harm |
 | requirement SA-6 | acceptance 1 | golden | SA-6 names no harm |
 | requirement SA-6 | acceptance 2 | golden | SA-6 names no harm |
 | requirement SA-9 | acceptance 1 | golden | SA-9 names no harm |

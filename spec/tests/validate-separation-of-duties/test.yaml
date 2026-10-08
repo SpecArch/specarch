@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "separation-of-duties sets over declared permissions and roles: a role that grants both permissions of a set of two, a set naming a permission that is not declared and one naming public, a cardinality of 3 over two permissions and a cardinality of 1; besides a role holding two of a set of three whose cardinality is 3, which is right"
+when: "validate is run"
+then: "it reports separation_of_duties four times and schema once, and exits 1"
+verifies: [SA-5]

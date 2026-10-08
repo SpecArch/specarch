@@ -120,7 +120,9 @@ For each section, in order:
 1. Write every element the section states: stakeholders, needs,
    requirements, entities and their fields, permissions and roles,
    operations, configuration. Each gets `origin: stated` and a citation of
-   that section, saying in plain words what the section says.
+   that section, saying in plain words what the section says. A rule that
+   one person must not do two duties (whoever lends must not write the
+   loss off) is a `separationOfDuties` set over those duties' permissions.
 2. Where the section implies something without saying it, write it with
    `origin: inferred` and a `why` that says from what, or do not write it.
    Never fill a gap with a plausible value.

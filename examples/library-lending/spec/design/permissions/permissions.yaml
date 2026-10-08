@@ -6,4 +6,5 @@ permissions:
   loans.read: { description: See loans. }
   loans.create: { description: Lend a copy to a member. }
   loans.return: { description: Record a return or a lost copy. }
+  loans.writeoff: { description: "Write off a copy recorded as lost, closing its loan without a return." }
   public: { description: "Open to everyone, including visitors without a card.", satisfies: [LIB-2] }

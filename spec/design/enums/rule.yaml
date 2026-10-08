@@ -36,6 +36,7 @@ enums:
       - duplicate_operation
       - permission_undeclared
       - permission_ungranted
+      - separation_of_duties
       - expression_syntax
       - expression_name
       - expression_type
@@ -134,6 +135,7 @@ enums:
       duplicate_operation: two operations share an operationId
       permission_undeclared: an operation, command, page, action or role names a permission that is not declared
       permission_ungranted: a declared permission is granted by no role and is not `public`
+      separation_of_duties: "a separation-of-duties set names a permission that is not declared or is `public`, asks for more of its permissions than it holds, or a role grants as many of the set's permissions as its cardinality"
       expression_syntax: a check or formula does not parse
       expression_name: an expression names a field, input or function that does not exist
       expression_type: an expression combines values of types that do not fit

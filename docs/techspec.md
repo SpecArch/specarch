@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 46 requirements, 3 entities, 12 commands, 6 algorithms, 270 tests, 57 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 46 requirements, 3 entities, 12 commands, 7 algorithms, 271 tests, 57 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -208,6 +208,7 @@ Primary key: path.
 | Rule | duplicate_operation | two operations share an operationId |
 | Rule | permission_undeclared | an operation, command, page, action or role names a permission that is not declared |
 | Rule | permission_ungranted | a declared permission is granted by no role and is not `public` |
+| Rule | separation_of_duties | a separation-of-duties set names a permission that is not declared or is `public`, asks for more of its permissions than it holds, or a role grants as many of the set's permissions as its cardinality |
 | Rule | expression_syntax | a check or formula does not parse |
 | Rule | expression_name | an expression names a field, input or function that does not exist |
 | Rule | expression_type | an expression combines values of types that do not fit |
@@ -1710,6 +1711,44 @@ for each reference r in the file, in document order:
     # duplicates are reported once, at the second definition
 for each operationId seen more than once:
     report duplicate_operation at the second and later uses
+```
+
+### Algorithm separationOfDuties
+
+Static separation of duty, after ANSI INCITS 359. A set names two or
+more declared permissions, none of them `public`, and a cardinality
+from 2 to the number of permissions it names, 2 when left out. A role
+passes a set when it grants fewer of the set's permissions than the
+cardinality. One person holding two roles that each grant part of a
+set is data, not design; the techspec lists those combinations of
+roles instead.
+
+Inputs: `grantedOfSet` (int32), `cardinality` (int32). Output: bool.
+
+Formula:
+
+    grantedOfSet < cardinality
+
+| Worked example | Inputs | Expected | Note |
+|---|---|---|---|
+| the librarian lends but does not write off | grantedOfSet 1, cardinality 2 | true |   |
+| a role that both lends and writes off | grantedOfSet 2, cardinality 2 | false | Whoever lends a copy could write its loss off. |
+| two of three where any two are safe together | grantedOfSet 2, cardinality 3 | true |   |
+
+Pseudocode:
+
+```text
+for each set s in separationOfDuties:
+    for each permission p named by s:
+        if p not in permissions:
+            report separation_of_duties at p
+        else if p is "public":
+            report separation_of_duties at p
+    if s.cardinality > count of distinct permissions named by s:
+        report separation_of_duties at s.cardinality
+    for each role r:
+        if count of s's permissions r grants >= s.cardinality:
+            report separation_of_duties at r
 ```
 
 ### Algorithm workedExampleHolds
@@ -4008,6 +4047,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-secret-in-deployment | command validate | system | red | an implementation deployment that gives a value to a secret setting | validate is run | it reports secret_value and exits 1 |
 | validate-secret-value | command validate | system | red | a setting marked secret with a default value | validate is run | it reports secret_value and exits 1 |
 | validate-sections | command validate | system | red | a list with sections, a view whose sections show a field twice and one its entity lacks, a form that gives both fields and sections, and a view that gives neither | validate is run | it reports page four times and field once, and exits 1 |
+| validate-separation-of-duties | command validate | system | red | separation-of-duties sets over declared permissions and roles: a role that grants both permissions of a set of two, a set naming a permission that is not declared and one naming public, a cardinality of 3 over two permissions and a cardinality of 1; besides a role holding two of a set of three whose cardinality is 3, which is right | validate is run | it reports separation_of_duties four times and schema once, and exits 1 |
 | validate-session | command validate | system | red | a session whose idle timeout is zero | validate is run | it reports session and exits 1 |
 | validate-setting | command validate | system | red | an implementation deployment that gives a value to a setting the specification does not declare | validate is run | it reports setting and exits 1 |
 | validate-source | command validate | system | red | a citation of a source that is not declared | validate is run | it reports source and exits 1 |
@@ -4119,7 +4159,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-2 | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. | functional | must | accepted | test | A misspelt relation target, enum, operation, page, algorithm, decision, requirement, need, stakeholder, source or environment is reported with its own rule, naming the file and line of the reference. A name defined in two files of the specification is reported with both files. | NEED-1, NEED-4 |
 | SA-3 | Every check constraint and formula shall parse and type-check in the fixed expression language. | functional | must | accepted | test | An expression outside the subset is refused with a message naming the construct. An expression that mixes types without a written conversion is refused with the conversion to write. | NEED-1 |
 | SA-4 | Every worked example's formula, evaluated on its inputs with exact arithmetic, shall give its expected value. | functional | must | accepted | test | An example whose expected value is off by one cent is reported with the computed value. | NEED-1 |
-| SA-5 | Access shall be fail-closed; every permission used is declared, and every declared permission is granted by a role or is public. | functional | must | accepted | test | An operation, command or page without a permission is a schema error. A permission no role grants is reported, also when it has no description; only a must question that blocks the permission itself covers it. | NEED-1 |
+| SA-5 | Access shall be fail-closed; every permission used is declared, and every declared permission is granted by a role or is public. | functional | must | accepted | test | An operation, command or page without a permission is a schema error. A permission no role grants is reported, also when it has no description; only a must question that blocks the permission itself covers it. A separation-of-duties set names two or more declared permissions, none of them public, and a cardinality from 2 to the number it names; a role that grants that many of the set is refused (separation_of_duties), and the techspec lists, for each set, the combinations of roles that together reach it, as roles never to be given to one person. | NEED-1 |
 | SA-6 | Every problem shall be reported, one line each, with file, line, YAML path and rule; the exit status is 0 when valid, 1 when invalid, 2 on a usage or read error. | interface | must | accepted | test | A run on a folder with three problems in two files prints three lines and exits 1. A run with no arguments prints how to use the command and exits 2. | NEED-1 |
 | SA-9 | A specification and its implementations shall be separate files; a specification holds no stack-specific key and an implementation file adds no design. | constraint | must | accepted | test | A stack-specific extension key in a specification is reported as stack_key. A design keyword in an implementation file is reported as design_key. | NEED-2 |
 | SA-10 | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. | functional | must | accepted | test | An implementation written against an older version of its specification is reported as implements. A pointer to an object the specification does not have is reported as design_ref. | NEED-2 |
@@ -4228,7 +4268,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-2 | enums Rule; commands validate; algorithms referenceResolves | tests validate-duplicate-name-across-files; tests validate-environment; tests validate-need; tests validate-ref-type; tests validate-relation-target; tests validate-requirement-set; tests validate-stakeholder |
 | SA-3 | enums Rule; commands validate; decisions ADR-004; decisions ADR-047 | tests validate-expression-date-days; tests validate-expression-date-number; tests validate-expression-in-stage-file; tests validate-expression-syntax; tests validate-expression-type |
 | SA-4 | enums Rule; commands validate; algorithms workedExampleHolds; decisions ADR-004 | tests validate-example-mismatch |
-| SA-5 | enums Rule; commands validate; algorithms permissionGranted; decisions ADR-006; decisions ADR-053; decisions ADR-054 | tests validate-permission-undeclared; tests validate-permission-ungranted; tests validate-permission-ungranted-without-description; tests validate-question-covers-ungranted; tests validate-schema-operation-without-permission |
+| SA-5 | enums Rule; commands validate; algorithms permissionGranted; algorithms separationOfDuties; decisions ADR-006; decisions ADR-053; decisions ADR-054 | tests validate-permission-undeclared; tests validate-permission-ungranted; tests validate-permission-ungranted-without-description; tests validate-question-covers-ungranted; tests validate-schema-operation-without-permission; tests validate-separation-of-duties |
 | SA-6 | enums Rule; enums Severity; entities Diagnostic; commands validate; algorithms exitStatus; decisions ADR-005; decisions ADR-008 | tests validate-usage-error; tests validate-yaml-syntax; tests version-prints-versions; checks installs-and-answers |
 | SA-7 | enums DocumentTarget; enums GeneratorTarget; entities GeneratedFile; commands document; commands generate; algorithms checkStatus; decisions ADR-013 | tests document-check-differs; tests document-two-implementations; tests document-writes-techspec; tests generate-plugin-path-outside; tests generate-with-plugin; checks checks-the-examples; monitors main-stays-green |
 | SA-8 | entities GeneratedFile; commands document; commands generate; algorithms markersWellFormed | tests document-entity-diagram; tests document-two-implementations; tests document-writes-techspec |

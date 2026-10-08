@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-fragment-design-0.1.schema.json",
   "title": "SpecArch design file, meta-model 0.1",
-  "description": "One file under the design/ folder of a SpecArch specification: a mapping of that stage's sections (enums, entities, views, permissions, roles, session, paths, commands, channels, dependencies, jobs, errors, pages, menus, flows, accessibility, theme, algorithms, decisions, questions). A file under a sub-folder named after a section holds only that section. The validator merges every file of a tree into one document, which specarch-design-0.1.schema.json describes, and checks what spans files, such as references and names defined twice; this schema checks one file alone. Written by tools/fragment-schemas from that schema; do not edit, run it.",
+  "description": "One file under the design/ folder of a SpecArch specification: a mapping of that stage's sections (enums, entities, views, permissions, roles, separationOfDuties, session, paths, commands, channels, dependencies, jobs, errors, pages, menus, flows, accessibility, theme, algorithms, decisions, questions). A file under a sub-folder named after a section holds only that section. The validator merges every file of a tree into one document, which specarch-design-0.1.schema.json describes, and checks what spans files, such as references and names defined twice; this schema checks one file alone. Written by tools/fragment-schemas from that schema; do not edit, run it.",
   "type": "object",
   "properties": {
     "enums": {
@@ -53,6 +53,16 @@
       },
       "additionalProperties": {
         "$ref": "#/$defs/role"
+      }
+    },
+    "separationOfDuties": {
+      "description": "SpecArch keyword. Sets of permissions one holder must never have together, after the static separation of duty of ANSI INCITS 359, keyed by kebab-case name. No role may grant cardinality or more of a set's permissions; the techspec lists the combinations of roles that together reach a set, as roles never to be given to one person.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/separationName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/separationOfDuties"
       }
     },
     "session": {
@@ -261,6 +271,10 @@
       "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$"
     },
     "roleName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+    },
+    "separationName": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
     },
@@ -1185,6 +1199,56 @@
           },
           "minItems": 1,
           "uniqueItems": true
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        }
+      },
+      "required": [
+        "description",
+        "permissions"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "separationOfDuties": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "permissions": {
+          "description": "The permissions of the set, each declared and none of them public.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/permissionName"
+          },
+          "minItems": 2,
+          "uniqueItems": true
+        },
+        "cardinality": {
+          "description": "How many of the set's permissions one holder may not reach: at least 2, at most the number the set names, and 2 when left out.",
+          "type": "integer",
+          "minimum": 2
         },
         "satisfies": {
           "$ref": "#/$defs/satisfies"

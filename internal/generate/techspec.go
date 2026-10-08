@@ -565,6 +565,29 @@ func crossCutting(d *doc, root *yaml.Node) {
 		d.block(perms)
 		d.explainRows(append(pairRows(root, "permissions"), pairRows(root, "roles")...))
 	}
+	if sets := pairs(root, "separationOfDuties"); len(sets) > 0 {
+		d.heading(3, "Separation of duties")
+		d.para("No role grants as many of a set's permissions as its cardinality; the validator refuses one that does. Which person holds which roles is data the specification does not hold, so each set lists the combinations of roles that together reach it: roles never to be given to one person.")
+		d.line("| Set | Permissions | Cardinality | Roles never given to one person |")
+		d.line("|---|---|---|---|")
+		for _, set := range sets {
+			cardinality := 2
+			if n, err := strconv.Atoi(str(set.Value, "cardinality")); err == nil {
+				cardinality = n
+			}
+			var combos []string
+			for _, c := range roleCombinations(root, strs(set.Value, "permissions"), cardinality) {
+				combos = append(combos, strings.Join(c, " with "))
+			}
+			reach := strings.Join(combos, "; ")
+			if reach == "" {
+				reach = "none: no roles together reach it"
+			}
+			d.line("| %s | %s | %d | %s |", set.Key.Value, cell(strings.Join(strs(set.Value, "permissions"), ", ")), cardinality, cell(reach))
+		}
+		d.blank()
+		d.explainRows(rowsOf(sets))
+	}
 	if session != nil {
 		d.heading(3, "Sessions")
 		d.para(str(session, "description"))
@@ -1139,4 +1162,81 @@ func childRowsText(pg *yaml.Node) string {
 		}
 	}
 	return b.String()
+}
+
+// roleCombinations lists the smallest combinations of roles that together
+// grant cardinality or more of a set's permissions, in the order the roles
+// are declared: a combination is left out when a smaller one inside it
+// already reaches the set. Only roles that grant one of the set take part,
+// and no smallest combination has more roles than the cardinality.
+func roleCombinations(root *yaml.Node, perms []string, cardinality int) [][]string {
+	inSet := map[string]bool{}
+	for _, p := range perms {
+		inSet[p] = true
+	}
+	type holder struct {
+		name  string
+		grant map[string]bool
+	}
+	var roles []holder
+	for _, r := range pairs(root, "roles") {
+		g := map[string]bool{}
+		for _, p := range strs(r.Value, "permissions") {
+			if inSet[p] {
+				g[p] = true
+			}
+		}
+		if len(g) > 0 {
+			roles = append(roles, holder{r.Key.Value, g})
+		}
+	}
+	var found [][]int
+	var pick func(start int, chosen []int, size int)
+	contains := func(big, small []int) bool {
+		for _, s := range small {
+			hit := false
+			for _, b := range big {
+				hit = hit || b == s
+			}
+			if !hit {
+				return false
+			}
+		}
+		return true
+	}
+	pick = func(start int, chosen []int, size int) {
+		if len(chosen) == size {
+			union := map[string]bool{}
+			for _, i := range chosen {
+				for p := range roles[i].grant {
+					union[p] = true
+				}
+			}
+			if len(union) < cardinality {
+				return
+			}
+			for _, f := range found {
+				if contains(chosen, f) {
+					return
+				}
+			}
+			found = append(found, append([]int(nil), chosen...))
+			return
+		}
+		for i := start; i < len(roles); i++ {
+			pick(i+1, append(chosen, i), size)
+		}
+	}
+	for size := 1; size <= cardinality && size <= len(roles); size++ {
+		pick(0, nil, size)
+	}
+	var out [][]string
+	for _, f := range found {
+		var names []string
+		for _, i := range f {
+			names = append(names, roles[i].name)
+		}
+		out = append(out, names)
+	}
+	return out
 }

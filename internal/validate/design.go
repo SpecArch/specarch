@@ -194,6 +194,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkChildRows(d)
 	c.checkDecisions(d)
 	c.checkAccess(d)
+	c.checkSeparationOfDuties(d)
 	c.checkExpressions(d)
 	c.checkTests(d)
 	c.checkTestData(d)

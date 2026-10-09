@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 8 requirements, 4 entities, 14 HTTP operations, 3 channels, 1 dependency, 9 pages, 1 flow, 1 workflow, 1 algorithm, 151 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 8 requirements, 4 entities, 14 HTTP operations, 3 channels, 1 dependency, 9 pages, 1 flow, 1 workflow, 1 algorithm, 154 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -345,6 +345,8 @@ the member past the open loans their tier allows, the member has
 outstanding fees, or a book has no copy available.
 
 Refuses with 404 member-not-found and 409 lending-refused.
+
+Idempotent by the Idempotency-Key header: a request repeated with the same key is answered as the first was and has no second effect; a different request with a key already used is refused.
 
 ```mermaid
 sequenceDiagram
@@ -1050,7 +1052,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | lend-copies-bad-member-id | operation lendCopies | system | red | a librarian | lendCopies is called with memberId abc | it is refused as invalid input |
 | lend-copies-denied | operation lendCopies | system | red | a caller holding only the member role | lendCopies is called | it is refused as not allowed |
 | lend-copies-denied-with-expired-session | operation lendCopies | system | red | a librarian whose session expired after half an hour without a request | lendCopies is called for a member and a book that exist | it is refused as not signed in, and nothing changes |
+| lend-copies-idempotency-key-not-a-valid-uuid | operation lendCopies | system | red | a member and two books that exist | lendCopies is called with an Idempotency-Key that is not a UUID | it is refused and no loan is created |
+| lend-copies-idempotency-key-reused-for-another-request | operation lendCopies | system | red | loans were lent to a member under an Idempotency-Key | lendCopies is called with the same Idempotency-Key for other books | it is refused and no loan is created |
 | lend-copies-limit-reached | operation lendCopies | system | red | a standard-tier member with two open loans | lendCopies is called for two more books | it answers 409 and neither loan is created |
+| lend-copies-repeated-with-the-same-idempotency-key | operation lendCopies | system | golden | two loans were lent to a member under an Idempotency-Key, and the client never saw the answer | lendCopies is called again with the same Idempotency-Key, member and books | it answers 201 with the loans already created, no further loan exists, and the books' copies available are unchanged |
 | lend-copies-unknown-member | operation lendCopies | system | red | a librarian | lendCopies is called with a memberId no member has | it answers 404 and no loan is created |
 | lend-denied | operation createLoan | system | red | a caller holding only the member role | createLoan is called | it is refused as not allowed |
 | lend-event-not-delivered | operation createLoan | system | red | the loan.lifecycle channel is unavailable | createLoan is called | no loan is created and the call fails, so a loan never exists without its event |
@@ -1249,7 +1254,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 |---|---|---|---|
 | LIB-1 |   | entities Member constraints member_card_number_unique; entities Member; paths /members post | tests register-member; tests register-member-email-taken; checks lend-and-return; checks migrated-members |
 | LIB-2 |   | entities Book; permissions public; paths /books get | tests browse-catalogue; checks service-answers |
-| LIB-3 | money | entities Loan; paths /members/{memberId}/loans post; paths /loans post; pages member-loans; migrations add-membership-tier | tests create-loan-rate-exceeded; tests create-loan-repeated-with-the-same-idempotency-key; tests create-loan-request-larger-than-1024-bytes; tests fees-block-lending; tests lend-a-copy; tests lend-copies; tests lend-copies-limit-reached; tests lend-limit-reached; tests lending-limit-accepted; tests member-loans-refused; tests member-loans-shown; tests member-loans-six-rows; checks lend-and-return |
+| LIB-3 | money | entities Loan; paths /members/{memberId}/loans post; paths /loans post; pages member-loans; migrations add-membership-tier | tests create-loan-rate-exceeded; tests create-loan-repeated-with-the-same-idempotency-key; tests create-loan-request-larger-than-1024-bytes; tests fees-block-lending; tests lend-a-copy; tests lend-copies; tests lend-copies-limit-reached; tests lend-copies-repeated-with-the-same-idempotency-key; tests lend-limit-reached; tests lending-limit-accepted; tests member-loans-refused; tests member-loans-shown; tests member-loans-six-rows; checks lend-and-return |
 | LIB-4 |   | entities Loan transitions 1; entities Loan; paths /loans/{loanId}/return post; channels loan.overdue; channels loan.overdue messages LoanOverdue; jobs markOverdue; configuration notificationChannelUrl | tests loan-becomes-overdue; tests mark-overdue-runs-twice; tests mark-overdue-succeeds; monitors overdue-notices-sent |
 | LIB-5 |   | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; configuration dailyRate | tests loan-lent-and-returned; tests return-late; checks lend-and-return |
 | LIB-6 |   | roles member; session | checks member-sees-own-loans |

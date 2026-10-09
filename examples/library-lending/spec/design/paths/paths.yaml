@@ -111,6 +111,13 @@ paths:
         the member past the open loans their tier allows, the member has
         outstanding fees, or a book has no copy available.
       permission: loans.create
+      idempotencyKey: Idempotency-Key
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Chosen by the client for each new set of loans, so that a lost answer can be retried without lending twice.
+          schema: { type: string, format: uuid }
       requestBody:
         required: true
         content:

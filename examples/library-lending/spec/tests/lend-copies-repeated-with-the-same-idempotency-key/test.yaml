@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: lendCopies
+level: system
+scenario: golden
+covers: [repeated with the same Idempotency-Key]
+given: two loans were lent to a member under an Idempotency-Key, and the client never saw the answer
+when: lendCopies is called again with the same Idempotency-Key, member and books
+then: "it answers 201 with the loans already created, no further loan exists, and the books' copies available are unchanged"
+verifies: [LIB-3]

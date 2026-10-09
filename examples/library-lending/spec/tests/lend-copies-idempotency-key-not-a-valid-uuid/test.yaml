@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: lendCopies
+level: system
+scenario: red
+covers: [Idempotency-Key not a valid uuid]
+given: a member and two books that exist
+when: lendCopies is called with an Idempotency-Key that is not a UUID
+then: it is refused and no loan is created

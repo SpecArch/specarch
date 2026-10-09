@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 151 design tests, 43 golden and 107 red, about 39 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 154 design tests, 44 golden and 109 red, about 39 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.1.0 of the specification: 151 design tests, 43 golden and 107 red, abo
 | Level | Design tests |
 |---|---|
 | acceptance | 9 |
-| system | 142 |
+| system | 145 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -553,6 +553,22 @@ Scenario: red; level: system; covers denied with expired session.
 - When: lendCopies is called for a member and a book that exist
 - Then: it is refused as not signed in, and nothing changes
 
+#### lend-copies-idempotency-key-not-a-valid-uuid
+
+Scenario: red; level: system; covers Idempotency-Key not a valid uuid.
+
+- Given: a member and two books that exist
+- When: lendCopies is called with an Idempotency-Key that is not a UUID
+- Then: it is refused and no loan is created
+
+#### lend-copies-idempotency-key-reused-for-another-request
+
+Scenario: red; level: system; covers Idempotency-Key reused for another request.
+
+- Given: loans were lent to a member under an Idempotency-Key
+- When: lendCopies is called with the same Idempotency-Key for other books
+- Then: it is refused and no loan is created
+
 #### lend-copies-limit-reached
 
 Scenario: red; level: system; covers response 409; verifies LIB-3.
@@ -560,6 +576,14 @@ Scenario: red; level: system; covers response 409; verifies LIB-3.
 - Given: a standard-tier member with two open loans
 - When: lendCopies is called for two more books
 - Then: it answers 409 and neither loan is created
+
+#### lend-copies-repeated-with-the-same-idempotency-key
+
+Scenario: golden; level: system; covers repeated with the same Idempotency-Key; verifies LIB-3.
+
+- Given: two loans were lent to a member under an Idempotency-Key, and the client never saw the answer
+- When: lendCopies is called again with the same Idempotency-Key, member and books
+- Then: it answers 201 with the loans already created, no further loan exists, and the books' copies available are unchanged
 
 #### lend-copies-unknown-member
 

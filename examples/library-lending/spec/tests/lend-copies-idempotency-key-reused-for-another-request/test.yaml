@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: lendCopies
+level: system
+scenario: red
+covers: [Idempotency-Key reused for another request]
+given: loans were lent to a member under an Idempotency-Key
+when: lendCopies is called with the same Idempotency-Key for other books
+then: it is refused and no loan is created

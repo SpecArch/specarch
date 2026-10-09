@@ -1,0 +1,10 @@
+entities:
+  DeskMembers:
+    type: object
+    properties:
+      id: {type: string, format: int64}
+    required: [id]
+    primaryKey: [id]
+    origin: stated
+    cites:
+      - {source: code, clause: migrations desk.members, says: 'Table desk.members: id bigint not null.'}

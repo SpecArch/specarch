@@ -5,6 +5,10 @@
     "grants": [
         {"role": "desk-staff", "permission": "loans.write"},
         {"role": "desk-staff", "permission": "loans.read"},
+        {"role": "desk-staff", "permission": "LOANS.RENEW"},
+        {"role": "auditor", "permission": "EVERYTHING"},
+        {"role": "auditor", "permission": "REPORT.RUN"},
+        {"role": "kiosk", "permission": "REPORT_RUN"},
         {"role": "auditor", "permission": "loans.read"},
         {"role": "auditor", "permission": "public"},
         {"role": "Branch_Manager", "permission": "loans.write"},

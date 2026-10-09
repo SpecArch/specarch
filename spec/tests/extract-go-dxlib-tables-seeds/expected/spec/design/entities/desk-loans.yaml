@@ -1,0 +1,16 @@
+entities:
+  DeskLoans:
+    type: object
+    properties:
+      id: {type: string, format: int64, readOnly: true}
+      memberId: {type: string, format: int64}
+      title: {type: string, maxLength: 255}
+      dueOn: {type: [string, "null"], format: date}
+      fee: {type: string, format: decimal, precision: 23, scale: 4}
+      notes: {type: [object, "null"]}
+      weight: {type: [number, "null"], format: double}
+    required: [id, memberId, title, fee]
+    primaryKey: [id]
+    origin: stated
+    cites:
+      - {source: code, clause: 'db/model.go:17', says: 'NewModelDBTable declares table desk.loans with the columns id (its key), member_id, title, due_on, fee, notes and weight.'}

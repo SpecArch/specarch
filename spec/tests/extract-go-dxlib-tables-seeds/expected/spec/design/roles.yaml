@@ -1,0 +1,17 @@
+roles:
+  desk-staff:
+    description: Works at the lending desk.
+    permissions: [branches.read, loans.read, loans.renew]
+    origin: stated
+    cites:
+      - {source: code, clause: 'seed/seed.go:16', says: Inserts the role desk-staff.}
+      - {source: code, clause: 'seed/seed.go:17', says: Grants LOANS.READ to desk-staff.}
+      - {source: code, clause: 'seed/seed.go:18', says: Grants LOANS.RENEW to desk-staff.}
+      - {source: code, clause: 'seed/seed.go:19', says: Grants BRANCHES.READ to desk-staff.}
+  supervisor:
+    origin: stated
+    cites:
+      - {source: code, clause: 'seed/seed.go:20', says: Inserts the role supervisor.}
+      - {source: code, clause: 'seed/seed.go:21', says: Grants EVERYTHING to supervisor.}
+      - {source: code, clause: 'seed/seed.go:22', says: Grants REPORT_RUN to supervisor.}
+      - {source: code, clause: 'seed/seed.go:23', says: Grants REPORT.RUN to supervisor.}

@@ -1,0 +1,6 @@
+{
+    "host": "localhost",
+    "password": "set-at-deploy",
+    "pool": 8,
+    "ratio": 0.75
+}

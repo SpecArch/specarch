@@ -1,0 +1,24 @@
+permissions:
+  loans.read:
+    origin: inferred
+    why: 'dxlib names the privilege LOANS.READ, and by the rule of ADR-076 a privilege named in capitals, digits and underscores, in segments joined by dots, is the permission of that name in lower case with every underscore a dot: loans.read.'
+    cites:
+      - {source: code, clause: 'api/endpoints.go:12', says: POST /loans/read checks LOANS.READ in its privileges.}
+      - {source: code, clause: 'seed/seed.go:14', says: Grants LOANS.READ to desk-staff.}
+      - {source: code, clause: 'seed/seed.go:17', says: Grants LOANS.READ to clerk.}
+  loans.renew:
+    origin: inferred
+    why: 'dxlib names the privilege LOANS.RENEW, and by the rule of ADR-076 a privilege named in capitals, digits and underscores, in segments joined by dots, is the permission of that name in lower case with every underscore a dot: loans.renew.'
+    cites:
+      - {source: code, clause: 'seed/seed.go:15', says: Grants LOANS.RENEW to desk-staff.}
+paths:
+  /loans/read:
+    post:
+      operationId: postLoansRead
+      summary: Read a loan
+      description: Reads one loan.
+      permission: loans.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:12', says: 'NewEndPoint registers POST /loans/read; its handler is ReadLoan, its middlewares are RequireDeskKey and RequireChecks, and it checks LOANS.READ.'}
+        - {source: code, clause: 'api/endpoints.go:16', says: The handler of POST /loans/read reads no parameter by name.}

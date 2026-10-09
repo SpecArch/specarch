@@ -105,11 +105,14 @@ decisions:
       by the rule, each permission inferred and citing the operation that
       names it; an owner who wants another name answers by renaming the
       permission, and the code keeps its own. The permission table reader
-      of ADR-050 does not map a name yet, so on such a service the merge
-      finds a mapped permission no role grants until the reader of
-      dxlib_module's seeds and the permission table reader apply the same
-      rule, in the step that reads the seeds (docs/extraction.md, step
-      14). The security an operation in this dialect is given, such as
+      of ADR-050 and the Go reader of dxlib_module's seeds apply the same
+      rule, so a mapped permission meets the role that grants it in the
+      merge, and a grant of EVERYTHING is a must question in both. The
+      Go reader finds a gate on a setting in the middlewares an
+      endpoint's own chain names, since dxlib names them at the
+      registration, so a dxlib service needs no key in its
+      implementation file to name its check; a router without such a
+      chain names it there (docs/extraction.md, step 15). The security an operation in this dialect is given, such as
       the mutualTLS dxlib writes under its mtls mode, prints a line, since
       it says how a caller proves who it is and not what it may do. A
       service on DXApp writes each API's document under

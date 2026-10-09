@@ -14,6 +14,8 @@ import (
 	"strings"
 
 	"go.yaml.in/yaml/v3"
+
+	"github.com/SpecArch/specarch/internal/spec"
 )
 
 // The import path of dxlib's api package, whose calls the Go reader knows
@@ -88,6 +90,7 @@ type goEndpoint struct {
 	declared   map[string]bool // the parameters' names, nil when they are not all literal
 	handler    string          // as the code writes it
 	chain      []string        // the middlewares, as the code writes them
+	chainExprs []ast.Expr
 	chainKnown bool
 	privileges []string // nil when the call gives nil
 	privKnown  bool
@@ -95,8 +98,10 @@ type goEndpoint struct {
 	reads      []string // the parameters the handler reads, in order, each once
 	responses  map[string]string
 	answered   []goProblem
-	at         string // the operation's pointer in the tree
-	handlerAt  string // the handler's path:line, "" when it was not found
+	at         string   // the operation's pointer in the tree
+	handlerAt  string   // the handler's path:line, "" when it was not found
+	paging     *dxTable // the dxlib table whose paging list the handler is
+	pagingCall string   // that method's name
 }
 
 // goProblem is one refusal a handler answers.
@@ -123,10 +128,24 @@ func Go(paths []string, out, key string) (*Result, error) {
 	if err := g.parse(); err != nil {
 		return nil, err
 	}
+	g.collectAssigns()
+	g.dxTables, g.entityFiles = map[string]*dxTable{}, map[string]*yaml.Node{}
+	g.readTables()
+	g.readSeeds()
+	g.fileRead = map[string]bool{}
+	g.readSettings()
 	g.read()
 	var clauses []*yaml.Node
 	for _, f := range g.files {
 		clauses = append(clauses, flow(mapping("clause", f.path, "title", "Go source, read by its syntax")))
+	}
+	var read []string
+	for p := range g.fileRead {
+		read = append(read, p)
+	}
+	sort.Strings(read)
+	for _, p := range read {
+		clauses = append(clauses, flow(mapping("clause", p, "title", "A configuration file, read as data")))
 	}
 	if len(clauses) == 0 {
 		clauses = append(clauses, flow(mapping("clause", strings.Join(r.Paths, ", "), "title", "Holds no Go source the reader reads")))
@@ -136,7 +155,7 @@ func Go(paths []string, out, key string) (*Result, error) {
 		return nil, err
 	}
 	set(src, "reading", "parsed")
-	var stages []string
+	has := map[string]bool{}
 	design := mapping()
 	if g.permits != nil {
 		set(design, "permissions", g.permits)
@@ -148,13 +167,38 @@ func Go(paths []string, out, key string) (*Result, error) {
 		set(design, "errors", g.problems)
 	}
 	if len(design.Content) > 0 {
-		stages = []string{"design"}
+		has["design"] = true
 		res.Tree.put("design/paths.yaml", design)
 	}
+	if g.roles != nil {
+		has["design"] = true
+		res.Tree.put("design/roles.yaml", mapping("roles", g.roles))
+	}
+	g.writeTables()
+	for name, n := range g.entityFiles {
+		has["design"] = true
+		res.Tree.put(name, n)
+	}
+	if g.config != nil {
+		has["deployment"] = true
+		res.Tree.put("deployment/configuration.yaml", mapping("configuration", g.config))
+	}
 	if len(g.questions.Content) > 0 {
-		stages = []string{"requirements", "design"}
-		res.Tree.put("requirements/stakeholders.yaml", mapping("stakeholders", ownerStakeholder()))
+		has["requirements"], has["design"] = true, true
 		res.Tree.put("design/questions.yaml", mapping("questions", g.questions))
+	}
+	if g.deployQs != nil {
+		has["requirements"], has["deployment"] = true, true
+		res.Tree.put("deployment/questions.yaml", mapping("questions", g.deployQs))
+	}
+	if has["requirements"] {
+		res.Tree.put("requirements/stakeholders.yaml", mapping("stakeholders", ownerStakeholder()))
+	}
+	var stages []string
+	for _, s := range spec.Stages {
+		if has[s] {
+			stages = append(stages, s)
+		}
 	}
 	description := fmt.Sprintf("The Go source under %s, read at commit %s by the standard library's parser, by its syntax alone. Every operation cites the line that registers it; what the source does not say as a literal, or through a call the reader knows, is a question, and so is what the meta-model cannot hold.\n", strings.Join(r.Paths, ", "), r.Commit)
 	res.Tree.put("specarch.yaml", rootFile("Go source of "+strings.Join(r.Paths, ", "), description, stages, mapping(key, src)))
@@ -179,9 +223,22 @@ type goReader struct {
 	questions *yaml.Node
 	nextID    int
 	notHeld   []notHeld
+
+	assigns     map[string][]goAssign // folder|name or field -> its assignments
+	tables      []*goTable
+	dxTables    map[string]*dxTable // folder|name or field -> the table constructor assigned to it
+	entityFiles map[string]*yaml.Node
+	seeds       *seeds
+	roles       *yaml.Node
+	settings    map[string][]settingRead // the key as the source names it -> where it is read
+	config      *yaml.Node
+	fileRead    map[string]bool // configuration files read as data
+	gates       []goGate
+	deployQs    *yaml.Node // the questions on configuration, which sit in the deployment stage
 }
 
 func (g *goReader) question(priority, text string, blocks []string, why string, cites ...*yaml.Node) {
+	into := g.questionsFor(blocks)
 	g.nextID++
 	q := mapping(
 		"question", text,
@@ -194,7 +251,24 @@ func (g *goReader) question(priority, text string, blocks []string, why string, 
 	if len(cites) > 0 {
 		set(q, "cites", cites)
 	}
-	set(g.questions, fmt.Sprintf("Q-%d", g.nextID), q)
+	set(into, fmt.Sprintf("Q-%d", g.nextID), q)
+}
+
+// questionsFor is where a question on these blocks sits: one on the
+// configuration in the deployment stage, any other in the design stage.
+func (g *goReader) questionsFor(blocks []string) *yaml.Node {
+	for _, b := range blocks {
+		if b != "configuration" && !strings.HasPrefix(b, "#/configuration/") {
+			return g.questions
+		}
+	}
+	if len(blocks) == 0 {
+		return g.questions
+	}
+	if g.deployQs == nil {
+		g.deployQs = &yaml.Node{Kind: yaml.MappingNode}
+	}
+	return g.deployQs
 }
 
 // at is a citation of a place in the source.
@@ -338,13 +412,16 @@ func (g *goReader) read() {
 		})
 	}
 	g.res.say("dxlib: counted %s, %s and %s: every call by that name in a file that imports dxlib's api package", plural(calls["NewEndPoint"], "NewEndPoint call"), plural(calls["NewWSEndPoint"], "NewWSEndPoint call"), plural(calls["RegisterHandler"], "RegisterHandler call"))
+	g.readGates()
+	g.writeGates()
+	g.writeSettings()
 	g.write()
 	for _, f := range g.files {
 		if f.importName(dxlibAPI) != "" && !f.cited {
 			g.res.say("nothing read: %s imports dxlib's api package, and the reader found no endpoint, parameter read or problem in it", f.path)
 		}
 	}
-	askNotHeld(g.res, oneQuestions(g.questions), &g.nextID, g.key, g.notHeld)
+	askNotHeld(g.res, g.questionsFor, &g.nextID, g.key, g.notHeld)
 }
 
 // branch is the loop or condition between a call and the function it is
@@ -471,6 +548,9 @@ func (g *goReader) registration(f *goFile, call *ast.CallExpr, name string, stac
 	ep.declared = parameterNames(g, f, call.Args[6])
 	ep.handler = exprText(call.Args[7])
 	ep.chain, ep.chainKnown = exprList(call.Args[10])
+	if cl, ok := call.Args[10].(*ast.CompositeLit); ok {
+		ep.chainExprs = cl.Elts
+	}
 	if names, ok := g.stringList(f, call.Args[11]); ok {
 		ep.privileges, ep.privKnown = names, true
 	}
@@ -483,6 +563,22 @@ func (g *goReader) registration(f *goFile, call *ast.CallExpr, name string, stac
 // answers, when the handler is a function literal or a function the
 // module declares, found by syntax.
 func (g *goReader) handlerBody(ep *goEndpoint, h ast.Expr) {
+	if t, method := g.pagingTable(ep.file, h); t != nil {
+		// dxlib's own paging list: what it reads is dxlib's, and the
+		// table's constructor gives its whitelists.
+		ep.paging, ep.pagingCall, ep.handlerAt = t, method, t.clause
+		label := ep.method + " " + ep.uri
+		if t.listsKnown {
+			g.notHeld = append(g.notHeld, notHeld{
+				text:   fmt.Sprintf("%s: the paging list of %s searches, orders and filters by the fields its table's constructor lists, and the meta-model holds no such list on an operation; cited at the operation", t.clause, label),
+				clause: t.clause, blocks: []string{"#/paths/" + escapeToken(ep.uri) + "/" + strings.ToLower(ep.method)},
+			})
+		} else {
+			g.question("should", fmt.Sprintf("%s: the table whose paging list %s serves is made with whitelists that are not literal lists of names. Which fields does its list search, order and filter by?", t.clause, label),
+				[]string{"#/paths/" + escapeToken(ep.uri) + "/" + strings.ToLower(ep.method)}, "A whitelist computed at run time is not known by syntax, and only the whitelist says which fields a caller may search, order and filter by.", g.at(t.clause, t.says()))
+		}
+		return
+	}
 	var ft *ast.FuncType
 	var body *ast.BlockStmt
 	file := ep.file
@@ -608,7 +704,9 @@ func (g *goReader) write() {
 			lone = append(lone, ep.privileges[0])
 		}
 	}
-	privileges := newPrivilegeNames(lone)
+	// One rule over every privilege name the source gives, so that two
+	// names that give one permission are found wherever they are named.
+	privileges := newPrivilegeNames(append(lone, g.seedNames()...))
 	sort.Strings(uris)
 	problemAt := map[string]goProblem{} // problem name -> where it is first answered
 	problemStatus := map[string]map[int]bool{}
@@ -773,11 +871,39 @@ func (g *goReader) write() {
 		}
 		set(g.paths, uri, item)
 	}
-	g.declarePermissions(checkedBy, firstAt, mappedFrom)
+	seeded := map[string]*seedPermission{}
+	g.writeSeeds(privileges, func(p, privilege, description, clause, says string) {
+		s := seeded[p]
+		if s == nil {
+			s = &seedPermission{}
+			seeded[p] = s
+		}
+		if p != privilege {
+			mappedFrom[p] = privilege
+		}
+		if description != "" && s.description == "" {
+			s.description = description
+		}
+		if !strings.HasPrefix(says, "Inserts") {
+			s.granted = true
+		}
+		s.cites = append(s.cites, g.at(clause, says))
+	})
+	g.declarePermissions(checkedBy, firstAt, mappedFrom, seeded)
 	g.declareProblems(problemOrder, problemAt, problemStatus, conflicts)
 	permissions := len(checkedBy)
 	g.res.say("wrote %s on %s, %s, %s and %s: one operation per endpoint NewEndPoint registers with a literal method and URI, outside a loop or a condition, one permission per privilege an endpoint names alone, one problem per literal reason a handler answers, one question per thing the source does not say, and one per thing the meta-model cannot hold",
-		plural(len(g.endpoints), "operation"), plural(len(uris), "path"), plural(permissions, "permission"), plural(len(problemOrder), "problem"), plural(g.nextID+couldCount(oneQuestions(g.questions), g.notHeld), "question"))
+		plural(len(g.endpoints), "operation"), plural(len(uris), "path"), plural(permissions, "permission"), plural(len(problemOrder), "problem"), plural(g.nextID+couldCount(g.questionsFor, g.notHeld), "question"))
+	roles, settings := 0, 0
+	if g.roles != nil {
+		roles = len(g.roles.Content) / 2
+	}
+	if g.config != nil {
+		settings = len(g.config.Content) / 2
+	}
+	if len(g.tables) > 0 || roles > 0 || settings > 0 {
+		g.res.say("wrote %s, %s and %s: one entity per table NewModelDBTable declares with a literal schema and name, one role per role the seeds grant something, and one setting per name the source reads or a configuration file holds", plural(len(g.tables), "entity"), plural(roles, "role"), plural(settings, "setting"))
+	}
 }
 
 func (g *goReader) chainText(ep *goEndpoint) string {
@@ -802,6 +928,9 @@ func (g *goReader) registeredSays(ep *goEndpoint) string {
 }
 
 func (g *goReader) handlerSays(ep *goEndpoint) string {
+	if ep.paging != nil {
+		return fmt.Sprintf("The handler of %s %s is dxlib's %s of this table. %s", ep.method, ep.uri, ep.pagingCall, ep.paging.says())
+	}
 	var parts []string
 	if len(ep.reads) > 0 {
 		parts = append(parts, "reads the "+parameterOrParameters(len(ep.reads))+" "+joinAnd(ep.reads))
@@ -824,39 +953,76 @@ func (g *goReader) handlerSays(ep *goEndpoint) string {
 	return fmt.Sprintf("The handler of %s %s %s.", ep.method, ep.uri, joinAnd(parts))
 }
 
+// seedPermission is what the seeds say of one permission.
+type seedPermission struct {
+	description string
+	granted     bool
+	cites       []*yaml.Node
+}
+
 // declarePermissions declares every permission an endpoint's privilege
 // names, as extract openapi does, citing the first registration that
-// checks it.
-func (g *goReader) declarePermissions(checkedBy map[string][]string, firstAt, mappedFrom map[string]string) {
-	if len(checkedBy) == 0 {
-		return
-	}
+// checks it, and every permission the seeds insert or grant, citing them.
+func (g *goReader) declarePermissions(checkedBy map[string][]string, firstAt, mappedFrom map[string]string, seeded map[string]*seedPermission) {
 	var names []string
 	for n := range checkedBy {
 		names = append(names, n)
 	}
+	for n := range seeded {
+		if checkedBy[n] == nil {
+			names = append(names, n)
+		}
+	}
+	if len(names) == 0 {
+		return
+	}
 	sort.Strings(names)
 	g.permits = &yaml.Node{Kind: yaml.MappingNode}
-	var blocks, grants []string
+	var blocks, grants, undescribed, ungranted []string
 	for _, n := range names {
-		by := checkedBy[n]
 		named := n
 		if mappedFrom[n] != "" {
 			named = mappedFrom[n]
 		}
-		cites := []*yaml.Node{g.at(firstAt[n], fmt.Sprintf("%s %s %s in its privileges.", joinAnd(by), checkOrChecks(len(by)), named))}
-		if mappedFrom[n] != "" {
-			set(g.permits, n, mapping("origin", "inferred", "why", privilegeWhy(named, n), "cites", cites))
-		} else {
-			set(g.permits, n, mapping("origin", "stated", "cites", cites))
+		var cites []*yaml.Node
+		if by := checkedBy[n]; by != nil {
+			cites = append(cites, g.at(firstAt[n], fmt.Sprintf("%s %s %s in its privileges.", joinAnd(by), checkOrChecks(len(by)), named)))
 		}
-		blocks = append(blocks, "#/permissions/"+escapeToken(n)+"/description")
-		grants = append(grants, "#/permissions/"+escapeToken(n))
+		s := seeded[n]
+		if s != nil {
+			cites = append(cites, s.cites...)
+		}
+		perm := mapping()
+		if s != nil && s.description != "" {
+			set(perm, "description", s.description)
+		} else {
+			undescribed = append(undescribed, n)
+			blocks = append(blocks, "#/permissions/"+escapeToken(n)+"/description")
+		}
+		if mappedFrom[n] != "" {
+			set(perm, "origin", "inferred")
+			set(perm, "why", privilegeWhy(named, n))
+		} else {
+			set(perm, "origin", "stated")
+		}
+		set(perm, "cites", cites)
+		set(g.permits, n, perm)
+		if s == nil || !s.granted {
+			ungranted = append(ungranted, n)
+			grants = append(grants, "#/permissions/"+escapeToken(n))
+		}
 	}
-	g.question("must", fmt.Sprintf("What does each permission allow: %s?", strings.Join(names, ", ")),
-		blocks, "The source names the privilege an endpoint checks and not what it is for.")
-	g.question("must", fmt.Sprintf("Which role grants each permission: %s?", strings.Join(names, ", ")),
-		grants, "The source names the privilege an endpoint checks and not who holds it.")
+	if len(undescribed) > 0 {
+		why := "The source names the privilege an endpoint checks and not what it is for."
+		if len(seeded) > 0 {
+			why = "The source names the privilege an endpoint checks or a seed grants, and a seed's description is read only as a literal of the privilege's insert."
+		}
+		g.question("must", fmt.Sprintf("What does each permission allow: %s?", strings.Join(undescribed, ", ")), blocks, why)
+	}
+	if len(ungranted) > 0 {
+		g.question("must", fmt.Sprintf("Which role grants each permission: %s?", strings.Join(ungranted, ", ")),
+			grants, "The source names the privilege an endpoint checks and not who holds it.")
+	}
 }
 
 // declareProblems declares every problem a handler answers with a literal

@@ -11,7 +11,11 @@ one surface:
 - `sources/testdata/` is the service's Go source. `extract go` reads it by its
   syntax (`reading: parsed`, ADR-075): where each endpoint is registered,
   its handler and middlewares, the parameters the handler reads and the
-  problems it answers, each citing its file and line.
+  problems it answers, the notice table `NewModelDBTable` declares, the
+  roles and grants its dxlib_module seed makes, the settings it reads and
+  its configuration file `service/config/board.json`, read as data, and
+  a gate on a setting in its session check, each citing its file and
+  line.
 
 `extract.sh <out folder>` reads both, merges them and validates the result.
 Every operation ends with two citations, the document's and the source's,
@@ -23,7 +27,18 @@ every caller, one that checks two privileges, privileges in dxlib_module's
 capitals (`NOTICE.READ`, `GLOBAL.SET_MAINTENANCE_MODE`) mapped to
 permission names by the rule of ADR-076, a handler that reads a parameter
 its endpoint does not declare, a refusal whose reason is a constant, a
-handler written as a function literal and a WebSocket endpoint.
+handler written as a function literal and a WebSocket endpoint; a role
+granted `EVERYTHING`, a database password the configuration marks
+sensitive, and a session check that lets every request through while
+`NOTICE_BOARD_SESSIONS_ON` is false.
+
+The board keeps no database and prints no permission table, so the
+merge has no catalogue and no permission table to compare with: the
+Go tree's questions whether the database holds the notice table and
+whether the running system grants each seeded role stay open. A
+service that has them reads them with `extract database` and `extract
+permissions` and gives their trees to the merge, which answers those
+questions and asks where the readings differ.
 
 ## The document and the code
 

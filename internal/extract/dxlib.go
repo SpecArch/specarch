@@ -97,3 +97,29 @@ func anotherPrivilege(n int) string {
 	}
 	return "other privileges"
 }
+
+// grantProblem is the must question on a granted privilege that gives no
+// one permission, or "" when it gives one: EVERYTHING, which is never
+// expanded (ADR-076), a name the rule does not map, and a name that gives
+// the permission another granted name gives too.
+func (pn *privilegeNames) grantProblem(role, name string) (question, why string) {
+	p, _, collides := pn.read(name)
+	switch {
+	case name == "EVERYTHING":
+		return fmt.Sprintf("%s is granted EVERYTHING, which dxlib_module lets through every check, so %s holds every permission, which no list of grants can say. Which permissions does %s hold, or is it meant to hold every one?", role, role, role),
+			"A grant of EVERYTHING is not expanded: the permissions it stands for change whenever one is added, and a role's list names each one (ADR-076)."
+	case p == "":
+		return fmt.Sprintf("%s is granted the privilege %s, which is not a permission name (lower-case words joined by dots), nor a privilege in capitals that the rule of ADR-076 maps to one. Which permission does %s grant?", role, name, role),
+			"The meta-model names a permission in lower-case words joined by dots, and renaming the privilege by a rule of the reader's own would write a grant the code does not make."
+	case len(collides) > 0:
+		var others []string
+		for _, c := range collides {
+			if c != name {
+				others = append(others, c)
+			}
+		}
+		return fmt.Sprintf("%s is granted the privilege %s, which gives the permission %s, and so %s %s, which dxlib checks as %s. Which permission does %s grant?", role, name, p, doOrDoes(len(others)), joinAnd(others), anotherPrivilege(len(others)), role),
+			"Two privileges dxlib tells apart would become one permission, which would write a grant the code does not make."
+	}
+	return "", ""
+}

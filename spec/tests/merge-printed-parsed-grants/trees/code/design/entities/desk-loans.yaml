@@ -1,0 +1,11 @@
+entities:
+  DeskLoans:
+    type: object
+    properties:
+      id: {type: string, format: int64}
+      title: {type: string, maxLength: 255}
+    required: [id, title]
+    primaryKey: [id]
+    origin: stated
+    cites:
+      - {source: code, clause: 'db/model.go:10', says: NewModelDBTable declares table desk.loans with the columns id (its key) and title.}

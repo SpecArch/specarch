@@ -3,6 +3,11 @@ permissions:
     origin: stated
     cites:
       - {source: code, clause: access role auditor, says: auditor and desk-staff grant loans.read.}
+  loans.renew:
+    origin: inferred
+    why: 'dxlib names the privilege LOANS.RENEW, and by the rule of ADR-076 a privilege named in capitals, digits and underscores, in segments joined by dots, is the permission of that name in lower case with every underscore a dot: loans.renew.'
+    cites:
+      - {source: code, clause: access role desk-staff, says: desk-staff grants LOANS.RENEW.}
   loans.write:
     origin: stated
     cites:
@@ -12,9 +17,13 @@ roles:
     permissions: [loans.read]
     origin: stated
     cites:
-      - {source: code, clause: access role auditor, says: auditor grants loans.read.}
+      - {source: code, clause: access role auditor, says: 'auditor grants EVERYTHING, REPORT.RUN, loans.read and public.'}
   desk-staff:
-    permissions: [loans.read, loans.write]
+    permissions: [loans.read, loans.renew, loans.write]
     origin: stated
     cites:
-      - {source: code, clause: access role desk-staff, says: desk-staff grants loans.read and loans.write.}
+      - {source: code, clause: access role desk-staff, says: 'desk-staff grants LOANS.RENEW, loans.read and loans.write.'}
+  kiosk:
+    origin: stated
+    cites:
+      - {source: code, clause: access role kiosk, says: 'kiosk grants Loans:Read and REPORT_RUN.'}

@@ -1,0 +1,9 @@
+entities:
+  Branches:
+    type: object
+    properties:
+      name: {type: string, maxLength: 100}
+    required: [name]
+    origin: stated
+    cites:
+      - {source: code, clause: 'db/model.go:32', says: NewModelDBTable declares table public.branches with the columns name.}

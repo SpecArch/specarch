@@ -1,0 +1,87 @@
+questions:
+  Q-1:
+    question: Does the database hold table desk.loans? It is declared at db/model.go:10, and no catalogue of the running database was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/entities/DeskLoans']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what the database holds; the catalogue dump after every migration says it, and merging it answers this.
+    cites:
+      - {source: code, clause: 'db/model.go:10', says: Declares desk.loans with NewModelDBTable.}
+  Q-2:
+    question: Does the database hold table desk.fines? It is declared at db/model.go:15, and no catalogue of the running database was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/entities/DeskFines']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what the database holds; the catalogue dump after every migration says it, and merging it answers this.
+    cites:
+      - {source: code, clause: 'db/model.go:15', says: Declares desk.fines with NewModelDBTable.}
+  Q-3:
+    question: The check RequireChecks runs only when the setting DESK_CHECKS_ON is true. Is a false DESK_CHECKS_ON ever meant to let every request through, or should the check refuse every request whatever it says?
+    kind: decision
+    priority: must
+    blocks: [roles]
+    decidedBy: system-owner
+    why: A check switched off by a setting fails open without an error, so no role's grants hold while it is off.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:26', says: RequireChecks lets every request through while DESK_CHECKS_ON is false.}
+  Q-4:
+    question: The check RequireDeskKey runs only when the setting DESK_API_KEY is present. Is an empty DESK_API_KEY ever meant to let every request through, or should the check refuse every request until it is set?
+    kind: decision
+    priority: must
+    blocks: [roles]
+    decidedBy: system-owner
+    why: A check switched off by an empty setting fails open without an error, so no role's grants hold while it is off.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:19', says: RequireDeskKey lets every request through while DESK_API_KEY is empty.}
+  Q-7:
+    question: What does POST /loans/read answer when it succeeds, and what does each response mean?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1read/post/responses']
+    decidedBy: system-owner
+    why: The source names the refusals a handler answers with a literal status, not its success response or what each response means; the document dxlib emits declares them.
+  Q-8:
+    question: Does the running system register POST /loans/read? It is declared at api/endpoints.go:12, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1read/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:12', says: Registers POST /loans/read with NewEndPoint.}
+  Q-9:
+    question: Does the running system grant role clerk what the seeds grant it? It is seeded at seed/seed.go:16, and no permission table of the running system was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/roles/clerk']
+    decidedBy: system-owner
+    why: A seed that did not run, or whose rows something removed, is not a grant; the tables the check reads, printed as a permission table, say what is granted, and merging it answers this.
+    cites:
+      - {source: code, clause: 'seed/seed.go:16', says: Seeds role clerk.}
+  Q-10:
+    question: Does the running system grant role desk-staff what the seeds grant it? It is seeded at seed/seed.go:13, and no permission table of the running system was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/roles/desk-staff']
+    decidedBy: system-owner
+    why: A seed that did not run, or whose rows something removed, is not a grant; the tables the check reads, printed as a permission table, say what is granted, and merging it answers this.
+    cites:
+      - {source: code, clause: 'seed/seed.go:13', says: Seeds role desk-staff.}
+  Q-11:
+    question: 'What does each permission allow: loans.read, loans.renew?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.read/description', '#/permissions/loans.renew/description']
+    decidedBy: system-owner
+    why: The source names the privilege an endpoint checks or a seed grants, and a seed's description is read only as a literal of the privilege's insert.
+  Q-12:
+    question: 'Not held: api/endpoints.go:12: the endpoint POST /loans/read: dxlib names it loans_read from its URI, which is not camelCase, as an operationId is; it is named postLoansRead. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1loans~1read/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:12', says: 'Not held: the endpoint POST /loans/read: dxlib names it loans_read from its URI, which is not camelCase, as an operationId is; it is named postLoansRead.'}

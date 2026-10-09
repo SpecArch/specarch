@@ -1,0 +1,11 @@
+entities:
+  DeskLoans:
+    type: object
+    properties:
+      id: {type: string, format: int64}
+      title: {type: string, maxLength: 255}
+    required: [id, title]
+    primaryKey: [id]
+    origin: stated
+    cites:
+      - {source: code, clause: migrations desk.loans, says: 'Table desk.loans: id bigint not null, title character varying(255) not null.'}

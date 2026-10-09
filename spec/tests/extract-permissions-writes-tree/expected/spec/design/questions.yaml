@@ -1,26 +1,56 @@
 questions:
   Q-1:
-    question: 'What is each role for, and who holds it: auditor, desk-staff?'
+    question: 'What is each role for, and who holds it: auditor, desk-staff, kiosk?'
     kind: decision
     priority: must
-    blocks: ['#/roles/auditor/description', '#/roles/desk-staff/description']
+    blocks: ['#/roles/auditor/description', '#/roles/desk-staff/description', '#/roles/kiosk/description']
     decidedBy: system-owner
     why: A permission table names a role and what it grants, not who holds it.
   Q-2:
-    question: 'What does each permission allow: loans.read, loans.write?'
+    question: 'What does each permission allow: loans.read, loans.renew, loans.write?'
     kind: decision
     priority: must
-    blocks: ['#/permissions/loans.read/description', '#/permissions/loans.write/description']
+    blocks: ['#/permissions/loans.read/description', '#/permissions/loans.renew/description', '#/permissions/loans.write/description']
     decidedBy: system-owner
     why: A permission table names the permissions a role grants and not what they are for.
   Q-3:
+    question: auditor is granted EVERYTHING, which dxlib_module lets through every check, so auditor holds every permission, which no list of grants can say. Which permissions does auditor hold, or is it meant to hold every one?
+    kind: decision
+    priority: must
+    blocks: ['#/roles/auditor/permissions']
+    decidedBy: system-owner
+    why: 'A grant of EVERYTHING is not expanded: the permissions it stands for change whenever one is added, and a role''s list names each one (ADR-076).'
+  Q-4:
+    question: auditor is granted the privilege REPORT.RUN, which gives the permission report.run, and so does REPORT_RUN, which dxlib checks as another privilege. Which permission does auditor grant?
+    kind: decision
+    priority: must
+    blocks: ['#/roles/auditor/permissions']
+    decidedBy: system-owner
+    why: Two privileges dxlib tells apart would become one permission, which would write a grant the code does not make.
+  Q-5:
+    question: kiosk is granted the privilege REPORT_RUN, which gives the permission report.run, and so does REPORT.RUN, which dxlib checks as another privilege. Which permission does kiosk grant?
+    kind: decision
+    priority: must
+    blocks: ['#/roles/kiosk/permissions']
+    decidedBy: system-owner
+    why: Two privileges dxlib tells apart would become one permission, which would write a grant the code does not make.
+  Q-6:
+    question: kiosk is granted the privilege Loans:Read, which is not a permission name (lower-case words joined by dots), nor a privilege in capitals that the rule of ADR-076 maps to one. Which permission does kiosk grant?
+    kind: decision
+    priority: must
+    blocks: ['#/roles/kiosk/permissions']
+    decidedBy: system-owner
+    why: The meta-model names a permission in lower-case words joined by dots, and renaming the privilege by a rule of the reader's own would write a grant the code does not make.
+  Q-7:
     question: The check RequireAPIKey runs only when the setting DESK_API_KEY is present. Is an empty DESK_API_KEY ever meant to let every request through, or should the check refuse every request until it is set?
     kind: decision
     priority: must
     blocks: [roles]
     decidedBy: system-owner
     why: A check switched off by an empty setting fails open without an error, so no role's grants hold while it is off.
-  Q-4:
+    cites:
+      - {source: code, clause: access gate RequireAPIKey, says: The permission table declares that RequireAPIKey runs only when DESK_API_KEY is present.}
+  Q-8:
     question: 'Not held: grant of public to auditor: public is open to everyone and granted by no role; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -29,7 +59,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: access role auditor, says: 'Not held: grant of public to auditor: public is open to everyone and granted by no role; left out.'}
-  Q-5:
+  Q-9:
     question: 'Not held: grant of loans.write to "Branch_Manager": the role''s name is not kebab-case, which a role name is; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -38,21 +68,3 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: access role Branch_Manager, says: 'Not held: grant of loans.write to "Branch_Manager": the role''s name is not kebab-case, which a role name is; left out.'}
-  Q-6:
-    question: 'Not held: grant of "Loans:Read" to kiosk: the permission''s name is not lower-case words joined by dots; left out. Does the specification need it, written another way or described by hand?'
-    kind: decision
-    priority: could
-    blocks: [roles]
-    decidedBy: system-owner
-    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
-    cites:
-      - {source: code, clause: access role kiosk, says: 'Not held: grant of "Loans:Read" to kiosk: the permission''s name is not lower-case words joined by dots; left out.'}
-  Q-7:
-    question: 'Not held: role kiosk: it grants nothing the meta-model holds, and a role that grants nothing is left out. Does the specification need it, written another way or described by hand?'
-    kind: decision
-    priority: could
-    blocks: [roles]
-    decidedBy: system-owner
-    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
-    cites:
-      - {source: code, clause: access role kiosk, says: 'Not held: role kiosk: it grants nothing the meta-model holds, and a role that grants nothing is left out.'}

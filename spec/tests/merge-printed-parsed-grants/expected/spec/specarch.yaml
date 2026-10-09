@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: Merge of 3 trees
+  version: 0.1.0
+  description: |
+    The elements of these trees, merged in this order: Permissions of access; Database of migrations; Go source of .. Every element cites where it was read; where the trees disagree, or the documents and the code do, a question asks which is right.
+  tracksOrigin: true
+stages: [requirements, design, deployment]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: dd917c1c57206af9bfdf16d202d0a81e46758168
+    url: ../../src
+    clauses:
+      - {clause: access, title: The grants the permission check built from here reads}
+      - {clause: api/endpoints.go, title: 'Go source, read by its syntax'}
+      - {clause: db/model.go, title: 'Go source, read by its syntax'}
+      - {clause: migrations, title: The database catalogue after every migration here is applied}
+      - {clause: seed/seed.go, title: 'Go source, read by its syntax'}

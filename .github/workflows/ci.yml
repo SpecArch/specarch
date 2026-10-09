@@ -174,7 +174,10 @@ jobs:
         # The document dxlib emitted is printed and answers the Go tree's
         # question whether the running system registers each operation;
         # GET /v1/health checks no privilege, and the create handler reads
-        # a parameter its endpoint does not declare.
+        # a parameter its endpoint does not declare. The source also
+        # declares the notice table, seeds roles with a grant of
+        # EVERYTHING, reads a configuration file with a sensitive key, and
+        # has a session check a setting switches off.
         run: |
           mkdir -p "$RUNNER_TEMP/bin"
           go build -o "$RUNNER_TEMP/bin/specarch" ./cmd/specarch
@@ -186,6 +189,10 @@ jobs:
           grep -q '^    reading: printed$' "$RUNNER_TEMP/board-one/spec/specarch.yaml"
           grep -F 'GET /v1/health checks no privilege' "$RUNNER_TEMP/board-one/gaps.txt"
           grep -F 'reads the parameter pinned, which the endpoint does not declare' "$RUNNER_TEMP/board-one/gaps.txt"
+          grep -F 'Does the database hold table board.notice?' "$RUNNER_TEMP/board-one/gaps.txt"
+          grep -F 'admin is granted EVERYTHING' "$RUNNER_TEMP/board-one/gaps.txt"
+          grep -F 'The check RequireSession runs only when the setting NOTICE_BOARD_SESSIONS_ON is true' "$RUNNER_TEMP/board-one/gaps.txt"
+          grep -A2 '^  boardDatabasePassword:$' "$RUNNER_TEMP/board-one/spec/deployment/configuration.yaml" | grep -q '^    secret: true$'
       - name: Generated documents are current
         # The first loop is the one CONTRIBUTING.md gives, over every
         # specification at once. examples/lending-desk is a partial

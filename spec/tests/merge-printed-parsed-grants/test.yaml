@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: merge
+level: system
+scenario: golden
+given: "a tree extract permissions wrote from a permission table, reading: printed, whose role desk-staff grants loans.read and loans.write, whose role auditor no seed grants, and which declares the gates RequireDeskKey and RequireAudit; a catalogue tree, reading: printed, holding desk.loans and desk.members; and a tree extract go wrote, reading: parsed, whose seeds grant desk-staff loans.read and loans.renew and grant a role clerk the table does not hold, which declares desk.loans and desk.fines, and which finds the gates RequireDeskKey and RequireChecks in its middlewares"
+when: "merge is run on the three trees"
+then: "it gives desk-staff the grants the permission table holds, with every citation, asks a must question on loans.renew, seeded and not granted, blocking the permission too, and a could question on loans.write, granted and not seeded; a must question on the role clerk only the seed has and a could question on auditor only the table has; it leaves out the parsed tree's questions whether the database holds desk.loans and whether the running system grants desk-staff, which the printed trees answer, and asks a must question on desk.fines only the source declares and a could question on desk.members only the catalogue holds; it asks the gate on RequireDeskKey once with both citations, the gate on RequireChecks as a must question saying the permission table does not declare it, and adds a could question to the gate on RequireAudit, which the source read does not show; and exits 0"
+verifies: [SA-45]

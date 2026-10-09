@@ -1,0 +1,11 @@
+configuration:
+  deskApiKey:
+    schema: {type: string}
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/endpoints.go:19', says: Reads DESK_API_KEY from the environment with Getenv.}
+  deskChecksOn:
+    schema: {type: boolean, default: true}
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/endpoints.go:26', says: Reads DESK_CHECKS_ON from the environment with GetEnvDefaultValueAsBool.}

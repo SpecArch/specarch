@@ -1,0 +1,308 @@
+questions:
+  Q-1:
+    question: 'db/model.go:23: Which schema does the column desk.loans.notes hold? It is jsonb, and the catalogue does not say the shape of the JSON value in it.'
+    kind: decision
+    priority: should
+    blocks: ['#/entities/DeskLoans/properties/notes']
+    decidedBy: system-owner
+    why: A JSON column holds any JSON value; the schema it holds is what the code that writes it or a document says, and an entity's field holding a schema says how it is kept (ADR-063).
+    cites:
+      - {source: code, clause: 'db/model.go:23', says: Declares the column notes as jsonb.}
+  Q-2:
+    question: Does the database hold table desk.loans? It is declared at db/model.go:17, and no catalogue of the running database was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/entities/DeskLoans']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what the database holds; the catalogue dump after every migration says it, and merging it answers this.
+    cites:
+      - {source: code, clause: 'db/model.go:17', says: Declares desk.loans with NewModelDBTable.}
+  Q-3:
+    question: 'db/model.go:33: the column public.branches.code is declared by idField(...), which the reader does not read as a literal ModelDBField. What type is it, and may it be empty?'
+    kind: decision
+    priority: should
+    blocks: ['#/entities/Branches/properties']
+    decidedBy: system-owner
+    why: A field built by a function is not known by syntax.
+    cites:
+      - {source: code, clause: 'db/model.go:33', says: Declares code with idField(...).}
+  Q-4:
+    question: Table public.branches, declared at db/model.go:32, marks no column IsPrimaryKey. Which fields identify one of its records?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Branches/primaryKey']
+    decidedBy: system-owner
+    why: Every entity names the fields that identify a record, and the declaration gives none.
+    cites:
+      - {source: code, clause: 'db/model.go:32', says: Declares public.branches with no primary key.}
+  Q-5:
+    question: Does the database hold table public.branches? It is declared at db/model.go:32, and no catalogue of the running database was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Branches']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what the database holds; the catalogue dump after every migration says it, and merging it answers this.
+    cites:
+      - {source: code, clause: 'db/model.go:32', says: Declares public.branches with NewModelDBTable.}
+  Q-6:
+    question: db/model.go:37 declares a table whose name tableName(...) the reader does not read as a literal. Which table does it declare?
+    kind: decision
+    priority: must
+    blocks: [entities]
+    decidedBy: system-owner
+    why: A table's schema and name are read where they are literals, or a NewModelDBSchema call with a literal name assigned once; an entity is never named from a guess.
+    cites:
+      - {source: code, clause: 'db/model.go:37', says: Calls NewModelDBTable with name tableName(...).}
+  Q-7:
+    question: db/model.go:39 declares a table whose schema nil the reader does not read as a literal. Which table does it declare?
+    kind: decision
+    priority: must
+    blocks: [entities]
+    decidedBy: system-owner
+    why: A table's schema and name are read where they are literals, or a NewModelDBSchema call with a literal name assigned once; an entity is never named from a guess.
+    cites:
+      - {source: code, clause: 'db/model.go:39', says: Calls NewModelDBTable with schema nil.}
+  Q-8:
+    question: db/model.go:41 declares the table desk.archive with fields archiveFields, which the reader does not read as a literal map. Which columns does it have, and which identify a record?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/DeskArchive/properties', '#/entities/DeskArchive/primaryKey']
+    decidedBy: system-owner
+    why: A table's columns are read from a literal map of ModelDBField; the catalogue gives them once it is read.
+    cites:
+      - {source: code, clause: 'db/model.go:41', says: Declares desk.archive with fields that are not a literal map.}
+  Q-9:
+    question: Does the database hold table desk.archive? It is declared at db/model.go:41, and no catalogue of the running database was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/entities/DeskArchive']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what the database holds; the catalogue dump after every migration says it, and merging it answers this.
+    cites:
+      - {source: code, clause: 'db/model.go:41', says: Declares desk.archive with NewModelDBTable.}
+  Q-10:
+    question: db/model.go:49 declares a table with NewModelDBTable in a loop at db/model.go:48, so the reader cannot tell how many tables it declares, or whether it declares one. Which tables does the database hold?
+    kind: decision
+    priority: must
+    blocks: [entities]
+    decidedBy: system-owner
+    why: Syntax does not run the code; only the database's catalogue says what a loop or a condition declares.
+    cites:
+      - {source: code, clause: 'db/model.go:49', says: Calls NewModelDBTable in a loop.}
+  Q-11:
+    question: seed/seed.go:27 grants a privilege with RolePrivilegeMustInsert in a loop at seed/seed.go:26, so the reader cannot tell which grants the seed makes, or whether it makes one. Which grants does the running system hold?
+    kind: decision
+    priority: must
+    blocks: [roles]
+    decidedBy: system-owner
+    why: Syntax does not run the code; only the tables the check reads, printed as a permission table, say what a loop or a condition seeds.
+    cites:
+      - {source: code, clause: 'seed/seed.go:27', says: Calls RolePrivilegeMustInsert in a loop.}
+  Q-12:
+    question: seed/seed.go:29 grants with RolePrivilegeMustInsert the role roleOf(...), which the reader does not trace to a role the same function inserts once with a literal nameid. Which role does it grant which privilege?
+    kind: decision
+    priority: must
+    blocks: [roles]
+    decidedBy: system-owner
+    why: A grant is a role and a privilege; one the reader cannot read is a grant it would miss.
+    cites:
+      - {source: code, clause: 'seed/seed.go:29', says: 'Calls RolePrivilegeMustInsert with the role roleOf(...), which the reader does not trace to a role the same function inserts once with a literal nameid.'}
+  Q-13:
+    question: seed/seed.go:30 grants with RolePrivilegeMustInsert the privilege privilegeOf(...), which is not a literal. Which role does it grant which privilege?
+    kind: decision
+    priority: must
+    blocks: [roles]
+    decidedBy: system-owner
+    why: A grant is a role and a privilege; one the reader cannot read is a grant it would miss.
+    cites:
+      - {source: code, clause: 'seed/seed.go:30', says: 'Calls RolePrivilegeMustInsert with the privilege privilegeOf(...), which is not a literal.'}
+  Q-15:
+    question: 'api/tables.go:13: the table whose paging list POST /branches/list serves is made with whitelists that are not literal lists of names. Which fields does its list search, order and filter by?'
+    kind: decision
+    priority: should
+    blocks: ['#/paths/~1branches~1list/post']
+    decidedBy: system-owner
+    why: A whitelist computed at run time is not known by syntax, and only the whitelist says which fields a caller may search, order and filter by.
+    cites:
+      - {source: code, clause: 'api/tables.go:13', says: 'NewDXTableSimple makes the table public.branches, with whitelists that are not literal lists of names.'}
+  Q-16:
+    question: The check RequireChecks runs only when the setting DESK_CHECKS_ON is true. Is a false DESK_CHECKS_ON ever meant to let every request through, or should the check refuse every request whatever it says?
+    kind: decision
+    priority: must
+    blocks: [roles]
+    decidedBy: system-owner
+    why: A check switched off by a setting fails open without an error, so no role's grants hold while it is off.
+    cites:
+      - {source: code, clause: 'api/middleware.go:25', says: RequireChecks lets every request through while DESK_CHECKS_ON is false.}
+  Q-17:
+    question: The check RequireDeskKey runs only when the setting DESK_API_KEY is present. Is an empty DESK_API_KEY ever meant to let every request through, or should the check refuse every request until it is set?
+    kind: decision
+    priority: must
+    blocks: [roles]
+    decidedBy: system-owner
+    why: A check switched off by an empty setting fails open without an error, so no role's grants hold while it is off.
+    cites:
+      - {source: code, clause: 'api/middleware.go:14', says: RequireDeskKey lets every request through while DESK_API_KEY is empty.}
+  Q-22:
+    question: What does POST /branches/list answer when it succeeds, and what does each response mean?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1branches~1list/post/responses']
+    decidedBy: system-owner
+    why: The source names the refusals a handler answers with a literal status, not its success response or what each response means; the document dxlib emits declares them.
+  Q-23:
+    question: Does the running system register POST /branches/list? It is declared at api/endpoints.go:13, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1branches~1list/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:13', says: Registers POST /branches/list with NewEndPoint.}
+  Q-24:
+    question: What does POST /loans/list answer when it succeeds, and what does each response mean?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1list/post/responses']
+    decidedBy: system-owner
+    why: The source names the refusals a handler answers with a literal status, not its success response or what each response means; the document dxlib emits declares them.
+  Q-25:
+    question: Does the running system register POST /loans/list? It is declared at api/endpoints.go:9, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1list/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:9', says: Registers POST /loans/list with NewEndPoint.}
+  Q-26:
+    question: 'What is each role for, and who holds it: supervisor?'
+    kind: decision
+    priority: must
+    blocks: ['#/roles/supervisor/description']
+    decidedBy: system-owner
+    why: A seed names a role and what it grants; the description is a literal of the role's insert, and none is read for these.
+  Q-27:
+    question: 'seed/seed.go:21: supervisor is granted EVERYTHING, which dxlib_module lets through every check, so supervisor holds every permission, which no list of grants can say. Which permissions does supervisor hold, or is it meant to hold every one?'
+    kind: decision
+    priority: must
+    blocks: ['#/roles/supervisor/permissions']
+    decidedBy: system-owner
+    why: 'A grant of EVERYTHING is not expanded: the permissions it stands for change whenever one is added, and a role''s list names each one (ADR-076).'
+    cites:
+      - {source: code, clause: 'seed/seed.go:21', says: Grants a privilege to supervisor.}
+  Q-28:
+    question: 'seed/seed.go:22: supervisor is granted the privilege REPORT_RUN, which gives the permission report.run, and so does REPORT.RUN, which dxlib checks as another privilege. Which permission does supervisor grant?'
+    kind: decision
+    priority: must
+    blocks: ['#/roles/supervisor/permissions']
+    decidedBy: system-owner
+    why: Two privileges dxlib tells apart would become one permission, which would write a grant the code does not make.
+    cites:
+      - {source: code, clause: 'seed/seed.go:22', says: Grants a privilege to supervisor.}
+  Q-29:
+    question: 'seed/seed.go:23: supervisor is granted the privilege REPORT.RUN, which gives the permission report.run, and so does REPORT_RUN, which dxlib checks as another privilege. Which permission does supervisor grant?'
+    kind: decision
+    priority: must
+    blocks: ['#/roles/supervisor/permissions']
+    decidedBy: system-owner
+    why: Two privileges dxlib tells apart would become one permission, which would write a grant the code does not make.
+    cites:
+      - {source: code, clause: 'seed/seed.go:23', says: Grants a privilege to supervisor.}
+  Q-30:
+    question: Does the running system grant role desk-staff what the seeds grant it? It is seeded at seed/seed.go:16, and no permission table of the running system was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/roles/desk-staff']
+    decidedBy: system-owner
+    why: A seed that did not run, or whose rows something removed, is not a grant; the tables the check reads, printed as a permission table, say what is granted, and merging it answers this.
+    cites:
+      - {source: code, clause: 'seed/seed.go:16', says: Seeds role desk-staff.}
+  Q-31:
+    question: Does the running system grant role supervisor what the seeds grant it? It is seeded at seed/seed.go:20, and no permission table of the running system was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/roles/supervisor']
+    decidedBy: system-owner
+    why: A seed that did not run, or whose rows something removed, is not a grant; the tables the check reads, printed as a permission table, say what is granted, and merging it answers this.
+    cites:
+      - {source: code, clause: 'seed/seed.go:20', says: Seeds role supervisor.}
+  Q-32:
+    question: 'What does each permission allow: branches.read, loans.renew?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/branches.read/description', '#/permissions/loans.renew/description']
+    decidedBy: system-owner
+    why: The source names the privilege an endpoint checks or a seed grants, and a seed's description is read only as a literal of the privilege's insert.
+  Q-33:
+    question: 'Not held: db/model.go:24: column desk.loans.place, DataTypeGeometryPoint: the meta-model has no type for it; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/DeskLoans']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'db/model.go:24', says: 'Not held: column desk.loans.place, DataTypeGeometryPoint: the meta-model has no type for it; left out.'}
+  Q-34:
+    question: 'Not held: db/model.go:25: column desk.loans.shelf: its Type shelfType is not one of dxlib''s data types by name; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/DeskLoans']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'db/model.go:25', says: 'Not held: column desk.loans.shelf: its Type shelfType is not one of dxlib''s data types by name; left out.'}
+  Q-35:
+    question: 'Not held: db/model.go:26: column desk.loans.weight, real: a 32-bit float; written as a double, which holds every value of it. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/DeskLoans']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'db/model.go:26', says: 'Not held: column desk.loans.weight, real: a 32-bit float; written as a double, which holds every value of it.'}
+  Q-36:
+    question: 'Not held: db/model.go:17: table desk.loans: its fields'' IsUnique and References say how the database keeps a column, which the catalogue dump reads; left to it. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/DeskLoans']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'db/model.go:17', says: 'Not held: table desk.loans: its fields'' IsUnique and References say how the database keeps a column, which the catalogue dump reads; left to it.'}
+  Q-37:
+    question: 'Not held: api/tables.go:5: the paging list of POST /loans/list searches, orders and filters by the fields its table''s constructor lists, and the meta-model holds no such list on an operation; cited at the operation. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1loans~1list/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/tables.go:5', says: 'Not held: the paging list of POST /loans/list searches, orders and filters by the fields its table''s constructor lists, and the meta-model holds no such list on an operation; cited at the operation.'}
+  Q-38:
+    question: 'Not held: api/endpoints.go:13: the endpoint POST /branches/list: dxlib names it branches_list from its URI, which is not camelCase, as an operationId is; it is named postBranchesList. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1branches~1list/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:13', says: 'Not held: the endpoint POST /branches/list: dxlib names it branches_list from its URI, which is not camelCase, as an operationId is; it is named postBranchesList.'}
+  Q-39:
+    question: 'Not held: api/endpoints.go:9: the endpoint POST /loans/list: dxlib names it loans_list from its URI, which is not camelCase, as an operationId is; it is named postLoansList. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1loans~1list/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:9', says: 'Not held: the endpoint POST /loans/list: dxlib names it loans_list from its URI, which is not camelCase, as an operationId is; it is named postLoansList.'}
+  Q-40:
+    question: 'Not held: seed/seed.go:25: grant of LOANS.READ to "Branch_Manager": the role''s name is not kebab-case, which a role name is; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [roles]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'seed/seed.go:25', says: 'Not held: grant of LOANS.READ to "Branch_Manager": the role''s name is not kebab-case, which a role name is; left out.'}

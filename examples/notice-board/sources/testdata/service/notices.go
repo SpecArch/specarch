@@ -6,6 +6,7 @@ import (
 
 	"github.com/donnyhardyanto/dxlib/api"
 	"github.com/donnyhardyanto/dxlib/utils"
+	dxos "github.com/donnyhardyanto/dxlib/utils/os"
 )
 
 // reasonBodyTooLong is the reason a notice whose body is too long is
@@ -77,8 +78,13 @@ func NoticeDelete(aepr *api.DXAPIEndPointRequest) (err error) {
 	return nil
 }
 
-// RequireSession refuses a request that carries no session.
+// RequireSession refuses a request that carries no session. While
+// NOTICE_BOARD_SESSIONS_ON is false it lets every request through, as a
+// board on a private network may be run.
 func RequireSession(aepr *api.DXAPIEndPointRequest) (err error) {
+	if !dxos.GetEnvDefaultValueAsBool("NOTICE_BOARD_SESSIONS_ON", true) {
+		return nil
+	}
 	if aepr.Request.Header.Get("Authorization") == "" {
 		aepr.WriteResponseAsErrorMessageNotLogged(http.StatusUnauthorized, "SESSION_REQUIRED", "sign in first")
 		return errors.New("no session")

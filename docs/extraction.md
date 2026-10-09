@@ -383,15 +383,27 @@ changes `extract.yaml` first.
     dxlib with the document dxlib emitted from it committed; its
     `extract.sh` merges the two readings, and each operation has two
     citations.
-14. Go on dxlib's tables, seeds and configuration: `NewModelDBTable` and
-    `NewDXTableSimple` (names, wire names, list whitelists), dxlib_module's
-    role and privilege seed calls, the configuration keys read and the
-    configuration files read as data; gates on a setting found in the
-    middleware the implementation file names, compared in the merge with
-    the permission table's. The seed reader and the permission table
-    reader map dxlib_module's privilege names by the rule of ADR-076, as
-    extract openapi and extract go do, and the merge rows of
-    `docs/reading-code.md` extend to grants.
+14. Built. Go on dxlib's tables, seeds and configuration. `extract go`
+    writes each table `NewModelDBTable` declares with a literal schema and
+    name as the entity `extract database` writes for it, its columns'
+    types by dxlib's data types as the catalogue writes them, and leaves
+    the field keys the catalogue reads to it; dxlib's table constructors
+    give a paging list endpoint its search, order and filter whitelists,
+    cited at the operation with a line, since the meta-model holds none.
+    dxlib_module's role and privilege inserts and `RolePrivilege...Insert`
+    calls give roles and their grants, mapped by the rule of ADR-076 with
+    the endpoints' privileges as one surface, and `extract permissions`
+    maps a permission table's names by the same rule; a grant of
+    EVERYTHING is a `must` question in both. The environment read by a
+    literal name and the files dxlib's `NewConfiguration` names, read as
+    data, give settings under `configuration`. A gate on a setting is
+    found in the middlewares an endpoint's chain names, since dxlib names
+    them at the registration, and is asked in the words the permission
+    table reader uses. `specarch merge` extends the rows of
+    `docs/reading-code.md` to entities, roles and their grants, and joins
+    a gate both readings ask by the check's name. `examples/notice-board`
+    gains its notice table, its seeds, a configuration file and a session
+    check a setting switches off.
 15. Go on `net/http` and the common routers: `http.ServeMux` patterns,
     chi, gin, echo and gorilla/mux; path parameters, request bodies from
     the module's own structs, validator tags, the project's named

@@ -95,6 +95,7 @@ type permissionReader struct {
 	questions   *yaml.Node
 	nextID      int
 	notHeld     []notHeld
+	mappedFrom  map[string]string // a permission the rule of ADR-076 mapped -> the privilege named
 }
 
 // gap records what the meta-model cannot hold of a grant of the role, as
@@ -103,16 +104,35 @@ func (pr *permissionReader) gap(role string, format string, args ...any) {
 	pr.notHeld = append(pr.notHeld, notHeld{text: fmt.Sprintf(format, args...), clause: pr.t.Path + " role " + role, blocks: []string{"roles"}})
 }
 
-func (pr *permissionReader) question(text string, blocks []string, why string) {
+func (pr *permissionReader) question(text string, blocks []string, why string, cites ...*yaml.Node) {
 	pr.nextID++
-	set(pr.questions, fmt.Sprintf("Q-%d", pr.nextID), mapping(
+	q := mapping(
 		"question", text,
 		"kind", "decision",
 		"priority", "must",
 		"blocks", blocks,
 		"decidedBy", owner,
 		"why", why,
-	))
+	)
+	if len(cites) > 0 {
+		set(q, "cites", cites)
+	}
+	set(pr.questions, fmt.Sprintf("Q-%d", pr.nextID), q)
+}
+
+// gateQuestion is the must question on a check that lets every request
+// through while a setting is empty, the same whichever reader finds it, so
+// that the merge joins them by the check's name.
+func gateQuestion(check, setting string) (question, why string) {
+	return fmt.Sprintf("The check %s runs only when the setting %s is present. Is an empty %s ever meant to let every request through, or should the check refuse every request until it is set?", check, setting, setting),
+		"A check switched off by an empty setting fails open without an error, so no role's grants hold while it is off."
+}
+
+// boolGateQuestion is gateQuestion for a check a boolean setting switches
+// off while it is false.
+func boolGateQuestion(check, setting string) (question, why string) {
+	return fmt.Sprintf("The check %s runs only when the setting %s is true. Is a false %s ever meant to let every request through, or should the check refuse every request whatever it says?", check, setting, setting),
+		"A check switched off by a setting fails open without an error, so no role's grants hold while it is off."
 }
 
 // read checks every grant and gate, then writes the roles and the
@@ -120,7 +140,7 @@ func (pr *permissionReader) question(text string, blocks []string, why string) {
 // not show.
 func (pr *permissionReader) read(dumpName string) error {
 	seen := map[dumpGrant]bool{}
-	byRole := map[string][]string{}
+	var names []string
 	for i, g := range pr.t.Grants {
 		where := fmt.Sprintf("%s, grant %d", dumpName, i+1)
 		if g.Role == "" || g.Permission == "" {
@@ -130,16 +150,41 @@ func (pr *permissionReader) read(dumpName string) error {
 			return refuse("%s: %s granting %s is listed twice", where, g.Role, g.Permission)
 		}
 		seen[g] = true
+		if roleWord.MatchString(g.Role) && g.Permission != "public" {
+			names = append(names, g.Permission)
+		}
+	}
+	// dxlib_module's privilege names map to permissions by the rule of
+	// ADR-076, as extract openapi and extract go map them.
+	privileges := newPrivilegeNames(names)
+	byRole := map[string][]string{}
+	type asked struct{ role, question, why string }
+	var problems []asked
+	pr.mappedFrom = map[string]string{}
+	for _, g := range pr.t.Grants {
 		switch {
 		case !roleWord.MatchString(g.Role):
 			pr.gap(g.Role, "grant of %s to %q: the role's name is not kebab-case, which a role name is; left out", g.Permission, g.Role)
-		case !permissionWord.MatchString(g.Permission):
-			pr.gap(g.Role, "grant of %q to %s: the permission's name is not lower-case words joined by dots; left out", g.Permission, g.Role)
 		case g.Permission == "public":
 			pr.gap(g.Role, "grant of public to %s: public is open to everyone and granted by no role; left out", g.Role)
 		default:
-			byRole[g.Role] = append(byRole[g.Role], g.Permission)
+			if q, why := privileges.grantProblem(g.Role, g.Permission); q != "" {
+				problems = append(problems, asked{g.Role, q, why})
+				if byRole[g.Role] == nil {
+					byRole[g.Role] = []string{}
+				}
+				continue
+			}
+			p, mapped, _ := privileges.read(g.Permission)
+			if mapped {
+				pr.mappedFrom[p] = g.Permission
+			}
+			byRole[g.Role] = append(byRole[g.Role], p)
 		}
+	}
+	unknown := map[string]bool{}
+	for _, a := range problems {
+		unknown[a.role] = true
 	}
 	for _, g := range pr.t.Grants {
 		if roleWord.MatchString(g.Role) && byRole[g.Role] == nil {
@@ -163,7 +208,7 @@ func (pr *permissionReader) read(dumpName string) error {
 	var roleNames []string
 	usedBy := map[string][]string{}
 	for name, perms := range byRole {
-		if len(perms) > 0 {
+		if len(perms) > 0 || unknown[name] {
 			roleNames = append(roleNames, name)
 		}
 		for _, p := range perms {
@@ -177,11 +222,20 @@ func (pr *permissionReader) read(dumpName string) error {
 		for _, name := range roleNames {
 			perms := byRole[name]
 			sort.Strings(perms)
-			set(pr.roles, name, mapping(
-				"permissions", perms,
-				"origin", "stated",
-				"cites", []*yaml.Node{citation(pr.key, pr.t.Path+" role "+name, fmt.Sprintf("%s grants %s.", name, joinAnd(perms)))},
-			))
+			var granted []string
+			for _, g := range pr.t.Grants {
+				if g.Role == name {
+					granted = append(granted, g.Permission)
+				}
+			}
+			sort.Strings(granted)
+			role := mapping()
+			if len(perms) > 0 {
+				set(role, "permissions", perms)
+			}
+			set(role, "origin", "stated")
+			set(role, "cites", []*yaml.Node{citation(pr.key, pr.t.Path+" role "+name, fmt.Sprintf("%s grants %s.", name, joinAnd(granted)))})
+			set(pr.roles, name, role)
 			blocks = append(blocks, "#/roles/"+escapeToken(name)+"/description")
 		}
 		pr.question(
@@ -194,22 +248,36 @@ func (pr *permissionReader) read(dumpName string) error {
 			names = append(names, n)
 		}
 		sort.Strings(names)
-		pr.permissions = &yaml.Node{Kind: yaml.MappingNode}
+		if len(names) > 0 {
+			pr.permissions = &yaml.Node{Kind: yaml.MappingNode}
+		}
 		blocks = nil
 		for _, n := range names {
 			roles := usedBy[n]
 			sort.Strings(roles)
-			set(pr.permissions, n, mapping(
-				"origin", "stated",
-				"cites", []*yaml.Node{citation(pr.key, pr.t.Path+" role "+roles[0], fmt.Sprintf("%s %s %s.", joinAnd(roles), grantOrGrants(len(roles)), n))},
-			))
+			named := n
+			if pr.mappedFrom[n] != "" {
+				named = pr.mappedFrom[n]
+			}
+			cites := []*yaml.Node{citation(pr.key, pr.t.Path+" role "+roles[0], fmt.Sprintf("%s %s %s.", joinAnd(roles), grantOrGrants(len(roles)), named))}
+			if pr.mappedFrom[n] != "" {
+				set(pr.permissions, n, mapping("origin", "inferred", "why", privilegeWhy(named, n), "cites", cites))
+			} else {
+				set(pr.permissions, n, mapping("origin", "stated", "cites", cites))
+			}
 			blocks = append(blocks, "#/permissions/"+escapeToken(n)+"/description")
 		}
-		pr.question(
-			fmt.Sprintf("What does each permission allow: %s?", strings.Join(names, ", ")),
-			blocks,
-			"A permission table names the permissions a role grants and not what they are for.",
-		)
+		if len(names) > 0 {
+			pr.question(
+				fmt.Sprintf("What does each permission allow: %s?", strings.Join(names, ", ")),
+				blocks,
+				"A permission table names the permissions a role grants and not what they are for.",
+			)
+		}
+	}
+	sort.SliceStable(problems, func(i, j int) bool { return problems[i].role < problems[j].role })
+	for _, a := range problems {
+		pr.question(a.question, []string{"#/roles/" + escapeToken(a.role) + "/permissions"}, a.why)
 	}
 	sorted := append([]dumpGate(nil), pr.t.Gates...)
 	sort.Slice(sorted, func(i, j int) bool {
@@ -220,17 +288,14 @@ func (pr *permissionReader) read(dumpName string) error {
 	})
 	for _, g := range sorted {
 		pr.res.say("gate: the check %s runs only when the setting %s is present, and lets every request through while it is empty", g.Check, g.Setting)
-		pr.question(
-			fmt.Sprintf("The check %s runs only when the setting %s is present. Is an empty %s ever meant to let every request through, or should the check refuse every request until it is set?", g.Check, g.Setting, g.Setting),
-			[]string{"roles"},
-			"A check switched off by an empty setting fails open without an error, so no role's grants hold while it is off.",
-		)
+		q, why := gateQuestion(g.Check, g.Setting)
+		pr.question(q, []string{"roles"}, why, citation(pr.key, pr.t.Path+" gate "+g.Check, fmt.Sprintf("The permission table declares that %s runs only when %s is present.", g.Check, g.Setting)))
 	}
 	permissions := 0
 	if pr.permissions != nil {
 		permissions = len(pr.permissions.Content) / 2
 	}
-	pr.res.say("wrote %s, %s and %s: one role per name the table grants something the meta-model holds, one permission per name a role grants, one question per thing the permission table does not say and per gate, and one per thing the meta-model cannot hold", plural(len(roleNames), "role"), plural(permissions, "permission"), plural(pr.nextID+couldCount(oneQuestions(pr.questions), pr.notHeld), "question"))
+	pr.res.say("wrote %s, %s and %s: one role per name the table grants something the meta-model holds or asks about, one permission per name a role grants, one question per thing the permission table does not say and per gate, and one per thing the meta-model cannot hold", plural(len(roleNames), "role"), plural(permissions, "permission"), plural(pr.nextID+couldCount(oneQuestions(pr.questions), pr.notHeld), "question"))
 	askNotHeld(pr.res, oneQuestions(pr.questions), &pr.nextID, pr.key, pr.notHeld)
 	return nil
 }

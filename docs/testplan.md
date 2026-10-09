@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 338 design tests, 135 golden and 203 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 340 design tests, 137 golden and 203 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 334 |
+| system | 336 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -646,6 +646,14 @@ Scenario: golden; level: system; verifies SA-44.
 - When: extract go is run on the module
 - Then: it writes each endpoint registered with literal values outside a loop or a condition as an operation citing its registration line and its handler's first line, with its summary, description, path parameters, permission (mapped from capitals by the rule of ADR-076 and declared inferred) and the refusal statuses its handler answers, each naming the problem its literal reason gives; it declares each problem answered at one status, and asks a must question for the loop, the condition, the computed URI, the undeclared parameter, the empty reason, the status alone, two reasons at one status, a reason at two statuses, the second registration, the short call, the file that does not parse, the open endpoint, each operation's success response and whether the running system registers it; a should question for the computed parameter name and status and for the handler it cannot find; prints a line and asks a could question for the HEAD endpoint, the WebSocket endpoint, the RegisterHandler call and each operationId dxlib derives that is not camelCase; leaves out the test file and the testdata file; names the file that registers nothing; declares its code source reading: parsed; and exits 0
 
+#### extract-go-dxlib-tables-seeds
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository holding a Go module on dxlib and dxlib_module: tables declared with NewModelDBTable in a schema NewModelDBSchema names, one with a serial key, a reference, a unique column, a nullable date, money, JSON, a 32-bit float, a geometry and a type named through a variable, one whose key column a function builds, one with a computed name, one with no schema, one whose fields are a variable and one in a loop; two tables NewDXTableSimple makes, one with literal whitelists and one with a whitelist in a variable, each the handler of a paging list endpoint whose middlewares let every request through while an environment setting is empty or a boolean setting is false; a seed that inserts privileges and roles and grants privileges in capitals, EVERYTHING, two names that give one permission, a role whose name is not kebab-case, a grant in a loop, one to a role it cannot trace and one of a computed privilege; and settings read from the environment by literal and computed names and from a dxlib configuration whose JSON file is tracked, with defaults in code and a sensitive key
+- When: extract go is run on the module
+- Then: it writes one entity per table with a literal schema and name, named as extract database names it, with the types of dxlib's data types as the catalogue writes them, nullability and the primary key, and a must question whether the database holds each; it cites each paging list endpoint at its table's constructor with the whitelists and prints a line that the meta-model holds no whitelist, and asks a should question where the whitelists are not literal; it writes the seeded roles with their descriptions and the permissions they grant, mapped by the rule of ADR-076 and declared with a privilege's description, a must question for EVERYTHING, for the two names that give one permission, the loop, the untraced role and the computed privilege, and one whether the running system grants each role; it writes each setting under configuration in the deployment stage by its camelCase name with its type and default, the file's value over the code's, secret where the configuration marks it, a must question on what each is for and whether names that look like a credential are secrets, a must question on the width of a whole number and a should question on the computed name; it asks the gate question for each middleware that lets every request through; it prints a line and asks a could question for the geometry, the type it does not know, the 32-bit float and the role that is not kebab-case; and exits 0
+
 #### extract-not-offered
 
 Scenario: red; level: system; covers exit 2.
@@ -754,9 +762,9 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 
 Scenario: golden; level: system; verifies SA-44.
 
-- Given: a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it, naming the first; the table has two roles sharing a permission, a grant of public, a role whose name is not kebab-case, a role whose one permission is not a permission name, and a check that runs only when a setting is present
+- Given: a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it, naming the first; the table has two roles sharing a permission, a privilege in dxlib_module's capitals, a grant of EVERYTHING, two privileges that give one permission granted to two roles, a grant of public, a role whose name is not kebab-case, a role whose permissions are not a permission name and a privilege that gives another's permission, and a check that runs only when a setting is present
 - When: extract permissions is run on the permission table
-- Then: it writes each role with the permissions it grants in the order of their names and every permission granted, a question for the roles' and the permissions' descriptions and one for the check a setting switches off, names the commit, counts the grants and gates, prints a line for the gate, prints a line and writes a could question citing the role for the grant of public, the role's name, the permission's name and the role left with nothing, and exits 0
+- Then: it writes each role with the permissions it grants in the order of their names and every permission granted, the privilege in capitals mapped by the rule of ADR-076 and declared inferred; a must question on the grant of EVERYTHING, which it does not expand, on each of the two privileges that give one permission and on the name that is not a permission name, each blocking the role's permissions, with the role written with the grants it can read; a question for the roles' and the permissions' descriptions and one for the check a setting switches off, citing the table; names the commit, counts the grants and gates, prints a line for the gate, prints a line and writes a could question citing the role for the grant of public and the role's name, and exits 0
 
 #### extract-router-route-twice
 
@@ -1279,6 +1287,14 @@ Scenario: golden; level: system; verifies SA-45.
 - Given: a tree extract openapi wrote from a document wholly in dxlib's dialect, a code source with reading: printed, holding two operations; a route tree printed from the code repository, reading: printed, holding one of them; and a tree extract go wrote from that repository's source, reading: parsed, holding that operation under another operationId and one operation no printed tree has
 - When: merge is run on the three trees
 - Then: it joins the operation all give into one with every citation and asks a must question on the operationId they disagree on; it leaves out the parsed tree's question whether the running system registers the joined operation, which the printed trees answer, and its question on the operation only it declares, which it asks again as a must question citing the source's line; it asks a could question on the operation only the printed trees have, citing the document; it keeps reading on the document's source and leaves it out of the repository's source, which one tree read printed and another parsed; and exits 0
+
+#### merge-printed-parsed-grants
+
+Scenario: golden; level: system; verifies SA-45.
+
+- Given: a tree extract permissions wrote from a permission table, reading: printed, whose role desk-staff grants loans.read and loans.write, whose role auditor no seed grants, and which declares the gates RequireDeskKey and RequireAudit; a catalogue tree, reading: printed, holding desk.loans and desk.members; and a tree extract go wrote, reading: parsed, whose seeds grant desk-staff loans.read and loans.renew and grant a role clerk the table does not hold, which declares desk.loans and desk.fines, and which finds the gates RequireDeskKey and RequireChecks in its middlewares
+- When: merge is run on the three trees
+- Then: it gives desk-staff the grants the permission table holds, with every citation, asks a must question on loans.renew, seeded and not granted, blocking the permission too, and a could question on loans.write, granted and not seeded; a must question on the role clerk only the seed has and a could question on auditor only the table has; it leaves out the parsed tree's questions whether the database holds desk.loans and whether the running system grants desk-staff, which the printed trees answer, and asks a must question on desk.fines only the source declares and a could question on desk.members only the catalogue holds; it asks the gate on RequireDeskKey once with both citations, the gate on RequireChecks as a must question saying the permission table does not declare it, and adds a could question to the gate on RequireAudit, which the source read does not show; and exits 0
 
 #### merge-source-differs
 
@@ -2774,7 +2790,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-211 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+214 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2962,12 +2978,15 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-44 | acceptance 6 | golden | SA-44 names no harm |
 | requirement SA-44 | acceptance 7 | golden | SA-44 names no harm |
 | requirement SA-44 | acceptance 8 | golden | SA-44 names no harm |
+| requirement SA-44 | acceptance 9 | golden | SA-44 names no harm |
+| requirement SA-44 | acceptance 10 | golden | SA-44 names no harm |
 | requirement SA-45 | acceptance 1 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 2 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 3 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 4 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 5 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 6 | golden | SA-45 names no harm |
+| requirement SA-45 | acceptance 7 | golden | SA-45 names no harm |
 | requirement SA-1 | acceptance 1 | golden | SA-1 names no harm |
 | requirement SA-1 | acceptance 2 | golden | SA-1 names no harm |
 | requirement SA-2 | acceptance 1 | golden | SA-2 names no harm |

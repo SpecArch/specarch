@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -68,6 +69,7 @@ type merger struct {
 	qfiles     []string               // the file of each question
 	stages     map[string]bool        // the stages written
 	voAsk      []voAsk                // the questions about value objects, asked after the disputes
+	gatesAsked map[string]bool        // the checks whose gate questions are joined
 	readBack   map[string]*readBack   // a pointer read back as a value object -> what answers the questions on it
 }
 
@@ -639,6 +641,9 @@ func (m *merger) mergeNode(acc, add *yaml.Node, at []mergeStep) {
 					a.Content = append(a.Content, copyNode(item))
 				}
 			}
+		case k == "permissions" && len(at) == 2 && at[0].key == "roles" && m.readBothWays(source.Pointer(at[0].key, at[1].key)):
+			// The grants of a role a printed and a parsed tree both give
+			// are compared grant by grant (grantQuestions).
 		case !sameNode(a, p.Value):
 			m.disputes[stepsKey(here)] = here
 			m.disputeOrd = append(m.disputeOrd, stepsKey(here))
@@ -835,6 +840,9 @@ func (m *merger) treeQuestions() {
 			if m.registered(ti, t, p.Key.Value, q) {
 				continue
 			}
+			if m.gate(ti, t, p.Key.Value, q) {
+				continue
+			}
 			if m.join(ti, t, p.Key.Value, q) {
 				continue
 			}
@@ -919,7 +927,7 @@ func (m *merger) registered(ti int, t *mergeTree, id string, q *yaml.Node) bool 
 		return false
 	}
 	b, ok := spec.ParseBlock(blocks[0].Value)
-	if !ok || !b.IsPointer() || len(b.Tokens) != 3 || b.Tokens[0] != "paths" || !contains(pathMethods, b.Tokens[2]) {
+	if !ok || !b.IsPointer() || !comparedElement(b.Tokens) {
 		return false
 	}
 	steps := treeSteps(t.s.Root, b.Tokens)
@@ -929,7 +937,7 @@ func (m *merger) registered(ti int, t *mergeTree, id string, q *yaml.Node) bool 
 	var printers []string
 	printed := false
 	for _, other := range m.trees {
-		if other.reading != "printed" || len(source.Pairs(source.Child(other.s.Root, "paths"))) == 0 {
+		if other.reading != "printed" || len(source.Pairs(source.Child(other.s.Root, b.Tokens[0]))) == 0 {
 			continue
 		}
 		printed = true
@@ -944,6 +952,153 @@ func (m *merger) registered(ti int, t *mergeTree, id string, q *yaml.Node) bool 
 	case printed:
 		m.res.say("asked again: %s of %s, on %s, is left out; the merge asks it with what the running system printed", id, t.s.Dir, m.pointerOf(steps))
 		return true
+	}
+	return false
+}
+
+// gateText is the gate question every reader asks (gateQuestion).
+var gateText = regexp.MustCompile(`^The check (\S+) runs only when the setting (\S+) is (?:present|true)\.`)
+
+// gate joins the gate questions on one check that a printed tree and a
+// parsed tree ask (ADR-075): one question with both citations. A gate the
+// source has and the printer does not declare is a must question saying
+// so; one the printer declares and the source read does not show adds a
+// could question. It reports whether the tree's question is handled.
+func (m *merger) gate(ti int, t *mergeTree, id string, q *yaml.Node) bool {
+	match := gateText.FindStringSubmatch(source.Str(source.Child(q, "question")))
+	if match == nil {
+		return false
+	}
+	check := match[1]
+	if m.gatesAsked == nil {
+		m.gatesAsked = map[string]bool{}
+	}
+	if m.gatesAsked[check] {
+		m.res.say("joined: %s of %s, the gate on %s, is left out; it is asked once with every tree's citation", id, t.s.Dir, check)
+		return true
+	}
+	type found struct {
+		reading, setting, title string
+		cites                   []*yaml.Node
+	}
+	var all []found
+	printer, parser := false, false
+	for _, u := range m.trees {
+		if u.reading == "printed" && len(source.Pairs(source.Child(u.s.Root, "roles"))) > 0 {
+			printer = true
+		}
+		if u.reading == "parsed" && len(source.Pairs(source.Child(u.s.Root, "paths"))) > 0 {
+			parser = true
+		}
+		for _, p := range source.Pairs(source.Child(u.s.Root, spec.QuestionsSection)) {
+			if g := gateText.FindStringSubmatch(source.Str(source.Child(p.Value, "question"))); g != nil && g[1] == check {
+				all = append(all, found{u.reading, g[2], u.title, source.Items(source.Child(p.Value, "cites"))})
+			}
+		}
+	}
+	readings := map[string]bool{}
+	var settings, printedBy []string
+	cites := &yaml.Node{Kind: yaml.SequenceNode}
+	for _, f := range all {
+		readings[f.reading] = true
+		if !contains(settings, f.setting) {
+			settings = append(settings, f.setting)
+		}
+		if f.reading == "printed" && !contains(printedBy, f.title) {
+			printedBy = append(printedBy, f.title)
+		}
+		for _, c := range f.cites {
+			if !containsNode(cites, c) {
+				cites.Content = append(cites.Content, copyNode(c))
+			}
+		}
+	}
+	parsedAt := ""
+	for _, f := range all {
+		if f.reading == "parsed" && len(f.cites) > 0 {
+			parsedAt = source.Str(source.Child(f.cites[0], "clause"))
+			break
+		}
+	}
+	setting := match[2]
+	text, why := gateQuestion(check, setting)
+	switch {
+	case readings["printed"] && readings["parsed"] && len(settings) > 1:
+		text = fmt.Sprintf("The check %s runs only when a setting is present, and the trees name %s. Which setting switches it, and is it ever meant to let every request through while that setting is empty?", check, joinAnd(settings))
+	case readings["printed"] && readings["parsed"]:
+	case readings["parsed"] && printer:
+		text, why = source.Str(source.Child(q, "question")), source.Str(source.Child(q, "why"))
+		text += fmt.Sprintf(" The source lets every request through at %s, and the permission table does not declare the gate.", parsedAt)
+		why += " A printer that does not declare a gate hides the one check that fails open; it is to declare it, or the code is to change."
+	case readings["printed"] && parser:
+		m.gatesAsked[check] = true
+		m.addQuestion(copyNode(q), questionFile(q))
+		could := mapping(
+			"question", fmt.Sprintf("Declared, not found: %s declares that %s lets every request through while %s is empty, and the source read shows it in no middleware an endpoint names. Where is the check, and does the specification need its place?", joinAnd(printedBy), check, setting),
+			"kind", "decision",
+			"priority", "could",
+			"blocks", []string{"roles"},
+			"decidedBy", owner,
+			"why", "The printer declares the gate, so it is asked about; the parser only lacks its code, which is outside the middlewares it reads, and nothing waits for the answer.",
+		)
+		if len(cites.Content) > 0 {
+			set(could, "cites", flowItems(cites))
+		}
+		m.res.say("question Q-%d (could): the gate on %s: declared by the permission table, not found in the source read", len(m.questions)+1, check)
+		m.addQuestion(could, questionFile(could))
+		return true
+	default:
+		return false
+	}
+	m.gatesAsked[check] = true
+	var titles []string
+	for _, f := range all {
+		if !contains(titles, f.title) {
+			titles = append(titles, f.title)
+		}
+	}
+	if readings["printed"] {
+		m.res.say("joined: the gate on %s, asked by %s, is asked once with every tree's citation", check, joinAnd(titles))
+	} else {
+		m.res.say("asked again: the gate on %s, found in %s, is asked with what the permission table does not declare", check, joinAnd(titles))
+	}
+	joined := mapping(
+		"question", text,
+		"kind", "decision",
+		"priority", "must",
+		"blocks", []string{"roles"},
+		"decidedBy", owner,
+		"why", why,
+	)
+	if len(cites.Content) > 0 {
+		set(joined, "cites", flowItems(cites))
+	}
+	m.addQuestion(joined, questionFile(joined))
+	return true
+}
+
+// readBothWays says whether an element is given by a printed tree and by
+// a parsed one.
+func (m *merger) readBothWays(ptr string) bool {
+	e := m.elements[ptr]
+	if e == nil {
+		return false
+	}
+	readings := map[string]bool{}
+	for _, ti := range e.trees {
+		readings[m.trees[ti].reading] = true
+	}
+	return readings["printed"] && readings["parsed"]
+}
+
+// comparedElement says whether a pointer names an element a printed and a
+// parsed tree are compared on: an operation, an entity or a role.
+func comparedElement(tokens []string) bool {
+	switch {
+	case len(tokens) == 3 && tokens[0] == "paths":
+		return contains(pathMethods, tokens[2])
+	case len(tokens) == 2:
+		return tokens[0] == "entities" || tokens[0] == "roles"
 	}
 	return false
 }
@@ -1487,16 +1642,63 @@ func (m *merger) priorityWhy(e *element, n *yaml.Node, priority, only string) st
 	return only + ", and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found."
 }
 
-// readingQuestions compares the operations a printed tree and a parsed
-// tree give (ADR-075): an operation only the parsed tree declares is a
-// must question, since the running system does not list it; one only the
-// printed tree has is a could question, since the parser does not follow
-// the code that registers it. Grants and the other surfaces join these
-// rows with their readers.
+// readingQuestions compares what a printed tree and a parsed tree give
+// (ADR-075): an operation, an entity or a role only the parsed tree
+// declares is a must question, since the running system does not list
+// it; one only the printed tree has is a could question, since the parser
+// does not follow the code that declares it. A role both give is granted
+// what the printed trees grant, and a grant only one side makes is asked
+// about the same way.
 func (m *merger) readingQuestions() int {
+	asked := 0
+	for _, section := range []string{"paths", "entities", "roles"} {
+		asked += m.readingQuestionsOn(section)
+	}
+	return asked
+}
+
+// The words of the questions readingQuestions asks, per section.
+type readingText struct {
+	declared, notListed, ask, why   string // an element only the parsed tree declares
+	notFound, notFoundWhere, notWhy string // an element only the printed tree has
+	options                         []string
+	saysParsed, saysPrinted         string
+}
+
+var readingWords = map[string]readingText{
+	"paths": {
+		declared: "Declared, not registered", notListed: "and the running system does not list it in",
+		ask:      "Is it code that is never reached, or reached only under a setting, or does the printer miss it?",
+		why:      "Only the parsed source declares it, and what the running system lists is what it serves; an operation declared and not served is dead code or switched on by a setting, and an operation is where an open endpoint is found.",
+		notFound: "Registered by code the reader does not follow", notFoundWhere: "such as a loop, a condition, a helper or a module",
+		notWhy:     "The running system lists it, so it is served; the parser only lacks its place in the source, and nothing waits for the answer.",
+		options:    []string{"Served: the printer is to list it", "Not served: the code is to change, or the setting that switches it on is to be named"},
+		saysParsed: "declared in the source read, not registered by the running system", saysPrinted: "registered by the running system, not found in the source read",
+	},
+	"entities": {
+		declared: "Declared, not in the database", notListed: "and the database's catalogue does not hold it in",
+		ask:      "Is the declaration unused, or is the migration that makes the table missing?",
+		why:      "Only the parsed source declares the table, and the catalogue is what the database holds; a table declared and not made fails when the code first uses it.",
+		notFound: "In the database, declared nowhere the reader follows", notFoundWhere: "such as a migration, a helper or a module",
+		notWhy:     "The catalogue holds it, so the database has it; the parser only lacks its declaration in the source, and nothing waits for the answer.",
+		options:    []string{"Held: the migration that makes it is to be committed", "Not held: the declaration is to go"},
+		saysParsed: "declared in the source read, not in the database's catalogue", saysPrinted: "in the database's catalogue, not found in the source read",
+	},
+	"roles": {
+		declared: "Seeded, not granted", notListed: "and the tables the permission check reads do not hold it in",
+		ask:      "Did the seed not run, or did something remove its rows?",
+		why:      "Only the seed in the source grants it, and the permission table is what the check reads; a seed that did not run is not a grant.",
+		notFound: "Granted, seeded nowhere the reader follows", notFoundWhere: "such as a loop, a helper, a module or a change made by hand",
+		notWhy:     "The permission table holds it, so the check reads it; the parser only lacks the seed that made it, and nothing waits for the answer.",
+		options:    []string{"Granted: the seed is to run again", "Not granted: the seed is to change"},
+		saysParsed: "seeded in the source read, not in the permission table", saysPrinted: "in the permission table, not seeded in the source read",
+	},
+}
+
+func (m *merger) readingQuestionsOn(section string) int {
 	speaks := map[string]bool{}
 	for _, ptr := range m.order {
-		if e := m.elements[ptr]; e.section == "paths" {
+		if e := m.elements[ptr]; e.section == section && e.parent == "" {
 			for _, ti := range e.trees {
 				speaks[m.trees[ti].reading] = true
 			}
@@ -1507,14 +1709,15 @@ func (m *merger) readingQuestions() int {
 	}
 	var printers []string
 	for _, t := range m.trees {
-		if t.reading == "printed" && len(source.Pairs(source.Child(t.s.Root, "paths"))) > 0 {
+		if t.reading == "printed" && len(source.Pairs(source.Child(t.s.Root, section))) > 0 {
 			printers = append(printers, t.title)
 		}
 	}
+	words := readingWords[section]
 	asked := 0
 	for _, ptr := range m.order {
 		e := m.elements[ptr]
-		if e.section != "paths" {
+		if e.section != section || e.parent != "" {
 			continue
 		}
 		readings := map[string]bool{}
@@ -1532,37 +1735,140 @@ func (m *merger) readingQuestions() int {
 				}
 			}
 		}
-		if readings["printed"] == readings["parsed"] {
-			continue
-		}
 		node := m.elementNode(e)
 		label := m.label(e, node)
-		op := "#" + source.Pointer(e.tokens...)
+		at := "#" + source.Pointer(e.tokens...)
+		if readings["printed"] && readings["parsed"] {
+			if section == "roles" {
+				asked += m.grantQuestions(e, node, label)
+			}
+			continue
+		}
+		if !readings["printed"] && !readings["parsed"] {
+			continue
+		}
 		var q *yaml.Node
 		if readings["parsed"] {
 			q = mapping(
-				"question", fmt.Sprintf("Declared, not registered: %s is declared at %s, and the running system does not list it in %s. Is it code that is never reached, or reached only under a setting, or does the printer miss it?", label, clausesOf(mapping("cites", cites["parsed"]))[0], joinAnd(printers)),
+				"question", fmt.Sprintf("%s: %s is declared at %s, %s %s. %s", words.declared, label, clausesOf(mapping("cites", cites["parsed"]))[0], words.notListed, joinAnd(printers), words.ask),
 				"kind", "decision",
 				"priority", "must",
-				"blocks", []string{op},
+				"blocks", []string{at},
 				"decidedBy", owner,
-				"options", []string{"Served: the printer is to list it", "Not served: the code is to change, or the setting that switches it on is to be named"},
-				"why", "Only the parsed source declares it, and what the running system lists is what it serves; an operation declared and not served is dead code or switched on by a setting, and an operation is where an open endpoint is found.",
+				"options", words.options,
+				"why", words.why,
 				"cites", flowItems(cites["parsed"]),
 			)
-			m.res.say("question Q-%d (must): %s: declared in the source read, not registered by the running system", len(m.questions)+1, op)
+			m.res.say("question Q-%d (must): %s: %s", len(m.questions)+1, at, words.saysParsed)
 		} else {
 			q = mapping(
-				"question", fmt.Sprintf("Registered by code the reader does not follow: %s is in %s, and the source read declares it nowhere the reader follows, such as a loop, a condition, a helper or a module. Does the specification need where it is declared?", label, joinAnd(clausesOf(mapping("cites", cites["printed"])))),
+				"question", fmt.Sprintf("%s: %s is in %s, and the source read declares it nowhere the reader follows, %s. Does the specification need where it is declared?", words.notFound, label, joinAnd(clausesOf(mapping("cites", cites["printed"]))), words.notFoundWhere),
 				"kind", "decision",
 				"priority", "could",
-				"blocks", []string{op},
+				"blocks", []string{at},
 				"decidedBy", owner,
-				"why", "The running system lists it, so it is served; the parser only lacks its place in the source, and nothing waits for the answer.",
+				"why", words.notWhy,
 				"cites", flowItems(cites["printed"]),
 			)
-			m.res.say("question Q-%d (could): %s: registered by the running system, not found in the source read", len(m.questions)+1, op)
+			m.res.say("question Q-%d (could): %s: %s", len(m.questions)+1, at, words.saysPrinted)
 		}
+		m.addQuestion(q, questionFile(q))
+		asked++
+	}
+	return asked
+}
+
+// grantSays is how the Go reader cites a seed's grant.
+var grantSays = regexp.MustCompile(`^Grants (\S+) to `)
+
+// grantQuestions compares the grants of a role a printed and a parsed tree
+// both give: the role grants what the printed trees grant, since that is
+// what the check reads; a grant only a seed makes is a must question, and
+// one only the printed tree holds a could question.
+func (m *merger) grantQuestions(e *element, node *yaml.Node, label string) int {
+	steps := []mergeStep{{key: e.tokens[0]}, {key: e.tokens[1]}, {key: "permissions"}}
+	printed, parsed := map[string][]*yaml.Node{}, map[string][]*yaml.Node{}
+	var printers []string
+	for _, ti := range e.trees {
+		t := m.trees[ti]
+		role := follow(t.s.Root, steps[:2])
+		for _, p := range source.Items(follow(t.s.Root, steps)) {
+			var cites []*yaml.Node
+			for _, c := range source.Items(source.Child(role, "cites")) {
+				if t.reading == "parsed" {
+					// A seed's citation names the privilege it grants.
+					g := grantSays.FindStringSubmatch(source.Str(source.Child(c, "says")))
+					if g == nil || (g[1] != p.Value && privilegePermission(g[1]) != p.Value) {
+						continue
+					}
+				}
+				cites = append(cites, copyNode(c))
+			}
+			switch t.reading {
+			case "printed":
+				printed[p.Value] = append(printed[p.Value], cites...)
+				if !contains(printers, t.title) {
+					printers = append(printers, t.title)
+				}
+			case "parsed":
+				parsed[p.Value] = append(parsed[p.Value], cites...)
+			}
+		}
+	}
+	var list []string
+	for p := range printed {
+		list = append(list, p)
+	}
+	sort.Strings(list)
+	if len(list) > 0 {
+		setKey(node, "permissions", flow(value(list)))
+	} else {
+		deleteKey(node, "permissions")
+	}
+	var only []string
+	for p := range parsed {
+		if printed[p] == nil {
+			only = append(only, p)
+		}
+	}
+	sort.Strings(only)
+	at := "#" + source.Pointer(e.tokens...) + "/permissions"
+	asked := 0
+	for _, p := range only {
+		cites := &yaml.Node{Kind: yaml.SequenceNode, Content: parsed[p]}
+		where := "the source read"
+		if cl := clausesOf(mapping("cites", cites)); len(cl) > 0 {
+			where = cl[0]
+		}
+		q := mapping(
+			"question", fmt.Sprintf("Seeded, not granted: %s is granted %s by the seed at %s, and %s does not hold the grant. Did the seed not run, or did something remove the grant?", label, p, where, joinAnd(printers)),
+			"kind", "decision",
+			"priority", "must",
+			"blocks", []string{at, "#" + source.Pointer("permissions", p)},
+			"decidedBy", owner,
+			"options", []string{"Granted: the seed is to run again", "Not granted: the seed is to change"},
+			"why", "The permission table is what the check reads; a grant only a seed makes is one the running system does not hold.",
+		)
+		if len(cites.Content) > 0 {
+			set(q, "cites", flowItems(cites))
+		}
+		m.res.say("question Q-%d (must): %s: %s seeded, not granted by the running system", len(m.questions)+1, at, p)
+		m.addQuestion(q, questionFile(q))
+		asked++
+	}
+	for _, p := range list {
+		if parsed[p] != nil {
+			continue
+		}
+		q := mapping(
+			"question", fmt.Sprintf("Granted, seeded nowhere the reader follows: %s grants %s in %s, and no seed in the source read grants it. Does the specification need where it is granted?", label, p, joinAnd(printers)),
+			"kind", "decision",
+			"priority", "could",
+			"blocks", []string{at},
+			"decidedBy", owner,
+			"why", "The permission table holds the grant, so the check reads it; the parser only lacks the seed that made it, and nothing waits for the answer.",
+		)
+		m.res.say("question Q-%d (could): %s: %s granted by the running system, not seeded in the source read", len(m.questions)+1, at, p)
 		m.addQuestion(q, questionFile(q))
 		asked++
 	}

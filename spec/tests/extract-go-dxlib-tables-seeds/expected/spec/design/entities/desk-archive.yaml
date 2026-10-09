@@ -1,0 +1,6 @@
+entities:
+  DeskArchive:
+    type: object
+    origin: stated
+    cites:
+      - {source: code, clause: 'db/model.go:41', says: NewModelDBTable declares table desk.archive.}

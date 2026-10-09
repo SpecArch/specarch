@@ -84,15 +84,41 @@ commands:
         code is never reached, or only under a setting, or the printer
         misses it. An operation only the printed trees have keeps its
         citations, and a could question that starts "Registered by code
-        the reader does not follow:" cites them. Grants and the other
-        surfaces join these rows with their readers' steps.
+        the reader does not follow:" cites them. Entities and roles are
+        compared the same way where a printed and a parsed tree both have
+        them: an entity only the source declares is a must question that
+        starts "Declared, not in the database:", one only the catalogue
+        holds a could question that starts "In the database, declared
+        nowhere the reader follows:"; a role only a seed grants is a must
+        question that starts "Seeded, not granted:", one only the
+        permission table holds a could question that starts "Granted,
+        seeded nowhere the reader follows:". A role both give grants what
+        the printed trees grant, since that is what the check reads, with
+        every tree's citation and no disagreement asked on its list; a
+        grant only a seed makes is a must question that starts "Seeded,
+        not granted:" blocking the role's permissions and the permission,
+        and one only the table holds a could question that starts
+        "Granted, seeded nowhere the reader follows:".
+      - Every reader asks about a check that lets every request through
+        while a setting is empty in the same words, "The check <check>
+        runs only when the setting <setting> is present." (or "is true."
+        for a boolean setting). Where a printed
+        and a parsed tree both ask about one check, by its name, the merge
+        asks it once with every tree's citation, and names both settings
+        when they differ. One only the parsed tree asks, where a printed
+        tree holds roles, is a must question that adds that the
+        permission table does not declare the gate; one only the printed
+        tree asks, where a parsed tree holds operations, keeps its
+        question and adds a could question that starts "Declared, not
+        found:", since the check's code is outside the middlewares the
+        parser reads.
       - A parsed tree's must question that blocks one of its own
-        operations and nothing else asks whether the running system
-        registers it. A printed tree that gives the operation answers it,
-        and it is left out with a line naming that tree; where printed
-        trees have operations and not this one, it is left out too, and
-        the "Declared, not registered" question asks it with what they
-        printed.
+        operations, entities or roles and nothing else asks whether the
+        running system registers it, holds it or grants it. A printed
+        tree that gives the element answers it, and it is left out with a
+        line naming that tree; where printed trees have elements of that
+        section and not this one, it is left out too, and the question of
+        the row above asks it with what they printed.
       - Sources of the same key are one source when they are the same in
         everything but their clauses, which are joined, and their
         reading: the merged source keeps a reading every tree gives it
@@ -162,7 +188,9 @@ commands:
       same number of days; one line per question of a tree that another
       tree answers or a question kept before it asks, and per parsed
       tree's question on whether the running system registers an
-      operation that a printed tree answers or the merge asks again; one
+      operation, holds a table or grants a role that a printed tree
+      answers or the merge asks again; one line per gate question joined
+      or asked again; one
       line per
       question whose name is joined to the operation another tree
       declares; one line per

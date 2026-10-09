@@ -1,0 +1,7 @@
+{
+    "database": {
+        "host": "localhost",
+        "password": "set-at-deploy"
+    },
+    "page_size": 50
+}

@@ -1,0 +1,10 @@
+entities:
+  DeskFines:
+    type: object
+    properties:
+      id: {type: string, format: int64}
+    required: [id]
+    primaryKey: [id]
+    origin: stated
+    cites:
+      - {source: code, clause: 'db/model.go:15', says: NewModelDBTable declares table desk.fines with the columns id (its key).}

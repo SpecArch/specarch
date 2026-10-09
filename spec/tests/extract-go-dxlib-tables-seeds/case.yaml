@@ -1,0 +1,25 @@
+arguments: [extract, go, --out, spec, testdata/service]
+repository:
+  folder: testdata/service
+  commits:
+    - [.]
+exitStatus: 0
+standardOutput: |
+  commit a4f2e0725e717131552dd4bae2d127f9dc0e28ab: the last change to .
+  counted 6 Go files, 2 of them importing dxlib's api package and 0 that do not parse, and left out 0: every tracked Go file under . but test files and files in a folder below it named testdata or vendor, or that the go command ignores
+  dxlib: counted 6 NewModelDBTable calls and 2 table constructors: every call by that name in a file that imports dxlib's models package, and every call of dxlib's tables package that makes a table the API serves
+  dxlib_module: counted 3 roles, 2 privileges and 7 grants seeded with literal names: every insert into dxlib_module's role and privilege tables, and every RolePrivilege...Insert call, in a file that imports a package of dxlib_module
+  settings: counted 6 reads of the environment and 1 configuration: every call of os or of dxlib's utils/os that reads the environment by a name, and every NewConfiguration of dxlib's configuration
+  dxlib: counted 2 NewEndPoint calls, 0 NewWSEndPoint calls and 0 RegisterHandler calls: every call by that name in a file that imports dxlib's api package
+  gate: api/middleware.go:25: the check RequireChecks runs only when the setting DESK_CHECKS_ON is true, and lets every request through while it is false
+  gate: api/middleware.go:14: the check RequireDeskKey runs only when the setting DESK_API_KEY is present, and lets every request through while it is empty
+  wrote 2 operations on 2 paths, 2 permissions, 0 problems and 40 questions: one operation per endpoint NewEndPoint registers with a literal method and URI, outside a loop or a condition, one permission per privilege an endpoint names alone, one problem per literal reason a handler answers, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  wrote 3 entities, 2 roles and 10 settings: one entity per table NewModelDBTable declares with a literal schema and name, one role per role the seeds grant something, and one setting per name the source reads or a configuration file holds
+  not held: db/model.go:24: column desk.loans.place, DataTypeGeometryPoint: the meta-model has no type for it; left out; could question Q-33
+  not held: db/model.go:25: column desk.loans.shelf: its Type shelfType is not one of dxlib's data types by name; left out; could question Q-34
+  not held: db/model.go:26: column desk.loans.weight, real: a 32-bit float; written as a double, which holds every value of it; could question Q-35
+  not held: db/model.go:17: table desk.loans: its fields' IsUnique and References say how the database keeps a column, which the catalogue dump reads; left to it; could question Q-36
+  not held: api/tables.go:5: the paging list of POST /loans/list searches, orders and filters by the fields its table's constructor lists, and the meta-model holds no such list on an operation; cited at the operation; could question Q-37
+  not held: api/endpoints.go:13: the endpoint POST /branches/list: dxlib names it branches_list from its URI, which is not camelCase, as an operationId is; it is named postBranchesList; could question Q-38
+  not held: api/endpoints.go:9: the endpoint POST /loans/list: dxlib names it loans_list from its URI, which is not camelCase, as an operationId is; it is named postLoansList; could question Q-39
+  not held: seed/seed.go:25: grant of LOANS.READ to "Branch_Manager": the role's name is not kebab-case, which a role name is; left out; could question Q-40

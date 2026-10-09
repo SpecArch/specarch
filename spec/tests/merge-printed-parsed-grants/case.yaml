@@ -1,0 +1,23 @@
+arguments: [merge, --out, spec, trees/grants, trees/catalogue, trees/code]
+exitStatus: 0
+standardOutput: |
+  tree trees/grants: Permissions of access, on the code, printed side: 5 elements and 4 questions
+  tree trees/catalogue: Database of migrations, on the code, printed side: 2 elements and 0 questions
+  tree trees/code: Go source of ., on the code, parsed side: 10 elements and 12 questions
+  joined: the gate on RequireDeskKey, asked by Permissions of access and Go source of ., is asked once with every tree's citation
+  answered: Q-1 of trees/code, on #/entities/DeskLoans, is left out; Database of migrations prints it as the running system registers it
+  asked again: Q-2 of trees/code, on #/entities/DeskFines, is left out; the merge asks it with what the running system printed
+  asked again: the gate on RequireChecks, found in Go source of ., is asked with what the permission table does not declare
+  joined: Q-4 of trees/code, the gate on RequireDeskKey, is left out; it is asked once with every tree's citation
+  asked again: Q-9 of trees/code, on #/roles/clerk, is left out; the merge asks it with what the running system printed
+  answered: Q-10 of trees/code, on #/roles/desk-staff, is left out; Permissions of access prints it as the running system registers it
+  unchecked: the permission loans.write, which desk-staff grants, is checked by no operation, command or page; it is left from code that was removed, or guards something the routes do not show
+  merged 13 elements, each an entry of a section or an operation: 4 in more than one tree, and 0 keys the trees disagree on
+  wrote 18 questions: 12 from the trees, numbered again in the order the trees are given, and 6 the merge asked
+  question Q-4 (could): the gate on RequireAudit: declared by the permission table, not found in the source read
+  question Q-13 (could): #/entities/DeskMembers: in the database's catalogue, not found in the source read
+  question Q-14 (must): #/entities/DeskFines: declared in the source read, not in the database's catalogue
+  question Q-15 (could): #/roles/auditor: in the permission table, not seeded in the source read
+  question Q-16 (must): #/roles/desk-staff/permissions: loans.renew seeded, not granted by the running system
+  question Q-17 (could): #/roles/desk-staff/permissions: loans.write granted by the running system, not seeded in the source read
+  question Q-18 (must): #/roles/clerk: seeded in the source read, not in the permission table

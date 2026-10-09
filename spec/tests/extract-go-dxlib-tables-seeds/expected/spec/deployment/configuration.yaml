@@ -1,0 +1,53 @@
+configuration:
+  deskApiKey:
+    schema: {type: string}
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/middleware.go:13', says: Reads DESK_API_KEY from the environment with Getenv.}
+  deskChecksOn:
+    schema: {type: boolean, default: true}
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/middleware.go:25', says: Reads DESK_CHECKS_ON from the environment with GetEnvDefaultValueAsBool.}
+  deskLogLevel:
+    schema: {type: string}
+    origin: stated
+    cites:
+      - {source: code, clause: 'config/config.go:17', says: Reads DESK_LOG_LEVEL from the environment with Getenv.}
+  deskPort:
+    schema: {type: integer, default: 8080}
+    origin: stated
+    cites:
+      - {source: code, clause: 'config/config.go:18', says: Reads DESK_PORT from the environment with GetEnvDefaultValueAsInt.}
+  deskSigningToken:
+    schema: {type: string}
+    origin: stated
+    cites:
+      - {source: code, clause: 'config/config.go:19', says: Reads DESK_SIGNING_TOKEN from the environment with GetEnvDefaultValue.}
+  storageHost:
+    schema: {type: string, default: localhost}
+    origin: stated
+    cites:
+      - {source: code, clause: config/storage.json, says: 'The configuration storage, read by config/config.go:13, holds host.'}
+  storagePassword:
+    schema: {type: string}
+    secret: true
+    origin: stated
+    cites:
+      - {source: code, clause: config/storage.json, says: 'The configuration storage, read by config/config.go:13, holds password.'}
+  storagePool:
+    schema: {type: integer, default: 8}
+    origin: stated
+    cites:
+      - {source: code, clause: config/storage.json, says: 'The configuration storage, read by config/config.go:13, holds pool.'}
+      - {source: code, clause: 'config/config.go:13', says: The configuration storage defaults pool.}
+  storageRatio:
+    schema: {type: number, format: double, default: 0.75}
+    origin: stated
+    cites:
+      - {source: code, clause: config/storage.json, says: 'The configuration storage, read by config/config.go:13, holds ratio.'}
+  storageTlsEnabled:
+    schema: {type: boolean, default: false}
+    origin: stated
+    cites:
+      - {source: code, clause: 'config/config.go:13', says: The configuration storage defaults tls.enabled.}

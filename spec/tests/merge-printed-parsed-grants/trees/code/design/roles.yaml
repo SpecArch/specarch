@@ -1,0 +1,16 @@
+roles:
+  clerk:
+    description: Files the paperwork.
+    permissions: [loans.read]
+    origin: stated
+    cites:
+      - {source: code, clause: 'seed/seed.go:16', says: Inserts the role clerk.}
+      - {source: code, clause: 'seed/seed.go:17', says: Grants LOANS.READ to clerk.}
+  desk-staff:
+    description: Works at the desk.
+    permissions: [loans.read, loans.renew]
+    origin: stated
+    cites:
+      - {source: code, clause: 'seed/seed.go:13', says: Inserts the role desk-staff.}
+      - {source: code, clause: 'seed/seed.go:14', says: Grants LOANS.READ to desk-staff.}
+      - {source: code, clause: 'seed/seed.go:15', says: Grants LOANS.RENEW to desk-staff.}

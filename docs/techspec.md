@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 56 requirements, 5 entities, 12 commands, 7 algorithms, 338 tests, 78 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 56 requirements, 5 entities, 12 commands, 7 algorithms, 340 tests, 78 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -798,13 +798,20 @@ The sources this build reads:
   setting is present, by the check's name and the setting's. Each
   role becomes a role granting its permissions in the order of
   their names, citing the permission table, and every permission
-  granted is declared. A role whose name is not kebab-case, a
-  permission whose name is not lower-case words joined by dots, and
-  a grant of public, which is open to everyone and granted by no
+  granted is declared. A privilege in dxlib_module's capitals is
+  mapped to a permission by the rule of ADR-076, as extract openapi
+  maps it, and the permission declared inferred. A grant of
+  EVERYTHING, which is never expanded, a name the rule does not map
+  and two names that give one permission are each a must question
+  blocking the role's permissions, and the role is written with the
+  grants it can read. A role whose name is not kebab-case and a
+  grant of public, which is open to everyone and granted by no
   role, print a line and are left out, and so is a role left with
-  nothing to grant. Each such check prints a line and is a must
-  question blocking the roles, since while the setting is empty the
-  check lets every request through and nothing says so.
+  nothing to grant or ask about. Each such check prints a line and
+  is a must question blocking the roles, citing the table, since
+  while the setting is empty the check lets every request through
+  and nothing says so; extract go asks it in the same words, so
+  that merge joins the two.
 - `pages`: one folder that is a file-system router's root, such as
   the `app` folder of a Next.js application, read from its tracked
   files (ADR-057). Every folder that holds a page file, `page.tsx`,
@@ -932,6 +939,94 @@ The sources this build reads:
   extract openapi. A file that imports dxlib's `api` package and
   gives nothing read prints a line.
 
+  In a file that imports dxlib's `databases/models` package, each
+  `NewModelDBTable` call whose name is a literal and whose schema is
+  a `NewModelDBSchema` call with a literal name, written there or
+  assigned once to the name the call passes, outside a loop and a
+  condition, is an entity named as extract database names the
+  table, so that the two trees give one entity. Its fields are a
+  literal map of `ModelDBField`: each column is a property named in
+  camelCase, its type the column type dxlib's data type makes on
+  PostgreSQL, written as extract database writes that type, nullable
+  unless `IsNotNull` or `IsPrimaryKey` says otherwise, read-only for
+  a serial type or `IsAutoIncrement`, and the `IsPrimaryKey` columns
+  the primary key. A field's other keys, such as `References`,
+  `IsUnique` and `DefaultValue`, are left to the catalogue, with a
+  line per table naming them. A data type the meta-model has no type
+  for, a type not named as one of dxlib's, and what extract database
+  prints a line for print a line; a field built by a function, or a
+  column named by something other than a literal, is a should
+  question. A call in a loop or behind a condition, one whose schema
+  or name is not read, one whose fields are not a literal map, and
+  a table with no key are must questions, and each entity carries a
+  must question whether the database holds it, which a catalogue
+  tree answers in the merge. In a file that imports dxlib's `tables`
+  package, `NewDXTableSimple`, `NewDXRawTableSimple`,
+  `NewDXTableAuditOnlySimple`, `NewDXTableWithEncryption`,
+  `NewDXTable` and `NewDXTableWithView` give the table assigned to a
+  name or a field, and their last three arguments its paging list's
+  search, order and filter whitelists. An endpoint whose handler is
+  that table's `RequestSearchPagingList` or
+  `RequestSearchPagingDownload` cites the constructor's line, saying
+  the table and its whitelists, in place of a handler's, and prints
+  a line, since the meta-model holds no whitelist on an operation;
+  whitelists that are not literal lists are a should question.
+
+  In a file that imports a package of dxlib_module, an insert into
+  its `Role` or `Privilege` table (`InsertReturningId`, `TxInsert`
+  and the other insert methods of a dxlib table) with a literal
+  `nameid` seeds a role or a privilege, with the literal
+  `description` beside it, and a `RolePrivilege...Insert` call
+  grants its last argument, a literal privilege, to its role id,
+  when that id is a name the same function assigns once from a role
+  insert. Each role a seed grants something is written with the
+  permissions it grants, citing the role's insert and every grant,
+  mapped by the rule of ADR-076 over every privilege name of the
+  source, the endpoints' with the seeds', and each permission is
+  declared with the seeded privilege's description. A grant of
+  EVERYTHING, a name the rule does not map and two names that give
+  one permission are must questions on the role's permissions, as
+  extract permissions asks them; a seed in a loop or behind a
+  condition, a role id the reader does not trace and a privilege
+  that is not a literal are must questions; a role whose name is not
+  kebab-case prints a line. Each role carries a must question
+  whether the running system grants it what the seeds grant, which
+  a permission table answers in the merge, and a role with no
+  literal description a must question on it.
+
+  A setting is read where the environment is read by a literal name
+  (`os.Getenv`, `os.LookupEnv`, and dxlib's `GetEnvDefaultValue`,
+  `GetEnvDefaultValueAsInt` and `GetEnvDefaultValueAsBool`), and
+  where dxlib's `NewConfiguration` names, with literals, a tracked
+  JSON or YAML file of the paths read: the file is read as data,
+  each leaf a setting named after the configuration and the key's
+  path, with the call's literal defaults and its sensitive keys.
+  Each is written under `configuration`, in the deployment stage,
+  by its name in camelCase (`DESK_API_KEY` is `deskApiKey`,
+  `storage.page_size` is `storagePageSize`), with the type its
+  getter or its value gives and the default its literal or the
+  file gives, the file's over the code's, as dxlib merges them;
+  `secret: true` where the configuration names the key sensitive.
+  What each is for and whether it is a secret is a must question,
+  and so is whether a setting whose name says secret, token, key,
+  password or credential is a secret, whose default is then not
+  written; so are two names that give one camelCase name, two
+  types, and the width of a whole number. A name that is not a
+  literal, a file that is not tracked, more than one file of that
+  name and a file that does not parse are should questions.
+
+  A gate on a setting is found in each middleware an endpoint's
+  literal chain names that the reader finds by syntax, as it finds
+  a handler: an `if` among the function's own statements whose only
+  statement returns `nil`, so letting the request through, when a
+  setting read from the environment by a literal name, directly or
+  through a name the function assigns once, is empty, or a boolean
+  one is false. Each prints a line and is the must question extract
+  permissions asks on a gate, in the same words, saying true and
+  false in place of present and empty for a boolean setting, citing
+  the line, with the check named by the function's name; dxlib's middlewares
+  are named in the endpoint, so no implementation file names them.
+
 Every reader follows these rules:
 
 - The tree's root tracks origin. The code readers declare one code
@@ -1002,7 +1097,8 @@ object the specification could not hold, naming it, saying why and
 naming the question that asks about it; one line naming a dialect
 the reader reads, or a document read as what the running system
 printed; one line per file that imports a library the reader knows
-and gives nothing it reads; and one line per file that says it is
+and gives nothing it reads; one line per gate on a setting, naming
+the check and the setting; and one line per file that says it is
 generated from another source.
 
 Standard error: A usage message on a usage error, and the reason a source could not be read.
@@ -1304,15 +1400,41 @@ refused.
   code is never reached, or only under a setting, or the printer
   misses it. An operation only the printed trees have keeps its
   citations, and a could question that starts "Registered by code
-  the reader does not follow:" cites them. Grants and the other
-  surfaces join these rows with their readers' steps.
+  the reader does not follow:" cites them. Entities and roles are
+  compared the same way where a printed and a parsed tree both have
+  them: an entity only the source declares is a must question that
+  starts "Declared, not in the database:", one only the catalogue
+  holds a could question that starts "In the database, declared
+  nowhere the reader follows:"; a role only a seed grants is a must
+  question that starts "Seeded, not granted:", one only the
+  permission table holds a could question that starts "Granted,
+  seeded nowhere the reader follows:". A role both give grants what
+  the printed trees grant, since that is what the check reads, with
+  every tree's citation and no disagreement asked on its list; a
+  grant only a seed makes is a must question that starts "Seeded,
+  not granted:" blocking the role's permissions and the permission,
+  and one only the table holds a could question that starts
+  "Granted, seeded nowhere the reader follows:".
+- Every reader asks about a check that lets every request through
+  while a setting is empty in the same words, "The check <check>
+  runs only when the setting <setting> is present." (or "is true."
+  for a boolean setting). Where a printed
+  and a parsed tree both ask about one check, by its name, the merge
+  asks it once with every tree's citation, and names both settings
+  when they differ. One only the parsed tree asks, where a printed
+  tree holds roles, is a must question that adds that the
+  permission table does not declare the gate; one only the printed
+  tree asks, where a parsed tree holds operations, keeps its
+  question and adds a could question that starts "Declared, not
+  found:", since the check's code is outside the middlewares the
+  parser reads.
 - A parsed tree's must question that blocks one of its own
-  operations and nothing else asks whether the running system
-  registers it. A printed tree that gives the operation answers it,
-  and it is left out with a line naming that tree; where printed
-  trees have operations and not this one, it is left out too, and
-  the "Declared, not registered" question asks it with what they
-  printed.
+  operations, entities or roles and nothing else asks whether the
+  running system registers it, holds it or grants it. A printed
+  tree that gives the element answers it, and it is left out with a
+  line naming that tree; where printed trees have elements of that
+  section and not this one, it is left out too, and the question of
+  the row above asks it with what they printed.
 - Sources of the same key are one source when they are the same in
   everything but their clauses, which are joined, and their
   reading: the merged source keeps a reading every tree gives it
@@ -1377,7 +1499,9 @@ question that what was read back answers; one line per requirement joined to a c
 same number of days; one line per question of a tree that another
 tree answers or a question kept before it asks, and per parsed
 tree's question on whether the running system registers an
-operation that a printed tree answers or the merge asks again; one
+operation, holds a table or grants a role that a printed tree
+answers or the merge asks again; one line per gate question joined
+or asked again; one
 line per
 question whose name is joined to the operation another tree
 declares; one line per
@@ -5006,8 +5130,15 @@ question of the parsed tree that asks whether the running system
 has an element is left out once the printed tree gives it. A parsed
 reader asks that question as a must question blocking the element
 alone, the one shape merge reads as it. These rows compare
-operations first; the grants, the gates and the other surfaces join
-them with their readers' steps. A source two trees read, one
+operations, entities and roles; a role both trees give grants what
+the printed tree grants, since that is what the check reads, and a
+grant only one side makes is asked the same way. A gate on a
+setting is asked by every reader in the same words, so merge joins
+a printed and a parsed tree's gate on one check into one question
+with both citations, asks a gate only the source has as a must
+question saying the printer does not declare it, and adds a could
+question to a gate only the printer declares. The other surfaces
+join these rows with their readers' steps. A source two trees read, one
 printed and one parsed, is merged with no reading, since it was
 read both ways.
 
@@ -5095,11 +5226,14 @@ Consequences: On a service on dxlib_module most operations' privileges are mappe
 by the rule, each permission inferred and citing the operation that
 names it; an owner who wants another name answers by renaming the
 permission, and the code keeps its own. The permission table reader
-of ADR-050 does not map a name yet, so on such a service the merge
-finds a mapped permission no role grants until the reader of
-dxlib_module's seeds and the permission table reader apply the same
-rule, in the step that reads the seeds (docs/extraction.md, step
-14). The security an operation in this dialect is given, such as
+of ADR-050 and the Go reader of dxlib_module's seeds apply the same
+rule, so a mapped permission meets the role that grants it in the
+merge, and a grant of EVERYTHING is a must question in both. The
+Go reader finds a gate on a setting in the middlewares an
+endpoint's own chain names, since dxlib names them at the
+registration, so a dxlib service needs no key in its
+implementation file to name its check; a router without such a
+chain names it there (docs/extraction.md, step 15). The security an operation in this dialect is given, such as
 the mutualTLS dxlib writes under its mtls mode, prints a line, since
 it says how a caller proves who it is and not what it may do. A
 service on DXApp writes each API's document under
@@ -5378,6 +5512,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-documents-writes-tree | command extract | system | golden | a repository holding a Markdown handbook with numbered headings and paragraphs, sentences with shall, must, should, a number of days and a time of day, a commitment that names its subject only as it, two tables of fields, one with a sensitivity column and one whose sensitivity a sentence gives for one field, a field of a type the meta-model does not hold, a table of another header and a code block | extract documents is run on the handbook | it writes the outline as clauses at the commit read, one requirement per commitment citing its clause, the fields of each table as an entity with the sensitivity the document gives, and a question for the commitment it cannot place, the requirements' kind, each entity's primary key and the sensitivity not given, prints a line and writes a could question citing the section for the type, the table and the code block it does not hold, and exits 0 |
 | extract-exit-1 | command extract | system | red | a file that is not a catalogue dump | extract database is run on it | it says the file is not a catalogue dump, writes nothing and exits 1 |
 | extract-go-dxlib-endpoints | command extract | system | golden | a repository holding a Go module on dxlib whose files register endpoints with NewEndPoint: one with a URI joined from literals, a net/http method constant and a privilege in dxlib_module's capitals, whose handler reads a declared parameter and answers two refusals; one with a path parameter whose handler is in another package, which the reader cannot find with no go.mod read, and that checks no privilege; one in a loop, one behind a condition and one with a computed URI; one whose handler is a function literal that reads a declared parameter, one whose name is computed and one the endpoint does not declare, and answers two reasons at one status, an empty reason, a status alone and a computed status; the same method and URI a second time; a HEAD endpoint; a call with too few arguments; a WebSocket endpoint and a RegisterHandler call; a reason answered at two statuses; a file that does not parse, a test file, a file under testdata and a file that imports dxlib and registers nothing | extract go is run on the module | it writes each endpoint registered with literal values outside a loop or a condition as an operation citing its registration line and its handler's first line, with its summary, description, path parameters, permission (mapped from capitals by the rule of ADR-076 and declared inferred) and the refusal statuses its handler answers, each naming the problem its literal reason gives; it declares each problem answered at one status, and asks a must question for the loop, the condition, the computed URI, the undeclared parameter, the empty reason, the status alone, two reasons at one status, a reason at two statuses, the second registration, the short call, the file that does not parse, the open endpoint, each operation's success response and whether the running system registers it; a should question for the computed parameter name and status and for the handler it cannot find; prints a line and asks a could question for the HEAD endpoint, the WebSocket endpoint, the RegisterHandler call and each operationId dxlib derives that is not camelCase; leaves out the test file and the testdata file; names the file that registers nothing; declares its code source reading: parsed; and exits 0 |
+| extract-go-dxlib-tables-seeds | command extract | system | golden | a repository holding a Go module on dxlib and dxlib_module: tables declared with NewModelDBTable in a schema NewModelDBSchema names, one with a serial key, a reference, a unique column, a nullable date, money, JSON, a 32-bit float, a geometry and a type named through a variable, one whose key column a function builds, one with a computed name, one with no schema, one whose fields are a variable and one in a loop; two tables NewDXTableSimple makes, one with literal whitelists and one with a whitelist in a variable, each the handler of a paging list endpoint whose middlewares let every request through while an environment setting is empty or a boolean setting is false; a seed that inserts privileges and roles and grants privileges in capitals, EVERYTHING, two names that give one permission, a role whose name is not kebab-case, a grant in a loop, one to a role it cannot trace and one of a computed privilege; and settings read from the environment by literal and computed names and from a dxlib configuration whose JSON file is tracked, with defaults in code and a sensitive key | extract go is run on the module | it writes one entity per table with a literal schema and name, named as extract database names it, with the types of dxlib's data types as the catalogue writes them, nullability and the primary key, and a must question whether the database holds each; it cites each paging list endpoint at its table's constructor with the whitelists and prints a line that the meta-model holds no whitelist, and asks a should question where the whitelists are not literal; it writes the seeded roles with their descriptions and the permissions they grant, mapped by the rule of ADR-076 and declared with a privilege's description, a must question for EVERYTHING, for the two names that give one permission, the loop, the untraced role and the computed privilege, and one whether the running system grants each role; it writes each setting under configuration in the deployment stage by its camelCase name with its type and default, the file's value over the code's, secret where the configuration marks it, a must question on what each is for and whether names that look like a credential are secrets, a must question on the width of a whole number and a should question on the computed name; it asks the gate question for each middleware that lets every request through; it prints a line and asks a could question for the geometry, the type it does not know, the 32-bit float and the role that is not kebab-case; and exits 0 |
 | extract-not-offered | command extract | system | red | a source this build does not read yet | extract events is run on a topic registry | it names the sources it reads, writes nothing and exits 2 |
 | extract-openapi-dxlib-privileges | command extract | system | golden | a repository holding an OpenAPI document in dxlib's dialect whose operations carry x-dxlib-endpoint-type: two that check one privilege, one that checks another, one that checks two, one that checks none, three whose privileges EXPORT_ALL, GLOBAL.SET_MAINTENANCE_MODE and EVERYTHING are in dxlib_module's capitals, one whose privilege is in mixed case, two whose privileges REPORT_RUN and REPORT.RUN give one permission name, one whose privilege is public, one that lists one privilege twice and one whose list holds a mapping, all under the document's mutualTLS security, and one operation without x-dxlib-endpoint-type that names a privilege | extract openapi is run on the document | it writes the one privilege of a dxlib operation as its permission and declares each such permission citing the operations that check it, with a must question on what each allows and which role grants each; it maps each privilege in capitals by the rule of ADR-076 and declares that permission inferred, with the rule as its why; it reads a privilege listed twice as one, asks a must question for the operation that checks two privileges, the one that checks none (naming its middlewares), the one whose privilege the rule of ADR-076 cannot map, both whose privileges give one permission, the one whose privilege is public and the one whose list is not of names, and prints the security of each dxlib operation as a line of its own, since it is not the permission; it reads x-dxlib-privileges only beside x-dxlib-endpoint-type, so the other operation's permission is asked as before and its extension printed as a line; and exits 0 |
 | extract-openapi-not-openapi | command extract | system | red | a committed Swagger 2.0 document, which names no openapi version | extract openapi is run on it | it says the file is not an OpenAPI 3.0 or 3.1 document, writes nothing and exits 1 |
@@ -5391,7 +5526,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-pages-task | command extract | system | golden | a repository whose app folder holds a page with no schema, and a sign-in page whose schema says it is a task that is open to everyone, names the operation it submits to and its fields, and names an entity besides | extract pages is run on the app folder | it writes the sign-in page as a task with its fields and no entity, prints a line and writes a could question for the entity it leaves out, declares public without asking what it allows, asks only for the operation it submits to, and exits 0 |
 | extract-pages-writes-tree | command extract | system | golden | a repository whose app folder holds a root page, a route group with a list page whose schema file gives its content, keys the reader does not read, a hook and a compact column that is not a column, a page with a dynamic segment whose schema is outside the subset, a page that says it is generated, and a catch-all segment, a parallel route, a private folder, an intercepting route, a route handler and a page.mdx | extract pages is run on the app folder | it writes one page per route with its parameter, the list page's content from its schema with the entity, its fields and the permission it names, a question for what neither the folders nor the schemas say, names the commit, counts the page and schema files, reports the generated page, prints a line for every folder, file and key it leaves out, a could question citing the file, or the schema's line, for each but the content the question for the page asks for, and exits 0 |
 | extract-permissions-grant-twice | command extract | system | red | a permission table that lists one role granting one permission twice | extract permissions is run on the permission table | it refuses the table, naming the grant listed twice, writes nothing and exits 1 |
-| extract-permissions-writes-tree | command extract | system | golden | a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it, naming the first; the table has two roles sharing a permission, a grant of public, a role whose name is not kebab-case, a role whose one permission is not a permission name, and a check that runs only when a setting is present | extract permissions is run on the permission table | it writes each role with the permissions it grants in the order of their names and every permission granted, a question for the roles' and the permissions' descriptions and one for the check a setting switches off, names the commit, counts the grants and gates, prints a line for the gate, prints a line and writes a could question citing the role for the grant of public, the role's name, the permission's name and the role left with nothing, and exits 0 |
+| extract-permissions-writes-tree | command extract | system | golden | a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it, naming the first; the table has two roles sharing a permission, a privilege in dxlib_module's capitals, a grant of EVERYTHING, two privileges that give one permission granted to two roles, a grant of public, a role whose name is not kebab-case, a role whose permissions are not a permission name and a privilege that gives another's permission, and a check that runs only when a setting is present | extract permissions is run on the permission table | it writes each role with the permissions it grants in the order of their names and every permission granted, the privilege in capitals mapped by the rule of ADR-076 and declared inferred; a must question on the grant of EVERYTHING, which it does not expand, on each of the two privileges that give one permission and on the name that is not a permission name, each blocking the role's permissions, with the role written with the grants it can read; a question for the roles' and the permissions' descriptions and one for the check a setting switches off, citing the table; names the commit, counts the grants and gates, prints a line for the gate, prints a line and writes a could question citing the role for the grant of public and the role's name, and exits 0 |
 | extract-router-route-twice | command extract | system | red | a route table that lists the same method and path pair twice | extract router is run on the route table | it refuses the route table, naming the route listed twice, writes nothing and exits 1 |
 | extract-router-stale-table | command extract | system | red | a route table printed at the commit that added the router's routes, and a later commit that adds a file to the router's folder | extract router is run on the route table | it refuses the route table as stale, naming both commits, writes nothing and exits 1 |
 | extract-router-writes-tree | command extract | system | golden | a repository whose first commit holds a router's folder and whose second holds the route table printed from it, naming the first; the table has two methods on one path, a path with a parameter, a route with no permission, a HEAD route, a path with a wildcard, a handler serving two routes and a permission that is not a permission name | extract router is run on the route table | it writes one operation per held method and path pair with its path parameters and permission, one permission per name a route checks, a question for each operation's summary and responses, each path's parameter values, the permissions' descriptions and the roles that grant them, every route without a usable permission, names the commit, counts the routes, prints a line for the HEAD route, the wildcard, the permission name and the shared handler, a could question citing the route for each but the permission name, which a must question asks for, and exits 0 |
@@ -5456,6 +5591,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | merge-permissions-asked-twice | command merge | system | golden | the tree the router's route table gives and the tree of a permission table, each asking with must what the same three permissions allow | merge is run on the two trees | it keeps the router's question, leaves out the permission table's as asked twice, naming the question that asks it, and exits 0 |
 | merge-permissions-unchecked | command merge | system | golden | the tree the router's route table gives, and the tree of a permission table whose one role grants the three permissions the routes check and a fourth that no route checks | merge is run on the two trees | it reports the permission no operation, command or page checks with the role that grants it, keeps it in the merged specification, and exits 0 |
 | merge-printed-parsed | command merge | system | golden | a tree extract openapi wrote from a document wholly in dxlib's dialect, a code source with reading: printed, holding two operations; a route tree printed from the code repository, reading: printed, holding one of them; and a tree extract go wrote from that repository's source, reading: parsed, holding that operation under another operationId and one operation no printed tree has | merge is run on the three trees | it joins the operation all give into one with every citation and asks a must question on the operationId they disagree on; it leaves out the parsed tree's question whether the running system registers the joined operation, which the printed trees answer, and its question on the operation only it declares, which it asks again as a must question citing the source's line; it asks a could question on the operation only the printed trees have, citing the document; it keeps reading on the document's source and leaves it out of the repository's source, which one tree read printed and another parsed; and exits 0 |
+| merge-printed-parsed-grants | command merge | system | golden | a tree extract permissions wrote from a permission table, reading: printed, whose role desk-staff grants loans.read and loans.write, whose role auditor no seed grants, and which declares the gates RequireDeskKey and RequireAudit; a catalogue tree, reading: printed, holding desk.loans and desk.members; and a tree extract go wrote, reading: parsed, whose seeds grant desk-staff loans.read and loans.renew and grant a role clerk the table does not hold, which declares desk.loans and desk.fines, and which finds the gates RequireDeskKey and RequireChecks in its middlewares | merge is run on the three trees | it gives desk-staff the grants the permission table holds, with every citation, asks a must question on loans.renew, seeded and not granted, blocking the permission too, and a could question on loans.write, granted and not seeded; a must question on the role clerk only the seed has and a could question on auditor only the table has; it leaves out the parsed tree's questions whether the database holds desk.loans and whether the running system grants desk-staff, which the printed trees answer, and asks a must question on desk.fines only the source declares and a could question on desk.members only the catalogue holds; it asks the gate on RequireDeskKey once with both citations, the gate on RequireChecks as a must question saying the permission table does not declare it, and adds a could question to the gate on RequireAudit, which the source read does not show; and exits 0 |
 | merge-source-differs | command merge | system | red | two trees that both declare the source code, at two different urls | merge is run on the two trees | it refuses them, naming the source and what differs, writes nothing and exits 1 |
 | merge-tree-invalid | command merge | system | red | two trees, the second of which has an entity without its properties, which validate reports | merge is run on the two trees | it refuses the second tree, saying validate reports errors in it, writes nothing and exits 1 |
 | merge-usage-error | command merge | system | red | one tree | merge is run on it alone | it says merge needs at least two trees, prints how to use it and exits 2 |
@@ -5723,8 +5859,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-19 | specarch gaps shall list the open questions by stage with what each blocks and who decides, and shall say for every document and code target whether it is ready, a draft or waiting; the same text shall be the document target questions, and every other document shall mark the open questions about its elements. | functional | must | accepted | test | A specification with two must questions in two stages prints them under their stages, lists the missing keys of a blocked element, and exits 1. A specification without open questions prints that it has none and exits 0. A requirements document whose requirement a question blocks starts with a Draft notice and shows the question under the requirement. | NEED-8, NEED-3 |
 | SA-20 | specarch generate shall refuse to run a target while a must or should question blocks a section it reads, and shall refuse without a record that a stakeholder read the current documents and approved the specification's files as they are, unless --unapproved is given; specarch approve shall write that record only when the documents on disk are current. | functional | must | accepted | test | generate on a specification with an approval record whose digest matches writes its files; after one byte of one file changes it refuses, and runs with --unapproved. approve refuses while a configured document differs from what the specification generates, and writes records/approvals/<version>.yaml once the documents are current. | NEED-8 |
 | SA-30 | A specification built from existing documents and existing code shall cite each element to the document section or the code file and line it came from, mappings of an implementation file included, and specarch gaps shall show for every source that lists its outline which elements each section or file produced and which produced nothing. | functional | must | accepted | test | A mapping stated without a citation is reported as origin_citation, and one inferred without a reason as origin_reason, in both builds. gaps on a specification whose manual and code list their clauses prints, per source, the elements under each clause, the count of clauses that produced nothing, and every citation that names a clause outside the outline. | NEED-8 |
-| SA-44 | specarch extract shall read one surface of an existing system into a specification tree in which every element carries its origin and cites where it was read, name the commit it read, refuse a source no commit names, and give byte-identical output for the same sources at the same commit. | functional | must | accepted | test | extract database on a committed catalogue dump writes a tree that validate accepts with no errors, and a second run writes the same bytes. A column type the meta-model cannot hold is printed as a line naming it, and is a could question in the tree citing its table. A dump older than the last change to the path it was made from, a path with changes not committed and a shallow clone are each refused with status 1. extract outline on a folder writes a source listing its files as clauses, and gaps on that tree lists each of them as producing nothing. extract router on a committed route table writes one operation per method and path pair, with its path parameters and the permission it checks, that validate accepts with no errors, and a route that checks no permission is a must question. extract openapi on a document in dxlib's dialect writes the one privilege an operation's x-dxlib-privileges names as its permission and declares it, maps a name in dxlib_module's capitals by the rule of ADR-076 and declares that permission inferred, and asks a must question for an operation that names none, more than one, public, two names that give one permission or a name the rule cannot map. extract go on a committed Go module on dxlib writes each endpoint NewEndPoint registers with literal values as an operation citing its registration's and its handler's file and line, with the parameters the handler reads and the problems it answers, in a code source with reading parsed, and asks a must question for a registration in a loop, behind a condition or computed, and for a parameter read the endpoint does not declare. extract workflows on a committed BPMN 2.0 file writes one workflow per process with its approvals, deadlines and operation steps, that validate accepts with no errors, prints a line with the file's line for each element outside the sequential subset and writes it as a could question citing that line, and asks for the operations the file names with a must question that names them. | NEED-8 |
-| SA-45 | specarch merge shall merge the partial specification trees the readers write into one specification that keeps the citations of every tree, turn every disagreement between the trees into a must question that cites both, and give byte-identical output for the same trees in the same order. | functional | must | accepted | test | The database and router trees of one repository, read at different commits, merge into one specification with one code source at the newer commit, which validate accepts with no errors and gaps reads, and a second run writes the same bytes. Two trees that give the same key of the same element different values merge into the element without that key and a must question citing both. An element only the code has, merged with a documents tree that speaks of its section, is written inferred, starting its why with "Undocumented, from code.", with a question that is must for an operation, a permission, a role, a personal or credential field, or a source given outside, and should otherwise. A tree validate reports an error in, and a source two trees declare differently, are each refused with status 1. A question that names the operation a workflow's trigger refers to is left out as joined, and the trigger written, when another tree declares that operation; a name no tree declares keeps its question. A printed tree and a parsed tree of one repository merge into operations with both trees' citations; the parsed tree's question whether the running system registers an operation is left out where the printed tree has it, an operation only the parsed tree declares is a must question citing its line, and one only the printed tree has a could question. | NEED-8 |
+| SA-44 | specarch extract shall read one surface of an existing system into a specification tree in which every element carries its origin and cites where it was read, name the commit it read, refuse a source no commit names, and give byte-identical output for the same sources at the same commit. | functional | must | accepted | test | extract database on a committed catalogue dump writes a tree that validate accepts with no errors, and a second run writes the same bytes. A column type the meta-model cannot hold is printed as a line naming it, and is a could question in the tree citing its table. A dump older than the last change to the path it was made from, a path with changes not committed and a shallow clone are each refused with status 1. extract outline on a folder writes a source listing its files as clauses, and gaps on that tree lists each of them as producing nothing. extract router on a committed route table writes one operation per method and path pair, with its path parameters and the permission it checks, that validate accepts with no errors, and a route that checks no permission is a must question. extract openapi on a document in dxlib's dialect writes the one privilege an operation's x-dxlib-privileges names as its permission and declares it, maps a name in dxlib_module's capitals by the rule of ADR-076 and declares that permission inferred, and asks a must question for an operation that names none, more than one, public, two names that give one permission or a name the rule cannot map. extract go on a committed Go module on dxlib writes each endpoint NewEndPoint registers with literal values as an operation citing its registration's and its handler's file and line, with the parameters the handler reads and the problems it answers, in a code source with reading parsed, and asks a must question for a registration in a loop, behind a condition or computed, and for a parameter read the endpoint does not declare. extract go on a committed Go module on dxlib and dxlib_module also writes each table NewModelDBTable declares with literal names as the entity extract database writes for it, the roles its seeds grant with the permissions mapped by the rule of ADR-076, and each setting it reads or a dxlib configuration file holds under configuration, and asks a must question for each gate on a setting it finds in an endpoint's middleware, in the words extract permissions uses. extract permissions maps a privilege in dxlib_module's capitals by the rule of ADR-076 and declares the permission inferred, and asks a must question on a grant of EVERYTHING, a name the rule cannot map and two names that give one permission. extract workflows on a committed BPMN 2.0 file writes one workflow per process with its approvals, deadlines and operation steps, that validate accepts with no errors, prints a line with the file's line for each element outside the sequential subset and writes it as a could question citing that line, and asks for the operations the file names with a must question that names them. | NEED-8 |
+| SA-45 | specarch merge shall merge the partial specification trees the readers write into one specification that keeps the citations of every tree, turn every disagreement between the trees into a must question that cites both, and give byte-identical output for the same trees in the same order. | functional | must | accepted | test | The database and router trees of one repository, read at different commits, merge into one specification with one code source at the newer commit, which validate accepts with no errors and gaps reads, and a second run writes the same bytes. Two trees that give the same key of the same element different values merge into the element without that key and a must question citing both. An element only the code has, merged with a documents tree that speaks of its section, is written inferred, starting its why with "Undocumented, from code.", with a question that is must for an operation, a permission, a role, a personal or credential field, or a source given outside, and should otherwise. A tree validate reports an error in, and a source two trees declare differently, are each refused with status 1. A question that names the operation a workflow's trigger refers to is left out as joined, and the trigger written, when another tree declares that operation; a name no tree declares keeps its question. A printed tree and a parsed tree of one repository merge into operations with both trees' citations; the parsed tree's question whether the running system registers an operation is left out where the printed tree has it, an operation only the parsed tree declares is a must question citing its line, and one only the printed tree has a could question. The same rows compare entities with a catalogue tree and roles with a permission table tree; a role both give grants what the permission table grants, a grant only a seed makes is a must question and one only the table holds a could question, and a gate on one check that both trees ask is asked once with both citations. | NEED-8 |
 | SA-1 | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. | functional | must | accepted | test | A file that breaks the schema is reported with rule schema, its file, line and YAML path. A file that passes the schema and every other rule produces no output and status 0. | NEED-1 |
 | SA-2 | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. | functional | must | accepted | test | A misspelt relation target, enum, operation, page, algorithm, decision, requirement, need, stakeholder, source or environment is reported with its own rule, naming the file and line of the reference. A name defined in two files of the specification is reported with both files. An operation, command or page's enabledBy that is not a setting of configuration, or names one that is not boolean, is reported as setting; a valid one derives the case disabled by <setting>, the element refused with the setting off. | NEED-1, NEED-4 |
 | SA-3 | Every check constraint, condition of a unique constraint and formula shall parse and type-check in the fixed expression language. | functional | must | accepted | test | An expression outside the subset is refused with a message naming the construct. An expression that mixes types without a written conversion is refused with the conversion to write. A unique constraint's where is an expression over the entity's fields that gives true or false, like a check; a where on a check constraint is refused. | NEED-1 |
@@ -5900,8 +6036,8 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-41 | enums Rule; decisions ADR-033; decisions ADR-070 | tests validate-views; tests validate-views-valid |
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
-| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076 | tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-dxlib-endpoints; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-route-twice; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read; tests validate-source-reading |
-| SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-077 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-printed-parsed; tests merge-source-differs; tests merge-tree-invalid; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests merge-workflows-joins-trigger; tests validate-source-given-outside |
+| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076 | tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-tables-seeds; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-route-twice; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read; tests validate-source-reading |
+| SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-077 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-printed-parsed; tests merge-printed-parsed-grants; tests merge-source-differs; tests merge-tree-invalid; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests merge-workflows-joins-trigger; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046; decisions ADR-068 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-mapping-menu-entry; tests validate-owned-by-unknown |
 | SA-47 | enums Rule; decisions ADR-054 | tests document-techspec-open-workflow; tests validate-maker-checker; tests validate-workflow; tests validate-workflow-valid |
 | SA-48 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |

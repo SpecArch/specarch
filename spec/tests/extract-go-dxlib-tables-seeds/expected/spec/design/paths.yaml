@@ -1,0 +1,42 @@
+permissions:
+  branches.read:
+    origin: inferred
+    why: 'dxlib names the privilege BRANCHES.READ, and by the rule of ADR-076 a privilege named in capitals, digits and underscores, in segments joined by dots, is the permission of that name in lower case with every underscore a dot: branches.read.'
+    cites:
+      - {source: code, clause: 'api/endpoints.go:13', says: POST /branches/list checks BRANCHES.READ in its privileges.}
+      - {source: code, clause: 'seed/seed.go:19', says: Grants BRANCHES.READ to desk-staff.}
+  loans.read:
+    description: Read the loans of any member.
+    origin: inferred
+    why: 'dxlib names the privilege LOANS.READ, and by the rule of ADR-076 a privilege named in capitals, digits and underscores, in segments joined by dots, is the permission of that name in lower case with every underscore a dot: loans.read.'
+    cites:
+      - {source: code, clause: 'api/endpoints.go:9', says: POST /loans/list checks LOANS.READ in its privileges.}
+      - {source: code, clause: 'seed/seed.go:17', says: Grants LOANS.READ to desk-staff.}
+      - {source: code, clause: 'seed/seed.go:14', says: Inserts the privilege LOANS.READ.}
+  loans.renew:
+    origin: inferred
+    why: 'dxlib names the privilege LOANS.RENEW, and by the rule of ADR-076 a privilege named in capitals, digits and underscores, in segments joined by dots, is the permission of that name in lower case with every underscore a dot: loans.renew.'
+    cites:
+      - {source: code, clause: 'seed/seed.go:18', says: Grants LOANS.RENEW to desk-staff.}
+      - {source: code, clause: 'seed/seed.go:15', says: Inserts the privilege LOANS.RENEW.}
+paths:
+  /branches/list:
+    post:
+      operationId: postBranchesList
+      summary: List branches
+      description: Lists the branches.
+      permission: branches.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:13', says: 'NewEndPoint registers POST /branches/list; its handler is BranchList.RequestSearchPagingList, its middlewares are RequireDeskKey, and it checks BRANCHES.READ.'}
+        - {source: code, clause: 'api/tables.go:13', says: 'The handler of POST /branches/list is dxlib''s RequestSearchPagingList of this table. NewDXTableSimple makes the table public.branches, with whitelists that are not literal lists of names.'}
+  /loans/list:
+    post:
+      operationId: postLoansList
+      summary: List loans
+      description: Lists the loans a page at a time.
+      permission: loans.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:9', says: 'NewEndPoint registers POST /loans/list; its handler is LoanList.RequestSearchPagingList, its middlewares are RequireDeskKey and RequireChecks, and it checks LOANS.READ.'}
+        - {source: code, clause: 'api/tables.go:5', says: 'The handler of POST /loans/list is dxlib''s RequestSearchPagingList of this table. NewDXTableSimple makes the table desk.loans: its paging list searches title, member_name; orders by due_on, title; filters by member_id, state.'}

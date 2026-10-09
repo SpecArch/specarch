@@ -103,10 +103,22 @@ surface it adds:
 
 A parsed reader asks whether the running system has an element as a
 `must` question that blocks that element alone, which is how the merge
-knows it. The rows compare operations first; grants, gates and the other
-surfaces join them in their readers' steps. A source that one tree read
-printed and another parsed is merged with no `reading`, since it was
-read both ways.
+knows it. The rows compare operations, entities and roles. A role both
+trees give grants what the printed tree grants, since that is what the
+check reads, and a grant only one side makes takes the row it falls
+in:
+
+| The permission table | The seeds | What is written |
+|---|---|---|
+| grants it | grant it | the grant, with both citations |
+| does not grant it | grant it | a `must` question blocking the role's permissions and the permission: the seed did not run, or something removed the grant |
+| grants it | do not grant it | a `could` question: granted by a seed the reader does not follow, or by hand |
+
+A gate on a setting is asked by every reader in the same words, so the
+merge joins a printed and a parsed tree's gate on one check into one
+question with both citations. The other surfaces join these rows in
+their readers' steps. A source that one tree read printed and another
+parsed is merged with no `reading`, since it was read both ways.
 
 Against a documents tree a parsed tree is the code side, as every code
 tree is (`docs/from-sources.md`, 3.2).
@@ -160,13 +172,13 @@ dxlib-based services come first among the Go readers (ADR-076).
 | parameters a handler reads | source: `GetParameterValueAs...` calls on the request | only the body says which are read; a getter on a name the endpoint does not declare is a `must` question, since it fails at run time |
 | problems a handler answers | source: dxlib's refusal and problem calls with a literal status and reason | known only when a request runs; each literal status becomes a response, its reason the problem type's last segment |
 | validation | declared types' bounds from the document; a handler's own check from source | a check in the body is code; one the reader recognises (a length, a range, an empty test) is stated, any other a `should` question at its line |
-| tables and fields | the catalogue dump after every migration (step 2); `NewModelDBTable` from source adds names and wire names | the catalogue is what the database holds; a service that builds its DDL from the model can emit it instead, see the dxlib changes below |
-| list endpoints' search, filter and order whitelists | source: `NewDXTableSimple` arguments | nothing at run time lists them; they become the list operation's parameters and enums |
+| tables and fields | the catalogue dump after every migration (step 2); `NewModelDBTable` from source adds the table, its columns' names, their types by dxlib's data types, nullability and the key, named as the catalogue reader names them so the two meet | the catalogue is what the database holds, and its other keys (references, uniques, defaults) are left to it; a service that builds its DDL from the model can emit it instead, see the dxlib changes below |
+| list endpoints' search, filter and order whitelists | source: the last three arguments of `NewDXTableSimple` and dxlib's other table constructors, at the endpoint whose handler is that table's `RequestSearchPagingList` | nothing at run time lists them; the meta-model holds no whitelist on an operation, so they are cited at it with a line, and one that is not a literal list is a `should` question |
 | type registry | the dxlib rows of the type-rendering idiom (`idioms/type-rendering/`) | dxlib's type names are a fixed table, read by name; an unknown name is a line |
-| roles, privileges and grants | a permission table from dxlib_module's tables (ADR-050); seed calls (`RolePrivilege...Insert` and the like) from source add `path:line` | the tables are what the check reads; a seed that did not run is not a grant |
+| roles, privileges and grants | a permission table from dxlib_module's tables (ADR-050), its names mapped by the rule below; seed calls from source, inserts into the `Role` and `Privilege` tables with a literal `nameid` and `RolePrivilege...Insert` with a role id the same function assigns from a role insert, add `path:line` and descriptions | the tables are what the check reads; a seed that did not run is not a grant |
 | the privilege EVERYTHING | the permission table | a `must` question, never expanded |
-| gates on a setting | declared by the permission printer; found in source in the project's middleware | the printer declares, the parser finds candidates, and the merge compares |
-| configuration | the configuration files, read as data; the keys code reads, from source | the file holds the value, the code says which keys matter and which are secret |
+| gates on a setting | declared by the permission printer; found in source in the middlewares an endpoint's chain names: an early `return nil` while a setting read from the environment is empty or false | the printer declares, the parser finds candidates, and the merge compares; dxlib names a chain at the registration, so no implementation file names the check |
+| configuration | the files dxlib's `NewConfiguration` names, read as data, with its defaults and sensitive keys; the environment read by a literal name (`os.Getenv`, dxlib's `GetEnvDefaultValue...`), from source | the file holds the value and wins over the code's default, as dxlib merges them; the code says which keys matter and which are secret; what each is for is a `must` question |
 | idempotency | none | dxlib declares no idempotency on an endpoint, so nothing is written and the question of `docs/test-generation.md` stays open |
 | WebSocket endpoints | the document's extension | printed as a line and a `could` question; the meta-model has no socket |
 
@@ -175,14 +187,17 @@ in capitals and digits joined by underscores in segments joined by dots,
 is the permission of that name in lower case with every underscore a dot:
 `GLOBAL.SET_MAINTENANCE_MODE` is `global.set.maintenance.mode`,
 `EVERYTHING` is `everything`. The permission is declared `origin:
-inferred`, the rule its `why`, citing the operation that names it. A name
-the rule makes into no permission name (a segment that starts with a
-digit after an underscore) or into `public`, and two names of one surface
-that give one permission (`REPORT_RUN`, `REPORT.RUN`), are `must`
-questions, since dxlib checks them as different privileges. A grant of
-`EVERYTHING` in the permission table stays a `must` question, never
-expanded: a role granted it holds every permission, which no list of
-grants can say (ADR-076).
+inferred`, the rule its `why`, citing the operation, the grant or the
+seed that names it. `extract openapi`, `extract permissions` and `extract
+go`, for its endpoints and its seeds alike, apply it. A name the rule
+makes into no permission name (a segment that starts with a digit after
+an underscore) or into `public`, and two names of one surface that give
+one permission (`REPORT_RUN`, `REPORT.RUN`), are `must` questions, since
+dxlib checks them as different privileges; the Go reader takes its
+endpoints' and its seeds' names as one surface. A grant of `EVERYTHING`,
+in the permission table or a seed, stays a `must` question on the role's
+permissions, never expanded: a role granted it holds every permission,
+which no list of grants can say (ADR-076).
 
 **The printed document.** A document every operation of which is in
 dxlib's dialect is what the running service printed, so `extract openapi`

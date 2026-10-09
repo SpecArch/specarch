@@ -136,13 +136,20 @@ commands:
         setting is present, by the check's name and the setting's. Each
         role becomes a role granting its permissions in the order of
         their names, citing the permission table, and every permission
-        granted is declared. A role whose name is not kebab-case, a
-        permission whose name is not lower-case words joined by dots, and
-        a grant of public, which is open to everyone and granted by no
+        granted is declared. A privilege in dxlib_module's capitals is
+        mapped to a permission by the rule of ADR-076, as extract openapi
+        maps it, and the permission declared inferred. A grant of
+        EVERYTHING, which is never expanded, a name the rule does not map
+        and two names that give one permission are each a must question
+        blocking the role's permissions, and the role is written with the
+        grants it can read. A role whose name is not kebab-case and a
+        grant of public, which is open to everyone and granted by no
         role, print a line and are left out, and so is a role left with
-        nothing to grant. Each such check prints a line and is a must
-        question blocking the roles, since while the setting is empty the
-        check lets every request through and nothing says so.
+        nothing to grant or ask about. Each such check prints a line and
+        is a must question blocking the roles, citing the table, since
+        while the setting is empty the check lets every request through
+        and nothing says so; extract go asks it in the same words, so
+        that merge joins the two.
       - `pages`: one folder that is a file-system router's root, such as
         the `app` folder of a Next.js application, read from its tracked
         files (ADR-057). Every folder that holds a page file, `page.tsx`,
@@ -270,6 +277,94 @@ commands:
         extract openapi. A file that imports dxlib's `api` package and
         gives nothing read prints a line.
 
+        In a file that imports dxlib's `databases/models` package, each
+        `NewModelDBTable` call whose name is a literal and whose schema is
+        a `NewModelDBSchema` call with a literal name, written there or
+        assigned once to the name the call passes, outside a loop and a
+        condition, is an entity named as extract database names the
+        table, so that the two trees give one entity. Its fields are a
+        literal map of `ModelDBField`: each column is a property named in
+        camelCase, its type the column type dxlib's data type makes on
+        PostgreSQL, written as extract database writes that type, nullable
+        unless `IsNotNull` or `IsPrimaryKey` says otherwise, read-only for
+        a serial type or `IsAutoIncrement`, and the `IsPrimaryKey` columns
+        the primary key. A field's other keys, such as `References`,
+        `IsUnique` and `DefaultValue`, are left to the catalogue, with a
+        line per table naming them. A data type the meta-model has no type
+        for, a type not named as one of dxlib's, and what extract database
+        prints a line for print a line; a field built by a function, or a
+        column named by something other than a literal, is a should
+        question. A call in a loop or behind a condition, one whose schema
+        or name is not read, one whose fields are not a literal map, and
+        a table with no key are must questions, and each entity carries a
+        must question whether the database holds it, which a catalogue
+        tree answers in the merge. In a file that imports dxlib's `tables`
+        package, `NewDXTableSimple`, `NewDXRawTableSimple`,
+        `NewDXTableAuditOnlySimple`, `NewDXTableWithEncryption`,
+        `NewDXTable` and `NewDXTableWithView` give the table assigned to a
+        name or a field, and their last three arguments its paging list's
+        search, order and filter whitelists. An endpoint whose handler is
+        that table's `RequestSearchPagingList` or
+        `RequestSearchPagingDownload` cites the constructor's line, saying
+        the table and its whitelists, in place of a handler's, and prints
+        a line, since the meta-model holds no whitelist on an operation;
+        whitelists that are not literal lists are a should question.
+
+        In a file that imports a package of dxlib_module, an insert into
+        its `Role` or `Privilege` table (`InsertReturningId`, `TxInsert`
+        and the other insert methods of a dxlib table) with a literal
+        `nameid` seeds a role or a privilege, with the literal
+        `description` beside it, and a `RolePrivilege...Insert` call
+        grants its last argument, a literal privilege, to its role id,
+        when that id is a name the same function assigns once from a role
+        insert. Each role a seed grants something is written with the
+        permissions it grants, citing the role's insert and every grant,
+        mapped by the rule of ADR-076 over every privilege name of the
+        source, the endpoints' with the seeds', and each permission is
+        declared with the seeded privilege's description. A grant of
+        EVERYTHING, a name the rule does not map and two names that give
+        one permission are must questions on the role's permissions, as
+        extract permissions asks them; a seed in a loop or behind a
+        condition, a role id the reader does not trace and a privilege
+        that is not a literal are must questions; a role whose name is not
+        kebab-case prints a line. Each role carries a must question
+        whether the running system grants it what the seeds grant, which
+        a permission table answers in the merge, and a role with no
+        literal description a must question on it.
+
+        A setting is read where the environment is read by a literal name
+        (`os.Getenv`, `os.LookupEnv`, and dxlib's `GetEnvDefaultValue`,
+        `GetEnvDefaultValueAsInt` and `GetEnvDefaultValueAsBool`), and
+        where dxlib's `NewConfiguration` names, with literals, a tracked
+        JSON or YAML file of the paths read: the file is read as data,
+        each leaf a setting named after the configuration and the key's
+        path, with the call's literal defaults and its sensitive keys.
+        Each is written under `configuration`, in the deployment stage,
+        by its name in camelCase (`DESK_API_KEY` is `deskApiKey`,
+        `storage.page_size` is `storagePageSize`), with the type its
+        getter or its value gives and the default its literal or the
+        file gives, the file's over the code's, as dxlib merges them;
+        `secret: true` where the configuration names the key sensitive.
+        What each is for and whether it is a secret is a must question,
+        and so is whether a setting whose name says secret, token, key,
+        password or credential is a secret, whose default is then not
+        written; so are two names that give one camelCase name, two
+        types, and the width of a whole number. A name that is not a
+        literal, a file that is not tracked, more than one file of that
+        name and a file that does not parse are should questions.
+
+        A gate on a setting is found in each middleware an endpoint's
+        literal chain names that the reader finds by syntax, as it finds
+        a handler: an `if` among the function's own statements whose only
+        statement returns `nil`, so letting the request through, when a
+        setting read from the environment by a literal name, directly or
+        through a name the function assigns once, is empty, or a boolean
+        one is false. Each prints a line and is the must question extract
+        permissions asks on a gate, in the same words, saying true and
+        false in place of present and empty for a boolean setting, citing
+        the line, with the check named by the function's name; dxlib's middlewares
+        are named in the endpoint, so no implementation file names them.
+
       Every reader follows these rules:
 
       - The tree's root tracks origin. The code readers declare one code
@@ -350,7 +445,8 @@ commands:
       naming the question that asks about it; one line naming a dialect
       the reader reads, or a document read as what the running system
       printed; one line per file that imports a library the reader knows
-      and gives nothing it reads; and one line per file that says it is
+      and gives nothing it reads; one line per gate on a setting, naming
+      the check and the setting; and one line per file that says it is
       generated from another source.
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:

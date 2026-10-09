@@ -74,3 +74,21 @@ func TestDashLine(t *testing.T) {
 		}
 	}
 }
+
+func TestInside(t *testing.T) {
+	for _, tt := range []struct {
+		dir, file string
+		want      bool
+	}{
+		{".", "specarch.yaml", true},
+		{".", "design/design.yaml", true},
+		{"project", "project/design/design.yaml", true},
+		{"project", "project-two/specarch.yaml", false},
+		{"project", "sources/a.yaml", false},
+		{"project/design", "project/specarch.yaml", false},
+	} {
+		if got := inside(tt.dir, tt.file); got != tt.want {
+			t.Errorf("inside(%q, %q) = %v, want %v", tt.dir, tt.file, got, tt.want)
+		}
+	}
+}

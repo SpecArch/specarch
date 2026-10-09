@@ -34,7 +34,6 @@ func MarkLine(p Problem) string {
 // it did not read, such as an input of a conformance case under tests/, is
 // never marked.
 func Files(s *spec.Spec, ps []Problem) []string {
-	dir := filepath.Clean(s.Dir) + string(filepath.Separator)
 	seen := map[string]bool{}
 	var out []string
 	add := func(f string) {
@@ -43,7 +42,7 @@ func Files(s *spec.Spec, ps []Problem) []string {
 		}
 		f = filepath.Clean(f)
 		ext := filepath.Ext(f)
-		if seen[f] || !strings.HasPrefix(f, dir) || (ext != ".yaml" && ext != ".yml") {
+		if seen[f] || !inside(s.Dir, f) || (ext != ".yaml" && ext != ".yml") {
 			return
 		}
 		seen[f] = true
@@ -61,6 +60,18 @@ func Files(s *spec.Spec, ps []Problem) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// inside tells whether a file is in a folder or below it, whichever of
+// them is given as a relative path, such as the folder ".".
+func inside(dir, file string) bool {
+	d, err1 := filepath.Abs(dir)
+	f, err2 := filepath.Abs(file)
+	if err1 != nil || err2 != nil {
+		return false
+	}
+	r, err := filepath.Rel(d, f)
+	return err == nil && r != ".." && !strings.HasPrefix(r, ".."+string(filepath.Separator)) && r != "."
 }
 
 // Mark writes the marks of the problems into the files given (ADR-065,

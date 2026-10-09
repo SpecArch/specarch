@@ -80,3 +80,5 @@ targets:
     output: ../../../docs
   questions:
     output: ../../../docs
+  problems:
+    output: ../../../docs

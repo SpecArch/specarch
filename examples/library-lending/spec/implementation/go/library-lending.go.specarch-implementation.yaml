@@ -78,6 +78,8 @@ targets:
     output: ../../../docs
   questions:
     output: ../../../docs
+  problems:
+    output: ../../../docs
   changes:
     output: ../../../docs
   releases:

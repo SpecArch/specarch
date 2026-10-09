@@ -702,6 +702,7 @@ storage: github.com/jackc/pgx/v5. Money columns are `numeric(10,2)`.
 | deployment | ../../../docs |   |
 | commissioning | ../../../docs |   |
 | questions | ../../../docs |   |
+| problems | ../../../docs |   |
 | changes | ../../../docs |   |
 | releases | ../../../docs |   |
 | openapi | ../../../openapi | tool oapi-codegen |

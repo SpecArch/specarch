@@ -325,10 +325,11 @@ to the agent, which records the decision, edits the elements, removes the questi
 and validates; nothing is re-extracted. A `could` question is listed in the
 report and asked when there is time for it.
 
-For that the report needs a machine-readable form. `specarch gaps --json`
-(one object per question, with its fields, its stage and the missing keys of
-what it blocks, and the outputs table) is a follow-up item, as is the
-dispatcher's side of it. Until then the dispatcher reads the text.
+For that the report needs a machine-readable form: `problems.sarif`, which
+`specarch document problems` writes beside `problems.txt`
+(`docs/diagnostics.md`), holds every question as a result with its fields,
+the entries it blocks and the keys missing there. The outputs table stays in
+the questions document. The dispatcher's side of it is a follow-up item.
 
 ## Old document against refined document
 
@@ -408,7 +409,7 @@ For the dispatcher to queue, in this order:
    removes the question from its file, and prints the elements it blocked so
    the agent edits them. Until then the agent writes the decision by hand and
    the validator holds it to the rules.
-2. `specarch gaps --json`, and the dispatcher turning its questions into
+2. The dispatcher reading `problems.sarif` and turning its questions into
    questions to the people who decide, with options, and feeding the
    answers back.
 3. The document target `comparison` with the four buckets above, and a

@@ -1,0 +1,1946 @@
+{
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "specarch",
+          "informationUri": "https://github.com/SpecArch/specarch",
+          "rules": [
+            {
+              "id": "open_question"
+            },
+            {
+              "id": "test_case_missing"
+            },
+            {
+              "id": "test_golden_missing"
+            }
+          ]
+        }
+      },
+      "columnKind": "unicodeCodePoints",
+      "results": [
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation registerMember has no red scenario for \"denied without members.write\"; add under tests register-member-denied-without-members-write: { operation: registerMember, scenario: red, covers: [denied without members.write], given: \"a caller without members.write\", when: \"registerMember is called\", then: \"it is refused as not allowed\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 87,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1members/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing.2@design/design.yaml#/paths/~1members/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 100,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 2.2: Desk staff register new members."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 30,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:30: RegisterMember answers 201."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation registerMember has no red scenario for \"missing cardNumber\"; add under tests register-member-missing-card-number: { operation: registerMember, scenario: red, covers: [missing cardNumber], given: \"...\", when: \"registerMember is called without cardNumber\", then: \"it is refused\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 87,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1members/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing.3@design/design.yaml#/paths/~1members/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 100,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 2.2: Desk staff register new members."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 30,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:30: RegisterMember answers 201."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation registerMember has no red scenario for \"missing fullName\"; add under tests register-member-missing-full-name: { operation: registerMember, scenario: red, covers: [missing fullName], given: \"...\", when: \"registerMember is called without fullName\", then: \"it is refused\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 87,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1members/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing.4@design/design.yaml#/paths/~1members/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 100,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 2.2: Desk staff register new members."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 30,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:30: RegisterMember answers 201."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation registerMember has no red scenario for \"cardNumber not matching its pattern\"; add under tests register-member-card-number-not-matching-its-pattern: { operation: registerMember, scenario: red, covers: [cardNumber not matching its pattern], given: \"...\", when: \"registerMember is called with cardNumber in the wrong form\", then: \"it is refused\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 87,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1members/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing@design/design.yaml#/paths/~1members/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 100,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 2.2: Desk staff register new members."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 30,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:30: RegisterMember answers 201."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_golden_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation registerMember has no golden scenario; add one under tests, for example register-member-succeeds: { operation: registerMember, scenario: golden, given: \"a caller with members.write\", when: \"registerMember is called with values inside every limit\", then: \"it answers 201: The member is registered.\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 87,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1members/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_golden_missing@design/design.yaml#/paths/~1members/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 100,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 2.2: Desk staff register new members."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 30,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:30: RegisterMember answers 201."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation lendBook has no red scenario for \"denied without loans.write\"; add under tests lend-book-denied-without-loans-write: { operation: lendBook, scenario: red, covers: [denied without loans.write], given: \"a caller without loans.write\", when: \"lendBook is called\", then: \"it is refused as not allowed\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 104,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1loans/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing.2@design/design.yaml#/paths/~1loans/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 127,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 36,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:36: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation lendBook has no red scenario for \"missing barcode\"; add under tests lend-book-missing-barcode: { operation: lendBook, scenario: red, covers: [missing barcode], given: \"...\", when: \"lendBook is called without barcode\", then: \"it is refused\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 104,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1loans/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing.3@design/design.yaml#/paths/~1loans/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 127,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 36,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:36: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation lendBook has no red scenario for \"missing cardNumber\"; add under tests lend-book-missing-card-number: { operation: lendBook, scenario: red, covers: [missing cardNumber], given: \"...\", when: \"lendBook is called without cardNumber\", then: \"it is refused\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 104,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1loans/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing.4@design/design.yaml#/paths/~1loans/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 127,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 36,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:36: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation lendBook has no red scenario for \"not found barcode\"; add under tests lend-book-not-found-barcode: { operation: lendBook, scenario: red, covers: [not found barcode], given: \"no Book has that barcode\", when: \"lendBook is called with that barcode\", then: \"it is refused as not found\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 104,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1loans/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing.5@design/design.yaml#/paths/~1loans/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 127,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 36,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:36: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation lendBook has no red scenario for \"not found cardNumber\"; add under tests lend-book-not-found-card-number: { operation: lendBook, scenario: red, covers: [not found cardNumber], given: \"no Member has that cardNumber\", when: \"lendBook is called with that cardNumber\", then: \"it is refused as not found\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 104,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1loans/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing.6@design/design.yaml#/paths/~1loans/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 127,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 36,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:36: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation lendBook has no red scenario for \"cardNumber not matching its pattern\"; add under tests lend-book-card-number-not-matching-its-pattern: { operation: lendBook, scenario: red, covers: [cardNumber not matching its pattern], given: \"...\", when: \"lendBook is called with cardNumber in the wrong form\", then: \"it is refused\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 104,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1loans/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing@design/design.yaml#/paths/~1loans/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 127,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 36,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:36: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_golden_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation lendBook has no golden scenario; add one under tests, for example lend-book-succeeds: { operation: lendBook, scenario: golden, given: \"a caller with loans.write\", when: \"lendBook is called with values inside every limit\", then: \"it answers 201: The loan.\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 104,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1loans/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_golden_missing@design/design.yaml#/paths/~1loans/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 127,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 36,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:36: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation returnBook has no red scenario for \"not found loanId\"; add under tests return-book-not-found-loan-id: { operation: returnBook, scenario: red, covers: [not found loanId], given: \"no record has that loanId\", when: \"returnBook is called with that loanId\", then: \"it is refused as not found\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 133,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1loans~1{loanId}~1return/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing.2@design/design.yaml#/paths/~1loans~1{loanId}~1return/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 141,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 5.1: Checking a book in closes the loan."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 45,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:45: ReturnBook closes the loan and answers 200."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation returnBook has no red scenario for \"denied without loans.write\"; add under tests return-book-denied-without-loans-write: { operation: returnBook, scenario: red, covers: [denied without loans.write], given: \"a caller without loans.write\", when: \"returnBook is called\", then: \"it is refused as not allowed\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 133,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1loans~1{loanId}~1return/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing@design/design.yaml#/paths/~1loans~1{loanId}~1return/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 141,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 5.1: Checking a book in closes the loan."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 45,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:45: ReturnBook closes the loan and answers 200."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_golden_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation returnBook has no golden scenario; add one under tests, for example return-book-succeeds: { operation: returnBook, scenario: golden, given: \"a caller with loans.write\", when: \"returnBook is called with values inside every limit\", then: \"it answers 200: The loan is closed.\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 133,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1loans~1{loanId}~1return/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_golden_missing@design/design.yaml#/paths/~1loans~1{loanId}~1return/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 141,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 5.1: Checking a book in closes the loan."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 45,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:45: ReturnBook closes the loan and answers 200."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation renewLoan has no red scenario for \"not found loanId\"; add under tests renew-loan-not-found-loan-id: { operation: renewLoan, scenario: red, covers: [not found loanId], given: \"no record has that loanId\", when: \"renewLoan is called with that loanId\", then: \"it is refused as not found\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 147,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1loans~1{loanId}~1renew/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing.2@design/design.yaml#/paths/~1loans~1{loanId}~1renew/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 156,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 4.1: A member may renew a loan once, for one more loan period, by asking at the desk before the due date."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation renewLoan has no red scenario for \"denied without loans.write\"; add under tests renew-loan-denied-without-loans-write: { operation: renewLoan, scenario: red, covers: [denied without loans.write], given: \"a caller without loans.write\", when: \"renewLoan is called\", then: \"it is refused as not allowed\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 147,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1loans~1{loanId}~1renew/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing@design/design.yaml#/paths/~1loans~1{loanId}~1renew/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 156,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 4.1: A member may renew a loan once, for one more loan period, by asking at the desk before the due date."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_golden_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation renewLoan has no golden scenario; add one under tests, for example renew-loan-succeeds: { operation: renewLoan, scenario: golden, given: \"a caller with loans.write\", when: \"renewLoan is called with values inside every limit\", then: \"it answers 200: The loan, with its new due date.\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 147,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1loans~1{loanId}~1renew/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_golden_missing@design/design.yaml#/paths/~1loans~1{loanId}~1renew/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 156,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 4.1: A member may renew a loan once, for one more loan period, by asking at the desk before the due date."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation listMemberLoans has no red scenario for \"denied without loans.read\"; add under tests list-member-loans-denied-without-loans-read: { operation: listMemberLoans, scenario: red, covers: [denied without loans.read], given: \"a caller without loans.read\", when: \"listMemberLoans is called\", then: \"it is refused as not allowed\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 161,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1members~1{cardNumber}~1loans/get",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing.2@design/design.yaml#/paths/~1members~1{cardNumber}~1loans/get"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 50,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:50: ListMemberLoans answers 200 with the member's loans."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation listMemberLoans has no red scenario for \"not found cardNumber\"; add under tests list-member-loans-not-found-card-number: { operation: listMemberLoans, scenario: red, covers: [not found cardNumber], given: \"no record has that cardNumber\", when: \"listMemberLoans is called with that cardNumber\", then: \"it is refused as not found\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 161,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1members~1{cardNumber}~1loans/get",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing.3@design/design.yaml#/paths/~1members~1{cardNumber}~1loans/get"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 50,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:50: ListMemberLoans answers 200 with the member's loans."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation listMemberLoans has no red scenario for \"cardNumber not matching its pattern\"; add under tests list-member-loans-card-number-not-matching-its-pattern: { operation: listMemberLoans, scenario: red, covers: [cardNumber not matching its pattern], given: \"...\", when: \"listMemberLoans is called with cardNumber in the wrong form\", then: \"it is refused\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 161,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1members~1{cardNumber}~1loans/get",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing@design/design.yaml#/paths/~1members~1{cardNumber}~1loans/get"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 50,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:50: ListMemberLoans answers 200 with the member's loans."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_golden_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation listMemberLoans has no golden scenario; add one under tests, for example list-member-loans-succeeds: { operation: listMemberLoans, scenario: golden, given: \"a caller with loans.read\", when: \"listMemberLoans is called with values inside every limit\", then: \"it answers 200: The member's loans.\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 161,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1members~1{cardNumber}~1loans/get",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_golden_missing@design/design.yaml#/paths/~1members~1{cardNumber}~1loans/get"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 50,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:50: ListMemberLoans answers 200 with the member's loans."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "open_question",
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "(should, decision) Renewing a loan is in the manual but not in the service. Build it as the manual describes, or take it out of the manual? It blocks implementation. Decided by desk-manager. Answer with a decision record that names Q-4 under answers."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/implementation/questions.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 3,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/questions/Q-4",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "Q-4"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/implementation/questions.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 12,
+                  "startColumn": 9
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 4.1: A member may renew a loan once."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 14,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:14: Routes serves no renew route."
+              }
+            }
+          ],
+          "properties": {
+            "priority": "should",
+            "questionKind": "decision",
+            "decidedBy": "desk-manager",
+            "options": [
+              "Build it",
+              "Take it out of the manual and the specification"
+            ],
+            "blocks": [
+              "implementation"
+            ]
+          }
+        },
+        {
+          "ruleId": "open_question",
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "(must, decision) The manual has a phone number for each member, which is personal, and the database has no column for it. Build it as the manual describes, or take it out of the manual? It blocks implementation. Decided by desk-manager. Answer with a decision record that names Q-6 under answers."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/implementation/questions.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 14,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/questions/Q-6",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "Q-6"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/implementation/questions.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 23,
+                  "startColumn": 9
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 2: The desk keeps a member's phone number, which is personal."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/migrations/001_init.sql",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause migrations/001_init.sql:1: members has card_number and full_name only."
+              }
+            }
+          ],
+          "properties": {
+            "priority": "must",
+            "questionKind": "decision",
+            "decidedBy": "desk-manager",
+            "options": [
+              "Build it",
+              "Take it out of the manual and the specification"
+            ],
+            "blocks": [
+              "implementation"
+            ]
+          }
+        },
+        {
+          "ruleId": "open_question",
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "(must, decision) The service serves GET /members/{cardNumber}, which answers a member's card number and full name to anyone, checking no permission, and neither the manual nor the API document mentions it. Is it to stay, and behind which permission? It is left out of this specification until this is answered. It blocks implementation. Decided by desk-manager. Answer with a decision record that names Q-7 under answers."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/implementation/questions.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 25,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/questions/Q-7",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "Q-7"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 20,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:20: GET /members/{cardNumber} checks no permission."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 55,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:55: ShowMember answers one member's card number and full name."
+              }
+            }
+          ],
+          "properties": {
+            "priority": "must",
+            "questionKind": "decision",
+            "decidedBy": "desk-manager",
+            "options": [
+              "Keep it, behind a permission desk staff hold",
+              "Take it out of the service",
+              "Keep it open to everyone"
+            ],
+            "blocks": [
+              "implementation"
+            ]
+          }
+        },
+        {
+          "ruleId": "open_question",
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "(must, decision) Is the loan period 21 days, as the manual says, or 14 days, as the service does? Decided by desk-manager. Answer with a decision record that names Q-1 under answers."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 90,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/questions/Q-1",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "Q-1"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 52,
+                  "startColumn": 3
+                }
+              },
+              "message": {
+                "text": "blocks #/requirements/LEND-4/statement, which is not given yet"
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 99,
+                  "startColumn": 9
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 3.3: The loan period is 21 days."
+              }
+            },
+            {
+              "id": 3,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/model.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 8,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/model.go:8: LoanPeriod is 14 days."
+              }
+            },
+            {
+              "id": 4,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/migrations/001_init.sql",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 18,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14."
+              }
+            }
+          ],
+          "properties": {
+            "priority": "must",
+            "questionKind": "decision",
+            "decidedBy": "desk-manager",
+            "options": [
+              "21 days: the service is wrong and changes",
+              "14 days: the manual is wrong and changes"
+            ],
+            "blocks": [
+              "#/requirements/LEND-4/statement"
+            ]
+          }
+        },
+        {
+          "ruleId": "open_question",
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "(should, decision) The service lists a member's loans, which the manual never mentions. Is that wanted, and who may use it? Decided by desk-manager. Answer with a decision record that names Q-2 under answers."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 102,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/questions/Q-2",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "Q-2"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 79,
+                  "startColumn": 3
+                }
+              },
+              "message": {
+                "text": "blocks #/requirements/LEND-7"
+              }
+            }
+          ],
+          "properties": {
+            "priority": "should",
+            "questionKind": "decision",
+            "decidedBy": "desk-manager",
+            "options": [
+              "Keep it for desk staff, and add it to the manual",
+              "Take it out of the service"
+            ],
+            "blocks": [
+              "#/requirements/LEND-7"
+            ]
+          }
+        },
+        {
+          "ruleId": "open_question",
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "(must, decision) How is each requirement shown to be met? Decided by desk-manager. Answer with a decision record that names Q-3 under answers."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 110,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/questions/Q-3",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "Q-3"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 24,
+                  "startColumn": 3
+                }
+              },
+              "message": {
+                "text": "blocks #/requirements/LEND-1/acceptance, which is not given yet"
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 34,
+                  "startColumn": 3
+                }
+              },
+              "message": {
+                "text": "blocks #/requirements/LEND-2/acceptance, which is not given yet"
+              }
+            },
+            {
+              "id": 3,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 43,
+                  "startColumn": 3
+                }
+              },
+              "message": {
+                "text": "blocks #/requirements/LEND-3/acceptance, which is not given yet"
+              }
+            },
+            {
+              "id": 4,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 52,
+                  "startColumn": 3
+                }
+              },
+              "message": {
+                "text": "blocks #/requirements/LEND-4/acceptance, which is not given yet"
+              }
+            },
+            {
+              "id": 5,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 62,
+                  "startColumn": 3
+                }
+              },
+              "message": {
+                "text": "blocks #/requirements/LEND-5/acceptance, which is not given yet"
+              }
+            },
+            {
+              "id": 6,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 70,
+                  "startColumn": 3
+                }
+              },
+              "message": {
+                "text": "blocks #/requirements/LEND-6/acceptance, which is not given yet"
+              }
+            },
+            {
+              "id": 7,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 79,
+                  "startColumn": 3
+                }
+              },
+              "message": {
+                "text": "blocks #/requirements/LEND-7/acceptance, which is not given yet"
+              }
+            }
+          ],
+          "properties": {
+            "priority": "must",
+            "questionKind": "decision",
+            "decidedBy": "desk-manager",
+            "blocks": [
+              "#/requirements/LEND-1/acceptance",
+              "#/requirements/LEND-2/acceptance",
+              "#/requirements/LEND-3/acceptance",
+              "#/requirements/LEND-4/acceptance",
+              "#/requirements/LEND-5/acceptance",
+              "#/requirements/LEND-6/acceptance",
+              "#/requirements/LEND-7/acceptance"
+            ]
+          }
+        },
+        {
+          "ruleId": "open_question",
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "(should, material) Which cases must the service be tested on, and with what data? Twenty-two cases follow from the design (run specarch validate to list them; specarch derive writes them as drafts). It blocks tests. Decided by desk-manager. Answer with a decision record that names Q-5 under answers."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/specarch.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 53,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/questions/Q-5",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "Q-5"
+          },
+          "properties": {
+            "priority": "should",
+            "questionKind": "material",
+            "decidedBy": "desk-manager",
+            "blocks": [
+              "tests"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

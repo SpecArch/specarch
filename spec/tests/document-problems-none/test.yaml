@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with no error, no warning and no open question"
+when: "document problems is run"
+then: "it writes problems.txt saying there are no problems and problems.sarif with no results, and exits 0"
+verifies: [SA-51]

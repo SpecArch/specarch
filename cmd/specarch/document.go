@@ -122,6 +122,9 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "specarch document: this build has no %s documentor; it has %s\n", target, strings.Join(built, ", "))
 		return 2
 	}
+	if target == "problems" {
+		return runProblems(paths, out, check, stdout, stderr)
+	}
 	specs, status := loadSpecs(paths, "document", stdout, stderr)
 	if status != 0 {
 		return status

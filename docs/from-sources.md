@@ -408,7 +408,7 @@ with the pinned version and checksum filled in:
   a tree of its own and merges it with the readers' trees with
   `specarch merge`.
 - `specarch decide`: the agent writes the decision record by hand.
-- `specarch gaps --json`: the dispatcher reads the text.
+- The dispatcher's reading of `problems.sarif`: it reads the text.
 - A validator rule for a citation outside its source's clauses: `gaps`
   lists them, and the rule follows once a real project shows whether
   outlines stay complete.

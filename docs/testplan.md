@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 305 design tests, 119 golden and 186 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 307 design tests, 120 golden and 187 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 301 |
+| system | 303 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -336,6 +336,22 @@ Scenario: golden; level: system.
 - Given: a hand-written document with a permissions marker
 - When: document techspec is run
 - Then: the region holds the table of permissions and roles, with public granted to everyone, and it exits 0
+
+#### document-problems-lists
+
+Scenario: red; level: system; covers exit 1; verifies SA-51.
+
+- Given: a specification with an error at a requirement that cites a line of code beside it, a warning, and a must question that blocks two keys a requirement leaves out and cites the code
+- When: document problems is run
+- Then: it prints the error, writes problems.txt with each problem on a file:line:column line with its id, the question at its entry followed by a note at each blocked entry and at each cited line, and problems.sarif with the same problems, the question as kind open and level none, and exits 1
+
+#### document-problems-none
+
+Scenario: golden; level: system; verifies SA-51.
+
+- Given: a specification with no error, no warning and no open question
+- When: document problems is run
+- Then: it writes problems.txt saying there are no problems and problems.sarif with no results, and exits 0
 
 #### document-sequence-diagram
 

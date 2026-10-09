@@ -264,6 +264,7 @@ Stack: language Go 1.26.
 | requirements | ../../../docs |   |
 | traceability | ../../../docs |   |
 | questions | ../../../docs |   |
+| problems | ../../../docs |   |
 
 #### Idioms
 

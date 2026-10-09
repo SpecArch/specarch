@@ -14,8 +14,8 @@ import (
 // DocumentTargets are the document targets of the design, in the order
 // they are listed; BuiltDocuments says which this program has.
 var (
-	DocumentTargets = []string{"techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "questions", "changes", "releases", "manual", "operations"}
-	BuiltDocuments  = map[string]bool{"techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "questions": true, "changes": true, "releases": true}
+	DocumentTargets = []string{"techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "questions", "problems", "changes", "releases", "manual", "operations"}
+	BuiltDocuments  = map[string]bool{"techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "questions": true, "problems": true, "changes": true, "releases": true}
 )
 
 // documentReads says which sections each document reads, so that a
@@ -341,7 +341,7 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 	d.line("| Output | State | Waits on |")
 	d.line("|---|---|---|")
 	for _, t := range DocumentTargets {
-		if !BuiltDocuments[t] || t == "questions" || recordDocuments[t] {
+		if !BuiltDocuments[t] || t == "questions" || t == "problems" || recordDocuments[t] {
 			continue
 		}
 		ids := holding(qs, documentReads[t])

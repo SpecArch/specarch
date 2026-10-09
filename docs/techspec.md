@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 51 requirements, 5 entities, 12 commands, 7 algorithms, 305 tests, 65 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 51 requirements, 5 entities, 12 commands, 7 algorithms, 307 tests, 65 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -1392,6 +1392,7 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | internal/approval | The approval record beside a specification, its digest of the specification's files, and where a version's approval stands against the files now. |   |
 | internal/expr | The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals. |   |
 | internal/generate | The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents; questions writes the open questions and what they hold up, the text gaps prints. Every one renders why as an Insight, each citation as a Note, an element's origin as an Origin line and the open questions about it as Open question paragraphs. | #/algorithms/markersWellFormed |
+| internal/problems | The problems of a specification, valid or not, gathered from validate's diagnostics and the open questions into one list with ids, columns and notes, and written as problems.txt and as a SARIF 2.1.0 log. | #/entities/Problem, #/entities/ProblemNote, #/enums/ProblemSeverity |
 | internal/validate | Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases with the rank of each and the cases left out, the life-cycle links and traceability warnings, the open questions and what they cover, origin, implementation references, and the records beside the specification. | #/entities/Diagnostic, #/enums/Rule, #/enums/Severity, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
 
 #### Mappings
@@ -1402,6 +1403,9 @@ Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd
 | #/entities/SpecFile | main.input | A root folder, an implementation file or a file given by name; the versions are read where they are checked. |
 | #/enums/Rule | validate.Rule | A string type with one constant per value; validate.Rules lists them, and a test checks they equal the design's enum. |
 | #/enums/Severity | validate.Severity |   |
+| #/entities/Problem | problems.Problem | A struct; `String()` prints the problem line, and its notes follow it. |
+| #/entities/ProblemNote | problems.Note | A struct inside its problem, in order; `String()` prints the note line. |
+| #/enums/ProblemSeverity | problems.Severity |   |
 | #/commands/validate | main.runValidate |   |
 | #/commands/gaps | main.runGaps | Prints generate.Questions, the text the questions document target writes. |
 | #/commands/approve | main.runApprove | Writes the record through the approval package after checking the documents with generate.Document. |
@@ -1439,6 +1443,7 @@ cli: standard library. Hand-written argument handling over `os.Args`; three comm
 | deployment | ../../../docs |   |
 | commissioning | ../../../docs |   |
 | questions | ../../../docs |   |
+| problems | ../../../docs |   |
 | changes | ../../../docs |   |
 | releases | ../../../docs |   |
 
@@ -4278,7 +4283,7 @@ both for an invalid specification too, then exits 1.
 
 Every file SpecArch writes marks each entry a problem touches with
 the problem's line in its own comment form, above the entry
-(docs/problems.md, section 5). Marks are written from the run's
+(docs/diagnostics.md, section 5). Marks are written from the run's
 problems in the order of the problems file, and a run that writes a
 file writes its marks again, so a fixed problem loses its mark. In
 a YAML file only lines starting with "# specarch-problem:" are
@@ -4289,7 +4294,7 @@ The pieces that exist are joined rather than duplicated: the Open
 question paragraph and the Draft notice are a document's marks,
 extract's lines on what it could not hold become could questions in
 its tree, and problems.sarif takes the place of the planned gaps
---json. The steps are in docs/problems.md, section 6.
+--json. The steps are in docs/diagnostics.md, section 6.
 
 Consequences: One file lists everything to fix or decide, and an editor or a CI
 log reader can jump through it as through a compiler's output. The
@@ -4387,6 +4392,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-no-output-folder | command document | system | red | a design file, no implementation file and no --out | document techspec is run | it asks for --out or an implementation file and exits 2 |
 | document-pages-flowchart | command document | system | golden | a hand-written document with a flowchart pages marker | document techspec is run | the region holds the pages and the operation the Pay action runs, and it exits 0 |
 | document-permissions-table | command document | system | golden | a hand-written document with a permissions marker | document techspec is run | the region holds the table of permissions and roles, with public granted to everyone, and it exits 0 |
+| document-problems-lists | command document | system | red | a specification with an error at a requirement that cites a line of code beside it, a warning, and a must question that blocks two keys a requirement leaves out and cites the code | document problems is run | it prints the error, writes problems.txt with each problem on a file:line:column line with its id, the question at its entry followed by a note at each blocked entry and at each cited line, and problems.sarif with the same problems, the question as kind open and level none, and exits 1 |
+| document-problems-none | command document | system | golden | a specification with no error, no warning and no open question | document problems is run | it writes problems.txt saying there are no problems and problems.sarif with no results, and exits 0 |
 | document-sequence-diagram | command document | system | golden | a hand-written document with a sequenceDiagram payOrder marker | document techspec is run | the region holds the call, the event on order.events and the 200 answer, and it exits 0 |
 | document-state-diagram | command document | system | golden | a hand-written document with a stateDiagram Order marker | document techspec is run | the region holds the states of Order with a start and an end, and it exits 0 |
 | document-target-not-offered | command document | system | red | a document target of the design that this build does not offer | document manual is run | it says which targets it has and exits 2 |
@@ -4906,7 +4913,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-48 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |
 | SA-49 | enums Rule; decisions ADR-062 | tests extract-openapi-snake-case; tests generate-openapi-wire-names; tests validate-wire-names |
 | SA-50 | enums Rule; decisions ADR-063 | tests generate-sql-value-object-fields; tests validate-value-object-fields; tests validate-value-object-fields-valid |
-| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066 |   |
+| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066 | tests document-problems-lists; tests document-problems-none |
 
 ## Sources
 

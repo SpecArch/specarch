@@ -167,7 +167,7 @@ time for the first real project that needs it, in the steps of
 `docs/extraction.md`, Building extract. What the extraction cannot settle becomes open questions, and the
 path from there to approved code is `docs/refinement.md`: `gaps`, the
 decisions that answer questions, `approve` and the gate on `generate` are
-built; `specarch decide`, `gaps --json` for the agent queue, and the
+built; `specarch decide`, the dispatcher reading `problems.sarif` for the agent queue, and the
 comparison of the old document with the refined one are its next items.
 A system with both documents and code is written by the procedure in
 `docs/from-sources.md`, and `gaps` shows which section of each source

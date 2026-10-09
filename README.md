@@ -128,6 +128,7 @@ a defect in the roadmap, not an accepted state.
 | `spec/` | SpecArch's own specification: every stage, the design of the `specarch` command, its Go and Swift implementation files, and in `spec/tests/` the conformance suite every implementation of `specarch` must pass |
 | `docs/techspec.md` | SpecArch's technical specification, generated from `spec/` |
 | `docs/requirements.md`, `testplan.md`, `traceability.md`, `deployment.md`, `commissioning.md`, `questions.md` | SpecArch's other documents, generated from `spec/` |
+| `docs/problems.txt`, `problems.sarif` | every error, warning and open question of `spec/`, one compiler line each and as a SARIF 2.1.0 log |
 | `docs/changes.md`, `releases.md` | the change register and the release notes, generated from the records in `records/` |
 | `records/` | SpecArch's own records: its releases |
 | `swift/` | the Swift build of `specarch` |
@@ -136,6 +137,7 @@ a defect in the roadmap, not an accepted state.
 | `docs/conventions.md` | the tree layout, YAML layout, Markdown sections, generated and hand-drawn diagrams |
 | `docs/stages.md` | the seven life-cycle stages: what each holds, which standard says so, and why |
 | `docs/maintenance.md` | after commissioning: change requests, defects, releases, incidents and operation, and the records that hold them; the release rules, the diff verb and their documents as designed |
+| `docs/diagnostics.md` | the problems file, its SARIF form and the marks at each entry in every output, with the steps that build them |
 | `docs/refinement.md` | from an old document to code: partial specifications, open questions, origin, approval and the gate on generation |
 | `docs/test-generation.md` | tests from the specification: the golden paths, which red paths are written and why, structured test data, the derive verb and the tests target, as designed |
 | `docs/dxlib-lessons.md` | what SpecArch takes from dxlib, the owner's Go library: one type rendered to many targets, the design keywords it proves are needed, a Go implementation on dxlib, and what is left behind |

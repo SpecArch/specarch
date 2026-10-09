@@ -1,0 +1,44 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+
+sources:
+  old-doc: { kind: document, title: The old design document, edition: "2024", author: The team }
+  service: { kind: code, title: The loans service, edition: "1.0", author: The team, url: ../sources }
+stakeholders:
+  owner: { description: The product owner. }
+
+requirements:
+  CASE-1:
+    statement: A member shall borrow at most five books.
+    kind: functional
+    status: accepted
+    origin: stated
+    cites: [{ source: old-doc, clause: "4.2", says: "Five books at a time." }]
+  CASE-2:
+    statement: A loan shall last the loan period.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A loan is due after the loan period.]
+    needs: [NEED-9]
+    origin: inferred
+    why: The code has a constant of 14 days; the document never says it.
+    cites: [{ source: service, clause: "loans.py:4", says: "LoanPeriod is 14 days." }]
+  CASE-3:
+    statement: A member shall see their loans.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance: [A member sees each open loan.]
+    origin: stated
+    cites: [{ source: old-doc, clause: "5", says: "Members see their loans." }]
+    why: Previously the desk printed them.
+questions:
+  Q-1:
+    question: How important is the five-book limit, and how is it shown to be met?
+    kind: decision
+    priority: must
+    blocks: ["#/requirements/CASE-1/priority", "#/requirements/CASE-1/acceptance"]
+    decidedBy: owner
+    options: [must, should]
+    cites: [{ source: service, clause: "loans.py:3", says: "The service names a loan period but no limit." }]

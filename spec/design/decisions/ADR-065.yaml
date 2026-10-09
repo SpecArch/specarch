@@ -40,7 +40,7 @@ decisions:
 
       Every file SpecArch writes marks each entry a problem touches with
       the problem's line in its own comment form, above the entry
-      (docs/problems.md, section 5). Marks are written from the run's
+      (docs/diagnostics.md, section 5). Marks are written from the run's
       problems in the order of the problems file, and a run that writes a
       file writes its marks again, so a fixed problem loses its mark. In
       a YAML file only lines starting with "# specarch-problem:" are
@@ -51,7 +51,7 @@ decisions:
       question paragraph and the Draft notice are a document's marks,
       extract's lines on what it could not hold become could questions in
       its tree, and problems.sarif takes the place of the planned gaps
-      --json. The steps are in docs/problems.md, section 6.
+      --json. The steps are in docs/diagnostics.md, section 6.
     consequences: |
       One file lists everything to fix or decide, and an editor or a CI
       log reader can jump through it as through a compiler's output. The

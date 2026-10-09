@@ -1,0 +1,25 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+
+sources:
+  old-doc: { kind: document, title: The old design document, edition: "2024", author: The team }
+stakeholders:
+  owner: { description: The product owner. }
+
+requirements:
+  CASE-1:
+    statement: A member shall borrow at most five books.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A sixth loan is refused.]
+    origin: stated
+    cites: [{ source: old-doc, clause: "4.2", says: "Five books at a time." }]
+  CASE-2:
+    statement: A loan shall last the loan period.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A loan is due after the loan period.]
+    origin: inferred
+    why: The code has a constant of 14 days; the document never says it.

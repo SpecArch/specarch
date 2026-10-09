@@ -1,0 +1,220 @@
+{
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "specarch",
+          "informationUri": "https://github.com/SpecArch/specarch",
+          "rules": [
+            {
+              "id": "change_log"
+            },
+            {
+              "id": "need"
+            },
+            {
+              "id": "open_question"
+            }
+          ]
+        }
+      },
+      "columnKind": "unicodeCodePoints",
+      "results": [
+        {
+          "ruleId": "need",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "NEED-9 is not a need of the specification; there are none in the specification"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/specarch.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 23,
+                  "startColumn": 13
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/requirements/CASE-2/needs/0",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "need@specarch.yaml#/requirements/CASE-2/needs/0"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/loans.py",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 4,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source service, clause loans.py:4: LoanPeriod is 14 days."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "change_log",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "\"Previously\" reads as a change log; say what is true now, and record the change in the project's history instead"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/specarch.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 35,
+                  "startColumn": 10
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/requirements/CASE-3/why",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "change_log@specarch.yaml#/requirements/CASE-3/why"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/specarch.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 34,
+                  "startColumn": 13
+                }
+              },
+              "message": {
+                "text": "source old-doc, clause 5: Members see their loans."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "open_question",
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "(must, decision) How important is the five-book limit, and how is it shown to be met? Decided by owner. Answer with a decision record that names Q-1 under answers."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/specarch.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 37,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/questions/Q-1",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "Q-1"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/specarch.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 11,
+                  "startColumn": 3
+                }
+              },
+              "message": {
+                "text": "blocks #/requirements/CASE-1/priority, which is not given yet"
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/specarch.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 11,
+                  "startColumn": 3
+                }
+              },
+              "message": {
+                "text": "blocks #/requirements/CASE-1/acceptance, which is not given yet"
+              }
+            },
+            {
+              "id": 3,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/loans.py",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 3,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source service, clause loans.py:3: The service names a loan period but no limit."
+              }
+            }
+          ],
+          "properties": {
+            "priority": "must",
+            "questionKind": "decision",
+            "decidedBy": "owner",
+            "options": [
+              "must",
+              "should"
+            ],
+            "blocks": [
+              "#/requirements/CASE-1/priority",
+              "#/requirements/CASE-1/acceptance"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+arguments: [document, problems, --out, docs, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:23: error: /requirements/CASE-2/needs/0: need: NEED-9 is not a need of the specification; there are none in the specification

@@ -172,8 +172,8 @@ jobs:
         # sources and configures only the four documents an owner reads
         # while questions are open (docs/from-sources.md, section 4).
         run: |
-          for target in techspec requirements testplan traceability deployment commissioning questions changes releases; do go run ./cmd/specarch document $target --check spec examples/library-lending || exit 1; done
-          for target in techspec requirements traceability questions; do go run ./cmd/specarch document $target --check examples/lending-desk || exit 1; done
+          for target in techspec requirements testplan traceability deployment commissioning questions problems changes releases; do go run ./cmd/specarch document $target --check spec examples/library-lending || exit 1; done
+          for target in techspec requirements traceability questions problems; do go run ./cmd/specarch document $target --check examples/lending-desk || exit 1; done
       - name: Generated code and data are current
         # The library's migrations, OpenAPI document and screens are checked
         # in, so a design change that leaves them stale fails here. The

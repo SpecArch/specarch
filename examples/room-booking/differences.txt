@@ -1,0 +1,17 @@
+ts: What does GET /api/bookings do, and what does it answer with each status code? Its handler declares that it answers a list of #/schemas/Booking.
+ts: What does GET /api/bookings/{bookingId} do, and what does it answer with each status code? Its handler declares that it answers #/schemas/Booking.
+ts: What does GET /api/rooms do, and what does it answer with each status code? Its handler declares that it answers a list of #/schemas/Room.
+ts: What does GET /api/rooms/{roomId} do, and what does it answer with each status code? Its handler declares that it answers #/schemas/Room.
+ts: What does POST /api/bookings do, and what does it answer with each status code? Its handler declares that it answers #/schemas/Booking.
+ts: What does POST /api/bookings/{bookingId}/cancel do, and what does it answer with each status code? Its handler declares that it answers #/schemas/Booking.
+ts: What does POST /api/bookings/{bookingId}/confirm do, and what does it answer with each status code? Its handler declares that it answers #/schemas/Booking.
+ts: Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale?
+js: The handler of GET /api/bookings/{bookingId} at examples/room-booking/sources/src/routes/bookings:N states its types in a JSDoc comment, and no tsconfig.json or jsconfig.json of the folder read turns checkJs on, so the compiler does not hold the code to them: /** * @param {import('express').Request<{ bookingId: string }, import('../types').Booking>} req * @param {import('express').Response} res */. Are they what the handler takes and answers?
+js: The handler of POST /api/bookings/{bookingId}/cancel reads reason of its body, with no validation schema or declared type. Which type is each, and which are required?
+js: What does GET /api/bookings do, and what does it answer?
+js: What does GET /api/bookings/{bookingId} do, and what does it answer?
+js: What does GET /api/rooms do, and what does it answer?
+js: What does GET /api/rooms/{roomId} do, and what does it answer?
+js: What does POST /api/bookings do, and what does it answer?
+js: What does POST /api/bookings/{bookingId}/cancel do, and what does it answer?
+js: What does POST /api/bookings/{bookingId}/confirm do, and what does it answer?

@@ -161,7 +161,7 @@ extension Checker {
                 ic.root = r
                 ic.checkSchema(.idiom, doc.value)
             }
-            diags += withoutEchoes(ic.diags)
+            diags += withoutEchoes(withoutHeld(ic.diags, heldIn(p, doc)))
             guard let r = doc.root, !ic.diags.contains(where: { $0.severity == .error }) else { continue }
             let i = Idiom(path: p, root: r)
             let want = String(name.dropLast(idiomSuffix.count))

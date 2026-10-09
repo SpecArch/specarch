@@ -1,0 +1,19 @@
+entities:
+  Book:
+    description: A title the library owns.
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      isbn: { type: string, maxLength: 13
+      title: { type: string, maxLength: 500 }
+    required: [id, isbn, title]
+    primaryKey: [id]
+    constraints:
+      book_title_given: [
+  Shelf:
+    description: A shelf a book stands on.
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+    required: [id]
+    primaryKey: [id]

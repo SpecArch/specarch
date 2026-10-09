@@ -113,7 +113,7 @@ enums:
       - output_folder
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
-      yaml_syntax: the file is not well-formed YAML
+      yaml_syntax: an entry of the file, or the file as a whole, is not well-formed YAML; the entries that parse are still read (ADR-080)
       unquoted_date: a date written without quotes, which YAML reads as a timestamp
       duplicate_key: a mapping repeats a key, or two files of one specification define the same name
       schema: the file breaks the meta-model's JSON Schema

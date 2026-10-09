@@ -135,6 +135,12 @@ sources:
     edition: "2020"
     author: OASIS
     url: https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html
+  yaml:
+    kind: standard
+    title: YAML Ain't Markup Language (YAML) version 1.2
+    edition: "1.2.2"
+    author: The YAML Language Development Team
+    url: https://yaml.org/spec/1.2.2/
   gnu-coding-standards:
     kind: document
     title: GNU Coding Standards

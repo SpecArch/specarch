@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 56 requirements, 5 entities, 12 commands, 7 algorithms, 340 tests, 78 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 56 requirements, 5 entities, 12 commands, 7 algorithms, 342 tests, 79 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -248,7 +248,7 @@ Primary key: path.
 | ProblemSeverity | warning | a diagnostic that leaves the specification valid; SARIF kind fail, level warning |
 | ProblemSeverity | question | an open question of any priority; SARIF kind open, level none |
 | Rule | file_kind | a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name |
-| Rule | yaml_syntax | the file is not well-formed YAML |
+| Rule | yaml_syntax | an entry of the file, or the file as a whole, is not well-formed YAML; the entries that parse are still read (ADR-080) |
 | Rule | unquoted_date | a date written without quotes, which YAML reads as a timestamp |
 | Rule | duplicate_key | a mapping repeats a key, or two files of one specification define the same name |
 | Rule | schema | the file breaks the meta-model's JSON Schema |
@@ -617,8 +617,9 @@ to the base id PROBLEMSDIR, the id as the partial fingerprint
 `specarchId/v1`, the pointer as a logical location, the notes as
 related locations, a question's fields as properties, and the rules
 used listed under the tool. A specification that cannot be read at
-all, such as one whose root file does not parse, gets its
-problems too.
+all, such as one whose root file has no entry that parses, gets its
+problems too, and a file that does not parse is read as far as its
+entries parse (ADR-080).
 
 In every document an element's why is an Insight and each citation
 a Note (ADR-015), and a document that cites sources ends with them.
@@ -5432,6 +5433,59 @@ an earlier version names its version again.
 
 **Insight:** A value object is one value with parts, so it is drawn as one group, as Carbon groups related controls in a FormGroup with a legend, and a list of them as the repeating group a person adds to and removes from, as child rows already are, without the loaded rows being locked, since an item has no identity to keep. The optional value's rule is the presence check's, so the form never sends what the service would refuse with missing address.street, and never refuses what the database would take: a value with no part given is no value. Name order is the one order the plug-in's input keeps; writing it down, rather than guessing a better one, keeps every generator's order the same until the design can say one. A value has no key a picker could hold, and a hook gives one text where a value has many. A cell shows one text, so a list's column cannot hold a value, and a schema that holds itself, which only JSON can keep, has no last section to draw.
 
+### ADR-080: A file that does not parse keeps every entry that parses, holds a broken entry by its name, and reports nothing else of it
+
+Status: accepted, 2026-10-09.
+
+Context: A YAML parser stops at the first syntax error and returns nothing of
+the file. A fragment with one broken line lost every entry it held,
+and each reference to one of them was reported again: an entities
+file with one unclosed bracket in a constraint gave eleven errors,
+ten of them about the entity it no longer held. An implementation
+file that did not parse named no output folder, so document problems
+asked for --out exactly when the problems were needed. This goes
+against the first principle of docs/principles.md: a definition is
+never left unread because something in it is wrong.
+
+Decision: When a file does not parse, every SpecArch file is read entry by
+entry by its indentation. An entry is parsed together with the keys
+above it and the entries kept before it, every other line read as a
+comment, so each value keeps its line and column. An entry that
+parses is kept. One that does not is read entry by entry in its turn
+when it is a key whose value is on the lines below; otherwise it is
+held: kept by its name with no value, its line cut after the key, so
+whatever refers to it still finds it. A key at the top of a file, a
+section or a root file's own key, is left out instead, since nothing
+refers to it by name and an empty section would stand for the
+section in every other file. A line indented with a tab is left out
+on its own, since no YAML parser reads it.
+
+Each entry that does not parse is a yaml_syntax error at the line
+the parser gives and at the entry's pointer, its message saying that
+the other entries are read and this one is held or left out until it
+parses. Nothing else is reported at a held or left-out entry, inside
+it, or of it as missing in its own file; a layout problem is still
+reported, since it says what was not read. When no entry can be told
+apart from the error, as when the file's only key is the one whose
+line is broken, the file is read as nothing, as before, with one
+error at its first broken line.
+
+An implementation file is read the same way, so its targets name
+their output folders, and document problems writes the problems
+file without --out.
+
+Consequences: One broken line costs one entry, not the file: the eleven errors of
+the broken constraint are two. What reads inside a held entry from
+elsewhere is still reported, such as a test that covers a case of a
+held constraint, since the check cannot tell it from a real gap. A
+line indented with a tab is reported at the file, and its key may
+be reported missing. A broken flow collection that runs across
+lines with less indentation than its key is held or left out whole.
+
+**Insight:** YAML lets a processor recover from a syntax error by ignoring part of the input as long as it reports the error (YAML 1.2.2, 3.3.1), and the reason to reject an ill-formed stream is that a parser guessing what was meant could read a value as something else. That cannot happen here: an entry is kept only when it parses on its own lines, every other line is read as a comment rather than rewritten, a broken entry is read as no value at all, and every entry not read is an error at its line. Indentation is how a block of YAML says where an entry ends, so it is the one boundary both builds can find without a parser of their own. Holding the name rather than leaving the entry out is what stops the cascade: a reference to a constraint or a field needs its name, and a check of its value is what the syntax error already reports.
+
+**Note:** From YAML Ain't Markup Language (YAML) version 1.2, 1.2.2, clause 3.3.1 Well-Formed Streams and Identified Aliases: A YAML processor should reject ill-formed streams; it may recover from syntax errors, possibly by ignoring certain parts of the input, but it must provide a mechanism for reporting such errors. <https://yaml.org/spec/1.2.2/>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -5481,6 +5535,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-pages-flowchart | command document | system | golden | a hand-written document with a flowchart pages marker | document techspec is run | the region holds the pages and the operation the Pay action runs, and it exits 0 |
 | document-permissions-table | command document | system | golden | a hand-written document with a permissions marker | document techspec is run | the region holds the table of permissions and roles, with public granted to everyone, and it exits 0 |
 | document-problem-without-element | command document | system | red | a specification with an error under info, which the technical specification shows no element for, and an error at a relation | document techspec is run | it prints both errors, writes techspec.md with the info error's Problem paragraph under the Problems notice and the relation's at the entity, and exits 1 |
+| document-problems-implementation-broken | command document | system | red | an implementation file with a mapping whose flow mapping is never closed, and whose targets name the problems document's output folder | document problems is run with no --out | it prints the yaml_syntax error at the mapping, writes problems.txt and problems.sarif into the folder the targets name, and exits 1 |
 | document-problems-lists | command document | system | red | a specification with an error at a requirement that cites a line of code beside it, a warning, and a must question that blocks two keys a requirement leaves out and cites the code | document problems is run | it prints the error, writes problems.txt with each problem on a file:line:column line with its id, the question at its entry followed by a note at each blocked entry and at each cited line, and problems.sarif with the same problems, the question as kind open and level none, and exits 1 |
 | document-problems-no-output-folder | command document | system | red | a specification whose implementation file names an output folder for requirements only, and no --out | document problems is run with --check | it warns at the file's targets, writes nothing and exits 2, since no specification given has a problems document |
 | document-problems-none | command document | system | golden | a specification with no error, no warning and no open question | document problems is run | it writes problems.txt saying there are no problems and problems.sarif with no results, and exits 0 |
@@ -5775,7 +5830,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-wire-names | command validate | system | red | a specification whose wire names are snake_case, with two entity fields, two fields of a nested object, two fields of an array's items, a view's added field and its entity's, two fields of a message payload, two of a path parameter's schema and two of a request body each mapping to one wire name, acronyms and runs of capitals among them | validate is run | it reports wire_name seven times, at the second name of each pair, and exits 1 |
 | validate-workflow | command validate | system | red | a workflow whose subject is not an entity, whose approver does not grant the approval's permission or is not a role, whose approval checks the trigger's permission with a deadline of zero and escalates to a step that is not a later approval, with two steps of one name and an operation step naming no operation; a workflow started by an operation that does not answer 202 whose approval checks an undeclared permission; and one started by an operation that does not exist | validate is run | it reports workflow eleven times and permission_undeclared once, and exits 1 |
 | validate-workflow-valid | command validate | system | golden | a workflow of two approvals, the first escalating to the second after a day, and an operation step, with a test of the requester approving their own request | validate is run | it reports no error, counts the test as covering the four-eyes case, warns that no test covers the approved path, a refusal and the deadline at each approval and an approval without each permission, among the others, and exits 0 |
-| validate-yaml-syntax | command validate | system | red | a flow mapping that is never closed | validate is run | it reports yaml_syntax with the line and exits 1 |
+| validate-yaml-syntax | command validate | system | red | a root file whose info is a flow mapping that is never closed | validate is run | it reports yaml_syntax with the line at info, leaves info out without reporting it missing, and exits 1 |
+| validate-yaml-syntax-entries | command validate | system | red | an entities file whose entity has a property with a flow mapping never closed and a constraint with a flow sequence never closed, followed by a second entity, and another file whose entity relates to both | validate is run | it reports yaml_syntax once at the property and once at the constraint, each at its own line and pointer, reads the rest of the file, reports nothing of the relations, and exits 1 |
 | version-prints-versions | command version | system | golden | the program | version is run | it prints the program version and the meta-model versions it reads, and exits 0 |
 | version-usage-error | command version | system | red | the program | version is run with an argument | it prints how to use it and exits 2 |
 
@@ -5869,7 +5925,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-6 | Every problem shall be reported, one line each, with file, line, YAML path and rule; the exit status is 0 when valid, 1 when invalid, 2 on a usage or read error. | interface | must | accepted | test | A run on a folder with three problems in two files prints three lines and exits 1. A run with no arguments prints how to use the command and exits 2. | NEED-1 |
 | SA-9 | A specification and its implementations shall be separate files; a specification holds no stack-specific key and an implementation file adds no design. | constraint | must | accepted | test | A stack-specific extension key in a specification is reported as stack_key. A design keyword in an implementation file is reported as design_key. | NEED-2 |
 | SA-10 | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. | functional | must | accepted | test | An implementation written against an older version of its specification is reported as implements. A pointer to an object the specification does not have is reported as design_ref. | NEED-2 |
-| SA-51 | specarch shall list every problem of a specification, valid or not, in one problems file and its SARIF 2.1.0 form, each error, warning and open question with a stable id, file, line and column, JSON pointer, rule, a message saying how to fix it, and notes at the sources it came from and the entries it blocks, and every file specarch writes shall mark the entry a problem touches. | interface | must | accepted | test | specarch document problems on a specification with an error, a warning and a must question writes problems.txt with one line each in the form file:line:column: severity: pointer: rule: message [id], sorted by file and line, the question followed by a note at each source it cites and each entry it blocks, and exits 1. The same run writes problems.sarif, a SARIF 2.1.0 log with the same results, the question as kind open and level none, and each id as a partial fingerprint; a second run writes the same bytes. A specification with no problem gets a problems file that says so. | NEED-1, NEED-8 |
+| SA-51 | specarch shall list every problem of a specification, valid or not, in one problems file and its SARIF 2.1.0 form, each error, warning and open question with a stable id, file, line and column, JSON pointer, rule, a message saying how to fix it, and notes at the sources it came from and the entries it blocks, and every file specarch writes shall mark the entry a problem touches. | interface | must | accepted | test | specarch document problems on a specification with an error, a warning and a must question writes problems.txt with one line each in the form file:line:column: severity: pointer: rule: message [id], sorted by file and line, the question followed by a note at each source it cites and each entry it blocks, and exits 1. The same run writes problems.sarif, a SARIF 2.1.0 log with the same results, the question as kind open and level none, and each id as a partial fingerprint; a second run writes the same bytes. A specification with no problem gets a problems file that says so. A fragment with one entry that does not parse reports one yaml_syntax error at that entry's line and pointer, keeps its other entries, and reports no reference to the broken entry's name; an implementation file with a broken entry still names the problems file's folder. | NEED-1, NEED-8 |
 
 **Insight on SA-31:** A test the specification implies is worth most when it runs; what differs between two projects in one language (how a caller signs in, how a record is stored, how a request is sent) is the harness, so the generated file needs nothing but it.
 
@@ -6043,7 +6099,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-48 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |
 | SA-49 | enums Rule; decisions ADR-062 | tests extract-openapi-snake-case; tests generate-openapi-wire-names; tests validate-wire-names |
 | SA-50 | enums Rule; decisions ADR-063; decisions ADR-077; decisions ADR-078 | tests extract-database-json-column; tests generate-go-dxlib-value-objects; tests generate-sql-identifier-length; tests generate-sql-value-object-fields; tests generate-tests-value-objects; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests validate-value-object-fields; tests validate-value-object-fields-valid; tests validate-value-object-part-cases; tests validate-value-object-part-cases-covered |
-| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066 | tests document-check-invalid; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-lists; tests document-problems-none |
+| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066; decisions ADR-080 | tests document-check-invalid; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-implementation-broken; tests document-problems-lists; tests document-problems-none; tests validate-yaml-syntax-entries |
 | SA-52 | decisions ADR-067 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-53 | decisions ADR-068 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-54 | decisions ADR-069; decisions ADR-079 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-value-objects; tests generate-ui-typescript-value-objects-refused |
@@ -6080,4 +6136,5 @@ Every source a Note in this document cites.
 | rfc-9457 | RFC 9457, Problem Details for HTTP APIs | 2023 | IETF | https://www.rfc-editor.org/rfc/rfc9457 |
 | sarif | Static Analysis Results Interchange Format (SARIF) Version 2.1.0 | 2020 | OASIS | https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html |
 | semver | Semantic Versioning | 2.0.0 | The Semantic Versioning project | https://semver.org/spec/v2.0.0.html |
+| yaml | YAML Ain't Markup Language (YAML) version 1.2 | 1.2.2 | The YAML Language Development Team | https://yaml.org/spec/1.2.2/ |
 

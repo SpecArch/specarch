@@ -3,7 +3,7 @@ command: validate
 level: system
 scenario: red
 covers: [exit 1]
-given: a flow mapping that is never closed
+given: a root file whose info is a flow mapping that is never closed
 when: validate is run
-then: it reports yaml_syntax with the line and exits 1
+then: it reports yaml_syntax with the line at info, leaves info out without reporting it missing, and exits 1
 verifies: [SA-6]

@@ -147,7 +147,7 @@ func (c *checker) projectIdioms() map[string]Idiom {
 			ic.root = doc.Root
 			ic.checkSchema(KindIdiom, doc.Value)
 		}
-		c.diags = append(c.diags, withoutEchoes(ic.diags)...)
+		c.diags = append(c.diags, withoutEchoes(withoutHeld(ic.diags, heldIn(p, doc)))...)
 		if doc.Root == nil || Errors(ic.diags) > 0 {
 			continue
 		}

@@ -63,7 +63,7 @@ private func checkSpecAll(_ s: Spec) -> [Diagnostic] {
             design = d
         }
     }
-    out += withoutEchoes(c.diags)
+    out += withoutEchoes(withoutHeld(c.diags, s.held))
     for impl in s.implementations {
         let ic = Checker(file: impl.path)
         ic.runImplementation(impl.data, s, nil)
@@ -99,6 +99,37 @@ func checkNamed(_ path: String) -> [Diagnostic] {
     var ds = c.diags
     Placer(dir: dirPath(path)).place(&ds)
     return ds
+}
+
+/// Drops what is reported at or inside an entry of a file that did not
+/// parse, kept by its name only or left out (ADR-080), and the schema's
+/// report that it is missing: its value is not read, so whatever is said of
+/// it only repeats the syntax error.
+func withoutHeld(_ ds: [Diagnostic], _ held: [SpecHeld]) -> [Diagnostic] {
+    if held.isEmpty { return ds }
+    return ds.filter { !isHeld($0, held) }
+}
+
+/// Whether a diagnostic is about a held entry. A layout problem is kept: it
+/// says what was not read, such as a stage folder that a broken stages
+/// leaves unlisted.
+private func isHeld(_ d: Diagnostic, _ held: [SpecHeld]) -> Bool {
+    if d.rule == .yamlSyntax || d.rule == .layout { return false }
+    for h in held where d.file == h.file {
+        if d.path == h.path || d.path.hasPrefix(h.path + "/") { return true }
+        let cut = h.path.range(of: "/", options: .backwards)!
+        let parent = String(h.path[..<cut.lowerBound])
+        if d.rule == .schema && (parent.isEmpty ? "/" : parent) == d.path
+            && d.message == unescapeToken(String(h.path[cut.upperBound...])) + " is missing; add it here" {
+            return true
+        }
+    }
+    return false
+}
+
+/// The entries of one file read on its own that did not parse.
+func heldIn(_ file: String, _ doc: Doc) -> [SpecHeld] {
+    doc.held.map { SpecHeld(file: file, path: $0) }
 }
 
 /// Drops a diagnostic that only repeats a schema error: one at the same
@@ -187,5 +218,6 @@ final class Checker {
         checkChangeLog()
         checkBoundaryImplementation()
         checkImplementation(s, load)
+        diags = withoutHeld(diags, heldIn(file, doc))
     }
 }

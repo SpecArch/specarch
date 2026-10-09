@@ -25,9 +25,10 @@ type Problem struct {
 
 // Doc is one parsed file.
 type Doc struct {
-	Root     *yaml.Node // the top-level mapping, nil when the file did not parse
+	Root     *yaml.Node // the top-level mapping, nil when nothing of the file could be read
 	Value    any        // the same content as JSON values
 	Problems []Problem
+	Held     []string // the pointers of the entries that did not parse, kept by their names only or left out
 }
 
 var yamlLine = regexp.MustCompile(`^yaml: line (\d+): (.*)$`)
@@ -39,32 +40,46 @@ var unclosed = map[string]string{
 	"did not find expected '-' indicator": "the list that starts on this line has a line that is not an item; check the indentation below it",
 }
 
-// Parse reads one YAML document. A syntax error is returned as a Problem,
-// with Root left nil.
+// Parse reads one YAML document. A file that does not parse keeps what can
+// be read of it (see readable); when nothing can, the syntax error is
+// returned as a Problem, with Root left nil.
 func Parse(data []byte) *Doc {
+	d, syntax := parseWhole(data)
+	if !syntax {
+		return d
+	}
+	if r := readable(data); r != nil {
+		return r
+	}
+	return d
+}
+
+// parseWhole reads one YAML document as it is, and tells whether it failed
+// on a syntax error.
+func parseWhole(data []byte) (*Doc, bool) {
 	d := &Doc{}
 	dec := yaml.NewDecoder(bytes.NewReader(data))
 	var file yaml.Node
 	if err := dec.Decode(&file); err != nil {
 		if errors.Is(err, io.EOF) {
 			d.Problems = append(d.Problems, Problem{Line: 1, Path: "/", Rule: "yaml_syntax", Message: "the file is empty"})
-			return d
+			return d, false
 		}
 		d.Problems = append(d.Problems, syntaxProblem(err))
-		return d
+		return d, true
 	}
 	var extra yaml.Node
 	if err := dec.Decode(&extra); err == nil {
 		d.Problems = append(d.Problems, Problem{Line: extra.Line, Path: "/", Rule: "yaml_syntax", Message: "a file holds one YAML document; found a second"})
-		return d
+		return d, false
 	} else if !errors.Is(err, io.EOF) {
 		d.Problems = append(d.Problems, syntaxProblem(err))
-		return d
+		return d, true
 	}
 	root := file.Content[0]
 	d.Root = root
 	d.Value = d.convert(root, "")
-	return d
+	return d, false
 }
 
 // ValueOf converts a node tree into plain JSON values, reporting nothing:

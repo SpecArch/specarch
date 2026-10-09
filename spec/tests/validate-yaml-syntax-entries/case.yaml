@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  design/book.yaml:7:12: error: /entities/Book/properties/isbn: yaml_syntax: the { that starts on this line is not closed; close it with }, and separate its entries with commas; the other entries of the file are read, and this one is kept by its name only until it parses [yaml_syntax@design/book.yaml#/entities/Book/properties/isbn]
+  design/book.yaml:12:24: error: /entities/Book/constraints/book_title_given: yaml_syntax: did not find expected node content; the other entries of the file are read, and this one is kept by its name only until it parses [yaml_syntax@design/book.yaml#/entities/Book/constraints/book_title_given]

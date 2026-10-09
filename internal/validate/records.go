@@ -25,6 +25,7 @@ type record struct {
 	kind   string // a kind of recordFolders, or "" when it has none
 	root   *yaml.Node
 	c      *checker
+	held   []spec.Held // its entries that did not parse, kept by their names only
 }
 
 // key is what a record is named by: its ID, its version, or the date and
@@ -64,6 +65,7 @@ func checkRecords(s *spec.Spec, d *design) []Diagnostic {
 		for _, p := range doc.Problems {
 			r.c.addLine(p.Line, p.Path, Rule(p.Rule), "%s", p.Message)
 		}
+		r.held = heldIn(f.Path, doc)
 		if doc.Root == nil {
 			continue
 		}
@@ -96,7 +98,7 @@ func checkRecords(s *spec.Spec, d *design) []Diagnostic {
 	rc.checkRequirementReleases(rootChecker)
 	out := rootChecker.diags
 	for _, r := range recs {
-		out = append(out, withoutEchoes(r.c.diags)...)
+		out = append(out, withoutEchoes(withoutHeld(r.c.diags, r.held))...)
 	}
 	return out
 }

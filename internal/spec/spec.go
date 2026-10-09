@@ -90,6 +90,14 @@ type Problem struct {
 	Message string
 }
 
+// Held is an entry of a file that did not parse, kept by its name only or
+// left out (ADR-080): what it holds is not read, so nothing is reported at
+// it, inside it, or of it as missing.
+type Held struct {
+	File string
+	Path string // its pointer in the specification
+}
+
 // Implementation is one implementation file of the specification.
 type Implementation struct {
 	Path  string
@@ -112,6 +120,7 @@ type Spec struct {
 	Value           any                   // the merged document as plain values, for the schema
 	Files           map[*yaml.Node]string // the file each node came from
 	Problems        []Problem
+	Held            []Held   // the entries of files that did not parse
 	Stages          []string // the stages listed in the root file
 	Implementations []Implementation
 	RecordsDir      string   // the records/ folder beside Dir
@@ -130,6 +139,7 @@ func Load(dir string) *Spec {
 	for _, p := range doc.Problems {
 		s.problem(s.RootFile, p.Line, p.Path, p.Rule, "%s", p.Message)
 	}
+	s.hold(s.RootFile, "", doc)
 	if doc.Root == nil {
 		return s
 	}
@@ -370,6 +380,7 @@ func (s *Spec) loadStage(stage, folder string, sections map[string]*yaml.Node) {
 		for _, pr := range doc.Problems {
 			s.problem(p, pr.Line, pr.Path, pr.Rule, "%s", pr.Message)
 		}
+		s.hold(p, "", doc)
 		if doc.Root == nil {
 			return nil
 		}
@@ -435,6 +446,7 @@ func (s *Spec) loadQuestionsFile(p string, sections map[string]*yaml.Node) bool 
 	for _, pr := range doc.Problems {
 		s.problem(p, pr.Line, pr.Path, pr.Rule, "%s", pr.Message)
 	}
+	s.hold(p, "", doc)
 	s.record(doc.Root, p)
 	for _, pair := range source.Pairs(doc.Root) {
 		s.mergeSection(sections, QuestionsSection, pair.Value, p)
@@ -498,9 +510,15 @@ func (s *Spec) loadTests(folder string, sections map[string]*yaml.Node) {
 			continue
 		}
 		doc := source.Parse(data)
+		at := source.Pointer("tests", e.Name())
 		for _, pr := range doc.Problems {
-			s.problem(tf, pr.Line, pr.Path, pr.Rule, "%s", pr.Message)
+			path := pr.Path
+			if path != "/" {
+				path = at + path
+			}
+			s.problem(tf, pr.Line, path, pr.Rule, "%s", pr.Message)
 		}
+		s.hold(tf, at, doc)
 		if doc.Root == nil {
 			continue
 		}
@@ -581,6 +599,15 @@ func (s *Spec) record(n *yaml.Node, file string) {
 	s.Files[n] = file
 	for _, c := range n.Content {
 		s.record(c, file)
+	}
+}
+
+// hold remembers the entries of a file that did not parse, kept by their
+// names only; prefix is the pointer the file's root has in the
+// specification.
+func (s *Spec) hold(file, prefix string, doc *source.Doc) {
+	for _, h := range doc.Held {
+		s.Held = append(s.Held, Held{File: file, Path: prefix + h})
 	}
 }
 

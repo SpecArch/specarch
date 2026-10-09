@@ -120,9 +120,9 @@ A note is a place that helps with the problem, printed after it:
 `specarch document problems` writes `problems.txt` into the folder the
 `problems` target owns, as every document does. It is written for an
 invalid specification too, and the command then exits 1 after writing it.
-The folder comes from `--out` or from the implementation files; when the
-one that names it cannot be read, the command asks for `--out`, until step
-8 reads what it can of a file that does not parse. Every other document
+The folder comes from `--out` or from the implementation files; an
+implementation file with an entry that does not parse still names it
+(section 6, step 8). Every other document
 is written for an invalid specification too, with its errors marked
 (section 5.1), and `gaps` lists the errors with the questions.
 
@@ -300,6 +300,11 @@ is never marked: a problem cites it in a note instead.
    and `gaps` lists the errors with the questions instead of refusing.
 7. **Marks in generated code, SQL, OpenAPI, tests and UI**, as far as
    ADR-065's open point 2 allows.
-8. **A fragment that does not parse keeps what can be read**: its
-   readable top-level entries are kept, so one broken file stops causing
-   errors in every file that refers to it.
+8. **A fragment that does not parse keeps what can be read** (ADR-080):
+   the file is read entry by entry by its indentation; an entry that
+   parses is kept, a broken one is held by its name with no value, or
+   left out when it is a key at the top of the file, and each is one
+   yaml_syntax error at its line and pointer with nothing else reported
+   of it. One broken entry stops causing errors in every file that
+   refers to it, and an implementation file with a broken entry still
+   names its output folders.

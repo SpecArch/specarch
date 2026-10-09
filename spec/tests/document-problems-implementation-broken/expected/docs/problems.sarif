@@ -1,0 +1,53 @@
+{
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "specarch",
+          "informationUri": "https://github.com/SpecArch/specarch",
+          "rules": [
+            {
+              "id": "yaml_syntax"
+            }
+          ]
+        }
+      },
+      "columnKind": "unicodeCodePoints",
+      "results": [
+        {
+          "ruleId": "yaml_syntax",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "the { that starts on this line is not closed; close it with }, and separate its entries with commas; the other entries of the file are read, and this one is kept by its name only until it parses"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/case.go.specarch-implementation.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 6,
+                  "startColumn": 21
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/mappings/#~1entities~1Book",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "yaml_syntax@case.go.specarch-implementation.yaml#/mappings/#~1entities~1Book"
+          }
+        }
+      ]
+    }
+  ]
+}

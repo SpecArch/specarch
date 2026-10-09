@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an entities file whose entity has a property with a flow mapping never closed and a constraint with a flow sequence never closed, followed by a second entity, and another file whose entity relates to both"
+when: "validate is run"
+then: "it reports yaml_syntax once at the property and once at the constraint, each at its own line and pointer, reads the rest of the file, reports nothing of the relations, and exits 1"
+verifies: [SA-51]

@@ -1,0 +1,10 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+entities:
+  Book:
+    description: A title the library owns.
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+    required: [id]
+    primaryKey: [id]

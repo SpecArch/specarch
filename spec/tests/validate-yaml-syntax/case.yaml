@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:2:1: error: /: yaml_syntax: the { that starts on this line is not closed; close it with }, and separate its entries with commas [yaml_syntax@specarch.yaml#/]
+  specarch.yaml:2:1: error: /info: yaml_syntax: the { that starts on this line is not closed; close it with }, and separate its entries with commas; the other entries of the file are read, and this one is left out until it parses [yaml_syntax@specarch.yaml#/info]

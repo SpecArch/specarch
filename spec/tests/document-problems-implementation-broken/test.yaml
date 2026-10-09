@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: document
+level: system
+scenario: red
+covers: [exit 1]
+given: "an implementation file with a mapping whose flow mapping is never closed, and whose targets name the problems document's output folder"
+when: "document problems is run with no --out"
+then: "it prints the yaml_syntax error at the mapping, writes problems.txt and problems.sarif into the folder the targets name, and exits 1"
+verifies: [SA-51]

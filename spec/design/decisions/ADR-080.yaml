@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-080:
+    title: A file that does not parse keeps every entry that parses, holds a broken entry by its name, and reports nothing else of it
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      A YAML parser stops at the first syntax error and returns nothing of
+      the file. A fragment with one broken line lost every entry it held,
+      and each reference to one of them was reported again: an entities
+      file with one unclosed bracket in a constraint gave eleven errors,
+      ten of them about the entity it no longer held. An implementation
+      file that did not parse named no output folder, so document problems
+      asked for --out exactly when the problems were needed. This goes
+      against the first principle of docs/principles.md: a definition is
+      never left unread because something in it is wrong.
+    decision: |
+      When a file does not parse, every SpecArch file is read entry by
+      entry by its indentation. An entry is parsed together with the keys
+      above it and the entries kept before it, every other line read as a
+      comment, so each value keeps its line and column. An entry that
+      parses is kept. One that does not is read entry by entry in its turn
+      when it is a key whose value is on the lines below; otherwise it is
+      held: kept by its name with no value, its line cut after the key, so
+      whatever refers to it still finds it. A key at the top of a file, a
+      section or a root file's own key, is left out instead, since nothing
+      refers to it by name and an empty section would stand for the
+      section in every other file. A line indented with a tab is left out
+      on its own, since no YAML parser reads it.
+
+      Each entry that does not parse is a yaml_syntax error at the line
+      the parser gives and at the entry's pointer, its message saying that
+      the other entries are read and this one is held or left out until it
+      parses. Nothing else is reported at a held or left-out entry, inside
+      it, or of it as missing in its own file; a layout problem is still
+      reported, since it says what was not read. When no entry can be told
+      apart from the error, as when the file's only key is the one whose
+      line is broken, the file is read as nothing, as before, with one
+      error at its first broken line.
+
+      An implementation file is read the same way, so its targets name
+      their output folders, and document problems writes the problems
+      file without --out.
+    why: |
+      YAML lets a processor recover from a syntax error by ignoring part
+      of the input as long as it reports the error (YAML 1.2.2, 3.3.1),
+      and the reason to reject an ill-formed stream is that a parser
+      guessing what was meant could read a value as something else. That
+      cannot happen here: an entry is kept only when it parses on its own
+      lines, every other line is read as a comment rather than rewritten,
+      a broken entry is read as no value at all, and every entry not read
+      is an error at its line. Indentation is how a block of YAML says
+      where an entry ends, so it is the one boundary both builds can find
+      without a parser of their own. Holding the name rather than leaving
+      the entry out is what stops the cascade: a reference to a constraint
+      or a field needs its name, and a check of its value is what the
+      syntax error already reports.
+    consequences: |
+      One broken line costs one entry, not the file: the eleven errors of
+      the broken constraint are two. What reads inside a held entry from
+      elsewhere is still reported, such as a test that covers a case of a
+      held constraint, since the check cannot tell it from a real gap. A
+      line indented with a tab is reported at the file, and its key may
+      be reported missing. A broken flow collection that runs across
+      lines with less indentation than its key is held or left out whole.
+    satisfies: [SA-51]
+    cites:
+      - source: yaml
+        clause: "3.3.1 Well-Formed Streams and Identified Aliases"
+        says: "A YAML processor should reject ill-formed streams; it may recover from syntax errors, possibly by ignoring certain parts of the input, but it must provide a mechanism for reporting such errors."

@@ -106,8 +106,9 @@ commands:
       `specarchId/v1`, the pointer as a logical location, the notes as
       related locations, a question's fields as properties, and the rules
       used listed under the tool. A specification that cannot be read at
-      all, such as one whose root file does not parse, gets its
-      problems too.
+      all, such as one whose root file has no entry that parses, gets its
+      problems too, and a file that does not parse is read as far as its
+      entries parse (ADR-080).
 
       In every document an element's why is an Insight and each citation
       a Note (ADR-015), and a document that cites sources ends with them.

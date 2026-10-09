@@ -65,6 +65,14 @@ struct SpecProblem {
     let message: String
 }
 
+/// An entry of a file that did not parse, kept by its name only or left out
+/// (ADR-080): what it holds is not read, so nothing is reported at it,
+/// inside it, or of it as missing.
+struct SpecHeld {
+    let file: String
+    let path: String // its pointer in the specification
+}
+
 /// One implementation file of a specification.
 struct SpecImplementation {
     let path: String
@@ -88,6 +96,7 @@ final class Spec {
     var value: JSONValue = .null
     var files: [ObjectIdentifier: String] = [:]
     var problems: [SpecProblem] = []
+    var held: [SpecHeld] = [] // the entries of files that did not parse
     var listedStages: [String] = []
     var implementations: [SpecImplementation] = []
     var recordsDir = ""           // the records/ folder beside dir
@@ -110,6 +119,7 @@ final class Spec {
         }
         let doc = parseYAML(String(decoding: data, as: UTF8.self))
         for p in doc.problems { problem(rootPath, p.line, p.path, p.rule, p.message) }
+        hold(rootPath, "", doc)
         guard let docRoot = doc.root else { return }
         record(docRoot, rootPath)
         if docRoot.kind != .mapping {
@@ -305,6 +315,7 @@ final class Spec {
             }
             let doc = parseYAML(String(decoding: data, as: UTF8.self))
             for pr in doc.problems { problem(p, pr.line, pr.path, pr.rule, pr.message) }
+            hold(p, "", doc)
             guard let docRoot = doc.root else { continue }
             record(docRoot, p)
             if docRoot.kind != .mapping {
@@ -363,7 +374,9 @@ final class Spec {
                 continue
             }
             let doc = parseYAML(String(decoding: data, as: UTF8.self))
-            for pr in doc.problems { problem(tf, pr.line, pr.path, pr.rule, pr.message) }
+            let at = pointer("tests", e.name)
+            for pr in doc.problems { problem(tf, pr.line, pr.path == "/" ? "/" : at + pr.path, pr.rule, pr.message) }
+            hold(tf, at, doc)
             guard let docRoot = doc.root else { continue }
             record(docRoot, tf)
             let key = YNode(kind: .scalar, value: e.name, tag: "!!str", line: max(docRoot.line, 1), column: 1)
@@ -382,6 +395,7 @@ final class Spec {
         guard let docRoot = doc.root, docRoot.kind == .mapping else { return false }
         for pair in docRoot.pairs where pair.key.value != questionsSection { return false }
         for pr in doc.problems { problem(p, pr.line, pr.path, pr.rule, pr.message) }
+        hold(p, "", doc)
         record(docRoot, p)
         for pair in docRoot.pairs { mergeSection(&found, questionsSection, pair.value, p) }
         return true
@@ -473,6 +487,13 @@ final class Spec {
     /// The file a node came from, or the root file.
     func fileOf(_ n: YNode) -> String {
         files[ObjectIdentifier(n)] ?? rootPath
+    }
+
+    /// Remembers the entries of a file that did not parse, kept by their
+    /// names only; prefix is the pointer the file's root has in the
+    /// specification.
+    private func hold(_ file: String, _ prefix: String, _ doc: Doc) {
+        for h in doc.held { held.append(SpecHeld(file: file, path: prefix + h)) }
     }
 
     private func problem(_ file: String, _ line: Int, _ path: String, _ rule: String, _ message: String) {

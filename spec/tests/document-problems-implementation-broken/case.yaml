@@ -1,0 +1,4 @@
+arguments: [document, problems, project]
+exitStatus: 1
+standardOutput: |
+  project/case.go.specarch-implementation.yaml:6:21: error: /mappings/#~1entities~1Book: yaml_syntax: the { that starts on this line is not closed; close it with }, and separate its entries with commas; the other entries of the file are read, and this one is kept by its name only until it parses [yaml_syntax@case.go.specarch-implementation.yaml#/mappings/#~1entities~1Book]

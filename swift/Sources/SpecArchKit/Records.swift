@@ -13,6 +13,7 @@ final class Record {
     var kind = "" // a kind of recordFolders, or "" when it has none
     var root: YNode?
     let c: Checker
+    var held: [SpecHeld] = [] // its entries that did not parse, kept by their names only
 
     init(path: String, folder: String) {
         self.path = path
@@ -48,6 +49,7 @@ func checkRecords(_ s: Spec, _ d: Design) -> [Diagnostic] {
         for p in doc.problems {
             r.c.addLine(p.line, p.path, Rule(rawValue: p.rule)!, p.message)
         }
+        r.held = heldIn(f.path, doc)
         guard let root = doc.root else { continue }
         r.root = root
         r.c.root = root
@@ -71,7 +73,7 @@ func checkRecords(_ s: Spec, _ d: Design) -> [Diagnostic] {
     rc.checkRequirementReleases(rootChecker)
     var out = rootChecker.diags
     for r in recs {
-        out += withoutEchoes(r.c.diags)
+        out += withoutEchoes(withoutHeld(r.c.diags, r.held))
     }
     return out
 }

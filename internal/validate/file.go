@@ -94,7 +94,7 @@ func checkSpecAll(s *spec.Spec) []Diagnostic {
 			c.checkDesign(d)
 		}
 	}
-	out = append(out, withoutEchoes(c.diags)...)
+	out = append(out, withoutEchoes(withoutHeld(c.diags, s.Held))...)
 	for _, impl := range s.Implementations {
 		ic := &checker{file: impl.Path}
 		ic.runImplementation(impl.Data, s)
@@ -129,6 +129,61 @@ func CheckNamed(path string) []Diagnostic {
 	}
 	(&Placer{Dir: filepath.Dir(path)}).Place(c.diags)
 	return c.diags
+}
+
+// withoutHeld drops what is reported at or inside an entry of a file that
+// did not parse, kept by its name only or left out (ADR-080), and the
+// schema's report that it is missing: its value is not read, so whatever is
+// said of it only repeats the syntax error.
+func withoutHeld(ds []Diagnostic, held []spec.Held) []Diagnostic {
+	if len(held) == 0 {
+		return ds
+	}
+	out := ds[:0]
+	for _, d := range ds {
+		if !isHeld(d, held) {
+			out = append(out, d)
+		}
+	}
+	return out
+}
+
+// isHeld tells whether a diagnostic is about a held entry. A layout
+// problem is kept: it says what was not read, such as a stage folder that
+// a broken stages leaves unlisted.
+func isHeld(d Diagnostic, held []spec.Held) bool {
+	if d.Rule == RuleYAMLSyntax || d.Rule == RuleLayout {
+		return false
+	}
+	for _, h := range held {
+		if d.File != h.File {
+			continue
+		}
+		if d.Path == h.Path || strings.HasPrefix(d.Path, h.Path+"/") {
+			return true
+		}
+		cut := strings.LastIndex(h.Path, "/")
+		if d.Rule == RuleSchema && orSlash(h.Path[:cut]) == d.Path && d.Message == source.UnescapeToken(h.Path[cut+1:])+" is missing; add it here" {
+			return true
+		}
+	}
+	return false
+}
+
+func orSlash(ptr string) string {
+	if ptr == "" {
+		return "/"
+	}
+	return ptr
+}
+
+// heldIn is the entries of one file read on its own that did not parse.
+func heldIn(file string, doc *source.Doc) []spec.Held {
+	held := make([]spec.Held, len(doc.Held))
+	for i, h := range doc.Held {
+		held[i] = spec.Held{File: file, Path: h}
+	}
+	return held
 }
 
 // withoutEchoes drops a diagnostic that only repeats a schema error: one at
@@ -254,4 +309,5 @@ func (c *checker) runImplementation(data []byte, s *spec.Spec, load ...Loader) {
 		l = load[0]
 	}
 	c.checkImplementation(s, l)
+	c.diags = withoutHeld(c.diags, heldIn(c.file, doc))
 }

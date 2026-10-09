@@ -71,6 +71,8 @@ public struct Doc {
     public var root: YNode?
     public var value: JSONValue = .null
     public var problems: [Problem] = []
+    /// The pointers of the entries that did not parse, kept by their names only or left out.
+    public var held: [String] = []
 }
 
 // MARK: - Reading
@@ -86,9 +88,20 @@ let unclosed: [String: String] = [
 
 private let duplicateMarker = "specarch-repeated-key-marker-"
 
-/// Parse reads one YAML document. A syntax error is returned as a Problem,
-/// with the root left nil.
+/// Parse reads one YAML document. A file that does not parse keeps what can
+/// be read of it (see readable); when nothing can, the syntax error is
+/// returned as a Problem, with the root left nil.
 public func parseYAML(_ text: String) -> Doc {
+    let (doc, syntax) = parseWhole(text)
+    if syntax, let read = readable(text) {
+        return read
+    }
+    return doc
+}
+
+/// Reads one YAML document as it is, and tells whether it failed on a
+/// syntax error.
+func parseWhole(_ text: String) -> (Doc, Bool) {
     var doc = Doc()
     var source = text
     // Yams refuses a mapping with a repeated key outright. To report each
@@ -110,31 +123,31 @@ public func parseYAML(_ text: String) -> Doc {
             guard let renamed = renameDuplicates(in: source, keys: keys, line: context.mark.line, column: context.mark.column, found: &duplicates, shifts: &shifts) else {
                 doc.problems.append(Problem(line: context.mark.line, path: "/", rule: "yaml_syntax",
                                             message: "a mapping repeats the key \(keys.joined(separator: ", ")); give each key once"))
-                return doc
+                return (doc, false)
             }
             source = renamed
         } catch let error as YamlError {
             doc.problems.append(syntaxProblem(error))
-            return doc
+            return (doc, true)
         } catch {
             doc.problems.append(Problem(line: 1, path: "/", rule: "yaml_syntax", message: "\(error)"))
-            return doc
+            return (doc, false)
         }
     }
     guard let first = nodes.first else {
         doc.problems.append(Problem(line: 1, path: "/", rule: "yaml_syntax", message: "the file is empty"))
-        return doc
+        return (doc, false)
     }
     if nodes.count > 1 {
         doc.problems.append(Problem(line: nodes[1].mark?.line ?? 1, path: "/", rule: "yaml_syntax", message: "a file holds one YAML document; found a second"))
-        return doc
+        return (doc, false)
     }
     let root = convert(first, shifts)
     doc.root = root
     var problems: [Problem] = []
     doc.value = jsonValue(root, path: "", duplicates: duplicates, problems: &problems)
     doc.problems.append(contentsOf: problems)
-    return doc
+    return (doc, false)
 }
 
 private func syntaxProblem(_ error: YamlError) -> Problem {

@@ -49,7 +49,7 @@ project's repository. `specarch extract <source>`, the verb that goes from
 existing code or documents to a specification, is designed in
 `spec/design/commands/extract.yaml` and built one reader at a time in the
 steps of "Building extract" below. The Go build reads the sources
-`outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows` and `go`, and `specarch merge` joins their trees; a source not built yet is answered with status
+`outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `go` and `swift`, and `specarch merge` joins their trees; a source not built yet is answered with status
 2, and the Swift build has no extract or merge verb.
 
 ## Building extract
@@ -447,12 +447,20 @@ changes `extract.yaml` first.
     read an App Router with middleware, a Pages Router with `proxy.ts`,
     Nuxt's pages and server, and a folder whose framework is guessed;
     the lending desk's web folder gains `middleware.ts`.
-17. Swift: the code-facts dump format (`codeFacts: 1`),
-    `tools/code-facts/dump-swift.sh` and `readers/swift/` on SwiftSyntax,
-    with its licence and SBOM scan; SwiftUI screens and navigation,
-    forms, Codable and SwiftData models, Core Data models read as data,
-    URLSession clients, Vapor routes, `Info.plist` and `.xcconfig`
-    settings.
+17. Built. Swift (ADR-087): the code-facts dump format (`codeFacts:
+    1`), `tools/code-facts/dump-swift.sh` and `readers/swift/` on
+    SwiftSyntax 604.0.0, pinned exactly, Apache-2.0, its SBOM scan clean.
+    `extract swift` reads a committed dump, refused when another
+    SwiftSyntax version made it, and writes SwiftUI screens with their
+    titles, fields and navigate actions, `TabView` tabs as menu entries,
+    SwiftData and Core Data models as entities, `Codable` types as
+    schemas, Vapor routes with the project's named permission check,
+    URLSession clients as dependencies, and the settings `Info.plist`,
+    its `.xcconfig` values and the code's reads give. `examples/reading-list`
+    is an iPhone app and its Vapor server, each read from its dump; its
+    `extract.sh` merges the two trees. A screen's call joined to the
+    operation it calls, by method and path, waits for a question that
+    can name a method and path.
 18. JavaScript and TypeScript: `readers/javascript/` on the TypeScript
     compiler, over tracked files only; Express and Fastify routes, the
     validation schemas of zod, yup, joi and JSON Schema, React Router and

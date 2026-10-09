@@ -1,0 +1,16 @@
+arguments: [extract, swift, --out, spec, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [app]
+    - [facts.json]
+exitStatus: 0
+standardOutput: |
+  commit f9e2706ec00fc4821849aab40a089d04d71000e3: the last change to app, as the code-facts dump facts.json names it
+  counted 8 Swift files, 0 of them with syntax SwiftSyntax could not read, and 78 facts: every tracked Swift file under app, and every fact the dump holds
+  models: counted 4 stored properties and 0 enums, and left out 0 static or computed properties: every stored property of a SwiftData model or a Codable type of the files read, and every case of a Codable enum of strings
+  screens: counted 11 views, 9 of them screens, and 1 NavigationLink with a value whose destination navigationDestination gives: every type of the files read that conforms to View, a screen when WindowGroup, a TabView, NavigationLink, navigationDestination, sheet, fullScreenCover or popover opens it
+  nothing read: app/Styles.swift imports SwiftUI, and the reader found nothing in it on a surface it reads
+  wrote 9 pages, 1 entity, 1 schema, 0 enums, 0 operations, 0 dependencies, 0 settings and 25 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  not held: app/Item.swift:9: Item.place holds the schema Place, and an entity refers to an entity or an enum, never to a schema; left out; could question Q-24
+  not held: app/ItemDetailView.swift:11: ItemDetailView binds TextField to $item.place.city, a property of a property, and a page's field is one of its entity's; left out; could question Q-25

@@ -1,0 +1,443 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) server/Sources/App/Items.swift:45 registers GET /orphan on a RouteCollection that no register(collection:) of the files read registers on a builder the reader follows. Under which path does the running system serve it, and does it? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: server/Sources/App/Items.swift:45 registers GET /orphan on a RouteCollection that no register(collection:) of the files read registers on a builder the reader follows. Under which path does the running system serve it, and does it?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: Syntax follows a builder from where it is made, and not one handed over in a way it does not read.
+    cites:
+      - {source: code, clause: 'server/Sources/App/Items.swift:45', says: Registers a route.}
+  # specarch-problem: question: open_question: (must, decision) server/Sources/App/routes.swift:21 registers a route whose path has PathComponent(...), which is not a literal. Which path does the running system serve here? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: server/Sources/App/routes.swift:21 registers a route whose path has PathComponent(...), which is not a literal. Which path does the running system serve here?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: A path computed at run time is not known by syntax.
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:21', says: Registers a route with a path that is not a literal.}
+  # specarch-problem: question: open_question: (must, decision) server/Sources/App/routes.swift:23 registers a route behind a condition, so the reader cannot tell how many routes it registers, or whether it registers one. Which routes does the running system register here? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: server/Sources/App/routes.swift:23 registers a route behind a condition, so the reader cannot tell how many routes it registers, or whether it registers one. Which routes does the running system register here?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: Syntax does not run the code; only the running system's own list of routes, such as a route table, says what a loop or a condition registers.
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:23', says: Registers a route behind a condition.}
+  # specarch-problem: question: open_question: (must, decision) server/Sources/App/routes.swift:33 registers GET /helped on the RoutesBuilder the function helper is given by a caller the reader does not follow. Under which path does the running system serve it, and does it? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: server/Sources/App/routes.swift:33 registers GET /helped on the RoutesBuilder the function helper is given by a caller the reader does not follow. Under which path does the running system serve it, and does it?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: Syntax follows a builder from where it is made, and not one handed over in a way it does not read.
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:33', says: Registers a route.}
+  # specarch-problem: question: open_question: (must, decision) GET /api/v1/shelves/{shelfId} is registered at server/Sources/App/routes.swift:9 and at server/Sources/App/routes.swift:10. Which handler does the running system run? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: GET /api/v1/shelves/{shelfId} is registered at server/Sources/App/routes.swift:9 and at server/Sources/App/routes.swift:10. Which handler does the running system run?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1shelves~1{shelfId}/get']
+    decidedBy: system-owner
+    why: A router serves a method and path pair once.
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:10', says: 'Registers GET /api/v1/shelves/{shelfId} again.'}
+  # specarch-problem: question: open_question: (must, decision) What does POST /api/v1/items do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: What does POST /api/v1/items do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1items/post/summary', '#/paths/~1api~1v1~1items/post/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) POST /api/v1/items checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: POST /api/v1/items checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1items/post/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /api/v1/items? It is declared at server/Sources/App/Items.swift:27, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: Does the running system register POST /api/v1/items? It is declared at server/Sources/App/Items.swift:27, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1items/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/Sources/App/Items.swift:27', says: Registers POST /api/v1/items.}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /api/v1/items/{itemId} take: itemId? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: 'What values does each path parameter of /api/v1/items/{itemId} take: itemId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1items~1{itemId}/parameters/0/schema']
+    decidedBy: system-owner
+    why: Vapor names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) The handler of GET /api/v1/items/{itemId} reads the path parameter itemID at server/Sources/App/Items.swift:39, which the path does not have, so it is always nil. Which parameter is meant? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: The handler of GET /api/v1/items/{itemId} reads the path parameter itemID at server/Sources/App/Items.swift:39, which the path does not have, so it is always nil. Which parameter is meant?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1items~1{itemId}/parameters']
+    decidedBy: system-owner
+    why: Vapor gives nil for a parameter the route's path does not name, and the handler reads one.
+    cites:
+      - {source: code, clause: 'server/Sources/App/Items.swift:39', says: Reads the path parameter itemID.}
+  # specarch-problem: question: open_question: (must, decision) What does GET /api/v1/items/{itemId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: What does GET /api/v1/items/{itemId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1items~1{itemId}/get/summary', '#/paths/~1api~1v1~1items~1{itemId}/get/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) GET /api/v1/items/{itemId} checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: GET /api/v1/items/{itemId} checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1items~1{itemId}/get/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /api/v1/items/{itemId}? It is declared at server/Sources/App/Items.swift:29, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: Does the running system register GET /api/v1/items/{itemId}? It is declared at server/Sources/App/Items.swift:29, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1items~1{itemId}/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/Sources/App/Items.swift:29', says: 'Registers GET /api/v1/items/{itemId}.'}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /api/v1/shelves/{shelfId} take: shelfId? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: 'What values does each path parameter of /api/v1/shelves/{shelfId} take: shelfId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1shelves~1{shelfId}/parameters/0/schema']
+    decidedBy: system-owner
+    why: Vapor names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does GET /api/v1/shelves/{shelfId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: What does GET /api/v1/shelves/{shelfId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1shelves~1{shelfId}/get/summary', '#/paths/~1api~1v1~1shelves~1{shelfId}/get/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) GET /api/v1/shelves/{shelfId} checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: GET /api/v1/shelves/{shelfId} checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1shelves~1{shelfId}/get/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /api/v1/shelves/{shelfId}? It is declared at server/Sources/App/routes.swift:9, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
+    question: Does the running system register GET /api/v1/shelves/{shelfId}? It is declared at server/Sources/App/routes.swift:9, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1shelves~1{shelfId}/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:9', says: 'Registers GET /api/v1/shelves/{shelfId}.'}
+  # specarch-problem: question: open_question: (must, decision) What does PUT /api/v1/shelves/{shelfId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
+    question: What does PUT /api/v1/shelves/{shelfId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1shelves~1{shelfId}/put/summary', '#/paths/~1api~1v1~1shelves~1{shelfId}/put/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) PUT /api/v1/shelves/{shelfId} is guarded by 2 checks the implementation file names, one in each group it is under, and an operation checks one permission. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
+    question: PUT /api/v1/shelves/{shelfId} is guarded by 2 checks the implementation file names, one in each group it is under, and an operation checks one permission. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1shelves~1{shelfId}/put/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register PUT /api/v1/shelves/{shelfId}? It is declared at server/Sources/App/routes.swift:15, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
+  Q-20:
+    question: Does the running system register PUT /api/v1/shelves/{shelfId}? It is declared at server/Sources/App/routes.swift:15, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1shelves~1{shelfId}/put']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:15', says: 'Registers PUT /api/v1/shelves/{shelfId}.'}
+  # specarch-problem: question: open_question: (must, decision) What does PATCH /api/v1/shelves/{shelfId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  Q-21:
+    question: What does PATCH /api/v1/shelves/{shelfId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1shelves~1{shelfId}/patch/summary', '#/paths/~1api~1v1~1shelves~1{shelfId}/patch/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) PATCH /api/v1/shelves/{shelfId} is guarded by a check the implementation file names whose permission is not a literal permission name. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
+  Q-22:
+    question: PATCH /api/v1/shelves/{shelfId} is guarded by a check the implementation file names whose permission is not a literal permission name. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1shelves~1{shelfId}/patch/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register PATCH /api/v1/shelves/{shelfId}? It is declared at server/Sources/App/routes.swift:17, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
+  Q-23:
+    question: Does the running system register PATCH /api/v1/shelves/{shelfId}? It is declared at server/Sources/App/routes.swift:17, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1shelves~1{shelfId}/patch']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:17', says: 'Registers PATCH /api/v1/shelves/{shelfId}.'}
+  # specarch-problem: question: open_question: (must, decision) The handler of DELETE /api/v1/shelves/{shelfId} reads the path parameter id at server/Sources/App/routes.swift:44, which the path does not have, so it is always nil. Which parameter is meant? Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
+  Q-24:
+    question: The handler of DELETE /api/v1/shelves/{shelfId} reads the path parameter id at server/Sources/App/routes.swift:44, which the path does not have, so it is always nil. Which parameter is meant?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1shelves~1{shelfId}/parameters']
+    decidedBy: system-owner
+    why: Vapor gives nil for a parameter the route's path does not name, and the handler reads one.
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:44', says: Reads the path parameter id.}
+  # specarch-problem: question: open_question: (must, decision) What does DELETE /api/v1/shelves/{shelfId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
+  Q-25:
+    question: What does DELETE /api/v1/shelves/{shelfId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1shelves~1{shelfId}/delete/summary', '#/paths/~1api~1v1~1shelves~1{shelfId}/delete/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register DELETE /api/v1/shelves/{shelfId}? It is declared at server/Sources/App/routes.swift:13, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
+  Q-26:
+    question: Does the running system register DELETE /api/v1/shelves/{shelfId}? It is declared at server/Sources/App/routes.swift:13, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1v1~1shelves~1{shelfId}/delete']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:13', says: 'Registers DELETE /api/v1/shelves/{shelfId}.'}
+  # specarch-problem: question: open_question: (must, decision) What does GET /health do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
+  Q-27:
+    question: What does GET /health do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1health/get/summary', '#/paths/~1health/get/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) GET /health checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-28 under answers. [Q-28]
+  Q-28:
+    question: GET /health checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1health/get/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /health? It is declared at server/Sources/App/routes.swift:4, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
+  Q-29:
+    question: Does the running system register GET /health? It is declared at server/Sources/App/routes.swift:4, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1health/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:4', says: Registers GET /health.}
+  # specarch-problem: question: open_question: (must, decision) What does POST /items do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-30 under answers. [Q-30]
+  Q-30:
+    question: What does POST /items do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items/post/summary', '#/paths/~1items/post/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) POST /items checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
+  Q-31:
+    question: POST /items checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items/post/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /items? It is declared at server/Sources/App/Items.swift:27, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
+  Q-32:
+    question: Does the running system register POST /items? It is declared at server/Sources/App/Items.swift:27, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/Sources/App/Items.swift:27', says: Registers POST /items.}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /items/{itemId} take: itemId? Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
+  Q-33:
+    question: 'What values does each path parameter of /items/{itemId} take: itemId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items~1{itemId}/parameters/0/schema']
+    decidedBy: system-owner
+    why: Vapor names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) The handler of GET /items/{itemId} reads the path parameter itemID at server/Sources/App/Items.swift:39, which the path does not have, so it is always nil. Which parameter is meant? Decided by system-owner. Answer with a decision record that names Q-34 under answers. [Q-34]
+  Q-34:
+    question: The handler of GET /items/{itemId} reads the path parameter itemID at server/Sources/App/Items.swift:39, which the path does not have, so it is always nil. Which parameter is meant?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items~1{itemId}/parameters']
+    decidedBy: system-owner
+    why: Vapor gives nil for a parameter the route's path does not name, and the handler reads one.
+    cites:
+      - {source: code, clause: 'server/Sources/App/Items.swift:39', says: Reads the path parameter itemID.}
+  # specarch-problem: question: open_question: (must, decision) What does GET /items/{itemId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-35 under answers. [Q-35]
+  Q-35:
+    question: What does GET /items/{itemId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items~1{itemId}/get/summary', '#/paths/~1items~1{itemId}/get/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) GET /items/{itemId} checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-36 under answers. [Q-36]
+  Q-36:
+    question: GET /items/{itemId} checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items~1{itemId}/get/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /items/{itemId}? It is declared at server/Sources/App/Items.swift:29, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-37 under answers. [Q-37]
+  Q-37:
+    question: Does the running system register GET /items/{itemId}? It is declared at server/Sources/App/Items.swift:29, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items~1{itemId}/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/Sources/App/Items.swift:29', says: 'Registers GET /items/{itemId}.'}
+  # specarch-problem: question: open_question: (must, decision) What does GET /status do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-38 under answers. [Q-38]
+  Q-38:
+    question: What does GET /status do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1status/get/summary', '#/paths/~1status/get/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) GET /status checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-39 under answers. [Q-39]
+  Q-39:
+    question: GET /status checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1status/get/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /status? It is declared at server/Sources/App/routes.swift:5, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-40 under answers. [Q-40]
+  Q-40:
+    question: Does the running system register GET /status? It is declared at server/Sources/App/routes.swift:5, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1status/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:5', says: Registers GET /status.}
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: shelves.admin? Decided by system-owner. Answer with a decision record that names Q-41 under answers. [Q-41]
+  Q-41:
+    question: 'What does each permission allow: shelves.admin?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/shelves.admin/description']
+    decidedBy: system-owner
+    why: The source names the permission a route checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: shelves.admin? Decided by system-owner. Answer with a decision record that names Q-42 under answers. [Q-42]
+  Q-42:
+    question: 'Which role grants each permission: shelves.admin?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/shelves.admin']
+    decidedBy: system-owner
+    why: The source names the permission a route checks and not who holds it.
+  # specarch-problem: question: open_question: (could, decision) Not held: server/Sources/App/routes.swift:19: the route GET /api/v1/files/**: it ends in the catch-all **, which matches any number of segments, and a path parameter holds one; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-46 under answers. [Q-46]
+  Q-46:
+    question: 'Not held: server/Sources/App/routes.swift:19: the route GET /api/v1/files/**: it ends in the catch-all **, which matches any number of segments, and a path parameter holds one; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:19', says: 'Not held: the route GET /api/v1/files/**: it ends in the catch-all **, which matches any number of segments, and a path parameter holds one; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: server/Sources/App/routes.swift:20: the route GET /api/v1/any/*: the segment * matches any one segment and names no parameter, which a path template cannot say; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-47 under answers. [Q-47]
+  Q-47:
+    question: 'Not held: server/Sources/App/routes.swift:20: the route GET /api/v1/any/*: the segment * matches any one segment and names no parameter, which a path template cannot say; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:20', says: 'Not held: the route GET /api/v1/any/*: the segment * matches any one segment and names no parameter, which a path template cannot say; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: server/Sources/App/routes.swift:6: the route OPTIONS /status: the method OPTIONS has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-48 under answers. [Q-48]
+  Q-48:
+    question: 'Not held: server/Sources/App/routes.swift:6: the route OPTIONS /status: the method OPTIONS has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:6', says: 'Not held: the route OPTIONS /status: the method OPTIONS has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: server/Sources/App/Items.swift:27: the route POST /items: its handler create serves more than one route; the operation is named postItems. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-49 under answers. [Q-49]
+  Q-49:
+    question: 'Not held: server/Sources/App/Items.swift:27: the route POST /items: its handler create serves more than one route; the operation is named postItems. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1items/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'server/Sources/App/Items.swift:27', says: 'Not held: the route POST /items: its handler create serves more than one route; the operation is named postItems.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: server/Sources/App/Items.swift:27: the route POST /api/v1/items: its handler create serves more than one route; the operation is named postApiV1Items. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-50 under answers. [Q-50]
+  Q-50:
+    question: 'Not held: server/Sources/App/Items.swift:27: the route POST /api/v1/items: its handler create serves more than one route; the operation is named postApiV1Items. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1api~1v1~1items/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'server/Sources/App/Items.swift:27', says: 'Not held: the route POST /api/v1/items: its handler create serves more than one route; the operation is named postApiV1Items.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: server/Sources/App/Items.swift:29: the route GET /items/{itemId}: its handler show serves more than one route; the operation is named getItemsByItemId. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-51 under answers. [Q-51]
+  Q-51:
+    question: 'Not held: server/Sources/App/Items.swift:29: the route GET /items/{itemId}: its handler show serves more than one route; the operation is named getItemsByItemId. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1items~1{itemId}/get']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'server/Sources/App/Items.swift:29', says: 'Not held: the route GET /items/{itemId}: its handler show serves more than one route; the operation is named getItemsByItemId.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: server/Sources/App/Items.swift:29: the route GET /api/v1/items/{itemId}: its handler show serves more than one route; the operation is named getApiV1ItemsByItemId. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-52 under answers. [Q-52]
+  Q-52:
+    question: 'Not held: server/Sources/App/Items.swift:29: the route GET /api/v1/items/{itemId}: its handler show serves more than one route; the operation is named getApiV1ItemsByItemId. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1api~1v1~1items~1{itemId}/get']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'server/Sources/App/Items.swift:29', says: 'Not held: the route GET /api/v1/items/{itemId}: its handler show serves more than one route; the operation is named getApiV1ItemsByItemId.'}

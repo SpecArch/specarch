@@ -1,0 +1,105 @@
+questions:
+  # specarch-problem: question: open_question: (should, decision) app/Api.swift:22 reads a setting from Info.plist by a key that is not a literal (keyName). Which setting is it? It blocks configuration. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: app/Api.swift:22 reads a setting from Info.plist by a key that is not a literal (keyName). Which setting is it?
+    kind: decision
+    priority: should
+    blocks: [configuration]
+    decidedBy: system-owner
+    why: A key computed at run time is not known by syntax.
+    cites:
+      - {source: code, clause: 'app/Api.swift:22', says: Reads a setting from Info.plist.}
+  # specarch-problem: question: open_question: (should, decision) The setting SHELF_REGION takes the build setting SHELF_REGION, which the build configurations set as eu at app/Config/Debug.xcconfig:2 and us at app/Config/Release.xcconfig:2. Which value does each build of the app get? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: The setting SHELF_REGION takes the build setting SHELF_REGION, which the build configurations set as eu at app/Config/Debug.xcconfig:2 and us at app/Config/Release.xcconfig:2. Which value does each build of the app get?
+    kind: decision
+    priority: should
+    blocks: ['#/configuration/shelfRegion/schema/default']
+    decidedBy: system-owner
+    why: A setting has one default, and each build configuration may give another value.
+    cites:
+      - {source: code, clause: 'app/Info.plist:13', says: Info.plist sets SHELF_REGION to the build setting SHELF_REGION.}
+  # specarch-problem: question: open_question: (must, decision) Which type is the setting SHELF_TOKEN? The code reads it by name, and no file read gives its value. Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: Which type is the setting SHELF_TOKEN? The code reads it by name, and no file read gives its value.
+    kind: decision
+    priority: must
+    blocks: ['#/configuration/shelfToken/schema']
+    decidedBy: system-owner
+    why: A setting has a type, and nothing read gives it.
+    cites:
+      - {source: code, clause: 'app/Api.swift:10', says: Reads SHELF_TOKEN.}
+  # specarch-problem: question: open_question: (must, decision) What is each setting for, where does its value come from, and is it a secret: SHELF_FLAG, SHELF_RATIO, SHELF_REGION, SHELF_TIMEOUT, SHELF_TOKEN? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: 'What is each setting for, where does its value come from, and is it a secret: SHELF_FLAG, SHELF_RATIO, SHELF_REGION, SHELF_TIMEOUT, SHELF_TOKEN?'
+    kind: decision
+    priority: must
+    blocks: ['#/configuration/shelfFlag/description', '#/configuration/shelfFlag/secret', '#/configuration/shelfRatio/description', '#/configuration/shelfRatio/secret', '#/configuration/shelfRegion/description', '#/configuration/shelfRegion/secret', '#/configuration/shelfTimeout/description', '#/configuration/shelfTimeout/secret', '#/configuration/shelfToken/description']
+    decidedBy: system-owner
+    why: The source names the settings it reads and not what they are for.
+  # specarch-problem: question: open_question: (must, decision) Is each of these settings a secret: SHELF_TOKEN? Each name says it may hold a credential, and the source does not say. Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: 'Is each of these settings a secret: SHELF_TOKEN? Each name says it may hold a credential, and the source does not say.'
+    kind: decision
+    priority: must
+    blocks: ['#/configuration/shelfToken/secret']
+    decidedBy: system-owner
+    why: A secret's value is never written in a specification, and the name alone does not say which a setting is; an app's Info.plist is readable by anyone who has the app.
+  # specarch-problem: question: open_question: (should, decision) Info.plist sets SHELF_FLAG and SHELF_RATIO, and no code read reads them by a literal name. Does the app read them? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: Info.plist sets SHELF_FLAG and SHELF_RATIO, and no code read reads them by a literal name. Does the app read them?
+    kind: decision
+    priority: should
+    blocks: ['#/configuration/shelfFlag', '#/configuration/shelfRatio']
+    decidedBy: system-owner
+    why: A setting a file holds and no code reads may be read by a library, read by a computed name, or unused.
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Info.plist:19: the key SHELF_HOSTS holds an array, and a setting holds one value; left out. Does the specification need it, written another way or described by hand? It blocks configuration. Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: 'Not held: app/Info.plist:19: the key SHELF_HOSTS holds an array, and a setting holds one value; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [configuration]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/Info.plist:19', says: 'Not held: the key SHELF_HOSTS holds an array, and a setting holds one value; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Info.plist: the keys the system reads to describe the bundle, CFBundleName, UIBackgroundModes, are not settings the app reads; left out. Does the specification need it, written another way or described by hand? It blocks configuration. Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: 'Not held: app/Info.plist: the keys the system reads to describe the bundle, CFBundleName, UIBackgroundModes, are not settings the app reads; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [configuration]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: app/Info.plist, says: 'Not held: the keys the system reads to describe the bundle, CFBundleName, UIBackgroundModes, are not settings the app reads; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Shelf.entitlements: the entitlements the system grants the app, com.apple.security.app-sandbox, com.apple.security.network.client, are not settings the app reads; left out. Does the specification need it, written another way or described by hand? It blocks configuration. Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: 'Not held: app/Shelf.entitlements: the entitlements the system grants the app, com.apple.security.app-sandbox, com.apple.security.network.client, are not settings the app reads; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [configuration]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: app/Shelf.entitlements, says: 'Not held: the entitlements the system grants the app, com.apple.security.app-sandbox, com.apple.security.network.client, are not settings the app reads; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Widget-Info.plist: it is not a property list in XML, such as a binary one, so its keys are not read. Does the specification need it, written another way or described by hand? It blocks configuration. Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
+    question: 'Not held: app/Widget-Info.plist: it is not a property list in XML, such as a binary one, so its keys are not read. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [configuration]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: app/Widget-Info.plist, says: 'Not held: it is not a property list in XML, such as a binary one, so its keys are not read.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Config/Debug.xcconfig: the build settings Info.plist does not take, OTHER_LDFLAGS, configure the build and not the running app; left out. Does the specification need it, written another way or described by hand? It blocks configuration. Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
+    question: 'Not held: app/Config/Debug.xcconfig: the build settings Info.plist does not take, OTHER_LDFLAGS, configure the build and not the running app; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [configuration]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: app/Config/Debug.xcconfig, says: 'Not held: the build settings Info.plist does not take, OTHER_LDFLAGS, configure the build and not the running app; left out.'}

@@ -35,10 +35,10 @@ const usage = `usage:
   specarch generate <target> [--out <folder>] [--check] [--unapproved] <folder>...
                                             write code or data from an approved specification
   specarch extract <source> [--source-key <key>] [--implementation <file>] --out <folder> <path>...
-                                            write a specification from one surface of existing code
-                                            or documents; the sources are outline, database, router,
-                                            documents, openapi, permissions, pages, workflows and go;
-                                            go reads the permission checks the implementation file names
+                                            write a specification from one surface of existing code or
+                                            documents; the sources are outline, database, router, documents,
+                                            openapi, permissions, pages, workflows, go and swift; go and
+                                            swift read the permission checks the implementation file names
   specarch merge --out <folder> <tree>...  merge the trees extract wrote into one specification
   specarch diff <old folder> <new folder>   list what changed between two versions and check the release
   specarch derive <folder>...               write a draft test for every derived case no test covers

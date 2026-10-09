@@ -1,0 +1,27 @@
+arguments: [extract, swift, --out, spec, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [app]
+    - [facts.json]
+exitStatus: 0
+standardOutput: |
+  commit 7194eeec25dad42547dfa83c33483244e0af76a6: the last change to app, as the code-facts dump facts.json names it
+  counted 3 Swift files, 1 of them with syntax SwiftSyntax could not read, and 59 facts: every tracked Swift file under app, and every fact the dump holds
+  not parsed: app/Broken.swift has 1 place SwiftSyntax could not read as Swift; the rest of it is read
+  models: counted 23 stored properties and 2 enums, and left out 2 static or computed properties: every stored property of a SwiftData model or a Codable type of the files read, and every case of a Codable enum of strings
+  core data: counted 1 model: every current version of a Core Data model under app
+  wrote 0 pages, 4 entities, 2 schemas, 2 enums, 0 operations, 0 dependencies, 0 settings and 33 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  not held: app/Library.swift:16: Author.extras: the type [String: String], a dictionary or a set, which a field does not hold; left out; could question Q-21
+  not held: app/Library.swift:18: Author.selected is marked @Transient, so SwiftData does not store it; left out; could question Q-22
+  not held: app/Payloads.swift:10: AuthorPayload.nickname goes on the wire as nick, which info.wireNames cannot give; written by its Swift name; could question Q-23
+  not held: app/Payloads.swift:11: AuthorPayload.internalNote is not among the type's CodingKeys, so Codable does not encode it; left out; could question Q-24
+  not held: app/Library.swift:44: Book.payload holds the schema AuthorPayload, and an entity refers to an entity or an enum, never to a schema; left out; could question Q-25
+  not held: app/Payloads.swift:38: the type Outer.Inner is declared inside another type, and a model is named by one PascalCase word; left out; could question Q-26
+  not held: app/Payloads.swift:30: ShelfKind.kids is "Kids" on the wire, and an enum's values are snake_case words; left out; could question Q-27
+  not held: app/Payloads.swift:23: Summary.bookCount goes on the wire as bookCount, since its type has no CodingKeys, and info.wireNames snake_case, which another type's CodingKeys give, would write it book_count; could question Q-28
+  not held: app/Payloads.swift:24: Summary.topAuthor goes on the wire as topAuthor, since its type has no CodingKeys, and info.wireNames snake_case, which another type's CodingKeys give, would write it top_author; could question Q-29
+  not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:9: Shelf.scratch is transient, so Core Data does not store it; left out; could question Q-30
+  not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:11: Shelf.createdAt has the default "today", which is not a value its field's type takes as written; left out; could question Q-31
+  not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:23: the Core Data entity Book: its name is not a PascalCase name, or another model has it; left out; could question Q-32
+  not held: app/Store.xcdatamodeld/Store.xcdatamodel/contents: a version of the Core Data model Store.xcdatamodeld other than its current one, Store 2.xcdatamodel; left out; could question Q-33

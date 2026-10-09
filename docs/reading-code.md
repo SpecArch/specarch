@@ -269,21 +269,27 @@ come before the JavaScript reader because they need nothing but git:
 ## Swift
 
 Read by SwiftSyntax (Apache-2.0, the parser the Swift toolchain's own
-tools use) in `readers/swift/`, a Swift package with `Package.resolved`
-committed. SwiftSyntax has no type checker and the alternative,
-`swiftc -dump-ast`, needs a full build and prints no stable format, so an
-inferred type is a question.
+tools use) in `readers/swift/`, a Swift package that pins swift-syntax
+exactly with `Package.resolved` committed (ADR-087). SwiftSyntax has no
+type checker and the alternative, `swiftc -dump-ast`, needs a full build
+and prints no stable format, so a type the source does not write is a
+question. `tools/code-facts/dump-swift.sh` runs the reader on the tracked
+Swift files of a committed folder; the facts it writes are syntax (imports,
+types, properties, enum cases, functions, the calls its idiom table names,
+with their literal arguments and closures), and `specarch extract swift`
+turns them into elements. Property lists, `.xcconfig` files and Core Data
+models are read as data, in Go, at the dump's commit.
 
 | Surface | Source | Why |
 |---|---|---|
-| screens | source: a `View` reached by `NavigationLink`, `navigationDestination`, `sheet`, `fullScreenCover` or a `TabView` tab is a page; any other view is a part of one and no element | the navigation calls are what make a view a screen |
-| navigation | source: a literal destination is a flow from the screen it is in; `navigationDestination(for: T.self)` is a typed route, `T`'s properties its parameters | a destination chosen at run time is a `should` question |
-| a screen's fields | source: `TextField`, `Toggle`, `Picker`, `DatePicker` bound to `$model.property` | fields by name, their types from `model`'s declaration when it is in the files read |
-| models | `.xcdatamodeld` read as data for Core Data; source for SwiftData `@Model` and `Codable` structs | the Core Data model is a file of data; `CodingKeys` give wire names |
-| server routes (Vapor) | the route table where the project prints one; source: `app.get("loans", ":id")`, `grouped` with literal segments | as for Go |
-| permission checks | source: a middleware or guard the implementation file names | an iPhone app checks nothing for the server; a guard on a screen is a page's permission |
-| API clients | source: `URLRequest` with a literal `httpMethod` and a URL from literal parts | a part interpolated from one value becomes `{name}` with a `should` question naming it |
-| configuration | `Info.plist`, `.xcconfig` and entitlements read as data; `Bundle.main.object(forInfoDictionaryKey:)` from source | the files hold the values |
+| screens | source: a `View` that `WindowGroup` shows, a `TabView` tab, or `NavigationLink`, `navigationDestination`, `sheet`, `fullScreenCover` or `popover` opens is a page; any other view is a part of one and no element | the navigation calls are what make a view a screen; a screen has no route of its own, so its route is asked with its kind |
+| navigation | source: a literal destination is a `navigate` action of the screen it is in, its label the link's literal title; a `TabView` tab is a menu entry | a destination chosen at run time is a `should` question; a flow needs a task and an actor the code does not give |
+| a screen's fields | source: `TextField`, `SecureField`, `TextEditor`, `Toggle`, `Picker`, `DatePicker`, `Stepper` and `Slider` bound to `$model.property` | fields by name; the entity where the bindings, or a `@Query`, name one SwiftData model |
+| models | `.xcdatamodeld` read as data for Core Data; source for SwiftData `@Model` classes (entities), `Codable` types (schemas) and `Codable` enums of strings | the Core Data model is a file of data; `CodingKeys` give wire names; a word-wide `Int`, a `Float`, a `Decimal` and a relation's key are questions |
+| server routes (Vapor) | the route table where the project prints one; source: `app.get("loans", ":id", use:)`, `grouped` and `group` with literal segments, and a `RouteCollection` under its `register(collection:)` | as for Go |
+| permission checks | source: a middleware a group is given, made by a check the implementation file names | an iPhone app checks nothing for the server, so a screen's permission is asked |
+| API clients | source: `URLRequest` with a literal `httpMethod`, and URLSession's `data`, `download` and `upload` given a URL from literal parts | a part interpolated from one value becomes `{name}` with a `should` question naming it; each names a dependency by host |
+| configuration | `Info.plist` and `.xcconfig` read as data; `Bundle.main.object(forInfoDictionaryKey:)`, `infoDictionary[...]`, `ProcessInfo`'s environment and Vapor's `Environment.get` from source | the files hold the values; the bundle's own keys and the entitlements are not settings the app reads |
 
 ## JavaScript and TypeScript
 

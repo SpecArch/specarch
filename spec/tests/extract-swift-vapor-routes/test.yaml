@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a code-facts dump of a Vapor service whose routes function registers routes on the Application, on groups with literal segments and a group guarded by the check the implementation file names, under two such groups, and under a group whose check's permission is not a literal; with on and a method the meta-model lacks, the same route twice, a catch-all, a wildcard, a segment that is not a literal and a route behind a condition; a RouteCollection registered on the Application and on a group, with a group closure, a handler that decodes a list of a Content type and one that reads a parameter its path lacks; a RouteCollection nothing registers; and a function given a RoutesBuilder by a caller not followed"
+when: "extract swift is run on the dump with the implementation file"
+then: "it writes one operation per route with literal segments under a builder it follows, named after its handler or by its method and path, citing its registration and its handler, the permission the guarded group's check names, and the request body a handler decodes; asks a must question on each route's summary and responses, its parameters' values, whether the running system registers it and its permission where no one check gives it, on the route twice, the segment that is not a literal, the route behind a condition, the collection nothing registers, the builder not followed and each parameter read that the path lacks; prints a line for the catch-all, the wildcard, the method and each handler that serves more than one route; and exits 0"
+verifies: [SA-44]

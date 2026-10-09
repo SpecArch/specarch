@@ -1,0 +1,27 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which type is the setting SHELF_DB_PASSWORD? The code reads it by name, and no file read gives its value. Decided by system-owner. Answer with a decision record that names Q-43 under answers. [Q-43]
+  Q-43:
+    question: Which type is the setting SHELF_DB_PASSWORD? The code reads it by name, and no file read gives its value.
+    kind: decision
+    priority: must
+    blocks: ['#/configuration/shelfDbPassword/schema']
+    decidedBy: system-owner
+    why: A setting has a type, and nothing read gives it.
+    cites:
+      - {source: code, clause: 'server/Sources/App/configure.swift:4', says: Reads SHELF_DB_PASSWORD.}
+  # specarch-problem: question: open_question: (must, decision) What is each setting for, where does its value come from, and is it a secret: SHELF_DB_PASSWORD? Decided by system-owner. Answer with a decision record that names Q-44 under answers. [Q-44]
+  Q-44:
+    question: 'What is each setting for, where does its value come from, and is it a secret: SHELF_DB_PASSWORD?'
+    kind: decision
+    priority: must
+    blocks: ['#/configuration/shelfDbPassword/description']
+    decidedBy: system-owner
+    why: The source names the settings it reads and not what they are for.
+  # specarch-problem: question: open_question: (must, decision) Is each of these settings a secret: SHELF_DB_PASSWORD? Each name says it may hold a credential, and the source does not say. Decided by system-owner. Answer with a decision record that names Q-45 under answers. [Q-45]
+  Q-45:
+    question: 'Is each of these settings a secret: SHELF_DB_PASSWORD? Each name says it may hold a credential, and the source does not say.'
+    kind: decision
+    priority: must
+    blocks: ['#/configuration/shelfDbPassword/secret']
+    decidedBy: system-owner
+    why: A secret's value is never written in a specification, and the name alone does not say which a setting is; an app's Info.plist is readable by anyone who has the app.

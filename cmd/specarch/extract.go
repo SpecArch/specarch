@@ -12,7 +12,7 @@ import (
 
 // extractSources are the surfaces this build reads, in the order the usage
 // text lists them.
-var extractSources = []string{"outline", "database", "router", "documents", "openapi", "permissions", "pages", "workflows", "go"}
+var extractSources = []string{"outline", "database", "router", "documents", "openapi", "permissions", "pages", "workflows", "go", "swift"}
 
 var sourceKey = regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
 
@@ -89,8 +89,11 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case source == "workflows" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract workflows reads one BPMN 2.0 XML file, and was given %d paths\n", len(paths))
 		return 2
-	case implementation != "" && source != "go":
-		fmt.Fprintf(stderr, "specarch extract %s takes no --implementation; only go reads the permission checks an implementation file names\n", source)
+	case source == "swift" && len(paths) != 1:
+		fmt.Fprintf(stderr, "specarch extract swift reads one code-facts dump, and was given %d paths\n", len(paths))
+		return 2
+	case implementation != "" && source != "go" && source != "swift":
+		fmt.Fprintf(stderr, "specarch extract %s takes no --implementation; only go and swift read the permission checks an implementation file names\n", source)
 		return 2
 	case source == "openapi" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract openapi reads one OpenAPI document, and was given %d paths; one source is written per document file\n", len(paths))
@@ -120,6 +123,8 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		res, err = extract.Workflows(paths[0], out, key)
 	case "go":
 		res, err = extract.Go(paths, out, key, implementation)
+	case "swift":
+		res, err = extract.Swift(paths[0], out, key, implementation)
 	}
 	if err != nil {
 		var refusal *extract.Refusal

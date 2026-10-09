@@ -1,0 +1,10 @@
+schemas:
+  ShelfItem:
+    type: object
+    properties:
+      shelfCode: {type: string}
+      title: {type: string}
+    required: [shelfCode, title]
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Api.swift:3', says: struct ShelfItem conforms to Codable.}

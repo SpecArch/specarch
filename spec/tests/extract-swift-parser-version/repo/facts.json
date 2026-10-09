@@ -1,0 +1,16 @@
+{
+    "codeFacts": 1,
+    "language": "swift",
+    "parser": {"name": "SwiftSyntax", "version": "603.0.2"},
+    "path": "app",
+    "commit": "d063f36626f5e71969bccc48d4f5146945ce8148",
+    "files": [
+        {"file": "app/NoteView.swift", "syntaxErrors": 0}
+    ],
+    "facts": [
+        {"kind": "import", "file": "app/NoteView.swift", "line": 1, "column": 1, "name": "SwiftUI"},
+        {"kind": "type", "file": "app/NoteView.swift", "line": 3, "column": 1, "declaration": "struct", "name": "NoteView", "inherits": ["View"]},
+        {"kind": "property", "file": "app/NoteView.swift", "line": 4, "column": 9, "within": "NoteView", "name": "body", "declaration": "var", "type": "some View", "computed": true},
+        {"kind": "call", "file": "app/NoteView.swift", "line": 6, "column": 14, "within": "NoteView", "member": "body", "name": "navigationTitle", "base": {"call": {"name": "Text", "arguments": [{"value": {"string": "Note"}}]}}, "arguments": [{"value": {"string": "Note"}}]}
+    ]
+}

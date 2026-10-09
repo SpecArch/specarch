@@ -1,0 +1,114 @@
+permissions:
+  shelves.admin:
+    origin: stated
+    cites:
+      - {source: code, clause: 'server/Sources/App/routes.swift:13', says: 'DELETE /api/v1/shelves/{shelfId} checks shelves.admin.'}
+paths:
+  /api/v1/items:
+    # specarch-problem: warning: test_golden_missing: operation postApiV1Items has no golden scenario; add one under tests, for example post-api-v1-items-succeeds: { operation: postApiV1Items, scenario: golden, given: "any caller", when: "postApiV1Items is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1v1~1items/post]
+    # specarch-problem: warning: test_red_missing: operation postApiV1Items has no red scenario; add one under tests, for example post-api-v1-items-refused: { operation: postApiV1Items, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1api~1v1~1items/post]
+    post:
+      operationId: postApiV1Items
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {type: array, items: {$ref: '#/schemas/ItemBody'}}}
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/Sources/App/Items.swift:27', says: Registers POST /api/v1/items; its handler is create.}
+        - {source: code, clause: 'server/Sources/App/Items.swift:33', says: The handler create.}
+  /api/v1/items/{itemId}:
+    parameters:
+      - {name: itemId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation getApiV1ItemsByItemId has no red scenario for "not found itemId"; add under tests get-api-v1-items-by-item-id-not-found-item-id: { operation: getApiV1ItemsByItemId, scenario: red, covers: [not found itemId], given: "no record has that itemId", when: "getApiV1ItemsByItemId is called with that itemId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1api~1v1~1items~1{itemId}/get]
+    # specarch-problem: warning: test_golden_missing: operation getApiV1ItemsByItemId has no golden scenario; add one under tests, for example get-api-v1-items-by-item-id-succeeds: { operation: getApiV1ItemsByItemId, scenario: golden, given: "any caller", when: "getApiV1ItemsByItemId is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1v1~1items~1{itemId}/get]
+    get:
+      operationId: getApiV1ItemsByItemId
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/Sources/App/Items.swift:29', says: 'Registers GET /api/v1/items/{itemId}; its handler is show.'}
+        - {source: code, clause: 'server/Sources/App/Items.swift:38', says: The handler show.}
+  /api/v1/shelves/{shelfId}:
+    parameters:
+      - {name: shelfId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation showShelf has no red scenario for "not found shelfId"; add under tests show-shelf-not-found-shelf-id: { operation: showShelf, scenario: red, covers: [not found shelfId], given: "no record has that shelfId", when: "showShelf is called with that shelfId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1api~1v1~1shelves~1{shelfId}/get]
+    # specarch-problem: warning: test_golden_missing: operation showShelf has no golden scenario; add one under tests, for example show-shelf-succeeds: { operation: showShelf, scenario: golden, given: "any caller", when: "showShelf is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1v1~1shelves~1{shelfId}/get]
+    get:
+      operationId: showShelf
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/Sources/App/routes.swift:9', says: 'Registers GET /api/v1/shelves/{shelfId}; its handler is showShelf.'}
+        - {source: code, clause: 'server/Sources/App/routes.swift:38', says: The handler showShelf.}
+    # specarch-problem: warning: test_case_missing: operation updateShelf has no red scenario for "not found shelfId"; add under tests update-shelf-not-found-shelf-id: { operation: updateShelf, scenario: red, covers: [not found shelfId], given: "no record has that shelfId", when: "updateShelf is called with that shelfId", then: "it is refused as not found" } [test_case_missing.67e2f396@design/paths.yaml#/paths/~1api~1v1~1shelves~1{shelfId}/put]
+    # specarch-problem: warning: test_case_missing: operation updateShelf has no red scenario for "missing name"; add under tests update-shelf-missing-name: { operation: updateShelf, scenario: red, covers: [missing name], given: "...", when: "updateShelf is called without name", then: "it is refused" } [test_case_missing.9d25c9fd@design/paths.yaml#/paths/~1api~1v1~1shelves~1{shelfId}/put]
+    # specarch-problem: warning: test_case_missing: operation updateShelf has no red scenario for "missing capacity"; add under tests update-shelf-missing-capacity: { operation: updateShelf, scenario: red, covers: [missing capacity], given: "...", when: "updateShelf is called without capacity", then: "it is refused" } [test_case_missing.f9557e8d@design/paths.yaml#/paths/~1api~1v1~1shelves~1{shelfId}/put]
+    # specarch-problem: warning: test_golden_missing: operation updateShelf has no golden scenario; add one under tests, for example update-shelf-succeeds: { operation: updateShelf, scenario: golden, given: "any caller", when: "updateShelf is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1v1~1shelves~1{shelfId}/put]
+    put:
+      operationId: updateShelf
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/schemas/ShelfBody'}}
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/Sources/App/routes.swift:15', says: 'Registers PUT /api/v1/shelves/{shelfId}; its handler is updateShelf.'}
+        - {source: code, clause: 'server/Sources/App/routes.swift:48', says: The handler updateShelf.}
+    # specarch-problem: warning: test_case_missing: operation patchShelf has no red scenario for "not found shelfId"; add under tests patch-shelf-not-found-shelf-id: { operation: patchShelf, scenario: red, covers: [not found shelfId], given: "no record has that shelfId", when: "patchShelf is called with that shelfId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1api~1v1~1shelves~1{shelfId}/patch]
+    # specarch-problem: warning: test_golden_missing: operation patchShelf has no golden scenario; add one under tests, for example patch-shelf-succeeds: { operation: patchShelf, scenario: golden, given: "any caller", when: "patchShelf is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1v1~1shelves~1{shelfId}/patch]
+    patch:
+      operationId: patchShelf
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/Sources/App/routes.swift:17', says: 'Registers PATCH /api/v1/shelves/{shelfId}; its handler is patchShelf.'}
+        - {source: code, clause: 'server/Sources/App/routes.swift:52', says: The handler patchShelf.}
+    # specarch-problem: warning: test_case_missing: operation deleteShelf has no red scenario for "not found shelfId"; add under tests delete-shelf-not-found-shelf-id: { operation: deleteShelf, scenario: red, covers: [not found shelfId], given: "no record has that shelfId", when: "deleteShelf is called with that shelfId", then: "it is refused as not found" } [test_case_missing.405f146e@design/paths.yaml#/paths/~1api~1v1~1shelves~1{shelfId}/delete]
+    # specarch-problem: warning: test_case_missing: operation deleteShelf has no red scenario for "denied without shelves.admin"; add under tests delete-shelf-denied-without-shelves-admin: { operation: deleteShelf, scenario: red, covers: [denied without shelves.admin], given: "a caller without shelves.admin", when: "deleteShelf is called", then: "it is refused as not allowed" } [test_case_missing.afbb71f5@design/paths.yaml#/paths/~1api~1v1~1shelves~1{shelfId}/delete]
+    # specarch-problem: warning: test_golden_missing: operation deleteShelf has no golden scenario; add one under tests, for example delete-shelf-succeeds: { operation: deleteShelf, scenario: golden, given: "a caller with shelves.admin", when: "deleteShelf is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1v1~1shelves~1{shelfId}/delete]
+    delete:
+      operationId: deleteShelf
+      permission: shelves.admin
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/Sources/App/routes.swift:13', says: 'Registers DELETE /api/v1/shelves/{shelfId}; its handler is deleteShelf; the group made at server/Sources/App/routes.swift:12 checks shelves.admin.'}
+        - {source: code, clause: 'server/Sources/App/routes.swift:43', says: The handler deleteShelf.}
+  /health:
+    # specarch-problem: warning: test_golden_missing: operation getHealth has no golden scenario; add one under tests, for example get-health-succeeds: { operation: getHealth, scenario: golden, given: "any caller", when: "getHealth is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1health/get]
+    # specarch-problem: warning: test_red_missing: operation getHealth has no red scenario; add one under tests, for example get-health-refused: { operation: getHealth, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1health/get]
+    get:
+      operationId: getHealth
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/Sources/App/routes.swift:4', says: Registers GET /health.}
+  /items:
+    # specarch-problem: warning: test_golden_missing: operation postItems has no golden scenario; add one under tests, for example post-items-succeeds: { operation: postItems, scenario: golden, given: "any caller", when: "postItems is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1items/post]
+    # specarch-problem: warning: test_red_missing: operation postItems has no red scenario; add one under tests, for example post-items-refused: { operation: postItems, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1items/post]
+    post:
+      operationId: postItems
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {type: array, items: {$ref: '#/schemas/ItemBody'}}}
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/Sources/App/Items.swift:27', says: Registers POST /items; its handler is create.}
+        - {source: code, clause: 'server/Sources/App/Items.swift:33', says: The handler create.}
+  /items/{itemId}:
+    parameters:
+      - {name: itemId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation getItemsByItemId has no red scenario for "not found itemId"; add under tests get-items-by-item-id-not-found-item-id: { operation: getItemsByItemId, scenario: red, covers: [not found itemId], given: "no record has that itemId", when: "getItemsByItemId is called with that itemId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1items~1{itemId}/get]
+    # specarch-problem: warning: test_golden_missing: operation getItemsByItemId has no golden scenario; add one under tests, for example get-items-by-item-id-succeeds: { operation: getItemsByItemId, scenario: golden, given: "any caller", when: "getItemsByItemId is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1items~1{itemId}/get]
+    get:
+      operationId: getItemsByItemId
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/Sources/App/Items.swift:29', says: 'Registers GET /items/{itemId}; its handler is show.'}
+        - {source: code, clause: 'server/Sources/App/Items.swift:38', says: The handler show.}
+  /status:
+    # specarch-problem: warning: test_golden_missing: operation status has no golden scenario; add one under tests, for example status-succeeds: { operation: status, scenario: golden, given: "any caller", when: "status is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1status/get]
+    # specarch-problem: warning: test_red_missing: operation status has no red scenario; add one under tests, for example status-refused: { operation: status, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1status/get]
+    get:
+      operationId: status
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/Sources/App/routes.swift:5', says: Registers GET /status; its handler is status.}
+        - {source: code, clause: 'server/Sources/App/routes.swift:36', says: The handler status.}

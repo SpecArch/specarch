@@ -24,6 +24,10 @@ libraries:
     version: 6.2.2
     licence: MIT
     purpose: YAML parsing, with the libyaml C library bundled inside it. Pinned in Package.swift and Package.resolved.
+  github.com/swiftlang/swift-syntax:
+    version: 604.0.0
+    licence: Apache-2.0
+    purpose: "Parsing Swift source in the Swift reader of specarch extract, readers/swift, which writes the code-facts dump the Go build reads (ADR-087); not linked into the validator. Pinned exactly in readers/swift/Package.swift and Package.resolved, and the Go build refuses a dump another version made. SBOM scan on 2026-10-09: syft 1.54.0, grype 0.120.0 and osv-scanner 2.6.0 found no vulnerability."
 
 layout:
   swift/Package.swift:
@@ -35,6 +39,8 @@ layout:
     implements: ["#/commands/validate", "#/commands/version", "#/entities/Diagnostic", "#/entities/SpecFile", "#/enums/Rule", "#/enums/Severity", "#/algorithms/exitStatus", "#/algorithms/referenceResolves", "#/algorithms/permissionGranted", "#/algorithms/workedExampleHolds"]
   swift/embed-schemas.sh:
     description: Writes the schemas of schema/ into the library as Swift source; a test fails when they differ.
+  readers/swift:
+    description: "The Swift reader of specarch extract, a package of its own with one executable, code-facts-swift: it parses Swift source with SwiftSyntax and writes the facts specarch extract swift reads as a code-facts dump (ADR-087). tools/code-facts/dump-swift.sh runs it on the tracked Swift files of a committed folder."
 
 mappings:
   "#/entities/Diagnostic": { target: SpecArchKit.Diagnostic, description: "A struct; its description is the one-line form." }

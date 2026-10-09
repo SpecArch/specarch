@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: Swift source of server
+  version: 0.1.0
+  description: |
+    The Swift source under server, read at commit 8e22702f6874a4885a570c3b8b42ebf06fc1b378 by SwiftSyntax 604.0.0 through the code-facts dump, by its syntax alone, with the property lists, build settings and Core Data models there read as data. Every element cites the line that declares it; what the source does not say as a literal, or through an idiom the reader knows, is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design, deployment]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 8e22702f6874a4885a570c3b8b42ebf06fc1b378
+    url: ../repo
+    clauses:
+      - {clause: server/Sources/App/Items.swift, title: 'Swift source, read by its syntax'}
+      - {clause: server/Sources/App/configure.swift, title: 'Swift source, read by its syntax'}
+      - {clause: server/Sources/App/routes.swift, title: 'Swift source, read by its syntax'}
+    reading: parsed

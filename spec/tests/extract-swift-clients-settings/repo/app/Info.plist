@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleName</key>
+	<string>Shelf</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+	</array>
+	<key>SHELF_TIMEOUT</key>
+	<string>30</string>
+	<key>SHELF_REGION</key>
+	<string>$(SHELF_REGION)</string>
+	<key>SHELF_FLAG</key>
+	<true/>
+	<key>SHELF_RATIO</key>
+	<real>0.5</real>
+	<key>SHELF_HOSTS</key>
+	<array>
+		<string>a.example.test</string>
+	</array>
+</dict>
+</plist>

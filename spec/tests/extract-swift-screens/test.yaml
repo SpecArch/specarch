@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a code-facts dump of a SwiftUI app whose WindowGroup shows a view holding a TabView (a tab with a Label, a Tab with a title and a tab whose label is not a literal), a list view that queries a SwiftData model and opens a detail view through navigationDestination, a form through a sheet and one of two views through a fullScreenCover with a branch, a detail view whose controls bind properties of the model, a property of a property and two links with literal labels, a row view no navigation call opens that holds a link, a form bound to a draft struct and its own state with two navigation titles, and a file that imports SwiftUI and gives nothing"
+when: "extract swift is run on the dump"
+then: "it writes one page per view a navigation call opens, named after the view without View or Screen, with its literal title, the fields its controls bind, its entity where the bindings or the query name one SwiftData model, and a navigate action per way it opens another page, labelled where the link's label is a literal; writes each tab as a menu entry; asks a must question per page on its kind, route and what the source does not give, one on its permission, one on the labels the source does not give, one on the tab with no literal title and one on the row view no screen is found to hold; asks a should question on the destination a branch chooses; prints a line for the property of a property and for the schema the model holds, and names the file that gives nothing; and exits 0"
+verifies: [SA-44]

@@ -1,0 +1,331 @@
+questions:
+  # specarch-problem: question: open_question: (should, decision) app/Broken.swift has 1 place SwiftSyntax could not read as Swift. What does the file say there, and is it built? It blocks design. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: app/Broken.swift has 1 place SwiftSyntax could not read as Swift. What does the file say there, and is it built?
+    kind: decision
+    priority: should
+    blocks: [design]
+    decidedBy: system-owner
+    why: A place the parser cannot read is skipped, and what it would give is not read.
+    cites:
+      - {source: code, clause: app/Broken.swift, says: Has syntax the parser could not read.}
+  # specarch-problem: question: open_question: (must, decision) Author.born at app/Library.swift:9: Swift's Int is as wide as the platform's word, 64 bits on every 64-bit Apple platform and 32 on arm64_32, and a 64-bit integer sent as a JSON number loses digits above 2^53. Which format does it take (int32, int64 carried as a string, uint64), or which bounds keep it inside 2^53? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: 'Author.born at app/Library.swift:9: Swift''s Int is as wide as the platform''s word, 64 bits on every 64-bit Apple platform and 32 on arm64_32, and a 64-bit integer sent as a JSON number loses digits above 2^53. Which format does it take (int32, int64 carried as a string, uint64), or which bounds keep it inside 2^53?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Author/properties/born/format']
+    decidedBy: system-owner
+    why: Every integer in a specification has a width, and one wider than 2^53 is carried as a string or bounded.
+    cites:
+      - {source: code, clause: 'app/Library.swift:9', says: 'Declares born: Int.'}
+  # specarch-problem: question: open_question: (must, decision) Author.rating at app/Library.swift:10: The source declares a 32-bit Float, and a number in the meta-model is a double. Is a double right here, or is the value a decimal with a precision and a scale? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'Author.rating at app/Library.swift:10: The source declares a 32-bit Float, and a number in the meta-model is a double. Is a double right here, or is the value a decimal with a precision and a scale?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Author/properties/rating/format']
+    decidedBy: system-owner
+    why: A Float has a width the meta-model's number formats do not name.
+    cites:
+      - {source: code, clause: 'app/Library.swift:10', says: 'Declares rating: Float.'}
+  # specarch-problem: question: open_question: (must, decision) Author.balance at app/Library.swift:11: The source declares a Decimal, whose precision and scale it does not say, and Codable writes it on the wire as a JSON number. Which type, precision and scale is it? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: 'Author.balance at app/Library.swift:11: The source declares a Decimal, whose precision and scale it does not say, and Codable writes it on the wire as a JSON number. Which type, precision and scale is it?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Author/properties/balance']
+    decidedBy: system-owner
+    why: A decimal needs a precision and a scale, and the Swift type gives neither.
+    cites:
+      - {source: code, clause: 'app/Library.swift:11', says: 'Declares balance: Decimal.'}
+  # specarch-problem: question: open_question: (must, decision) Author.visits at app/Library.swift:12: Swift's Int64 is 64 bits wide, and a 64-bit integer sent as a JSON number loses digits above 2^53. Which format does it take (int32, int64 carried as a string, uint64), or which bounds keep it inside 2^53? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: 'Author.visits at app/Library.swift:12: Swift''s Int64 is 64 bits wide, and a 64-bit integer sent as a JSON number loses digits above 2^53. Which format does it take (int32, int64 carried as a string, uint64), or which bounds keep it inside 2^53?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Author/properties/visits/format']
+    decidedBy: system-owner
+    why: Every integer in a specification has a width, and one wider than 2^53 is carried as a string or bounded.
+    cites:
+      - {source: code, clause: 'app/Library.swift:12', says: 'Declares visits: Int64.'}
+  # specarch-problem: question: open_question: (must, decision) Author.home at app/Library.swift:23: The source declares the type CLLocationCoordinate2D, which is not declared in the files read as a model the reader knows, such as a type of a package. Which type is it? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: 'Author.home at app/Library.swift:23: The source declares the type CLLocationCoordinate2D, which is not declared in the files read as a model the reader knows, such as a type of a package. Which type is it?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Author/properties/home']
+    decidedBy: system-owner
+    why: A type declared outside the files read, or not as a model, is not known by syntax.
+    cites:
+      - {source: code, clause: 'app/Library.swift:23', says: 'Declares home: CLLocationCoordinate2D?.'}
+  # specarch-problem: question: open_question: (must, decision) Which field or fields identify a record of Author? SwiftData identifies a record by its persistent identifier, which no property declares, and handle is marked unique. Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: Which field or fields identify a record of Author? SwiftData identifies a record by its persistent identifier, which no property declares, and handle is marked unique.
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Author/primaryKey']
+    decidedBy: system-owner
+    why: A primary key is what a record is found by, and a SwiftData model declares none.
+    cites:
+      - {source: code, clause: 'app/Library.swift:5', says: class Author is a SwiftData model.}
+  # specarch-problem: question: open_question: (must, decision) For each relation of Author, which kind is it (one-to-one, one-to-many, many-to-one or many-to-many), and which field holds the key or points back? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: For each relation of Author, which kind is it (one-to-one, one-to-many, many-to-one or many-to-many), and which field holds the key or points back?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Author/relations/books/kind', '#/entities/Author/relations/books/via']
+    decidedBy: system-owner
+    why: SwiftData keeps a relation by the related model, with no field that holds its key.
+    cites:
+      - {source: code, clause: 'app/Library.swift:5', says: class Author is a SwiftData model.}
+  # specarch-problem: question: open_question: (should, decision) AuthorPayload.joinedAt at app/Payloads.swift:6: Codable writes a Date as a number of seconds since 2001 unless the encoder is given another date strategy, and no .iso8601 strategy is set in the files read. Is it a date-time string on the wire? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: 'AuthorPayload.joinedAt at app/Payloads.swift:6: Codable writes a Date as a number of seconds since 2001 unless the encoder is given another date strategy, and no .iso8601 strategy is set in the files read. Is it a date-time string on the wire?'
+    kind: decision
+    priority: should
+    blocks: ['#/schemas/AuthorPayload/properties/joinedAt']
+    decidedBy: system-owner
+    why: The wire form of a Date is the encoder's choice, which the code that encodes it sets.
+    cites:
+      - {source: code, clause: 'app/Payloads.swift:6', says: 'Declares joinedAt: Date.'}
+  # specarch-problem: question: open_question: (should, decision) AuthorPayload.ratio at app/Payloads.swift:9: CGFloat is a Double on every 64-bit Apple platform and a Float on a 32-bit one. Is double right for it? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: 'AuthorPayload.ratio at app/Payloads.swift:9: CGFloat is a Double on every 64-bit Apple platform and a Float on a 32-bit one. Is double right for it?'
+    kind: decision
+    priority: should
+    blocks: ['#/schemas/AuthorPayload/properties/ratio/format']
+    decidedBy: system-owner
+    why: CGFloat's width follows the platform.
+    cites:
+      - {source: code, clause: 'app/Payloads.swift:9', says: 'Declares ratio: CGFloat.'}
+  # specarch-problem: question: open_question: (must, decision) Book.pages at app/Library.swift:43: Swift's Int is as wide as the platform's word, 64 bits on every 64-bit Apple platform and 32 on arm64_32, and a 64-bit integer sent as a JSON number loses digits above 2^53. Which format does it take (int32, int64 carried as a string, uint64), or which bounds keep it inside 2^53? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: 'Book.pages at app/Library.swift:43: Swift''s Int is as wide as the platform''s word, 64 bits on every 64-bit Apple platform and 32 on arm64_32, and a 64-bit integer sent as a JSON number loses digits above 2^53. Which format does it take (int32, int64 carried as a string, uint64), or which bounds keep it inside 2^53?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Book/properties/pages/format']
+    decidedBy: system-owner
+    why: Every integer in a specification has a width, and one wider than 2^53 is carried as a string or bounded.
+    cites:
+      - {source: code, clause: 'app/Library.swift:43', says: 'Declares pages: .'}
+  # specarch-problem: question: open_question: (must, decision) Which field or fields identify a record of Book? SwiftData identifies a record by its persistent identifier, which no property declares. Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: Which field or fields identify a record of Book? SwiftData identifies a record by its persistent identifier, which no property declares.
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Book/primaryKey']
+    decidedBy: system-owner
+    why: A primary key is what a record is found by, and a SwiftData model declares none.
+    cites:
+      - {source: code, clause: 'app/Library.swift:39', says: class Book is a SwiftData model.}
+  # specarch-problem: question: open_question: (must, decision) For each relation of Book, which kind is it (one-to-one, one-to-many, many-to-one or many-to-many), and which field holds the key or points back? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: For each relation of Book, which kind is it (one-to-one, one-to-many, many-to-one or many-to-many), and which field holds the key or points back?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Book/relations/author/kind', '#/entities/Book/relations/author/via']
+    decidedBy: system-owner
+    why: SwiftData keeps a relation by the related model, with no field that holds its key.
+    cites:
+      - {source: code, clause: 'app/Library.swift:39', says: class Book is a SwiftData model.}
+  # specarch-problem: question: open_question: (must, decision) Shelf.width at app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:6 is a Core Data Float, 32 bits wide, and a number in the meta-model is a double. Is a double right here? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: Shelf.width at app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:6 is a Core Data Float, 32 bits wide, and a number in the meta-model is a double. Is a double right here?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Shelf/properties/width/format']
+    decidedBy: system-owner
+    why: A Float has a width the meta-model's number formats do not name.
+    cites:
+      - {source: code, clause: 'app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:6', says: attributeType Float.}
+  # specarch-problem: question: open_question: (must, decision) Shelf.price at app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:7 has the Core Data type Decimal. Which type, precision and scale is it? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: Shelf.price at app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:7 has the Core Data type Decimal. Which type, precision and scale is it?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Shelf/properties/price']
+    decidedBy: system-owner
+    why: The attribute type does not say a type the meta-model holds.
+    cites:
+      - {source: code, clause: 'app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:7', says: attributeType Decimal.}
+  # specarch-problem: question: open_question: (must, decision) Shelf.layout at app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:8 has the Core Data type Transformable. Which type is it? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: Shelf.layout at app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:8 has the Core Data type Transformable. Which type is it?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Shelf/properties/layout']
+    decidedBy: system-owner
+    why: The attribute type does not say a type the meta-model holds.
+    cites:
+      - {source: code, clause: 'app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:8', says: attributeType Transformable.}
+  # specarch-problem: question: open_question: (must, decision) Which field or fields identify a record of Shelf? Core Data identifies a record by its object identifier, which no attribute declares, and the model makes code unique. Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
+    question: Which field or fields identify a record of Shelf? Core Data identifies a record by its object identifier, which no attribute declares, and the model makes code unique.
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Shelf/primaryKey']
+    decidedBy: system-owner
+    why: A primary key is what a record is found by, and a Core Data entity declares none.
+    cites:
+      - {source: code, clause: 'app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:3', says: The Core Data model declares the entity Shelf.}
+  # specarch-problem: question: open_question: (must, decision) For each relation of Shelf, which kind is it (one-to-one, one-to-many, many-to-one or many-to-many), and which field holds the key or points back? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
+    question: For each relation of Shelf, which kind is it (one-to-one, one-to-many, many-to-one or many-to-many), and which field holds the key or points back?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Shelf/relations/slots/kind', '#/entities/Shelf/relations/slots/via']
+    decidedBy: system-owner
+    why: Core Data keeps a relationship by the related object, with no attribute that holds its key.
+    cites:
+      - {source: code, clause: 'app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:3', says: The Core Data model declares the entity Shelf.}
+  # specarch-problem: question: open_question: (must, decision) Which field or fields identify a record of Slot? Core Data identifies a record by its object identifier, which no attribute declares. Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
+    question: Which field or fields identify a record of Slot? Core Data identifies a record by its object identifier, which no attribute declares.
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Slot/primaryKey']
+    decidedBy: system-owner
+    why: A primary key is what a record is found by, and a Core Data entity declares none.
+    cites:
+      - {source: code, clause: 'app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:19', says: The Core Data model declares the entity Slot.}
+  # specarch-problem: question: open_question: (must, decision) For each relation of Slot, which kind is it (one-to-one, one-to-many, many-to-one or many-to-many), and which field holds the key or points back? Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
+  Q-20:
+    question: For each relation of Slot, which kind is it (one-to-one, one-to-many, many-to-one or many-to-many), and which field holds the key or points back?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Slot/relations/shelf/kind', '#/entities/Slot/relations/shelf/via']
+    decidedBy: system-owner
+    why: Core Data keeps a relationship by the related object, with no attribute that holds its key.
+    cites:
+      - {source: code, clause: 'app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:19', says: The Core Data model declares the entity Slot.}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Library.swift:16: Author.extras: the type [String: String], a dictionary or a set, which a field does not hold; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  Q-21:
+    question: 'Not held: app/Library.swift:16: Author.extras: the type [String: String], a dictionary or a set, which a field does not hold; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Author']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/Library.swift:16', says: 'Not held: Author.extras: the type [String: String], a dictionary or a set, which a field does not hold; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Library.swift:18: Author.selected is marked @Transient, so SwiftData does not store it; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
+  Q-22:
+    question: 'Not held: app/Library.swift:18: Author.selected is marked @Transient, so SwiftData does not store it; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Author']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/Library.swift:18', says: 'Not held: Author.selected is marked @Transient, so SwiftData does not store it; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Payloads.swift:10: AuthorPayload.nickname goes on the wire as nick, which info.wireNames cannot give; written by its Swift name. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
+  Q-23:
+    question: 'Not held: app/Payloads.swift:10: AuthorPayload.nickname goes on the wire as nick, which info.wireNames cannot give; written by its Swift name. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/schemas/AuthorPayload/properties/nickname']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/Payloads.swift:10', says: 'Not held: AuthorPayload.nickname goes on the wire as nick, which info.wireNames cannot give; written by its Swift name.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Payloads.swift:11: AuthorPayload.internalNote is not among the type's CodingKeys, so Codable does not encode it; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
+  Q-24:
+    question: 'Not held: app/Payloads.swift:11: AuthorPayload.internalNote is not among the type''s CodingKeys, so Codable does not encode it; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/schemas/AuthorPayload']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/Payloads.swift:11', says: 'Not held: AuthorPayload.internalNote is not among the type''s CodingKeys, so Codable does not encode it; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Library.swift:44: Book.payload holds the schema AuthorPayload, and an entity refers to an entity or an enum, never to a schema; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
+  Q-25:
+    question: 'Not held: app/Library.swift:44: Book.payload holds the schema AuthorPayload, and an entity refers to an entity or an enum, never to a schema; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Book']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/Library.swift:44', says: 'Not held: Book.payload holds the schema AuthorPayload, and an entity refers to an entity or an enum, never to a schema; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Payloads.swift:38: the type Outer.Inner is declared inside another type, and a model is named by one PascalCase word; left out. Does the specification need it, written another way or described by hand? It blocks schemas. Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
+  Q-26:
+    question: 'Not held: app/Payloads.swift:38: the type Outer.Inner is declared inside another type, and a model is named by one PascalCase word; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [schemas]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/Payloads.swift:38', says: 'Not held: the type Outer.Inner is declared inside another type, and a model is named by one PascalCase word; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Payloads.swift:30: ShelfKind.kids is "Kids" on the wire, and an enum's values are snake_case words; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
+  Q-27:
+    question: 'Not held: app/Payloads.swift:30: ShelfKind.kids is "Kids" on the wire, and an enum''s values are snake_case words; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/enums/ShelfKind']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/Payloads.swift:30', says: 'Not held: ShelfKind.kids is "Kids" on the wire, and an enum''s values are snake_case words; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Payloads.swift:23: Summary.bookCount goes on the wire as bookCount, since its type has no CodingKeys, and info.wireNames snake_case, which another type's CodingKeys give, would write it book_count. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-28 under answers. [Q-28]
+  Q-28:
+    question: 'Not held: app/Payloads.swift:23: Summary.bookCount goes on the wire as bookCount, since its type has no CodingKeys, and info.wireNames snake_case, which another type''s CodingKeys give, would write it book_count. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/schemas/Summary/properties/bookCount']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/Payloads.swift:23', says: 'Not held: Summary.bookCount goes on the wire as bookCount, since its type has no CodingKeys, and info.wireNames snake_case, which another type''s CodingKeys give, would write it book_count.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Payloads.swift:24: Summary.topAuthor goes on the wire as topAuthor, since its type has no CodingKeys, and info.wireNames snake_case, which another type's CodingKeys give, would write it top_author. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
+  Q-29:
+    question: 'Not held: app/Payloads.swift:24: Summary.topAuthor goes on the wire as topAuthor, since its type has no CodingKeys, and info.wireNames snake_case, which another type''s CodingKeys give, would write it top_author. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/schemas/Summary/properties/topAuthor']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/Payloads.swift:24', says: 'Not held: Summary.topAuthor goes on the wire as topAuthor, since its type has no CodingKeys, and info.wireNames snake_case, which another type''s CodingKeys give, would write it top_author.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:9: Shelf.scratch is transient, so Core Data does not store it; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-30 under answers. [Q-30]
+  Q-30:
+    question: 'Not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:9: Shelf.scratch is transient, so Core Data does not store it; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Shelf']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:9', says: 'Not held: Shelf.scratch is transient, so Core Data does not store it; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:11: Shelf.createdAt has the default "today", which is not a value its field's type takes as written; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
+  Q-31:
+    question: 'Not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:11: Shelf.createdAt has the default "today", which is not a value its field''s type takes as written; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Shelf/properties/createdAt']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:11', says: 'Not held: Shelf.createdAt has the default "today", which is not a value its field''s type takes as written; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:23: the Core Data entity Book: its name is not a PascalCase name, or another model has it; left out. Does the specification need it, written another way or described by hand? It blocks entities. Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
+  Q-32:
+    question: 'Not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:23: the Core Data entity Book: its name is not a PascalCase name, or another model has it; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [entities]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:23', says: 'Not held: the Core Data entity Book: its name is not a PascalCase name, or another model has it; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Store.xcdatamodeld/Store.xcdatamodel/contents: a version of the Core Data model Store.xcdatamodeld other than its current one, Store 2.xcdatamodel; left out. Does the specification need it, written another way or described by hand? It blocks entities. Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
+  Q-33:
+    question: 'Not held: app/Store.xcdatamodeld/Store.xcdatamodel/contents: a version of the Core Data model Store.xcdatamodeld other than its current one, Store 2.xcdatamodel; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [entities]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: app/Store.xcdatamodeld/Store.xcdatamodel/contents, says: 'Not held: a version of the Core Data model Store.xcdatamodeld other than its current one, Store 2.xcdatamodel; left out.'}

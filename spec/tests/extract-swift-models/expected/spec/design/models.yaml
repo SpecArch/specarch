@@ -1,0 +1,112 @@
+enums:
+  Origin:
+    type: string
+    enum: [local, imported]
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Payloads.swift:33', says: 'enum Origin: String, Codable, with the cases local, imported.'}
+  ShelfKind:
+    type: string
+    enum: [fiction, non_fiction]
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Payloads.swift:27', says: 'enum ShelfKind: String, Codable, with the cases fiction, non_fiction.'}
+entities:
+  Author:
+    type: object
+    properties:
+      handle: {type: string}
+      name: {type: string}
+      born: {type: integer}
+      rating: {type: number}
+      balance: {}
+      visits: {type: integer}
+      age: {type: integer, format: int32, minimum: 0, maximum: 255}
+      photo: {type: [string, "null"], format: binary}
+      tags: {type: array, items: {type: string}}
+      shelf: {$ref: '#/enums/ShelfKind'}
+      origin: {$ref: '#/enums/Origin'}
+      home: {}
+    required: [handle, name, born, rating, balance, visits, age, tags, shelf]
+    relations:
+      books:
+        target: Book
+        origin: stated
+        cites:
+          - {source: code, clause: 'app/Library.swift:17', says: Author.books holds many Book.}
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Library.swift:5', says: class Author is a SwiftData model.}
+  Book:
+    type: object
+    properties:
+      title: {type: string}
+      pages: {type: integer}
+    required: [title, pages]
+    relations:
+      author:
+        target: Author
+        origin: stated
+        cites:
+          - {source: code, clause: 'app/Library.swift:42', says: Book.author holds one Author.}
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Library.swift:39', says: class Book is a SwiftData model.}
+  Shelf:
+    type: object
+    properties:
+      code: {type: string}
+      capacity: {type: [integer, "null"], format: int32, minimum: -32768, maximum: 32767, default: 20}
+      width: {type: [number, "null"], default: 0.0}
+      price: {}
+      layout: {}
+      open: {type: boolean, default: true}
+      createdAt: {type: string, format: date-time}
+    required: [code, open, createdAt]
+    relations:
+      slots:
+        target: Slot
+        origin: stated
+        cites:
+          - {source: code, clause: 'app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:12', says: 'Shelf.slots relates to many Slot, whose inverse is shelf.'}
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:3', says: The Core Data model declares the entity Shelf.}
+  Slot:
+    type: object
+    properties:
+      position: {type: integer, format: int32, default: 0}
+    required: [position]
+    relations:
+      shelf:
+        target: Shelf
+        origin: stated
+        cites:
+          - {source: code, clause: 'app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:21', says: 'Slot.shelf relates to one Shelf, whose inverse is slots.'}
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:19', says: The Core Data model declares the entity Slot.}
+schemas:
+  AuthorPayload:
+    type: object
+    properties:
+      handle: {type: string}
+      displayName: {type: string}
+      joinedAt: {type: string, format: date-time}
+      website: {type: [string, "null"], format: uri}
+      score: {type: number, format: double}
+      ratio: {type: number, format: double}
+      nickname: {type: string}
+    required: [handle, displayName, joinedAt, score, ratio, nickname]
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Payloads.swift:3', says: struct AuthorPayload conforms to Codable.}
+  Summary:
+    type: object
+    properties:
+      bookCount: {type: integer, format: int32}
+      topAuthor: {$ref: '#/schemas/AuthorPayload'}
+    required: [bookCount, topAuthor]
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Payloads.swift:22', says: struct Summary conforms to Decodable.}

@@ -1,0 +1,10 @@
+dependencies:
+  apiExampleTest:
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Api.swift:27', says: 'Calls GET https://api.example.test/shelves/{shelf}/items with URLSession''s data.'}
+      - {source: code, clause: 'app/Api.swift:38', says: 'Calls POST https://api.example.test/items with URLRequest.'}
+  statusExampleTest:
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Api.swift:60', says: 'Calls GET https://status.example.test/now with URLSession''s dataTask.'}

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 365 design tests, 152 golden and 213 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 371 design tests, 156 golden and 215 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.6.0-dev of the specification: 365 design tests, 152 golden and 213 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 361 |
+| system | 367 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -873,6 +873,54 @@ Scenario: golden; level: system; verifies SA-44.
 - Given: a repository whose first commit holds a router's folder and whose second holds the route table printed from it, naming the first; the table has two methods on one path, a path with a parameter, a route with no permission, a HEAD route, a path with a wildcard, a handler serving two routes and a permission that is not a permission name
 - When: extract router is run on the route table
 - Then: it writes one operation per held method and path pair with its path parameters and permission, one permission per name a route checks, a question for each operation's summary and responses, each path's parameter values, the permissions' descriptions and the roles that grant them, every route without a usable permission, names the commit, counts the routes, prints a line for the HEAD route, the wildcard, the permission name and the shared handler, a could question citing the route for each but the permission name, which a must question asks for, and exits 0
+
+#### extract-swift-clients-settings
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a code-facts dump of a client that calls URLSession with a URL whose one interpolated value fills a path segment, a query interpolated, a URLRequest with a literal method, one with a method that is not a literal, one with a computed URL, a path with no host and a second host, a JSON decoder that converts from snake_case, and reads of Info.plist by literal and computed keys and of the environment; an Info.plist with the bundle's own keys, a string, a build-setting reference two .xcconfig files set differently, a boolean, a real and an array; a binary property list; and an entitlements file
+- When: extract swift is run on the dump
+- Then: it writes a dependency per host with every call cited, the interpolated segment as {name} with a should question, and the settings the code reads and Info.plist holds with their types and defaults; asks a must question on each dependency's description and time limit, on what each setting is for, on the type of the setting no file gives and on whether the token is a secret; asks a should question on the query, the computed method, the computed URL, the path with no host, the computed key, the two build values and the settings no code reads; prints a line for the array, the bundle's keys, the entitlements, the binary list and the build setting Info.plist does not take; writes info.wireNames snake_case; and exits 0
+
+#### extract-swift-models
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a code-facts dump of SwiftData models with integers of every width, a Float, a Decimal, optional data, a list of strings, a dictionary, a relation to another model, a transient, a computed and a static property, enums and a type of a package; Codable types whose CodingKeys give snake_case names, a name of their own and leave a property out, a Decodable type with no CodingKeys, a Codable enum with a raw value that is not snake_case and a Codable type declared inside another; a file with syntax the parser cannot read; and a Core Data model with two versions whose current one has a Float, a Decimal, a Transformable, a transient, defaults, a uniqueness constraint, a to-many relationship with its inverse and an entity named as a SwiftData model
+- When: extract swift is run on the dump
+- Then: it writes each SwiftData model and each Core Data entity of the current version as an entity, each Codable type as a schema and each Codable enum of strings as an enum, every field with the width its Swift or Core Data type gives, and info.wireNames snake_case; asks a must question on each word-wide or 64-bit integer's format, each Float, each Decimal, each type it does not know, each primary key, naming what is unique, and each entity's relations; asks a should question on a CGFloat, on a Date with no ISO 8601 strategy and on the file it could not read in full; prints a line for the dictionary, the transient, the custom wire name, the property CodingKeys leave out, the schema an entity holds, the nested type, the enum value, the camelCase names on the wire, the default that is not a value, the entity named twice and the older version; and exits 0
+
+#### extract-swift-parser-version
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: a code-facts dump that names SwiftSyntax 603.0.2 as the parser that made it
+- When: extract swift is run on the dump
+- Then: it refuses the dump, naming the version that made it and the one this release reads, writes nothing and exits 1
+
+#### extract-swift-screens
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a code-facts dump of a SwiftUI app whose WindowGroup shows a view holding a TabView (a tab with a Label, a Tab with a title and a tab whose label is not a literal), a list view that queries a SwiftData model and opens a detail view through navigationDestination, a form through a sheet and one of two views through a fullScreenCover with a branch, a detail view whose controls bind properties of the model, a property of a property and two links with literal labels, a row view no navigation call opens that holds a link, a form bound to a draft struct and its own state with two navigation titles, and a file that imports SwiftUI and gives nothing
+- When: extract swift is run on the dump
+- Then: it writes one page per view a navigation call opens, named after the view without View or Screen, with its literal title, the fields its controls bind, its entity where the bindings or the query name one SwiftData model, and a navigate action per way it opens another page, labelled where the link's label is a literal; writes each tab as a menu entry; asks a must question per page on its kind, route and what the source does not give, one on its permission, one on the labels the source does not give, one on the tab with no literal title and one on the row view no screen is found to hold; asks a should question on the destination a branch chooses; prints a line for the property of a property and for the schema the model holds, and names the file that gives nothing; and exits 0
+
+#### extract-swift-stale-dump
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: a code-facts dump made at the commit that added a folder's first Swift file, and a later commit that adds a second Swift file to the folder
+- When: extract swift is run on the dump
+- Then: it refuses the dump as stale, naming both commits, writes nothing and exits 1
+
+#### extract-swift-vapor-routes
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a code-facts dump of a Vapor service whose routes function registers routes on the Application, on groups with literal segments and a group guarded by the check the implementation file names, under two such groups, and under a group whose check's permission is not a literal; with on and a method the meta-model lacks, the same route twice, a catch-all, a wildcard, a segment that is not a literal and a route behind a condition; a RouteCollection registered on the Application and on a group, with a group closure, a handler that decodes a list of a Content type and one that reads a parameter its path lacks; a RouteCollection nothing registers; and a function given a RoutesBuilder by a caller not followed
+- When: extract swift is run on the dump with the implementation file
+- Then: it writes one operation per route with literal segments under a builder it follows, named after its handler or by its method and path, citing its registration and its handler, the permission the guarded group's check names, and the request body a handler decodes; asks a must question on each route's summary and responses, its parameters' values, whether the running system registers it and its permission where no one check gives it, on the route twice, the segment that is not a literal, the route behind a condition, the collection nothing registers, the builder not followed and each parameter read that the path lacks; prints a line for the catch-all, the wildcard, the method and each handler that serves more than one route; and exits 0
 
 #### extract-usage-error
 

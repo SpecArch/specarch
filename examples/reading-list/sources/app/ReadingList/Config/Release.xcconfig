@@ -1,0 +1,3 @@
+// Settings of the release build; the key comes from the build machine.
+#include "Debug.xcconfig"
+READING_LIST_API_KEY = $(READING_LIST_RELEASE_API_KEY)

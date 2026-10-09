@@ -1,0 +1,20 @@
+entities:
+  Item:
+    type: object
+    properties:
+      name: {type: string}
+      lent: {type: boolean}
+      bought: {type: string, format: date-time}
+    required: [name, lent, bought]
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Item.swift:4', says: class Item is a SwiftData model.}
+schemas:
+  Place:
+    type: object
+    properties:
+      city: {type: string}
+    required: [city]
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Item.swift:19', says: struct Place conforms to Codable.}

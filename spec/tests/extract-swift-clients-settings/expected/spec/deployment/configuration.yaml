@@ -1,0 +1,28 @@
+configuration:
+  shelfFlag:
+    schema: {type: boolean, default: true}
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Info.plist:15', says: Info.plist sets SHELF_FLAG.}
+  shelfRatio:
+    schema: {type: number, format: double, default: 0.5}
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Info.plist:17', says: Info.plist sets SHELF_RATIO.}
+  shelfRegion:
+    schema: {type: string}
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Api.swift:18', says: Reads SHELF_REGION from Info.plist.}
+      - {source: code, clause: 'app/Info.plist:13', says: Info.plist sets SHELF_REGION to the build setting SHELF_REGION.}
+  shelfTimeout:
+    schema: {type: string, default: "30"}
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Api.swift:14', says: Reads SHELF_TIMEOUT from Info.plist.}
+      - {source: code, clause: 'app/Info.plist:11', says: Info.plist sets SHELF_TIMEOUT.}
+  shelfToken:
+    schema: {}
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Api.swift:10', says: Reads SHELF_TOKEN from the environment.}

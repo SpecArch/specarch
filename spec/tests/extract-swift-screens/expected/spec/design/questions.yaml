@@ -1,0 +1,233 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which field or fields identify a record of Item? SwiftData identifies a record by its persistent identifier, which no property declares. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: Which field or fields identify a record of Item? SwiftData identifies a record by its persistent identifier, which no property declares.
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Item/primaryKey']
+    decidedBy: system-owner
+    why: A primary key is what a record is found by, and a SwiftData model declares none.
+    cites:
+      - {source: code, clause: 'app/Item.swift:4', says: class Item is a SwiftData model.}
+  # specarch-problem: question: open_question: (should, decision) ShelfListView at app/ShelfListView.swift:22 opens a view chosen by a branch with fullScreenCover. Which screen does it open? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: ShelfListView at app/ShelfListView.swift:22 opens a view chosen by a branch with fullScreenCover. Which screen does it open?
+    kind: decision
+    priority: should
+    blocks: [pages]
+    decidedBy: system-owner
+    why: A destination chosen at run time, or a view outside the files read, is not known by syntax.
+    cites:
+      - {source: code, clause: 'app/ShelfListView.swift:22', says: Opens a view chosen by a branch with fullScreenCover.}
+  # specarch-problem: question: open_question: (must, decision) ItemRow at app/ItemDetailView.swift:30 opens the screen ShareView with NavigationLink, and ItemRow is a part of a screen the reader did not find opened. Which screen holds ItemRow? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: ItemRow at app/ItemDetailView.swift:30 opens the screen ShareView with NavigationLink, and ItemRow is a part of a screen the reader did not find opened. Which screen holds ItemRow?
+    kind: decision
+    priority: must
+    blocks: [pages]
+    decidedBy: system-owner
+    why: A view is a screen when a navigation call opens it, and nothing read opens this one.
+    cites:
+      - {source: code, clause: 'app/ItemDetailView.swift:30', says: Opens ShareView with NavigationLink.}
+  # specarch-problem: question: open_question: (must, decision) For the screen AboutView at app/Others.swift:19, what are its kind, route, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: For the screen AboutView at app/Others.swift:19, what are its kind, route, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/about/kind', '#/pages/about/route', '#/pages/about/title', '#/pages/about/entity', '#/pages/about/source', '#/pages/about/submit', '#/pages/about/columns']
+    decidedBy: system-owner
+    why: A SwiftUI view says what it draws and how it is opened, not which of the four kinds of page it is, and an app's screen has no route of its own unless it answers a link.
+    cites:
+      - {source: code, clause: 'app/Others.swift:19', says: 'struct AboutView: View.'}
+  # specarch-problem: question: open_question: (must, decision) Which permission does the screen AboutView check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: Which permission does the screen AboutView check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/about/permission']
+    decidedBy: system-owner
+    why: An app's screen checks nothing for the server, and a screen open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the screen HistoryView at app/Others.swift:3, what are its kind, route, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: For the screen HistoryView at app/Others.swift:3, what are its kind, route, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/history/kind', '#/pages/history/route', '#/pages/history/title', '#/pages/history/entity', '#/pages/history/source', '#/pages/history/submit', '#/pages/history/columns']
+    decidedBy: system-owner
+    why: A SwiftUI view says what it draws and how it is opened, not which of the four kinds of page it is, and an app's screen has no route of its own unless it answers a link.
+    cites:
+      - {source: code, clause: 'app/Others.swift:3', says: 'struct HistoryView: View.'}
+  # specarch-problem: question: open_question: (must, decision) Which permission does the screen HistoryView check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: Which permission does the screen HistoryView check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/history/permission']
+    decidedBy: system-owner
+    why: An app's screen checks nothing for the server, and a screen open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the screen HomeView at app/HomeView.swift:3, what are its kind, route, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: For the screen HomeView at app/HomeView.swift:3, what are its kind, route, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/home/kind', '#/pages/home/route', '#/pages/home/title', '#/pages/home/entity', '#/pages/home/source', '#/pages/home/submit', '#/pages/home/columns']
+    decidedBy: system-owner
+    why: A SwiftUI view says what it draws and how it is opened, not which of the four kinds of page it is, and an app's screen has no route of its own unless it answers a link.
+    cites:
+      - {source: code, clause: 'app/HomeView.swift:3', says: 'struct HomeView: View.'}
+  # specarch-problem: question: open_question: (must, decision) Which permission does the screen HomeView check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: Which permission does the screen HomeView check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/home/permission']
+    decidedBy: system-owner
+    why: An app's screen checks nothing for the server, and a screen open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the screen ItemDetailView at app/ItemDetailView.swift:3, what are its kind, route, title, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: For the screen ItemDetailView at app/ItemDetailView.swift:3, what are its kind, route, title, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/item-detail/kind', '#/pages/item-detail/route', '#/pages/item-detail/title', '#/pages/item-detail/source', '#/pages/item-detail/submit', '#/pages/item-detail/columns']
+    decidedBy: system-owner
+    why: A SwiftUI view says what it draws and how it is opened, not which of the four kinds of page it is, and an app's screen has no route of its own unless it answers a link.
+    cites:
+      - {source: code, clause: 'app/ItemDetailView.swift:3', says: 'struct ItemDetailView: View.'}
+  # specarch-problem: question: open_question: (must, decision) Which permission does the screen ItemDetailView check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: Which permission does the screen ItemDetailView check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/item-detail/permission']
+    decidedBy: system-owner
+    why: An app's screen checks nothing for the server, and a screen open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the screen ItemFormView at app/ItemFormView.swift:3, what are its kind, route, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: For the screen ItemFormView at app/ItemFormView.swift:3, what are its kind, route, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/item-form/kind', '#/pages/item-form/route', '#/pages/item-form/title', '#/pages/item-form/entity', '#/pages/item-form/source', '#/pages/item-form/submit', '#/pages/item-form/columns']
+    decidedBy: system-owner
+    why: A SwiftUI view says what it draws and how it is opened, not which of the four kinds of page it is, and an app's screen has no route of its own unless it answers a link. Its navigation titles are "New item" and "Add".
+    cites:
+      - {source: code, clause: 'app/ItemFormView.swift:3', says: 'struct ItemFormView: View.'}
+  # specarch-problem: question: open_question: (must, decision) Which permission does the screen ItemFormView check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: Which permission does the screen ItemFormView check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/item-form/permission']
+    decidedBy: system-owner
+    why: An app's screen checks nothing for the server, and a screen open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the screen NotesView at app/Others.swift:7, what are its kind, route, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: For the screen NotesView at app/Others.swift:7, what are its kind, route, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/notes/kind', '#/pages/notes/route', '#/pages/notes/title', '#/pages/notes/entity', '#/pages/notes/source', '#/pages/notes/submit', '#/pages/notes/columns']
+    decidedBy: system-owner
+    why: A SwiftUI view says what it draws and how it is opened, not which of the four kinds of page it is, and an app's screen has no route of its own unless it answers a link.
+    cites:
+      - {source: code, clause: 'app/Others.swift:7', says: 'struct NotesView: View.'}
+  # specarch-problem: question: open_question: (must, decision) Which permission does the screen NotesView check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: Which permission does the screen NotesView check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/notes/permission']
+    decidedBy: system-owner
+    why: An app's screen checks nothing for the server, and a screen open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the screen SearchScreen at app/Others.swift:23, what are its kind, route, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: For the screen SearchScreen at app/Others.swift:23, what are its kind, route, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/search/kind', '#/pages/search/route', '#/pages/search/title', '#/pages/search/entity', '#/pages/search/source', '#/pages/search/submit', '#/pages/search/columns']
+    decidedBy: system-owner
+    why: A SwiftUI view says what it draws and how it is opened, not which of the four kinds of page it is, and an app's screen has no route of its own unless it answers a link.
+    cites:
+      - {source: code, clause: 'app/Others.swift:23', says: 'struct SearchScreen: View.'}
+  # specarch-problem: question: open_question: (must, decision) Which permission does the screen SearchScreen check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
+    question: Which permission does the screen SearchScreen check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/search/permission']
+    decidedBy: system-owner
+    why: An app's screen checks nothing for the server, and a screen open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the screen ShareView at app/Others.swift:11, what are its kind, route, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
+    question: For the screen ShareView at app/Others.swift:11, what are its kind, route, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/share/kind', '#/pages/share/route', '#/pages/share/title', '#/pages/share/entity', '#/pages/share/source', '#/pages/share/submit', '#/pages/share/columns']
+    decidedBy: system-owner
+    why: A SwiftUI view says what it draws and how it is opened, not which of the four kinds of page it is, and an app's screen has no route of its own unless it answers a link.
+    cites:
+      - {source: code, clause: 'app/Others.swift:11', says: 'struct ShareView: View.'}
+  # specarch-problem: question: open_question: (must, decision) Which permission does the screen ShareView check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
+    question: Which permission does the screen ShareView check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/share/permission']
+    decidedBy: system-owner
+    why: An app's screen checks nothing for the server, and a screen open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the screen ShelfListView at app/ShelfListView.swift:4, what are its kind, route, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
+  Q-20:
+    question: For the screen ShelfListView at app/ShelfListView.swift:4, what are its kind, route, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/shelf-list/kind', '#/pages/shelf-list/route', '#/pages/shelf-list/source', '#/pages/shelf-list/submit', '#/pages/shelf-list/columns']
+    decidedBy: system-owner
+    why: A SwiftUI view says what it draws and how it is opened, not which of the four kinds of page it is, and an app's screen has no route of its own unless it answers a link.
+    cites:
+      - {source: code, clause: 'app/ShelfListView.swift:4', says: 'struct ShelfListView: View.'}
+  # specarch-problem: question: open_question: (must, decision) What does a person tap on the screen ShelfListView to open ItemDetailView and ItemFormView? The source opens them with no literal label. Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  Q-21:
+    question: What does a person tap on the screen ShelfListView to open ItemDetailView and ItemFormView? The source opens them with no literal label.
+    kind: decision
+    priority: must
+    blocks: ['#/pages/shelf-list/actions/0/label', '#/pages/shelf-list/actions/1/label']
+    decidedBy: system-owner
+    why: A navigate action has a label, and a sheet, a navigationDestination or a link with a computed label gives none as a literal.
+    cites:
+      - {source: code, clause: 'app/ShelfListView.swift:4', says: 'struct ShelfListView: View.'}
+  # specarch-problem: question: open_question: (must, decision) Which permission does the screen ShelfListView check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
+  Q-22:
+    question: Which permission does the screen ShelfListView check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/shelf-list/permission']
+    decidedBy: system-owner
+    why: An app's screen checks nothing for the server, and a screen open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) What is the title of the tab of AboutView at app/HomeView.swift:7? Its tab item shows no literal text. Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
+  Q-23:
+    question: What is the title of the tab of AboutView at app/HomeView.swift:7? Its tab item shows no literal text.
+    kind: decision
+    priority: must
+    blocks: ['#/menus/about/title']
+    decidedBy: system-owner
+    why: A menu entry has a title, and the tab's label is not a literal.
+    cites:
+      - {source: code, clause: 'app/HomeView.swift:7', says: Shows AboutView as a tab.}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/Item.swift:9: Item.place holds the schema Place, and an entity refers to an entity or an enum, never to a schema; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
+  Q-24:
+    question: 'Not held: app/Item.swift:9: Item.place holds the schema Place, and an entity refers to an entity or an enum, never to a schema; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Item']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/Item.swift:9', says: 'Not held: Item.place holds the schema Place, and an entity refers to an entity or an enum, never to a schema; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/ItemDetailView.swift:11: ItemDetailView binds TextField to $item.place.city, a property of a property, and a page's field is one of its entity's; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
+  Q-25:
+    question: 'Not held: app/ItemDetailView.swift:11: ItemDetailView binds TextField to $item.place.city, a property of a property, and a page''s field is one of its entity''s; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/pages/item-detail/fields']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/ItemDetailView.swift:11', says: 'Not held: ItemDetailView binds TextField to $item.place.city, a property of a property, and a page''s field is one of its entity''s; left out.'}

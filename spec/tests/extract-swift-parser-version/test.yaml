@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: red
+covers: [exit 1]
+given: "a code-facts dump that names SwiftSyntax 603.0.2 as the parser that made it"
+when: "extract swift is run on the dump"
+then: "it refuses the dump, naming the version that made it and the one this release reads, writes nothing and exits 1"
+verifies: [SA-44]

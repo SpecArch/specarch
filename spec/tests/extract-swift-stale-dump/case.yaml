@@ -1,0 +1,9 @@
+arguments: [extract, swift, --out, spec, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [app/NoteView.swift]
+    - [facts.json]
+    - [app/Later.swift]
+exitStatus: 1
+standardOutput: ""

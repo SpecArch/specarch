@@ -1,0 +1,18 @@
+schemas:
+  ItemBody:
+    type: object
+    properties:
+      title: {type: string}
+    required: [title]
+    origin: stated
+    cites:
+      - {source: code, clause: 'server/Sources/App/Items.swift:8', says: struct ItemBody conforms to Content.}
+  ShelfBody:
+    type: object
+    properties:
+      name: {type: string}
+      capacity: {type: integer, format: int32, minimum: -32768, maximum: 32767}
+    required: [name, capacity]
+    origin: stated
+    cites:
+      - {source: code, clause: 'server/Sources/App/Items.swift:3', says: struct ShelfBody conforms to Content.}

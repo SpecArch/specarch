@@ -1,0 +1,6 @@
+configuration:
+  shelfDbPassword:
+    schema: {}
+    origin: stated
+    cites:
+      - {source: code, clause: 'server/Sources/App/configure.swift:4', says: Reads SHELF_DB_PASSWORD from the environment.}

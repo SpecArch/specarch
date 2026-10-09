@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a code-facts dump of a client that calls URLSession with a URL whose one interpolated value fills a path segment, a query interpolated, a URLRequest with a literal method, one with a method that is not a literal, one with a computed URL, a path with no host and a second host, a JSON decoder that converts from snake_case, and reads of Info.plist by literal and computed keys and of the environment; an Info.plist with the bundle's own keys, a string, a build-setting reference two .xcconfig files set differently, a boolean, a real and an array; a binary property list; and an entitlements file"
+when: "extract swift is run on the dump"
+then: "it writes a dependency per host with every call cited, the interpolated segment as {name} with a should question, and the settings the code reads and Info.plist holds with their types and defaults; asks a must question on each dependency's description and time limit, on what each setting is for, on the type of the setting no file gives and on whether the token is a secret; asks a should question on the query, the computed method, the computed URL, the path with no host, the computed key, the two build values and the settings no code reads; prints a line for the array, the bundle's keys, the entitlements, the binary list and the build setting Info.plist does not take; writes info.wireNames snake_case; and exits 0"
+verifies: [SA-44]

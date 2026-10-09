@@ -1,0 +1,22 @@
+arguments: [extract, swift, --implementation, implementation/shelf.swift.specarch-implementation.yaml, --out, spec, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [server]
+    - [facts.json]
+exitStatus: 0
+standardOutput: |
+  commit 8e22702f6874a4885a570c3b8b42ebf06fc1b378: the last change to server, as the code-facts dump facts.json names it
+  checks: implementation/shelf.swift.specarch-implementation.yaml names the permission check App.Guarded
+  counted 3 Swift files, 0 of them with syntax SwiftSyntax could not read, and 56 facts: every tracked Swift file under server, and every fact the dump holds
+  models: counted 3 stored properties and 0 enums, and left out 0 static or computed properties: every stored property of a SwiftData model or a Codable type of the files read, and every case of a Codable enum of strings
+  routes: counted 16 registrations: every call of get, post, put, patch, delete or on with a handler on a value of a file that imports Vapor
+  settings: counted 1 read, 0 property lists and 0 build configuration files: every read of Info.plist or the environment by Bundle, ProcessInfo or Vapor's Environment, every Info.plist and entitlements file, and every .xcconfig file under server
+  wrote 0 pages, 0 entities, 2 schemas, 0 enums, 10 operations, 0 dependencies, 1 setting and 52 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  not held: server/Sources/App/routes.swift:19: the route GET /api/v1/files/**: it ends in the catch-all **, which matches any number of segments, and a path parameter holds one; left out; could question Q-46
+  not held: server/Sources/App/routes.swift:20: the route GET /api/v1/any/*: the segment * matches any one segment and names no parameter, which a path template cannot say; left out; could question Q-47
+  not held: server/Sources/App/routes.swift:6: the route OPTIONS /status: the method OPTIONS has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out; could question Q-48
+  not held: server/Sources/App/Items.swift:27: the route POST /items: its handler create serves more than one route; the operation is named postItems; could question Q-49
+  not held: server/Sources/App/Items.swift:27: the route POST /api/v1/items: its handler create serves more than one route; the operation is named postApiV1Items; could question Q-50
+  not held: server/Sources/App/Items.swift:29: the route GET /items/{itemId}: its handler show serves more than one route; the operation is named getItemsByItemId; could question Q-51
+  not held: server/Sources/App/Items.swift:29: the route GET /api/v1/items/{itemId}: its handler show serves more than one route; the operation is named getApiV1ItemsByItemId; could question Q-52

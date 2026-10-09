@@ -1,0 +1,29 @@
+# The bindings of the server's implementation file that specarch extract
+# swift reads: the server's own permission check. The specification it
+# implements is the one extract.sh writes, so this file is not named
+# *.specarch-implementation.yaml, which specarch validate would check
+# against a specification that is not in the repository.
+specarchImplementation: "0.1"
+
+info:
+  title: The reading list's server in Swift
+  version: 0.1.0
+  description: |
+    Names the server's own permission check for specarch extract swift,
+    which reads the routes' permissions through it. The specification it
+    implements is the one examples/reading-list/extract.sh writes.
+
+implements:
+  file: ../spec/specarch.yaml
+  version: 0.1.0
+
+stack:
+  language: { name: Swift, version: "6.0" }
+
+bindings:
+  http:
+    framework: Vapor
+    permissionChecks:
+      - package: App
+        function: RequirePermission
+        permissionArgument: 1

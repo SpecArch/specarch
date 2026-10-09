@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: red
+covers: [exit 1]
+given: "a code-facts dump made at the commit that added a folder's first Swift file, and a later commit that adds a second Swift file to the folder"
+when: "extract swift is run on the dump"
+then: "it refuses the dump as stale, naming both commits, writes nothing and exits 1"
+verifies: [SA-44]

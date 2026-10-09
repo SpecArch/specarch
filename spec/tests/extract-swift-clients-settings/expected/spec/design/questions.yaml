@@ -1,0 +1,67 @@
+questions:
+  # specarch-problem: question: open_question: (should, decision) app/Api.swift:27 calls GET https://api.example.test/shelves/{shelf}/items, filling {shelf} from values of the code. What does each hold? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: app/Api.swift:27 calls GET https://api.example.test/shelves/{shelf}/items, filling {shelf} from values of the code. What does each hold?
+    kind: decision
+    priority: should
+    blocks: ['#/dependencies/apiExampleTest']
+    decidedBy: system-owner
+    why: A part of a URL interpolated from a value is a parameter, and the code says only which variable fills it.
+    cites:
+      - {source: code, clause: 'app/Api.swift:27', says: 'Calls GET https://api.example.test/shelves/{shelf}/items with URLSession''s data.'}
+  # specarch-problem: question: open_question: (should, decision) app/Api.swift:34 calls another system with URLSession's data at "https://api.example.test/search?q=\(text)", built from parts the reader cannot place. Which system and operation does it call? It blocks dependencies. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: app/Api.swift:34 calls another system with URLSession's data at "https://api.example.test/search?q=\(text)", built from parts the reader cannot place. Which system and operation does it call?
+    kind: decision
+    priority: should
+    blocks: [dependencies]
+    decidedBy: system-owner
+    why: A URL is read when its host is a literal and each value fills one whole path segment.
+    cites:
+      - {source: code, clause: 'app/Api.swift:34', says: 'Calls URLSession''s data at "https://api.example.test/search?q=\(text)".'}
+  # specarch-problem: question: open_question: (should, decision) app/Api.swift:45 sets the method of a request to method, which is not a literal. Which method does it call? It blocks dependencies. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: app/Api.swift:45 sets the method of a request to method, which is not a literal. Which method does it call?
+    kind: decision
+    priority: should
+    blocks: [dependencies]
+    decidedBy: system-owner
+    why: A method computed at run time is not known by syntax.
+    cites:
+      - {source: code, clause: 'app/Api.swift:45', says: Sets httpMethod.}
+  # specarch-problem: question: open_question: (should, decision) app/Api.swift:50 calls another system with URLRequest at a URL that is not a literal. Which system and operation does it call? It blocks dependencies. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: app/Api.swift:50 calls another system with URLRequest at a URL that is not a literal. Which system and operation does it call?
+    kind: decision
+    priority: should
+    blocks: [dependencies]
+    decidedBy: system-owner
+    why: A URL computed at run time is not known by syntax, and a dependency is named by the system it calls.
+    cites:
+      - {source: code, clause: 'app/Api.swift:50', says: Calls URLRequest with a URL that is not a literal.}
+  # specarch-problem: question: open_question: (should, decision) app/Api.swift:56 calls GET /ping, which names no host. Which system does it call? It blocks dependencies. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: app/Api.swift:56 calls GET /ping, which names no host. Which system does it call?
+    kind: decision
+    priority: should
+    blocks: [dependencies]
+    decidedBy: system-owner
+    why: A dependency is named by the system it calls, and the URL does not name one.
+    cites:
+      - {source: code, clause: 'app/Api.swift:56', says: Calls GET /ping.}
+  # specarch-problem: question: open_question: (must, decision) What is the system apiExampleTest the source calls, and how long may one call to it take before the caller gives up? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: What is the system apiExampleTest the source calls, and how long may one call to it take before the caller gives up?
+    kind: decision
+    priority: must
+    blocks: ['#/dependencies/apiExampleTest/description', '#/dependencies/apiExampleTest/timeout']
+    decidedBy: system-owner
+    why: The source names the URL it calls, and not what the system is or a time limit, which every dependency has.
+  # specarch-problem: question: open_question: (must, decision) What is the system statusExampleTest the source calls, and how long may one call to it take before the caller gives up? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: What is the system statusExampleTest the source calls, and how long may one call to it take before the caller gives up?
+    kind: decision
+    priority: must
+    blocks: ['#/dependencies/statusExampleTest/description', '#/dependencies/statusExampleTest/timeout']
+    decidedBy: system-owner
+    why: The source names the URL it calls, and not what the system is or a time limit, which every dependency has.

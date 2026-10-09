@@ -1,6 +1,8 @@
 {
   "licences": {
     "github.com/jpsim/Yams": "MIT",
+    "github.com/swiftlang/swift-syntax": "Apache-2.0",
+    "swift-syntax": "Apache-2.0",
     "yams": "MIT"
   },
   "licence_exceptions": {

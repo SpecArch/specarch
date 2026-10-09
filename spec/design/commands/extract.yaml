@@ -509,6 +509,164 @@ commands:
         setting as an environment variable read is, its default the
         flag's.
 
+      - `swift`: one code-facts dump of Swift source (ADR-087), written
+        by `tools/code-facts/dump-swift.sh`, which runs the Swift reader
+        `readers/swift` on the tracked Swift files under a committed
+        folder. The reader parses each with SwiftSyntax, the parser the
+        Swift toolchain's own tools use, and writes facts, not elements:
+        its imports, its type declarations with what they inherit and
+        their attributes, their stored and computed properties, enum
+        cases with raw values, functions with their parameters, the calls
+        of the names its idiom table lists with their literal arguments
+        and closures, assignments to `httpMethod` and a JSON coder's
+        strategies, and reads of `infoDictionary` and `environment` by
+        key, each with its file, line and column. The dump names the
+        format (`codeFacts: 1`), the language, the parser's name and
+        version, the folder and the commit that last changed it; it is
+        refused when another SwiftSyntax version than the one this
+        release pins made it, when it lists a file that is not tracked
+        under the folder or leaves out one that is, and when it is
+        stale. The source is one code source with `reading: parsed`,
+        whose clauses are the Swift files and the files read as data;
+        every element cites `path:line`. SwiftSyntax has no type checker,
+        so a type the source does not write is a question.
+
+        A SwiftUI view, a type that conforms to `View` in a file that
+        imports SwiftUI, is a page when a navigation call opens it: the
+        view `WindowGroup` shows, a tab of a `TabView`, the destination
+        of a `NavigationLink`, `navigationDestination`, `sheet`,
+        `fullScreenCover` or `popover`, when the call makes one view of
+        the files read and nothing else; any other view is a part of a
+        page and no element, and a destination chosen at run time or a
+        view outside the files read is a should question at the call.
+        A page is named after its view in kebab-case, without the
+        suffix `View` or `Screen`, and cites its declaration and the call
+        that opens it. Its title is its one literal `navigationTitle`.
+        Each way a page opens another is one of its actions, of kind
+        `navigate`, its target that page and its label the link's
+        literal title or `Text` label, in the order of the source; a
+        label the source gives as no literal is a must question. A
+        `NavigationLink` with a value opens what the screen's
+        `navigationDestination` gives and is counted, not written. Its
+        fields are the properties a `TextField`, `SecureField`,
+        `TextEditor`, `Toggle`, `Picker`, `DatePicker`, `Stepper` or
+        `Slider` is bound to (`$book.title` is the field `title`), in
+        the order of the source; its entity is the SwiftData model those
+        bindings are properties of, when they are all of one, or, with
+        no binding, the one model the view queries with `@Query`. A
+        binding to a property of a property prints a line. Each page's
+        kind and route, and its title, entity, source, submit and
+        columns where the source does not give them, are one must
+        question, and its permission another, never written as public,
+        since an app's screen checks nothing for the server. Each tab of
+        a `TabView` is a menu entry for its page, its title the tab
+        item's literal `Label` or `Text`, or the `Tab`'s title; a tab
+        whose title is no literal is a must question.
+
+        A class with `@Model` in a file read is a SwiftData model and is
+        written as an entity of its name; a struct or class that conforms
+        to `Codable`, `Decodable`, `Encodable` or Vapor's `Content` is a
+        schema; an enum of `String` that conforms to one of them is an
+        enum, its values its raw values, each a snake_case word or
+        printed as a line. A type declared inside another prints a line.
+        Each stored property is a field by its name, `required` unless
+        its type is optional: `String`, `Bool`, `UUID`, `URL` and `Date`
+        (a date-time) as their JSON types, the integers of a width below
+        64 bits with their bounds, `Double` a double, `Data` a byte
+        string on the wire and a binary one stored, an array of one of
+        these an array, and a model of the files read a reference to it.
+        An `Int`, `UInt`, `Int64` or `UInt64`, a `Float` and a `Decimal`
+        are must questions on their format or type, since the width of a
+        word, a 32-bit float and a decimal's precision and scale are not
+        the meta-model's types; a `CGFloat` is a double with a should
+        question; a `Date` of a schema is a should question unless the
+        files read set an ISO 8601 date strategy; a type that is not
+        declared as a model in the files read is a must question. A
+        property of an entity that holds another model is a relation to
+        it, its kind and its key a must question, since SwiftData keeps a
+        relation by the model; a schema held by an entity, a static or
+        computed property, `@Transient`, a dictionary or a set print a
+        line or are counted. An entity's primary key is a must question,
+        naming the properties `@Attribute(.unique)` marks. A schema's
+        `CodingKeys` give its wire names: one that is the property's
+        snake_case form gives `info.wireNames: snake_case`, as a JSON
+        coder's `convertToSnakeCase` or `convertFromSnakeCase` strategy
+        does, and any other prints a line; a property its `CodingKeys`
+        leave out prints a line. A Core Data model, the current version's
+        `contents` of an `.xcdatamodeld` that `.xccurrentversion` names,
+        is read as data: each entity is an entity, each attribute a field
+        by the type its `attributeType` names, nullable when optional,
+        with its default, and each relationship a relation whose kind and
+        key are a must question; the primary key is a must question,
+        naming the uniqueness constraints; a transient attribute prints a
+        line, and an attribute type with no field type is a must
+        question.
+
+        Routes are read in a file that imports Vapor. A builder is a
+        parameter of type `Application`, at the root, a `RoutesBuilder`
+        given to a `RouteCollection`'s `boot`, under every path a
+        `register(collection:)` call of the files read registers that
+        collection, and the value `grouped` makes from a builder, or the
+        parameter of the closure `group` is given, under the literal
+        segments it adds, with the middleware values it is given. A call
+        of `get`, `post`, `put`, `patch`, `delete` or `on` with a handler
+        (`use:` or a closure) on a builder, with literal segments outside
+        a loop and a condition, is an operation; `:name` is the
+        parameter `{name}`, and `*` and `**` print a line. It is named
+        after its handler as extract router names a route, cites its
+        registration and its handler, and carries the must questions
+        extract go asks of a parsed route: what it does and answers, its
+        parameters' values, and whether the running system registers it.
+        A builder the reader does not follow, a segment that is not a
+        literal, and a registration in a loop or behind a condition are
+        must questions, and so is one method and path registered twice.
+        The handler's `req.parameters.get` with a name its path lacks is
+        a must question; its `req.content.decode` of a model of the files
+        read is the request body. A permission is read through the
+        checks the implementation file given with `--implementation`
+        names, as for go: a middleware value of a group, made by the
+        check's function, whose argument named is a literal permission
+        name, is the permission of the routes under the group, declared
+        citing them; Swift imports modules, not files, so the check is
+        matched by its function's name. None, several and one that is not
+        a literal are must questions.
+
+        Calls to another system are read from `URLRequest(url:)`, its
+        method the literal its `httpMethod` is given in the same function
+        or GET, Foundation's default, and from URLSession's `data`,
+        `dataTask`, `download` and `upload` methods given a URL: a
+        `URL(string:)` call with a literal, or a name the same function,
+        or a property of the same type, gives one. A string interpolating
+        one name into a whole path segment is the parameter `{name}`,
+        with a should question naming it. Each declares a dependency
+        named after the host in camelCase, as extract go names one, its
+        description and time limit a must question; a URL that is not
+        built from literal parts, has no host, or a method that is not a
+        literal is a should question.
+
+        A setting is read where the code reads Info.plist
+        (`Bundle.main.object(forInfoDictionaryKey:)` or
+        `infoDictionary[...]`) or the environment
+        (`ProcessInfo.processInfo.environment[...]`, Vapor's
+        `Environment.get`) by a literal key, and from every tracked
+        `Info.plist` under the folder, read as data, whose own keys are
+        settings too; a value `$(NAME)` takes the one value the folder's
+        `.xcconfig` files give `NAME`, and several values are a should
+        question. Each is written under `configuration` as extract go
+        writes one, with the type and the default Info.plist gives, and
+        the same must questions on what it is for, whether it is a
+        secret, its type when nothing read gives it, and an integer's
+        width; one Info.plist sets and no code reads by a literal name is
+        a should question. The keys the system reads to describe the
+        bundle (`CF`, `NS`, `UI`, `LS` and the like), an entitlements
+        file's keys and the build settings Info.plist does not take
+        print a line per file, and a property list that is not XML prints
+        a line.
+
+        A file that imports SwiftUI, SwiftData or Vapor and gives nothing
+        read prints a line, and so does each file with syntax SwiftSyntax
+        could not read, which is also a should question.
+
       Every reader follows these rules:
 
       - The tree's root tracks origin. The code readers declare one code
@@ -518,8 +676,8 @@ commands:
         the repository's folder relative to `--out`. Clauses are paths from
         the repository's root. Its `reading` says how it was read:
         `printed` for router, database and permissions, which read a list
-        the running system printed, and `parsed` for go, which reads the
-        source itself (ADR-075).
+        the running system printed, and `parsed` for go and swift, which
+        read the source itself (ADR-075).
       - Every element is `origin: stated` and cites where it was read.
         What the surface does not say is a question, never a value: a
         constraint's message, which no catalogue holds, a check the
@@ -562,11 +720,11 @@ commands:
     permission: public
     arguments:
       - name: source
-        description: "The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows` or `go`."
+        description: "The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `go` or `swift`."
         required: true
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
       - name: paths
-        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository."
+        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository; for swift, one code-facts dump."
         required: true
         repeatable: true
         schema: { type: string }
@@ -576,7 +734,7 @@ commands:
         schema: { type: string }
         required: true
       implementation:
-        description: For go, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through.
+        description: For go and swift, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through.
         schema: { type: string }
       source-key:
         description: The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given.
@@ -593,13 +751,13 @@ commands:
       the reader reads, or a document read as what the running system
       printed; one line per file that imports a library the reader knows
       and gives nothing it reads; one line per gate on a setting, naming
-      the check and the setting; for go, one line naming the checks the
-      implementation file names; and one line per file that says it is
+      the check and the setting; for go and swift, one line naming the
+      checks the implementation file names; and one line per file that says it is
       generated from another source.
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written
-      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML"
-      "2": usage error, a source this build does not offer, --implementation given to a source other than go, or a path that could not be read or written
+      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a code-facts dump another parser version made or whose files are not the tracked Swift files of its folder, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML"
+      "2": usage error, a source this build does not offer, --implementation given to a source other than go or swift, or a path that could not be read or written
     satisfies: [SA-11, SA-44]
     why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

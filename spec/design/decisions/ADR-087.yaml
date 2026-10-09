@@ -1,0 +1,133 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-087:
+    title: extract swift reads a code-facts dump that SwiftSyntax wrote, and turns its facts into screens, models, routes, clients and settings in Go
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Step 17 of docs/extraction.md reads Swift, the first language
+      read by a parser that does not run inside specarch (ADR-075). Swift
+      is read by SwiftSyntax, a Swift package, while specarch is one Go
+      binary with no cgo. ADR-075 settles that a small program under
+      readers/ runs the language's own parser and writes a committed
+      code-facts dump, and that the rules of extract live in Go. What the
+      dump holds, how its version is held to the release, and how the
+      SwiftUI, SwiftData, Codable, Core Data, Vapor and Foundation idioms
+      fit meta-model 0.1 were open. SwiftSyntax has no type checker;
+      swiftc -dump-ast needs a full build and prints no stable format.
+      In meta-model 0.1 a page needs a kind, a title, a route and a
+      permission, a flow needs an actor and an event on every step whose
+      action the page declares, an integer needs a width and a 64-bit
+      one sent as a JSON number is refused unless bounded or carried as
+      a string, a menu entry carries no citation, and an entity never
+      refers to a schema.
+    decision: |
+      The dump is a JSON object: codeFacts 1, the language, the parser's
+      name and version, the folder's path from the repository's root,
+      the commit that last changed it, the files read with the places
+      the parser could not read, and every fact as its kind, file, line,
+      column and literal values, sorted by file, line and column. The
+      facts are syntax, not elements: imports, type declarations with
+      what they inherit and their attributes, properties, enum cases,
+      functions with their parameters, the calls whose name the idiom
+      table lists with their arguments and closures written as values
+      (a literal, an interpolated string by its parts, a name, a type,
+      a binding, a call, a closure by its statements), a few assignments
+      and dictionary reads. readers/swift pins swift-syntax exactly
+      (604.0.0, Apache-2.0) with Package.resolved committed;
+      tools/code-facts/dump-swift.sh refuses a folder with changes not
+      committed, lists its tracked Swift files and runs the reader. specarch
+      pins the same version and refuses a dump another one made, one
+      whose files are not the folder's tracked Swift files, and a stale
+      one, as openDump refuses any dump. Property lists, build
+      configuration files and Core Data models are data, read in Go from
+      the same commit.
+
+      In Go, a view a navigation call opens is a page, cited at its
+      declaration and the call; each way a page opens another is a
+      navigate action of the page; each tab is a menu entry. A SwiftData
+      model is an entity, a Codable type a schema, a Codable enum of
+      strings an enum, a Core Data entity an entity. Vapor's builders are
+      followed from an Application parameter, a RouteCollection's boot
+      under its registrations, and grouped and group with literal
+      segments; a permission is read through the checks an
+      implementation file names, as for Go (ADR-081). URLRequest and
+      URLSession calls with a URL built from literal parts declare
+      dependencies by host. Settings come from the code's reads of
+      Info.plist and the environment by literal key and from Info.plist
+      itself, its build-setting values from the .xcconfig files. Every
+      guess is a question at its file and line, as the reader table of
+      extract.yaml lists.
+    why: |
+      The dump keeps one place for the rules. Writing elements in Swift
+      would split extract's rules across two languages and two
+      releases; facts of syntax are stable as long as the parser is, and
+      pinning its version is what makes a dump repeatable: a newer
+      SwiftSyntax may read the same source into other nodes. The dump is
+      committed beside the code so that CI and a reader of the
+      specification need no Swift toolchain, and it is stale once the
+      folder changes, as a route table is. The idiom table lives in the
+      reader because a dump of every call of a real app would be most of
+      its source again; a name added to the table is a new reader
+      release, and the parser version check holds the two together.
+
+      A navigation call says which screen opens which, and the
+      meta-model's navigate action (label, kind, target) says exactly
+      that. A flow, the other element that links pages, is a task a
+      person does across pages, with an actor and an event on
+      every step that its page declares; the code gives neither, so each
+      would be a must question on a guessed task, and the validator
+      refuses a step whose event a question blocks. The action keeps the
+      definition readable: the page shows its ways out, and a label the
+      code does not give is one must question. A flow is written by
+      someone who knows the task, from the actions.
+
+      A screen has no route of its own in an app, so its route is in
+      the must question with its kind; writing /book-list would be a
+      guess. The title is the one literal navigationTitle because that
+      is what the screen shows. The entity is read only where the
+      bindings or a @Query name one SwiftData model, the one place the
+      syntax ties a screen to a model; a draft struct a form binds is a
+      schema and not an entity, so the page keeps its fields and asks
+      for the entity.
+
+      Swift's Int is as wide as the platform's word (64 bits on every
+      64-bit Apple platform, 32 on arm64_32), and the conventions require
+      a concrete width; a 64-bit integer as a JSON number loses digits
+      above 2^53 in JavaScript, which is why the validator refuses one
+      unbounded. Writing int64 would hide both, so the format is a must
+      question. A Float is 32 bits and the meta-model's numbers are
+      doubles, a Decimal has no precision or scale, and Codable writes a
+      Date as seconds since 2001 unless the coder is given a strategy:
+      each is a question rather than a convenient type. A SwiftData or
+      Core Data relation holds the related object, not a key, so its
+      kind and key are asked; the primary key is asked because both
+      frameworks identify a record by an identifier no property
+      declares.
+
+      Vapor follows the shape of extract go's routers (ADR-081): a
+      builder is followed from where the framework hands it over, a
+      group's literal segments are joined, and what the reader cannot
+      place is a must question, never a route at a guessed path. Swift
+      imports modules rather than files, so a check is matched by its
+      function's name and the package names the module for the reader.
+      Info.plist holds the values an app reads through Bundle, and the
+      xcconfig files fill its build-setting references; the keys the
+      system reads to describe the bundle and the entitlements are not
+      settings the app reads, so they print a line and stay out.
+
+      Every surface that is read fast gives a result early: an app's
+      screens, menus and models show from one dump with no build and no
+      simulator, and since each guess is a question at its line, a
+      change someone asks for on seeing them is an answer to that
+      question.
+    consequences: |
+      An iPhone or Mac app and a Vapor service are read from a committed
+      dump; CI reads the dump and needs no Swift. Running the reader
+      needs the Swift toolchain, and a SwiftSyntax upgrade is a release
+      that makes every dump again. A client call is a dependency by
+      host; joining a screen's call to the operation it calls, by method
+      and path, needs a question that names a method and path, which
+      meta-model 0.1's names (an operation's name) cannot carry, so it
+      waits for a later step.
+    satisfies: [SA-44]

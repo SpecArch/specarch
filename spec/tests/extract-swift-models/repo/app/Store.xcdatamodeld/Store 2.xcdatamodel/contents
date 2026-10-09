@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" systemVersion="23A344" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="Shelf" representedClassName="Shelf" syncable="YES" codeGenerationType="class">
+        <attribute name="code" attributeType="String"/>
+        <attribute name="capacity" optional="YES" attributeType="Integer 16" defaultValueString="20" usesScalarValueType="YES"/>
+        <attribute name="width" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="price" optional="YES" attributeType="Decimal"/>
+        <attribute name="layout" optional="YES" attributeType="Transformable"/>
+        <attribute name="scratch" optional="YES" transient="YES" attributeType="String"/>
+        <attribute name="open" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="createdAt" attributeType="Date" defaultValueString="today" usesScalarValueType="NO"/>
+        <relationship name="slots" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Slot" inverseName="shelf" inverseEntity="Slot"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="code"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="Slot" representedClassName="Slot" syncable="YES" codeGenerationType="class">
+        <attribute name="position" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="shelf" maxCount="1" deletionRule="Nullify" destinationEntity="Shelf" inverseName="slots" inverseEntity="Shelf"/>
+    </entity>
+    <entity name="Book" representedClassName="LegacyBook" syncable="YES" codeGenerationType="class">
+        <attribute name="title" attributeType="String"/>
+    </entity>
+</model>

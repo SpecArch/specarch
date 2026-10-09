@@ -1,0 +1,19 @@
+arguments: [extract, swift, --out, spec, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [app]
+    - [facts.json]
+exitStatus: 0
+standardOutput: |
+  commit a33da2578ca6cd76e43505cf21d615b7eff6eb5e: the last change to app, as the code-facts dump facts.json names it
+  counted 1 Swift file, 0 of them with syntax SwiftSyntax could not read, and 44 facts: every tracked Swift file under app, and every fact the dump holds
+  models: counted 2 stored properties and 0 enums, and left out 0 static or computed properties: every stored property of a SwiftData model or a Codable type of the files read, and every case of a Codable enum of strings
+  clients: counted 7 calls: every URLRequest, and every call of URLSession's data, download and upload methods with a URL
+  settings: counted 4 reads, 3 property lists and 2 build configuration files: every read of Info.plist or the environment by Bundle, ProcessInfo or Vapor's Environment, every Info.plist and entitlements file, and every .xcconfig file under app
+  wrote 0 pages, 0 entities, 1 schema, 0 enums, 0 operations, 2 dependencies, 5 settings and 18 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  not held: app/Info.plist:19: the key SHELF_HOSTS holds an array, and a setting holds one value; left out; could question Q-14
+  not held: app/Info.plist: the keys the system reads to describe the bundle, CFBundleName, UIBackgroundModes, are not settings the app reads; left out; could question Q-15
+  not held: app/Shelf.entitlements: the entitlements the system grants the app, com.apple.security.app-sandbox, com.apple.security.network.client, are not settings the app reads; left out; could question Q-16
+  not held: app/Widget-Info.plist: it is not a property list in XML, such as a binary one, so its keys are not read; could question Q-17
+  not held: app/Config/Debug.xcconfig: the build settings Info.plist does not take, OTHER_LDFLAGS, configure the build and not the running app; left out; could question Q-18

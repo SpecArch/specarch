@@ -1,0 +1,20 @@
+specarchImplementation: "0.1"
+
+info:
+  title: The shelf service in Swift
+  version: 0.1.0
+
+implements:
+  file: ../specarch.yaml
+  version: 0.1.0
+
+stack:
+  language: { name: Swift, version: "6.0" }
+
+bindings:
+  http:
+    framework: Vapor
+    permissionChecks:
+      - package: App
+        function: Guarded
+        permissionArgument: 1

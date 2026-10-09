@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 59 requirements, 5 entities, 12 commands, 7 algorithms, 365 tests, 85 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 59 requirements, 5 entities, 12 commands, 7 algorithms, 371 tests, 86 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -63,7 +63,7 @@ The interfaces the system offers, as its clients see them.
 | derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors, or a draft's name is taken by another draft or by a test of another subject; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, there is no release record for the new version, or a specification has errors; 2: usage error, or a path that could not be read |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written |
-| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go, or a path that could not be read or written |
+| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a code-facts dump another parser version made or whose files are not the tracked Swift files of its folder, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go or swift, or a path that could not be read or written |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open and no specification has an error; 1: at least one must or should question is open, or a specification has an error; 2: usage error, or a path that could not be read |
 | generate | Write code or data from a specification | public | 0: written, a draft included, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads or the specification is not approved and `--unapproved` was not given, the plug-in reported an error (what it answered is written or checked), or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder in any specification given, or a file that could not be read or written |
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
@@ -1194,6 +1194,164 @@ The sources this build reads:
   setting as an environment variable read is, its default the
   flag's.
 
+- `swift`: one code-facts dump of Swift source (ADR-087), written
+  by `tools/code-facts/dump-swift.sh`, which runs the Swift reader
+  `readers/swift` on the tracked Swift files under a committed
+  folder. The reader parses each with SwiftSyntax, the parser the
+  Swift toolchain's own tools use, and writes facts, not elements:
+  its imports, its type declarations with what they inherit and
+  their attributes, their stored and computed properties, enum
+  cases with raw values, functions with their parameters, the calls
+  of the names its idiom table lists with their literal arguments
+  and closures, assignments to `httpMethod` and a JSON coder's
+  strategies, and reads of `infoDictionary` and `environment` by
+  key, each with its file, line and column. The dump names the
+  format (`codeFacts: 1`), the language, the parser's name and
+  version, the folder and the commit that last changed it; it is
+  refused when another SwiftSyntax version than the one this
+  release pins made it, when it lists a file that is not tracked
+  under the folder or leaves out one that is, and when it is
+  stale. The source is one code source with `reading: parsed`,
+  whose clauses are the Swift files and the files read as data;
+  every element cites `path:line`. SwiftSyntax has no type checker,
+  so a type the source does not write is a question.
+
+  A SwiftUI view, a type that conforms to `View` in a file that
+  imports SwiftUI, is a page when a navigation call opens it: the
+  view `WindowGroup` shows, a tab of a `TabView`, the destination
+  of a `NavigationLink`, `navigationDestination`, `sheet`,
+  `fullScreenCover` or `popover`, when the call makes one view of
+  the files read and nothing else; any other view is a part of a
+  page and no element, and a destination chosen at run time or a
+  view outside the files read is a should question at the call.
+  A page is named after its view in kebab-case, without the
+  suffix `View` or `Screen`, and cites its declaration and the call
+  that opens it. Its title is its one literal `navigationTitle`.
+  Each way a page opens another is one of its actions, of kind
+  `navigate`, its target that page and its label the link's
+  literal title or `Text` label, in the order of the source; a
+  label the source gives as no literal is a must question. A
+  `NavigationLink` with a value opens what the screen's
+  `navigationDestination` gives and is counted, not written. Its
+  fields are the properties a `TextField`, `SecureField`,
+  `TextEditor`, `Toggle`, `Picker`, `DatePicker`, `Stepper` or
+  `Slider` is bound to (`$book.title` is the field `title`), in
+  the order of the source; its entity is the SwiftData model those
+  bindings are properties of, when they are all of one, or, with
+  no binding, the one model the view queries with `@Query`. A
+  binding to a property of a property prints a line. Each page's
+  kind and route, and its title, entity, source, submit and
+  columns where the source does not give them, are one must
+  question, and its permission another, never written as public,
+  since an app's screen checks nothing for the server. Each tab of
+  a `TabView` is a menu entry for its page, its title the tab
+  item's literal `Label` or `Text`, or the `Tab`'s title; a tab
+  whose title is no literal is a must question.
+
+  A class with `@Model` in a file read is a SwiftData model and is
+  written as an entity of its name; a struct or class that conforms
+  to `Codable`, `Decodable`, `Encodable` or Vapor's `Content` is a
+  schema; an enum of `String` that conforms to one of them is an
+  enum, its values its raw values, each a snake_case word or
+  printed as a line. A type declared inside another prints a line.
+  Each stored property is a field by its name, `required` unless
+  its type is optional: `String`, `Bool`, `UUID`, `URL` and `Date`
+  (a date-time) as their JSON types, the integers of a width below
+  64 bits with their bounds, `Double` a double, `Data` a byte
+  string on the wire and a binary one stored, an array of one of
+  these an array, and a model of the files read a reference to it.
+  An `Int`, `UInt`, `Int64` or `UInt64`, a `Float` and a `Decimal`
+  are must questions on their format or type, since the width of a
+  word, a 32-bit float and a decimal's precision and scale are not
+  the meta-model's types; a `CGFloat` is a double with a should
+  question; a `Date` of a schema is a should question unless the
+  files read set an ISO 8601 date strategy; a type that is not
+  declared as a model in the files read is a must question. A
+  property of an entity that holds another model is a relation to
+  it, its kind and its key a must question, since SwiftData keeps a
+  relation by the model; a schema held by an entity, a static or
+  computed property, `@Transient`, a dictionary or a set print a
+  line or are counted. An entity's primary key is a must question,
+  naming the properties `@Attribute(.unique)` marks. A schema's
+  `CodingKeys` give its wire names: one that is the property's
+  snake_case form gives `info.wireNames: snake_case`, as a JSON
+  coder's `convertToSnakeCase` or `convertFromSnakeCase` strategy
+  does, and any other prints a line; a property its `CodingKeys`
+  leave out prints a line. A Core Data model, the current version's
+  `contents` of an `.xcdatamodeld` that `.xccurrentversion` names,
+  is read as data: each entity is an entity, each attribute a field
+  by the type its `attributeType` names, nullable when optional,
+  with its default, and each relationship a relation whose kind and
+  key are a must question; the primary key is a must question,
+  naming the uniqueness constraints; a transient attribute prints a
+  line, and an attribute type with no field type is a must
+  question.
+
+  Routes are read in a file that imports Vapor. A builder is a
+  parameter of type `Application`, at the root, a `RoutesBuilder`
+  given to a `RouteCollection`'s `boot`, under every path a
+  `register(collection:)` call of the files read registers that
+  collection, and the value `grouped` makes from a builder, or the
+  parameter of the closure `group` is given, under the literal
+  segments it adds, with the middleware values it is given. A call
+  of `get`, `post`, `put`, `patch`, `delete` or `on` with a handler
+  (`use:` or a closure) on a builder, with literal segments outside
+  a loop and a condition, is an operation; `:name` is the
+  parameter `{name}`, and `*` and `**` print a line. It is named
+  after its handler as extract router names a route, cites its
+  registration and its handler, and carries the must questions
+  extract go asks of a parsed route: what it does and answers, its
+  parameters' values, and whether the running system registers it.
+  A builder the reader does not follow, a segment that is not a
+  literal, and a registration in a loop or behind a condition are
+  must questions, and so is one method and path registered twice.
+  The handler's `req.parameters.get` with a name its path lacks is
+  a must question; its `req.content.decode` of a model of the files
+  read is the request body. A permission is read through the
+  checks the implementation file given with `--implementation`
+  names, as for go: a middleware value of a group, made by the
+  check's function, whose argument named is a literal permission
+  name, is the permission of the routes under the group, declared
+  citing them; Swift imports modules, not files, so the check is
+  matched by its function's name. None, several and one that is not
+  a literal are must questions.
+
+  Calls to another system are read from `URLRequest(url:)`, its
+  method the literal its `httpMethod` is given in the same function
+  or GET, Foundation's default, and from URLSession's `data`,
+  `dataTask`, `download` and `upload` methods given a URL: a
+  `URL(string:)` call with a literal, or a name the same function,
+  or a property of the same type, gives one. A string interpolating
+  one name into a whole path segment is the parameter `{name}`,
+  with a should question naming it. Each declares a dependency
+  named after the host in camelCase, as extract go names one, its
+  description and time limit a must question; a URL that is not
+  built from literal parts, has no host, or a method that is not a
+  literal is a should question.
+
+  A setting is read where the code reads Info.plist
+  (`Bundle.main.object(forInfoDictionaryKey:)` or
+  `infoDictionary[...]`) or the environment
+  (`ProcessInfo.processInfo.environment[...]`, Vapor's
+  `Environment.get`) by a literal key, and from every tracked
+  `Info.plist` under the folder, read as data, whose own keys are
+  settings too; a value `$(NAME)` takes the one value the folder's
+  `.xcconfig` files give `NAME`, and several values are a should
+  question. Each is written under `configuration` as extract go
+  writes one, with the type and the default Info.plist gives, and
+  the same must questions on what it is for, whether it is a
+  secret, its type when nothing read gives it, and an integer's
+  width; one Info.plist sets and no code reads by a literal name is
+  a should question. The keys the system reads to describe the
+  bundle (`CF`, `NS`, `UI`, `LS` and the like), an entitlements
+  file's keys and the build settings Info.plist does not take
+  print a line per file, and a property list that is not XML prints
+  a line.
+
+  A file that imports SwiftUI, SwiftData or Vapor and gives nothing
+  read prints a line, and so does each file with syntax SwiftSyntax
+  could not read, which is also a should question.
+
 Every reader follows these rules:
 
 - The tree's root tracks origin. The code readers declare one code
@@ -1203,8 +1361,8 @@ Every reader follows these rules:
   the repository's folder relative to `--out`. Clauses are paths from
   the repository's root. Its `reading` says how it was read:
   `printed` for router, database and permissions, which read a list
-  the running system printed, and `parsed` for go, which reads the
-  source itself (ADR-075).
+  the running system printed, and `parsed` for go and swift, which
+  read the source itself (ADR-075).
 - Every element is `origin: stated` and cites where it was read.
   What the surface does not say is a question, never a value: a
   constraint's message, which no catalogue holds, a check the
@@ -1249,10 +1407,10 @@ Every reader follows these rules:
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
-| `<source>` | string | yes | The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows` or `go`. |
-| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository. |
+| `<source>` | string | yes | The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `go` or `swift`. |
+| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository; for swift, one code-facts dump. |
 | `--out` | string | yes | The folder the specification is written into; it becomes the specification's root folder. |
-| `--implementation` | string |   | For go, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through. |
+| `--implementation` | string |   | For go and swift, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through. |
 | `--source-key` | string |   | The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given. |
 
 Reads `{paths}`: The surface being read.
@@ -1266,8 +1424,8 @@ naming the question that asks about it; one line naming a dialect
 the reader reads, or a document read as what the running system
 printed; one line per file that imports a library the reader knows
 and gives nothing it reads; one line per gate on a setting, naming
-the check and the setting; for go, one line naming the checks the
-implementation file names; and one line per file that says it is
+the check and the setting; for go and swift, one line naming the
+checks the implementation file names; and one line per file that says it is
 generated from another source.
 
 Standard error: A usage message on a usage error, and the reason a source could not be read.
@@ -1880,7 +2038,7 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
-| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about. |   |
+| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about. |   |
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
 | cmd/specarch-gen-sql | The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk. | #/commands/generate |
@@ -2082,6 +2240,7 @@ Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin
 | Library | Version | Licence | Purpose |
 |---|---|---|---|
 | github.com/jpsim/Yams | 6.2.2 | MIT | YAML parsing, with the libyaml C library bundled inside it. Pinned in Package.swift and Package.resolved. |
+| github.com/swiftlang/swift-syntax | 604.0.0 | Apache-2.0 | Parsing Swift source in the Swift reader of specarch extract, readers/swift, which writes the code-facts dump the Go build reads (ADR-087); not linked into the validator. Pinned exactly in readers/swift/Package.swift and Package.resolved, and the Go build refuses a dump another version made. SBOM scan on 2026-10-09: syft 1.54.0, grype 0.120.0 and osv-scanner 2.6.0 found no vulnerability. |
 
 #### Layout
 
@@ -2091,6 +2250,7 @@ Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin
 | swift/Sources/specarch | The executable; it passes the arguments to the library and exits with its status. |   |
 | swift/Sources/SpecArchKit | Everything else. Reading YAML, reading a specification tree into one document, the JSON Schema evaluator and its messages, the specification and implementation checks, the expression subset, tests and their derived cases with the rank of each, the life-cycle links, the open questions and origin, the records beside the specification, and the commands. | #/commands/validate, #/commands/version, #/entities/Diagnostic, #/entities/SpecFile, #/enums/Rule, #/enums/Severity, #/algorithms/exitStatus, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
 | swift/embed-schemas.sh | Writes the schemas of schema/ into the library as Swift source; a test fails when they differ. |   |
+| readers/swift | The Swift reader of specarch extract, a package of its own with one executable, code-facts-swift: it parses Swift source with SwiftSyntax and writes the facts specarch extract swift reads as a code-facts dump (ADR-087). tools/code-facts/dump-swift.sh runs it on the tracked Swift files of a committed folder. |   |
 
 #### Mappings
 
@@ -6057,6 +6217,75 @@ output, and exits 1.
 
 **Insight:** A compiler shows every problem rather than the first (docs/principles.md): a draft lets the people who answer the questions see the code and every gap in it, and a target that writes all it can, with the one entry it cannot write marked there, shows what else is ready and keeps the error in view. The approval gate exists so that what reaches production was read and accepted by a person; the draft keeps that, because it is asked for by name, says what it is in every file, and SQL, the one output that cannot be taken back once applied, refuses to build on it. The rule that places a mark is shared so every target puts a problem at the same entry, and running the plug-in again rather than having it mark its own diagnostics keeps the ids where they are made, in specarch. A specification that names no folder for a target has chosen not to have that output, as for a document.
 
+### ADR-087: extract swift reads a code-facts dump that SwiftSyntax wrote, and turns its facts into screens, models, routes, clients and settings in Go
+
+Status: accepted, 2026-10-09.
+
+Context: Step 17 of docs/extraction.md reads Swift, the first language
+read by a parser that does not run inside specarch (ADR-075). Swift
+is read by SwiftSyntax, a Swift package, while specarch is one Go
+binary with no cgo. ADR-075 settles that a small program under
+readers/ runs the language's own parser and writes a committed
+code-facts dump, and that the rules of extract live in Go. What the
+dump holds, how its version is held to the release, and how the
+SwiftUI, SwiftData, Codable, Core Data, Vapor and Foundation idioms
+fit meta-model 0.1 were open. SwiftSyntax has no type checker;
+swiftc -dump-ast needs a full build and prints no stable format.
+In meta-model 0.1 a page needs a kind, a title, a route and a
+permission, a flow needs an actor and an event on every step whose
+action the page declares, an integer needs a width and a 64-bit
+one sent as a JSON number is refused unless bounded or carried as
+a string, a menu entry carries no citation, and an entity never
+refers to a schema.
+
+Decision: The dump is a JSON object: codeFacts 1, the language, the parser's
+name and version, the folder's path from the repository's root,
+the commit that last changed it, the files read with the places
+the parser could not read, and every fact as its kind, file, line,
+column and literal values, sorted by file, line and column. The
+facts are syntax, not elements: imports, type declarations with
+what they inherit and their attributes, properties, enum cases,
+functions with their parameters, the calls whose name the idiom
+table lists with their arguments and closures written as values
+(a literal, an interpolated string by its parts, a name, a type,
+a binding, a call, a closure by its statements), a few assignments
+and dictionary reads. readers/swift pins swift-syntax exactly
+(604.0.0, Apache-2.0) with Package.resolved committed;
+tools/code-facts/dump-swift.sh refuses a folder with changes not
+committed, lists its tracked Swift files and runs the reader. specarch
+pins the same version and refuses a dump another one made, one
+whose files are not the folder's tracked Swift files, and a stale
+one, as openDump refuses any dump. Property lists, build
+configuration files and Core Data models are data, read in Go from
+the same commit.
+
+In Go, a view a navigation call opens is a page, cited at its
+declaration and the call; each way a page opens another is a
+navigate action of the page; each tab is a menu entry. A SwiftData
+model is an entity, a Codable type a schema, a Codable enum of
+strings an enum, a Core Data entity an entity. Vapor's builders are
+followed from an Application parameter, a RouteCollection's boot
+under its registrations, and grouped and group with literal
+segments; a permission is read through the checks an
+implementation file names, as for Go (ADR-081). URLRequest and
+URLSession calls with a URL built from literal parts declare
+dependencies by host. Settings come from the code's reads of
+Info.plist and the environment by literal key and from Info.plist
+itself, its build-setting values from the .xcconfig files. Every
+guess is a question at its file and line, as the reader table of
+extract.yaml lists.
+
+Consequences: An iPhone or Mac app and a Vapor service are read from a committed
+dump; CI reads the dump and needs no Swift. Running the reader
+needs the Swift toolchain, and a SwiftSyntax upgrade is a release
+that makes every dump again. A client call is a dependency by
+host; joining a screen's call to the operation it calls, by method
+and path, needs a question that names a method and path, which
+meta-model 0.1's names (an operation's name) cannot carry, so it
+waits for a later step.
+
+**Insight:** The dump keeps one place for the rules. Writing elements in Swift would split extract's rules across two languages and two releases; facts of syntax are stable as long as the parser is, and pinning its version is what makes a dump repeatable: a newer SwiftSyntax may read the same source into other nodes. The dump is committed beside the code so that CI and a reader of the specification need no Swift toolchain, and it is stale once the folder changes, as a route table is. The idiom table lives in the reader because a dump of every call of a real app would be most of its source again; a name added to the table is a new reader release, and the parser version check holds the two together. A navigation call says which screen opens which, and the meta-model's navigate action (label, kind, target) says exactly that. A flow, the other element that links pages, is a task a person does across pages, with an actor and an event on every step that its page declares; the code gives neither, so each would be a must question on a guessed task, and the validator refuses a step whose event a question blocks. The action keeps the definition readable: the page shows its ways out, and a label the code does not give is one must question. A flow is written by someone who knows the task, from the actions. A screen has no route of its own in an app, so its route is in the must question with its kind; writing /book-list would be a guess. The title is the one literal navigationTitle because that is what the screen shows. The entity is read only where the bindings or a @Query name one SwiftData model, the one place the syntax ties a screen to a model; a draft struct a form binds is a schema and not an entity, so the page keeps its fields and asks for the entity. Swift's Int is as wide as the platform's word (64 bits on every 64-bit Apple platform, 32 on arm64_32), and the conventions require a concrete width; a 64-bit integer as a JSON number loses digits above 2^53 in JavaScript, which is why the validator refuses one unbounded. Writing int64 would hide both, so the format is a must question. A Float is 32 bits and the meta-model's numbers are doubles, a Decimal has no precision or scale, and Codable writes a Date as seconds since 2001 unless the coder is given a strategy: each is a question rather than a convenient type. A SwiftData or Core Data relation holds the related object, not a key, so its kind and key are asked; the primary key is asked because both frameworks identify a record by an identifier no property declares. Vapor follows the shape of extract go's routers (ADR-081): a builder is followed from where the framework hands it over, a group's literal segments are joined, and what the reader cannot place is a must question, never a route at a guessed path. Swift imports modules rather than files, so a check is matched by its function's name and the package names the module for the reader. Info.plist holds the values an app reads through Bundle, and the xcconfig files fill its build-setting references; the keys the system reads to describe the bundle and the entitlements are not settings the app reads, so they print a line and stay out. Every surface that is read fast gives a result early: an app's screens, menus and models show from one dump with no build and no simulator, and since each guess is a question at its line, a change someone asks for on seeing them is an answer to that question.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -6165,6 +6394,12 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-router-route-twice | command extract | system | red | a route table that lists the same method and path pair twice | extract router is run on the route table | it refuses the route table, naming the route listed twice, writes nothing and exits 1 |
 | extract-router-stale-table | command extract | system | red | a route table printed at the commit that added the router's routes, and a later commit that adds a file to the router's folder | extract router is run on the route table | it refuses the route table as stale, naming both commits, writes nothing and exits 1 |
 | extract-router-writes-tree | command extract | system | golden | a repository whose first commit holds a router's folder and whose second holds the route table printed from it, naming the first; the table has two methods on one path, a path with a parameter, a route with no permission, a HEAD route, a path with a wildcard, a handler serving two routes and a permission that is not a permission name | extract router is run on the route table | it writes one operation per held method and path pair with its path parameters and permission, one permission per name a route checks, a question for each operation's summary and responses, each path's parameter values, the permissions' descriptions and the roles that grant them, every route without a usable permission, names the commit, counts the routes, prints a line for the HEAD route, the wildcard, the permission name and the shared handler, a could question citing the route for each but the permission name, which a must question asks for, and exits 0 |
+| extract-swift-clients-settings | command extract | system | golden | a code-facts dump of a client that calls URLSession with a URL whose one interpolated value fills a path segment, a query interpolated, a URLRequest with a literal method, one with a method that is not a literal, one with a computed URL, a path with no host and a second host, a JSON decoder that converts from snake_case, and reads of Info.plist by literal and computed keys and of the environment; an Info.plist with the bundle's own keys, a string, a build-setting reference two .xcconfig files set differently, a boolean, a real and an array; a binary property list; and an entitlements file | extract swift is run on the dump | it writes a dependency per host with every call cited, the interpolated segment as {name} with a should question, and the settings the code reads and Info.plist holds with their types and defaults; asks a must question on each dependency's description and time limit, on what each setting is for, on the type of the setting no file gives and on whether the token is a secret; asks a should question on the query, the computed method, the computed URL, the path with no host, the computed key, the two build values and the settings no code reads; prints a line for the array, the bundle's keys, the entitlements, the binary list and the build setting Info.plist does not take; writes info.wireNames snake_case; and exits 0 |
+| extract-swift-models | command extract | system | golden | a code-facts dump of SwiftData models with integers of every width, a Float, a Decimal, optional data, a list of strings, a dictionary, a relation to another model, a transient, a computed and a static property, enums and a type of a package; Codable types whose CodingKeys give snake_case names, a name of their own and leave a property out, a Decodable type with no CodingKeys, a Codable enum with a raw value that is not snake_case and a Codable type declared inside another; a file with syntax the parser cannot read; and a Core Data model with two versions whose current one has a Float, a Decimal, a Transformable, a transient, defaults, a uniqueness constraint, a to-many relationship with its inverse and an entity named as a SwiftData model | extract swift is run on the dump | it writes each SwiftData model and each Core Data entity of the current version as an entity, each Codable type as a schema and each Codable enum of strings as an enum, every field with the width its Swift or Core Data type gives, and info.wireNames snake_case; asks a must question on each word-wide or 64-bit integer's format, each Float, each Decimal, each type it does not know, each primary key, naming what is unique, and each entity's relations; asks a should question on a CGFloat, on a Date with no ISO 8601 strategy and on the file it could not read in full; prints a line for the dictionary, the transient, the custom wire name, the property CodingKeys leave out, the schema an entity holds, the nested type, the enum value, the camelCase names on the wire, the default that is not a value, the entity named twice and the older version; and exits 0 |
+| extract-swift-parser-version | command extract | system | red | a code-facts dump that names SwiftSyntax 603.0.2 as the parser that made it | extract swift is run on the dump | it refuses the dump, naming the version that made it and the one this release reads, writes nothing and exits 1 |
+| extract-swift-screens | command extract | system | golden | a code-facts dump of a SwiftUI app whose WindowGroup shows a view holding a TabView (a tab with a Label, a Tab with a title and a tab whose label is not a literal), a list view that queries a SwiftData model and opens a detail view through navigationDestination, a form through a sheet and one of two views through a fullScreenCover with a branch, a detail view whose controls bind properties of the model, a property of a property and two links with literal labels, a row view no navigation call opens that holds a link, a form bound to a draft struct and its own state with two navigation titles, and a file that imports SwiftUI and gives nothing | extract swift is run on the dump | it writes one page per view a navigation call opens, named after the view without View or Screen, with its literal title, the fields its controls bind, its entity where the bindings or the query name one SwiftData model, and a navigate action per way it opens another page, labelled where the link's label is a literal; writes each tab as a menu entry; asks a must question per page on its kind, route and what the source does not give, one on its permission, one on the labels the source does not give, one on the tab with no literal title and one on the row view no screen is found to hold; asks a should question on the destination a branch chooses; prints a line for the property of a property and for the schema the model holds, and names the file that gives nothing; and exits 0 |
+| extract-swift-stale-dump | command extract | system | red | a code-facts dump made at the commit that added a folder's first Swift file, and a later commit that adds a second Swift file to the folder | extract swift is run on the dump | it refuses the dump as stale, naming both commits, writes nothing and exits 1 |
+| extract-swift-vapor-routes | command extract | system | golden | a code-facts dump of a Vapor service whose routes function registers routes on the Application, on groups with literal segments and a group guarded by the check the implementation file names, under two such groups, and under a group whose check's permission is not a literal; with on and a method the meta-model lacks, the same route twice, a catch-all, a wildcard, a segment that is not a literal and a route behind a condition; a RouteCollection registered on the Application and on a group, with a group closure, a handler that decodes a list of a Content type and one that reads a parameter its path lacks; a RouteCollection nothing registers; and a function given a RoutesBuilder by a caller not followed | extract swift is run on the dump with the implementation file | it writes one operation per route with literal segments under a builder it follows, named after its handler or by its method and path, citing its registration and its handler, the permission the guarded group's check names, and the request body a handler decodes; asks a must question on each route's summary and responses, its parameters' values, whether the running system registers it and its permission where no one check gives it, on the route twice, the segment that is not a literal, the route behind a condition, the collection nothing registers, the builder not followed and each parameter read that the path lacks; prints a line for the catch-all, the wildcard, the method and each handler that serves more than one route; and exits 0 |
 | extract-usage-error | command extract | system | red | no source | extract is run without arguments | it prints how to use it and exits 2 |
 | extract-workflows-not-bpmn | command extract | system | red | a committed XML file that is a state chart, not BPMN 2.0 | extract workflows is run on it | it says the file is not a BPMN 2.0 XML file, writes nothing and exits 1 |
 | extract-workflows-reads-generated-bpmn | command extract | system | golden | a repository holding waiver.bpmn exactly as generate bpmn writes it in the case generate-bpmn: two approvals, the first escalating to the second after a day, and an operation step, with its diagram | extract workflows is run on the file | it writes workflow waiver with the description, the step names and kinds, the approvers, the deadlines and the escalation of the specification it was generated from, a question naming askWaiver for the trigger and grantWaiver for the operation step, reports that the file says it is generated and that the diagram is left out, and exits 0 |
@@ -6698,7 +6933,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-41 | enums Rule; decisions ADR-033; decisions ADR-070 | tests validate-views; tests validate-views-valid |
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064; decisions ADR-082 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-action-with; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
-| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081; decisions ADR-084 | tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-tables-seeds; tests extract-go-http-handlers; tests extract-go-routers; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-next-pages-router; tests extract-pages-nuxt-pages; tests extract-pages-nuxt-server; tests extract-pages-route-twice; tests extract-pages-router-guess; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read; tests validate-source-reading |
+| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081; decisions ADR-084; decisions ADR-087 | tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-tables-seeds; tests extract-go-http-handlers; tests extract-go-routers; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-next-pages-router; tests extract-pages-nuxt-pages; tests extract-pages-nuxt-server; tests extract-pages-route-twice; tests extract-pages-router-guess; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-swift-clients-settings; tests extract-swift-models; tests extract-swift-parser-version; tests extract-swift-screens; tests extract-swift-stale-dump; tests extract-swift-vapor-routes; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read; tests validate-source-reading |
 | SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-077 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-printed-parsed; tests merge-printed-parsed-grants; tests merge-source-differs; tests merge-tree-invalid; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests merge-workflows-joins-trigger; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046; decisions ADR-068 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-mapping-menu-entry; tests validate-owned-by-unknown |
 | SA-47 | enums Rule; decisions ADR-054 | tests document-techspec-open-workflow; tests validate-maker-checker; tests validate-workflow; tests validate-workflow-valid |

@@ -200,6 +200,25 @@ jobs:
           grep -F 'admin is granted EVERYTHING' "$RUNNER_TEMP/board-one/gaps.txt"
           grep -F 'The check RequireSession runs only when the setting NOTICE_BOARD_SESSIONS_ON is true' "$RUNNER_TEMP/board-one/gaps.txt"
           grep -A2 '^  boardDatabasePassword:$' "$RUNNER_TEMP/board-one/spec/deployment/configuration.yaml" | grep -q '^    secret: true$'
+      - name: The reading list extracts from the code-facts dumps of its Swift app and server the same twice, and validates
+        # The dumps are committed, so this step needs no Swift toolchain.
+        # The app gives six screens, a link labelled Reviews, its SwiftData
+        # models and the snake_case names its review's CodingKeys give;
+        # the server gives the permission its own check names on two
+        # routes, a route registered in a loop and a handler that reads a
+        # parameter its path does not have.
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          go build -o "$RUNNER_TEMP/bin/specarch" ./cmd/specarch
+          for run in one two; do SPECARCH="$RUNNER_TEMP/bin/specarch" examples/reading-list/extract.sh "$RUNNER_TEMP/shelf-$run" || exit 1; done
+          diff -r "$RUNNER_TEMP/shelf-one" "$RUNNER_TEMP/shelf-two"
+          grep -q ': 0 errors,' "$RUNNER_TEMP/shelf-one/validate.txt"
+          grep -q '^wrote 6 pages, 2 entities, 2 schemas' "$RUNNER_TEMP/shelf-one/app.txt"
+          grep -qF -- '- {label: Reviews, kind: navigate, target: review-list}' "$RUNNER_TEMP/shelf-one/spec/design/pages.yaml"
+          test "$(grep -c 'permission: books.write' "$RUNNER_TEMP/shelf-one/spec/design/paths.yaml")" -eq 2
+          grep -q '^  wireNames: snake_case$' "$RUNNER_TEMP/shelf-one/spec/specarch.yaml"
+          grep -qF 'registers a route in a loop' "$RUNNER_TEMP/shelf-one/gaps.txt"
+          grep -qF 'reads the path parameter reviewID' "$RUNNER_TEMP/shelf-one/gaps.txt"
       - name: Generated documents are current
         # The first loop is the one CONTRIBUTING.md gives, over every
         # specification at once. examples/lending-desk is a partial

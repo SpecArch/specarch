@@ -1,0 +1,92 @@
+pages:
+  # specarch-problem: warning: test_golden_missing: page about has no golden scenario; add one under tests, for example about-succeeds: { page: about, scenario: golden, given: "any caller", when: "the page about is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/about]
+  # specarch-problem: warning: test_red_missing: page about has no red scenario; add one under tests, for example about-refused: { page: about, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/about]
+  about:
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Others.swift:19', says: 'struct AboutView: View, which TabView at app/HomeView.swift:7 opens.'}
+  # specarch-problem: warning: test_golden_missing: page history has no golden scenario; add one under tests, for example history-succeeds: { page: history, scenario: golden, given: "any caller", when: "the page history is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/history]
+  # specarch-problem: warning: test_red_missing: page history has no red scenario; add one under tests, for example history-refused: { page: history, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/history]
+  history:
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Others.swift:3', says: 'struct HistoryView: View, which NavigationLink at app/ItemDetailView.swift:12 opens.'}
+  # specarch-problem: warning: test_golden_missing: page home has no golden scenario; add one under tests, for example home-succeeds: { page: home, scenario: golden, given: "any caller", when: "the page home is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/home]
+  # specarch-problem: warning: test_red_missing: page home has no red scenario; add one under tests, for example home-refused: { page: home, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/home]
+  home:
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/HomeView.swift:3', says: 'struct HomeView: View, which WindowGroup at app/ShelfApp.swift:6 opens.'}
+  # specarch-problem: warning: test_golden_missing: page item-detail has no golden scenario; add one under tests, for example item-detail-succeeds: { page: item-detail, scenario: golden, given: "any caller", when: "the page item-detail is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/item-detail]
+  # specarch-problem: warning: test_red_missing: page item-detail has no red scenario; add one under tests, for example item-detail-refused: { page: item-detail, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/item-detail]
+  item-detail:
+    entity: Item
+    fields: [name, lent, bought]
+    actions:
+      - {label: History, kind: navigate, target: history}
+      - {label: Notes, kind: navigate, target: notes}
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/ItemDetailView.swift:3', says: 'struct ItemDetailView: View, which navigationDestination at app/ShelfListView.swift:16 opens.'}
+      - {source: code, clause: 'app/ItemDetailView.swift:8', says: TextField is bound to $item.name.}
+      - {source: code, clause: 'app/ItemDetailView.swift:9', says: Toggle is bound to $item.lent.}
+      - {source: code, clause: 'app/ItemDetailView.swift:10', says: DatePicker is bound to $item.bought.}
+      - {source: code, clause: 'app/ItemDetailView.swift:12', says: 'ItemDetailView opens HistoryView with NavigationLink, labelled "History".'}
+      - {source: code, clause: 'app/ItemDetailView.swift:15', says: 'ItemDetailView opens NotesView with NavigationLink, labelled "Notes".'}
+  # specarch-problem: warning: test_golden_missing: page item-form has no golden scenario; add one under tests, for example item-form-succeeds: { page: item-form, scenario: golden, given: "any caller", when: "the page item-form is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/item-form]
+  # specarch-problem: warning: test_red_missing: page item-form has no red scenario; add one under tests, for example item-form-refused: { page: item-form, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/item-form]
+  item-form:
+    fields: [name, code, kind]
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/ItemFormView.swift:3', says: 'struct ItemFormView: View, which sheet at app/ShelfListView.swift:19 opens.'}
+      - {source: code, clause: 'app/ItemFormView.swift:10', says: TextField is bound to $draft.name.}
+      - {source: code, clause: 'app/ItemFormView.swift:11', says: SecureField is bound to $code.}
+      - {source: code, clause: 'app/ItemFormView.swift:12', says: Picker is bound to $draft.kind.}
+      - {source: code, clause: 'app/ItemFormView.swift:16', says: Its navigation title is "New item".}
+      - {source: code, clause: 'app/ItemFormView.swift:17', says: Its navigation title is "Add".}
+  # specarch-problem: warning: test_golden_missing: page notes has no golden scenario; add one under tests, for example notes-succeeds: { page: notes, scenario: golden, given: "any caller", when: "the page notes is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/notes]
+  # specarch-problem: warning: test_red_missing: page notes has no red scenario; add one under tests, for example notes-refused: { page: notes, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/notes]
+  notes:
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Others.swift:7', says: 'struct NotesView: View, which NavigationLink at app/ItemDetailView.swift:15 opens.'}
+  # specarch-problem: warning: test_golden_missing: page search has no golden scenario; add one under tests, for example search-succeeds: { page: search, scenario: golden, given: "any caller", when: "the page search is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/search]
+  # specarch-problem: warning: test_red_missing: page search has no red scenario; add one under tests, for example search-refused: { page: search, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/search]
+  search:
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Others.swift:23', says: 'struct SearchScreen: View, which TabView at app/HomeView.swift:7 opens.'}
+  # specarch-problem: warning: test_golden_missing: page share has no golden scenario; add one under tests, for example share-succeeds: { page: share, scenario: golden, given: "any caller", when: "the page share is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/share]
+  # specarch-problem: warning: test_red_missing: page share has no red scenario; add one under tests, for example share-refused: { page: share, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/share]
+  share:
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/Others.swift:11', says: 'struct ShareView: View, which NavigationLink at app/ItemDetailView.swift:30 opens.'}
+  # specarch-problem: warning: test_golden_missing: page shelf-list has no golden scenario; add one under tests, for example shelf-list-succeeds: { page: shelf-list, scenario: golden, given: "any caller", when: "the page shelf-list is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/shelf-list]
+  # specarch-problem: warning: test_red_missing: page shelf-list has no red scenario; add one under tests, for example shelf-list-refused: { page: shelf-list, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/shelf-list]
+  shelf-list:
+    title: Shelf
+    entity: Item
+    actions:
+      - {kind: navigate, target: item-detail}
+      - {kind: navigate, target: item-form}
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/ShelfListView.swift:4', says: 'struct ShelfListView: View, which TabView at app/HomeView.swift:7 opens.'}
+      - {source: code, clause: 'app/ShelfListView.swift:15', says: Its navigation title is "Shelf".}
+      - {source: code, clause: 'app/ShelfListView.swift:5', says: It queries Item with @Query.}
+      - {source: code, clause: 'app/ShelfListView.swift:16', says: 'ShelfListView opens ItemDetailView with navigationDestination(for: Item.self).'}
+      - {source: code, clause: 'app/ShelfListView.swift:19', says: ShelfListView opens ItemFormView with sheet.}
+menus:
+  # specarch-problem: warning: origin_missing: shelfList carries no origin, and the specification tracks origin; add origin: stated, inferred or decided [origin_missing@design/pages.yaml#/menus/shelfList]
+  shelfList:
+    title: Shelf
+    page: shelf-list
+  # specarch-problem: warning: origin_missing: search carries no origin, and the specification tracks origin; add origin: stated, inferred or decided [origin_missing@design/pages.yaml#/menus/search]
+  search:
+    title: Search
+    page: search
+  # specarch-problem: warning: origin_missing: about carries no origin, and the specification tracks origin; add origin: stated, inferred or decided [origin_missing@design/pages.yaml#/menus/about]
+  about:
+    page: about

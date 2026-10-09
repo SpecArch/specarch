@@ -83,11 +83,17 @@ struct FieldShape {
     }
 }
 
+/// A ui target's framework when it names none, by its platform, as the
+/// implementation schema gives it.
+let defaultFramework = ["web": "plain-javascript", "iphone": "swiftui"]
+
 extension Checker {
     /// The stacks of an implementation file: its language, named by its file
-    /// name, and the dialect of every target that has one (a target named
-    /// sql has postgresql when it names none), each with the node and the
-    /// path a problem with it is reported at.
+    /// name, the dialect of every target that has one (a target named sql
+    /// has postgresql when it names none), and the framework of every ui
+    /// target (plain-javascript on platform web and swiftui on platform
+    /// iphone when it names none), each with the node and the path a
+    /// problem with it is reported at.
     func implementationStacks() -> (stacks: [String], at: [String: YNode?], ptr: [String: String]) {
         var stacks: [String] = []
         var at: [String: YNode?] = [:]
@@ -108,6 +114,19 @@ extension Checker {
             stacks.append(dialect)
             at[dialect] = node
             ptr[dialect] = d != nil ? pointer("targets", t.key.value, "dialect") : pointer("targets", t.key.value)
+        }
+        for t in pairs(root.child("targets")) {
+            let f = t.value.child("framework")
+            var framework = str(f)
+            var node = f
+            var p = pointer("targets", t.key.value, "framework")
+            if framework.isEmpty {
+                framework = defaultFramework[str(t.value.child("platform"))] ?? ""
+                node = t.value.child("platform"); p = pointer("targets", t.key.value, "platform")
+            }
+            if framework.isEmpty || at[framework] != nil { continue }
+            stacks.append(framework)
+            at[framework] = node; ptr[framework] = p
         }
         return (stacks, at, ptr)
     }

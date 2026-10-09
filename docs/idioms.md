@@ -34,9 +34,10 @@ and says how one stack carries what the design says. It has three parts:
    guidance where it is not. A guidance statement is for the agent or
    person writing the code; a checkable one is enforced.
 2. **The renderings**: per stack, the libraries, the settings, the derived
-   names and the code shape that carry the contract. A stack is a language
-   or a dialect: `go`, `swift`, `dart`, or `sql` with one rendering per
-   dialect.
+   names and the code shape that carry the contract. A stack is a language,
+   a dialect or a UI framework: `go`, `swift`, `dart`, `sql` with one
+   rendering per dialect, or `nextjs-carbon` for the screens of a web front
+   end.
 3. **The tests**: the design-test cases the idiom implies for every element
    it applies to, derived the way `docs/test-generation.md` derives cases
    from the design.
@@ -112,7 +113,7 @@ The keys:
 |---|---|
 | `name` | kebab-case; the key an implementation file and an override use |
 | `version` | the idiom's own version, semantic; it moves when a contract statement, a part or a test changes |
-| `concern` | one of a closed list: `type-rendering`, `request-validation`, `error-response`, `list-operations`, `authorization`, `pii-logging`, `audit-fields`, `soft-delete`, `identifiers`, `transactions`, `retries`, `idempotency`, `configuration`, `secrets`, `background-jobs`, `migrations`, `encryption`, `health`, `rate-limit`, `other` |
+| `concern` | one of a closed list: `type-rendering`, `request-validation`, `error-response`, `list-operations`, `authorization`, `pii-logging`, `audit-fields`, `soft-delete`, `identifiers`, `transactions`, `retries`, `idempotency`, `configuration`, `secrets`, `background-jobs`, `migrations`, `encryption`, `health`, `rate-limit`, `ui-components`, `other` |
 | `stacks` | the stacks the idiom renders; `any` for one that is stack-neutral |
 | `reads` | the design keywords it applies to; an idiom applies only to a specification that uses them, so an idiom for `listOf` is silent in a specification without one |
 | `contract` | statements keyed by id, each with `statement`, and `check`: `schema` (a shape the implementation file or an override must carry), `name` (a derivation rule for names, as the conventions derive table names), `document` (something the generated document or code must contain, checked by the generator's `--check`), `test` (a derived test case), or `guidance` (no check) |
@@ -171,9 +172,15 @@ Idioms table, with each override's `why` as an Insight.
 ## Stacks and type rows
 
 An implementation file's stacks are its language, from its file name
-(`<name>.go.specarch-implementation.yaml` is `go`), and the `dialect` of each
-of its targets: `postgresql`, `sqlserver`, `oracle` or `mariadb`; a target
-named `sql` without a dialect is `postgresql`. An idiom applies to the file
+(`<name>.go.specarch-implementation.yaml` is `go`), the `dialect` of each
+of its targets, and the `framework` of each target that draws screens. A
+dialect is `postgresql`, `sqlserver`, `oracle` or `mariadb`, and a target
+named `sql` without one is `postgresql`. A framework is, for instance,
+`nextjs-carbon`; a target that names none has `plain-javascript` on
+platform web and `swiftui` on platform iphone. A UI framework is to the
+screens what a dialect is to SQL: it, not the language, decides the
+components, so a TypeScript file on another framework does not inherit
+Carbon's. An idiom applies to the file
 when it renders one of those stacks, or `any`, and the specification uses
 one of the keywords under its `reads`, as a section (`entities`) or as a key
 anywhere inside one (`listOf` on an operation). An override may render only those stacks and
@@ -238,7 +245,7 @@ the contract or the tests may have moved.
 | `idiom_unknown` | an `idioms` key or an `overrides.idiom` names no shipped or project idiom |
 | `idiom_part_unknown` | an override names a part the idiom does not have |
 | `idiom_override_reason` | an override or an exclusion without `why` |
-| `idiom_stack` | an override renders a stack that is not the implementation file's |
+| `idiom_stack` | an override renders a stack that is not the implementation file's: its language, a target's dialect or a ui target's framework |
 | `idiom_version_behind` | the override's `version` is older than the shipped one (warning) |
 | `idiom_contract` | a contract statement with a `schema`, `name` or `document` check fails for an element the idiom applies to: a field type with no row in the type-rendering table for the target's dialect, a `listOf` without a page-size maximum, an entity marked `audited` whose generated table lacks the audit columns |
 | `test_case_missing` | the cases under `tests` join the derived cases of the subject, with the same ranking |
@@ -281,6 +288,32 @@ rule, and `health-endpoint`, are guidance only, or nearly; the operation a
 health check answers cannot be told from its design alone. They are kept, because an
 agent writing a service needs the sentence as much as a generator needs the
 table, and the document marks them as what they are.
+
+## The screens: ui-components
+
+`ui-components` says what draws each page kind and field type of a web
+front end on Next.js's app router and IBM's Carbon design system, the
+stack `nextjs-carbon`; `docs/ui-nextjs-carbon.md` is the generator that
+reads it. It applies to a file with that framework whose specification
+has `pages`. Its parts are one per thing drawn: `application` (the
+packages every screen imports, and where the components that read the
+schemas live), `list-page`, `form-page`, `view-page`, `task-page`, a part
+per field type (`text-field`, `text-area-field`, `password-field`,
+`number-field`, `date-field`, `select-field`, `checkbox-field`,
+`lookup-field`), `confirm-dialog`, `notification` and `menu`. Each names,
+under `names`, the component, the schema type it takes, the Carbon
+components it is built on and the keys of its schema; `names` stays a flat
+map of strings, a key per role. The shipped rendering draws with plain
+Carbon, so an example builds with public packages only. A project that
+draws through a library of its own overrides the parts it changes, naming
+its package, components and keys, and records that library with SPDX's
+`LicenseRef-<name>` when its own organisation writes it. A project whose
+schema shape `names` cannot say installs its own
+`specarch-gen-ui-typescript` ahead of the shipped one.
+
+| Contract, checked | Contract, guidance |
+|---|---|
+| a page opens only to someone with its permission, and a menu entry shows only to someone with the permission of the page it opens (`test`); a page's schema file is data only, typed with `satisfies`; every text is a string key with an entry; a field is checked by its property's JSON Schema keywords (`document`) | no form or state library in the generated code; a project's own stays inside its library |
 
 ## Implementation items
 

@@ -26,7 +26,8 @@ steps. In short:
    for: sign-in first, then lists, forms, the rest, and the comparison
    with screens built by hand.
 
-Questions Q1 to Q10 at the end are the owner's.
+Questions Q1 to Q10 at the end were the owner's, who answered each as
+recommended on 2026-10-09 (ADR-051). Step 1 is built.
 
 ## Where SpecArch stands
 
@@ -203,7 +204,8 @@ found, each for the owner (Q10):
 
 Each is where the request differs from `docs/ui-design.md`, the idiom
 schema, the implementation schema, an earlier ADR or the repository's
-rules, or a choice the plan cannot settle alone.
+rules, or a choice the plan cannot settle alone. The owner answered every
+one as recommended on 2026-10-09.
 
 | | Question | Recommendation |
 |---|---|---|
@@ -218,6 +220,22 @@ rules, or a choice the plan cannot settle alone.
 | Q9 | `generate --check` compares files byte for byte. The request wants pages built by hand compared as data, with the difference per page. | A step of its own, last. The generated schema is one object literal in a subset of TypeScript that is also JSON5; the check parses both files in that subset and compares the values. A hand-built file outside the subset is reported as not comparable, never as equal. |
 | Q10 | The scan's four findings above: libvips (LGPL), two data packages under licences that are not OSI-approved, an advisory with no fix, and Carbon's telemetry. | Remove `sharp` with the override. Accept `caniuse-lite` and `language-subtag-registry` as data read at build time, as container base-image packages are accepted, and record them under `licence_exceptions`. Accept the `braces` advisory for the lint only, with a review date, and look again when step 2 pins its versions. Keep install scripts off, and set `IBM_TELEMETRY_DISABLED=true` in CI as well. |
 
+What Q10's answer accepts is recorded where the dependency scan reads it,
+`.dependency-allowlist.json`, so the commit of step 2 that brings the
+lock file passes the scan with the reasons on record:
+
+| Accepted | Under | Why, and until when |
+|---|---|---|
+| `caniuse-lite`, CC-BY-4.0 | `licence_exceptions` | browser data Next.js reads while it builds; never shipped in a page, as a container base image's packages are accepted |
+| `language-subtag-registry`, CC0-1.0 | `licence_exceptions` | a list the accessibility lint reads; never shipped in a page |
+| `braces` 3.0.3, GHSA-vfj7-8cjw-p6xm | `vulnerabilities` | no fixed version; reached only through the lint, which reads the project's own patterns, never a visitor's; review by 2027-04-09, or when a fixed release exists, and again when step 2 pins its versions |
+
+`sharp` and its LGPL `@img/sharp-libvips-*` are not accepted: step 2's
+`pnpm-workspace.yaml` removes them with `overrides: { sharp: "-" }`. The
+packages the shipped `ui-components` idiom names are under its
+`application` part's `libraries`, at the versions checked; step 2 pins the
+newest then in the example's implementation file, with its scan.
+
 ## Building the generator
 
 Each step is a work item of its own: it changes the specification of
@@ -225,7 +243,7 @@ Each step is a work item of its own: it changes the specification of
 and keeps `docs/`, the history and both validator builds current. Step 1
 needs Q1, Q4 and Q5; step 2 needs Q2, Q3, Q6, Q7 and Q10.
 
-1. **The `ui-components` concern and the shipped idiom.** `ui-components`
+1. **Built: the `ui-components` concern and the shipped idiom.** `ui-components`
    joins the concern list of the idiom schema; a `ui` target's framework
    counts as a stack of its file (Q1), in both validator builds and in
    `specarch idioms`. The shipped `idioms/ui-components/ui-components.specarch-idiom.yaml`

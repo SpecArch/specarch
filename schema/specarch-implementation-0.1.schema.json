@@ -317,7 +317,7 @@
           "minLength": 1
         },
         "licence": {
-          "description": "SPDX licence expression. Must be OSI-approved.",
+          "description": "SPDX licence expression. A third-party library's must be OSI-approved. A library the project's own organisation writes is not a third-party dependency and is recorded with SPDX's form for a licence not on its list, LicenseRef-<name>, such as LicenseRef-acme-screens.",
           "type": "string",
           "pattern": "^[A-Za-z0-9.+-]+( (AND|OR) [A-Za-z0-9.+-]+)*$"
         },
@@ -467,7 +467,7 @@
           ]
         },
         "framework": {
-          "description": "For the ui target: the component library or UI framework. The default for platform web is plain-javascript: native ES modules in the browser, no package install, no bundler or build step, every third-party library a pinned file committed beside the generated code, and pages and components that talk through one small generated event bus (event names declared once as UPPERCASE constants with their payload shape, subscriptions registered where a component is created, no wildcard or computed names, an optional debug log of every event). For platform iphone the default is swiftui.",
+          "description": "For the ui target: the component library or UI framework. The default for platform web is plain-javascript: native ES modules in the browser, no package install, no bundler or build step, every third-party library a pinned file committed beside the generated code, and pages and components that talk through one small generated event bus (event names declared once as UPPERCASE constants with their payload shape, subscriptions registered where a component is created, no wildcard or computed names, an optional debug log of every event). For platform iphone the default is swiftui. The framework, given or by default, is also a stack of the implementation file for its idioms, as a dialect is: the ui-components idiom renders nextjs-carbon, Next.js's app router drawn with IBM's Carbon, where a page's events are navigation in its page.tsx and no event bus is written.",
           "type": "string",
           "minLength": 1
         },

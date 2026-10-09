@@ -5595,7 +5595,7 @@ let implementationSchemaJSON = #"""
           "minLength": 1
         },
         "licence": {
-          "description": "SPDX licence expression. Must be OSI-approved.",
+          "description": "SPDX licence expression. A third-party library's must be OSI-approved. A library the project's own organisation writes is not a third-party dependency and is recorded with SPDX's form for a licence not on its list, LicenseRef-<name>, such as LicenseRef-acme-screens.",
           "type": "string",
           "pattern": "^[A-Za-z0-9.+-]+( (AND|OR) [A-Za-z0-9.+-]+)*$"
         },
@@ -5745,7 +5745,7 @@ let implementationSchemaJSON = #"""
           ]
         },
         "framework": {
-          "description": "For the ui target: the component library or UI framework. The default for platform web is plain-javascript: native ES modules in the browser, no package install, no bundler or build step, every third-party library a pinned file committed beside the generated code, and pages and components that talk through one small generated event bus (event names declared once as UPPERCASE constants with their payload shape, subscriptions registered where a component is created, no wildcard or computed names, an optional debug log of every event). For platform iphone the default is swiftui.",
+          "description": "For the ui target: the component library or UI framework. The default for platform web is plain-javascript: native ES modules in the browser, no package install, no bundler or build step, every third-party library a pinned file committed beside the generated code, and pages and components that talk through one small generated event bus (event names declared once as UPPERCASE constants with their payload shape, subscriptions registered where a component is created, no wildcard or computed names, an optional debug log of every event). For platform iphone the default is swiftui. The framework, given or by default, is also a stack of the implementation file for its idioms, as a dialect is: the ui-components idiom renders nextjs-carbon, Next.js's app router drawn with IBM's Carbon, where a page's events are navigation in its page.tsx and no event bus is written.",
           "type": "string",
           "minLength": 1
         },
@@ -7165,11 +7165,12 @@ let idiomSchemaJSON = #"""
         "encryption",
         "health",
         "rate-limit",
+        "ui-components",
         "other"
       ]
     },
     "stacks": {
-      "description": "The stacks the idiom renders: a language such as go, swift or dart, a SQL dialect such as postgresql, sqlserver, oracle or mariadb, or any for one that is stack-neutral.",
+      "description": "The stacks the idiom renders: a language such as go, swift or dart, a SQL dialect such as postgresql, sqlserver, oracle or mariadb, a UI framework such as plain-javascript, nextjs-carbon or swiftui, or any for one that is stack-neutral.",
       "type": "array",
       "items": {
         "type": "string",
@@ -8490,5 +8491,155 @@ parts:
           carried as a string is read as a BigInt.
         cites:
           - { source: ieee-754, says: "A binary64 value has a 53-bit significand, so integers above 2^53 and most decimal fractions are not exact." }
+"""#),
+    ("idioms/ui-components/ui-components.specarch-idiom.yaml", #"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: ui-components
+version: 1.0.0
+concern: ui-components
+stacks: [nextjs-carbon]
+reads: [pages]
+description: |
+  What draws each page kind and each field type of a web front end on
+  Next.js's app router and IBM's Carbon design system. The design says what
+  a page holds and how it behaves (pages, menus); this idiom names, per
+  thing drawn, the component, where it is imported from, the schema type it
+  takes and the keys of that schema, so a generated page is data handed to
+  a component. The shipped rendering draws with plain Carbon, through thin
+  components the generator writes once per application under its screens
+  folder. A project that draws through a library of its own overrides the
+  parts, naming its package, its components and the keys its schemas use.
+why: |
+  A screen built by hand and a generated one look and work alike only when
+  both are drawn by the same components. Naming them in one idiom keeps
+  the components out of the design, lets a project swap in its own library
+  part by part with the reason, and leaves the generator one place to read.
+
+contract:
+  guard:
+    statement: A page opens only to someone who holds its permission, and shows its failed state to anyone else without calling its operation.
+    check: test
+  menu:
+    statement: A menu entry is shown only to someone who holds the permission of the page it opens, read from the same permission as the page's guard.
+    check: test
+  schema-data:
+    statement: A page's schema file holds data only, one object literal typed with satisfies by its part's schemaType; a behaviour data cannot say is a hook imported from a file the generator never writes.
+    check: document
+  strings:
+    statement: Every text a page shows is a string key with an entry in the strings file.
+    check: document
+  validation:
+    statement: A field is checked by the JSON Schema keywords of its property, as the specification writes them, before the request is sent.
+    check: document
+  no-form-library:
+    statement: The generated code adds no form or state library; a project whose components use one keeps it inside its own library, behind its override.
+    check: guidance
+
+parts:
+  application:
+    description: The packages every generated screen imports, and where the components that read the schemas live.
+    stack:
+      nextjs-carbon:
+        libraries:
+          next: { version: 16.4.0, licence: MIT, purpose: "the app router, server routes and the build" }
+          react: { version: 19.3.0, licence: MIT, purpose: rendering }
+          react-dom: { version: 19.3.0, licence: MIT, purpose: rendering }
+          "@carbon/react": { version: 1.118.0, licence: Apache-2.0, purpose: the components }
+          "@carbon/styles": { version: 1.117.0, licence: Apache-2.0, purpose: the styles }
+          "@carbon/icons-react": { version: 11.90.0, licence: Apache-2.0, purpose: icons }
+        names: { components: "@/screens", carbon: "@carbon/react" }
+        code: |
+          The generator writes the components that read the schemas once per
+          application, under screens/ in the target's output, built on
+          @carbon/react only, and imports them as @/screens, the path alias
+          a Next.js TypeScript project maps to its root. The versions are
+          the ones checked; the example's package.json pins the newest at
+          the time and the implementation file records them.
+  list-page:
+    description: A page of kind list.
+    stack:
+      nextjs-carbon:
+        names: { component: ListPage, schemaType: ListPageSchema, carbonTable: DataTable, carbonToolbar: TableToolbar, carbonSearch: TableToolbarSearch, carbonPagination: Pagination, title: title, source: source, columns: columns, filters: filters, actions: actions, rowActions: rowActions, pageSize: pageSize, empty: empty }
+        code: |
+          The rows of source in a DataTable, the search and the filters in
+          its TableToolbar, the page under it in Pagination, the page size
+          from listOf. columns are the page's columns in order, each with
+          its title key; actions and rowActions carry their confirmation
+          and permission.
+  form-page:
+    description: A page of kind form.
+    stack:
+      nextjs-carbon:
+        names: { component: FormPage, schemaType: FormPageSchema, carbonForm: Form, carbonSection: FormGroup, carbonSubmit: Button, title: title, source: source, submit: submit, sections: sections, fields: fields }
+  view-page:
+    description: A page of kind view, the form's sections read-only.
+    stack:
+      nextjs-carbon:
+        names: { component: ViewPage, schemaType: ViewPageSchema, carbonList: StructuredListWrapper, carbonRow: StructuredListRow, title: title, source: source, sections: sections, fields: fields }
+  task-page:
+    description: A form that submits to an operation without loading a record, such as sign-in.
+    stack:
+      nextjs-carbon:
+        names: { component: TaskPage, schemaType: TaskPageSchema, carbonForm: Form, carbonSubmit: Button, carbonError: InlineNotification, title: title, submit: submit, fields: fields }
+  text-field:
+    description: A field of type string with no format the other field parts take.
+    stack:
+      nextjs-carbon:
+        names: { type: text, schemaType: TextFieldSchema, carbon: TextInput, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, readOnly: readOnly }
+  text-area-field:
+    description: A field of type string wider than one line holds, a maxLength above 255 or none.
+    stack:
+      nextjs-carbon:
+        names: { type: textArea, schemaType: TextAreaFieldSchema, carbon: TextArea, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly }
+  password-field:
+    description: A field of format password, its rules shown under it.
+    stack:
+      nextjs-carbon:
+        names: { type: password, schemaType: PasswordFieldSchema, carbon: PasswordInput, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, rules: rules }
+  number-field:
+    description: A field of type integer or number.
+    stack:
+      nextjs-carbon:
+        names: { type: number, schemaType: NumberFieldSchema, carbon: NumberInput, name: name, label: label, required: required, minimum: min, maximum: max, step: step, readOnly: readOnly }
+  date-field:
+    description: A field of format date.
+    stack:
+      nextjs-carbon:
+        names: { type: date, schemaType: DateFieldSchema, carbon: DatePicker, carbonInput: DatePickerInput, name: name, label: label, required: required, readOnly: readOnly }
+  select-field:
+    description: A field whose values are an enum.
+    stack:
+      nextjs-carbon:
+        names: { type: select, schemaType: SelectFieldSchema, carbon: Select, carbonItem: SelectItem, name: name, label: label, required: required, options: options, readOnly: readOnly }
+  checkbox-field:
+    description: A field of type boolean.
+    stack:
+      nextjs-carbon:
+        names: { type: checkbox, schemaType: CheckboxFieldSchema, carbon: Checkbox, name: name, label: label, readOnly: readOnly }
+  lookup-field:
+    description: A field that holds the key of another entity's record, picked from a list an operation reads.
+    stack:
+      nextjs-carbon:
+        names: { type: lookup, schemaType: LookupFieldSchema, carbon: ComboBox, name: name, label: label, required: required, source: source, value: value, text: text, fills: fills, readOnly: readOnly }
+  confirm-dialog:
+    description: The confirmation an action asks for before it runs.
+    stack:
+      nextjs-carbon:
+        names: { component: ConfirmDialog, schemaType: ConfirmDialogSchema, carbon: Modal, title: title, body: body, confirm: confirm, cancel: cancel, danger: danger }
+  notification:
+    description: The message an event shows.
+    stack:
+      nextjs-carbon:
+        names: { component: Notice, schemaType: NoticeSchema, carbon: ToastNotification, kind: kind, title: title }
+  menu:
+    description: The application's menu, from menus.
+    stack:
+      nextjs-carbon:
+        names: { component: Menu, schemaType: MenuSchema, carbonNav: SideNav, carbonGroup: SideNavMenu, carbonLink: SideNavLink, items: items, title: title, route: route, permission: permission }
+
+tests:
+  - { case: page opened without its permission, scenario: red, then: "the page's failed state, and no call to its operation" }
+  - { case: menu seen without a page's permission, scenario: golden, then: no entry for that page }
 """#),
 ]

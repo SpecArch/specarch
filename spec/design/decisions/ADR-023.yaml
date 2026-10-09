@@ -16,8 +16,10 @@ decisions:
     decision: |
       The shipped idioms are files under idioms/, embedded in both builds.
       An implementation file's stacks are its language, from its file name,
-      and the dialect of each target that has one; a target named sql
-      without a dialect is postgresql. An idiom applies when it renders one
+      the dialect of each target that has one, and the framework of each
+      ui target; a target named sql without a dialect is postgresql, and a
+      ui target without a framework has plain-javascript on platform web
+      and swiftui on platform iphone. An idiom applies when it renders one
       of those stacks and the specification uses a keyword it reads, unless
       the file excludes it. A type row matches a field on its JSON type with
       null dropped, its format, whether it is an enum, its maxLength and its

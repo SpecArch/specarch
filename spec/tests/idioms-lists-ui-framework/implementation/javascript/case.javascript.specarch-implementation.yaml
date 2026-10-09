@@ -1,0 +1,6 @@
+specarchImplementation: "0.1"
+info: { title: Case in JavaScript, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: JavaScript, version: ES2024 } }
+targets:
+  ui: { output: ../../../web-plain, platform: web }

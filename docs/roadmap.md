@@ -102,7 +102,9 @@ difference. The rules and the pattern each target follows are in
    subscription registered where its component is created; no wildcard or
    computed event names; and an optional debug log of every event, so the
    flow can be followed. The specification's events stay neutral; the bus is
-   how the web implementation carries them. The design keywords a generator
+   how the plain JavaScript web implementation carries them. On Next.js,
+   which has a router and React's props, a page's events are navigation in
+   its `page.tsx` and no bus is written (`docs/ui-nextjs-carbon.md`). The design keywords a generator
    reads are built (`docs/ui-design.md`): page events and flows, states,
    sections, compact columns, the accessibility target and the theme. Built
    for the web: `specarch-gen-ui` writes list pages in plain JavaScript

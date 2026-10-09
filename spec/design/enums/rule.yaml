@@ -193,7 +193,7 @@ enums:
       idiom_unknown: "an implementation file's `idioms` key, or an override's `overrides.idiom`, names no shipped idiom and none of the project's, or an override names no file in the idioms folder"
       idiom_part_unknown: "an override names a part the idiom does not have, or defines a part it does not list under `overrides.parts`"
       idiom_override_reason: "an idiom is excluded, or overridden, without `why`"
-      idiom_stack: "an override renders a stack that is not the implementation file's: its language, the dialect of one of its targets, or `any`"
+      idiom_stack: "an override renders a stack that is not the implementation file's: its language, the dialect of one of its targets, the framework of one of its ui targets, or `any`"
       idiom_version_behind: "an override was copied from an older version of the shipped idiom and does not say it stays behind on purpose (a warning)"
       idiom_contract: "an override changes a shipped contract statement, or a field has no row in a type rendering for a stack of the implementation file"
       sensitivity_exposed: "a credential field that is not writeOnly can appear in a response; a personal field can appear in the response of a public operation (a warning)"

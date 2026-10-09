@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 295 design tests, 113 golden and 182 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 297 design tests, 114 golden and 183 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 291 |
+| system | 293 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -971,6 +971,14 @@ Scenario: golden; level: system; verifies SA-32.
 - When: idioms is run
 - Then: it prints the file's path and type-rendering as overridden by the file, copied from 1.2.0, replacing types, with the reason, and exits 0
 
+#### idioms-lists-ui-framework
+
+Scenario: golden; level: system; verifies SA-32.
+
+- Given: a specification with a list page and two implementation files: one in TypeScript whose ui target is platform web, framework nextjs-carbon, and one in JavaScript whose ui target is platform web and names no framework, so plain-javascript
+- When: idioms is run
+- Then: it lists ui-components 1.0.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and not for the JavaScript file, and exits 0
+
 #### idioms-usage-error
 
 Scenario: red; level: system; covers exit 2, usage error; verifies SA-32.
@@ -1526,6 +1534,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-32.
 - Given: an implementation file in Go with an Oracle sql target, which names an idiom SpecArch does not ship, excludes the project's own idiom without why, and overrides type-rendering with a file that has no why, lists an unknown part, defines a part it does not list, renders swift, changes a shipped contract statement and was copied from an older version; a decimal field is wider than Oracle holds, and a stray file sits in the idioms folder
 - When: validate is run
 - Then: it reports idiom_unknown, idiom_override_reason, idiom_part_unknown, idiom_stack, idiom_contract on the statement and on the decimal's missing Oracle row, idiom_version_behind as a warning, and the stray file under layout, and exits 1
+
+#### validate-idiom-stack-framework
+
+Scenario: red; level: system; covers exit 1; verifies SA-32.
+
+- Given: an implementation file in TypeScript whose ui target is platform web, framework plain-javascript, and whose override of ui-components renders its list-page part for nextjs-carbon, recording the project's own library as LicenseRef-acme-screens
+- When: validate is run
+- Then: it reports idiom_stack at the nextjs-carbon rendering, naming the file's stacks any, plain-javascript and typescript, and exits 1; the project's own licence is not reported
 
 #### validate-implements
 
@@ -2427,7 +2443,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-161 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+162 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2534,6 +2550,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-32 | acceptance 2 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 3 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 4 | golden | SA-32 names no harm |
+| requirement SA-32 | acceptance 5 | golden | SA-32 names no harm |
 | requirement SA-11 | acceptance 1 | golden | SA-11 names no harm |
 | requirement SA-11 | acceptance 2 | golden | SA-11 names no harm |
 | requirement SA-12 | acceptance 1 | golden | SA-12 names no harm |

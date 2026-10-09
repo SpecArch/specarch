@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |+
+  implementation/typescript/idioms/ui-components.specarch-idiom.yaml:11: error: /parts/list-page/stack/nextjs-carbon: idiom_stack: nextjs-carbon is not a stack of the implementation file; it renders any, plain-javascript, typescript

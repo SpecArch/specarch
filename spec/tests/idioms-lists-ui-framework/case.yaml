@@ -1,0 +1,14 @@
+arguments: [idioms, .]
+exitStatus: 0
+standardOutput: |+
+  implementation/javascript/case.javascript.specarch-implementation.yaml
+    identifiers 1.1.0: shipped
+    paginated-list 1.1.0: shipped
+    request-validation 1.1.0: shipped
+    type-rendering 1.2.0: shipped
+  implementation/typescript/case.typescript.specarch-implementation.yaml
+    identifiers 1.1.0: shipped
+    paginated-list 1.1.0: shipped
+    request-validation 1.1.0: shipped
+    type-rendering 1.2.0: shipped
+    ui-components 1.0.0: shipped

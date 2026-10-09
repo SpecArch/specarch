@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an implementation file in TypeScript whose ui target is platform web, framework plain-javascript, and whose override of ui-components renders its list-page part for nextjs-carbon, recording the project's own library as LicenseRef-acme-screens"
+when: "validate is run"
+then: "it reports idiom_stack at the nextjs-carbon rendering, naming the file's stacks any, plain-javascript and typescript, and exits 1; the project's own licence is not reported"
+verifies: [SA-32]

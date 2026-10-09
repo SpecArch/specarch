@@ -61,9 +61,11 @@ func ShippedIdioms() map[string]Idiom {
 }
 
 // implementationStacks are the stacks of an implementation file: its
-// language, named by its file name, and the dialect of every target that
-// has one (a target named sql has postgresql when it names none). at holds
-// the node a problem with each stack is reported at.
+// language, named by its file name, the dialect of every target that has
+// one (a target named sql has postgresql when it names none), and the
+// framework of every ui target (plain-javascript on platform web and
+// swiftui on platform iphone when it names none). at holds the node a
+// problem with each stack is reported at.
 func (c *checker) implementationStacks() (stacks []string, at map[string]*yaml.Node, ptr map[string]string) {
 	at, ptr = map[string]*yaml.Node{}, map[string]string{}
 	name := strings.TrimSuffix(filepath.Base(c.file), ImplementationSuffix)
@@ -90,8 +92,26 @@ func (c *checker) implementationStacks() (stacks []string, at map[string]*yaml.N
 			ptr[dialect] = source.Pointer("targets", t.Key.Value)
 		}
 	}
+	for _, t := range source.Pairs(source.Child(c.root, "targets")) {
+		f := source.Child(t.Value, "framework")
+		framework := source.Str(f)
+		node, p := f, source.Pointer("targets", t.Key.Value, "framework")
+		if framework == "" {
+			framework = defaultFramework[source.Str(source.Child(t.Value, "platform"))]
+			node, p = source.Child(t.Value, "platform"), source.Pointer("targets", t.Key.Value, "platform")
+		}
+		if framework == "" || at[framework] != nil {
+			continue
+		}
+		stacks = append(stacks, framework)
+		at[framework], ptr[framework] = node, p
+	}
 	return stacks, at, ptr
 }
+
+// defaultFramework is a ui target's framework when it names none, by its
+// platform, as the implementation schema gives it.
+var defaultFramework = map[string]string{"web": "plain-javascript", "iphone": "swiftui"}
 
 // projectIdioms reads the idioms folder beside the implementation file:
 // every *.specarch-idiom.yaml, checked against the idiom schema. Any other

@@ -2,5 +2,12 @@
   "licences": {
     "github.com/jpsim/Yams": "MIT",
     "yams": "MIT"
+  },
+  "licence_exceptions": {
+    "caniuse-lite": "CC-BY-4.0. Browser data that Next.js reads while it builds the example's web application (examples/library-lending/web-nextjs). It is read at build time and never shipped in a page, as container base-image packages are accepted. Accepted by the owner on 2026-10-09 (docs/ui-nextjs-carbon.md, Q10).",
+    "language-subtag-registry": "CC0-1.0. A list of language subtags that the accessibility lint of eslint-config-next reads. It is read at build time and never shipped in a page. Accepted by the owner on 2026-10-09 (docs/ui-nextjs-carbon.md, Q10)."
+  },
+  "vulnerabilities": {
+    "GHSA-vfj7-8cjw-p6xm": "braces 3.0.3: deeply nested patterns exhaust the stack. No fixed version exists. It is reached only through the lint (eslint-config-next, fast-glob, micromatch), a development tool that reads the project's own glob patterns, never a visitor's input, and nothing of it ships in a page. Accepted by the owner on 2026-10-09 (docs/ui-nextjs-carbon.md, Q10); review by 2027-04-09, when the example's versions are pinned, or as soon as a fixed release exists."
   }
 }

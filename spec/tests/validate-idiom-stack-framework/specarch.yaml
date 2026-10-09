@@ -1,0 +1,51 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+entities:
+  Book:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      title: { type: string, title: Title, minLength: 1, maxLength: 200 }
+    required: [id, title]
+    primaryKey: [id]
+    satisfies: [CASE-1]
+permissions:
+  books.read: { description: See the catalogue. }
+roles:
+  librarian: { description: Keeps the catalogue., permissions: [books.read] }
+paths:
+  /books:
+    get:
+      operationId: listBooks
+      summary: The books
+      permission: books.read
+      listOf:
+        entity: Book
+        pageSize: { default: 25, maximum: 100 }
+      responses:
+        "200":
+          description: The books.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Book" } }
+      satisfies: [CASE-1]
+pages:
+  books-list:
+    kind: list
+    title: Books
+    route: /books
+    entity: Book
+    permission: books.read
+    source: listBooks
+    columns: [title]
+    satisfies: [CASE-1]
+tests:
+  list-books-succeeds: { operation: listBooks, level: system, scenario: golden, given: "a caller with books.read", when: "listBooks is called", then: "it answers 200: The books.", verifies: [CASE-1] }
+  list-books-denied-without-books-read: { operation: listBooks, level: system, scenario: red, covers: [denied without books.read], given: "a caller without books.read", when: "listBooks is called", then: "it is refused as not allowed", verifies: [CASE-1] }
+  books-list-succeeds: { page: books-list, level: system, scenario: golden, given: "a caller with books.read", when: "the page books-list is opened", then: "it shows the page", verifies: [CASE-1] }
+  books-list-denied-without-books-read: { page: books-list, level: system, scenario: red, covers: [denied without books.read], given: "a caller without books.read", when: "the page books-list is opened", then: "it is refused as not allowed", verifies: [CASE-1] }

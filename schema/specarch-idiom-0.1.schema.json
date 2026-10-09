@@ -42,11 +42,12 @@
         "encryption",
         "health",
         "rate-limit",
+        "ui-components",
         "other"
       ]
     },
     "stacks": {
-      "description": "The stacks the idiom renders: a language such as go, swift or dart, a SQL dialect such as postgresql, sqlserver, oracle or mariadb, or any for one that is stack-neutral.",
+      "description": "The stacks the idiom renders: a language such as go, swift or dart, a SQL dialect such as postgresql, sqlserver, oracle or mariadb, a UI framework such as plain-javascript, nextjs-carbon or swiftui, or any for one that is stack-neutral.",
       "type": "array",
       "items": {
         "type": "string",

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 49 requirements, 3 entities, 12 commands, 7 algorithms, 295 tests, 61 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 49 requirements, 3 entities, 12 commands, 7 algorithms, 297 tests, 61 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -260,7 +260,7 @@ Primary key: path.
 | Rule | idiom_unknown | an implementation file's `idioms` key, or an override's `overrides.idiom`, names no shipped idiom and none of the project's, or an override names no file in the idioms folder |
 | Rule | idiom_part_unknown | an override names a part the idiom does not have, or defines a part it does not list under `overrides.parts` |
 | Rule | idiom_override_reason | an idiom is excluded, or overridden, without `why` |
-| Rule | idiom_stack | an override renders a stack that is not the implementation file's: its language, the dialect of one of its targets, or `any` |
+| Rule | idiom_stack | an override renders a stack that is not the implementation file's: its language, the dialect of one of its targets, the framework of one of its ui targets, or `any` |
 | Rule | idiom_version_behind | an override was copied from an older version of the shipped idiom and does not say it stays behind on purpose (a warning) |
 | Rule | idiom_contract | an override changes a shipped contract statement, or a field has no row in a type rendering for a stack of the implementation file |
 | Rule | sensitivity_exposed | a credential field that is not writeOnly can appear in a response; a personal field can appear in the response of a public operation (a warning) |
@@ -2509,8 +2509,10 @@ the same way.
 
 Decision: The shipped idioms are files under idioms/, embedded in both builds.
 An implementation file's stacks are its language, from its file name,
-and the dialect of each target that has one; a target named sql
-without a dialect is postgresql. An idiom applies when it renders one
+the dialect of each target that has one, and the framework of each
+ui target; a target named sql without a dialect is postgresql, and a
+ui target without a framework has plain-javascript on platform web
+and swiftui on platform iphone. An idiom applies when it renders one
 of those stacks and the specification uses a keyword it reads, unless
 the file excludes it. A type row matches a field on its JSON type with
 null dropped, its format, whether it is an enum, its maxLength and its
@@ -3602,7 +3604,7 @@ reads the check before trusting the table.
 
 ### ADR-051: A second web generator writes Next.js and Carbon screens from a TypeScript implementation file, drawing each page through a ui-components idiom a project overrides
 
-Status: proposed, 2026-10-09.
+Status: accepted, 2026-10-09.
 
 Context: A project whose web screens are built by hand on the Next.js app
 router and IBM's Carbon design system asked SpecArch to generate
@@ -3644,12 +3646,24 @@ plug-in of its own ahead of the shipped one, which the plug-in
 lookup already allows. The front end's implementation file is a
 deliverable of its own, so one specification drives a front end and
 a service, and ownedBy in that file leaves out what the front end
-does not build. Which stack an idiom names, the event bus, the
-acceptance against a screen built by hand, how a project's own
-library is licensed, the password rules, a server route that pages,
-the comparison with screens built by hand and the dependencies the
-scan found are questions for the owner, Q1 to Q10 of the document;
-this decision is proposed until they are answered.
+does not build. The owner settled Q1 to Q10 of the document on
+2026-10-09 as recommended: a ui target's framework is a stack of
+its file, so the idiom renders nextjs-carbon; the event bus is the
+plain JavaScript stack's only; the sign-in and second-factor screens
+are built by hand in the library lending example first, and the
+generator reproduces them; a project's own library is recorded as
+LicenseRef-<name>, third-party libraries stay OSI-approved; names
+stays a flat map, and a shape it cannot say is a project's own
+plug-in ahead of the shipped one; the library lending example gains
+sign-in and second-factor operations; the password rules are the
+request schema's keywords; a server route pages a list only when
+the ui target's settings name the operation; a hand-built page is
+compared as a value in the object-literal subset of TypeScript that
+is also JSON5; sharp is removed by a pnpm override, caniuse-lite
+(CC-BY-4.0) and language-subtag-registry (CC0-1.0) are accepted as
+data read at build time, the braces advisory GHSA-vfj7-8cjw-p6xm is
+accepted for the lint only until 2027-04-09, and install scripts
+stay off.
 
 **Insight:** A plug-in of its own, because the two web stacks share only what the design says, and a second framework inside the plain JavaScript generator would be a second generator in one file. The framework, not the language, decides the components, so it is the stack the idiom renders, as a SQL dialect is. An idiom for the components, because the mechanism already ships, lists and overrides parts with their reasons, and keeps the project's library out of SpecArch. Data in the schema file and logic in a hand-written hook, because the generator must never touch a hand-written file, and the compiler is the cheapest check that every hook exists. The menu and the guard from one permission, because a menu entry that opens a page its reader is refused is reported as a broken feature, and two places that read one keyword cannot drift apart. The design keywords in 0.2 and not here, because a design keyword is checked by the validator in both builds, which is meta-model work.
 
@@ -4165,6 +4179,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | idioms-diff-unknown | command idioms diff | system | red | a specification, and an idiom name SpecArch does not ship | idioms diff paginated-lists is run | it says the idiom is not shipped and exits 2 |
 | idioms-diff-usage-error | command idioms diff | system | red | an idiom's name and no folder | idioms diff type-rendering is run | it prints how to use it and exits 2 |
 | idioms-lists | command idioms | system | golden | a specification with one implementation file in Go with an Oracle sql target, whose override of type-rendering replaces its types part, with the reason | idioms is run | it prints the file's path and type-rendering as overridden by the file, copied from 1.2.0, replacing types, with the reason, and exits 0 |
+| idioms-lists-ui-framework | command idioms | system | golden | a specification with a list page and two implementation files: one in TypeScript whose ui target is platform web, framework nextjs-carbon, and one in JavaScript whose ui target is platform web and names no framework, so plain-javascript | idioms is run | it lists ui-components 1.0.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and not for the JavaScript file, and exits 0 |
 | idioms-usage-error | command idioms | system | red | no folder | idioms is run without arguments | it prints the usage and exits 2 |
 | merge-documents-and-code | command merge | system | golden | a tree read from code and a tree written from a manual and a published interface, the interface marked givenOutside: they give one entity's card number and one path parameter different lengths, require different fields and describe one permission differently; only the code has a plain entity and an operation, and only the documents have a personal field and an entity from the interface | merge is run on the two trees | it writes the elements of both with both citations, leaves out each key they disagree on with a must question citing both, writes the code's entity and operation inferred as undocumented, with a should question for the entity and a must question for the operation, keeps the documents' field and entity with a must Not built yet question for each in implementation/questions.yaml, and exits 0 |
 | merge-documents-days | command merge | system | golden | a code tree whose loans checks move a date by 14, 2 and 60 days, and a documents tree whose requirements say the loan period is 21 days, the reminder period two days and the period for a lost book 90 days | merge is run on the two trees | the check whose name holds the reminder period satisfies its requirement, the loan period's statement is left out with one must question citing both, the lost book period matches no check and is kept as it is, and it exits 0 |
@@ -4234,6 +4249,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-idempotency-key | command validate | system | red | an idempotency key on a GET, and one on a POST that names a query parameter rather than a header | validate is run | it reports idempotency_key for both, saying that GET is idempotent by itself and that the key is not a header parameter, and exits 1 |
 | validate-idiom-override | command validate | system | golden | an implementation file in Go with an Oracle sql target, whose override of type-rendering replaces the Oracle rows of its types part for MAX_STRING_SIZE = EXTENDED, with the reason, and an entity with a UUID and a 5000-character text field | validate is run | it reports nothing and exits 0: the override's rows cover every field on Oracle, and the shipped Go rows cover them on Go |
 | validate-idiom-problems | command validate | system | red | an implementation file in Go with an Oracle sql target, which names an idiom SpecArch does not ship, excludes the project's own idiom without why, and overrides type-rendering with a file that has no why, lists an unknown part, defines a part it does not list, renders swift, changes a shipped contract statement and was copied from an older version; a decimal field is wider than Oracle holds, and a stray file sits in the idioms folder | validate is run | it reports idiom_unknown, idiom_override_reason, idiom_part_unknown, idiom_stack, idiom_contract on the statement and on the decimal's missing Oracle row, idiom_version_behind as a warning, and the stray file under layout, and exits 1 |
+| validate-idiom-stack-framework | command validate | system | red | an implementation file in TypeScript whose ui target is platform web, framework plain-javascript, and whose override of ui-components renders its list-page part for nextjs-carbon, recording the project's own library as LicenseRef-acme-screens | validate is run | it reports idiom_stack at the nextjs-carbon rendering, naming the file's stacks any, plain-javascript and typescript, and exits 1; the project's own licence is not reported |
 | validate-implements | command validate | system | red | an implementation file written against an older version of its design | validate is run | it reports implements and exits 1 |
 | validate-incident-link | command validate | system | golden | a resolved incident that names no defect and no change and gives no noChange reason | validate is run | it warns with incident_link and exits 0, since the record is still valid |
 | validate-interface-problems | command validate | system | red | a list naming a field its entity lacks, an encrypted field to sort by and one to filter by without a hash, and a default page above the maximum; a rate over no time with a burst below it; a catalogue of problem types, a response naming an unknown type, one naming a type of another status, and a 4xx response naming none | validate is run | it reports list_of four times, limits twice and problem three times, and exits 1 |
@@ -4409,7 +4425,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-15 | Every document specarch writes shall show an element's why as an Insight and each of its citations as a Note, next to the element, and shall end with the sources its Notes cite. | functional | must | accepted | test | An element with a why gets one paragraph labelled Insight, and each citation one paragraph labelled Note that names the source's title, edition, the clause and what it says. An element shown as a row of a table gets its Insight and Notes after the table, labelled with the row's name. A document whose Notes cite sources ends with a table of exactly those sources. | NEED-6 |
 | SA-16 | specarch document shall write, besides the technical specification, the requirements specification, the test plan, the traceability matrix, the deployment guide and the commissioning procedure with its sign-off sheet. | functional | must | accepted | test | Each of the five targets writes <target>.md into the folder it owns, with the generated-from header. The commissioning procedure has a Result column for every step and a sign-off sheet with a row for every signer. | NEED-3, NEED-5 |
 | SA-46 | An implementation file shall mark an element another stakeholder owns, one mapping at a time, naming that stakeholder; no generator shall write a marked element, and validate, diff, gaps and the gates shall still read it. | functional | must | accepted | test | An entity whose mapping names a stakeholder under ownedBy gets no table from generate sql and no schema from generate openapi, while a foreign key or a reference to it is still written. An operation whose mapping names a stakeholder under ownedBy gets no operation from generate openapi. validate and gaps read the marked element as before, and a question that blocks it still holds generation up. ownedBy naming no stakeholder of the specification is reported, the same in both builds. | NEED-2, NEED-8 |
-| SA-32 | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. | functional | must | accepted | test | An idiom key naming no idiom, an exclusion or override without why, an override naming an unknown part or defining one it does not list, rendering a stack that is not the file's, or changing a shipped contract statement is each reported under its rule in both builds; an override copied from an older version is warned about. A field that no row of the type rendering matches for a stack of the implementation file, such as a decimal wider than Oracle holds, is reported as idiom_contract. An override that replaces the Oracle text rows for MAX_STRING_SIZE = EXTENDED validates without a diagnostic. The shipped set holds the fifteen idioms of the first set, each statement marked with what checks it, and every one passes the idiom schema and cites only the sources it declares. | NEED-2 |
+| SA-32 | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. | functional | must | accepted | test | An idiom key naming no idiom, an exclusion or override without why, an override naming an unknown part or defining one it does not list, rendering a stack that is not the file's, or changing a shipped contract statement is each reported under its rule in both builds; an override copied from an older version is warned about. A field that no row of the type rendering matches for a stack of the implementation file, such as a decimal wider than Oracle holds, is reported as idiom_contract. An override that replaces the Oracle text rows for MAX_STRING_SIZE = EXTENDED validates without a diagnostic. The shipped set holds the fifteen idioms of the first set and ui-components, each statement marked with what checks it, and every one passes the idiom schema and cites only the sources it declares. A ui target's framework, given or by its platform's default, is a stack of its implementation file, so specarch idioms lists ui-components for a TypeScript file whose ui target is nextjs-carbon and not for one on plain-javascript, and an override rendering nextjs-carbon in a file on plain-javascript is reported as idiom_stack in both builds. | NEED-2 |
 | SA-11 | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. | functional | must | accepted | test | A tree whose root lists its stages and holds each stage's files under that folder validates. A file in the wrong folder, a section in the wrong file, a listed stage without a folder, and a folder that is not a stage are each reported as layout. | NEED-4 |
 | SA-12 | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. | functional | must | accepted | test | A specification with only a requirements stage validates with no error. A requirement no design element satisfies, a requirement no test, check or monitor verifies, and a need no requirement refines are reported as warnings once the later stage exists. | NEED-5 |
 | SA-23 | The validator shall check the records kept beside a specification (change requests, defects, releases, incidents, commissioning runs and approvals) against their schema and against the specification they point into, without the specification pointing back at them. | functional | must | accepted | test | A record whose file name is not its ID or version, or that sits in another kind's folder, is reported as record_name. A record naming a role, requirement, pointer, test, environment or monitor the specification does not have is reported as record_ref, unless the ID falls in a declared change-set or defect-set. An implemented change whose additions are not in the specification, a change approved without a decision, a fixed defect without a test that shows the fix, a duplicate of a duplicate, and a commissioning run naming a check that does not exist are each reported under their rule. A resolved incident that leads to no defect and no change, and says nothing in noChange, is reported as a warning. | NEED-5 |
@@ -4569,7 +4585,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-29 | enums Rule; commands validate; decisions ADR-021 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
 | SA-30 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests gaps-outline-not-read; tests validate-mapping-origin |
 | SA-31 | commands generate; decisions ADR-041 | tests generate-stack-fallback; tests generate-stack-plugin; tests generate-tests-dart; tests generate-tests-framework-refused; tests generate-tests-go; tests generate-tests-swift |
-| SA-32 | commands idioms; commands idioms diff; decisions ADR-023; decisions ADR-028 | tests idioms-diff; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems |
+| SA-32 | commands idioms; commands idioms diff; decisions ADR-023; decisions ADR-028 | tests idioms-diff; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-lists-ui-framework; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems; tests validate-idiom-stack-framework |
 | SA-33 | decisions ADR-024 | tests validate-stored-data; tests validate-stored-data-valid |
 | SA-34 | decisions ADR-025 | tests validate-interface-problems; tests validate-interface-valid |
 | SA-35 | decisions ADR-026 | tests validate-jobs-menus; tests validate-jobs-menus-valid |

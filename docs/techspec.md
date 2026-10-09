@@ -2380,15 +2380,15 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | Library | Version | Licence | Purpose |
 |---|---|---|---|
 | github.com/santhosh-tekuri/jsonschema/v6 | v6.0.3 | Apache-2.0 | JSON Schema 2020-12 validation against the schemas in `schema/`; the same library the repository's pinned `jv` check used. |
-| golang.org/x/text | v0.42.0 | BSD-3-Clause | Message printing for the schema library. Pinned above 0.39.0, which fixes GO-2026-5970. |
+| golang.org/x/text | v0.43.0 | BSD-3-Clause | Message printing for the schema library. Pinned above 0.39.0, which fixes GO-2026-5970. |
 | go.yaml.in/yaml/v3 | v3.0.5 | MIT AND Apache-2.0 | YAML parsing into a node tree, which keeps the line of every value for diagnostics. |
 | cel.dev/cel-go | v0.32.0 | Apache-2.0 | The CEL parser; only its parser is used. |
-| cel.dev/expr | v0.25.1 | Apache-2.0 | CEL's expression tree types, needed by the parser. |
+| cel.dev/expr | v0.25.3 | Apache-2.0 | CEL's expression tree types, needed by the parser. |
 | github.com/antlr4-go/antlr/v4 | v4.13.1 | BSD-3-Clause | The parser runtime the CEL grammar is generated for. |
-| google.golang.org/protobuf | v1.36.10 | BSD-3-Clause | Needed by the CEL parser's tree types. |
-| google.golang.org/genproto/googleapis/api | v0.0.0-20240826202546-f6391c0de4c7 | Apache-2.0 | Needed by the CEL parser's tree types. |
-| google.golang.org/genproto/googleapis/rpc | v0.0.0-20240826202546-f6391c0de4c7 | Apache-2.0 | Needed by the CEL parser's tree types. |
-| golang.org/x/exp | v0.0.0-20240823005443-9b4947da3948 | BSD-3-Clause | Needed by the CEL parser. |
+| google.golang.org/protobuf | v1.36.12 | BSD-3-Clause | Needed by the CEL parser's tree types. |
+| google.golang.org/genproto/googleapis/api | v0.0.0-20261005182115-fad411399dd8 | Apache-2.0 | Needed by the CEL parser's tree types. |
+| google.golang.org/genproto/googleapis/rpc | v0.0.0-20261005182115-fad411399dd8 | Apache-2.0 | Needed by the CEL parser's tree types. |
+| golang.org/x/exp | v0.0.0-20261009195045-ca0d7ba23607 | BSD-3-Clause | Needed by the CEL parser. |
 | typescript | 6.0.3 | Apache-2.0 | The TypeScript compiler, run on Node by the JavaScript reader of specarch extract, readers/javascript, which writes the code-facts dump the Go build reads (ADR-089); not linked into specarch. The last release whose compiler API is stable and whose package has no dependency. Pinned exactly in readers/javascript/package.json and package-lock.json, and the Go build refuses a dump another version made. SBOM scan on 2026-10-09: syft 1.54.0, grype 0.120.0 and osv-scanner 2.6.0 found no vulnerability. |
 | @vue/compiler-sfc | 3.5.43 | MIT | Splits a Vue single-file component into its script blocks and template in the JavaScript reader, readers/javascript (ADR-091); not linked into specarch. Pinned exactly in readers/javascript/package.json, with its tree in package-lock.json: @vue/compiler-core, -dom, -ssr and @vue/shared 3.5.43, @babel/parser 7.29.9, @babel/types 7.29.8 and its two helpers 7.29.7, postcss 8.5.29, magic-string 0.30.21, @jridgewell/sourcemap-codec 1.6.0, estree-walker 2.0.2 and nanoid 3.3.20 (MIT), entities 7.0.1 (BSD-2-Clause), source-map-js 1.2.2 (BSD-3-Clause) and picocolors 1.1.1 (ISC). The Go build refuses a dump another version split. SBOM scan on 2026-10-09: syft 1.54.0, grype 0.120.0 and osv-scanner 2.6.0 found no vulnerability. |
 | analyzer | 14.4.0 | BSD-3-Clause | Parses Dart source with parseString in the Dart reader of specarch extract, readers/dart (ADR-092); not linked into specarch. Pinned exactly in readers/dart/pubspec.yaml, with its tree in pubspec.lock: _fe_analyzer_shared 108.0.0, async 2.13.1, collection 1.19.1, convert 3.1.2, crypto 3.0.7, file 7.0.1, glob 2.2.0, meta 1.19.0, package_config 3.0.0, path 1.9.1, pub_semver 2.2.1, source_span 1.10.2, string_scanner 1.4.1, term_glyph 1.2.2, typed_data 1.4.0 and watcher 1.2.1 (BSD-3-Clause), and yaml 3.1.4 (MIT). The Go build refuses a dump another version made. SBOM scan on 2026-10-09: syft 1.54.0, grype 0.120.0 and osv-scanner 2.6.0 found no vulnerability. |
@@ -2551,7 +2551,7 @@ against the schemas alone. Using the same library means a file passes
 the schema check in both.
 
 Decision: Use `github.com/santhosh-tekuri/jsonschema/v6` with format assertion
-on, and require `golang.org/x/text` v0.42.0 so GO-2026-5970 (fixed in
+on, and require `golang.org/x/text` v0.43.0 so GO-2026-5970 (fixed in
 0.39.0) is not in the build.
 
 Consequences: The same files pass as with `jv`. The schemas are embedded and registered under their `$id`, so validation needs no network.

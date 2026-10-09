@@ -23,7 +23,7 @@ libraries:
     licence: Apache-2.0
     purpose: JSON Schema 2020-12 validation against the schemas in `schema/`; the same library the repository's pinned `jv` check used.
   golang.org/x/text:
-    version: v0.42.0
+    version: v0.43.0
     licence: BSD-3-Clause
     purpose: Message printing for the schema library. Pinned above 0.39.0, which fixes GO-2026-5970.
   go.yaml.in/yaml/v3:
@@ -35,7 +35,7 @@ libraries:
     licence: Apache-2.0
     purpose: The CEL parser; only its parser is used.
   cel.dev/expr:
-    version: v0.25.1
+    version: v0.25.3
     licence: Apache-2.0
     purpose: CEL's expression tree types, needed by the parser.
   github.com/antlr4-go/antlr/v4:
@@ -43,19 +43,19 @@ libraries:
     licence: BSD-3-Clause
     purpose: The parser runtime the CEL grammar is generated for.
   google.golang.org/protobuf:
-    version: v1.36.10
+    version: v1.36.12
     licence: BSD-3-Clause
     purpose: Needed by the CEL parser's tree types.
   google.golang.org/genproto/googleapis/api:
-    version: v0.0.0-20240826202546-f6391c0de4c7
+    version: v0.0.0-20261005182115-fad411399dd8
     licence: Apache-2.0
     purpose: Needed by the CEL parser's tree types.
   google.golang.org/genproto/googleapis/rpc:
-    version: v0.0.0-20240826202546-f6391c0de4c7
+    version: v0.0.0-20261005182115-fad411399dd8
     licence: Apache-2.0
     purpose: Needed by the CEL parser's tree types.
   golang.org/x/exp:
-    version: v0.0.0-20240823005443-9b4947da3948
+    version: v0.0.0-20261009195045-ca0d7ba23607
     licence: BSD-3-Clause
     purpose: Needed by the CEL parser.
   typescript:
@@ -334,7 +334,7 @@ decisions:
       the schema check in both.
     decision: |
       Use `github.com/santhosh-tekuri/jsonschema/v6` with format assertion
-      on, and require `golang.org/x/text` v0.42.0 so GO-2026-5970 (fixed in
+      on, and require `golang.org/x/text` v0.43.0 so GO-2026-5970 (fixed in
       0.39.0) is not in the build.
     consequences: The same files pass as with `jv`. The schemas are embedded and registered under their `$id`, so validation needs no network.
   ADR-103:

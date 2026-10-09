@@ -77,12 +77,16 @@ stays the same while lines move above it:
 - an error or a warning: `<rule>@<file>#<pointer>`, with the file relative
   to the specification's folder, such as
   `relation_target@design/design.yaml#/entities/Loan/relations/member/target`.
-  When one rule reports two problems at one pointer, the second is
-  `<rule>.2@...`, numbered in the order of their messages.
+  When one rule reports more than one problem at one pointer, each gets a
+  tag after the rule, eight hex digits of the FNV-1a hash of its message:
+  `test_case_missing.585bd96d@design/design.yaml#/paths/~1members/post`. A number in the order the problems
+  come would shift the others' ids when one is fixed; the tag does not.
+  Problems that share the message as well are numbered `-2`, `-3` and on.
 
 The id is long, but every part of it is a word the reader already knows,
-and it leads to the entry without the problems file. A hash would be short
-and say nothing (principles, rule 1). The id is computed from the record
+and it leads to the entry without the problems file. A hash of the whole
+record would be short and say nothing (principles, rule 1); the tag is a
+hash only where the readable part cannot tell two problems apart. The id is computed from the record
 alone, so both validator builds give the same id. It is what SARIF calls a
 partial fingerprint, which exists for the same reason: to know a result
 again in the next run although its line moved.
@@ -101,7 +105,7 @@ answered: "Answer with a decision record that names Q-4 under answers."
 A note is a place that helps with the problem, printed after it:
 
 - `source`: each citation of the element the problem is at, or of the
-  question. When the source's `url` is a file or folder beside the
+  question. When the source's `url` is a folder beside the
   specification and the clause is `path:line`, the note is at that file and
   line; otherwise it is at the citation in the specification. Its text
   names the source, the clause and what it says.
@@ -113,8 +117,11 @@ A note is a place that helps with the problem, printed after it:
 
 `specarch document problems` writes `problems.txt` into the folder the
 `problems` target owns, as every document does. It is written for an
-invalid specification too, and the command then exits 1 after writing it;
-every other document still refuses an invalid specification until step 6.
+invalid specification too, and the command then exits 1 after writing it.
+The folder comes from `--out` or from the implementation files; when the
+one that names it cannot be read, the command asks for `--out`, until step
+8 reads what it can of a file that does not parse. Every other document
+still refuses an invalid specification until step 6.
 
 The file starts with two lines that are not problem lines: what it is, and
 the counts. Then one line per problem, sorted by file, line, column,

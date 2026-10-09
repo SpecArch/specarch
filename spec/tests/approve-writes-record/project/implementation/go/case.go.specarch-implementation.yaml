@@ -4,3 +4,4 @@ implements: { file: ../../specarch.yaml, version: 1.0.0 }
 stack: { language: { name: Go, version: "1.26" } }
 targets:
   requirements: { output: ../../../docs }
+  problems: { output: ../../../docs }

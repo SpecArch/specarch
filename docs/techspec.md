@@ -171,7 +171,7 @@ by its notes.
 
 | Field | Type | Required | Limits | Description |
 |---|---|---|---|---|
-| id | string | yes | at least 1 character | A question's own id, such as `Q-4`; for an error or a warning `<rule>@<file>#<pointer>`, the file relative to the specification's folder, with `.2` and on after the rule for a second problem of one rule at one pointer. |
+| id | string | yes | at least 1 character | A question's own id, such as `Q-4`; for an error or a warning `<rule>@<file>#<pointer>`, the file relative to the specification's folder, with `.<tag>` after the rule, eight hex digits of the FNV-1a hash of the message, when one rule reports several problems at one pointer. |
 | severity | ProblemSeverity | yes |   |   |
 | file | string | yes |   | The fragment the entry is in, relative to the folder the problems file is in. |
 | line | int32 | yes | at least 1 | The line of the entry, from 1. |
@@ -4270,8 +4270,9 @@ blocks. Errors and warnings are validate's diagnostics; questions
 are the open questions, with the diagnostics they cover as notes.
 A question's id is its own; an error's or a warning's is
 rule@file#pointer, file relative to the specification's folder,
-with .2 and on after the rule for a second problem of one rule at
-one pointer. Lines and columns count from 1, a column in Unicode
+and where one rule reports several problems at one pointer, each
+has after the rule a tag of eight hex digits hashed from its
+message, so fixing one leaves the others' ids as they are. Lines and columns count from 1, a column in Unicode
 characters.
 
 specarch document problems writes problems.txt, one line per
@@ -4359,7 +4360,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | approve-refuses-open-question | command approve | system | red | a specification with an open should question | approve is run | it refuses, writes nothing and exits 1 |
 | approve-refuses-stale-document | command approve | system | red | a configured requirements document that is not what the specification generates now | approve is run | it names the document that differs, writes nothing and exits 1 |
 | approve-usage-error | command approve | system | red | no --by | approve is run without saying who approves | it prints how to use it and exits 2 |
-| approve-writes-record | command approve | system | golden | a specification without open questions, a configured requirements document that is current, and a stakeholder owner | approve is run with --by owner and a date | it writes records/approvals/1.0.0.yaml with the role, the date, the document and the digest of the files, and exits 0 |
+| approve-writes-record | command approve | system | golden | a specification without open questions, a configured requirements document that is current, a configured problems target, which is not a document anyone approves, and a stakeholder owner | approve is run with --by owner and a date | it writes records/approvals/1.0.0.yaml with the role, the date, the document and the digest of the files, and exits 0 |
 | derive-invalid-spec | command derive | system | red | a specification whose operation names a permission that is not declared | derive is run | it prints the error, writes nothing and exits 1 |
 | derive-keeps-existing | command derive | system | golden | the same specification, with a test folder already named as the missing-name draft would be | derive is run | it keeps that folder as it is, says so on standard error, writes the other drafts and exits 0 |
 | derive-name-taken | command derive | system | red | a specification whose two entities each have a constraint email_unique, and whose folder page-sign-in-succeeds holds a test of the operation signIn | derive is run | it writes neither constraint's draft nor the page's success draft, names each on standard error with what took its name, writes the other drafts and exits 1 |

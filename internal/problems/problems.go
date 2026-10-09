@@ -5,6 +5,7 @@ package problems
 
 import (
 	"fmt"
+	"hash/fnv"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -247,8 +248,10 @@ func tokensOf(ptr string) []string {
 	return out
 }
 
-// numberIDs gives the second and later problems of one rule at one pointer
-// of one file .2, .3 and on after the rule, in the order of their messages.
+// numberIDs tells apart the problems of one rule at one pointer of one
+// file: each gets .<tag> after the rule, eight hex digits of the FNV-1a
+// hash of its message, so that fixing one leaves the others' ids as they
+// are. Problems with the same message as well are numbered -2, -3 and on.
 func numberIDs(ps []Problem) {
 	groups := map[string][]int{}
 	var order []string
@@ -263,10 +266,17 @@ func numberIDs(ps []Problem) {
 		if len(idx) < 2 {
 			continue
 		}
-		sort.SliceStable(idx, func(a, b int) bool { return ps[idx[a]].Message < ps[idx[b]].Message })
-		for n, i := range idx[1:] {
+		seen := map[string]int{}
+		for _, i := range idx {
 			p := &ps[i]
-			p.ID = strings.Replace(p.ID, p.Rule+"@", fmt.Sprintf("%s.%d@", p.Rule, n+2), 1)
+			h := fnv.New32a()
+			h.Write([]byte(p.Message))
+			tag := fmt.Sprintf("%08x", h.Sum32())
+			seen[tag]++
+			if seen[tag] > 1 {
+				tag = fmt.Sprintf("%s-%d", tag, seen[tag])
+			}
+			p.ID = strings.Replace(p.ID, p.Rule+"@", p.Rule+"."+tag+"@", 1)
 		}
 	}
 }

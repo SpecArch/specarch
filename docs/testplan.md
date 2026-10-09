@@ -69,7 +69,7 @@ Scenario: red; level: system; covers usage error, exit 2.
 
 Scenario: golden; level: system; verifies SA-20.
 
-- Given: a specification without open questions, a configured requirements document that is current, and a stakeholder owner
+- Given: a specification without open questions, a configured requirements document that is current, a configured problems target, which is not a document anyone approves, and a stakeholder owner
 - When: approve is run with --by owner and a date
 - Then: it writes records/approvals/1.0.0.yaml with the role, the date, the document and the digest of the files, and exits 0
 

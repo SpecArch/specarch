@@ -1,5 +1,7 @@
 paths:
   /:
+    # specarch-problem: warning: test_golden_missing: operation health has no golden scenario; add one under tests, for example health-succeeds: { operation: health, scenario: golden, given: "any caller", when: "health is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1/get]
+    # specarch-problem: warning: test_red_missing: operation health has no red scenario; add one under tests, for example health-refused: { operation: health, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1/get]
     get:
       operationId: health
       origin: stated
@@ -7,6 +9,8 @@ paths:
         - {source: code, clause: 'stdmux/mux.go:13', says: Registers GET / on a net/http ServeMux; its handler is health.}
         - {source: code, clause: 'stdmux/mux.go:27', says: The handler of GET / reads no path parameter by name.}
   /api/holds:
+    # specarch-problem: warning: test_golden_missing: operation placeHold has no golden scenario; add one under tests, for example place-hold-succeeds: { operation: placeHold, scenario: golden, given: "any caller", when: "placeHold is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1holds/post]
+    # specarch-problem: warning: test_red_missing: operation placeHold has no red scenario; add one under tests, for example place-hold-refused: { operation: placeHold, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1api~1holds/post]
     post:
       operationId: placeHold
       origin: stated
@@ -16,18 +20,24 @@ paths:
   /api/holds/{holdId}:
     parameters:
       - {name: holdId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation showHold has no red scenario for "not found holdId"; add under tests show-hold-not-found-hold-id: { operation: showHold, scenario: red, covers: [not found holdId], given: "no record has that holdId", when: "showHold is called with that holdId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1api~1holds~1{holdId}/get]
+    # specarch-problem: warning: test_golden_missing: operation showHold has no golden scenario; add one under tests, for example show-hold-succeeds: { operation: showHold, scenario: golden, given: "any caller", when: "showHold is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1holds~1{holdId}/get]
     get:
       operationId: showHold
       origin: stated
       cites:
         - {source: code, clause: 'gorillarouter/router.go:14', says: 'Registers GET /api/holds/{holdId} on a gorilla/mux router; its handler is showHold.'}
         - {source: code, clause: 'gorillarouter/router.go:23', says: 'The handler of GET /api/holds/{holdId} reads no path parameter by name.'}
+    # specarch-problem: warning: test_case_missing: operation postApiHoldsByHoldId has no red scenario for "not found holdId"; add under tests post-api-holds-by-hold-id-not-found-hold-id: { operation: postApiHoldsByHoldId, scenario: red, covers: [not found holdId], given: "no record has that holdId", when: "postApiHoldsByHoldId is called with that holdId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1api~1holds~1{holdId}/post]
+    # specarch-problem: warning: test_golden_missing: operation postApiHoldsByHoldId has no golden scenario; add one under tests, for example post-api-holds-by-hold-id-succeeds: { operation: postApiHoldsByHoldId, scenario: golden, given: "any caller", when: "postApiHoldsByHoldId is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1holds~1{holdId}/post]
     post:
       operationId: postApiHoldsByHoldId
       origin: stated
       cites:
         - {source: code, clause: 'gorillarouter/router.go:15', says: 'Registers POST /api/holds/{holdId} on a gorilla/mux router; its handler is cancelHold.'}
         - {source: code, clause: 'gorillarouter/router.go:24', says: 'The handler of POST /api/holds/{holdId} reads the path parameter holdId.'}
+    # specarch-problem: warning: test_case_missing: operation deleteApiHoldsByHoldId has no red scenario for "not found holdId"; add under tests delete-api-holds-by-hold-id-not-found-hold-id: { operation: deleteApiHoldsByHoldId, scenario: red, covers: [not found holdId], given: "no record has that holdId", when: "deleteApiHoldsByHoldId is called with that holdId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1api~1holds~1{holdId}/delete]
+    # specarch-problem: warning: test_golden_missing: operation deleteApiHoldsByHoldId has no golden scenario; add one under tests, for example delete-api-holds-by-hold-id-succeeds: { operation: deleteApiHoldsByHoldId, scenario: golden, given: "any caller", when: "deleteApiHoldsByHoldId is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1holds~1{holdId}/delete]
     delete:
       operationId: deleteApiHoldsByHoldId
       origin: stated
@@ -37,6 +47,8 @@ paths:
   /branches/{branchId}:
     parameters:
       - {name: branchId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation showBranch has no red scenario for "not found branchId"; add under tests show-branch-not-found-branch-id: { operation: showBranch, scenario: red, covers: [not found branchId], given: "no record has that branchId", when: "showBranch is called with that branchId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1branches~1{branchId}/get]
+    # specarch-problem: warning: test_golden_missing: operation showBranch has no golden scenario; add one under tests, for example show-branch-succeeds: { operation: showBranch, scenario: golden, given: "any caller", when: "showBranch is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1branches~1{branchId}/get]
     get:
       operationId: showBranch
       origin: stated
@@ -46,18 +58,24 @@ paths:
   /fines/{fineId}:
     parameters:
       - {name: fineId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation showFine has no red scenario for "not found fineId"; add under tests show-fine-not-found-fine-id: { operation: showFine, scenario: red, covers: [not found fineId], given: "no record has that fineId", when: "showFine is called with that fineId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1fines~1{fineId}/get]
+    # specarch-problem: warning: test_golden_missing: operation showFine has no golden scenario; add one under tests, for example show-fine-succeeds: { operation: showFine, scenario: golden, given: "any caller", when: "showFine is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1fines~1{fineId}/get]
     get:
       operationId: showFine
       origin: stated
       cites:
         - {source: code, clause: 'echorouter/router.go:13', says: 'Registers GET /fines/{fineId} on an echo router; its handler is showFine.'}
         - {source: code, clause: 'echorouter/router.go:19', says: 'The handler of GET /fines/{fineId} reads the path parameter fine.'}
+    # specarch-problem: warning: test_case_missing: operation putFinesByFineId has no red scenario for "not found fineId"; add under tests put-fines-by-fine-id-not-found-fine-id: { operation: putFinesByFineId, scenario: red, covers: [not found fineId], given: "no record has that fineId", when: "putFinesByFineId is called with that fineId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1fines~1{fineId}/put]
+    # specarch-problem: warning: test_golden_missing: operation putFinesByFineId has no golden scenario; add one under tests, for example put-fines-by-fine-id-succeeds: { operation: putFinesByFineId, scenario: golden, given: "any caller", when: "putFinesByFineId is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1fines~1{fineId}/put]
     put:
       operationId: putFinesByFineId
       origin: stated
       cites:
         - {source: code, clause: 'echorouter/router.go:15', says: 'Registers PUT /fines/{fineId} on an echo router; its handler is waive.'}
         - {source: code, clause: 'echorouter/router.go:20', says: 'The handler of PUT /fines/{fineId} reads no path parameter by name.'}
+    # specarch-problem: warning: test_case_missing: operation patchFinesByFineId has no red scenario for "not found fineId"; add under tests patch-fines-by-fine-id-not-found-fine-id: { operation: patchFinesByFineId, scenario: red, covers: [not found fineId], given: "no record has that fineId", when: "patchFinesByFineId is called with that fineId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1fines~1{fineId}/patch]
+    # specarch-problem: warning: test_golden_missing: operation patchFinesByFineId has no golden scenario; add one under tests, for example patch-fines-by-fine-id-succeeds: { operation: patchFinesByFineId, scenario: golden, given: "any caller", when: "patchFinesByFineId is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1fines~1{fineId}/patch]
     patch:
       operationId: patchFinesByFineId
       origin: stated
@@ -67,6 +85,8 @@ paths:
   /fines/{fineId}/waivers:
     parameters:
       - {name: fineId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation postFinesByFineIdWaivers has no red scenario for "not found fineId"; add under tests post-fines-by-fine-id-waivers-not-found-fine-id: { operation: postFinesByFineIdWaivers, scenario: red, covers: [not found fineId], given: "no record has that fineId", when: "postFinesByFineIdWaivers is called with that fineId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1fines~1{fineId}~1waivers/post]
+    # specarch-problem: warning: test_golden_missing: operation postFinesByFineIdWaivers has no golden scenario; add one under tests, for example post-fines-by-fine-id-waivers-succeeds: { operation: postFinesByFineIdWaivers, scenario: golden, given: "any caller", when: "postFinesByFineIdWaivers is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1fines~1{fineId}~1waivers/post]
     post:
       operationId: postFinesByFineIdWaivers
       origin: stated
@@ -74,6 +94,8 @@ paths:
         - {source: code, clause: 'echorouter/router.go:14', says: 'Registers POST /fines/{fineId}/waivers on an echo router; its handler is waive.'}
         - {source: code, clause: 'echorouter/router.go:20', says: 'The handler of POST /fines/{fineId}/waivers reads no path parameter by name.'}
   /holds:
+    # specarch-problem: warning: test_golden_missing: operation listHolds has no golden scenario; add one under tests, for example list-holds-succeeds: { operation: listHolds, scenario: golden, given: "any caller", when: "listHolds is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1holds/get]
+    # specarch-problem: warning: test_red_missing: operation listHolds has no red scenario; add one under tests, for example list-holds-refused: { operation: listHolds, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1holds/get]
     get:
       operationId: listHolds
       origin: stated
@@ -81,6 +103,8 @@ paths:
         - {source: code, clause: 'gorillarouter/router.go:12', says: Registers GET /holds on a gorilla/mux router; its handler is listHolds.}
         - {source: code, clause: 'gorillarouter/router.go:22', says: The handler of GET /holds reads no path parameter by name.}
   /loans:
+    # specarch-problem: warning: test_golden_missing: operation lendBook has no golden scenario; add one under tests, for example lend-book-succeeds: { operation: lendBook, scenario: golden, given: "any caller", when: "lendBook is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1loans/post]
+    # specarch-problem: warning: test_red_missing: operation lendBook has no red scenario; add one under tests, for example lend-book-refused: { operation: lendBook, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1loans/post]
     post:
       operationId: lendBook
       origin: stated
@@ -90,6 +114,8 @@ paths:
   /loans/{loanId}:
     parameters:
       - {name: loanId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation showLoan has no red scenario for "not found loanId"; add under tests show-loan-not-found-loan-id: { operation: showLoan, scenario: red, covers: [not found loanId], given: "no record has that loanId", when: "showLoan is called with that loanId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1loans~1{loanId}/get]
+    # specarch-problem: warning: test_golden_missing: operation showLoan has no golden scenario; add one under tests, for example show-loan-succeeds: { operation: showLoan, scenario: golden, given: "any caller", when: "showLoan is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1loans~1{loanId}/get]
     get:
       operationId: showLoan
       origin: stated
@@ -97,12 +123,16 @@ paths:
         - {source: code, clause: 'stdmux/mux.go:8', says: 'Registers GET /loans/{loanId} on a net/http ServeMux; its handler is showLoan.'}
         - {source: code, clause: 'stdmux/mux.go:25', says: 'The handler of GET /loans/{loanId} reads the path parameter loanId.'}
   /members:
+    # specarch-problem: warning: test_golden_missing: operation listMembers has no golden scenario; add one under tests, for example list-members-succeeds: { operation: listMembers, scenario: golden, given: "any caller", when: "listMembers is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1members/get]
+    # specarch-problem: warning: test_red_missing: operation listMembers has no red scenario; add one under tests, for example list-members-refused: { operation: listMembers, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1members/get]
     get:
       operationId: listMembers
       origin: stated
       cites:
         - {source: code, clause: 'chirouter/router.go:14', says: Registers GET /members on a chi router; its handler is listMembers.}
         - {source: code, clause: 'chirouter/router.go:45', says: The handler of GET /members reads no path parameter by name.}
+    # specarch-problem: warning: test_golden_missing: operation addMember has no golden scenario; add one under tests, for example add-member-succeeds: { operation: addMember, scenario: golden, given: "any caller", when: "addMember is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1members/post]
+    # specarch-problem: warning: test_red_missing: operation addMember has no red scenario; add one under tests, for example add-member-refused: { operation: addMember, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1members/post]
     post:
       operationId: addMember
       origin: stated
@@ -112,12 +142,16 @@ paths:
   /members/{cardNumber}:
     parameters:
       - {name: cardNumber, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation getMembersByCardNumber has no red scenario for "not found cardNumber"; add under tests get-members-by-card-number-not-found-card-number: { operation: getMembersByCardNumber, scenario: red, covers: [not found cardNumber], given: "no record has that cardNumber", when: "getMembersByCardNumber is called with that cardNumber", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1members~1{cardNumber}/get]
+    # specarch-problem: warning: test_golden_missing: operation getMembersByCardNumber has no golden scenario; add one under tests, for example get-members-by-card-number-succeeds: { operation: getMembersByCardNumber, scenario: golden, given: "any caller", when: "getMembersByCardNumber is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1members~1{cardNumber}/get]
     get:
       operationId: getMembersByCardNumber
       origin: stated
       cites:
         - {source: code, clause: 'chirouter/router.go:17', says: 'Registers GET /members/{cardNumber} on a chi router; its handler is showMember.'}
         - {source: code, clause: 'chirouter/router.go:47', says: 'The handler of GET /members/{cardNumber} reads the path parameter cardNumber.'}
+    # specarch-problem: warning: test_case_missing: operation removeMember has no red scenario for "not found cardNumber"; add under tests remove-member-not-found-card-number: { operation: removeMember, scenario: red, covers: [not found cardNumber], given: "no record has that cardNumber", when: "removeMember is called with that cardNumber", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1members~1{cardNumber}/delete]
+    # specarch-problem: warning: test_golden_missing: operation removeMember has no golden scenario; add one under tests, for example remove-member-succeeds: { operation: removeMember, scenario: golden, given: "any caller", when: "removeMember is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1members~1{cardNumber}/delete]
     delete:
       operationId: removeMember
       origin: stated
@@ -127,6 +161,8 @@ paths:
   /members/{cardNumber}/address:
     parameters:
       - {name: cardNumber, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation putMembersByCardNumberAddress has no red scenario for "not found cardNumber"; add under tests put-members-by-card-number-address-not-found-card-number: { operation: putMembersByCardNumberAddress, scenario: red, covers: [not found cardNumber], given: "no record has that cardNumber", when: "putMembersByCardNumberAddress is called with that cardNumber", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1members~1{cardNumber}~1address/put]
+    # specarch-problem: warning: test_golden_missing: operation putMembersByCardNumberAddress has no golden scenario; add one under tests, for example put-members-by-card-number-address-succeeds: { operation: putMembersByCardNumberAddress, scenario: golden, given: "any caller", when: "putMembersByCardNumberAddress is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1members~1{cardNumber}~1address/put]
     put:
       operationId: putMembersByCardNumberAddress
       origin: stated
@@ -134,6 +170,8 @@ paths:
         - {source: code, clause: 'chirouter/router.go:22', says: 'Registers PUT /members/{cardNumber}/address on a chi router; its handler is showMember.'}
         - {source: code, clause: 'chirouter/router.go:47', says: 'The handler of PUT /members/{cardNumber}/address reads the path parameter cardNumber.'}
   /reports/daily:
+    # specarch-problem: warning: test_golden_missing: operation daily has no golden scenario; add one under tests, for example daily-succeeds: { operation: daily, scenario: golden, given: "any caller", when: "daily is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1reports~1daily/get]
+    # specarch-problem: warning: test_red_missing: operation daily has no red scenario; add one under tests, for example daily-refused: { operation: daily, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1reports~1daily/get]
     get:
       operationId: daily
       origin: stated
@@ -141,6 +179,8 @@ paths:
         - {source: code, clause: 'stdmux/mux.go:16', says: Registers GET /reports/daily on a net/http ServeMux; its handler is daily.}
         - {source: code, clause: 'stdmux/mux.go:28', says: The handler of GET /reports/daily reads no path parameter by name.}
   /v1/books:
+    # specarch-problem: warning: test_golden_missing: operation postV1Books has no golden scenario; add one under tests, for example post-v1-books-succeeds: { operation: postV1Books, scenario: golden, given: "any caller", when: "postV1Books is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1v1~1books/post]
+    # specarch-problem: warning: test_red_missing: operation postV1Books has no red scenario; add one under tests, for example post-v1-books-refused: { operation: postV1Books, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1v1~1books/post]
     post:
       operationId: postV1Books
       origin: stated
@@ -150,12 +190,16 @@ paths:
   /v1/books/{isbn}:
     parameters:
       - {name: isbn, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation showBook has no red scenario for "not found isbn"; add under tests show-book-not-found-isbn: { operation: showBook, scenario: red, covers: [not found isbn], given: "no record has that isbn", when: "showBook is called with that isbn", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1v1~1books~1{isbn}/get]
+    # specarch-problem: warning: test_golden_missing: operation showBook has no golden scenario; add one under tests, for example show-book-succeeds: { operation: showBook, scenario: golden, given: "any caller", when: "showBook is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1v1~1books~1{isbn}/get]
     get:
       operationId: showBook
       origin: stated
       cites:
         - {source: code, clause: 'ginrouter/router.go:10', says: 'Registers GET /v1/books/{isbn} on a gin router; its handler is showBook.'}
         - {source: code, clause: 'ginrouter/router.go:18', says: 'The handler of GET /v1/books/{isbn} reads the path parameter isbn.'}
+    # specarch-problem: warning: test_case_missing: operation patchV1BooksByIsbn has no red scenario for "not found isbn"; add under tests patch-v1-books-by-isbn-not-found-isbn: { operation: patchV1BooksByIsbn, scenario: red, covers: [not found isbn], given: "no record has that isbn", when: "patchV1BooksByIsbn is called with that isbn", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1v1~1books~1{isbn}/patch]
+    # specarch-problem: warning: test_golden_missing: operation patchV1BooksByIsbn has no golden scenario; add one under tests, for example patch-v1-books-by-isbn-succeeds: { operation: patchV1BooksByIsbn, scenario: golden, given: "any caller", when: "patchV1BooksByIsbn is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1v1~1books~1{isbn}/patch]
     patch:
       operationId: patchV1BooksByIsbn
       origin: stated

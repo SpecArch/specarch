@@ -1,4 +1,5 @@
 questions:
+  # specarch-problem: question: open_question: (must, decision) What is each role for, and who holds it: auditor, desk-staff? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
     question: 'What is each role for, and who holds it: auditor, desk-staff?'
     kind: decision
@@ -6,6 +7,7 @@ questions:
     blocks: ['#/roles/auditor/description', '#/roles/desk-staff/description']
     decidedBy: system-owner
     why: A permission table names a role and what it grants, not who holds it.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: loans.read, loans.write? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
   Q-2:
     question: 'What does each permission allow: loans.read, loans.write?'
     kind: decision
@@ -13,6 +15,7 @@ questions:
     blocks: ['#/permissions/loans.read/description', '#/permissions/loans.write/description']
     decidedBy: system-owner
     why: A permission table names the permissions a role grants and not what they are for.
+  # specarch-problem: question: open_question: (must, decision) The check RequireAudit runs only when the setting AUDIT_ON is present. Is an empty AUDIT_ON ever meant to let every request through, or should the check refuse every request until it is set? It blocks roles. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
     question: The check RequireAudit runs only when the setting AUDIT_ON is present. Is an empty AUDIT_ON ever meant to let every request through, or should the check refuse every request until it is set?
     kind: decision
@@ -22,6 +25,7 @@ questions:
     why: A check switched off by an empty setting fails open without an error, so no role's grants hold while it is off.
     cites:
       - {source: code, clause: access gate RequireAudit, says: The permission table declares that RequireAudit runs only when AUDIT_ON is present.}
+  # specarch-problem: question: open_question: (could, decision) Declared, not found: Permissions of access declares that RequireAudit lets every request through while AUDIT_ON is empty, and the source read shows it in no middleware an endpoint names. Where is the check, and does the specification need its place? It blocks roles. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
     question: 'Declared, not found: Permissions of access declares that RequireAudit lets every request through while AUDIT_ON is empty, and the source read shows it in no middleware an endpoint names. Where is the check, and does the specification need its place?'
     kind: decision
@@ -31,6 +35,7 @@ questions:
     why: The printer declares the gate, so it is asked about; the parser only lacks its code, which is outside the middlewares it reads, and nothing waits for the answer.
     cites:
       - {source: code, clause: access gate RequireAudit, says: The permission table declares that RequireAudit runs only when AUDIT_ON is present.}
+  # specarch-problem: question: open_question: (must, decision) The check RequireDeskKey runs only when the setting DESK_API_KEY is present. Is an empty DESK_API_KEY ever meant to let every request through, or should the check refuse every request until it is set? It blocks roles. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:
     question: The check RequireDeskKey runs only when the setting DESK_API_KEY is present. Is an empty DESK_API_KEY ever meant to let every request through, or should the check refuse every request until it is set?
     kind: decision
@@ -41,6 +46,7 @@ questions:
     cites:
       - {source: code, clause: access gate RequireDeskKey, says: The permission table declares that RequireDeskKey runs only when DESK_API_KEY is present.}
       - {source: code, clause: 'api/endpoints.go:19', says: RequireDeskKey lets every request through while DESK_API_KEY is empty.}
+  # specarch-problem: question: open_question: (must, decision) The check RequireChecks runs only when the setting DESK_CHECKS_ON is true. Is a false DESK_CHECKS_ON ever meant to let every request through, or should the check refuse every request whatever it says? The source lets every request through at api/endpoints.go:26, and the permission table does not declare the gate. It blocks roles. Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
   Q-6:
     question: The check RequireChecks runs only when the setting DESK_CHECKS_ON is true. Is a false DESK_CHECKS_ON ever meant to let every request through, or should the check refuse every request whatever it says? The source lets every request through at api/endpoints.go:26, and the permission table does not declare the gate.
     kind: decision
@@ -50,6 +56,7 @@ questions:
     why: A check switched off by a setting fails open without an error, so no role's grants hold while it is off. A printer that does not declare a gate hides the one check that fails open; it is to declare it, or the code is to change.
     cites:
       - {source: code, clause: 'api/endpoints.go:26', says: RequireChecks lets every request through while DESK_CHECKS_ON is false.}
+  # specarch-problem: question: open_question: (must, decision) What does POST /loans/read answer when it succeeds, and what does each response mean? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
   Q-7:
     question: What does POST /loans/read answer when it succeeds, and what does each response mean?
     kind: decision
@@ -57,6 +64,7 @@ questions:
     blocks: ['#/paths/~1loans~1read/post/responses']
     decidedBy: system-owner
     why: The source names the refusals a handler answers with a literal status, not its success response or what each response means; the document dxlib emits declares them.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /loans/read? It is declared at api/endpoints.go:12, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
   Q-8:
     question: Does the running system register POST /loans/read? It is declared at api/endpoints.go:12, and no list the running system printed was read with it.
     kind: decision
@@ -66,6 +74,7 @@ questions:
     why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
     cites:
       - {source: code, clause: 'api/endpoints.go:12', says: Registers POST /loans/read with NewEndPoint.}
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: loans.read, loans.renew? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
   Q-9:
     question: 'What does each permission allow: loans.read, loans.renew?'
     kind: decision
@@ -73,6 +82,7 @@ questions:
     blocks: ['#/permissions/loans.read/description', '#/permissions/loans.renew/description']
     decidedBy: system-owner
     why: The source names the privilege an endpoint checks or a seed grants, and a seed's description is read only as a literal of the privilege's insert.
+  # specarch-problem: question: open_question: (could, decision) Not held: api/endpoints.go:12: the endpoint POST /loans/read: dxlib names it loans_read from its URI, which is not camelCase, as an operationId is; it is named postLoansRead. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
   Q-10:
     question: 'Not held: api/endpoints.go:12: the endpoint POST /loans/read: dxlib names it loans_read from its URI, which is not camelCase, as an operationId is; it is named postLoansRead. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -82,6 +92,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'api/endpoints.go:12', says: 'Not held: the endpoint POST /loans/read: dxlib names it loans_read from its URI, which is not camelCase, as an operationId is; it is named postLoansRead.'}
+  # specarch-problem: question: open_question: (could, decision) In the database, declared nowhere the reader follows: entity DeskMembers is in migrations desk.members, and the source read declares it nowhere the reader follows, such as a migration, a helper or a module. Does the specification need where it is declared? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
   Q-13:
     question: 'In the database, declared nowhere the reader follows: entity DeskMembers is in migrations desk.members, and the source read declares it nowhere the reader follows, such as a migration, a helper or a module. Does the specification need where it is declared?'
     kind: decision
@@ -91,6 +102,7 @@ questions:
     why: The catalogue holds it, so the database has it; the parser only lacks its declaration in the source, and nothing waits for the answer.
     cites:
       - {source: code, clause: migrations desk.members, says: 'Table desk.members: id bigint not null.'}
+  # specarch-problem: question: open_question: (must, decision) Declared, not in the database: entity DeskFines is declared at db/model.go:15, and the database's catalogue does not hold it in Database of migrations. Is the declaration unused, or is the migration that makes the table missing? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
   Q-14:
     question: 'Declared, not in the database: entity DeskFines is declared at db/model.go:15, and the database''s catalogue does not hold it in Database of migrations. Is the declaration unused, or is the migration that makes the table missing?'
     kind: decision
@@ -101,6 +113,7 @@ questions:
     why: Only the parsed source declares the table, and the catalogue is what the database holds; a table declared and not made fails when the code first uses it.
     cites:
       - {source: code, clause: 'db/model.go:15', says: NewModelDBTable declares table desk.fines with the columns id (its key).}
+  # specarch-problem: question: open_question: (could, decision) Granted, seeded nowhere the reader follows: role auditor is in access role auditor, and the source read declares it nowhere the reader follows, such as a loop, a helper, a module or a change made by hand. Does the specification need where it is declared? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
   Q-15:
     question: 'Granted, seeded nowhere the reader follows: role auditor is in access role auditor, and the source read declares it nowhere the reader follows, such as a loop, a helper, a module or a change made by hand. Does the specification need where it is declared?'
     kind: decision
@@ -110,6 +123,7 @@ questions:
     why: The permission table holds it, so the check reads it; the parser only lacks the seed that made it, and nothing waits for the answer.
     cites:
       - {source: code, clause: access role auditor, says: auditor grants LOANS.READ.}
+  # specarch-problem: question: open_question: (must, decision) Seeded, not granted: role desk-staff is granted loans.renew by the seed at seed/seed.go:15, and Permissions of access does not hold the grant. Did the seed not run, or did something remove the grant? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
   Q-16:
     question: 'Seeded, not granted: role desk-staff is granted loans.renew by the seed at seed/seed.go:15, and Permissions of access does not hold the grant. Did the seed not run, or did something remove the grant?'
     kind: decision
@@ -120,6 +134,7 @@ questions:
     why: The permission table is what the check reads; a grant only a seed makes is one the running system does not hold.
     cites:
       - {source: code, clause: 'seed/seed.go:15', says: Grants LOANS.RENEW to desk-staff.}
+  # specarch-problem: question: open_question: (could, decision) Granted, seeded nowhere the reader follows: role desk-staff grants loans.write in Permissions of access, and no seed in the source read grants it. Does the specification need where it is granted? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
   Q-17:
     question: 'Granted, seeded nowhere the reader follows: role desk-staff grants loans.write in Permissions of access, and no seed in the source read grants it. Does the specification need where it is granted?'
     kind: decision
@@ -127,6 +142,7 @@ questions:
     blocks: ['#/roles/desk-staff/permissions']
     decidedBy: system-owner
     why: The permission table holds the grant, so the check reads it; the parser only lacks the seed that made it, and nothing waits for the answer.
+  # specarch-problem: question: open_question: (must, decision) Seeded, not granted: role clerk is declared at seed/seed.go:16, and the tables the permission check reads do not hold it in Permissions of access. Did the seed not run, or did something remove its rows? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
   Q-18:
     question: 'Seeded, not granted: role clerk is declared at seed/seed.go:16, and the tables the permission check reads do not hold it in Permissions of access. Did the seed not run, or did something remove its rows?'
     kind: decision

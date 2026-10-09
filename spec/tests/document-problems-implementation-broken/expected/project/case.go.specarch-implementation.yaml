@@ -1,0 +1,9 @@
+specarchImplementation: "0.1"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+mappings:
+  # specarch-problem: error: yaml_syntax: the { that starts on this line is not closed; close it with }, and separate its entries with commas; the other entries of the file are read, and this one is kept by its name only until it parses [yaml_syntax@case.go.specarch-implementation.yaml#/mappings/#~1entities~1Book]
+  "#/entities/Book": { target: table books
+targets:
+  problems: { output: ../docs }

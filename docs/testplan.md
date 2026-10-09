@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 349 design tests, 142 golden and 207 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 353 design tests, 142 golden and 211 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.6.0-dev of the specification: 349 design tests, 142 golden and 207 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 345 |
+| system | 349 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -400,6 +400,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-51.
 - When: document techspec is run
 - Then: it prints both errors, writes techspec.md with the info error's Problem paragraph under the Problems notice and the relation's at the entity, and exits 1
 
+#### document-problems-check-marks
+
+Scenario: red; level: system; covers exit 1; verifies SA-51.
+
+- Given: a specification whose fragments lack the marks of its problems and hold the mark of a problem that is fixed, beside current problems files
+- When: document problems is run with --check
+- Then: it writes nothing, names each fragment whose marks are not the ones it would write as differing, and the problems files, whose lines the marks would move, and exits 1
+
 #### document-problems-implementation-broken
 
 Scenario: red; level: system; covers exit 1; verifies SA-51.
@@ -415,6 +423,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-51.
 - Given: a specification with an error at a requirement that cites a line of code beside it, a warning, and a must question that blocks two keys a requirement leaves out and cites the code
 - When: document problems is run
 - Then: it prints the error, writes problems.txt with each problem on a file:line:column line with its id, the question at its entry followed by a note at each blocked entry and at each cited line, and problems.sarif with the same problems, the question as kind open and level none, and exits 1
+
+#### document-problems-marks-current
+
+Scenario: red; level: system; covers exit 1; verifies SA-51.
+
+- Given: a specification whose fragments already carry the marks of its problems, and its problems files
+- When: document problems is run
+- Then: it writes nothing, since a second run writes the same bytes, prints the errors at the lines on disk, and exits 1
+
+#### document-problems-marks-fragments
+
+Scenario: red; level: system; covers exit 1; verifies SA-51.
+
+- Given: a specification whose fragments hold an error in a block list item, an error inside a block scalar's expression, a key defined twice, a fragment that does not parse under a comment, a question, a comment at the end of a line, and a mark of a problem that is fixed
+- When: document problems is run
+- Then: it writes each problem's mark on the line above its entry with the entry's indentation, the marks of one entry in the order of the problems file, the mark of the broken fragment below its comment, takes out the mark of the fixed problem, leaves every other line as it was, and writes problems.txt and problems.sarif with the lines of the marked files, the line a message names included, and exits 1
 
 #### document-problems-no-output-folder
 
@@ -2245,6 +2269,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-17.
 - Given: a question under requirements/ about an entity, one in the root file about a requirement although requirements/ exists, and one that blocks two stages
 - When: validate is run
 - Then: it reports each with question_stage, naming the folder to move to, and exits 1
+
+#### validate-reads-marks
+
+Scenario: red; level: system; covers exit 1; verifies SA-51.
+
+- Given: a specification whose fragments carry the marks of its problems
+- When: validate is run
+- Then: it reads the marks as the comments they are and reports the same problems at the lines on disk, the same in both builds, and writes nothing
 
 #### validate-record-name
 

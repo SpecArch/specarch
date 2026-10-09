@@ -1,4 +1,5 @@
 questions:
+  # specarch-problem: question: open_question: (must, decision) What is each setting for, where does its value come from, and is it a secret: DESK_DEBUG, DESK_PREFIX? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
   Q-8:
     question: 'What is each setting for, where does its value come from, and is it a secret: DESK_DEBUG, DESK_PREFIX?'
     kind: decision

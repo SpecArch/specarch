@@ -25,6 +25,8 @@ paths:
         - {source: code, clause: 'code/endpoints.go:14', says: The handler of POST /loans/close reads no parameter by name.}
       permission: loans.write
   /loans/report:
+    # specarch-problem: warning: test_case_missing: operation reportLoans has no red scenario for "denied without loans.read"; add under tests report-loans-denied-without-loans-read: { operation: reportLoans, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "reportLoans is called", then: "it is refused as not allowed" } [test_case_missing@design/api.yaml#/paths/~1loans~1report/post]
+    # specarch-problem: warning: test_golden_missing: operation reportLoans has no golden scenario; add one under tests, for example report-loans-succeeds: { operation: reportLoans, scenario: golden, given: "a caller with loans.read", when: "reportLoans is called", then: "it answers 200: The report." } [test_golden_missing@design/api.yaml#/paths/~1loans~1report/post]
     post:
       operationId: reportLoans
       summary: Report the loans

@@ -21,6 +21,8 @@ permissions:
       - {source: code, clause: 'seed/seed.go:15', says: Inserts the privilege LOANS.RENEW.}
 paths:
   /branches/list:
+    # specarch-problem: warning: test_case_missing: operation postBranchesList has no red scenario for "denied without branches.read"; add under tests post-branches-list-denied-without-branches-read: { operation: postBranchesList, scenario: red, covers: [denied without branches.read], given: "a caller without branches.read", when: "postBranchesList is called", then: "it is refused as not allowed" } [test_case_missing@design/paths.yaml#/paths/~1branches~1list/post]
+    # specarch-problem: warning: test_golden_missing: operation postBranchesList has no golden scenario; add one under tests, for example post-branches-list-succeeds: { operation: postBranchesList, scenario: golden, given: "a caller with branches.read", when: "postBranchesList is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1branches~1list/post]
     post:
       operationId: postBranchesList
       summary: List branches
@@ -31,6 +33,8 @@ paths:
         - {source: code, clause: 'api/endpoints.go:13', says: 'NewEndPoint registers POST /branches/list; its handler is BranchList.RequestSearchPagingList, its middlewares are RequireDeskKey, and it checks BRANCHES.READ.'}
         - {source: code, clause: 'api/tables.go:13', says: 'The handler of POST /branches/list is dxlib''s RequestSearchPagingList of this table. NewDXTableSimple makes the table public.branches, with whitelists that are not literal lists of names.'}
   /loans/list:
+    # specarch-problem: warning: test_case_missing: operation postLoansList has no red scenario for "denied without loans.read"; add under tests post-loans-list-denied-without-loans-read: { operation: postLoansList, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "postLoansList is called", then: "it is refused as not allowed" } [test_case_missing@design/paths.yaml#/paths/~1loans~1list/post]
+    # specarch-problem: warning: test_golden_missing: operation postLoansList has no golden scenario; add one under tests, for example post-loans-list-succeeds: { operation: postLoansList, scenario: golden, given: "a caller with loans.read", when: "postLoansList is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1loans~1list/post]
     post:
       operationId: postLoansList
       summary: List loans

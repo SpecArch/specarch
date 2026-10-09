@@ -1,4 +1,5 @@
 questions:
+  # specarch-problem: question: open_question: (must, decision) What is each setting for, where does its value come from, and is it a secret: DESK_API_KEY, DESK_CHECKS_ON? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
   Q-11:
     question: 'What is each setting for, where does its value come from, and is it a secret: DESK_API_KEY, DESK_CHECKS_ON?'
     kind: decision
@@ -6,6 +7,7 @@ questions:
     blocks: ['#/configuration/deskApiKey/description', '#/configuration/deskChecksOn/description', '#/configuration/deskChecksOn/secret']
     decidedBy: system-owner
     why: The source names the settings it reads and not what they are for; whether one is a secret is said only where the source marks it sensitive.
+  # specarch-problem: question: open_question: (must, decision) Is each of these settings a secret: DESK_API_KEY? Each name says it may hold a credential, and the source does not mark it sensitive. Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
   Q-12:
     question: 'Is each of these settings a secret: DESK_API_KEY? Each name says it may hold a credential, and the source does not mark it sensitive.'
     kind: decision

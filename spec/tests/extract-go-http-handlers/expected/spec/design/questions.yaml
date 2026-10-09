@@ -1,4 +1,5 @@
 questions:
+  # specarch-problem: question: open_question: (must, decision) The implementation file implementation/desk.go.specarch-implementation.yaml names a permission check (item 4 of bindings.http.permissionChecks) without its package, its function and the argument, from 1, that carries the permission. Which check is it? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
     question: The implementation file implementation/desk.go.specarch-implementation.yaml names a permission check (item 4 of bindings.http.permissionChecks) without its package, its function and the argument, from 1, that carries the permission. Which check is it?
     kind: decision
@@ -6,6 +7,7 @@ questions:
     blocks: [paths]
     decidedBy: system-owner
     why: A check named in part cannot be found in the source, and the operations it guards would be read as open.
+  # specarch-problem: question: open_question: (should, decision) desk/access.go:42 calls GET /relative/path, which names no host. Which system does it call? It blocks dependencies. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
   Q-2:
     question: desk/access.go:42 calls GET /relative/path, which names no host. Which system does it call?
     kind: decision
@@ -15,6 +17,7 @@ questions:
     why: A dependency is named by the system it calls, and the URL does not name one.
     cites:
       - {source: code, clause: 'desk/access.go:42', says: Calls GET /relative/path.}
+  # specarch-problem: question: open_question: (should, decision) desk/server.go:93 calls another system with NewRequest at a URL that is not a literal. Which system and operation does it call? It blocks dependencies. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
     question: desk/server.go:93 calls another system with NewRequest at a URL that is not a literal. Which system and operation does it call?
     kind: decision
@@ -24,6 +27,7 @@ questions:
     why: A URL computed at run time is not known by syntax, and a dependency is named by the system it calls.
     cites:
       - {source: code, clause: 'desk/server.go:93', says: Calls NewRequest with a URL that is not a literal.}
+  # specarch-problem: question: open_question: (should, decision) desk/server.go:79: the handler of GET /members/{cardNumber} reads a path parameter whose name name is not a literal. Which parameter does it read? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
     question: 'desk/server.go:79: the handler of GET /members/{cardNumber} reads a path parameter whose name name is not a literal. Which parameter does it read?'
     kind: decision
@@ -33,6 +37,7 @@ questions:
     why: Syntax cannot tell which name a computed value holds.
     cites:
       - {source: code, clause: 'desk/server.go:79', says: Calls chi.URLParam with a name that is not a literal.}
+  # specarch-problem: question: open_question: (must, decision) The check Require runs only when the setting DESK_CHECKS is present. Is an empty DESK_CHECKS ever meant to let every request through, or should the check refuse every request until it is set? It blocks roles. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:
     question: The check Require runs only when the setting DESK_CHECKS is present. Is an empty DESK_CHECKS ever meant to let every request through, or should the check refuse every request until it is set?
     kind: decision
@@ -42,6 +47,7 @@ questions:
     why: A check switched off by an empty setting fails open without an error, so no role's grants hold while it is off.
     cites:
       - {source: code, clause: 'desk/access.go:11', says: Require lets every request through while DESK_CHECKS is empty.}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /fines/{fineId} take: fineId? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
   Q-9:
     question: 'What values does each path parameter of /fines/{fineId} take: fineId?'
     kind: decision
@@ -49,6 +55,7 @@ questions:
     blocks: ['#/paths/~1fines~1{fineId}/parameters/0/schema']
     decidedBy: system-owner
     why: A path names its parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does GET /fines/{fineId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
   Q-10:
     question: What does GET /fines/{fineId} do, and what does it answer?
     kind: decision
@@ -56,6 +63,7 @@ questions:
     blocks: ['#/paths/~1fines~1{fineId}/get/summary', '#/paths/~1fines~1{fineId}/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /fines/{fineId}? It is declared at desk/server.go:32, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
   Q-11:
     question: Does the running system register GET /fines/{fineId}? It is declared at desk/server.go:32, and no list the running system printed was read with it.
     kind: decision
@@ -65,6 +73,7 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'desk/server.go:32', says: 'Registers GET /fines/{fineId}.'}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /fines/{fineId}/waivers take: fineId? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
   Q-12:
     question: 'What values does each path parameter of /fines/{fineId}/waivers take: fineId?'
     kind: decision
@@ -72,6 +81,7 @@ questions:
     blocks: ['#/paths/~1fines~1{fineId}~1waivers/parameters/0/schema']
     decidedBy: system-owner
     why: A path names its parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) POST /fines/{fineId}/waivers checks the permissions fines.read, fines.waive and fines.override, and an operation checks one. Which permission should it check? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
   Q-13:
     question: POST /fines/{fineId}/waivers checks the permissions fines.read, fines.waive and fines.override, and an operation checks one. Which permission should it check?
     kind: decision
@@ -79,6 +89,7 @@ questions:
     blocks: ['#/paths/~1fines~1{fineId}~1waivers/post/permission']
     decidedBy: system-owner
     why: An operation names one permission; choosing one of several the code checks would write a check the code does not make.
+  # specarch-problem: question: open_question: (must, decision) What does POST /fines/{fineId}/waivers do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
   Q-14:
     question: What does POST /fines/{fineId}/waivers do, and what does it answer?
     kind: decision
@@ -86,6 +97,7 @@ questions:
     blocks: ['#/paths/~1fines~1{fineId}~1waivers/post/summary', '#/paths/~1fines~1{fineId}~1waivers/post/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /fines/{fineId}/waivers? It is declared at desk/server.go:33, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
   Q-15:
     question: Does the running system register POST /fines/{fineId}/waivers? It is declared at desk/server.go:33, and no list the running system printed was read with it.
     kind: decision
@@ -95,6 +107,7 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'desk/server.go:33', says: 'Registers POST /fines/{fineId}/waivers.'}
+  # specarch-problem: question: open_question: (must, decision) POST /loans, request body, property copies: it is Go's int, as wide as the platform's word. How wide is it on the wire? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
   Q-16:
     question: 'POST /loans, request body, property copies: it is Go''s int, as wide as the platform''s word. How wide is it on the wire?'
     kind: decision
@@ -104,6 +117,7 @@ questions:
     why: Every integer in a specification has a width, and Go's int has the platform's.
     cites:
       - {source: code, clause: 'desk/server.go:45', says: 'POST /loans, request body, property copies: Go''s int.'}
+  # specarch-problem: question: open_question: (must, decision) POST /loans, request body, property notes, property staffId: it is Go's int64, which encoding/json writes as a number, and a number above 2^53 loses digits in JavaScript and other readers. Is it bounded within 2^53, or carried as text? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
   Q-17:
     question: 'POST /loans, request body, property notes, property staffId: it is Go''s int64, which encoding/json writes as a number, and a number above 2^53 loses digits in JavaScript and other readers. Is it bounded within 2^53, or carried as text?'
     kind: decision
@@ -113,6 +127,7 @@ questions:
     why: Every integer in a specification has a width, and a 64-bit one is held only within 2^53 or as text; which one the code needs is not in the source.
     cites:
       - {source: code, clause: 'desk/server.go:57', says: 'POST /loans, request body, property notes, property staffId: Go''s int64.'}
+  # specarch-problem: question: open_question: (should, decision) POST /loans, request body, property extra: it is a map, whose keys and values JSON writes as an object of any properties. Which shape does it take? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
   Q-18:
     question: 'POST /loans, request body, property extra: it is a map, whose keys and values JSON writes as an object of any properties. Which shape does it take?'
     kind: decision
@@ -122,6 +137,7 @@ questions:
     why: A map has no fixed properties, and the meta-model names each property of an object.
     cites:
       - {source: code, clause: 'desk/server.go:49', says: 'POST /loans, request body, property extra: it is a map, whose keys and values JSON writes as an object of any properties.'}
+  # specarch-problem: question: open_question: (must, decision) What does POST /loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
   Q-19:
     question: What does POST /loans do, and what does it answer?
     kind: decision
@@ -129,6 +145,7 @@ questions:
     blocks: ['#/paths/~1loans/post/summary', '#/paths/~1loans/post/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /loans? It is declared at desk/server.go:27, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
   Q-20:
     question: Does the running system register POST /loans? It is declared at desk/server.go:27, and no list the running system printed was read with it.
     kind: decision
@@ -138,6 +155,7 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'desk/server.go:27', says: Registers POST /loans.}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /loans/{loanId} take: loanId? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
   Q-21:
     question: 'What values does each path parameter of /loans/{loanId} take: loanId?'
     kind: decision
@@ -145,6 +163,7 @@ questions:
     blocks: ['#/paths/~1loans~1{loanId}/parameters/0/schema']
     decidedBy: system-owner
     why: A path names its parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) desk/server.go:74: the handler of GET /loans/{loanId} reads the path parameter loan, which its path does not have, so it reads an empty value. Is loan a parameter of the operation, or is the read a mistake? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
   Q-22:
     question: 'desk/server.go:74: the handler of GET /loans/{loanId} reads the path parameter loan, which its path does not have, so it reads an empty value. Is loan a parameter of the operation, or is the read a mistake?'
     kind: decision
@@ -154,6 +173,7 @@ questions:
     why: A path parameter the route's path does not name is always empty, so the code cannot work as written.
     cites:
       - {source: code, clause: 'desk/server.go:74', says: Reads the path parameter loan.}
+  # specarch-problem: question: open_question: (must, decision) What does GET /loans/{loanId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
   Q-23:
     question: What does GET /loans/{loanId} do, and what does it answer?
     kind: decision
@@ -161,6 +181,7 @@ questions:
     blocks: ['#/paths/~1loans~1{loanId}/get/summary', '#/paths/~1loans~1{loanId}/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /loans/{loanId}? It is declared at desk/server.go:28, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
   Q-24:
     question: Does the running system register GET /loans/{loanId}? It is declared at desk/server.go:28, and no list the running system printed was read with it.
     kind: decision
@@ -170,6 +191,7 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'desk/server.go:28', says: 'Registers GET /loans/{loanId}.'}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /members/{cardNumber} take: cardNumber? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
   Q-25:
     question: 'What values does each path parameter of /members/{cardNumber} take: cardNumber?'
     kind: decision
@@ -177,6 +199,7 @@ questions:
     blocks: ['#/paths/~1members~1{cardNumber}/parameters/0/schema']
     decidedBy: system-owner
     why: A path names its parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does GET /members/{cardNumber} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
   Q-26:
     question: What does GET /members/{cardNumber} do, and what does it answer?
     kind: decision
@@ -184,6 +207,7 @@ questions:
     blocks: ['#/paths/~1members~1{cardNumber}/get/summary', '#/paths/~1members~1{cardNumber}/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /members/{cardNumber}? It is declared at desk/server.go:29, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
   Q-27:
     question: Does the running system register GET /members/{cardNumber}? It is declared at desk/server.go:29, and no list the running system printed was read with it.
     kind: decision
@@ -193,6 +217,7 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'desk/server.go:29', says: 'Registers GET /members/{cardNumber}.'}
+  # specarch-problem: question: open_question: (should, decision) PUT /members/{cardNumber}, request body: Member embeds Address, whose fields encoding/json writes as its own. Which of them does the body take? Decided by system-owner. Answer with a decision record that names Q-28 under answers. [Q-28]
   Q-28:
     question: 'PUT /members/{cardNumber}, request body: Member embeds Address, whose fields encoding/json writes as its own. Which of them does the body take?'
     kind: decision
@@ -202,6 +227,7 @@ questions:
     why: The reader writes a struct's own fields, and an embedded struct's may be promoted or hidden by Go's rules.
     cites:
       - {source: code, clause: 'desk/server.go:105', says: Member embeds Address.}
+  # specarch-problem: question: open_question: (must, decision) What does PUT /members/{cardNumber} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-29 under answers. [Q-29]
   Q-29:
     question: What does PUT /members/{cardNumber} do, and what does it answer?
     kind: decision
@@ -209,6 +235,7 @@ questions:
     blocks: ['#/paths/~1members~1{cardNumber}/put/summary', '#/paths/~1members~1{cardNumber}/put/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register PUT /members/{cardNumber}? It is declared at desk/server.go:38, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-30 under answers. [Q-30]
   Q-30:
     question: Does the running system register PUT /members/{cardNumber}? It is declared at desk/server.go:38, and no list the running system printed was read with it.
     kind: decision
@@ -218,6 +245,7 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'desk/server.go:38', says: 'Registers PUT /members/{cardNumber}.'}
+  # specarch-problem: question: open_question: (must, decision) desk/server.go:36: GET /reports checks a permission s.Require gives as scope, which is not a literal. Which permission does it check? Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
   Q-31:
     question: 'desk/server.go:36: GET /reports checks a permission s.Require gives as scope, which is not a literal. Which permission does it check?'
     kind: decision
@@ -227,6 +255,7 @@ questions:
     why: A permission computed at run time is not known by syntax, and an operation's permission is never guessed.
     cites:
       - {source: code, clause: 'desk/server.go:36', says: Calls s.Require with scope.}
+  # specarch-problem: question: open_question: (must, decision) What does GET /reports do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
   Q-32:
     question: What does GET /reports do, and what does it answer?
     kind: decision
@@ -234,6 +263,7 @@ questions:
     blocks: ['#/paths/~1reports/get/summary', '#/paths/~1reports/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /reports? It is declared at desk/server.go:36, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
   Q-33:
     question: Does the running system register GET /reports? It is declared at desk/server.go:36, and no list the running system printed was read with it.
     kind: decision
@@ -243,6 +273,7 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'desk/server.go:36', says: Registers GET /reports.}
+  # specarch-problem: question: open_question: (must, decision) GET /status checks no permission: none of the checks the implementation file names wraps its handler, is among its middleware or is called in its handler. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-34 under answers. [Q-34]
   Q-34:
     question: 'GET /status checks no permission: none of the checks the implementation file names wraps its handler, is among its middleware or is called in its handler. Is it meant to be open to everyone (public), or which permission should it check?'
     kind: decision
@@ -250,6 +281,7 @@ questions:
     blocks: ['#/paths/~1status/get/permission']
     decidedBy: system-owner
     why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) What does GET /status do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-35 under answers. [Q-35]
   Q-35:
     question: What does GET /status do, and what does it answer?
     kind: decision
@@ -257,6 +289,7 @@ questions:
     blocks: ['#/paths/~1status/get/summary', '#/paths/~1status/get/responses']
     decidedBy: system-owner
     why: The source registers a handler and does not say what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /status? It is declared at desk/server.go:37, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-36 under answers. [Q-36]
   Q-36:
     question: Does the running system register GET /status? It is declared at desk/server.go:37, and no list the running system printed was read with it.
     kind: decision
@@ -266,6 +299,7 @@ questions:
     why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
     cites:
       - {source: code, clause: 'desk/server.go:37', says: Registers GET /status.}
+  # specarch-problem: question: open_question: (must, decision) What is the system catalogueExampleCom the source calls, and how long may one call to it take before the operation gives up? Decided by system-owner. Answer with a decision record that names Q-37 under answers. [Q-37]
   Q-37:
     question: What is the system catalogueExampleCom the source calls, and how long may one call to it take before the operation gives up?
     kind: decision
@@ -273,6 +307,7 @@ questions:
     blocks: ['#/dependencies/catalogueExampleCom/description', '#/dependencies/catalogueExampleCom/timeout']
     decidedBy: system-owner
     why: The source names the URL it calls, and not what the system is or a time limit, which every dependency has.
+  # specarch-problem: question: open_question: (must, decision) What is the system membersExampleCom the source calls, and how long may one call to it take before the operation gives up? Decided by system-owner. Answer with a decision record that names Q-38 under answers. [Q-38]
   Q-38:
     question: What is the system membersExampleCom the source calls, and how long may one call to it take before the operation gives up?
     kind: decision
@@ -280,6 +315,7 @@ questions:
     blocks: ['#/dependencies/membersExampleCom/description', '#/dependencies/membersExampleCom/timeout']
     decidedBy: system-owner
     why: The source names the URL it calls, and not what the system is or a time limit, which every dependency has.
+  # specarch-problem: question: open_question: (should, decision) Which operations call membersExampleCom? The source calls it at desk/access.go:41, outside a handler the reader reads. Decided by system-owner. Answer with a decision record that names Q-39 under answers. [Q-39]
   Q-39:
     question: Which operations call membersExampleCom? The source calls it at desk/access.go:41, outside a handler the reader reads.
     kind: decision
@@ -289,6 +325,7 @@ questions:
     why: An operation names the dependencies it calls, and syntax finds a call only in a handler's own body.
     cites:
       - {source: code, clause: 'desk/access.go:41', says: Calls membersExampleCom.}
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: fines.read, loans.read, loans.write, members.read, members.write? Decided by system-owner. Answer with a decision record that names Q-40 under answers. [Q-40]
   Q-40:
     question: 'What does each permission allow: fines.read, loans.read, loans.write, members.read, members.write?'
     kind: decision
@@ -296,6 +333,7 @@ questions:
     blocks: ['#/permissions/fines.read/description', '#/permissions/loans.read/description', '#/permissions/loans.write/description', '#/permissions/members.read/description', '#/permissions/members.write/description']
     decidedBy: system-owner
     why: The source names the privilege an endpoint checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: fines.read, loans.read, loans.write, members.read, members.write? Decided by system-owner. Answer with a decision record that names Q-41 under answers. [Q-41]
   Q-41:
     question: 'Which role grants each permission: fines.read, loans.read, loans.write, members.read, members.write?'
     kind: decision
@@ -303,6 +341,7 @@ questions:
     blocks: ['#/permissions/fines.read', '#/permissions/loans.read', '#/permissions/loans.write', '#/permissions/members.read', '#/permissions/members.write']
     decidedBy: system-owner
     why: The source names the privilege an endpoint checks and not who holds it.
+  # specarch-problem: question: open_question: (could, decision) Not held: desk/server.go:56: POST /loans, request body, property notes, property text: the validate rule excludesall=<> has no keyword of the meta-model the reader writes it as; not written. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-42 under answers. [Q-42]
   Q-42:
     question: 'Not held: desk/server.go:56: POST /loans, request body, property notes, property text: the validate rule excludesall=<> has no keyword of the meta-model the reader writes it as; not written. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -312,6 +351,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'desk/server.go:56', says: 'Not held: POST /loans, request body, property notes, property text: the validate rule excludesall=<> has no keyword of the meta-model the reader writes it as; not written.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: desk/server.go:47: POST /loans, request body, property notes: the validate rule dive has no keyword of the meta-model the reader writes it as; not written. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-43 under answers. [Q-43]
   Q-43:
     question: 'Not held: desk/server.go:47: POST /loans, request body, property notes: the validate rule dive has no keyword of the meta-model the reader writes it as; not written. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -321,6 +361,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'desk/server.go:47', says: 'Not held: POST /loans, request body, property notes: the validate rule dive has no keyword of the meta-model the reader writes it as; not written.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: desk/server.go:104: Member.FullName has no json tag, so encoding/json writes it as FullName, which is neither camelCase nor snake_case; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-44 under answers. [Q-44]
   Q-44:
     question: 'Not held: desk/server.go:104: Member.FullName has no json tag, so encoding/json writes it as FullName, which is neither camelCase nor snake_case; left out. Does the specification need it, written another way or described by hand?'
     kind: decision

@@ -23,6 +23,9 @@ paths:
   /fines/{fineId}:
     parameters:
       - {name: fineId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation showFine has no red scenario for "denied without fines.read"; add under tests show-fine-denied-without-fines-read: { operation: showFine, scenario: red, covers: [denied without fines.read], given: "a caller without fines.read", when: "showFine is called", then: "it is refused as not allowed" } [test_case_missing.93ff5115@design/paths.yaml#/paths/~1fines~1{fineId}/get]
+    # specarch-problem: warning: test_case_missing: operation showFine has no red scenario for "not found fineId"; add under tests show-fine-not-found-fine-id: { operation: showFine, scenario: red, covers: [not found fineId], given: "no record has that fineId", when: "showFine is called with that fineId", then: "it is refused as not found" } [test_case_missing.d7e207a6@design/paths.yaml#/paths/~1fines~1{fineId}/get]
+    # specarch-problem: warning: test_golden_missing: operation showFine has no golden scenario; add one under tests, for example show-fine-succeeds: { operation: showFine, scenario: golden, given: "a caller with fines.read", when: "showFine is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1fines~1{fineId}/get]
     get:
       operationId: showFine
       permission: fines.read
@@ -33,6 +36,8 @@ paths:
   /fines/{fineId}/waivers:
     parameters:
       - {name: fineId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation waiveFine has no red scenario for "not found fineId"; add under tests waive-fine-not-found-fine-id: { operation: waiveFine, scenario: red, covers: [not found fineId], given: "no record has that fineId", when: "waiveFine is called with that fineId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1fines~1{fineId}~1waivers/post]
+    # specarch-problem: warning: test_golden_missing: operation waiveFine has no golden scenario; add one under tests, for example waive-fine-succeeds: { operation: waiveFine, scenario: golden, given: "any caller", when: "waiveFine is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1fines~1{fineId}~1waivers/post]
     post:
       operationId: waiveFine
       origin: stated
@@ -40,6 +45,17 @@ paths:
         - {source: code, clause: 'desk/server.go:33', says: 'Registers POST /fines/{fineId}/waivers on a chi router; its handler is s.waiveFine, and it is checked by s.Allow("fines.read"), s.Require("fines.waive") and s.Check("fines.override").'}
         - {source: code, clause: 'desk/server.go:84', says: 'The handler of POST /fines/{fineId}/waivers reads no path parameter by name.'}
   /loans:
+    # specarch-problem: warning: test_case_missing: operation lendBook has no red scenario for "dueOn not a valid date-time"; add under tests lend-book-due-on-not-a-valid-date-time: { operation: lendBook, scenario: red, covers: [dueOn not a valid date-time], given: "...", when: "lendBook is called with dueOn that is not a valid date-time", then: "it is refused" } [test_case_missing.18002924@design/paths.yaml#/paths/~1loans/post]
+    # specarch-problem: warning: test_case_missing: operation lendBook has no red scenario for "denied without loans.write"; add under tests lend-book-denied-without-loans-write: { operation: lendBook, scenario: red, covers: [denied without loans.write], given: "a caller without loans.write", when: "lendBook is called", then: "it is refused as not allowed" } [test_case_missing.2bfe73d3@design/paths.yaml#/paths/~1loans/post]
+    # specarch-problem: warning: test_case_missing: operation lendBook has no red scenario for "missing barcode"; add under tests lend-book-missing-barcode: { operation: lendBook, scenario: red, covers: [missing barcode], given: "...", when: "lendBook is called without barcode", then: "it is refused" } [test_case_missing.68aaa23d@design/paths.yaml#/paths/~1loans/post]
+    # specarch-problem: warning: test_case_missing: operation lendBook has no red scenario for "cardNumber not matching its pattern"; add under tests lend-book-card-number-not-matching-its-pattern: { operation: lendBook, scenario: red, covers: [cardNumber not matching its pattern], given: "...", when: "lendBook is called with cardNumber in the wrong form", then: "it is refused" } [test_case_missing.6ccbe6b8@design/paths.yaml#/paths/~1loans/post]
+    # specarch-problem: warning: test_case_missing: operation lendBook has no red scenario for "contactEmail not a valid email"; add under tests lend-book-contact-email-not-a-valid-email: { operation: lendBook, scenario: red, covers: [contactEmail not a valid email], given: "...", when: "lendBook is called with contactEmail that is not a valid email", then: "it is refused" } [test_case_missing.6f138856@design/paths.yaml#/paths/~1loans/post]
+    # specarch-problem: warning: test_case_missing: operation lendBook has no red scenario for "dependency times out catalogueExampleCom"; add under tests lend-book-dependency-times-out-catalogue-example-com: { operation: lendBook, scenario: red, covers: [dependency times out catalogueExampleCom], given: "catalogueExampleCom does not answer within ", when: "lendBook is called", then: "..." } [test_case_missing.bbc36bc2@design/paths.yaml#/paths/~1loans/post]
+    # specarch-problem: warning: test_case_missing: operation lendBook has no red scenario for "channel not one of its values"; add under tests lend-book-channel-not-one-of-its-values: { operation: lendBook, scenario: red, covers: [channel not one of its values], given: "...", when: "lendBook is called with channel set to a value it does not allow", then: "it is refused" } [test_case_missing.cd1b3fa4@design/paths.yaml#/paths/~1loans/post]
+    # specarch-problem: warning: test_case_missing: operation lendBook has no red scenario for "missing cardNumber"; add under tests lend-book-missing-card-number: { operation: lendBook, scenario: red, covers: [missing cardNumber], given: "...", when: "lendBook is called without cardNumber", then: "it is refused" } [test_case_missing.e24ae930@design/paths.yaml#/paths/~1loans/post]
+    # specarch-problem: warning: test_case_missing: operation lendBook has no red scenario for "barcode not matching its pattern"; add under tests lend-book-barcode-not-matching-its-pattern: { operation: lendBook, scenario: red, covers: [barcode not matching its pattern], given: "...", when: "lendBook is called with barcode in the wrong form", then: "it is refused" } [test_case_missing.e2d153b9@design/paths.yaml#/paths/~1loans/post]
+    # specarch-problem: warning: test_case_missing: operation lendBook has no red scenario for "dependency fails catalogueExampleCom"; add under tests lend-book-dependency-fails-catalogue-example-com: { operation: lendBook, scenario: red, covers: [dependency fails catalogueExampleCom], given: "catalogueExampleCom answers with an error", when: "lendBook is called", then: "..." } [test_case_missing.eeb486a9@design/paths.yaml#/paths/~1loans/post]
+    # specarch-problem: warning: test_golden_missing: operation lendBook has no golden scenario; add one under tests, for example lend-book-succeeds: { operation: lendBook, scenario: golden, given: "a caller with loans.write", when: "lendBook is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1loans/post]
     post:
       operationId: lendBook
       permission: loans.write
@@ -91,6 +107,9 @@ paths:
   /loans/{loanId}:
     parameters:
       - {name: loanId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation showLoan has no red scenario for "not found loanId"; add under tests show-loan-not-found-loan-id: { operation: showLoan, scenario: red, covers: [not found loanId], given: "no record has that loanId", when: "showLoan is called with that loanId", then: "it is refused as not found" } [test_case_missing.77aa62d4@design/paths.yaml#/paths/~1loans~1{loanId}/get]
+    # specarch-problem: warning: test_case_missing: operation showLoan has no red scenario for "denied without loans.read"; add under tests show-loan-denied-without-loans-read: { operation: showLoan, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "showLoan is called", then: "it is refused as not allowed" } [test_case_missing.9adfd96d@design/paths.yaml#/paths/~1loans~1{loanId}/get]
+    # specarch-problem: warning: test_golden_missing: operation showLoan has no golden scenario; add one under tests, for example show-loan-succeeds: { operation: showLoan, scenario: golden, given: "a caller with loans.read", when: "showLoan is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1loans~1{loanId}/get]
     get:
       operationId: showLoan
       permission: loans.read
@@ -101,6 +120,9 @@ paths:
   /members/{cardNumber}:
     parameters:
       - {name: cardNumber, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation showMember has no red scenario for "not found cardNumber"; add under tests show-member-not-found-card-number: { operation: showMember, scenario: red, covers: [not found cardNumber], given: "no record has that cardNumber", when: "showMember is called with that cardNumber", then: "it is refused as not found" } [test_case_missing.902f305c@design/paths.yaml#/paths/~1members~1{cardNumber}/get]
+    # specarch-problem: warning: test_case_missing: operation showMember has no red scenario for "denied without members.read"; add under tests show-member-denied-without-members-read: { operation: showMember, scenario: red, covers: [denied without members.read], given: "a caller without members.read", when: "showMember is called", then: "it is refused as not allowed" } [test_case_missing.c032b335@design/paths.yaml#/paths/~1members~1{cardNumber}/get]
+    # specarch-problem: warning: test_golden_missing: operation showMember has no golden scenario; add one under tests, for example show-member-succeeds: { operation: showMember, scenario: golden, given: "a caller with members.read", when: "showMember is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1members~1{cardNumber}/get]
     get:
       operationId: showMember
       permission: members.read
@@ -108,6 +130,9 @@ paths:
       cites:
         - {source: code, clause: 'desk/server.go:29', says: 'Registers GET /members/{cardNumber} on a chi router; its handler is s.showMember, and it is checked by s.Allow("members.read").'}
         - {source: code, clause: 'desk/server.go:77', says: 'The handler of GET /members/{cardNumber} reads no path parameter by name.'}
+    # specarch-problem: warning: test_case_missing: operation updateMember has no red scenario for "not found cardNumber"; add under tests update-member-not-found-card-number: { operation: updateMember, scenario: red, covers: [not found cardNumber], given: "no record has that cardNumber", when: "updateMember is called with that cardNumber", then: "it is refused as not found" } [test_case_missing.8e0cd568@design/paths.yaml#/paths/~1members~1{cardNumber}/put]
+    # specarch-problem: warning: test_case_missing: operation updateMember has no red scenario for "denied without members.write"; add under tests update-member-denied-without-members-write: { operation: updateMember, scenario: red, covers: [denied without members.write], given: "a caller without members.write", when: "updateMember is called", then: "it is refused as not allowed" } [test_case_missing.e097c215@design/paths.yaml#/paths/~1members~1{cardNumber}/put]
+    # specarch-problem: warning: test_golden_missing: operation updateMember has no golden scenario; add one under tests, for example update-member-succeeds: { operation: updateMember, scenario: golden, given: "a caller with members.write", when: "updateMember is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1members~1{cardNumber}/put]
     put:
       operationId: updateMember
       permission: members.write
@@ -121,6 +146,8 @@ paths:
         - {source: code, clause: 'desk/server.go:38', says: 'Registers PUT /members/{cardNumber} on a chi router; its handler is s.updateMember, and it is checked by s.Require("members.write").'}
         - {source: code, clause: 'desk/server.go:97', says: 'The handler of PUT /members/{cardNumber} reads no path parameter by name and decodes its body into m.'}
   /reports:
+    # specarch-problem: warning: test_golden_missing: operation reports has no golden scenario; add one under tests, for example reports-succeeds: { operation: reports, scenario: golden, given: "any caller", when: "reports is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1reports/get]
+    # specarch-problem: warning: test_red_missing: operation reports has no red scenario; add one under tests, for example reports-refused: { operation: reports, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1reports/get]
     get:
       operationId: reports
       origin: stated
@@ -128,6 +155,8 @@ paths:
         - {source: code, clause: 'desk/server.go:36', says: 'Registers GET /reports on a chi router; its handler is s.reports, and it is checked by s.Require(scope).'}
         - {source: code, clause: 'desk/server.go:90', says: The handler of GET /reports reads no path parameter by name.}
   /status:
+    # specarch-problem: warning: test_golden_missing: operation status has no golden scenario; add one under tests, for example status-succeeds: { operation: status, scenario: golden, given: "any caller", when: "status is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1status/get]
+    # specarch-problem: warning: test_red_missing: operation status has no red scenario; add one under tests, for example status-refused: { operation: status, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1status/get]
     get:
       operationId: status
       origin: stated

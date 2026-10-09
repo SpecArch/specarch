@@ -101,7 +101,7 @@
           "kind": "fail",
           "level": "error",
           "message": {
-            "text": "the [ that starts on this line is not closed; close it with ], and separate its items with commas"
+            "text": "the [ that starts on this line is not closed; close it with ], and separate its items with commas; the other entries of the file are read, and this one is kept by its name only until it parses"
           },
           "locations": [
             {
@@ -112,19 +112,19 @@
                 },
                 "region": {
                   "startLine": 4,
-                  "startColumn": 3
+                  "startColumn": 10
                 }
               },
               "logicalLocations": [
                 {
-                  "fullyQualifiedName": "/",
+                  "fullyQualifiedName": "/requirements/CASE-3",
                   "kind": "element"
                 }
               ]
             }
           ],
           "partialFingerprints": {
-            "specarchId/v1": "yaml_syntax@requirements/broken.yaml#/"
+            "specarchId/v1": "yaml_syntax@requirements/broken.yaml#/requirements/CASE-3"
           }
         },
         {

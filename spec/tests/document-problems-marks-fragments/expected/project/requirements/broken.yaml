@@ -1,4 +1,4 @@
 # A fragment that does not parse.
-# specarch-problem: error: yaml_syntax: the [ that starts on this line is not closed; close it with ], and separate its items with commas [yaml_syntax@requirements/broken.yaml#/]
 requirements:
+  # specarch-problem: error: yaml_syntax: the [ that starts on this line is not closed; close it with ], and separate its items with commas; the other entries of the file are read, and this one is kept by its name only until it parses [yaml_syntax@requirements/broken.yaml#/requirements/CASE-3]
   CASE-3: [unclosed

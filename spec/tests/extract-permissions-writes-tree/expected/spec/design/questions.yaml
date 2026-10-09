@@ -1,4 +1,5 @@
 questions:
+  # specarch-problem: question: open_question: (must, decision) What is each role for, and who holds it: auditor, desk-staff, kiosk? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
     question: 'What is each role for, and who holds it: auditor, desk-staff, kiosk?'
     kind: decision
@@ -6,6 +7,7 @@ questions:
     blocks: ['#/roles/auditor/description', '#/roles/desk-staff/description', '#/roles/kiosk/description']
     decidedBy: system-owner
     why: A permission table names a role and what it grants, not who holds it.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: loans.read, loans.renew, loans.write? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
   Q-2:
     question: 'What does each permission allow: loans.read, loans.renew, loans.write?'
     kind: decision
@@ -13,6 +15,7 @@ questions:
     blocks: ['#/permissions/loans.read/description', '#/permissions/loans.renew/description', '#/permissions/loans.write/description']
     decidedBy: system-owner
     why: A permission table names the permissions a role grants and not what they are for.
+  # specarch-problem: question: open_question: (must, decision) auditor is granted EVERYTHING, which dxlib_module lets through every check, so auditor holds every permission, which no list of grants can say. Which permissions does auditor hold, or is it meant to hold every one? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
     question: auditor is granted EVERYTHING, which dxlib_module lets through every check, so auditor holds every permission, which no list of grants can say. Which permissions does auditor hold, or is it meant to hold every one?
     kind: decision
@@ -20,6 +23,7 @@ questions:
     blocks: ['#/roles/auditor/permissions']
     decidedBy: system-owner
     why: 'A grant of EVERYTHING is not expanded: the permissions it stands for change whenever one is added, and a role''s list names each one (ADR-076).'
+  # specarch-problem: question: open_question: (must, decision) auditor is granted the privilege REPORT.RUN, which gives the permission report.run, and so does REPORT_RUN, which dxlib checks as another privilege. Which permission does auditor grant? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
     question: auditor is granted the privilege REPORT.RUN, which gives the permission report.run, and so does REPORT_RUN, which dxlib checks as another privilege. Which permission does auditor grant?
     kind: decision
@@ -27,6 +31,7 @@ questions:
     blocks: ['#/roles/auditor/permissions']
     decidedBy: system-owner
     why: Two privileges dxlib tells apart would become one permission, which would write a grant the code does not make.
+  # specarch-problem: question: open_question: (must, decision) kiosk is granted the privilege REPORT_RUN, which gives the permission report.run, and so does REPORT.RUN, which dxlib checks as another privilege. Which permission does kiosk grant? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:
     question: kiosk is granted the privilege REPORT_RUN, which gives the permission report.run, and so does REPORT.RUN, which dxlib checks as another privilege. Which permission does kiosk grant?
     kind: decision
@@ -34,6 +39,7 @@ questions:
     blocks: ['#/roles/kiosk/permissions']
     decidedBy: system-owner
     why: Two privileges dxlib tells apart would become one permission, which would write a grant the code does not make.
+  # specarch-problem: question: open_question: (must, decision) kiosk is granted the privilege Loans:Read, which is not a permission name (lower-case words joined by dots), nor a privilege in capitals that the rule of ADR-076 maps to one. Which permission does kiosk grant? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
   Q-6:
     question: kiosk is granted the privilege Loans:Read, which is not a permission name (lower-case words joined by dots), nor a privilege in capitals that the rule of ADR-076 maps to one. Which permission does kiosk grant?
     kind: decision
@@ -41,6 +47,7 @@ questions:
     blocks: ['#/roles/kiosk/permissions']
     decidedBy: system-owner
     why: The meta-model names a permission in lower-case words joined by dots, and renaming the privilege by a rule of the reader's own would write a grant the code does not make.
+  # specarch-problem: question: open_question: (must, decision) The check RequireAPIKey runs only when the setting DESK_API_KEY is present. Is an empty DESK_API_KEY ever meant to let every request through, or should the check refuse every request until it is set? It blocks roles. Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
   Q-7:
     question: The check RequireAPIKey runs only when the setting DESK_API_KEY is present. Is an empty DESK_API_KEY ever meant to let every request through, or should the check refuse every request until it is set?
     kind: decision
@@ -50,6 +57,7 @@ questions:
     why: A check switched off by an empty setting fails open without an error, so no role's grants hold while it is off.
     cites:
       - {source: code, clause: access gate RequireAPIKey, says: The permission table declares that RequireAPIKey runs only when DESK_API_KEY is present.}
+  # specarch-problem: question: open_question: (could, decision) Not held: grant of public to auditor: public is open to everyone and granted by no role; left out. Does the specification need it, written another way or described by hand? It blocks roles. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
   Q-8:
     question: 'Not held: grant of public to auditor: public is open to everyone and granted by no role; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -59,6 +67,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: access role auditor, says: 'Not held: grant of public to auditor: public is open to everyone and granted by no role; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: grant of loans.write to "Branch_Manager": the role's name is not kebab-case, which a role name is; left out. Does the specification need it, written another way or described by hand? It blocks roles. Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
   Q-9:
     question: 'Not held: grant of loans.write to "Branch_Manager": the role''s name is not kebab-case, which a role name is; left out. Does the specification need it, written another way or described by hand?'
     kind: decision

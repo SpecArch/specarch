@@ -1,5 +1,6 @@
 # yaml-language-server: $schema=../../../../schema/specarch-fragment-questions-0.1.schema.json
 questions:
+  # specarch-problem: question: open_question: (should, decision) Renewing a loan is in the manual but not in the service. Build it as the manual describes, or take it out of the manual? It blocks implementation. Decided by desk-manager. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
     question: Renewing a loan is in the manual but not in the service. Build it as the manual describes, or take it out of the manual?
     kind: decision
@@ -11,6 +12,7 @@ questions:
     cites:
       - { source: desk-manual, clause: "4.1", says: "A member may renew a loan once." }
       - { source: desk-code, clause: "lending/routes.go:36", says: "Register registers no renew route." }
+  # specarch-problem: question: open_question: (must, decision) The manual has a phone number for each member, which is personal, and the database has no column for it. Build it as the manual describes, or take it out of the manual? It blocks implementation. Decided by desk-manager. Answer with a decision record that names Q-6 under answers. [Q-6]
   Q-6:
     question: The manual has a phone number for each member, which is personal, and the database has no column for it. Build it as the manual describes, or take it out of the manual?
     kind: decision
@@ -22,6 +24,7 @@ questions:
     cites:
       - { source: desk-manual, clause: "2", says: "The desk keeps a member's phone number, which is personal." }
       - { source: desk-code, clause: "migrations/001_init.sql:1", says: "members has card_number and full_name only." }
+  # specarch-problem: question: open_question: (must, decision) The service serves GET /members/{cardNumber}, which answers a member's card number and full name to anyone, checking no permission, and neither the manual nor the API document mentions it. Is it to stay, and behind which permission? It is left out of this specification until this is answered. It blocks implementation. Decided by desk-manager. Answer with a decision record that names Q-7 under answers. [Q-7]
   Q-7:
     question: The service serves GET /members/{cardNumber}, which answers a member's card number and full name to anyone, checking no permission, and neither the manual nor the API document mentions it. Is it to stay, and behind which permission? It is left out of this specification until this is answered.
     kind: decision

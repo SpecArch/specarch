@@ -1,4 +1,5 @@
 questions:
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: loans.read, loans.write? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
     question: 'What does each permission allow: loans.read, loans.write?'
     kind: decision
@@ -6,6 +7,7 @@ questions:
     blocks: ['#/permissions/loans.read/description', '#/permissions/loans.write/description']
     decidedBy: system-owner
     why: dxlib's document names the privilege an endpoint checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: loans.read, loans.write? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
   Q-2:
     question: 'Which role grants each permission: loans.read, loans.write?'
     kind: decision
@@ -13,6 +15,7 @@ questions:
     blocks: ['#/permissions/loans.read', '#/permissions/loans.write']
     decidedBy: system-owner
     why: dxlib's document names the privilege an endpoint checks and not who holds it.
+  # specarch-problem: question: open_question: (could, decision) Not held: operation POST /loans/close: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
     question: 'Not held: operation POST /loans/close: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -22,6 +25,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: api, clause: /paths/~1loans~1close/post, says: 'Not held: operation POST /loans/close: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: operation POST /loans/report: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
     question: 'Not held: operation POST /loans/report: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -31,6 +35,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: api, clause: /paths/~1loans~1report/post, says: 'Not held: operation POST /loans/report: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out.'}
+  # specarch-problem: question: open_question: (must, decision) What does POST /loans/purge answer when it succeeds, and what does each response mean? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:
     question: What does POST /loans/purge answer when it succeeds, and what does each response mean?
     kind: decision
@@ -38,6 +43,7 @@ questions:
     blocks: ['#/paths/~1loans~1purge/post/responses']
     decidedBy: system-owner
     why: The source names the refusals a handler answers with a literal status, not its success response or what each response means; the document dxlib emits declares them.
+  # specarch-problem: question: open_question: (could, decision) Not held: code/endpoints.go:7: the endpoint POST /loans/close: dxlib names it loans_close from its URI, which is not camelCase, as an operationId is; it is named postLoansClose. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
   Q-6:
     question: 'Not held: code/endpoints.go:7: the endpoint POST /loans/close: dxlib names it loans_close from its URI, which is not camelCase, as an operationId is; it is named postLoansClose. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -47,6 +53,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'code/endpoints.go:7', says: 'Not held: the endpoint POST /loans/close: dxlib names it loans_close from its URI, which is not camelCase, as an operationId is; it is named postLoansClose.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: code/endpoints.go:9: the endpoint POST /loans/purge: dxlib names it loans_purge from its URI, which is not camelCase, as an operationId is; it is named postLoansPurge. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
   Q-7:
     question: 'Not held: code/endpoints.go:9: the endpoint POST /loans/purge: dxlib names it loans_purge from its URI, which is not camelCase, as an operationId is; it is named postLoansPurge. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -56,6 +63,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'code/endpoints.go:9', says: 'Not held: the endpoint POST /loans/purge: dxlib names it loans_purge from its URI, which is not camelCase, as an operationId is; it is named postLoansPurge.'}
+  # specarch-problem: question: open_question: (must, decision) Which is right for #/paths/~1loans~1close/post/operationId: closeLoan or postLoansClose? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
   Q-8:
     question: 'Which is right for #/paths/~1loans~1close/post/operationId: closeLoan or postLoansClose?'
     kind: decision
@@ -69,6 +77,7 @@ questions:
       - {source: code, clause: code POST /loans/close, says: POST /loans/close checks loans.write; its handler is CloseLoan.}
       - {source: code, clause: 'code/endpoints.go:7', says: 'NewEndPoint registers POST /loans/close; its handler is CloseLoan, it has no middleware, and it checks loans.write.'}
       - {source: code, clause: 'code/endpoints.go:14', says: The handler of POST /loans/close reads no parameter by name.}
+  # specarch-problem: question: open_question: (could, decision) Registered by code the reader does not follow: operation reportLoans (POST /loans/report) is in /paths/~1loans~1report/post, and the source read declares it nowhere the reader follows, such as a loop, a condition, a helper or a module. Does the specification need where it is declared? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
   Q-9:
     question: 'Registered by code the reader does not follow: operation reportLoans (POST /loans/report) is in /paths/~1loans~1report/post, and the source read declares it nowhere the reader follows, such as a loop, a condition, a helper or a module. Does the specification need where it is declared?'
     kind: decision
@@ -78,6 +87,7 @@ questions:
     why: The running system lists it, so it is served; the parser only lacks its place in the source, and nothing waits for the answer.
     cites:
       - {source: api, clause: /paths/~1loans~1report/post, says: 'POST /loans/report: Report the loans.'}
+  # specarch-problem: question: open_question: (must, decision) Declared, not registered: operation postLoansPurge (POST /loans/purge) is declared at code/endpoints.go:9, and the running system does not list it in desk and Routes of code. Is it code that is never reached, or reached only under a setting, or does the printer miss it? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
   Q-10:
     question: 'Declared, not registered: operation postLoansPurge (POST /loans/purge) is declared at code/endpoints.go:9, and the running system does not list it in desk and Routes of code. Is it code that is never reached, or reached only under a setting, or does the printer miss it?'
     kind: decision

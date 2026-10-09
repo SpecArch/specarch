@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 57 requirements, 5 entities, 12 commands, 7 algorithms, 349 tests, 81 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 57 requirements, 5 entities, 12 commands, 7 algorithms, 353 tests, 81 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -373,10 +373,12 @@ the specification's folder: the record kind, the version, who
 approved, the date, the documents that were current, and the digest
 of the specification's files (the SHA-256 of every `.yaml` file under
 its folder, in byte order of their relative paths, each as its path,
-a zero byte, its bytes and a zero byte). A later change to any of
-those files voids the approval, and `generate` says so.
+a zero byte, its bytes without its problem marks, and a zero byte).
+A later change to any of those files voids the approval, and
+`generate` says so; a problem mark, a line that starts with
+`# specarch-problem:` (ADR-066), is not a change.
 
-**Insight:** A specification is reviewed in the form its readers use, the documents, and approval must be of exactly what was read; a digest of the files says so where a version number, which does not change while a specification is being written, cannot. The record names a role, because a specification is read and copied by more people than a ticket system.
+**Insight:** A specification is reviewed in the form its readers use, the documents, and approval must be of exactly what was read; a digest of the files says so where a version number, which does not change while a specification is being written, cannot. The marks are left out of the digest because they record what a run of SpecArch found, not what the author wrote, and `document problems` rewrites them on every run. The record names a role, because a specification is read and copied by more people than a ticket system.
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3.3.6: Requirements validation is subject to approval by the project authority and the key stakeholders. <https://www.iso.org/standard/72089.html>
 
@@ -448,7 +450,7 @@ approval of it no longer holds.
 
 Reads `{paths}`: The specifications.
 
-Writes `tests/<name>/test.yaml under each specification's folder`: One draft test per derived case no test covers.
+Writes `tests/<name>/test.yaml under each specification's folder`: One draft test per derived case no test covers, each problem in it marked above its entry with a `# specarch-problem:` line (ADR-066); no other file is touched.
 
 Standard output: The errors of an invalid specification, one line each; otherwise the path of each test written, one per line.
 
@@ -623,6 +625,23 @@ all, such as one whose root file has no entry that parses, gets its
 problems too, and a file that does not parse is read as far as its
 entries parse (ADR-080).
 
+The problems target also marks each problem in the YAML files of the
+specification that it read, hand-written or not (ADR-066): a comment
+line `# specarch-problem: severity: rule: message [id]` above the
+line where the entry starts in block style (the key of its pair or
+the `-` of its item; for an entry inside a flow collection or a
+block scalar, the block-style entry that holds it), with the entry's
+indentation, the marks of one entry in the order of the problems
+file. A problem about a file as a whole is marked above its first
+line that is not blank or a comment. A run takes out every line
+that starts with `# specarch-problem:` after its indentation and
+writes the marks of the problems it finds, editing the text, so a
+fixed problem loses its mark and no other line changes. The
+problems files give the lines of the marked files; since a message
+can name a line, the marks are written and the specification read
+again until the two agree, so a second run writes the same bytes.
+With `--check` the marked files are compared like any output.
+
 In every document an element's why is an Insight and each citation
 a Note (ADR-015), and a document that cites sources ends with them.
 
@@ -639,7 +658,7 @@ a Note (ADR-015), and a document that cites sources ends with them.
 
 Reads `{paths}`: The specifications and their implementation files; `specarch.md`: The hand-written document beside each root file, when there is one; `records/ beside each specification's folder`: The change, defect and release records, for the changes and releases targets; `{out}`: The current output, with `--check`.
 
-Writes `{out}/<target>.md`: The document. Nothing is written with `--check`; `specarch.md`: Only the regions between markers. Nothing is written with `--check`; `{out}/problems.txt`: The problems, for the problems target, written whether or not the specification is valid. Nothing is written with `--check`; `{out}/problems.sarif`: The same problems as a SARIF 2.1.0 log, for the problems target.
+Writes `{out}/<target>.md`: The document. Nothing is written with `--check`; `specarch.md`: Only the regions between markers. Nothing is written with `--check`; `{out}/problems.txt`: The problems, for the problems target, written whether or not the specification is valid. Nothing is written with `--check`; `{out}/problems.sarif`: The same problems as a SARIF 2.1.0 log, for the problems target; `{paths}`: For the problems target, the marks of the problems in every YAML file of the specification it read; no other line of a file changes. Nothing is written with `--check`.
 
 Standard output: The errors of an invalid specification and the errors of a
 marker, one line each; a warning for each specification with no
@@ -663,6 +682,7 @@ sequenceDiagram
   P->>F: write specarch.md
   P->>F: write {out}/problems.txt
   P->>F: write {out}/problems.sarif
+  P->>F: write {paths}
   P-->>U: exit status 0, 1, 2
 ```
 
@@ -1186,7 +1206,7 @@ Every reader follows these rules:
 
 Reads `{paths}`: The surface being read.
 
-Writes `{out}/`: The as-built specification tree.
+Writes `{out}/`: The as-built specification tree, each problem validate finds in it and each open question marked above its entry with a `# specarch-problem:` line, as document problems marks a fragment (ADR-066).
 
 Standard output: One line naming the commit read and the paths it was the last change
 to; one line per count, saying what was counted and how; one line per
@@ -1586,7 +1606,7 @@ refused.
 
 Reads `{trees}`: The partial specification trees.
 
-Writes `{out}/`: The merged specification.
+Writes `{out}/`: The merged specification, each problem validate finds in it and each open question marked above its entry with a `# specarch-problem:` line, as document problems marks a fragment (ADR-066); the marks of the trees read are not carried over.
 
 Standard output: One line per tree naming its title, its side, its reading where it
 has one, and what it holds; one line per
@@ -1810,7 +1830,7 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | internal/approval | The approval record beside a specification, its digest of the specification's files, and where a version's approval stands against the files now. |   |
 | internal/expr | The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals. |   |
 | internal/generate | The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents; questions writes the open questions and what they hold up, the text gaps prints. Every one renders why as an Insight, each citation as a Note, an element's origin as an Origin line and the open questions about it as Open question paragraphs. | #/algorithms/markersWellFormed |
-| internal/problems | The problems of a specification, valid or not, gathered from validate's diagnostics and the open questions into one list with ids, columns and notes, and written as problems.txt and as a SARIF 2.1.0 log. | #/entities/Problem, #/entities/ProblemNote, #/enums/ProblemSeverity |
+| internal/problems | The problems of a specification, valid or not, gathered from validate's diagnostics and the open questions into one list with ids, columns and notes, written as problems.txt and as a SARIF 2.1.0 log, and marked above their entries in the YAML files of the specification. | #/entities/Problem, #/entities/ProblemNote, #/enums/ProblemSeverity |
 | internal/validate | Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases with the rank of each and the cases left out, the life-cycle links and traceability warnings, the open questions and what they cover, origin, implementation references, and the records beside the specification. | #/entities/Diagnostic, #/enums/Rule, #/enums/Severity, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
 
 #### Mappings
@@ -4758,9 +4778,9 @@ the approval gate refuses it, are ADR-066.
 
 **Note:** From GNU Coding Standards, clause Formatting Error Messages: Error messages from compilers should look like sourcefile:lineno:column: message, with line and column numbers starting from 1. <https://www.gnu.org/prep/standards/>
 
-### ADR-066: Problem marks go into the fragments an author edits when document problems runs, and generated code is marked only where the approval gate lets it be written
+### ADR-066: Problem marks go into every fragment of a specification when document problems runs, and generated code may be written as a marked draft beside the approval gate
 
-Status: proposed, 2026-10-09.
+Status: accepted, 2026-10-09.
 
 Context: ADR-065 marks every entry a problem touches in every file SpecArch
 writes. Two kinds of file are not plainly outputs. The fragments an
@@ -4771,27 +4791,42 @@ should question blocks what they read, or while the version has no
 approval (ADR-017, ADR-019), so they have nothing to carry a mark
 while those problems stand.
 
-Decision: Hand-written fragments: specarch document problems writes the marks
-into every fragment of the specification, hand-written or not, with
-no option to turn it off; validate stays read-only and never
-writes a mark. The marks are comment lines that start with
-"# specarch-problem:", edited as text, so nothing else in the file
-changes.
+Decision: Fragments: specarch document problems writes the marks into every
+YAML file of the specification it read, hand-written or not, on
+every run, with no option to turn it off. The trees extract and
+merge write are marked when they are written, and so are the draft
+tests derive writes; no command but document problems edits a file
+the author wrote. validate stays read-only and never writes a mark.
+A mark is a comment line that starts with "# specarch-problem:",
+above the line where the entry starts in block style, with the
+entry's indentation: the problem's line from the severity on, with
+its stable id, and without the pointer. A run takes every such line
+out and writes the marks of the problems it finds, as text, so a
+fixed problem loses its mark and no other line of the file changes.
+A mark is never part of what is approved: the approval digest leaves
+the mark lines out.
 
-Generated code: the approval gate stays as it is. Generated code,
-SQL, OpenAPI, tests and UI carry the marks of the problems that do
-not stop generation: warnings and could questions, and must or
-should questions on what the target does not read. An error, or a
-must or should question on what the target reads, still stops
-generation, and the problems file lists it at the entry.
+Generated code: the approval gate stays for real output. Generated
+code, SQL, OpenAPI, tests and UI from a specification that is
+approved and whose blocking questions are answered carry the marks
+of the problems that remain. While a must or should question blocks
+what a target reads, or the version has no approval, generate may
+instead write a draft: every gap is marked at its entry, the draft
+says it is a draft in every file and where it is written, and it is
+never taken for the approved output. An error still stops
+generation.
 
 Consequences: An author who runs document problems sees each problem above its
 entry in the file they edit, and the next run removes the marks of
 what they fixed. An editor that holds a fragment open reloads it
-after the run. Code never ships from a specification that is not
-approved, and a draft of code is not offered beside the gate.
+after the run. A file a run marks is checked with --check like any
+output, so a stale mark fails CI. Writing a mark never voids an
+approval. Code that reaches production comes only from an approved
+specification; a draft shows the shape of the code and every gap in
+it while the questions are still being answered. The draft is built
+in step 7 of docs/diagnostics.md.
 
-**Insight:** The owner asked for the marks in the fragments themselves, and a comment line is the one change to a YAML file that leaves its meaning, its formatting and its other comments as they were. A single command that writes them, rather than validate, keeps the check after every save free of writes, and a command without a switch is one mode fewer. The approval gate exists so that what reaches production was read and accepted by a person; a marked draft beside it would be code that skipped that reading, and a mark does not stop it being run.
+**Insight:** The owner asked for the marks in the fragments themselves, and a comment line is the one change to a YAML file that leaves its meaning, its formatting and its other comments as they were. A single command that writes them into hand-written files, rather than validate, keeps the check after every save free of writes, and a command without a switch is one mode fewer. The approval gate exists so that what reaches production was read and accepted by a person; a draft keeps that, because it says what it is in every file and is never what approval names, while letting the author see the code and its gaps before the questions are settled, as a compiler shows every problem rather than stopping at the first.
 
 ### ADR-067: The TypeScript generator writes task pages first, each a schema of data a component reads, its checks as rules in that data, and returnTo handed on until sign-in is done
 
@@ -5756,8 +5791,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-pages-flowchart | command document | system | golden | a hand-written document with a flowchart pages marker | document techspec is run | the region holds the pages and the operation the Pay action runs, and it exits 0 |
 | document-permissions-table | command document | system | golden | a hand-written document with a permissions marker | document techspec is run | the region holds the table of permissions and roles, with public granted to everyone, and it exits 0 |
 | document-problem-without-element | command document | system | red | a specification with an error under info, which the technical specification shows no element for, and an error at a relation | document techspec is run | it prints both errors, writes techspec.md with the info error's Problem paragraph under the Problems notice and the relation's at the entity, and exits 1 |
+| document-problems-check-marks | command document | system | red | a specification whose fragments lack the marks of its problems and hold the mark of a problem that is fixed, beside current problems files | document problems is run with --check | it writes nothing, names each fragment whose marks are not the ones it would write as differing, and the problems files, whose lines the marks would move, and exits 1 |
 | document-problems-implementation-broken | command document | system | red | an implementation file with a mapping whose flow mapping is never closed, and whose targets name the problems document's output folder | document problems is run with no --out | it prints the yaml_syntax error at the mapping, writes problems.txt and problems.sarif into the folder the targets name, and exits 1 |
 | document-problems-lists | command document | system | red | a specification with an error at a requirement that cites a line of code beside it, a warning, and a must question that blocks two keys a requirement leaves out and cites the code | document problems is run | it prints the error, writes problems.txt with each problem on a file:line:column line with its id, the question at its entry followed by a note at each blocked entry and at each cited line, and problems.sarif with the same problems, the question as kind open and level none, and exits 1 |
+| document-problems-marks-current | command document | system | red | a specification whose fragments already carry the marks of its problems, and its problems files | document problems is run | it writes nothing, since a second run writes the same bytes, prints the errors at the lines on disk, and exits 1 |
+| document-problems-marks-fragments | command document | system | red | a specification whose fragments hold an error in a block list item, an error inside a block scalar's expression, a key defined twice, a fragment that does not parse under a comment, a question, a comment at the end of a line, and a mark of a problem that is fixed | document problems is run | it writes each problem's mark on the line above its entry with the entry's indentation, the marks of one entry in the order of the problems file, the mark of the broken fragment below its comment, takes out the mark of the fixed problem, leaves every other line as it was, and writes problems.txt and problems.sarif with the lines of the marked files, the line a message names included, and exits 1 |
 | document-problems-no-output-folder | command document | system | red | a specification whose implementation file names an output folder for requirements only, and no --out | document problems is run with --check | it warns at the file's targets, writes nothing and exits 2, since no specification given has a problems document |
 | document-problems-none | command document | system | golden | a specification with no error, no warning and no open question | document problems is run | it writes problems.txt saying there are no problems and problems.sarif with no results, and exits 0 |
 | document-sequence-diagram | command document | system | golden | a hand-written document with a sequenceDiagram payOrder marker | document techspec is run | the region holds the call, the event on order.events and the 200 answer, and it exits 0 |
@@ -5985,6 +6023,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-question-names | command validate | system | red | three questions that name what the source gives: one for a key the specification gives already, one blocking a whole element, and one blocking two keys | validate is run | it reports each with question_block and exits 1 |
 | validate-question-should-not-covering | command validate | system | red | a requirement without priority and a should question that blocks the key | validate is run | the missing key is still reported, because only a must question covers one, and it exits 1 |
 | validate-question-stage | command validate | system | red | a question under requirements/ about an entity, one in the root file about a requirement although requirements/ exists, and one that blocks two stages | validate is run | it reports each with question_stage, naming the folder to move to, and exits 1 |
+| validate-reads-marks | command validate | system | red | a specification whose fragments carry the marks of its problems | validate is run | it reads the marks as the comments they are and reports the same problems at the lines on disk, the same in both builds, and writes nothing |
 | validate-record-name | command validate | system | red | a defect whose file name is not its id, and a change in the defects folder | validate is run | it reports record_name for each and exits 1 |
 | validate-record-ref | command validate | system | red | records naming a role, requirement, pointer, test, environment and monitor the specification lacks, and a change, incident and release that are not records | validate is run | it reports record_ref at each and exits 1 |
 | validate-record-schema | command validate | system | red | a record of an unknown kind, and a defect without violates and with an unquoted date | validate is run | it reports schema and unquoted_date in the record files and exits 1 |
@@ -6333,7 +6372,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-48 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |
 | SA-49 | enums Rule; decisions ADR-062 | tests extract-openapi-snake-case; tests generate-openapi-wire-names; tests validate-wire-names |
 | SA-50 | enums Rule; decisions ADR-063; decisions ADR-077; decisions ADR-078 | tests extract-database-json-column; tests generate-go-dxlib-value-objects; tests generate-sql-identifier-length; tests generate-sql-value-object-fields; tests generate-tests-value-objects; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests validate-value-object-fields; tests validate-value-object-fields-valid; tests validate-value-object-part-cases; tests validate-value-object-part-cases-covered |
-| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066; decisions ADR-080 | tests document-check-invalid; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-implementation-broken; tests document-problems-lists; tests document-problems-none; tests validate-yaml-syntax-entries |
+| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066; decisions ADR-080 | tests document-check-invalid; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-check-marks; tests document-problems-implementation-broken; tests document-problems-lists; tests document-problems-marks-current; tests document-problems-marks-fragments; tests document-problems-none; tests validate-reads-marks; tests validate-yaml-syntax-entries |
 | SA-52 | decisions ADR-067 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-53 | decisions ADR-068 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-54 | decisions ADR-069; decisions ADR-079 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-value-objects; tests generate-ui-typescript-value-objects-refused |

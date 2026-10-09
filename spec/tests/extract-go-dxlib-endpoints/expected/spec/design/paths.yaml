@@ -10,6 +10,8 @@ permissions:
       - {source: code, clause: 'api/endpoints.go:38', says: POST /loans/renew checks loans.write in its privileges.}
 paths:
   /loans/list:
+    # specarch-problem: warning: test_case_missing: operation postLoansList has no red scenario for "denied without loans.read"; add under tests post-loans-list-denied-without-loans-read: { operation: postLoansList, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "postLoansList is called", then: "it is refused as not allowed" } [test_case_missing@design/paths.yaml#/paths/~1loans~1list/post]
+    # specarch-problem: warning: test_golden_missing: operation postLoansList has no golden scenario; add one under tests, for example post-loans-list-succeeds: { operation: postLoansList, scenario: golden, given: "a caller with loans.read", when: "postLoansList is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1loans~1list/post]
     post:
       operationId: postLoansList
       summary: List loans
@@ -24,6 +26,8 @@ paths:
         - {source: code, clause: 'api/endpoints.go:17', says: 'NewEndPoint registers POST /loans/list; its handler is ListLoans, its middlewares are RequireSession, and it checks LOANS.READ.'}
         - {source: code, clause: 'api/loans.go:10', says: The handler of POST /loans/list reads the parameter member and answers 404 LOAN_NOT_FOUND and 422 LOAN_OVERDUE.}
   /loans/renew:
+    # specarch-problem: warning: test_case_missing: operation postLoansRenew has no red scenario for "denied without loans.write"; add under tests post-loans-renew-denied-without-loans-write: { operation: postLoansRenew, scenario: red, covers: [denied without loans.write], given: "a caller without loans.write", when: "postLoansRenew is called", then: "it is refused as not allowed" } [test_case_missing@design/paths.yaml#/paths/~1loans~1renew/post]
+    # specarch-problem: warning: test_golden_missing: operation postLoansRenew has no golden scenario; add one under tests, for example post-loans-renew-succeeds: { operation: postLoansRenew, scenario: golden, given: "a caller with loans.write", when: "postLoansRenew is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1loans~1renew/post]
     post:
       operationId: postLoansRenew
       summary: Renew a loan
@@ -40,6 +44,8 @@ paths:
   /loans/{id}:
     parameters:
       - {name: id, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation getLoansById has no red scenario for "not found id"; add under tests get-loans-by-id-not-found-id: { operation: getLoansById, scenario: red, covers: [not found id], given: "no record has that id", when: "getLoansById is called with that id", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1loans~1{id}/get]
+    # specarch-problem: warning: test_golden_missing: operation getLoansById has no golden scenario; add one under tests, for example get-loans-by-id-succeeds: { operation: getLoansById, scenario: golden, given: "any caller", when: "getLoansById is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1loans~1{id}/get]
     get:
       operationId: getLoansById
       summary: Show a loan

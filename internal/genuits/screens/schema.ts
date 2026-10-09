@@ -99,3 +99,89 @@ export interface TaskPageSchema {
   readonly failed: readonly FailureSchema[];
   readonly events: readonly EventSchema[];
 }
+
+/** A column of a list: the row's field, its title, and whether it sorts and stays on a compact screen. */
+export interface ColumnSchema {
+  readonly field: string;
+  readonly title: StringKey;
+  readonly sortable: boolean;
+  readonly compact: boolean;
+}
+
+/** A filter of a list: the field, its name in the query, its title, and its values when they are a list. */
+export interface FilterSchema {
+  readonly field: string;
+  readonly query: string;
+  readonly title: StringKey;
+  readonly options?: readonly string[];
+  readonly date?: boolean;
+}
+
+/** An action of a list's toolbar that opens a page. */
+export interface PageActionSchema {
+  readonly label: StringKey;
+  readonly navigate: string;
+  readonly permission: string;
+}
+
+/** The reason a confirmation asks for, sent as a property of the request's body. */
+export interface ReasonSchema {
+  readonly property: string;
+  readonly label: StringKey;
+  readonly maxLength?: number;
+}
+
+/**
+ * An action on a row: the operation, its path with the route parameters
+ * each taken from a field of the row, who may run it and while what holds,
+ * its confirmation, the reason it asks for, its message and its refusals.
+ */
+export interface RowActionSchema {
+  readonly label: StringKey;
+  readonly operation: string;
+  readonly method: "POST" | "PUT" | "PATCH" | "DELETE";
+  readonly path: string;
+  readonly parameters: Readonly<Record<string, string>>;
+  readonly permission: string;
+  readonly when?: Rule;
+  readonly confirm?: StringKey;
+  readonly reason?: ReasonSchema;
+  readonly message?: StringKey;
+  readonly failed: readonly FailureSchema[];
+}
+
+/** Where selecting a row leads: a page, its route parameters each from a field of the row. */
+export interface SelectSchema {
+  readonly navigate: string;
+  readonly with: Readonly<Record<string, string>>;
+}
+
+/** The names of a list's request and answer on the wire, the paginated-list idiom's. */
+export interface WireSchema {
+  readonly page: string;
+  readonly pageSize: string;
+  readonly sort: string;
+  readonly search: string;
+  readonly items: string;
+  readonly totalItems: string;
+  readonly totalPages: string;
+}
+
+/** A list read a page at a time from an operation. */
+export interface ListPageSchema {
+  readonly title: StringKey;
+  readonly permission: string;
+  readonly source: { readonly operation: string; readonly path: string };
+  readonly columns: readonly ColumnSchema[];
+  readonly filters: readonly FilterSchema[];
+  readonly search: boolean;
+  readonly pageSize: number;
+  readonly pageSizes: readonly number[];
+  readonly actions: readonly PageActionSchema[];
+  readonly rowActions: readonly RowActionSchema[];
+  readonly select?: SelectSchema;
+  readonly empty: StringKey;
+  readonly filteredEmpty: StringKey;
+  readonly failed: readonly FailureSchema[];
+  readonly wire: WireSchema;
+}

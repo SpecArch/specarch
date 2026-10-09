@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.6.0-dev of the specification: 5 stakeholders, 9 needs and 52 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.6.0-dev of the specification: 5 stakeholders, 9 needs and 53 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 ## 1. Purpose and scope
 
@@ -32,7 +32,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-49, SA-46, SA-32, SA-9, SA-10 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-49, SA-46, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-19 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
@@ -64,6 +64,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-42 | functional | should | accepted | A specification shall define the behaviour, structure and rules of a user interface without naming a stack, the events of a page and where each leads among them, and specarch validate shall check them. |
 | SA-43 | functional | should | accepted | specarch generate ui shall write, through a plug-in, the list pages of a specification for the web in plain JavaScript, with no package, bundler or build step, so that the screens follow the design's pages, events, states, accessibility and theme. |
 | SA-52 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui-typescript, the task pages of a specification for the web on Next.js's app router and IBM's Carbon design system, from an implementation file in TypeScript, so that sign-in and the forms like it follow the design's fields, checks, refusals and events, drawn by the components the ui-components idiom names. |
+| SA-53 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui-typescript, the list pages of a specification on Next.js and Carbon, the menu, and a guard that opens each page only to someone who holds its permission, from one permission each, with a derived test per page and of the menu, drawn through the ui-components idiom a project may override. |
 | SA-48 | functional | should | accepted | A specification shall declare a value object under schemas, data passed around but not stored and with no identity, which a request body, a response, a message, another schema and an entity's field may refer to and a relation may not, and specarch validate shall check every use of one. |
 | SA-49 | functional | should | accepted | A specification shall be able to say, once for the whole interface, that its properties go on the wire in snake_case while it names them in camelCase, and specarch validate shall refuse two properties of one object that would go on the wire under one name. |
 | SA-50 | functional | should | accepted | An entity's field shall be able to hold a value object, one schema or a list of them, stored in columns of the entity's row or as one JSON value as the field's storage says, and specarch validate shall refuse a value object that cannot be stored that way. |
@@ -401,6 +402,24 @@ Acceptance criteria:
 
 **Insight:** The project that asked builds its screens on Next.js and Carbon, and a screen written by hand there drifts from the design as one in plain JavaScript does; sign-in comes first because it stands in front of every other screen.
 
+### SA-53
+
+specarch generate ui shall write, through specarch-gen-ui-typescript, the list pages of a specification on Next.js and Carbon, the menu, and a guard that opens each page only to someone who holds its permission, from one permission each, with a derived test per page and of the menu, drawn through the ui-components idiom a project may override.
+
+Kind: functional; priority: should; status: accepted; verified by test; refines NEED-2.
+
+Acceptance criteria:
+
+- Each list becomes a schema and a page.tsx at its route; the service pages, sorts by the fields listOf makes sortable, searches when listOf names searchable fields, and filters by the operation's query parameters or, through the paginated-list idiom's filter name, by the fields listOf makes filterable, an enum as a list of its values and a date as a date. The list has a column picker, a refresh that keeps its page, and keeps its compactColumns on a compact screen.
+- An action of kind navigate is a button of the list's toolbar; one of kind operation is offered on a row while its when holds for the row and its permission is held, runs after its confirmation, sends the reason it names as the only property of the request body, takes its path's parameters from the row's fields or its primary key, and shows its message or the refusal its failed states give; onSelect opens its page from the row's first column.
+- application.ts holds how the session is read, from the operation, the properties and the sign-in page the ui target's settings name under session, and the menu, each entry with the permission of the page it opens. The guard and the menu read one decision, so a menu entry is shown only to someone its page opens to; the guard sends someone signed out to sign in with returnTo, shows anyone else without the permission the refusal, and never makes the page, which so calls no operation.
+- Each list that needs a permission gets a derived test that it is refused to someone signed in without it, sends someone signed out to sign in and opens to someone who holds it, and the menu a derived test that no entry is shown without its page's permission, run by node's test runner.
+- A part of the idiom that names import draws through that package's component and schema type, so a project's override renders its lists through its own library; two implementation files of one stack with their own outputs are two front ends, each generated in a run of its own.
+- A page, a menu or a menu entry marked ownedBy is left out; a list whose source is not a GET, whose path takes a parameter or that does not page, a filter the operation cannot take, a row action whose request body holds more than its reason or that leads to a page, a page action to a route with a parameter, enabledBy, and a list that needs a permission when the settings name no session are refused.
+- The library lending example's members, loans and fee waivers lists build on plain Carbon and through the stub of a fictional library, @acme/screens, their derived tests pass, and generate --check reports a schema edited by hand.
+
+**Insight:** A menu entry that opens a page its reader is refused is reported as a broken feature, and a list is most of what a back-office screen is; the guard and the menu read one permission so they cannot drift apart.
+
 ### SA-48
 
 A specification shall declare a value object under schemas, data passed around but not stored and with no identity, which a request body, a response, a message, another schema and an entity's field may refer to and a relation may not, and specarch validate shall check every use of one.
@@ -530,6 +549,7 @@ Acceptance criteria:
 
 - An entity whose mapping names a stakeholder under ownedBy gets no table from generate sql and no schema from generate openapi, while a foreign key or a reference to it is still written.
 - An operation whose mapping names a stakeholder under ownedBy gets no operation from generate openapi.
+- A page, or a menu or a menu entry, whose mapping names a stakeholder under ownedBy gets no page and no menu entry from generate ui; a mapping may name a menu or an entry of one, '#/menus/<menu>/items/<entry>', as it names any other element, and one that points at nothing is refused, the same in both builds.
 - validate and gaps read the marked element as before, and a question that blocks it still holds generation up.
 - ownedBy naming no stakeholder of the specification is reported, the same in both builds.
 

@@ -1,0 +1,7 @@
+specarchImplementation: "0.1"
+info: { title: Case in TypeScript, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: TypeScript, version: "6.0" } }
+mappings:
+  "#/menus/main/items/hello": { target: the administration's entry, ownedBy: administration }
+  "#/menus/other": { target: a menu the specification lacks }

@@ -45,7 +45,9 @@ For each implementation file that names the target, the executable is
 file's language in lower case (`specarch-gen-tests-go`), and
 `specarch-gen-<target>` otherwise. One target can then have a plug-in per
 stack and one that serves every stack; files that find the same plug-in
-run it together, each plug-in writing into the folder its files name. `specarch` validates the specification, refuses
+and name the same output folder run it together, each run writing into the
+folder its files name, so two front ends of one stack are two
+implementation files, each with its own output. `specarch` validates the specification, refuses
 while a must or should question blocks a section the target reads (the
 sections the implementation file names under `targets.<target>.reads`, or
 every section when it names none) and refuses without an approval record
@@ -388,10 +390,43 @@ called at `NEXT_PUBLIC_API_URL`. The generator writes no package, lock file
 or configuration, and refuses to write over a file in its output folder it
 did not write.
 
-Lists, forms and views are reported and left out of this version; the
-steps of `docs/ui-nextjs-carbon.md` add them. The screens it is checked
-against are the library lending example's sign-in and second-factor
-screens, written by hand before the generator (ADR-067).
+Each list page is a schema and a `page.tsx` too, behind the guard. The
+service pages, sorts, searches and filters, through the paginated-list
+idiom's names on the wire: a column sorts when `listOf` makes its field
+sortable, a search box shows when `listOf` names searchable fields, and a
+filter is the operation's query parameter or, through the idiom's
+`filter` name, a field `listOf` makes filterable, an enum drawn as a list
+of its values. The list has a column picker, a refresh that keeps its
+page, and keeps `compactColumns` below Carbon's medium breakpoint. An
+action of kind navigate is a button of the toolbar; an action of kind
+operation is in each row's menu while its `when` holds for the row and its
+permission is held, and runs after its confirmation, sending the reason
+it names as the only property of its body; `onSelect` opens its page from
+the row's first column.
+
+`application.ts` holds the menu and how the session is read:
+`settings.session` names the operation that answers who is signed in, the
+boolean and the list of permissions in its answer, and the page that
+signs in. The guard and the menu ask one function whether a page opens to
+the person, so a menu entry shows exactly when its page opens; the guard
+sends someone signed out to sign in with `returnTo`, shows anyone else the
+refusal, and never makes a refused page, which so calls no operation.
+Each list that needs a permission gets `tests/<page>.test.ts`, and the
+menu `tests/menu.test.ts`, derived tests node's test runner runs. The
+side navigation draws one level of groups, so a group inside a menu is an
+error at the entry, and so is an entry that opens a page whose route
+takes a parameter. An entry whose page this version does not write is
+left out with a warning at the entry, and comes back when its page is
+written; an entry for a page another stakeholder owns stays. A page, a
+menu or a menu entry marked `ownedBy` is left out. A part of the
+idiom that names `import` draws through that package, so a project's
+override renders its lists through its own library (`docs/idioms.md`).
+
+Forms, views and inboxes are reported and left out of this version; the steps of
+`docs/ui-nextjs-carbon.md` add them. The screens it is checked against are
+the library lending example's sign-in and second-factor screens, written
+by hand before the generator (ADR-067); its lists are built on plain
+Carbon and through the stub of a fictional library (ADR-068).
 
 ## Tests from the specification
 

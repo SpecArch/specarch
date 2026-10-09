@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: getSession
+level: system
+scenario: golden
+given: a librarian signed in a minute ago, whose role grants members.read and loans.read
+when: getSession is called
+then: it answers 200, signed in, with members.read and loans.read
+expect: { status: 200 }

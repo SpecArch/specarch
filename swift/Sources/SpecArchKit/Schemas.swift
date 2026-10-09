@@ -5503,9 +5503,9 @@ let implementationSchemaJSON = #"""
       "type": "string"
     },
     "designRef": {
-      "description": "A JSON pointer into the specification, naming one of its objects: '#/entities/Loan', '#/commands/validate', '#/paths/~1loans/post'. The validator checks it resolves.",
+      "description": "A JSON pointer into the specification, naming one of its objects: '#/entities/Loan', '#/commands/validate', '#/paths/~1loans/post', '#/menus/members/items/list'. The validator checks it resolves.",
       "type": "string",
-      "pattern": "^#/(entities|enums|permissions|roles|paths|commands|channels|pages|algorithms|decisions)/[^/]+(/.+)?$"
+      "pattern": "^#/(entities|enums|permissions|roles|paths|commands|channels|pages|menus|algorithms|decisions)/[^/]+(/.+)?$"
     },
     "satisfies": {
       "description": "SpecArch keyword. The requirements this element satisfies, by ID, as in the specification.",
@@ -8504,7 +8504,7 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: ui-components
-version: 1.1.0
+version: 1.2.0
 concern: ui-components
 stacks: [nextjs-carbon]
 reads: [pages]
@@ -8568,13 +8568,21 @@ parts:
     description: A page of kind list.
     stack:
       nextjs-carbon:
-        names: { component: ListPage, schemaType: ListPageSchema, carbonTable: DataTable, carbonToolbar: TableToolbar, carbonSearch: TableToolbarSearch, carbonPagination: Pagination, title: title, source: source, columns: columns, filters: filters, actions: actions, rowActions: rowActions, pageSize: pageSize, empty: empty }
+        names: { component: ListPage, schemaType: ListPageSchema, carbonTable: Table, carbonToolbar: TableToolbar, carbonSearch: TableToolbarSearch, carbonPagination: Pagination, carbonRowMenu: OverflowMenu, carbonColumns: MultiSelect, title: title, permission: permission, source: source, columns: columns, filters: filters, search: search, actions: actions, rowActions: rowActions, select: select, pageSize: pageSize, pageSizes: pageSizes, empty: empty, filteredEmpty: filteredEmpty, failed: failed, wire: wire }
         code: |
-          The rows of source in a DataTable, the search and the filters in
-          its TableToolbar, the page under it in Pagination, the page size
-          from listOf. columns are the page's columns in order, each with
-          its title key; actions and rowActions carry their confirmation
-          and permission.
+          The rows of source in a Carbon Table under a TableToolbar with the
+          search, the column picker, a refresh that keeps the page and the
+          actions that open a page; the filters in a form above it; the
+          page under it in Pagination, the page size from listOf. The
+          service pages, sorts, searches and filters, through the
+          paginated-list idiom's names on the wire. columns are the page's
+          columns in order, each with its title key and whether it sorts
+          and stays on a compact screen; each row's actions are in an
+          OverflowMenu, offered while their rule holds for the row and their
+          permission is held, each after its confirmation in a Modal that
+          asks for the reason it sends.
+          import, when a part names one, is where its component and schema
+          type come from in place of the application's components.
   form-page:
     description: A page of kind form.
     stack:

@@ -4,6 +4,9 @@ import { say, type Texts } from "./texts";
 /** The values a page holds, by field. */
 export type Values = Readonly<Record<string, string>>;
 
+/** The values a rule reads: a page's fields, or a row's. */
+export type Fields = Readonly<Record<string, unknown>>;
+
 const email = /^[^\s@]+@[^\s@]+$/;
 
 function length(value: string): number {
@@ -38,11 +41,11 @@ function fieldProblem(field: FieldSchema, value: string, texts: Texts): string |
   return undefined;
 }
 
-/** The value of a rule over the page's values. */
-export function evaluate(rule: Rule, values: Values): unknown {
+/** The value of a rule over the values of a page or a row. */
+export function evaluate(rule: Rule, values: Fields): unknown {
   switch (rule[0]) {
     case "field":
-      return values[rule[1]] ?? "";
+      return values[rule[1]] ?? null;
     case "value":
       return rule[1];
     case "!":

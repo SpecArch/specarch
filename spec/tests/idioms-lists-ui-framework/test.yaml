@@ -4,5 +4,5 @@ level: system
 scenario: golden
 given: "a specification with a list page and two implementation files: one in TypeScript whose ui target is platform web, framework nextjs-carbon, and one in JavaScript whose ui target is platform web and names no framework, so plain-javascript"
 when: "idioms is run"
-then: "it lists ui-components 1.1.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and not for the JavaScript file, and exits 0"
+then: "it lists ui-components 1.2.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and not for the JavaScript file, and exits 0"
 verifies: [SA-32]

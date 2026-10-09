@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-068:
+    title: Lists, the menu and the guard read one decision from the session an operation answers, and a second front end of one stack is an implementation file with its own output
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Step 3 of docs/ui-nextjs-carbon.md writes the lists, the menu and
+      the route guard on Next.js and Carbon, and builds the example's
+      lists through a project's own library as well as on plain Carbon.
+      The guard and the menu need to know who is signed in and which
+      permissions they hold, which the design does not say. The plug-in
+      lookup ran one plug-in once for every implementation file that found
+      it, so two TypeScript files with their own outputs could not both be
+      generated, and specarch idioms read an override in the idioms
+      folder as the own idiom of every file in that folder, even one that
+      does not name it. A mapping could not point at a menu.
+    decision: |
+      The ui target's settings name, under session, the operation that
+      answers who is signed in, the boolean and the list of permissions in
+      its answer, and the page that signs in. The screens read it once;
+      the guard and the menu ask one function, so a menu entry shows
+      exactly when its page opens. The guard makes the page only when it
+      opens, so a refused page calls no operation; someone signed out goes
+      to sign in with returnTo. Each list that needs a permission, and the
+      menu, gets a derived test run by node's test runner on the same
+      function. A list is read by the service a page at a time, through
+      the paginated-list idiom's names, sorted, searched and filtered
+      there. A row action's when becomes a rule as a task's check does,
+      and its reason is the only body it sends. A part of the idiom may
+      name import, the package its component and schema type come from,
+      and its other names fall back to the shipped part's, key by key.
+      generate runs a plug-in once per output folder its files name, so a
+      second front end of one stack is a second implementation file with
+      its own output; an override in the idioms folder belongs only to
+      the file that names it; and a mapping may name a menu or an entry of
+      one. The soft-delete toggle is not written: the standard wire names
+      have no parameter that asks for deleted records. A menu entry that
+      is a group inside a group, or that opens a page whose route takes a
+      parameter, is an error at the entry, since the side navigation
+      draws one level of groups and a menu has no record to fill the
+      parameter from. A menu entry whose page this version does not
+      write is left out with a warning at the entry, so the menu never
+      links to a page that is not there; an entry for a page another
+      stakeholder owns stays. An inbox is left out with a warning at the
+      page, as the approver's inbox is step 5,
+      and onSubmitted or pickers on a list with a warning at the keyword.
+    consequences: |
+      The example's lists are written on plain Carbon in
+      web-nextjs/carbon and through the stub of @acme/screens in
+      web-nextjs/acme, a pnpm workspace with one lock file, and CI builds
+      and tests both. The example's getSession answers a signed-out
+      caller too. A service that answers 401 to the session's
+      operation for a signed-out caller is read as one that cannot say,
+      and the guard shows the failed state. The menu's groups and entries
+      come in the order of their names, as a plug-in receives them.
+    why: |
+      A permission the client cannot read cannot be enforced before the
+      page calls its operation, and asking the service is the only answer
+      that cannot drift from what the service enforces; naming the
+      operation is a stack choice, so it is a setting rather than a design
+      keyword. One function for the guard and the menu is the point of the
+      request: a menu that showed what a page then refused was found
+      broken by hand. Testing that function per page is the test the
+      request asks for without a browser in CI. A run per output folder
+      keeps one implementation file per deliverable, which the plug-in
+      lookup already intended.
+    satisfies: [SA-53, SA-46]

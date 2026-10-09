@@ -113,7 +113,7 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 			return status
 		}
 		if len(g) > 1 && out != "" {
-			fmt.Fprintf(stderr, "specarch generate: the implementation files of %s take %s to %d plug-ins, so one --out cannot hold them; name an output for %s in each implementation file instead\n", l.spec.Dir, target, len(g), target)
+			fmt.Fprintf(stderr, "specarch generate: the implementation files of %s take %s to %d plug-ins or output folders, so one --out cannot hold them; name an output for %s in each implementation file instead\n", l.spec.Dir, target, len(g), target)
 			return 2
 		}
 		groups[i] = g
@@ -164,17 +164,29 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 	return writePlan("generate", plan, stderr)
 }
 
-// pluginGroup is one plug-in and the implementation files it is run with.
+// pluginGroup is one plug-in, the implementation files it is run with,
+// and the output folder they name, empty when none does.
 type pluginGroup struct {
-	name, exe string
-	impls     []generate.Implementation
+	name, exe, folder string
+	impls             []generate.Implementation
+}
+
+// targetOutput is the output folder an implementation file names for a
+// target, resolved from the file's folder, or empty.
+func targetOutput(i generate.Implementation, target string) string {
+	o := source.Str(source.Child(source.Child(source.Child(i.Node, "targets"), target), "output"))
+	if o == "" {
+		return ""
+	}
+	return filepath.Clean(filepath.Join(filepath.Dir(i.Path), filepath.FromSlash(o)))
 }
 
 // pluginGroups finds the plug-in for each implementation file that names
 // the target (every implementation file when none does):
 // specarch-gen-<target>-<stack> when it is on PATH, where the stack is the
 // file's language in lower case, and specarch-gen-<target> otherwise. Files
-// that find the same plug-in run it together, once.
+// that find the same plug-in and name the same output folder run it
+// together, once; a file that names none joins the others of its plug-in.
 func pluginGroups(l loaded, target string, stderr io.Writer) ([]pluginGroup, int) {
 	var impls []generate.Implementation
 	for _, i := range l.impls {
@@ -188,15 +200,22 @@ func pluginGroups(l loaded, target string, stderr io.Writer) ([]pluginGroup, int
 	generic := pluginPrefix + target
 	var groups []pluginGroup
 	add := func(name, exe string, i *generate.Implementation) {
+		folder := ""
+		if i != nil {
+			folder = targetOutput(*i, target)
+		}
 		for k := range groups {
-			if groups[k].exe == exe {
+			if groups[k].exe == exe && (folder == "" || groups[k].folder == "" || groups[k].folder == folder) {
 				if i != nil {
 					groups[k].impls = append(groups[k].impls, *i)
+				}
+				if groups[k].folder == "" {
+					groups[k].folder = folder
 				}
 				return
 			}
 		}
-		g := pluginGroup{name: name, exe: exe}
+		g := pluginGroup{name: name, exe: exe, folder: folder}
 		if i != nil {
 			g.impls = []generate.Implementation{*i}
 		}

@@ -99,7 +99,7 @@ layout:
     description: The plug-in behind generate ui for an implementation file in TypeScript. Reads the request on standard input, answers the screens on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
   internal/genuits:
-    description: The task pages for the web on Next.js and Carbon, each a schema of data and a thin page.tsx, the components that read the schemas, and the strings, drawn through the ui-components idiom's names.
+    description: The task and list pages for the web on Next.js and Carbon, each a schema of data and a thin page.tsx, the guard and the menu from one decision, the derived tests, the components that read the schemas, and the strings, drawn through the ui-components idiom's names.
   internal/gendxlib:
     description: The Go file of a service on dxlib, its tables, handlers, seeds and tasks, read from the design through the dxlib dialect's names and types.
   cmd/specarch-gen-tests-go:

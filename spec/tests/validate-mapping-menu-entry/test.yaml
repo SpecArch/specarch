@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an implementation file in TypeScript with a mapping that marks the entry of a menu another stakeholder owns, and a mapping of a menu the specification lacks"
+when: "validate is run"
+then: "it accepts the menu entry's mapping and its ownedBy, reports design_ref at the mapping of the missing menu, and exits 1"
+verifies: [SA-46]

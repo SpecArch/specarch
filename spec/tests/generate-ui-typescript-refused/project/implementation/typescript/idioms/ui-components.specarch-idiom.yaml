@@ -1,0 +1,14 @@
+specarchIdiom: "0.1"
+name: ui-components
+version: 1.0.0
+description: Lists drawn by a library of the project's own.
+why: The project's lists are drawn by its own library, so a generated one looks like those built by hand.
+overrides: { idiom: ui-components, version: 1.2.0, parts: [list-page] }
+parts:
+  list-page:
+    description: A list drawn by the library.
+    stack:
+      nextjs-carbon:
+        libraries:
+          "@acme/screens": { version: 1.0.0, licence: LicenseRef-acme-screens, purpose: the project's own screens }
+        names: { component: DataPage, import: "@acme/screens/data", schemaType: DataPageSchema, columns: columnDefs }

@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 310 design tests, 122 golden and 188 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 311 design tests, 122 golden and 189 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 306 |
+| system | 307 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -961,19 +961,19 @@ Scenario: golden; level: system; verifies SA-43.
 
 #### generate-ui-typescript
 
-Scenario: golden; level: system; verifies SA-52.
+Scenario: golden; level: system; verifies SA-52, SA-53.
 
-- Given: a specification with two task pages, one signing in with an email address and a password that has a pattern, a default failed state, and leading to a view with a route parameter from the answer, one accepting an invitation with a field of no title, a password typed twice and two checks across fields, and a view; an implementation file in TypeScript whose ui target is platform web in nextjs-carbon; and specarch-gen-ui-typescript built from this repository on PATH
+- Given: a specification with two task pages, a list page that filters by an enum and by a date it may filter, searches, sorts two of its columns, keeps one on a compact screen, opens a page from its toolbar and a view from a row, and suspends a row while it is active after a confirmation that asks for the reason, a public list, a view, and two menus; two implementation files in TypeScript in one folder, each with its ui target in nextjs-carbon, its own output and the session's operation in its settings, one owning the administration menu to another stakeholder and the other drawing lists through a library of its own by an override; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it writes each task page's schema, its fields' keywords and the password's rules, its checks as rules, its refusals with the default one without a status, and its events, and its page.tsx with the routes its events lead to, the components under screens and every text in strings.ts; it warns that the field with no title is labelled by its name and that the view is left out, and exits 0
+- Then: it runs the plug-in once per output folder; each writes the task pages, the list's schema and page behind the guard with the derived test that it is refused without its permission, the public list with no such test, application.ts with the session and the menu without the owned one, the menu's derived test, the components under screens and the texts in strings.ts; the second imports the list's component and schema type from the library and names its columns by the override; each warns that the field with no title is labelled by its name and that the view is left out, and exits 0
 
 #### generate-ui-typescript-refused
 
-Scenario: red; level: system; verifies SA-52.
+Scenario: red; level: system; verifies SA-52, SA-53.
 
-- Given: the specification of the golden case, whose invitation page also shows a field of type integer and checks it with an expression that adds, and whose operation answers a 201 the page has no event for; an implementation file in TypeScript whose ui target is platform web in nextjs-carbon; and specarch-gen-ui-typescript built from this repository on PATH
+- Given: the specification of the golden case, whose invitation page also shows a field of type integer, checks it with an expression that adds, and whose operation answers a 201 the page has no event for, whose menu holds a group inside a group and an entry that opens a page whose route takes a parameter, and whose second implementation file names no session; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it reports the integer field at the page's field, the addition at the check's expression and the 201 at the page's onSubmitted as errors, each saying what this version writes, writes nothing, and exits 1
+- Then: it reports, for each file, the integer field at the page's field, the addition at the check's expression and the 201 at the page's onSubmitted, the inner group at its entry and the entry to the page with a parameter at its page, and for the second the list that needs a permission no session can tell, as errors, writes nothing, and exits 1
 
 #### generate-unapproved
 
@@ -1041,7 +1041,7 @@ Scenario: golden; level: system; verifies SA-32.
 
 - Given: a specification with a list page and two implementation files: one in TypeScript whose ui target is platform web, framework nextjs-carbon, and one in JavaScript whose ui target is platform web and names no framework, so plain-javascript
 - When: idioms is run
-- Then: it lists ui-components 1.1.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and not for the JavaScript file, and exits 0
+- Then: it lists ui-components 1.2.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and not for the JavaScript file, and exits 0
 
 #### idioms-usage-error
 
@@ -1750,6 +1750,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-47.
 - Given: a form submitting to a workflow's trigger with no onSubmitted, and another whose onSubmitted has no message; a task page whose 202 event has no message; an inbox that checks another permission than its step's, one that lists another entity than the subject, one naming a step that is not an approval, one naming no workflow, and an inbox on a view; and a workflow that emits a message no channel declares
 - When: validate is run
 - Then: it reports workflow eight times and emits once, and exits 1
+
+#### validate-mapping-menu-entry
+
+Scenario: red; level: system; covers exit 1; verifies SA-46.
+
+- Given: an implementation file in TypeScript with a mapping that marks the entry of a menu another stakeholder owns, and a mapping of a menu the specification lacks
+- When: validate is run
+- Then: it accepts the menu entry's mapping and its ownedBy, reports design_ref at the mapping of the missing menu, and exits 1
 
 #### validate-mapping-origin
 
@@ -2547,7 +2555,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-176 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+184 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2633,6 +2641,13 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-52 | acceptance 4 | golden | SA-52 names no harm |
 | requirement SA-52 | acceptance 5 | golden | SA-52 names no harm |
 | requirement SA-52 | acceptance 6 | golden | SA-52 names no harm |
+| requirement SA-53 | acceptance 1 | golden | SA-53 names no harm |
+| requirement SA-53 | acceptance 2 | golden | SA-53 names no harm |
+| requirement SA-53 | acceptance 3 | golden | SA-53 names no harm |
+| requirement SA-53 | acceptance 4 | golden | SA-53 names no harm |
+| requirement SA-53 | acceptance 5 | golden | SA-53 names no harm |
+| requirement SA-53 | acceptance 6 | golden | SA-53 names no harm |
+| requirement SA-53 | acceptance 7 | golden | SA-53 names no harm |
 | requirement SA-48 | acceptance 1 | golden | SA-48 names no harm |
 | requirement SA-48 | acceptance 2 | golden | SA-48 names no harm |
 | requirement SA-48 | acceptance 3 | golden | SA-48 names no harm |
@@ -2661,6 +2676,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-46 | acceptance 2 | golden | SA-46 names no harm |
 | requirement SA-46 | acceptance 3 | golden | SA-46 names no harm |
 | requirement SA-46 | acceptance 4 | golden | SA-46 names no harm |
+| requirement SA-46 | acceptance 5 | golden | SA-46 names no harm |
 | requirement SA-32 | acceptance 1 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 2 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 3 | golden | SA-32 names no harm |

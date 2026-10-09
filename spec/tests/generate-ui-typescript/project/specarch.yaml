@@ -3,22 +3,28 @@ info: { title: Members, version: 1.0.0 }
 stages: [implementation]
 stakeholders:
   owner: { description: The product owner. }
+  administration: { description: The team that builds the administration's screens. }
 entities:
   Member:
     type: object
     properties:
       id: { type: string, format: uuid, readOnly: true }
       name: { type: string, title: Name, minLength: 1, maxLength: 100 }
-    required: [id, name]
+      status: { type: string, enum: [active, inactive], title: Status }
+      joinedOn: { type: string, format: date, title: Joined on }
+    required: [id, name, status, joinedOn]
     primaryKey: [id]
 errors:
   sign-in-refused: { status: 401, title: Sign-in refused, condition: The email address or the password is wrong. }
   invitation-used: { status: 409, title: Invitation used, condition: The invitation was used before. }
+  member-gone: { status: 404, title: Member gone, condition: No member has that id. }
 permissions:
   members.read: { description: See the members. }
+  members.write: { description: Change the members. }
   public: { description: Open to everyone. }
 roles:
   member: { description: A member., permissions: [members.read] }
+  clerk: { description: Keeps the members., permissions: [members.read, members.write] }
 session: { description: A member signs in once and works in a session., idleTimeout: PT30M, absoluteTimeout: PT12H }
 paths:
   /members:
@@ -26,9 +32,28 @@ paths:
       operationId: listMembers
       summary: The members
       permission: members.read
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [active, inactive] } }
       listOf:
         entity: Member
-        pageSize: { default: 25, maximum: 100 }
+        sortable: [name, joinedOn]
+        searchable: [name]
+        filterable: [joinedOn]
+        pageSize: { default: 25, maximum: 50 }
+      responses:
+        "200":
+          description: The members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+  /directory:
+    get:
+      operationId: listDirectory
+      summary: The members anyone may see
+      permission: public
+      listOf:
+        entity: Member
+        pageSize: { default: 10, maximum: 10 }
       responses:
         "200":
           description: The members.
@@ -48,6 +73,41 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/entities/Member" }
+  /members/{memberId}/suspend:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: suspendMember
+      summary: Suspend a member
+      permission: members.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                why: { type: string, minLength: 1, maxLength: 200, title: Why }
+              required: [why]
+      responses:
+        "204": { description: Suspended. }
+        "404": { description: No such member., problem: member-gone }
+  /sessions/current:
+    get:
+      operationId: getSession
+      summary: Who is signed in
+      permission: public
+      responses:
+        "200":
+          description: The session.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  open: { type: boolean }
+                  granted: { type: array, items: { type: string, maxLength: 100 }, maxItems: 50 }
+                required: [open, granted]
   /sessions:
     post:
       operationId: signIn
@@ -123,6 +183,36 @@ pages:
         invitation-used: { message: This invitation was used before., field: invitation }
     onSubmitted:
       "204": { navigate: sign-in, message: Your account is ready. Sign in. }
+  members-list:
+    kind: list
+    title: Members
+    route: /members
+    entity: Member
+    permission: members.read
+    source: listMembers
+    columns: [name, status, joinedOn]
+    compactColumns: [name]
+    filters: [status, joinedOn]
+    states:
+      empty: { message: No member yet. }
+      filteredEmpty: { message: No member matches. }
+      failed:
+        member-gone: { message: That member is gone. }
+        default: { message: The members cannot be shown now. }
+    onSelect: { navigate: member-view, with: { memberId: id } }
+    actions:
+      - { label: Invite, kind: navigate, target: invitation }
+      - { label: Suspend, kind: operation, target: suspendMember, permission: members.write, when: 'status == "active"', confirm: "Suspend this member?", reason: why, then: { message: The member is suspended. } }
+  directory:
+    kind: list
+    title: Directory
+    route: /directory
+    entity: Member
+    permission: public
+    source: listDirectory
+    columns: [name]
+    states:
+      empty: { message: No member yet. }
   member-view:
     kind: view
     title: Member
@@ -131,4 +221,14 @@ pages:
     permission: members.read
     source: getMember
     fields: [name]
+menus:
+  people:
+    title: People
+    items:
+      all: { title: All members, page: members-list }
+      invite: { title: Invite someone, page: invitation }
+  admin:
+    title: Administration
+    items:
+      members: { title: Members, page: members-list }
 accessibility: { standard: WCAG 2.2, level: AA }

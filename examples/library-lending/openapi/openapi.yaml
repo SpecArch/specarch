@@ -730,6 +730,40 @@ paths:
           x-specarch-problem: sign-in-refused
       security: []
       x-specarch-permission: public
+  /sessions/current:
+    get:
+      operationId: getSession
+      summary: Who is signed in, and what they may do
+      description: |
+        Answers whether the caller's session is open and the permissions
+        its roles grant, so the screens show only the menu entries and
+        pages the caller may open. A caller without a session is answered
+        too, signed out and with no permission; the service still checks
+        each operation's permission itself.
+      responses:
+        "200":
+          description: The caller's session.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  permissions:
+                    type: array
+                    title: Permissions
+                    maxItems: 100
+                    uniqueItems: true
+                    items:
+                      type: string
+                      maxLength: 100
+                  signedIn:
+                    type: boolean
+                    title: Signed in
+                required:
+                  - signedIn
+                  - permissions
+      security: []
+      x-specarch-permission: public
   /sessions/second-factor:
     post:
       operationId: confirmSecondFactor

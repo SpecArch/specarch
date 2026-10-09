@@ -1,7 +1,10 @@
-# The web application of the library lending example: one package, no
-# workspace members of its own.
+# The web screens of the library lending example: the application on
+# plain Carbon, the same screens drawn through the fictional @acme/screens
+# library by the example's override, and that library's stub.
 packages:
-  - .
+  - carbon
+  - acme
+  - acme-screens
 
 # sharp resizes images for next/image. These pages resize none, and its
 # libvips build is LGPL-3.0-or-later, so it is removed.

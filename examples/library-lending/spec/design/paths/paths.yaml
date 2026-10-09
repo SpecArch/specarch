@@ -45,6 +45,34 @@ paths:
         "201": { description: "The password is right, and the account confirms each sign-in with a second factor: a sign-in challenge is opened for five minutes and kept with the browser, and the session starts once confirmSecondFactor accepts its code." }
         "401": { description: The email address or the password is wrong., problem: sign-in-refused }
 
+  /sessions/current:
+    get:
+      operationId: getSession
+      summary: Who is signed in, and what they may do
+      description: |
+        Answers whether the caller's session is open and the permissions
+        its roles grant, so the screens show only the menu entries and
+        pages the caller may open. A caller without a session is answered
+        too, signed out and with no permission; the service still checks
+        each operation's permission itself.
+      permission: public
+      responses:
+        "200":
+          description: The caller's session.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  signedIn: { type: boolean, title: Signed in }
+                  permissions:
+                    type: array
+                    title: Permissions
+                    items: { type: string, maxLength: 100 }
+                    maxItems: 100
+                    uniqueItems: true
+                required: [signedIn, permissions]
+
   /sessions/second-factor:
     post:
       operationId: confirmSecondFactor

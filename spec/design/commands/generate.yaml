@@ -20,9 +20,10 @@ commands:
       `specarch-gen-<target>-<stack>` when there is one, where the stack is
       the file's `stack.language.name` in lower case with a dash for a space,
       and `specarch-gen-<target>` otherwise; neither found is status 2. Files
-      that find the same plug-in run it together, and each plug-in writes
-      into the folder its files name, so `--out` is refused when the files
-      reach more than one plug-in. The program runs each plug-in once per
+      that find the same plug-in and name the same output folder run it
+      together, a file that names none joining the others of its plug-in,
+      and each run writes into the folder its files name, so `--out` is
+      refused when the files reach more than one plug-in or folder. The program runs each plug-in once per
       specification with a request on its standard input, as JSON:
       `specarch` (the meta-model version), `target`, `root` (the root file's
       path), `specification` (the merged, validated specification as plain

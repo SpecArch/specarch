@@ -464,8 +464,8 @@ func IdiomUses(file string, root *yaml.Node, s *spec.Spec) []IdiomUse {
 	for _, name := range sortedIdiomNames(all) {
 		i := all[name]
 		u := IdiomUse{Name: name, Version: i.Version(), As: "shipped"}
-		if _, own := project[name]; own {
-			u.As = "project"
+		if p, own := project[name]; own && source.Child(p.Root, "overrides") == nil {
+			u.As = "project" // an override another file in the folder names is not this file's
 		}
 		use := source.Child(source.Child(root, "idioms"), name)
 		if source.Str(source.Child(use, "exclude")) == "true" {

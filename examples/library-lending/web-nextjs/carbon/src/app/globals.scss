@@ -1,0 +1,37 @@
+// Carbon's styles. Its fonts are not loaded from IBM's servers: the
+// pages use the fonts of Carbon's font stack the browser already has.
+@use "@carbon/styles" with (
+  $css--font-face: false
+);
+@use "@carbon/styles/scss/type";
+@use "@carbon/styles/scss/spacing";
+
+// The menu is fixed at the start of the page, 16rem wide; the page sits
+// beside it, and under it on a compact screen, where Carbon hides it.
+.screens-main {
+  padding: spacing.$spacing-07 spacing.$spacing-05;
+}
+
+@media (min-width: 66rem) {
+  .screens-main {
+    margin-inline-start: 16rem;
+  }
+}
+
+.screens-task {
+  max-inline-size: 36rem;
+}
+
+.screens-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: spacing.$spacing-05;
+  margin-block-end: spacing.$spacing-05;
+}
+
+.screens-task h1,
+.screens-list h1 {
+  @include type.type-style("heading-04");
+  margin-block-end: spacing.$spacing-07;
+}

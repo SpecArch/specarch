@@ -2,9 +2,13 @@ specarchImplementation: "0.1"
 info: { title: Case in TypeScript, version: 1.0.0 }
 implements: { file: ../../specarch.yaml, version: 1.0.0 }
 stack: { language: { name: TypeScript, version: "6.0" } }
+mappings:
+  "#/menus/admin": { target: the administration's own menu, ownedBy: administration }
 targets:
   ui:
     output: ../../../web
     platform: web
     framework: nextjs-carbon
-    settings: { language: en }
+    settings:
+      language: en
+      session: { operation: getSession, signedIn: open, permissions: granted, signIn: sign-in }

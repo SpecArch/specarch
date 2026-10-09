@@ -27,7 +27,7 @@ steps. In short:
    with screens built by hand.
 
 Questions Q1 to Q10 at the end were the owner's, who answered each as
-recommended on 2026-10-09 (ADR-051). Steps 1 and 2 are built.
+recommended on 2026-10-09 (ADR-051). Steps 1 to 3 are built.
 
 ## Where SpecArch stands
 
@@ -259,7 +259,7 @@ needs Q1, Q4 and Q5; step 2 needs Q2, Q3, Q6, Q7 and Q10.
 2. **Built: task forms, sign-in, second factor, password reset.** The
    library lending example has a second factor, `signIn` answering 201
    when it is asked for and `confirmSecondFactor` taking the code (Q6),
-   and a Next.js application under `examples/library-lending/web-nextjs/`
+   and a Next.js application under `examples/library-lending/web-nextjs/carbon/`
    with its `package.json`, `pnpm-lock.yaml` and `pnpm-workspace.yaml`, the
    libraries pinned and scanned (Q10), which a CI job installs, checks with
    `tsc --noEmit` and the lint, and builds. Its sign-in and second-factor
@@ -275,19 +275,23 @@ needs Q1, Q4 and Q5; step 2 needs Q2, Q3, Q6, Q7 and Q10.
    generated over the reference, the two screens differ only by the
    header and `strings.ts` only by the password reset's texts; the CI job
    builds the result, and a second run writes the same bytes.
-3. **Lists, with the override.** List pages with server-side paging,
-   sort, search and typed filters (the paginated-list idiom's names), a
-   column picker, a refresh that keeps the page, the soft-delete idiom's
-   toggle, row actions with their confirmation and message; the menu, the
-   route guard and a derived test per page that opens it as someone
-   without its permission and expects the refusal; `ownedBy` on a page or
-   a menu entry leaves it out. The example gains its override naming
-   `@acme/screens` and the stub package in its workspace, and CI builds
-   the example twice, on plain Carbon and through the stub. Waits for the
-   0.2 step that offers an action by the row's state, for that part only;
-   the rest is built without it. Done when the loans and members lists
-   build both ways, the refusal tests pass, and `generate --check` is
-   clean on both and reports a schema edited by hand.
+3. **Built: lists, with the override** (SA-53, ADR-068). List pages with
+   server-side paging, sort, search and typed filters (the paginated-list
+   idiom's names), a column picker, a refresh that keeps the page, row
+   actions offered by the row's state with their confirmation, reason and
+   message; the menu, the route guard and a derived test per page that
+   opens it as someone without its permission and expects the refusal,
+   all from the session the target's settings name, which the example's
+   `getSession` answers; `ownedBy` on a page, a menu or a menu entry
+   leaves it out. The soft-delete idiom's toggle is not written: the
+   standard wire names have no parameter that asks for deleted records.
+   The example's web screens are a pnpm workspace: `carbon/` on plain
+   Carbon, `acme/` from a second TypeScript implementation file whose
+   override draws the lists through `@acme/screens`, and `acme-screens/`,
+   that library's stub; CI type-checks, lints, tests and builds both.
+   Done: the members, loans and fee waivers lists build both ways, the
+   refusal tests pass, and `generate --check` is clean on both and reports
+   a schema edited by hand.
 4. **Forms and views.** Forms with sections, validation from the entity's
    JSON Schema keywords and across fields, read-only and hidden fields by
    mode or expression, layouts as one page, tabs or steps; lookup fields;

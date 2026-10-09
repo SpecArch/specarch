@@ -10,7 +10,7 @@ info:
     of its own beside the service, so it has its own implementation file;
     the application around the generated pages (the layout, the styles,
     the package and its configuration) is written by hand in
-    examples/library-lending/web-nextjs.
+    examples/library-lending/web-nextjs/carbon.
 
 implements:
   file: ../../specarch.yaml
@@ -48,7 +48,7 @@ libraries:
 
 targets:
   ui:
-    output: ../../../web-nextjs/src
+    output: ../../../web-nextjs/carbon/src
     platform: web
     framework: nextjs-carbon
     description: |
@@ -57,6 +57,7 @@ targets:
       strings.ts. The service is called directly, at NEXT_PUBLIC_API_URL.
     settings:
       language: en
+      session: { operation: getSession, signedIn: signedIn, permissions: permissions, signIn: sign-in }
 
 tasks:
   install: { run: pnpm install --frozen-lockfile, ci: true }

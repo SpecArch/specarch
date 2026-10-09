@@ -7,10 +7,9 @@ import { Field } from "./Field";
 import { leave } from "./Notice";
 import { problemsOf, type Values } from "./rules";
 import type { EventSchema, TaskPageSchema } from "./schema";
+import { segment, service } from "./service";
+import { forgetSession } from "./session";
 import { say, type Texts } from "./texts";
-
-/** Where the service is, empty when it answers on the page's own origin. */
-const service = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 export interface TaskPageProps {
   readonly schema: TaskPageSchema;
@@ -41,7 +40,7 @@ function destination(event: EventSchema, routes: Readonly<Record<string, string>
   }
   const answer = typeof body === "object" && body !== null ? (body as Record<string, unknown>) : {};
   let route = (routes[event.navigate] ?? "/").replace(/\{([^}]+)\}/g, (_, name: string) =>
-    encodeURIComponent(String(answer[event.with?.[name] ?? name] ?? "")),
+    segment(String(answer[event.with?.[name] ?? name] ?? "")),
   );
   if (event.keepsReturnTo && back !== undefined) {
     route += "?returnTo=" + encodeURIComponent(back);
@@ -86,6 +85,7 @@ export function TaskPage({ schema, texts, routes, returnTo }: TaskPageProps) {
       return;
     }
     if (response.ok) {
+      forgetSession();
       const success = schema.events.find((candidate) => candidate.status === response.status) ?? { status: response.status };
       const answer: unknown = success.with === undefined ? null : await response.json().catch(() => undefined);
       if (answer === undefined) {

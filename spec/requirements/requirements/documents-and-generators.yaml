@@ -78,6 +78,7 @@ requirements:
     acceptance:
       - An entity whose mapping names a stakeholder under ownedBy gets no table from generate sql and no schema from generate openapi, while a foreign key or a reference to it is still written.
       - An operation whose mapping names a stakeholder under ownedBy gets no operation from generate openapi.
+      - A page, or a menu or a menu entry, whose mapping names a stakeholder under ownedBy gets no page and no menu entry from generate ui; a mapping may name a menu or an entry of one, '#/menus/<menu>/items/<entry>', as it names any other element, and one that points at nothing is refused, the same in both builds.
       - validate and gaps read the marked element as before, and a question that blocks it still holds generation up.
       - ownedBy naming no stakeholder of the specification is reported, the same in both builds.
     verification: test

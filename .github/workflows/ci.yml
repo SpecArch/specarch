@@ -188,11 +188,20 @@ jobs:
           for generator in sql openapi ui ui-typescript; do go build -o "$RUNNER_TEMP/bin/specarch-gen-$generator" ./cmd/specarch-gen-$generator || exit 1; done
           export PATH="$RUNNER_TEMP/bin:$PATH"
           for target in sql openapi ui; do go run ./cmd/specarch generate $target --check --unapproved examples/library-lending || exit 1; done
+      - name: A generated schema edited by hand is reported
+        run: |
+          export PATH="$RUNNER_TEMP/bin:$PATH"
+          schema=examples/library-lending/web-nextjs/acme/src/app/members/page.schema.ts
+          sed -i 's/"members-list.columns.email", sortable: false/"members-list.columns.email", sortable: true/' "$schema"
+          status=0; go run ./cmd/specarch generate ui --check --unapproved examples/library-lending > "$RUNNER_TEMP/edited.txt" || status=$?
+          git checkout -- "$schema"
+          test "$status" -eq 1 && grep -q "^$schema: differs from what generate writes" "$RUNNER_TEMP/edited.txt"
 
   web:
-    # The library lending example's web application on Next.js and Carbon:
-    # installed from its lock file with no install scripts, type-checked,
-    # linted with no rule turned off, and built.
+    # The library lending example's web screens on Next.js, on plain Carbon
+    # and through the stub of @acme/screens: the workspace installed from
+    # its lock file with no install scripts, each application type-checked,
+    # linted with no rule turned off, its derived tests run, and built.
     runs-on: ubuntu-latest
     env:
       IBM_TELEMETRY_DISABLED: "true"
@@ -214,6 +223,8 @@ jobs:
         run: pnpm typecheck
       - name: Lint
         run: pnpm lint
+      - name: Derived tests
+        run: pnpm test
       - name: Build
         run: pnpm build
 

@@ -306,8 +306,10 @@ components it is built on and the keys of its schema; `names` stays a flat
 map of strings, a key per role. The shipped rendering draws with plain
 Carbon, so an example builds with public packages only. A project that
 draws through a library of its own overrides the parts it changes, naming
-its package, components and keys, and records that library with SPDX's
-`LicenseRef-<name>` when its own organisation writes it. A project whose
+its package under `import`, its component, schema type and keys, and
+records that library with SPDX's `LicenseRef-<name>` when its own
+organisation writes it; a name the override leaves out is the shipped
+part's, so an override is as small as the keys that differ. A project whose
 schema shape `names` cannot say installs its own
 `specarch-gen-ui-typescript` ahead of the shipped one.
 

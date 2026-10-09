@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: ui-components
+version: 1.0.0
+description: The library's desk lists drawn by @acme/screens, a fictional screens library whose stub sits in the example's workspace.
+why: A project whose screens are drawn by a library of its own renders its generated lists through that library, so they look and work like the screens built by hand; this file shows how, with the library's component, import and schema keys.
+overrides: { idiom: ui-components, version: 1.2.0, parts: [list-page] }
+parts:
+  list-page:
+    description: A list page drawn by @acme/screens's list screen.
+    stack:
+      nextjs-carbon:
+        libraries:
+          "@acme/screens": { version: 1.0.0, licence: Apache-2.0, purpose: "The list screen, a stub in the example's workspace." }
+        names: { component: AcmeListScreen, import: "@acme/screens/list", schemaType: AcmeListSchema, title: heading, columns: columnDefs }
+        code: |
+          The list is handed to AcmeListScreen with the same props as the
+          shipped ListPage: the schema, its texts and the routes its
+          events lead to. Its heading is under heading and its columns
+          under columnDefs; every other key is the shipped part's.

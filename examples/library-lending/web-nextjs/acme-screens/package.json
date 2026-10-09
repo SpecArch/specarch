@@ -1,0 +1,17 @@
+{
+  "name": "@acme/screens",
+  "version": "1.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "description": "A stub of a fictional screens library, so the example shows a project drawing its lists through a library of its own.",
+  "type": "module",
+  "exports": {
+    "./list": "./src/list.tsx"
+  },
+  "peerDependencies": {
+    "react": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0"
+  }
+}

@@ -1,0 +1,14 @@
+specarchImplementation: "0.1"
+info: { title: Case in TypeScript through a library, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: TypeScript, version: "6.0" } }
+targets:
+  ui:
+    output: ../../../library-web
+    platform: web
+    framework: nextjs-carbon
+    settings:
+      language: en
+idioms:
+  ui-components:
+    override: idioms/ui-components.specarch-idiom.yaml

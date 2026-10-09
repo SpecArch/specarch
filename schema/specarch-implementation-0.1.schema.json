@@ -217,9 +217,9 @@
       "type": "string"
     },
     "designRef": {
-      "description": "A JSON pointer into the specification, naming one of its objects: '#/entities/Loan', '#/commands/validate', '#/paths/~1loans/post'. The validator checks it resolves.",
+      "description": "A JSON pointer into the specification, naming one of its objects: '#/entities/Loan', '#/commands/validate', '#/paths/~1loans/post', '#/menus/members/items/list'. The validator checks it resolves.",
       "type": "string",
-      "pattern": "^#/(entities|enums|permissions|roles|paths|commands|channels|pages|algorithms|decisions)/[^/]+(/.+)?$"
+      "pattern": "^#/(entities|enums|permissions|roles|paths|commands|channels|pages|menus|algorithms|decisions)/[^/]+(/.+)?$"
     },
     "satisfies": {
       "description": "SpecArch keyword. The requirements this element satisfies, by ID, as in the specification.",

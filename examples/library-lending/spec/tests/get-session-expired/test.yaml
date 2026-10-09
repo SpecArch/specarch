@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: getSession
+level: system
+scenario: red
+given: a librarian whose session ended half an hour after their last request
+when: getSession is called
+then: it answers 200, signed out, with no permission, and the session stays ended
+expect: { status: 200 }

@@ -1,0 +1,40 @@
+specarch: "0.1"
+info: { title: Menus, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+  administration: { description: The team that builds the administration's screens. }
+permissions:
+  public: { description: Open to everyone. }
+pages:
+  welcome:
+    kind: task
+    title: Say hello
+    route: /hello
+    permission: public
+    submit: hello
+    fields: [name]
+    onSubmitted:
+      "204": { message: Hello. }
+paths:
+  /hello:
+    post:
+      operationId: hello
+      summary: Say hello
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, maxLength: 50, title: Name }
+              required: [name]
+      responses:
+        "204": { description: Said. }
+menus:
+  main:
+    title: Main
+    items:
+      hello: { title: Say hello, page: welcome }

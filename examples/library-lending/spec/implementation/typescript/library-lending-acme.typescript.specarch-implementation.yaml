@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-implementation-0.1.schema.json
+specarchImplementation: "0.1"
+
+info:
+  title: Library Lending's web screens through @acme/screens
+  version: 0.1.0
+  description: |
+    The same web screens as library-lending.typescript, with every list
+    drawn by @acme/screens, a fictional library a project writes for its
+    own screens, through the override in idioms/. It shows a second front
+    end of one stack as a deliverable of its own; the stub of the library
+    and the application around the pages are in
+    examples/library-lending/web-nextjs.
+
+implements:
+  file: ../../specarch.yaml
+  version: 0.1.0
+
+stack:
+  language: { name: TypeScript, version: "6.0" }
+  toolchain: { name: pnpm, version: "12.9.1" }
+
+libraries:
+  next: { version: 16.4.0, licence: MIT, purpose: "The app router, the server components and the build." }
+  react: { version: 19.3.0, licence: MIT, purpose: Rendering. }
+  react-dom: { version: 19.3.0, licence: MIT, purpose: Rendering. }
+  "@carbon/react": { version: 1.118.0, licence: Apache-2.0, purpose: "The components that draw every page." }
+  "@carbon/styles": { version: 1.117.0, licence: Apache-2.0, purpose: "Carbon's styles, compiled from Sass." }
+  "@carbon/themes": { version: 11.83.0, licence: Apache-2.0, purpose: "Carbon's theme tokens." }
+  "@carbon/icons-react": { version: 11.90.0, licence: Apache-2.0, purpose: Icons. }
+  "@acme/screens": { version: 1.0.0, licence: Apache-2.0, purpose: "The list screen, a stub of a fictional library in the example's workspace; a real one of the project's own organisation is recorded as LicenseRef-<name>." }
+  sass: { version: 1.105.1, licence: MIT, purpose: "Compiles Carbon's Sass.", scope: build }
+  typescript:
+    version: 6.0.3
+    licence: Apache-2.0
+    purpose: Type-checks the application with tsc --noEmit under strict.
+    scope: build
+    why: 7.0 is outside the range typescript-eslint takes (below 6.1), and eslint-config-next lints with it.
+  eslint:
+    version: 9.39.5
+    licence: MIT
+    purpose: The lint, with no rule turned off.
+    scope: build
+    why: 10 is outside the range of the React, accessibility and import plug-ins eslint-config-next brings.
+  eslint-config-next: { version: 16.4.0, licence: MIT, purpose: "Next.js's lint rules, core web vitals and TypeScript.", scope: build }
+  "@types/react": { version: 19.3.0, licence: MIT, purpose: Types., scope: build }
+  "@types/react-dom": { version: 19.3.0, licence: MIT, purpose: Types., scope: build }
+  "@types/node": { version: 26.6.4, licence: MIT, purpose: Types., scope: build }
+
+targets:
+  ui:
+    output: ../../../web-nextjs/acme/src
+    platform: web
+    framework: nextjs-carbon
+    description: |
+      The pages as schema files and thin page.tsx files under app/, the
+      components that read the schemas under screens/, and every text in
+      strings.ts. The service is called directly, at NEXT_PUBLIC_API_URL.
+    settings:
+      language: en
+      session: { operation: getSession, signedIn: signedIn, permissions: permissions, signIn: sign-in }
+
+idioms:
+  ui-components:
+    override: idioms/ui-components.specarch-idiom.yaml
+
+tasks:
+  install: { run: pnpm install --frozen-lockfile, ci: true }
+  typecheck: { run: pnpm typecheck, ci: true }
+  lint: { run: pnpm lint, ci: true }
+  build: { run: pnpm build, ci: true }

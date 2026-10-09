@@ -2,7 +2,7 @@
 command: diff
 level: system
 scenario: red
-covers: [usage error]
+covers: [usage error, exit 2]
 given: "one folder"
 when: "diff is run with only the old folder"
 then: "it prints how to use it and exits 2"

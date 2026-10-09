@@ -17,27 +17,30 @@ type sourcePair = source.Pair
 // implementation files. ok is false for a target this package does not
 // write.
 func Document(target string, root *yaml.Node, relRoot string, impls []Implementation, state *State) (text string, ok bool) {
+	var write func() string
 	switch target {
 	case "techspec":
-		return Techspec(root, relRoot, impls), true
+		write = func() string { return Techspec(root, relRoot, impls, state) }
 	case "requirements":
-		return Requirements(root, relRoot, impls), true
+		write = func() string { return Requirements(root, relRoot, impls, state) }
 	case "testplan":
-		return Testplan(root, relRoot, impls, state), true
+		write = func() string { return Testplan(root, relRoot, impls, state) }
 	case "traceability":
-		return Traceability(root, relRoot, impls), true
+		write = func() string { return Traceability(root, relRoot, impls, state) }
 	case "deployment":
-		return DeploymentGuide(root, relRoot, impls), true
+		write = func() string { return DeploymentGuide(root, relRoot, impls, state) }
 	case "commissioning":
-		return Commissioning(root, relRoot, impls), true
+		write = func() string { return Commissioning(root, relRoot, impls, state) }
 	case "questions":
 		return Questions(root, relRoot, impls, state), true
 	case "changes":
 		return Changes(root, relRoot, state), true
 	case "releases":
 		return Releases(root, relRoot, state), true
+	default:
+		return "", false
 	}
-	return "", false
+	return place(state, write), true
 }
 
 // DocumentName is the file a target writes in the folder it owns.
@@ -54,8 +57,8 @@ func countText(n int, one, many string) string {
 // Requirements writes the requirements specification: the stakeholders,
 // their needs, and the requirements with every attribute, in the order of
 // a requirements specification of ISO/IEC/IEEE 29148.
-func Requirements(root *yaml.Node, relRoot string, impls []Implementation) string {
-	d := newDoc("requirements", root, relRoot, impls)
+func Requirements(root *yaml.Node, relRoot string, impls []Implementation, state *State) string {
+	d := newDoc("requirements", root, relRoot, impls, state)
 	info := get(root, "info")
 	reqs := pairs(root, "requirements")
 	needs := pairs(root, "needs")
@@ -194,7 +197,7 @@ func Requirements(root *yaml.Node, relRoot string, impls []Implementation) strin
 // levels, how each implementation runs the tests, then every design test
 // grouped by its subject, then the derived cases left out.
 func Testplan(root *yaml.Node, relRoot string, impls []Implementation, state *State) string {
-	d := newDoc("testplan", root, relRoot, impls)
+	d := newDoc("testplan", root, relRoot, impls, state)
 	info := get(root, "info")
 	tests := pairs(root, "tests")
 	golden, red, na := 0, 0, 0
@@ -405,8 +408,8 @@ func suiteRuns(s *yaml.Node) string {
 // requirements to what satisfies and verifies them, and lists the gaps. It
 // names elements by ID only; their Insights are in the documents that
 // describe them.
-func Traceability(root *yaml.Node, relRoot string, impls []Implementation) string {
-	d := newDoc("traceability", root, relRoot, impls)
+func Traceability(root *yaml.Node, relRoot string, impls []Implementation, state *State) string {
+	d := newDoc("traceability", root, relRoot, impls, state)
 	info := get(root, "info")
 	reqs := pairs(root, "requirements")
 	needs := pairs(root, "needs")
@@ -513,8 +516,8 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation) strin
 // promotion path, the settings and their values in each installation, the
 // installations of each implementation, then release, rollback and the
 // migrations.
-func DeploymentGuide(root *yaml.Node, relRoot string, impls []Implementation) string {
-	d := newDoc("deployment", root, relRoot, impls)
+func DeploymentGuide(root *yaml.Node, relRoot string, impls []Implementation, state *State) string {
+	d := newDoc("deployment", root, relRoot, impls, state)
 	info := get(root, "info")
 	envs := pairs(root, "environments")
 	cfg := pairs(root, "configuration")
@@ -662,8 +665,8 @@ func promotionPath(envs []sourcePair) string {
 // Commissioning writes the commissioning test procedure, one section per
 // environment in the order a release reaches them, with a column for each
 // step's result, and the sign-off sheet.
-func Commissioning(root *yaml.Node, relRoot string, impls []Implementation) string {
-	d := newDoc("commissioning", root, relRoot, impls)
+func Commissioning(root *yaml.Node, relRoot string, impls []Implementation, state *State) string {
+	d := newDoc("commissioning", root, relRoot, impls, state)
 	info := get(root, "info")
 	checks := pairs(root, "checks")
 	d.line("# %s: commissioning procedure", str(info, "title"))

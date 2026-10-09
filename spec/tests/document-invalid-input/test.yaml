@@ -5,4 +5,4 @@ scenario: red
 covers: [exit 1]
 given: a design file with a relation to an entity that does not exist
 when: document techspec is run
-then: "it prints the diagnostic, writes nothing and exits 1"
+then: "it prints the error, writes the technical specification with a Problems notice and a Problem paragraph at the relation, and exits 1"

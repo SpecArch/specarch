@@ -1,4 +1,6 @@
 arguments: [diff, old/spec, new/spec]
-exitStatus: 2
+exitStatus: 1
 standardOutput: |
   new/spec/specarch.yaml:35:19: error: /paths/~1items/get/permission: permission_undeclared: operation listItems needs permission items.list, which is not declared; add it under permissions; use one of items.read [permission_undeclared@specarch.yaml#/paths/~1items/get/permission]
+  major changed #/paths/~1items/get: permission changes from items.read to items.list
+  error: version: there is no records/releases/1.0.1.yaml for the new version 1.0.1; add it with the changes and defects it includes

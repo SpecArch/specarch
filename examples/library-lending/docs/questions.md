@@ -6,7 +6,7 @@ Version 0.1.0 of the specification has no open question: nothing it says waits o
 
 ## 1. Outputs
 
-What can be made from the specification now. A document is a draft while a must or should question blocks what it reads; code generation waits for those questions and for the approval.
+What can be made from the specification now. A document is a draft while a must or should question blocks what it reads, or an error is in it; code generation waits for those questions, for every error to be fixed, and for the approval.
 
 | Output | State | Waits on |
 |---|---|---|

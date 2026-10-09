@@ -2,8 +2,8 @@
 command: diff
 level: system
 scenario: red
-covers: [exit 2]
+covers: [exit 1]
 given: "a new version whose operation names a permission that is not declared"
 when: "diff is run"
-then: "it prints the error, compares nothing and exits 2"
+then: "it prints the error, compares what could be read, and exits 1"
 verifies: [SA-25]

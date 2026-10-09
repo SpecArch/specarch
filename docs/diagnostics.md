@@ -123,7 +123,8 @@ invalid specification too, and the command then exits 1 after writing it.
 The folder comes from `--out` or from the implementation files; when the
 one that names it cannot be read, the command asks for `--out`, until step
 8 reads what it can of a file that does not parse. Every other document
-still refuses an invalid specification until step 6.
+is written for an invalid specification too, with its errors marked
+(section 5.1), and `gaps` lists the errors with the questions.
 
 The file starts with two lines that are not problem lines: what it is, and
 the counts. Then one line per problem, sorted by file, line, column,
@@ -241,6 +242,38 @@ In a YAML fragment:
   and the problems are then read from the marked files: the lines in the
   problems file are the lines on disk. A mark is a comment, which no
   validator reads, so the second reading finds the same problems.
+
+### 5.1 In a Markdown document
+
+A document marks an error or a warning with a Problem paragraph, the
+problem's line from the severity on without the pointer, which the place
+of the paragraph and the id already give:
+
+```
+**Problem on orders:** error: relation_target: Ordr is not an entity of the specification; did you mean Order? [relation_target@specarch.yaml#/entities/Customer/relations/orders/target]
+```
+
+- The paragraph stands at the deepest element the document shows that
+  holds the problem's pointer: where its Origin line and Open question
+  paragraphs stand, after a table for a row, under the heading for an
+  element with one. A pointer is deeper than the element a document
+  shows (`/entities/Customer/relations/orders/target` under
+  `/entities/Customer`), so the document is made once to learn which
+  elements it shows, and again with each paragraph at its element.
+- Under the summary, with the Draft notice, a Problems notice says that
+  the specification is invalid while it has errors, and how many errors
+  and warnings concern the document: those in the sections it reads, and
+  any at an element it shows. After it comes the Problem paragraph of each
+  one the document shows no element for (an `info` key, a fragment as a
+  whole, or an implementation file in the technical specification), so
+  none is left out. A valid specification gets the notice only where a
+  warning concerns the document.
+- The open questions document lists the errors after its summary as
+  problem lines; in its table a document is a draft while an error is in
+  what it reads, and code generation waits on every error. This is what
+  `gaps` prints. Its questions are those of what could be read.
+- The command prints the errors, writes every document, and exits 1;
+  with `--check` it compares and exits 1 as well.
 
 No SpecArch command writes BPMN today: `extract workflows` reads it. The
 BPMN mark is for the first command that writes one. A source SpecArch reads

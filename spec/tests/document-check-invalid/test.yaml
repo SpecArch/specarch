@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: document
+level: system
+scenario: red
+covers: [exit 1]
+given: "an invalid specification whose technical specification on disk is the one document writes for it"
+when: "document techspec --check is run"
+then: "it prints the error, finds the file current, writes nothing, and exits 1 because the specification has an error"
+verifies: [SA-7, SA-51]

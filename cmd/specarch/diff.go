@@ -18,8 +18,10 @@ import (
 
 // runDiff compares two versions of a specification and checks the release
 // of the new one against the change list: 0 when every check passes, 1
-// when one fails or the new version has no release record, 2 on a usage
-// error, an unreadable folder or a specification with errors.
+// when one fails, the new version has no release record or a
+// specification has errors, and 2 on a usage error or an unreadable
+// folder. A specification with errors prints them and is compared as far
+// as it can be read (ADR-065).
 func runDiff(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "--" {
 		args = args[1:]
@@ -55,10 +57,6 @@ func runDiff(args []string, stdout, stderr io.Writer) int {
 		}
 		specs[i] = s
 	}
-	if invalid {
-		fmt.Fprintln(stderr, "specarch diff: the input has errors, so nothing was compared")
-		return 2
-	}
 	oldSpec, newSpec := specs[0], specs[1]
 	changes := diff.Compare(oldSpec.Root, newSpec.Root)
 	for _, c := range changes {
@@ -86,6 +84,10 @@ func runDiff(args []string, stdout, stderr io.Writer) int {
 	}
 	errors := len(problems) - warnings
 	fmt.Fprintf(stderr, "specarch diff: %s changed, %s, %s\n", plural(len(changes), "element"), plural(errors, "error"), plural(warnings, "warning"))
+	if invalid {
+		fmt.Fprintln(stderr, "specarch diff: the input has errors, so the comparison is of what could be read")
+		return 1
+	}
 	if errors > 0 {
 		return 1
 	}
@@ -210,8 +212,8 @@ func (rs records) find(kind, key string) *recordFile {
 	return nil
 }
 
-// readRecords parses the records beside a specification; the validator
-// has already checked them.
+// readRecords parses the records beside a specification. One that does
+// not parse is left out; validate reports it.
 func readRecords(s *spec.Spec) records {
 	var out records
 	for _, f := range s.Records {

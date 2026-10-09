@@ -35,7 +35,27 @@ type planned struct {
 type loaded struct {
 	spec    *spec.Spec
 	impls   []generate.Implementation
+	diags   []validate.Diagnostic // the errors and warnings validate keeps
 	covered []validate.Diagnostic
+}
+
+// marks are the errors and warnings of the specification as the documents
+// in folder mark them: files named from there, and the pointer kept only
+// for a problem in a fragment of the merged specification.
+func (l loaded) marks(folder string) []generate.Mark {
+	fragments := map[string]bool{}
+	for _, f := range l.spec.Files {
+		fragments[f] = true
+	}
+	var out []generate.Mark
+	for _, d := range l.diags {
+		m := generate.Mark{Severity: string(d.Severity), File: relSlash(folder, d.File), Line: d.Line, Column: d.Column, Rule: string(d.Rule), Message: d.Message, ID: d.ID}
+		if fragments[d.File] {
+			m.Pointer = d.Path
+		}
+		out = append(out, m)
+	}
+	return out
 }
 
 // state gathers what the documents need beyond the
@@ -125,7 +145,7 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 	if target == "problems" {
 		return runProblems(paths, out, check, stdout, stderr)
 	}
-	specs, status := loadSpecs(paths, "document", stdout, stderr)
+	specs, invalid, status := readSpecs(paths, "document", stdout, stderr)
 	if status != 0 {
 		return status
 	}
@@ -148,6 +168,7 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		}
 		st := l.state()
 		st.RecordsRel = relSlash(folder, l.spec.RecordsDir)
+		st.Marks = l.marks(folder)
 		text, _ := generate.Document(target, l.spec.Root, relSlash(folder, l.spec.RootFile), impls, st)
 		plan = append(plan, planned{filepath.Join(folder, generate.DocumentName(target)), text})
 		if target != "techspec" {
@@ -176,20 +197,39 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	if check {
-		return checkPlan("document", plan, stdout, stderr)
+		status = checkPlan("document", plan, stdout, stderr)
+	} else {
+		status = writePlan("document", plan, stderr)
 	}
-	return writePlan("document", plan, stderr)
+	if status == 0 && invalid {
+		fmt.Fprintln(stderr, "specarch document: the input has errors; they are marked in the documents and listed in the problems file")
+		return 1
+	}
+	return status
 }
 
 // loadSpecs reads and validates every specification under paths. An
 // invalid one prints its errors; nothing is produced then.
 func loadSpecs(paths []string, verb string, stdout, stderr io.Writer) ([]loaded, int) {
+	specs, invalid, status := readSpecs(paths, verb, stdout, stderr)
+	if status != 0 {
+		return nil, status
+	}
+	if invalid {
+		fmt.Fprintf(stderr, "specarch %s: the input has errors, so nothing was produced\n", verb)
+		return nil, 1
+	}
+	return specs, 0
+}
+
+// readSpecs reads and validates every specification under paths, and keeps
+// an invalid one too, with its errors printed, for the commands that work
+// on what can be read (ADR-065). invalid says whether one had errors.
+func readSpecs(paths []string, verb string, stdout, stderr io.Writer) (specs []loaded, invalid bool, status int) {
 	inputs, ioError := collect(paths, stderr)
 	if ioError {
-		return nil, 2
+		return nil, false, 2
 	}
-	var specs []loaded
-	invalid := false
 	for _, in := range inputs {
 		if in.root == "" {
 			name := in.implementation
@@ -197,7 +237,7 @@ func loadSpecs(paths []string, verb string, stdout, stderr io.Writer) ([]loaded,
 				name = in.other
 			}
 			fmt.Fprintf(stderr, "specarch %s: %s is not a specification; name the folder that holds %s\n", verb, name, spec.RootFile)
-			return nil, 2
+			return nil, false, 2
 		}
 		s := spec.Load(in.root)
 		diags, covered := validate.CheckSpecCovered(s)
@@ -208,24 +248,22 @@ func loadSpecs(paths []string, verb string, stdout, stderr io.Writer) ([]loaded,
 				}
 			}
 			invalid = true
-			continue
 		}
-		l := loaded{spec: s, covered: covered}
+		l := loaded{spec: s, diags: diags, covered: covered}
 		for _, impl := range s.Implementations {
 			doc := source.Parse(impl.Data)
+			if doc.Root == nil {
+				continue
+			}
 			l.impls = append(l.impls, generate.Implementation{Node: doc.Root, Path: impl.Path, Idioms: idiomUses(impl.Path, doc.Root, s)})
 		}
 		specs = append(specs, l)
 	}
-	if invalid {
-		fmt.Fprintf(stderr, "specarch %s: the input has errors, so nothing was produced\n", verb)
-		return nil, 1
-	}
 	if len(specs) == 0 {
 		fmt.Fprintf(stderr, "specarch %s: no specification given; name a folder that holds %s\n", verb, spec.RootFile)
-		return nil, 2
+		return nil, false, 2
 	}
-	return specs, 0
+	return specs, invalid, 0
 }
 
 // namesOutput says whether an implementation file of the specification

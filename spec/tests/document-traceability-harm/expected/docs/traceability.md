@@ -4,6 +4,18 @@
 
 Version 1.0.0 of the specification: 3 needs, 2 requirements, and 4 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
+**Problems:** 5 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: need_unrefined: no requirement refines need NEED-2; add a requirement with needs: [NEED-2], or set the need's status to rejected [need_unrefined@specarch.yaml#/needs/NEED-2]
+
+**Problem:** warning: test_case_missing: requirement SHOP-1 has no golden scenario for "acceptance 1"; add under tests shop-1-acceptance-1: { requirement: SHOP-1, scenario: golden, covers: [acceptance 1], given: "...", when: "...", then: "An order is saved." } [test_case_missing@specarch.yaml#/requirements/SHOP-1]
+
+**Problem:** warning: acceptance_missing: requirement SHOP-2 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@specarch.yaml#/requirements/SHOP-2]
+
+**Problem:** warning: requirement_unsatisfied: no design element satisfies requirement SHOP-2; add satisfies: [SHOP-2] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@specarch.yaml#/requirements/SHOP-2]
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SHOP-2; add verifies: [SHOP-2] to the test that shows it is met [requirement_unverified@specarch.yaml#/requirements/SHOP-2]
+
 ## 1. Needs to requirements
 
 | Need | Status | Refined by |

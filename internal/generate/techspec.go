@@ -37,8 +37,8 @@ type IdiomUse struct {
 // Techspec writes the technical specification of one specification: its
 // merged document and its implementation files. relRoot is the root file's
 // path as seen from the output folder; it goes into the header.
-func Techspec(root *yaml.Node, relRoot string, impls []Implementation) string {
-	d := newDoc("techspec", root, relRoot, impls)
+func Techspec(root *yaml.Node, relRoot string, impls []Implementation, state *State) string {
+	d := newDoc("techspec", root, relRoot, impls, state)
 	info := get(root, "info")
 	d.line("# %s: technical specification", str(info, "title"))
 	d.blank()
@@ -70,6 +70,8 @@ type doc struct {
 	sections  int                   // the sections numbered so far, for documents numbered as they go
 	questions []question            // the open questions, for Open paragraphs and draft notices
 	pointerOf map[*yaml.Node]string // every mapping's pointer, to find the questions about it
+	marks     []Mark                // the errors and warnings, for Problem paragraphs
+	placing   *placing              // where the marks stand, while the document is written twice
 }
 
 // section starts the next numbered section of a document whose sections
@@ -83,8 +85,11 @@ func (d *doc) section(title string) {
 // newDoc starts a document of a target with its generated-from header: the
 // root file and each implementation file, with their versions, and the
 // meta-model.
-func newDoc(target string, root *yaml.Node, relRoot string, impls []Implementation) *doc {
+func newDoc(target string, root *yaml.Node, relRoot string, impls []Implementation, state *State) *doc {
 	d := &doc{sources: get(root, "sources"), decisions: get(root, "decisions"), questions: questionsOf(root), pointerOf: pointers(root)}
+	if state != nil {
+		d.marks, d.placing = state.Marks, state.placing
+	}
 	from := fmt.Sprintf("%s, version %s", relRoot, str(get(root, "info"), "version"))
 	for _, i := range impls {
 		from += fmt.Sprintf(", and %s, version %s", i.Rel, str(get(i.Node, "info"), "version"))

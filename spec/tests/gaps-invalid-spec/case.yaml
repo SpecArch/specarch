@@ -1,5 +1,29 @@
 arguments: [gaps, project]
-exitStatus: 2
-standardOutput: |
+exitStatus: 1
+standardOutput: |+
+  # Case: open questions
+
+  Version 1.0.0 of the specification has no open question: nothing it says waits on a decision or on material from a stakeholder.
+
+  ## 1. Errors
+
+  The specification has 1 error, so it is invalid: the questions below are those of what could be read, and nothing is ready until the errors are fixed. Each line gives the file, line and column, the pointer, the rule and how to fix it.
+
+  ```text
   project/specarch.yaml:9:11: error: /requirements/CASE-1/kind: schema: functonal is not allowed here; use one of constraint, functional, interface, quality [schema@specarch.yaml#/requirements/CASE-1/kind]
+  ```
+
+  ## 2. Outputs
+
+  What can be made from the specification now. A document is a draft while a must or should question blocks what it reads, or an error is in it; code generation waits for those questions, for every error to be fixed, and for the approval.
+
+  | Output | State | Waits on |
+  |---|---|---|
+  | techspec document | draft | 1 error |
+  | requirements document | draft | 1 error |
+  | testplan document | draft | 1 error |
+  | traceability document | draft | 1 error |
+  | deployment document | ready | |
+  | commissioning document | ready | |
+  | code generation | waits | 1 error; not approved: there is no records/approvals/1.0.0.yaml beside the specification |
 

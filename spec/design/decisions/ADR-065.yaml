@@ -37,7 +37,10 @@ decisions:
       message [id], each followed by its note lines, sorted by file and
       line, after two lines naming the file and the counts; and
       problems.sarif, the same problems as a SARIF 2.1.0 log. It writes
-      both for an invalid specification too, then exits 1.
+      both for an invalid specification too, then exits 1. So does every
+      other document, from what could be read, and gaps lists the errors
+      with the questions; diff compares what could be read of both
+      versions. Each exits 1 then.
 
       Every file SpecArch writes marks each entry a problem touches with
       the problem's line in its own comment form, above the entry
@@ -50,6 +53,8 @@ decisions:
 
       The pieces that exist are joined rather than duplicated: the Open
       question paragraph and the Draft notice are a document's marks,
+      with a Problem paragraph at the element for an error or a warning
+      and a Problems notice beside the Draft notice,
       extract's lines on what it could not hold become could questions in
       its tree, and problems.sarif takes the place of the planned gaps
       --json. The steps are in docs/diagnostics.md, section 6.

@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 320 design tests, 126 golden and 194 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 323 design tests, 126 golden and 197 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 316 |
+| system | 319 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -204,11 +204,11 @@ Scenario: golden; level: system; verifies SA-25.
 
 #### diff-invalid-spec
 
-Scenario: red; level: system; covers exit 2; verifies SA-25.
+Scenario: red; level: system; covers exit 1; verifies SA-25.
 
 - Given: a new version whose operation names a permission that is not declared
 - When: diff is run
-- Then: it prints the error, compares nothing and exits 2
+- Then: it prints the error, compares what could be read, and exits 1
 
 #### diff-lists-changes
 
@@ -244,7 +244,7 @@ Scenario: golden; level: system; verifies SA-25.
 
 #### diff-usage-error
 
-Scenario: red; level: system; covers usage error; verifies SA-25.
+Scenario: red; level: system; covers usage error, exit 2; verifies SA-25.
 
 - Given: one folder
 - When: diff is run with only the old folder
@@ -276,6 +276,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-7.
 - When: document techspec is run with --check
 - Then: it names the file that differs, writes nothing and exits 1
 
+#### document-check-invalid
+
+Scenario: red; level: system; covers exit 1; verifies SA-7, SA-51.
+
+- Given: an invalid specification whose technical specification on disk is the one document writes for it
+- When: document techspec --check is run
+- Then: it prints the error, finds the file current, writes nothing, and exits 1 because the specification has an error
+
 #### document-check-missing
 
 Scenario: red; level: system; covers exit 1.
@@ -298,7 +306,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-13.
 
 - Given: a stakeholder that cites a source the specification does not declare
 - When: document requirements is run
-- Then: it prints the validator's source error, writes nothing and exits 1
+- Then: it prints the validator's source error, writes the requirements document with the error marked at the stakeholder, and exits 1
 
 #### document-draft-notice
 
@@ -316,13 +324,21 @@ Scenario: golden; level: system; verifies SA-8.
 - When: document techspec is run
 - Then: the region holds the entity diagram, every other line is unchanged, and it exits 0
 
+#### document-errors-elsewhere
+
+Scenario: red; level: system; covers exit 1; verifies SA-51.
+
+- Given: a specification with errors only under info and entities, which the requirements document does not read
+- When: document requirements is run
+- Then: it prints both errors, writes requirements.md with a Problems notice saying the specification is invalid and that none of its errors is in what the document covers, and exits 1
+
 #### document-invalid-input
 
 Scenario: red; level: system; covers exit 1.
 
 - Given: a design file with a relation to an entity that does not exist
 - When: document techspec is run
-- Then: it prints the diagnostic, writes nothing and exits 1
+- Then: it prints the error, writes the technical specification with a Problems notice and a Problem paragraph at the relation, and exits 1
 
 #### document-marker-unclosed
 
@@ -371,6 +387,14 @@ Scenario: golden; level: system.
 - Given: a hand-written document with a permissions marker
 - When: document techspec is run
 - Then: the region holds the table of permissions and roles, with public granted to everyone, and it exits 0
+
+#### document-problem-without-element
+
+Scenario: red; level: system; covers exit 1; verifies SA-51.
+
+- Given: a specification with an error under info, which the technical specification shows no element for, and an error at a relation
+- When: document techspec is run
+- Then: it prints both errors, writes techspec.md with the info error's Problem paragraph under the Problems notice and the relation's at the entity, and exits 1
 
 #### document-problems-lists
 
@@ -778,11 +802,11 @@ Scenario: golden; level: system; verifies SA-30.
 
 #### gaps-invalid-spec
 
-Scenario: red; level: system; covers exit 2.
+Scenario: red; level: system; covers exit 1.
 
 - Given: a specification with an error
 - When: gaps is run
-- Then: it prints the error and exits 2, since the questions of an invalid specification cannot be trusted
+- Then: it prints the open questions document with the error listed after the summary, every output waiting on it, and exits 1
 
 #### gaps-lists-questions
 

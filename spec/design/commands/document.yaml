@@ -3,8 +3,9 @@ commands:
   document:
     summary: Write a document from a specification
     description: |
-      Validates its input first and writes nothing from an invalid
-      specification, except the problems document. Then writes the document into the folder the target
+      Validates its input first and prints the errors of an invalid
+      specification, then writes its documents all the same, from what
+      could be read, and exits 1 (ADR-065). Writes the document into the folder the target
       owns, and nothing outside it, except the regions between
       `specarch:generate` markers in the hand-written `specarch.md` beside
       the root file. Every generated file starts with a header naming the
@@ -56,10 +57,21 @@ commands:
 
       The questions target writes `questions.md`: the open questions by
       stage with what each blocks and who decides, and which outputs are
-      ready, drafts or waiting; the same text `gaps` prints. Every other
+      ready, drafts or waiting; the same text `gaps` prints. When the
+      specification has errors, it lists them after its summary as
+      problem lines; a document whose sections hold an error is a draft,
+      and code generation waits on every error. Every other
       document shows an element's origin as an Origin line and the open
       questions about it as Open question paragraphs, and starts with a
       Draft notice when a must or should question blocks what it reads.
+      It marks each error and warning with a Problem paragraph,
+      `**Problem on <name>:** <severity>: <rule>: <message> [<id>]`, at the
+      deepest element it shows that holds the problem's pointer, and
+      starts with a Problems notice when the specification has an error
+      or the document a warning: that the specification is invalid, how
+      many errors and warnings concern the document (those in the
+      sections it reads, or at an element it shows), and after it the
+      Problem paragraph of each one it shows no element for.
       In the technical specification, a workflow's trigger, subject, an
       approval's permission and deadline and a step's operation that a
       question holds open are written as what they are, the question that
@@ -127,14 +139,14 @@ commands:
       - { path: "{out}/problems.txt", description: "The problems, for the problems target, written whether or not the specification is valid. Nothing is written with `--check`." }
       - { path: "{out}/problems.sarif", description: "The same problems as a SARIF 2.1.0 log, for the problems target." }
     standardOutput: |
-      The diagnostics of an invalid specification and the errors of a
+      The errors of an invalid specification and the errors of a
       marker, one line each; a warning for each specification with no
       output folder for the target. With `--check`, one line per file that
       differs or is missing.
     standardError: A usage message on a usage error, the reason a file cannot be read or written, and a one-line count at the end.
     exitCodes:
       "0": written, or with `--check` the output is current
-      "1": a specification has an error (for the problems target, after its files are written), a marker is wrong, or with `--check` the output differs
+      "1": a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs
       "2": usage error, a target this build does not offer, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written
     algorithm: checkStatus
     satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22, SA-26, SA-51]

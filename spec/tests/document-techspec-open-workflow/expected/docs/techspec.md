@@ -6,6 +6,8 @@ Version 0.1.0 of the specification: 1 workflow. The chapters follow arc42, and a
 
 **Draft:** 6 open questions concern this document (Q-1, Q-2, Q-3, Q-4, Q-5, Q-6); see the open questions document, or run specarch gaps.
 
+**Problems:** 5 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
 ## 1. Introduction and goals
 
 The workflows the BPMN 2.0 file examples/lending-desk/sources/workflows/write-off.bpmn defines at commit cc6535461d6b180ff5b7a0b5bbcd7891771f6b50, in the sequential subset the meta-model holds: approvals, operation steps and deadlines. Every workflow cites the file; what it does not say, or says outside the subset, is a question.
@@ -35,6 +37,16 @@ A lost book's loan is written off only after a desk supervisor approves, within 
 **Open question Q-3 (must, decision):** Which permission does step approve of workflow write-off check? It cannot be the permission of the operation that starts the workflow. Decided by system-owner.
 
 **Open question Q-4 (must, decision):** Step writeOff of workflow write-off calls operation writeOffLoan, which the BPMN file names on its service task; the file does not declare it, so it waits for the tree that does. Is it that operation? Decided by system-owner.
+
+**Problem:** warning: test_case_missing: workflow write-off has no red scenario for "approval without the permission of approve"; add under tests write-off-approval-without-the-permission-of-approve: { workflow: write-off, scenario: red, covers: [approval without the permission of approve], given: "a caller without the permission of approve", when: "they approve a request waiting at approve", then: "it is refused as not allowed, and the request still waits" } [test_case_missing.ec3f2953@design/workflows.yaml#/workflows/write-off]
+
+**Problem:** warning: test_case_missing: workflow write-off has no red scenario for "deadline passes at approve"; add under tests write-off-deadline-passes-at-approve: { workflow: write-off, scenario: red, covers: [deadline passes at approve], given: "a request waiting at approve", when: "P2D passes with no answer", then: "the request ends refused and the operation of writeOff is not called" } [test_case_missing.481426cb@design/workflows.yaml#/workflows/write-off]
+
+**Problem:** warning: test_case_missing: workflow write-off has no red scenario for "refused at approve"; add under tests write-off-refused-at-approve: { workflow: write-off, scenario: red, covers: [refused at approve], given: "a request waiting at approve", when: "a caller with the permission of approve refuses it", then: "the request ends refused and the operation of writeOff is not called" } [test_case_missing.f61e985f@design/workflows.yaml#/workflows/write-off]
+
+**Problem:** warning: test_case_missing: workflow write-off has no red scenario for "requester approves own request"; add under tests write-off-requester-approves-own-request: { workflow: write-off, scenario: red, covers: [requester approves own request], given: "a request made by a caller who also holds the permission of approve", when: "the requester approves it", then: "it is refused, because the person who made a request never approves it, and the request still waits" } [test_case_missing.9680fae3@design/workflows.yaml#/workflows/write-off]
+
+**Problem:** warning: test_golden_missing: workflow write-off has no golden scenario; add one under tests, for example write-off-succeeds: { workflow: write-off, scenario: golden, given: "any caller", when: "a request is made through its trigger and is approved at approve", then: "it answers 202, then the operation of writeOff is called, and the request ends approved" } [test_golden_missing@design/workflows.yaml#/workflows/write-off]
 
 **Note:** From The code repository, cc6535461d6b180ff5b7a0b5bbcd7891771f6b50, clause examples/lending-desk/sources/workflows/write-off.bpmn: Line 16: Process write-off defines the workflow, with the tasks approve and writeOffStep in that order. <https://example.invalid/lending-desk.git>
 

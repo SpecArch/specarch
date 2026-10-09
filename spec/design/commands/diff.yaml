@@ -3,8 +3,10 @@ commands:
   diff:
     summary: Compare two versions of a specification and check the release between them
     description: |
-      Validates both specifications first and prints nothing but the
-      errors of one that has them. Then lists every element added, changed
+      Validates both specifications first and prints the errors of one
+      that has them; a specification with errors is compared as far as it
+      can be read, and the command then exits 1 (ADR-065). Then lists
+      every element added, changed
       or removed between them, one line each in pointer order, as
       `<impact> <added|changed|removed> <pointer>`, with the change that
       decided the impact of a changed element of the public interface
@@ -34,12 +36,12 @@ commands:
       - { path: "{old}", description: The earlier specification. }
       - { path: "{new}", description: The later specification. }
       - { path: "records/ beside {new}", description: "The release record of the new version and the change and defect records it includes." }
-    standardOutput: The errors of an invalid specification, one line each; otherwise the change list, then one line per failed check.
+    standardOutput: The errors of an invalid specification, one line each, then the change list, then one line per failed check.
     standardError: A usage message on a usage error, and the reason on an unreadable path.
     exitCodes:
       "0": every check passes
-      "1": a check fails, or there is no release record for the new version
-      "2": usage error, a path that could not be read, or a specification with errors
+      "1": a check fails, there is no release record for the new version, or a specification has errors
+      "2": usage error, or a path that could not be read
     satisfies: [SA-25]
     why: |
       The validator sees one version at a time, so it can check what a

@@ -5,5 +5,5 @@ scenario: red
 covers: [exit 1]
 given: "a stakeholder that cites a source the specification does not declare"
 when: "document requirements is run"
-then: "it prints the validator's source error, writes nothing and exits 1"
+then: "it prints the validator's source error, writes the requirements document with the error marked at the stakeholder, and exits 1"
 verifies: [SA-13]

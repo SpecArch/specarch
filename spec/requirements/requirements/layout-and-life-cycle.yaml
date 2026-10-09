@@ -70,7 +70,7 @@ requirements:
     acceptance:
       - Two versions that differ in one operation, one entity and one requirement are listed as three lines, each with its impact.
       - A release that steps less than the largest change, or that includes no change request or defect naming a changed element, is reported and the command exits 1.
-      - An invalid specification on either side is refused with its errors and exit status 2.
+      - An invalid specification on either side is compared as far as it can be read, its errors are printed, and the command exits 1.
     verification: test
     needs: [NEED-5]
     why: A release record says what a release carries; only a comparison of the two versions shows whether the specification changed that way.

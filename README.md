@@ -243,8 +243,9 @@ of the entities, states, operations, commands, pages and permissions, the
 deployment and commissioning stages, the requirements and the traceability
 matrix, into the folder the implementation file names (or `--out`). It also
 refreshes the diagrams between `specarch:generate` markers in the
-hand-written `specarch.md` beside the root file. It makes nothing from a
-specification with errors. With `--check` it writes nothing and exits 1 when
+hand-written `specarch.md` beside the root file. A specification with
+errors gets its documents too, with each error marked at its element,
+and the command exits 1. With `--check` it writes nothing and exits 1 when
 the committed output differs, which is how CI keeps the documents current.
 `docs/techspec.md` is SpecArch's own, made from `spec/`.
 

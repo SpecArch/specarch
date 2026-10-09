@@ -3,11 +3,12 @@ commands:
   gaps:
     summary: List the open questions and what they hold up
     description: |
-      Validates its input first and prints nothing but the errors from a
-      specification that has them. Then prints the open questions
-      document, the text `document questions` writes, from its title:
-      the counts by priority, the elements by origin when the
-      specification tracks it, the questions grouped by stage in
+      Validates its input first, and prints the open questions document
+      of a specification with errors too (ADR-065), the text
+      `document questions` writes, from its title: the counts by
+      priority, the elements by origin when the specification tracks it,
+      the errors, one problem line each, when it has any, the questions
+      of what could be read grouped by stage in
       life-cycle order and within a stage by priority then ID, each with
       who decides, what it blocks (and for a blocked element, which keys
       are missing there), the name it gives for the key it blocks with
@@ -16,9 +17,9 @@ commands:
       a source lists its clauses, the coverage: per such source, the
       elements each clause produced, how many clauses produced nothing,
       and the citations outside the listed clauses; then the outputs, one row per document target and per code target the
-      implementation files name, each ready, a draft (the questions that
-      concern it) or waiting (the questions, and the approval that is
-      missing or void).
+      implementation files name, each ready, a draft (the questions and
+      the errors that concern it) or waiting (the errors, the questions,
+      and the approval that is missing or void).
     permission: public
     arguments:
       - name: paths
@@ -29,12 +30,12 @@ commands:
     reads:
       - { path: "{paths}", description: The specifications and their implementation files. }
       - { path: "records/approvals/<version>.yaml", description: "The approval of the specification's version, beside its folder, when there is one." }
-    standardOutput: The errors of an invalid specification, one line each; otherwise the open questions document of each specification.
+    standardOutput: The open questions document of each specification, with its errors listed in it.
     standardError: A usage message on a usage error, and the reason on an unreadable path.
     exitCodes:
-      "0": no must or should question is open
-      "1": at least one must or should question is open
-      "2": usage error, a path that could not be read, or a specification with errors
+      "0": no must or should question is open and no specification has an error
+      "1": at least one must or should question is open, or a specification has an error
+      "2": usage error, or a path that could not be read
     satisfies: [SA-19, SA-30]
     why: |
       The owner and the agent run validate after every edit, so validate

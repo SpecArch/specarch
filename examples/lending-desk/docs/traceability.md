@@ -6,6 +6,52 @@ Version 0.1.0 of the specification: 0 needs, 7 requirements, and 7 gaps. Each re
 
 **Draft:** 4 open questions concern this document (Q-5, Q-1, Q-2, Q-3); see the open questions document, or run specarch gaps.
 
+**Problems:** 22 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: test_case_missing: operation registerMember has no red scenario for "cardNumber not matching its pattern"; add under tests register-member-card-number-not-matching-its-pattern: { operation: registerMember, scenario: red, covers: [cardNumber not matching its pattern], given: "...", when: "registerMember is called with cardNumber in the wrong form", then: "it is refused" } [test_case_missing.8225af9c@design/design.yaml#/paths/~1members/post]
+
+**Problem:** warning: test_case_missing: operation registerMember has no red scenario for "denied without members.write"; add under tests register-member-denied-without-members-write: { operation: registerMember, scenario: red, covers: [denied without members.write], given: "a caller without members.write", when: "registerMember is called", then: "it is refused as not allowed" } [test_case_missing.585bd96d@design/design.yaml#/paths/~1members/post]
+
+**Problem:** warning: test_case_missing: operation registerMember has no red scenario for "missing cardNumber"; add under tests register-member-missing-card-number: { operation: registerMember, scenario: red, covers: [missing cardNumber], given: "...", when: "registerMember is called without cardNumber", then: "it is refused" } [test_case_missing.f0ddd858@design/design.yaml#/paths/~1members/post]
+
+**Problem:** warning: test_case_missing: operation registerMember has no red scenario for "missing fullName"; add under tests register-member-missing-full-name: { operation: registerMember, scenario: red, covers: [missing fullName], given: "...", when: "registerMember is called without fullName", then: "it is refused" } [test_case_missing.d8c1b4d0@design/design.yaml#/paths/~1members/post]
+
+**Problem:** warning: test_golden_missing: operation registerMember has no golden scenario; add one under tests, for example register-member-succeeds: { operation: registerMember, scenario: golden, given: "a caller with members.write", when: "registerMember is called with values inside every limit", then: "it answers 201: The member is registered." } [test_golden_missing@design/design.yaml#/paths/~1members/post]
+
+**Problem:** warning: test_case_missing: operation lendBook has no red scenario for "cardNumber not matching its pattern"; add under tests lend-book-card-number-not-matching-its-pattern: { operation: lendBook, scenario: red, covers: [cardNumber not matching its pattern], given: "...", when: "lendBook is called with cardNumber in the wrong form", then: "it is refused" } [test_case_missing.6ccbe6b8@design/design.yaml#/paths/~1loans/post]
+
+**Problem:** warning: test_case_missing: operation lendBook has no red scenario for "denied without loans.write"; add under tests lend-book-denied-without-loans-write: { operation: lendBook, scenario: red, covers: [denied without loans.write], given: "a caller without loans.write", when: "lendBook is called", then: "it is refused as not allowed" } [test_case_missing.2bfe73d3@design/design.yaml#/paths/~1loans/post]
+
+**Problem:** warning: test_case_missing: operation lendBook has no red scenario for "missing barcode"; add under tests lend-book-missing-barcode: { operation: lendBook, scenario: red, covers: [missing barcode], given: "...", when: "lendBook is called without barcode", then: "it is refused" } [test_case_missing.68aaa23d@design/design.yaml#/paths/~1loans/post]
+
+**Problem:** warning: test_case_missing: operation lendBook has no red scenario for "missing cardNumber"; add under tests lend-book-missing-card-number: { operation: lendBook, scenario: red, covers: [missing cardNumber], given: "...", when: "lendBook is called without cardNumber", then: "it is refused" } [test_case_missing.e24ae930@design/design.yaml#/paths/~1loans/post]
+
+**Problem:** warning: test_case_missing: operation lendBook has no red scenario for "not found barcode"; add under tests lend-book-not-found-barcode: { operation: lendBook, scenario: red, covers: [not found barcode], given: "no Book has that barcode", when: "lendBook is called with that barcode", then: "it is refused as not found" } [test_case_missing.fb83227a@design/design.yaml#/paths/~1loans/post]
+
+**Problem:** warning: test_case_missing: operation lendBook has no red scenario for "not found cardNumber"; add under tests lend-book-not-found-card-number: { operation: lendBook, scenario: red, covers: [not found cardNumber], given: "no Member has that cardNumber", when: "lendBook is called with that cardNumber", then: "it is refused as not found" } [test_case_missing.2e91489b@design/design.yaml#/paths/~1loans/post]
+
+**Problem:** warning: test_golden_missing: operation lendBook has no golden scenario; add one under tests, for example lend-book-succeeds: { operation: lendBook, scenario: golden, given: "a caller with loans.write", when: "lendBook is called with values inside every limit", then: "it answers 201: The loan." } [test_golden_missing@design/design.yaml#/paths/~1loans/post]
+
+**Problem:** warning: test_case_missing: operation returnBook has no red scenario for "denied without loans.write"; add under tests return-book-denied-without-loans-write: { operation: returnBook, scenario: red, covers: [denied without loans.write], given: "a caller without loans.write", when: "returnBook is called", then: "it is refused as not allowed" } [test_case_missing.69b798fb@design/design.yaml#/paths/~1loans~1{loanId}~1return/post]
+
+**Problem:** warning: test_case_missing: operation returnBook has no red scenario for "not found loanId"; add under tests return-book-not-found-loan-id: { operation: returnBook, scenario: red, covers: [not found loanId], given: "no record has that loanId", when: "returnBook is called with that loanId", then: "it is refused as not found" } [test_case_missing.e34b1cce@design/design.yaml#/paths/~1loans~1{loanId}~1return/post]
+
+**Problem:** warning: test_golden_missing: operation returnBook has no golden scenario; add one under tests, for example return-book-succeeds: { operation: returnBook, scenario: golden, given: "a caller with loans.write", when: "returnBook is called with values inside every limit", then: "it answers 200: The loan is closed." } [test_golden_missing@design/design.yaml#/paths/~1loans~1{loanId}~1return/post]
+
+**Problem:** warning: test_case_missing: operation renewLoan has no red scenario for "denied without loans.write"; add under tests renew-loan-denied-without-loans-write: { operation: renewLoan, scenario: red, covers: [denied without loans.write], given: "a caller without loans.write", when: "renewLoan is called", then: "it is refused as not allowed" } [test_case_missing.b47830b9@design/design.yaml#/paths/~1loans~1{loanId}~1renew/post]
+
+**Problem:** warning: test_case_missing: operation renewLoan has no red scenario for "not found loanId"; add under tests renew-loan-not-found-loan-id: { operation: renewLoan, scenario: red, covers: [not found loanId], given: "no record has that loanId", when: "renewLoan is called with that loanId", then: "it is refused as not found" } [test_case_missing.b53498e4@design/design.yaml#/paths/~1loans~1{loanId}~1renew/post]
+
+**Problem:** warning: test_golden_missing: operation renewLoan has no golden scenario; add one under tests, for example renew-loan-succeeds: { operation: renewLoan, scenario: golden, given: "a caller with loans.write", when: "renewLoan is called with values inside every limit", then: "it answers 200: The loan, with its new due date." } [test_golden_missing@design/design.yaml#/paths/~1loans~1{loanId}~1renew/post]
+
+**Problem:** warning: test_case_missing: operation listMemberLoans has no red scenario for "cardNumber not matching its pattern"; add under tests list-member-loans-card-number-not-matching-its-pattern: { operation: listMemberLoans, scenario: red, covers: [cardNumber not matching its pattern], given: "...", when: "listMemberLoans is called with cardNumber in the wrong form", then: "it is refused" } [test_case_missing.856e2e15@design/design.yaml#/paths/~1members~1{cardNumber}~1loans/get]
+
+**Problem:** warning: test_case_missing: operation listMemberLoans has no red scenario for "denied without loans.read"; add under tests list-member-loans-denied-without-loans-read: { operation: listMemberLoans, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "listMemberLoans is called", then: "it is refused as not allowed" } [test_case_missing.adf94778@design/design.yaml#/paths/~1members~1{cardNumber}~1loans/get]
+
+**Problem:** warning: test_case_missing: operation listMemberLoans has no red scenario for "not found cardNumber"; add under tests list-member-loans-not-found-card-number: { operation: listMemberLoans, scenario: red, covers: [not found cardNumber], given: "no record has that cardNumber", when: "listMemberLoans is called with that cardNumber", then: "it is refused as not found" } [test_case_missing.2ae43bc7@design/design.yaml#/paths/~1members~1{cardNumber}~1loans/get]
+
+**Problem:** warning: test_golden_missing: operation listMemberLoans has no golden scenario; add one under tests, for example list-member-loans-succeeds: { operation: listMemberLoans, scenario: golden, given: "a caller with loans.read", when: "listMemberLoans is called with values inside every limit", then: "it answers 200: The member's loans." } [test_golden_missing@design/design.yaml#/paths/~1members~1{cardNumber}~1loans/get]
+
 ## 1. Requirements to design and verification
 
 | Requirement | Needs | Satisfied by | Verified by |

@@ -57,6 +57,10 @@ type State struct {
 	// Places are, per block of a question that names what the source
 	// gives, the file and line of the element whose key it leaves out.
 	Places map[string]string
+	// Marks are the errors and warnings of the specification, which the
+	// documents mark at their elements.
+	Marks   []Mark
+	placing *placing
 }
 
 // LeftOut is one derived case the test plan lists as left out.
@@ -163,8 +167,9 @@ func holding(qs []question, sections []string) []string {
 }
 
 // draftNotice writes, under a document's summary, that open questions
-// concern what it covers.
+// concern what it covers, and then the problems notice.
 func (d *doc) draftNotice(target string) {
+	defer d.problemsNotice(target)
 	ids := holding(d.questions, documentReads[target])
 	if len(ids) == 0 {
 		return
@@ -255,7 +260,7 @@ func (d *doc) open(label string, n *yaml.Node) {
 // prints: the counts, the questions by stage, and which outputs are ready,
 // drafts or waiting.
 func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *State) string {
-	d := newDoc("questions", root, relRoot, impls)
+	d := newDoc("questions", root, relRoot, impls, state)
 	info := get(root, "info")
 	qs := d.questions
 	must, should, could := 0, 0, 0
@@ -281,6 +286,7 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 		stated, inferred, decided, none := originCounts(root)
 		d.para(fmt.Sprintf("Elements by origin: %d stated, %d inferred, %d decided, %d without origin.", stated, inferred, decided, none))
 	}
+	d.errorsSection()
 
 	for _, stage := range spec.Stages {
 		var inStage []question
@@ -337,18 +343,21 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 	d.coverage(root, impls)
 
 	d.section("Outputs")
-	d.para("What can be made from the specification now. A document is a draft while a must or should question blocks what it reads; code generation waits for those questions and for the approval.")
+	d.para("What can be made from the specification now. A document is a draft while a must or should question blocks what it reads, or an error is in it; code generation waits for those questions, for every error to be fixed, and for the approval.")
 	d.line("| Output | State | Waits on |")
 	d.line("|---|---|---|")
 	for _, t := range DocumentTargets {
 		if !BuiltDocuments[t] || t == "questions" || t == "problems" || recordDocuments[t] {
 			continue
 		}
-		ids := holding(qs, documentReads[t])
-		if len(ids) == 0 {
+		waits := holding(qs, documentReads[t])
+		if errors := d.errorsConcerning(documentReads[t]); errors > 0 {
+			waits = append(waits, countText(errors, "error", "errors"))
+		}
+		if len(waits) == 0 {
 			d.line("| %s document | ready | |", t)
 		} else {
-			d.line("| %s document | draft | %s |", t, strings.Join(ids, ", "))
+			d.line("| %s document | draft | %s |", t, strings.Join(waits, ", "))
 		}
 	}
 	codeTargets := map[string][]string{}
@@ -388,6 +397,9 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 		}
 		ids := holding(qs, reads)
 		var waits []string
+		if errors := d.errorCount(); errors > 0 {
+			waits = append(waits, countText(errors, "error", "errors"))
+		}
 		if len(ids) > 0 {
 			waits = append(waits, strings.Join(ids, ", "))
 		}

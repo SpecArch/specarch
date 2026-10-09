@@ -1,0 +1,5 @@
+arguments: [document, techspec, --out, docs, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:5:10: error: /info/owner: schema: owner is not a key this object can have; remove it or correct its spelling [schema@specarch.yaml#/info/owner]
+  project/specarch.yaml:28:25: error: /entities/Customer/relations/orders/target: relation_target: Ordr is not an entity of the specification; did you mean Order? [relation_target@specarch.yaml#/entities/Customer/relations/orders/target]

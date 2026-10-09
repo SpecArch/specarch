@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 algorithms:
   checkStatus:
-    description: The status of `generate --check`.
+    description: The status of `generate --check` and `document --check`.
     inputs:
       invalidInput: { type: boolean }
       differingFiles: { type: integer, format: int32, minimum: 0 }
@@ -18,11 +18,13 @@ algorithms:
         inputs: { invalidInput: true, differingFiles: 0 }
         expected: 1
     pseudocode: |
-      if validate(paths) has diagnostics:
+      invalidInput = validate(paths) has errors
+      if invalidInput and the command is generate:
           return 1
-      wanted = generate(target, paths) in memory
+      wanted = generate(target, paths) in memory, for document from
+               what could be read of an invalid specification too
       differing = files in wanted whose bytes differ from disk,
                   plus files on disk in the target's folder not in wanted
       print each differing path
-      return 1 if differing else 0
+      return 1 if invalidInput or differing else 0
     satisfies: [SA-7]

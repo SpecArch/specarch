@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: document
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification with an error under info, which the technical specification shows no element for, and an error at a relation"
+when: "document techspec is run"
+then: "it prints both errors, writes techspec.md with the info error's Problem paragraph under the Problems notice and the relation's at the entity, and exits 1"
+verifies: [SA-51]

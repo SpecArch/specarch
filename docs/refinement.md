@@ -285,8 +285,12 @@ summary first:
   questions that concern it), or waits (the questions, and the approval that
   is missing or void).
 
-It exits 0 when no `must` or `should` question is open, 1 when one is, and 2
-on a usage error or a specification with errors. The same text is the
+A specification with errors is listed all the same: its errors come after
+the summary as problem lines, its questions are those of what could be
+read, a document is a draft while an error is in what it reads, and code
+generation waits on every error. It exits 0 when no `must` or
+`should` question is open and there is no error, 1 when one is open or
+the specification has errors, and 2 on a usage error. The same text is the
 document target `questions`, written as `questions.md` into the documents'
 folder by `specarch document questions`, so that the open questions are
 handed over with the other documents and read by the stakeholders who decide

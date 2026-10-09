@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 56 requirements, 5 entities, 12 commands, 7 algorithms, 320 tests, 75 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 56 requirements, 5 entities, 12 commands, 7 algorithms, 323 tests, 75 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -59,10 +59,10 @@ The interfaces the system offers, as its clients see them.
 |---|---|---|---|
 | approve | Record that the documents were read and the specification is approved | public | 0: the approval was recorded; 1: refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current; 2: usage error, or a file that could not be read or written |
 | derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors, or a draft's name is taken by another draft or by a test of another subject; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
-| diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, or there is no release record for the new version; 2: usage error, a path that could not be read, or a specification with errors |
-| document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (for the problems target, after its files are written), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written |
+| diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, there is no release record for the new version, or a specification has errors; 2: usage error, or a path that could not be read |
+| document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written |
 | extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, or a file that is not BPMN 2.0 XML or holds no process; 2: usage error, a source this build does not offer, or a path that could not be read or written |
-| gaps | List the open questions and what they hold up | public | 0: no must or should question is open; 1: at least one must or should question is open; 2: usage error, a path that could not be read, or a specification with errors |
+| gaps | List the open questions and what they hold up | public | 0: no must or should question is open and no specification has an error; 1: at least one must or should question is open, or a specification has an error; 2: usage error, or a path that could not be read |
 | generate | Write code or data from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads, the specification is not approved, the plug-in reported an error, or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written |
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
 | idioms diff | Print a shipped idiom's parts beside each override's | public | 0: the overrides were printed, or there was none; 2: usage error, an idiom this program does not ship, a path that could not be read, or a specification with errors |
@@ -465,8 +465,10 @@ sequenceDiagram
 
 ### Command diff
 
-Validates both specifications first and prints nothing but the
-errors of one that has them. Then lists every element added, changed
+Validates both specifications first and prints the errors of one
+that has them; a specification with errors is compared as far as it
+can be read, and the command then exits 1 (ADR-065). Then lists
+every element added, changed
 or removed between them, one line each in pointer order, as
 `<impact> <added|changed|removed> <pointer>`, with the change that
 decided the impact of a changed element of the public interface
@@ -494,7 +496,7 @@ includes an ID kept in a tracker is a line starting `warning:`.
 
 Reads `{old}`: The earlier specification; `{new}`: The later specification; `records/ beside {new}`: The release record of the new version and the change and defect records it includes.
 
-Standard output: The errors of an invalid specification, one line each; otherwise the change list, then one line per failed check.
+Standard output: The errors of an invalid specification, one line each, then the change list, then one line per failed check.
 
 Standard error: A usage message on a usage error, and the reason on an unreadable path.
 
@@ -512,8 +514,9 @@ sequenceDiagram
 
 ### Command document
 
-Validates its input first and writes nothing from an invalid
-specification, except the problems document. Then writes the document into the folder the target
+Validates its input first and prints the errors of an invalid
+specification, then writes its documents all the same, from what
+could be read, and exits 1 (ADR-065). Writes the document into the folder the target
 owns, and nothing outside it, except the regions between
 `specarch:generate` markers in the hand-written `specarch.md` beside
 the root file. Every generated file starts with a header naming the
@@ -565,10 +568,21 @@ the sign-off sheet.
 
 The questions target writes `questions.md`: the open questions by
 stage with what each blocks and who decides, and which outputs are
-ready, drafts or waiting; the same text `gaps` prints. Every other
+ready, drafts or waiting; the same text `gaps` prints. When the
+specification has errors, it lists them after its summary as
+problem lines; a document whose sections hold an error is a draft,
+and code generation waits on every error. Every other
 document shows an element's origin as an Origin line and the open
 questions about it as Open question paragraphs, and starts with a
 Draft notice when a must or should question blocks what it reads.
+It marks each error and warning with a Problem paragraph,
+`**Problem on <name>:** <severity>: <rule>: <message> [<id>]`, at the
+deepest element it shows that holds the problem's pointer, and
+starts with a Problems notice when the specification has an error
+or the document a warning: that the specification is invalid, how
+many errors and warnings concern the document (those in the
+sections it reads, or at an element it shows), and after it the
+Problem paragraph of each one it shows no element for.
 In the technical specification, a workflow's trigger, subject, an
 approval's permission and deadline and a step's operation that a
 question holds open are written as what they are, the question that
@@ -624,7 +638,7 @@ Reads `{paths}`: The specifications and their implementation files; `specarch.md
 
 Writes `{out}/<target>.md`: The document. Nothing is written with `--check`; `specarch.md`: Only the regions between markers. Nothing is written with `--check`; `{out}/problems.txt`: The problems, for the problems target, written whether or not the specification is valid. Nothing is written with `--check`; `{out}/problems.sarif`: The same problems as a SARIF 2.1.0 log, for the problems target.
 
-Standard output: The diagnostics of an invalid specification and the errors of a
+Standard output: The errors of an invalid specification and the errors of a
 marker, one line each; a warning for each specification with no
 output folder for the target. With `--check`, one line per file that
 differs or is missing.
@@ -930,11 +944,12 @@ sequenceDiagram
 
 ### Command gaps
 
-Validates its input first and prints nothing but the errors from a
-specification that has them. Then prints the open questions
-document, the text `document questions` writes, from its title:
-the counts by priority, the elements by origin when the
-specification tracks it, the questions grouped by stage in
+Validates its input first, and prints the open questions document
+of a specification with errors too (ADR-065), the text
+`document questions` writes, from its title: the counts by
+priority, the elements by origin when the specification tracks it,
+the errors, one problem line each, when it has any, the questions
+of what could be read grouped by stage in
 life-cycle order and within a stage by priority then ID, each with
 who decides, what it blocks (and for a blocked element, which keys
 are missing there), the name it gives for the key it blocks with
@@ -943,9 +958,9 @@ options, its Insight and Notes; then, when
 a source lists its clauses, the coverage: per such source, the
 elements each clause produced, how many clauses produced nothing,
 and the citations outside the listed clauses; then the outputs, one row per document target and per code target the
-implementation files name, each ready, a draft (the questions that
-concern it) or waiting (the questions, and the approval that is
-missing or void).
+implementation files name, each ready, a draft (the questions and
+the errors that concern it) or waiting (the errors, the questions,
+and the approval that is missing or void).
 
 **Insight:** The owner and the agent run validate after every edit, so validate counts the open questions and lists none; this verb is the list, with what each question holds up, so that the next decision is always in view. The same text is the document, because the people who decide read documents, not terminals.
 
@@ -957,7 +972,7 @@ missing or void).
 
 Reads `{paths}`: The specifications and their implementation files; `records/approvals/<version>.yaml`: The approval of the specification's version, beside its folder, when there is one.
 
-Standard output: The errors of an invalid specification, one line each; otherwise the open questions document of each specification.
+Standard output: The open questions document of each specification, with its errors listed in it.
 
 Standard error: A usage message on a usage error, and the reason on an unreadable path.
 
@@ -1784,7 +1799,7 @@ Access is fail-closed: every operation, command and page names the one permissio
 
 ### Algorithm checkStatus
 
-The status of `generate --check`.
+The status of `generate --check` and `document --check`.
 
 Inputs: `invalidInput` (bool), `differingFiles` (int32). Output: int32.
 
@@ -1801,13 +1816,15 @@ Formula:
 Pseudocode:
 
 ```text
-if validate(paths) has diagnostics:
+invalidInput = validate(paths) has errors
+if invalidInput and the command is generate:
     return 1
-wanted = generate(target, paths) in memory
+wanted = generate(target, paths) in memory, for document from
+         what could be read of an invalid specification too
 differing = files in wanted whose bytes differ from disk,
             plus files on disk in the target's folder not in wanted
 print each differing path
-return 1 if differing else 0
+return 1 if invalidInput or differing else 0
 ```
 
 ### Algorithm exitStatus
@@ -4335,7 +4352,10 @@ problem in the GNU form file:line:column: severity: pointer: rule:
 message [id], each followed by its note lines, sorted by file and
 line, after two lines naming the file and the counts; and
 problems.sarif, the same problems as a SARIF 2.1.0 log. It writes
-both for an invalid specification too, then exits 1.
+both for an invalid specification too, then exits 1. So does every
+other document, from what could be read, and gaps lists the errors
+with the questions; diff compares what could be read of both
+versions. Each exits 1 then.
 
 Every file SpecArch writes marks each entry a problem touches with
 the problem's line in its own comment form, above the entry
@@ -4348,6 +4368,8 @@ the marked files, so their lines are the lines on disk.
 
 The pieces that exist are joined rather than duplicated: the Open
 question paragraph and the Draft notice are a document's marks,
+with a Problem paragraph at the element for an error or a warning
+and a Problems notice beside the Draft notice,
 extract's lines on what it could not hold become could questions in
 its tree, and problems.sarif takes the place of the planned gaps
 --json. The steps are in docs/diagnostics.md, section 6.
@@ -4955,7 +4977,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | diagnostic-line-from-one | Diagnostic constraint diagnostic_line_positive | system | golden | a problem on the first line of a file | the diagnostic is made | its line is 1 |
 | diagnostic-line-zero | Diagnostic constraint diagnostic_line_positive | system | red | a problem found before any line was read | a diagnostic with line 0 is made | it is refused; a problem about the whole file is reported on line 1 |
 | diff-classifies-changes | command diff | system | golden | a new version that drops an enum value, requires a field it did not, and adds an optional query parameter, released as 2.0.0 by a major change naming them | diff is run | the enum and the entity are major with the reason, the operation minor, the major step passes, and it exits 0 |
-| diff-invalid-spec | command diff | system | red | a new version whose operation names a permission that is not declared | diff is run | it prints the error, compares nothing and exits 2 |
+| diff-invalid-spec | command diff | system | red | a new version whose operation names a permission that is not declared | diff is run | it prints the error, compares what could be read, and exits 1 |
 | diff-lists-changes | command diff | system | golden | a new version that adds an operation and an optional field, rewords a requirement and an entity's description, and a planned release 1.1.0 whose change names each | diff is run on the old and the new folder | it lists the three elements as minor with the field that decided, minor and patch, finds the minor step enough and every element named, and exits 0 |
 | diff-no-release | command diff | system | red | a new version 1.1.0 with no release record beside it | diff is run | it lists the change, reports version for the missing record and exits 1 |
 | diff-not-covered | command diff | system | red | a release whose only change names the entity, while the requirement changed too | diff is run | it reports covered for the requirement and exits 1 |
@@ -4964,18 +4986,21 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | diff-version-step | command diff | system | red | a new version that removes a value from a public enum, released as 1.0.1 | diff is run | it lists the enum as major and reports version, naming 2.0.0, and exits 1 |
 | document-check-current | command document | system | golden | output that matches the design file | document techspec is run with --check | it writes nothing, prints nothing and exits 0 |
 | document-check-differs | command document | system | red | a generated file edited by hand | document techspec is run with --check | it names the file that differs, writes nothing and exits 1 |
+| document-check-invalid | command document | system | red | an invalid specification whose technical specification on disk is the one document writes for it | document techspec --check is run | it prints the error, finds the file current, writes nothing, and exits 1 because the specification has an error |
 | document-check-missing | command document | system | red | no generated output yet | document techspec is run with --check | it names the missing file and exits 1 |
 | document-check-skips-unnamed | command document | system | golden | two specifications, one whose implementation file names an output folder for techspec and one whose file names only requirements | document techspec is run with --check on both | it warns at the second one's targets that it has no techspec, checks the first, and exits 0 |
-| document-citation-unknown-source | command document | system | red | a stakeholder that cites a source the specification does not declare | document requirements is run | it prints the validator's source error, writes nothing and exits 1 |
+| document-citation-unknown-source | command document | system | red | a stakeholder that cites a source the specification does not declare | document requirements is run | it prints the validator's source error, writes the requirements document with the error marked at the stakeholder, and exits 1 |
 | document-draft-notice | command document | system | golden | a requirement a must question blocks, one stated in a source and one inferred | document requirements is run | it writes requirements.md with a Draft notice under the summary, an Origin line for each requirement and the open question under the blocked one, and exits 0 |
 | document-entity-diagram | command document | system | golden | a hand-written document with an erDiagram marker | document techspec is run | the region holds the entity diagram, every other line is unchanged, and it exits 0 |
-| document-invalid-input | command document | system | red | a design file with a relation to an entity that does not exist | document techspec is run | it prints the diagnostic, writes nothing and exits 1 |
+| document-errors-elsewhere | command document | system | red | a specification with errors only under info and entities, which the requirements document does not read | document requirements is run | it prints both errors, writes requirements.md with a Problems notice saying the specification is invalid and that none of its errors is in what the document covers, and exits 1 |
+| document-invalid-input | command document | system | red | a design file with a relation to an entity that does not exist | document techspec is run | it prints the error, writes the technical specification with a Problems notice and a Problem paragraph at the relation, and exits 1 |
 | document-marker-unclosed | command document | system | red | a marker with no end marker | document techspec is run | it reports the marker's line, writes nothing and exits 1 |
 | document-marker-unknown-object | command document | system | red | a marker for the states of an entity that has none | document techspec is run | it reports the marker's line, writes nothing and exits 1 |
 | document-no-output-folder | command document | system | red | a design file, no implementation file and no --out | document techspec is run | it warns at the root file, asks for --out or an implementation file and exits 2 |
 | document-no-output-folder-any | command document | system | red | a specification whose implementation file names no output folder for techspec, and no --out | document techspec is run with --check | it warns at the file's targets, writes nothing and exits 2, since no specification given has a techspec |
 | document-pages-flowchart | command document | system | golden | a hand-written document with a flowchart pages marker | document techspec is run | the region holds the pages and the operation the Pay action runs, and it exits 0 |
 | document-permissions-table | command document | system | golden | a hand-written document with a permissions marker | document techspec is run | the region holds the table of permissions and roles, with public granted to everyone, and it exits 0 |
+| document-problem-without-element | command document | system | red | a specification with an error under info, which the technical specification shows no element for, and an error at a relation | document techspec is run | it prints both errors, writes techspec.md with the info error's Problem paragraph under the Problems notice and the relation's at the entity, and exits 1 |
 | document-problems-lists | command document | system | red | a specification with an error at a requirement that cites a line of code beside it, a warning, and a must question that blocks two keys a requirement leaves out and cites the code | document problems is run | it prints the error, writes problems.txt with each problem on a file:line:column line with its id, the question at its entry followed by a note at each blocked entry and at each cited line, and problems.sarif with the same problems, the question as kind open and level none, and exits 1 |
 | document-problems-no-output-folder | command document | system | red | a specification whose implementation file names an output folder for requirements only, and no --out | document problems is run with --check | it warns at the file's targets, writes nothing and exits 2, since no specification given has a problems document |
 | document-problems-none | command document | system | golden | a specification with no error, no warning and no open question | document problems is run | it writes problems.txt saying there are no problems and problems.sarif with no results, and exits 0 |
@@ -5026,7 +5051,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-workflows-not-bpmn | command extract | system | red | a committed XML file that is a state chart, not BPMN 2.0 | extract workflows is run on it | it says the file is not a BPMN 2.0 XML file, writes nothing and exits 1 |
 | extract-workflows-writes-tree | command extract | system | golden | a repository with a BPMN 2.0 file of two processes: one whose start event names its operation, with two user tasks whose potential owners are a resource and an expression, a timer that escalates to the second, a gateway that refuses after the first, a timer of a week and a service task naming its operation; and one with no documentation, no operation on its start event, lanes, a user task with no owner and a repeating timer, and a parallel gateway; beside them a signal and a diagram | extract workflows is run on the file | it writes one workflow per process in the order of their names, the approvals with their roles, deadlines and escalation, a question naming the operation for the trigger and the service task, a question for each permission, subject and anything the file leaves out or the subset does not hold, a role per potential owner, a line per element left out in the order of the file, and a could question citing the file's line for each that no must question asks for already, and exits 0 |
 | gaps-coverage | command gaps | system | golden | a specification that tracks origin, built from a manual and from code that both list their clauses; one clause of each is cited by nothing, one citation names a clause outside the outline, and the implementation file's mapping cites the code | gaps is run | it shows, per source, the elements each clause produced, counts the clauses that produced nothing, names the citation outside the outline, and exits 0 |
-| gaps-invalid-spec | command gaps | system | red | a specification with an error | gaps is run | it prints the error and exits 2, since the questions of an invalid specification cannot be trusted |
+| gaps-invalid-spec | command gaps | system | red | a specification with an error | gaps is run | it prints the open questions document with the error listed after the summary, every output waiting on it, and exits 1 |
 | gaps-lists-questions | command gaps | system | red | a specification that tracks origin, with two must questions in two stages, one of them blocking an entity that is only a name, a could question, and an implementation file whose code target echo reads only the requirements | gaps is run | it prints the questions by stage with the missing keys of the blocked entity, the elements by origin, and the outputs with what each waits on, and exits 1 |
 | gaps-names-question | command gaps | system | red | the tree extract workflows wrote for a BPMN file, whose workflow leaves out its trigger and its service task's operation, each with a must question that names the operation | gaps is run | each of those questions lists the name it gives and the file and line of the element that leaves the key out, and it exits 1 |
 | gaps-none | command gaps | system | golden | a specification without open questions and without an approval | gaps is run | it prints that there is no open question, that every document is ready and that code generation waits on the approval, and exits 0 |
@@ -5330,7 +5355,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-12 | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. | functional | must | accepted | test | A specification with only a requirements stage validates with no error. A requirement no design element satisfies, a requirement no test, check or monitor verifies, and a need no requirement refines are reported as warnings once the later stage exists. | NEED-5 |
 | SA-23 | The validator shall check the records kept beside a specification (change requests, defects, releases, incidents, commissioning runs and approvals) against their schema and against the specification they point into, without the specification pointing back at them. | functional | must | accepted | test | A record whose file name is not its ID or version, or that sits in another kind's folder, is reported as record_name. A record naming a role, requirement, pointer, test, environment or monitor the specification does not have is reported as record_ref, unless the ID falls in a declared change-set or defect-set. An implemented change whose additions are not in the specification, a change approved without a decision, a fixed defect without a test that shows the fix, a duplicate of a duplicate, and a commissioning run naming a check that does not exist are each reported under their rule. A resolved incident that leads to no defect and no change, and says nothing in noChange, is reported as a warning. | NEED-5 |
 | SA-24 | The system's version shall be the specification's info.version under Semantic Versioning 2.0.0, and the validator shall check each released version against the release before it and against what it includes. | functional | must | accepted | test | A released release that includes a change still approved, or a released change whose release does not include it, is reported as release_contents. A release that includes a major change but steps only the minor number after 1.0.0, or only the patch number before it, is reported as release_bump. An info.version that is not the newest released version, and not a later pre-release whose release is planned, is reported as release_version. A requirement's release that is not a release record, or names a withdrawn one, is reported as record_ref, and the test plan groups the requirements by release. | NEED-5 |
-| SA-25 | The toolchain shall compare two versions of a specification, list what was added, changed and removed with the version step each needs, and check the release of the later version against that list. | functional | must | accepted | test | Two versions that differ in one operation, one entity and one requirement are listed as three lines, each with its impact. A release that steps less than the largest change, or that includes no change request or defect naming a changed element, is reported and the command exits 1. An invalid specification on either side is refused with its errors and exit status 2. | NEED-5 |
+| SA-25 | The toolchain shall compare two versions of a specification, list what was added, changed and removed with the version step each needs, and check the release of the later version against that list. | functional | must | accepted | test | Two versions that differ in one operation, one entity and one requirement are listed as three lines, each with its impact. A release that steps less than the largest change, or that includes no change request or defect naming a changed element, is reported and the command exits 1. An invalid specification on either side is compared as far as it can be read, its errors are printed, and the command exits 1. | NEED-5 |
 | SA-13 | Every element of a specification, at every stage, may carry a rationale (why) and citations of declared sources (cites), and the validator shall check that every citation names a declared source. | functional | must | accepted | test | An element with why and cites validates, and a citation of a source that is not declared is reported as source. | NEED-6 |
 | SA-17 | A specification shall be able to say what it does not yet know as an open question that names what is asked, who decides, what it blocks and how urgent it is; and the validator shall accept a required key missing exactly where a must question says it is unknown, and nowhere else. | functional | must | accepted | test | An entity written as an empty mapping and blocked by a must question validates with no error, and its missing keys are listed under the question by specarch gaps. The same entity without the question is reported with the missing keys. A question whose blocks names nothing in the specification, whose decider is not a stakeholder, or which sits in another stage's folder, is reported. An accepted decision that answers a question still present is reported. | NEED-8 |
 | SA-18 | Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision. | functional | must | accepted | test | An element with origin stated and no citation, one with origin inferred and no why, and one with origin decided naming no decision or a proposed one, are each reported. When the root file says the specification tracks origin, every element of a section without one is reported as a warning. | NEED-8 |
@@ -5477,7 +5502,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-4 | enums Rule; commands validate; algorithms workedExampleHolds; decisions ADR-004 | tests validate-example-mismatch |
 | SA-5 | enums Rule; commands validate; algorithms permissionGranted; algorithms separationOfDuties; decisions ADR-006; decisions ADR-053; decisions ADR-054 | tests validate-permission-undeclared; tests validate-permission-ungranted; tests validate-permission-ungranted-without-description; tests validate-question-covers-ungranted; tests validate-schema-operation-without-permission; tests validate-separation-of-duties |
 | SA-6 | enums Rule; enums Severity; entities Diagnostic; commands validate; algorithms exitStatus; decisions ADR-005; decisions ADR-008 | tests validate-usage-error; tests validate-yaml-syntax; tests version-prints-versions; checks installs-and-answers |
-| SA-7 | enums DocumentTarget; enums GeneratorTarget; entities GeneratedFile; commands document; commands generate; algorithms checkStatus; decisions ADR-013; decisions ADR-073 | tests document-check-differs; tests document-two-implementations; tests document-writes-techspec; tests generate-plugin-path-outside; tests generate-with-plugin; checks checks-the-examples; monitors main-stays-green |
+| SA-7 | enums DocumentTarget; enums GeneratorTarget; entities GeneratedFile; commands document; commands generate; algorithms checkStatus; decisions ADR-013; decisions ADR-073 | tests document-check-differs; tests document-check-invalid; tests document-two-implementations; tests document-writes-techspec; tests generate-plugin-path-outside; tests generate-with-plugin; checks checks-the-examples; monitors main-stays-green |
 | SA-8 | entities GeneratedFile; commands document; commands generate; algorithms markersWellFormed | tests document-entity-diagram; tests document-two-implementations; tests document-writes-techspec |
 | SA-9 | enums DocumentKind; enums Rule; commands validate; decisions ADR-001; decisions ADR-002; decisions ADR-007 | tests validate-design-key; tests validate-stack-key |
 | SA-10 | enums Rule; commands validate | tests validate-deployment-environment-missing; tests validate-design-ref; tests validate-implements; tests validate-setting; tests validate-tree-valid |
@@ -5521,7 +5546,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-48 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |
 | SA-49 | enums Rule; decisions ADR-062 | tests extract-openapi-snake-case; tests generate-openapi-wire-names; tests validate-wire-names |
 | SA-50 | enums Rule; decisions ADR-063 | tests generate-sql-value-object-fields; tests validate-value-object-fields; tests validate-value-object-fields-valid |
-| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066 | tests document-problems-lists; tests document-problems-none |
+| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066 | tests document-check-invalid; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-lists; tests document-problems-none |
 | SA-52 | decisions ADR-067 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-53 | decisions ADR-068 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-54 | decisions ADR-069 | tests generate-ui-typescript; tests generate-ui-typescript-refused |

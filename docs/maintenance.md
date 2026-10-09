@@ -219,8 +219,9 @@ validator, which sees one version at a time, cannot make either check.
 `specarch diff <old> <new>` takes two specification folders. The old one
 is normally the previous release's tag checked out on its own
 (`git worktree add ../v1.4.0 v1.4.0`), the new one the working tree. Both
-are validated first, and a specification with errors is refused with its
-errors, as `gaps` refuses one. The records read are the new one's: the
+are validated first, and the errors of a specification that has them are
+printed; it is compared as far as it can be read, and the command then
+exits 1 whatever the checks find (ADR-065). The records read are the new one's: the
 `records/` beside the new folder. The release is the record of the new
 `info.version` with any pre-release tag dropped, so `1.5.0-dev` is checked
 against `records/releases/1.5.0.yaml`, and the step is measured from the
@@ -277,9 +278,9 @@ line per failed check, starting `error:`. The checks:
   tracker, whose `affects` the diff cannot read, an element no record
   names is printed as a `warning:` line instead of an error.
 
-The exit status is 0 when every check passes, 1 when one fails or there is
-no release record for the new version, and 2 on a usage error, a folder
-that cannot be read, or a specification with errors.
+The exit status is 0 when every check passes, 1 when one fails, there is
+no release record for the new version or a specification has errors, and
+2 on a usage error or a folder that cannot be read.
 
 ## Operation
 

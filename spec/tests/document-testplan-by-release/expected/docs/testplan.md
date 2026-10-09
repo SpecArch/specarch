@@ -4,6 +4,10 @@
 
 Version 1.1.0-dev of the specification: 3 design tests, 2 golden and 1 red, about 2 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement DESK-3; add verifies: [DESK-3] to the test that shows it is met [requirement_unverified@specarch.yaml#/requirements/DESK-3]
+
 ## 1. Levels and how the tests run
 
 | Level | Design tests |

@@ -4,6 +4,8 @@
 
 Version 1.0.0 of the specification: 2 stakeholders, 2 needs and 2 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
 ## 1. Purpose and scope
 
 A small shop that takes orders.
@@ -58,6 +60,8 @@ The system shall show the day's total to the owner.
 Kind: functional; priority: should; status: proposed; refines NEED-2.
 
 No acceptance criteria yet.
+
+**Problem:** warning: acceptance_missing: requirement SHOP-2 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@specarch.yaml#/requirements/SHOP-2]
 
 ## 5. Constraints
 

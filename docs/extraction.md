@@ -49,7 +49,7 @@ project's repository. `specarch extract <source>`, the verb that goes from
 existing code or documents to a specification, is designed in
 `spec/design/commands/extract.yaml` and built one reader at a time in the
 steps of "Building extract" below. The Go build reads the sources
-`outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages` and `workflows`, and `specarch merge` joins their trees; a source not built yet is answered with status
+`outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows` and `go`, and `specarch merge` joins their trees; a source not built yet is answered with status
 2, and the Swift build has no extract or merge verb.
 
 ## Building extract
@@ -356,24 +356,42 @@ changes `extract.yaml` first.
     and a value that is not a list of names are each a must question,
     never written as public. The security an operation is given prints a
     line, since it is not its permission. The
-    conformance case reads a document in that dialect with each of these;
-    the example service on dxlib, with its emitted document committed,
-    comes with step 13.
-13. The shared core of a parsed reader and Go on dxlib's endpoints:
-    `reading: printed` and `reading: parsed` on a code source in the 0.1
-    design schema, in both validator builds; the merge rows of
-    `docs/reading-code.md` between a printed and a parsed tree; `extract go`
-    reading a module's tracked files with `go/parser`, with dxlib's
-    `NewEndPoint`, `NewWSEndPoint` and `RegisterHandler` calls (place,
-    handler, middleware chain), the parameter getters a handler calls and
-    the problems it answers, every element citing `path:line`. Merged with
-    step 12's tree, each operation has two citations.
+    conformance case reads a document in that dialect with each of these.
+    A name in dxlib_module's capitals is mapped to a permission name by
+    the fixed rule of ADR-076, inferred, and a document wholly in the
+    dialect is a printed code source (step 13).
+13. Built. The shared core of a parsed reader and Go on dxlib's
+    endpoints. `reading: printed` and `reading: parsed` on a code source
+    are in the 0.1 design schema, which both validator builds share;
+    router, database and permissions write `printed`, and an OpenAPI
+    document wholly in dxlib's dialect is a printed code source. `specarch
+    merge` writes the rows of `docs/reading-code.md` for operations: the
+    parsed tree's question whether the running system registers an
+    operation is left out where a printed tree has it, an operation only
+    the parsed tree declares is a must question citing its line, and one
+    only the printed tree has a could question. `extract go` reads a
+    module's tracked files with `go/parser`: dxlib's `NewEndPoint` calls
+    with literal values become operations citing the registration's and
+    the handler's `path:line`, with the handler, the middleware chain and
+    the privileges in the citation, the parameters the handler reads and
+    the problems it answers; a registration in a loop, behind a
+    condition or computed, a parameter read the endpoint does not
+    declare and a reason that names no problem are must questions;
+    `NewWSEndPoint` and `RegisterHandler` print a line. dxlib_module's
+    privilege names map to permission names by the fixed rule of
+    ADR-076 in both readers. `examples/notice-board` is a service on
+    dxlib with the document dxlib emitted from it committed; its
+    `extract.sh` merges the two readings, and each operation has two
+    citations.
 14. Go on dxlib's tables, seeds and configuration: `NewModelDBTable` and
     `NewDXTableSimple` (names, wire names, list whitelists), dxlib_module's
     role and privilege seed calls, the configuration keys read and the
     configuration files read as data; gates on a setting found in the
     middleware the implementation file names, compared in the merge with
-    the permission table's.
+    the permission table's. The seed reader and the permission table
+    reader map dxlib_module's privilege names by the rule of ADR-076, as
+    extract openapi and extract go do, and the merge rows of
+    `docs/reading-code.md` extend to grants.
 15. Go on `net/http` and the common routers: `http.ServeMux` patterns,
     chi, gin, echo and gorilla/mux; path parameters, request bodies from
     the module's own structs, validator tags, the project's named

@@ -1,0 +1,65 @@
+questions:
+  Q-1:
+    question: What does POST /loans/close answer when it succeeds, and what does each response mean?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1close/post/responses']
+    decidedBy: system-owner
+    why: The source names the refusals a handler answers with a literal status, not its success response or what each response means; the document dxlib emits declares them.
+  Q-2:
+    question: Does the running system register POST /loans/close? It is declared at code/endpoints.go:7, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1close/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'code/endpoints.go:7', says: Registers POST /loans/close with NewEndPoint.}
+  Q-3:
+    question: What does POST /loans/purge answer when it succeeds, and what does each response mean?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1purge/post/responses']
+    decidedBy: system-owner
+    why: The source names the refusals a handler answers with a literal status, not its success response or what each response means; the document dxlib emits declares them.
+  Q-4:
+    question: Does the running system register POST /loans/purge? It is declared at code/endpoints.go:9, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1purge/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'code/endpoints.go:9', says: Registers POST /loans/purge with NewEndPoint.}
+  Q-5:
+    question: 'What does each permission allow: loans.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.write/description']
+    decidedBy: system-owner
+    why: The source names the privilege an endpoint checks and not what it is for.
+  Q-6:
+    question: 'Which role grants each permission: loans.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.write']
+    decidedBy: system-owner
+    why: The source names the privilege an endpoint checks and not who holds it.
+  Q-7:
+    question: 'Not held: code/endpoints.go:7: the endpoint POST /loans/close: dxlib names it loans_close from its URI, which is not camelCase, as an operationId is; it is named postLoansClose. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1loans~1close/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'code/endpoints.go:7', says: 'Not held: the endpoint POST /loans/close: dxlib names it loans_close from its URI, which is not camelCase, as an operationId is; it is named postLoansClose.'}
+  Q-8:
+    question: 'Not held: code/endpoints.go:9: the endpoint POST /loans/purge: dxlib names it loans_purge from its URI, which is not camelCase, as an operationId is; it is named postLoansPurge. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1loans~1purge/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'code/endpoints.go:9', says: 'Not held: the endpoint POST /loans/purge: dxlib names it loans_purge from its URI, which is not camelCase, as an operationId is; it is named postLoansPurge.'}

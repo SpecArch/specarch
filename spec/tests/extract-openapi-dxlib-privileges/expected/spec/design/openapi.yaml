@@ -10,6 +10,16 @@ paths:
       cites:
         - {source: openapi, clause: /paths/~1archiveLoan/post, says: 'POST /archiveLoan: Archive a loan.'}
       permission: loans.write
+  /auditLoan:
+    post:
+      operationId: auditLoan
+      summary: Audit a loan
+      responses:
+        "200":
+          description: The audit.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1auditLoan/post, says: 'POST /auditLoan: Audit a loan.'}
   /cancelLoan:
     post:
       operationId: cancelLoan
@@ -41,6 +51,7 @@ paths:
       origin: stated
       cites:
         - {source: openapi, clause: /paths/~1exportAll/post, says: 'POST /exportAll: Export every record.'}
+      permission: export.all
   /health:
     post:
       operationId: health
@@ -72,6 +83,17 @@ paths:
       cites:
         - {source: openapi, clause: /paths/~1listLoans/post, says: 'POST /listLoans: List the loans.'}
       permission: loans.read
+  /purgeAll:
+    post:
+      operationId: purgeAll
+      summary: Remove every record
+      responses:
+        "200":
+          description: Removed.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1purgeAll/post, says: 'POST /purgeAll: Remove every record.'}
+      permission: everything
   /renewLoan:
     post:
       operationId: renewLoan
@@ -82,6 +104,37 @@ paths:
       origin: stated
       cites:
         - {source: openapi, clause: /paths/~1renewLoan/post, says: 'POST /renewLoan: Renew a loan.'}
+  /runReport:
+    post:
+      operationId: runReport
+      summary: Run a report
+      responses:
+        "200":
+          description: The report.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1runReport/post, says: 'POST /runReport: Run a report.'}
+  /runReportNow:
+    post:
+      operationId: runReportNow
+      summary: Run a report at once
+      responses:
+        "200":
+          description: The report.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1runReportNow/post, says: 'POST /runReportNow: Run a report at once.'}
+  /setMaintenance:
+    post:
+      operationId: setMaintenance
+      summary: Put the service in maintenance
+      responses:
+        "200":
+          description: In maintenance.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1setMaintenance/post, says: 'POST /setMaintenance: Put the service in maintenance.'}
+      permission: global.set.maintenance.mode
   /showLoan:
     post:
       operationId: showLoan
@@ -104,6 +157,21 @@ paths:
       cites:
         - {source: openapi, clause: /paths/~1tagLoan/post, says: 'POST /tagLoan: Tag a loan.'}
 permissions:
+  everything:
+    origin: inferred
+    why: 'dxlib names the privilege EVERYTHING, and by the rule of ADR-076 a privilege named in capitals, digits and underscores, in segments joined by dots, is the permission of that name in lower case with every underscore a dot: everything. dxlib_module lets a caller holding EVERYTHING through every check, so only a role granted EVERYTHING holds this permission.'
+    cites:
+      - {source: openapi, clause: /paths/~1purgeAll/post, says: POST /purgeAll checks EVERYTHING in x-dxlib-privileges.}
+  export.all:
+    origin: inferred
+    why: 'dxlib names the privilege EXPORT_ALL, and by the rule of ADR-076 a privilege named in capitals, digits and underscores, in segments joined by dots, is the permission of that name in lower case with every underscore a dot: export.all.'
+    cites:
+      - {source: openapi, clause: /paths/~1exportAll/post, says: POST /exportAll checks EXPORT_ALL in x-dxlib-privileges.}
+  global.set.maintenance.mode:
+    origin: inferred
+    why: 'dxlib names the privilege GLOBAL.SET_MAINTENANCE_MODE, and by the rule of ADR-076 a privilege named in capitals, digits and underscores, in segments joined by dots, is the permission of that name in lower case with every underscore a dot: global.set.maintenance.mode.'
+    cites:
+      - {source: openapi, clause: /paths/~1setMaintenance/post, says: POST /setMaintenance checks GLOBAL.SET_MAINTENANCE_MODE in x-dxlib-privileges.}
   loans.read:
     origin: stated
     cites:

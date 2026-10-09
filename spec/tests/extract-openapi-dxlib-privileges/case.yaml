@@ -5,28 +5,40 @@ repository:
     - [openapi.yaml]
 exitStatus: 0
 standardOutput: |
-  commit d652964868ace144c3b97644b39753c8c4e420e7: the last change to openapi.yaml
-  dialect: dxlib: 9 operations carry x-dxlib-endpoint-type, and each one's x-dxlib-privileges is read as its permission; 2 permissions declared, each named alone by an operation's privileges
-  counted 10 paths and 0 component schemas: every key of paths and of components.schemas
-  wrote 10 operations on 10 paths, 0 entities, 0 schemas, 0 enums and 29 questions: one operation per get, post, put, patch or delete, one entity per object schema an operation creates or a path with a parameter answers, one schema per other object schema, one enum per string enum, one question per thing the document does not say, and one per thing the meta-model cannot hold
-  not held: operation POST /archiveLoan: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-9
-  not held: operation POST /archiveLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-10
-  not held: operation POST /cancelLoan: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-11
-  not held: operation POST /cancelLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-12
-  not held: operation POST /createLoan: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-13
-  not held: operation POST /createLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-14
-  not held: operation POST /exportAll: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-15
-  not held: operation POST /exportAll: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-16
-  not held: operation POST /health: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-17
-  not held: operation POST /health: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-18
-  not held: operation POST /listBooks: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-19
-  not held: operation POST /listBooks: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-20
-  not held: operation POST /listLoans: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-21
-  not held: operation POST /listLoans: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-22
-  not held: operation POST /renewLoan: the extension x-dxlib-privileges, whose meaning the document's own tools define; left out; could question Q-23
-  not held: operation POST /showLoan: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-24
-  not held: operation POST /showLoan: the extension x-dxlib-rate-limit-group, whose meaning the document's own tools define; left out; could question Q-25
-  not held: operation POST /showLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-26
-  not held: operation POST /tagLoan: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-27
-  not held: operation POST /tagLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-28
-  not held: components.securitySchemes: a security scheme is not a permission; named in each operation's permission question, or, for an operation in dxlib's dialect, in a line of its own, and left out; could question Q-29
+  commit cdc7ec5f6782bd066d31a58e9e372f614e2165af: the last change to openapi.yaml
+  dialect: dxlib: 14 operations carry x-dxlib-endpoint-type, and each one's x-dxlib-privileges is read as its permission; 5 permissions declared, each named alone by an operation's privileges, 3 of them mapped from a privilege name in capitals by the rule of ADR-076
+  counted 15 paths and 0 component schemas: every key of paths and of components.schemas
+  wrote 15 operations on 15 paths, 0 entities, 0 schemas, 0 enums and 43 questions: one operation per get, post, put, patch or delete, one entity per object schema an operation creates or a path with a parameter answers, one schema per other object schema, one enum per string enum, one question per thing the document does not say, and one per thing the meta-model cannot hold
+  not held: operation POST /archiveLoan: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-11
+  not held: operation POST /archiveLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-12
+  not held: operation POST /auditLoan: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-13
+  not held: operation POST /auditLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-14
+  not held: operation POST /cancelLoan: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-15
+  not held: operation POST /cancelLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-16
+  not held: operation POST /createLoan: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-17
+  not held: operation POST /createLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-18
+  not held: operation POST /exportAll: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-19
+  not held: operation POST /exportAll: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-20
+  not held: operation POST /health: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-21
+  not held: operation POST /health: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-22
+  not held: operation POST /listBooks: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-23
+  not held: operation POST /listBooks: the extension x-dxlib-middlewares, whose meaning the document's own tools define; left out; could question Q-24
+  not held: operation POST /listBooks: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-25
+  not held: operation POST /listLoans: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-26
+  not held: operation POST /listLoans: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-27
+  not held: operation POST /purgeAll: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-28
+  not held: operation POST /purgeAll: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-29
+  not held: operation POST /renewLoan: the extension x-dxlib-privileges, whose meaning the document's own tools define; left out; could question Q-30
+  not held: operation POST /runReport: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-31
+  not held: operation POST /runReport: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-32
+  not held: operation POST /runReportNow: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-33
+  not held: operation POST /runReportNow: the extension x-dxlib-middlewares, whose meaning the document's own tools define; left out; could question Q-34
+  not held: operation POST /runReportNow: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-35
+  not held: operation POST /setMaintenance: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-36
+  not held: operation POST /setMaintenance: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-37
+  not held: operation POST /showLoan: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-38
+  not held: operation POST /showLoan: the extension x-dxlib-rate-limit-group, whose meaning the document's own tools define; left out; could question Q-39
+  not held: operation POST /showLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-40
+  not held: operation POST /tagLoan: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-41
+  not held: operation POST /tagLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-42
+  not held: components.securitySchemes: a security scheme is not a permission; named in each operation's permission question, or, for an operation in dxlib's dialect, in a line of its own, and left out; could question Q-43

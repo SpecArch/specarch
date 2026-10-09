@@ -101,6 +101,13 @@ surface it adds:
 | has it | does not have it | a `could` question citing the dump: registered by code the reader does not follow |
 | answers the parsed tree's question whether the running system has it | asks it | the question left out |
 
+A parsed reader asks whether the running system has an element as a
+`must` question that blocks that element alone, which is how the merge
+knows it. The rows compare operations first; grants, gates and the other
+surfaces join them in their readers' steps. A source that one tree read
+printed and another parsed is merged with no `reading`, since it was
+read both ways.
+
 Against a documents tree a parsed tree is the code side, as every code
 tree is (`docs/from-sources.md`, 3.2).
 
@@ -148,8 +155,8 @@ dxlib-based services come first among the Go readers (ADR-076).
 | Surface | Source | Why |
 |---|---|---|
 | endpoints: method, URI, parameters and their dxlib types, content type, responses, rate-limit group, content-length ceiling | the OpenAPI document dxlib emits (`OpenAPIAsJSON`), read by `extract openapi` | it runs the service's Define hooks, so a loop, a module or a setting is already resolved; its dialect is the one SpecArch's dxlib generator writes |
-| an endpoint's privileges | the same document, `x-dxlib-privileges` | one lower-case dotted name is the permission; none, more than one, `public`, a name of another form and a value that is not a list of names are each a `must` question, since dxlib lets any one through and an operation has one permission. dxlib_module's own names are in capitals with underscores, so they are asked until the owner decides how a dxlib name maps to a permission name |
-| where an endpoint is registered, its handler, its middleware chain | source: `NewEndPoint`, `NewWSEndPoint`, `RegisterHandler` calls | the document leaves the chain in code, and only the chain says whether a caller must sign in |
+| an endpoint's privileges | the same document, `x-dxlib-privileges` | one lower-case dotted name is the permission; a name in dxlib_module's capitals (`ORDER.CREATE`, `GLOBAL.SET_MAINTENANCE_MODE`, `EVERYTHING`) maps by the fixed rule below, inferred; none, more than one, `public`, a name the rule cannot map, two names that give one permission and a value that is not a list of names are each a `must` question, since dxlib lets any one through and an operation has one permission |
+| where an endpoint is registered, its handler, its middleware chain | source: `NewEndPoint`, `NewWSEndPoint`, `RegisterHandler` calls | the document names the chain (`x-dxlib-middlewares`) and not where the endpoint is registered or which handler runs; only the chain's code says whether a caller must sign in |
 | parameters a handler reads | source: `GetParameterValueAs...` calls on the request | only the body says which are read; a getter on a name the endpoint does not declare is a `must` question, since it fails at run time |
 | problems a handler answers | source: dxlib's refusal and problem calls with a literal status and reason | known only when a request runs; each literal status becomes a response, its reason the problem type's last segment |
 | validation | declared types' bounds from the document; a handler's own check from source | a check in the body is code; one the reader recognises (a length, a range, an empty test) is stated, any other a `should` question at its line |
@@ -163,26 +170,40 @@ dxlib-based services come first among the Go readers (ADR-076).
 | idempotency | none | dxlib declares no idempotency on an endpoint, so nothing is written and the question of `docs/test-generation.md` stays open |
 | WebSocket endpoints | the document's extension | printed as a line and a `could` question; the meta-model has no socket |
 
+**The privilege rule.** A privilege named in dxlib_module's form, words
+in capitals and digits joined by underscores in segments joined by dots,
+is the permission of that name in lower case with every underscore a dot:
+`GLOBAL.SET_MAINTENANCE_MODE` is `global.set.maintenance.mode`,
+`EVERYTHING` is `everything`. The permission is declared `origin:
+inferred`, the rule its `why`, citing the operation that names it. A name
+the rule makes into no permission name (a segment that starts with a
+digit after an underscore) or into `public`, and two names of one surface
+that give one permission (`REPORT_RUN`, `REPORT.RUN`), are `must`
+questions, since dxlib checks them as different privileges. A grant of
+`EVERYTHING` in the permission table stays a `must` question, never
+expanded: a role granted it holds every permission, which no list of
+grants can say (ADR-076).
+
+**The printed document.** A document every operation of which is in
+dxlib's dialect is what the running service printed, so `extract openapi`
+writes its source as a code source with `reading: printed`, and the merge
+compares the Go reader's tree with it as it compares a route table. A
+service on dxlib's `DXApp` writes each API's document under
+`DXLIB_OPENAPI_DUMP=<folder>`; any other runs a small program of its own
+that defines the API and prints `OpenAPIAsJSON` (dxlib `api/OPENAPI.md`,
+section 6), as `examples/notice-board/sources/testdata/cmd/openapi` does.
+
 Changes in dxlib and dxlib_module that would help, for their own queues:
 
-1. **dxlib: print every API's document and exit.** A flag or an `app`
-   hook that runs the Define hooks without starting a listener or opening
-   a database, writes `OpenAPIAsJSON` for each API to a folder, and exits.
-   Today each service needs a small program of its own, one per service
-   (dxlib `api/OPENAPI.md`, section 6).
-2. **dxlib: name the middleware chain in the document.** An
-   `x-dxlib-middlewares` list of the chain's function names, so a reader
-   can tell an endpoint that requires a signed-in caller from one that is
-   open, which `x-dxlib-privileges` alone cannot.
-3. **dxlib: emit the model as a catalogue.** For a service that builds its
+1. **dxlib: emit the model as a catalogue.** For a service that builds its
    DDL from `NewModelDBTable`, a writer of the declared tables in the
    catalogue dump's format (`tools/catalogue/catalogue.sql` in this
    repository), with no database.
-4. **dxlib_module: print the permission table.** A function that reads the
+2. **dxlib_module: print the permission table.** A function that reads the
    role, privilege and grant tables the check reads and writes SpecArch's
    permission table (ADR-050), with the gates the module's middleware has
    on a setting declared by name.
-5. **dxlib: declare idempotency on an endpoint**, if the owner wants it
+3. **dxlib: declare idempotency on an endpoint**, if the owner wants it
    checked: an endpoint field and an `x-dxlib-` key for the header that
    carries the key. Optional; nothing in SpecArch waits on it.
 

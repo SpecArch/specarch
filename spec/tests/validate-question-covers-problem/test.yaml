@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification that declares problem types, with an operation whose 409 and 422 responses name no problem: a must question blocks the 409's problem and a should question the 422's"
+when: validate is run
+then: "the 409's missing problem is covered by the must question, the 422's is reported, since a should question covers nothing, and it exits 1"
+verifies: [SA-5, SA-17]

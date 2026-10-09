@@ -70,6 +70,7 @@ func Permissions(dumpPath, out, key string) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
+	set(src, "reading", "printed")
 	var stages []string
 	if pr.roles != nil {
 		stages = []string{"design"}

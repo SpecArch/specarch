@@ -1,0 +1,19 @@
+arguments: [extract, go, --out, spec, testdata/service]
+repository:
+  folder: testdata/service
+  commits:
+    - [.]
+exitStatus: 0
+standardOutput: |
+  commit e13dc1324671bbb73e66f6f74b0cd33bfce5c089: the last change to .
+  counted 5 Go files, 4 of them importing dxlib's api package and 1 that does not parse, and left out 2: every tracked Go file under . but test files and files in a folder below it named testdata or vendor, or that the go command ignores
+  dxlib: counted 9 NewEndPoint calls, 1 NewWSEndPoint call and 1 RegisterHandler call: every call by that name in a file that imports dxlib's api package
+  wrote 3 operations on 3 paths, 2 permissions, 3 problems and 31 questions: one operation per endpoint NewEndPoint registers with a literal method and URI, outside a loop or a condition, one permission per privilege an endpoint names alone, one problem per literal reason a handler answers, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  nothing read: api/session.go imports dxlib's api package, and the reader found no endpoint, parameter read or problem in it
+  nothing read: handlers/show.go imports dxlib's api package, and the reader found no endpoint, parameter read or problem in it
+  not held: api/endpoints.go:63: the endpoint HEAD /loans/list: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out; could question Q-26
+  not held: api/endpoints.go:69: NewWSEndPoint registers the WebSocket endpoint /loans/feed, and the meta-model has no socket; left out; could question Q-27
+  not held: api/endpoints.go:71: RegisterHandler binds closeLoan of the OpenAPI document the service loads to the handler CloseLoan; the document gives its method and path, and extract openapi reads it, so the handler is left out here; could question Q-28
+  not held: api/endpoints.go:17: the endpoint POST /loans/list: dxlib names it post_loans_list from its URI, which is not camelCase, as an operationId is; it is named postLoansList; could question Q-29
+  not held: api/endpoints.go:38: the endpoint POST /loans/renew: dxlib names it loans_renew from its URI, which is not camelCase, as an operationId is; it is named postLoansRenew; could question Q-30
+  not held: api/endpoints.go:21: the endpoint GET /loans/{id}: dxlib names it loans_id from its URI, which is not camelCase, as an operationId is; it is named getLoansById; could question Q-31

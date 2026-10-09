@@ -1,0 +1,24 @@
+permissions:
+  loans.write:
+    origin: stated
+    cites:
+      - {source: code, clause: 'code/endpoints.go:7', says: POST /loans/close and POST /loans/purge check loans.write in its privileges.}
+paths:
+  /loans/close:
+    post:
+      operationId: postLoansClose
+      summary: Close a loan
+      permission: loans.write
+      origin: stated
+      cites:
+        - {source: code, clause: 'code/endpoints.go:7', says: 'NewEndPoint registers POST /loans/close; its handler is CloseLoan, it has no middleware, and it checks loans.write.'}
+        - {source: code, clause: 'code/endpoints.go:14', says: The handler of POST /loans/close reads no parameter by name.}
+  /loans/purge:
+    post:
+      operationId: postLoansPurge
+      summary: Purge the loans
+      permission: loans.write
+      origin: stated
+      cites:
+        - {source: code, clause: 'code/endpoints.go:9', says: 'NewEndPoint registers POST /loans/purge; its handler is CloseLoan, it has no middleware, and it checks loans.write.'}
+        - {source: code, clause: 'code/endpoints.go:14', says: The handler of POST /loans/purge reads no parameter by name.}

@@ -2,7 +2,7 @@
 decisions:
   ADR-075:
     title: Source code is read by a parser of its own language for what no running system prints, every guess is a question at its file and line, and a parsed tree merges with a printed one as a second citation
-    status: proposed
+    status: accepted
     date: "2026-10-09"
     context: |
       The readers of extract read what the running system produces or
@@ -75,9 +75,10 @@ decisions:
       coverage.
 
       A code source written by a reader says how it was read:
-      reading: printed for a dump the running system made, reading: parsed
-      for a parsed reader, a key of a code source in the 0.1 design
-      schema. specarch merge joins an element both give into one element
+      reading: printed for a dump the running system made, such as a route
+      table, a permission table, a catalogue dump or an OpenAPI document
+      dxlib emitted, reading: parsed for a parsed reader, a key of a code
+      source in the 0.1 design schema that no other kind of source takes. specarch merge joins an element both give into one element
       with both citations, and leaves a key they give different values out
       with a must question citing both, as it does now. Between a printed
       and a parsed tree of one surface it also writes: an element only the
@@ -86,7 +87,13 @@ decisions:
       setting); an element only the printed tree has, a could question
       citing the dump (registered by code the reader does not follow). A
       question of the parsed tree that asks whether the running system
-      has an element is left out once the printed tree gives it.
+      has an element is left out once the printed tree gives it. A parsed
+      reader asks that question as a must question blocking the element
+      alone, the one shape merge reads as it. These rows compare
+      operations first; the grants, the gates and the other surfaces join
+      them with their readers' steps. A source two trees read, one
+      printed and one parsed, is merged with no reading, since it was
+      read both ways.
     why: |
       A printer stays first because ADR-044 and ADR-050 still hold: a
       parser sees one way of writing a registration and misses a loop, a
@@ -143,7 +150,7 @@ decisions:
       time with the steps of docs/extraction.md, each kind with its
       conformance cases. A project that keeps nothing but source can be
       extracted at all, at the cost of a must question on each route and
-      grant until a printer answers it. The design schema gains reading on
-      a code source in both validator builds, in the first step that
-      builds a parsed reader.
+      grant until a printer answers it. The design schema holds reading on
+      a code source, checked in both validator builds by the schema they
+      share.
     satisfies: [SA-44, SA-45]

@@ -72,8 +72,31 @@ commands:
         must question cites both and blocks it; the check keeps the
         expression the code runs. No match, or more than one, changes
         nothing (ADR-048).
+      - A code source says how it was read: `reading: printed` for a list
+        the running system printed, such as a route table or the document
+        dxlib emits, `reading: parsed` for source read by a parser
+        (ADR-075). A tree whose code sources all say the same reading
+        has it. Where a printed and a parsed tree both have operations,
+        an operation only the parsed tree declares keeps what it states,
+        and a must question that starts "Declared, not
+        registered:" cites the line that declares it and names the
+        printed trees, since the running system does not list it: the
+        code is never reached, or only under a setting, or the printer
+        misses it. An operation only the printed trees have keeps its
+        citations, and a could question that starts "Registered by code
+        the reader does not follow:" cites them. Grants and the other
+        surfaces join these rows with their readers' steps.
+      - A parsed tree's must question that blocks one of its own
+        operations and nothing else asks whether the running system
+        registers it. A printed tree that gives the operation answers it,
+        and it is left out with a line naming that tree; where printed
+        trees have operations and not this one, it is left out too, and
+        the "Declared, not registered" question asks it with what they
+        printed.
       - Sources of the same key are one source when they are the same in
-        everything but their clauses, which are joined. Code sources that
+        everything but their clauses, which are joined, and their
+        reading: the merged source keeps a reading every tree gives it
+        and says none when one tree read it printed and another parsed. Code sources that
         differ only in their edition are one repository read at different
         commits: the merged edition is the newest of them, which each
         other is an ancestor of, and every path a tree read must be
@@ -130,13 +153,17 @@ commands:
     writes:
       - { path: "{out}/", description: The merged specification. }
     standardOutput: |
-      One line per tree naming its title and what it holds; one line per
+      One line per tree naming its title, its side, its reading where it
+      has one, and what it holds; one line per
       source joined from several trees, naming the edition taken; one line
       counting the elements written and those found in more than one
       tree; one line per field read back from its columns, and one per
       question that what was read back answers; one line per requirement joined to a check that gives the
       same number of days; one line per question of a tree that another
-      tree answers or a question kept before it asks; one line per
+      tree answers or a question kept before it asks, and per parsed
+      tree's question on whether the running system registers an
+      operation that a printed tree answers or the merge asks again; one
+      line per
       question whose name is joined to the operation another tree
       declares; one line per
       placeholder source; one line per permission granted and checked by

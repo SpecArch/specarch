@@ -1,0 +1,7 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+sources:
+  code: { kind: code, title: The service's code, edition: 2ddae4f53139c036e8b99477922186064bdb4d6f, reading: parsed }
+  routes: { kind: code, title: The service's route table, edition: 2ddae4f53139c036e8b99477922186064bdb4d6f, reading: printed }
+  manual: { kind: document, title: The operator's manual, edition: "3", reading: parsed }
+  notes: { kind: code, title: Notes on the code, edition: "1", reading: guessed }

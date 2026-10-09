@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:14:7: warning: /paths/~1items~1renew/post: test_case_missing: operation renewItem has no red scenario for "denied without items.write"; add under tests renew-item-denied-without-items-write: { operation: renewItem, scenario: red, covers: [denied without items.write], given: "a caller without items.write", when: "renewItem is called", then: "it is refused as not allowed" } [test_case_missing@specarch.yaml#/paths/~1items~1renew/post]
+  specarch.yaml:14:7: warning: /paths/~1items~1renew/post: test_golden_missing: operation renewItem has no golden scenario; add one under tests, for example renew-item-succeeds: { operation: renewItem, scenario: golden, given: "a caller with items.write", when: "renewItem is called", then: "it answers 200: Renewed." } [test_golden_missing@specarch.yaml#/paths/~1items~1renew/post]
+  specarch.yaml:21:16: error: /paths/~1items~1renew/post/responses/422: problem: the specification declares its problem types under errors, so the 422 response of renewItem names one under problem [problem@specarch.yaml#/paths/~1items~1renew/post/responses/422]

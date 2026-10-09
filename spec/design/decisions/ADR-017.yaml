@@ -17,9 +17,11 @@ decisions:
       or a pointer to an element or to one key of it), who decides, and
       the options when the answer is a choice. A required key missing at or
       under a pointer a must question blocks is covered, as are the warnings
-      about that element, and a permission no role grants when the question
+      about that element, a permission no role grants when the question
       blocks that permission, since the grant is written in a role and not
-      under the permission; nothing else is. A missing key is never taken
+      under the permission, and a response that names no problem while
+      problem types are declared when the question blocks its problem,
+      since the problem is the key missing; nothing else is. A missing key is never taken
       as the cause of another error at the same element, so an error the
       question does not cover is still reported beside it. validate counts
       the open questions and lists none; `gaps` and the document

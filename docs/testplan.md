@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 327 design tests, 129 golden and 198 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 331 design tests, 131 golden and 200 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 323 |
+| system | 327 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -638,6 +638,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 - When: extract database is run on it
 - Then: it says the file is not a catalogue dump, writes nothing and exits 1
 
+#### extract-go-dxlib-endpoints
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository holding a Go module on dxlib whose files register endpoints with NewEndPoint: one with a URI joined from literals, a net/http method constant and a privilege in dxlib_module's capitals, whose handler reads a declared parameter and answers two refusals; one with a path parameter whose handler is in another package, which the reader cannot find with no go.mod read, and that checks no privilege; one in a loop, one behind a condition and one with a computed URI; one whose handler is a function literal that reads a declared parameter, one whose name is computed and one the endpoint does not declare, and answers two reasons at one status, an empty reason, a status alone and a computed status; the same method and URI a second time; a HEAD endpoint; a call with too few arguments; a WebSocket endpoint and a RegisterHandler call; a reason answered at two statuses; a file that does not parse, a test file, a file under testdata and a file that imports dxlib and registers nothing
+- When: extract go is run on the module
+- Then: it writes each endpoint registered with literal values outside a loop or a condition as an operation citing its registration line and its handler's first line, with its summary, description, path parameters, permission (mapped from capitals by the rule of ADR-076 and declared inferred) and the refusal statuses its handler answers, each naming the problem its literal reason gives; it declares each problem answered at one status, and asks a must question for the loop, the condition, the computed URI, the undeclared parameter, the empty reason, the status alone, two reasons at one status, a reason at two statuses, the second registration, the short call, the file that does not parse, the open endpoint, each operation's success response and whether the running system registers it; a should question for the computed parameter name and status and for the handler it cannot find; prints a line and asks a could question for the HEAD endpoint, the WebSocket endpoint, the RegisterHandler call and each operationId dxlib derives that is not camelCase; leaves out the test file and the testdata file; names the file that registers nothing; declares its code source reading: parsed; and exits 0
+
 #### extract-not-offered
 
 Scenario: red; level: system; covers exit 2.
@@ -650,9 +658,9 @@ Scenario: red; level: system; covers exit 2.
 
 Scenario: golden; level: system; verifies SA-44.
 
-- Given: a repository holding an OpenAPI document in dxlib's dialect whose operations carry x-dxlib-endpoint-type: two that check one privilege, one that checks another, one that checks two, one that checks none, one whose privilege is not a permission name, one whose privilege is public, one that lists one privilege twice and one whose list holds a mapping, all under the document's mutualTLS security, and one operation without x-dxlib-endpoint-type that names a privilege
+- Given: a repository holding an OpenAPI document in dxlib's dialect whose operations carry x-dxlib-endpoint-type: two that check one privilege, one that checks another, one that checks two, one that checks none, three whose privileges EXPORT_ALL, GLOBAL.SET_MAINTENANCE_MODE and EVERYTHING are in dxlib_module's capitals, one whose privilege is in mixed case, two whose privileges REPORT_RUN and REPORT.RUN give one permission name, one whose privilege is public, one that lists one privilege twice and one whose list holds a mapping, all under the document's mutualTLS security, and one operation without x-dxlib-endpoint-type that names a privilege
 - When: extract openapi is run on the document
-- Then: it writes the one privilege of a dxlib operation as its permission and declares each such permission citing the operations that check it, with a must question on what each allows and which role grants each; it reads a privilege listed twice as one, asks a must question for the operation that checks two privileges, the one that checks none, the one whose privilege is no permission name, the one whose privilege is public and the one whose list is not of names, and prints the security of each dxlib operation as a line of its own, since it is not the permission; it reads x-dxlib-privileges only beside x-dxlib-endpoint-type, so the other operation's permission is asked as before and its extension printed as a line; and exits 0
+- Then: it writes the one privilege of a dxlib operation as its permission and declares each such permission citing the operations that check it, with a must question on what each allows and which role grants each; it maps each privilege in capitals by the rule of ADR-076 and declares that permission inferred, with the rule as its why; it reads a privilege listed twice as one, asks a must question for the operation that checks two privileges, the one that checks none (naming its middlewares), the one whose privilege the rule of ADR-076 cannot map, both whose privileges give one permission, the one whose privilege is public and the one whose list is not of names, and prints the security of each dxlib operation as a line of its own, since it is not the permission; it reads x-dxlib-privileges only beside x-dxlib-endpoint-type, so the other operation's permission is asked as before and its extension printed as a line; and exits 0
 
 #### extract-openapi-not-openapi
 
@@ -1223,6 +1231,14 @@ Scenario: golden; level: system; verifies SA-45.
 - Given: the tree the router's route table gives, and the tree of a permission table whose one role grants the three permissions the routes check and a fourth that no route checks
 - When: merge is run on the two trees
 - Then: it reports the permission no operation, command or page checks with the role that grants it, keeps it in the merged specification, and exits 0
+
+#### merge-printed-parsed
+
+Scenario: golden; level: system; verifies SA-45.
+
+- Given: a tree extract openapi wrote from a document wholly in dxlib's dialect, a code source with reading: printed, holding two operations; a route tree printed from the code repository, reading: printed, holding one of them; and a tree extract go wrote from that repository's source, reading: parsed, holding that operation under another operationId and one operation no printed tree has
+- When: merge is run on the three trees
+- Then: it joins the operation all give into one with every citation and asks a must question on the operationId they disagree on; it leaves out the parsed tree's question whether the running system registers the joined operation, which the printed trees answer, and its question on the operation only it declares, which it asks again as a must question citing the source's line; it asks a could question on the operation only the printed trees have, citing the document; it keeps reading on the document's source and leaves it out of the repository's source, which one tree read printed and another parsed; and exits 0
 
 #### merge-source-differs
 
@@ -2066,6 +2082,14 @@ Scenario: golden; level: system; verifies SA-17.
 - When: validate is run
 - Then: the missing keys and the warnings about the blocked elements are covered by the questions; it prints nothing and exits 0
 
+#### validate-question-covers-problem
+
+Scenario: red; level: system; covers exit 1; verifies SA-5, SA-17.
+
+- Given: a specification that declares problem types, with an operation whose 409 and 422 responses name no problem: a must question blocks the 409's problem and a should question the 422's
+- When: validate is run
+- Then: the 409's missing problem is covered by the must question, the 422's is reported, since a should question covers nothing, and it exits 1
+
 #### validate-question-covers-ungranted
 
 Scenario: golden; level: system; verifies SA-5, SA-17.
@@ -2361,6 +2385,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-45.
 - Given: two sources, one marked givenOutside with the text yes and one with false
 - When: validate is run
 - Then: it reports that givenOutside of the first is not a boolean, accepts the second, and exits 1
+
+#### validate-source-reading
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: code sources read printed and parsed, a document source that says how it was read, and a code source whose reading is neither printed nor parsed
+- When: validate is run
+- Then: it accepts both code sources, reports the document source's reading and the reading that is neither, and exits 1
 
 #### validate-stack-key
 
@@ -2686,7 +2718,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-204 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+206 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2868,11 +2900,13 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-44 | acceptance 5 | golden | SA-44 names no harm |
 | requirement SA-44 | acceptance 6 | golden | SA-44 names no harm |
 | requirement SA-44 | acceptance 7 | golden | SA-44 names no harm |
+| requirement SA-44 | acceptance 8 | golden | SA-44 names no harm |
 | requirement SA-45 | acceptance 1 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 2 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 3 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 4 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 5 | golden | SA-45 names no harm |
+| requirement SA-45 | acceptance 6 | golden | SA-45 names no harm |
 | requirement SA-1 | acceptance 1 | golden | SA-1 names no harm |
 | requirement SA-1 | acceptance 2 | golden | SA-1 names no harm |
 | requirement SA-2 | acceptance 1 | golden | SA-2 names no harm |

@@ -1,0 +1,34 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+roles:
+  clerk: { description: Staff at the desk., permissions: [items.write] }
+permissions:
+  items.write: { description: Changes an item. }
+errors:
+  item-not-found: { status: 404, title: Item not found, condition: No item has the id. }
+paths:
+  /items/renew:
+    post:
+      operationId: renewItem
+      summary: Renew an item
+      permission: items.write
+      responses:
+        "200": { description: Renewed. }
+        "404": { description: No item has the id., problem: item-not-found }
+        "409": { description: The item cannot be renewed. }
+        "422": { description: The request is refused. }
+questions:
+  Q-1:
+    question: Which problem does the 409 answer?
+    kind: decision
+    priority: must
+    blocks: ["#/paths/~1items~1renew/post/responses/409/problem"]
+    decidedBy: owner
+  Q-2:
+    question: Which problem does the 422 answer?
+    kind: decision
+    priority: should
+    blocks: ["#/paths/~1items~1renew/post/responses/422/problem"]
+    decidedBy: owner

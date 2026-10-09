@@ -20,27 +20,47 @@ decisions:
       member's effective privileges: holding any one of them is enough,
       an endpoint with none lets every caller its middleware lets through,
       and the privilege EVERYTHING stands for all. The middleware chain,
-      which decides whether a caller must sign in at all, stays in code
-      and is not in the document.
+      which decides whether a caller must sign in at all, is code; the
+      document names each operation's middlewares by their function names
+      in x-dxlib-middlewares, and not what they check.
     decision: |
       For a dxlib service the emitted document is the printer of the
       endpoints: the project writes it with dxlib's own emitter after
       every Define hook has run, commits it beside the code with the
-      commit it was made from, and extract openapi reads it. An operation
+      commit it was made from, and extract openapi reads it. A document
+      every operation of which is in dxlib's dialect is what the running
+      service printed, so its source is a code source with reading:
+      printed (ADR-075), and merge compares it with the Go reader's tree
+      as it compares a route table. An operation
       whose x-dxlib-endpoint-type is present is read in dxlib's dialect:
       one name in x-dxlib-privileges is the operation's permission, stated,
       citing the operation's pointer, and declared; none, or the key
       absent, is a must question saying that the operation checks no
       privilege and is open to every caller its middleware admits; two or
       more is a must question naming them, since dxlib lets a caller
-      holding any one through and an operation has one permission; a name
-      that is not lower-case words joined by dots, the name public, which
-      dxlib grants like any other privilege, and a value that is not a
-      list are each a must question too. The other x-dxlib- keys keep their lines, and so does the WebSocket
+      holding any one through and an operation has one permission. A
+      name in dxlib_module's form, words in capitals and digits joined by
+      underscores in segments joined by dots, such as ORDER.CREATE,
+      GLOBAL.SET_MAINTENANCE_MODE and EVERYTHING, maps to a permission
+      name by one fixed rule: the name in lower case, with every
+      underscore a dot, so GLOBAL.SET_MAINTENANCE_MODE is
+      global.set.maintenance.mode and EVERYTHING is everything. The
+      permission is written at the operation, and declared with origin
+      inferred, the rule its why, citing the operation. A name of another
+      form, one the rule makes into no permission name (a segment that
+      starts with a digit after an underscore) or into public, two names
+      of one document that give one permission (REPORT_RUN and
+      REPORT.RUN), the name public, which dxlib grants like any other
+      privilege, and a value that is not a list are each a must question
+      too. The other x-dxlib- keys keep their lines, and so does the WebSocket
       extension, since the meta-model has no socket. The roles come from
       a permission table that a printer in dxlib_module writes from the
       tables its check reads (ADR-050); a grant of EVERYTHING is printed
-      as it is and is a must question, never expanded. The Go reader
+      as it is and is a must question, never expanded: an endpoint that
+      requires EVERYTHING checks the permission everything, which only a
+      role granted EVERYTHING holds, while a role granted EVERYTHING
+      holds every permission, which no list of grants can say. The Go
+      reader
       (ADR-075) reads from source only what dxlib cannot emit: where each
       endpoint is registered, the handler's name and the middleware chain,
       the parameters a handler reads with dxlib's getters, the problems it
@@ -62,27 +82,42 @@ decisions:
       not make. No privilege is a must question and never public, as for
       the route table (ADR-044), because the open endpoint is the one a
       reader must not miss, and whether a caller must sign in is decided
-      by middleware the document leaves out. EVERYTHING is asked about and
-      not expanded, because expanding it would write grants that change
-      whenever a permission is added, which no role table holds. The rest
+      by middlewares, which are code even where the document names them.
+      A fixed rule maps dxlib_module's names, as the owner decided,
+      because the same question on every operation of a service hides the
+      one that matters among dozens; the rule keeps every segment and
+      every word, so the name the code checks reads back from the
+      permission, and the permission is inferred and not stated, since the
+      rule is SpecArch's and not the code's. Two names that give one
+      permission are asked, because dxlib checks them as two privileges,
+      and one permission would hold for a caller the code refuses. A
+      grant of EVERYTHING is asked about and not expanded, because
+      expanding it would write grants that change whenever a permission
+      is added, which no role table holds. A document wholly in dxlib's
+      dialect is read as printed, because its emitter lists what the
+      service registers, so an operation the Go reader finds and the
+      document lacks is one the running service does not serve, which a
+      documents-side reading would ask as not yet built. The rest
       is read from source because nothing at run time lists it: a handler
       body is code, and only a parser sees which getters it calls.
     consequences: |
-      dxlib_module names its own privileges in capitals with underscores,
-      such as a GLOBAL. prefix and EVERYTHING, and the meta-model names a
-      permission in lower-case words joined by dots, so on such a service
-      most operations get the must question for a name of another form
-      until the owner decides how a dxlib name maps to a permission name;
-      the reader does not rename one by itself, since a renamed permission
-      would no longer match the grants the permission table prints. The
-      security an operation in this dialect is given, such as the
-      mutualTLS dxlib writes under its mtls mode, prints a line, since it
-      says how a caller proves who it is and not what it may do.
-      A dxlib service needs one program that runs its Define hooks and
-      writes each API's document, as api/OPENAPI.md section 6 describes,
-      until dxlib offers that as a flag of its own; and one printer for
-      its permission table, until dxlib_module offers it. The dxlib and
-      dxlib_module changes that would help are listed in
-      docs/reading-code.md, Go on dxlib, for those repositories' own
-      queues.
+      On a service on dxlib_module most operations' privileges are mapped
+      by the rule, each permission inferred and citing the operation that
+      names it; an owner who wants another name answers by renaming the
+      permission, and the code keeps its own. The permission table reader
+      of ADR-050 does not map a name yet, so on such a service the merge
+      finds a mapped permission no role grants until the reader of
+      dxlib_module's seeds and the permission table reader apply the same
+      rule, in the step that reads the seeds (docs/extraction.md, step
+      14). The security an operation in this dialect is given, such as
+      the mutualTLS dxlib writes under its mtls mode, prints a line, since
+      it says how a caller proves who it is and not what it may do. A
+      service on DXApp writes each API's document under
+      DXLIB_OPENAPI_DUMP; any other needs one small program that runs its
+      Define hooks and writes the document, as api/OPENAPI.md section 6
+      describes, such as cmd/openapi of the notice board example. A
+      service needs one printer for its permission table, until
+      dxlib_module offers it. The dxlib and dxlib_module changes that
+      would help are listed in docs/reading-code.md, Go on dxlib, for
+      those repositories' own queues.
     satisfies: [SA-44]

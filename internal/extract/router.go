@@ -82,6 +82,7 @@ func Router(dumpPath, out, key string) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
+	set(src, "reading", "printed")
 	var stages []string
 	if len(rd.routes) > 0 {
 		stages = []string{"design"}
@@ -308,13 +309,7 @@ func (rd *routeReader) operationIDs() {
 			rt.id = strings.ToLower(rt.Handler[:1]) + rt.Handler[1:]
 			continue
 		}
-		id := rt.key
-		for _, seg := range strings.Split(rt.Path, "/") {
-			if m := routeSegment.FindStringSubmatch(seg); m != nil {
-				seg = "by_" + m[1]
-			}
-			id += pascal(notWord.ReplaceAllString(seg, "_"))
-		}
+		id := methodPathName(rt.key, rt.Path)
 		why := "serves more than one route"
 		if !handlerName.MatchString(rt.Handler) {
 			why = "is not a name an operationId can take"
@@ -322,6 +317,19 @@ func (rd *routeReader) operationIDs() {
 		rd.gap(rt.Method, rt.Path, "#/paths/"+escapeToken(rt.Path)+"/"+rt.key, "", "route %s %s: its handler %s %s; the operation is named %s", rt.Method, rt.Path, rt.Handler, why, id)
 		rt.id = id
 	}
+}
+
+// methodPathName names an operation by its method key and its path's
+// words, a parameter as by and its name: post /loans/{id} is postLoansById.
+func methodPathName(key, path string) string {
+	id := key
+	for _, seg := range strings.Split(path, "/") {
+		if m := routeSegment.FindStringSubmatch(seg); m != nil {
+			seg = "by_" + m[1]
+		}
+		id += pascal(notWord.ReplaceAllString(seg, "_"))
+	}
+	return id
 }
 
 // pathParameters lists a route path's parameters, written {name} as the

@@ -1,0 +1,32 @@
+paths:
+  /loans/close:
+    post:
+      operationId: closeLoan
+      summary: Close a loan
+      responses:
+        "200":
+          description: Closed.
+      origin: stated
+      cites:
+        - {source: api, clause: /paths/~1loans~1close/post, says: 'POST /loans/close: Close a loan.'}
+      permission: loans.write
+  /loans/report:
+    post:
+      operationId: reportLoans
+      summary: Report the loans
+      responses:
+        "200":
+          description: The report.
+      origin: stated
+      cites:
+        - {source: api, clause: /paths/~1loans~1report/post, says: 'POST /loans/report: Report the loans.'}
+      permission: loans.read
+permissions:
+  loans.read:
+    origin: stated
+    cites:
+      - {source: api, clause: /paths/~1loans~1report/post, says: POST /loans/report checks loans.read in x-dxlib-privileges.}
+  loans.write:
+    origin: stated
+    cites:
+      - {source: api, clause: /paths/~1loans~1close/post, says: POST /loans/close checks loans.write in x-dxlib-privileges.}

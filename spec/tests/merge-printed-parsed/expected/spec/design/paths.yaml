@@ -1,0 +1,10 @@
+paths:
+  /loans/purge:
+    post:
+      operationId: postLoansPurge
+      summary: Purge the loans
+      permission: loans.write
+      origin: stated
+      cites:
+        - {source: code, clause: 'code/endpoints.go:9', says: 'NewEndPoint registers POST /loans/purge; its handler is CloseLoan, it has no middleware, and it checks loans.write.'}
+        - {source: code, clause: 'code/endpoints.go:14', says: The handler of POST /loans/purge reads no parameter by name.}

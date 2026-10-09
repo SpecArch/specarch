@@ -1,0 +1,247 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "api",
+    "version": "1.0.0",
+    "description": "Endpoints registered on API api."
+  },
+  "paths": {
+    "/v1/notice/list": {
+      "post": {
+        "operationId": "v1_notice_list",
+        "summary": "List notices",
+        "description": "Lists the notices, newest first, whose title holds the filter text.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "filter_text": {
+                    "type": "string",
+                    "description": "Text the title holds",
+                    "x-dxlib-type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The notices.",
+            "x-dxlib-response-name": "success"
+          }
+        },
+        "x-dxlib-endpoint-type": "EndPointTypeHTTPJSON",
+        "x-dxlib-privileges": [
+          "NOTICE.READ"
+        ],
+        "x-dxlib-middlewares": [
+          "example.com/noticeboard/service.RequireSession"
+        ]
+      }
+    },
+    "/v1/notice/read": {
+      "post": {
+        "operationId": "v1_notice_read",
+        "summary": "Read a notice",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "The notice",
+                    "x-dxlib-type": "int64"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The notice.",
+            "x-dxlib-response-name": "success"
+          },
+          "404": {
+            "description": "No notice has this id.",
+            "x-dxlib-response-name": "not_found"
+          }
+        },
+        "x-dxlib-endpoint-type": "EndPointTypeHTTPJSON",
+        "x-dxlib-privileges": [
+          "NOTICE.READ"
+        ],
+        "x-dxlib-middlewares": [
+          "example.com/noticeboard/service.RequireSession"
+        ]
+      }
+    },
+    "/v1/notice/create": {
+      "post": {
+        "operationId": "v1_notice_create",
+        "summary": "Post a notice",
+        "description": "Posts a notice with a title and a body.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "The title",
+                    "minLength": 1,
+                    "x-dxlib-type": "non-empty-string"
+                  },
+                  "body": {
+                    "type": "string",
+                    "description": "The text",
+                    "x-dxlib-type": "string"
+                  }
+                },
+                "required": [
+                  "title",
+                  "body"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The notice posted.",
+            "x-dxlib-response-name": "success"
+          }
+        },
+        "x-dxlib-endpoint-type": "EndPointTypeHTTPJSON",
+        "x-dxlib-privileges": [
+          "NOTICE.WRITE"
+        ],
+        "x-dxlib-middlewares": [
+          "example.com/noticeboard/service.RequireSession"
+        ]
+      }
+    },
+    "/v1/notice/delete": {
+      "post": {
+        "operationId": "v1_notice_delete",
+        "summary": "Remove a notice",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "The notice",
+                    "x-dxlib-type": "int64"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The notice removed.",
+            "x-dxlib-response-name": "success"
+          }
+        },
+        "x-dxlib-endpoint-type": "EndPointTypeHTTPJSON",
+        "x-dxlib-privileges": [
+          "NOTICE.DELETE",
+          "GLOBAL.ADMIN"
+        ],
+        "x-dxlib-middlewares": [
+          "example.com/noticeboard/service.RequireSession"
+        ]
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "operationId": "v1_health",
+        "summary": "Health",
+        "description": "Says the service is up.",
+        "responses": {
+          "200": {
+            "description": "Up.",
+            "x-dxlib-response-name": "success"
+          }
+        },
+        "x-dxlib-endpoint-type": "EndPointTypeHTTPJSON",
+        "x-dxlib-request-content-type": "application/json"
+      }
+    },
+    "/v1/system/maintenance": {
+      "post": {
+        "operationId": "v1_system_maintenance",
+        "summary": "Set maintenance mode",
+        "description": "Turns maintenance mode on or off.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "on": {
+                    "type": "boolean",
+                    "description": "Whether maintenance mode is on",
+                    "x-dxlib-type": "bool"
+                  }
+                },
+                "required": [
+                  "on"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The mode set.",
+            "x-dxlib-response-name": "success"
+          }
+        },
+        "x-dxlib-endpoint-type": "EndPointTypeHTTPJSON",
+        "x-dxlib-privileges": [
+          "GLOBAL.SET_MAINTENANCE_MODE"
+        ],
+        "x-dxlib-middlewares": [
+          "example.com/noticeboard/service.RequireSession"
+        ]
+      }
+    }
+  },
+  "x-dxlib-websocket-endpoints": {
+    "description": "WebSocket endpoints registered on this API. OpenAPI 3.1 describes request/response operations and has no construct for a WebSocket lifecycle (upgrade, open, frames in both directions, periodic push, close), so they are listed here and not under paths. The protocol inside the frames is the application's own and is not described.",
+    "endpoints": [
+      {
+        "operationId": "v1_notice_stream",
+        "path": "/v1/notice/stream",
+        "method": "GET",
+        "summary": "Notice stream",
+        "description": "Sends each notice as it is posted.",
+        "privileges": [
+          "NOTICE.READ"
+        ],
+        "middlewares": [
+          "example.com/noticeboard/service.RequireSession"
+        ]
+      }
+    ]
+  }
+}

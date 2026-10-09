@@ -680,6 +680,14 @@
           "description": "SpecArch keyword. True when the system's owners gave this source to parties outside, such as a published interface, a manual handed to customers or a contract, so that a promise in it is not the project's alone to change. specarch merge asks a must question about an element only this source or only the code has.",
           "type": "boolean"
         },
+        "reading": {
+          "description": "SpecArch keyword. For kind code: how the code was read. printed when the running system printed what was read, such as a route table, a permission table or a catalogue dump; parsed when a parser read the source itself. specarch merge tells the two apart: an operation only the parsed reading declares is asked whether the running system has it, and one only the printed reading has is asked about as code the parser does not follow. A source merged from trees that read it both ways leaves it out.",
+          "type": "string",
+          "enum": [
+            "printed",
+            "parsed"
+          ]
+        },
         "prefix": {
           "description": "For kind requirement-set, change-set or defect-set: the prefix of the IDs in that set, such as JIRA, so that a link JIRA-12 resolves to it. One tracker that holds several kinds is declared once per kind, and the prefixes may be the same.",
           "type": "string",
@@ -718,22 +726,42 @@
         "kind",
         "title"
       ],
-      "if": {
-        "properties": {
-          "kind": {
-            "enum": [
-              "requirement-set",
-              "change-set",
-              "defect-set"
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "requirement-set",
+                  "change-set",
+                  "defect-set"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "prefix"
             ]
           }
+        },
+        {
+          "if": {
+            "not": {
+              "properties": {
+                "kind": {
+                  "const": "code"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "reading": false
+            }
+          }
         }
-      },
-      "then": {
-        "required": [
-          "prefix"
-        ]
-      },
+      ],
       "propertyNames": {
         "not": {
           "$ref": "#/$defs/stackSpecificKey"

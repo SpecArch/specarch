@@ -108,7 +108,8 @@ questions.
   and the warnings about the element.
 - A pointer to a key of an element, `#/requirements/BR-3/priority`: that one
   key is unknown. The validator covers the missing key, and nothing else of
-  the element.
+  the element. A response's `problem`, which a response must name once the
+  specification declares problem types, is such a key.
 
 An element that is not even known by name is not blocked by pointer; the
 question blocks its section and names it in the question text. Writing an

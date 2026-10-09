@@ -77,7 +77,8 @@ requirements:
       - A dump older than the last change to the path it was made from, a path with changes not committed and a shallow clone are each refused with status 1.
       - extract outline on a folder writes a source listing its files as clauses, and gaps on that tree lists each of them as producing nothing.
       - extract router on a committed route table writes one operation per method and path pair, with its path parameters and the permission it checks, that validate accepts with no errors, and a route that checks no permission is a must question.
-      - extract openapi on a document in dxlib's dialect writes the one privilege an operation's x-dxlib-privileges names as its permission and declares it, and asks a must question for an operation that names none, more than one, public or a name of another form.
+      - extract openapi on a document in dxlib's dialect writes the one privilege an operation's x-dxlib-privileges names as its permission and declares it, maps a name in dxlib_module's capitals by the rule of ADR-076 and declares that permission inferred, and asks a must question for an operation that names none, more than one, public, two names that give one permission or a name the rule cannot map.
+      - extract go on a committed Go module on dxlib writes each endpoint NewEndPoint registers with literal values as an operation citing its registration's and its handler's file and line, with the parameters the handler reads and the problems it answers, in a code source with reading parsed, and asks a must question for a registration in a loop, behind a condition or computed, and for a parameter read the endpoint does not declare.
       - extract workflows on a committed BPMN 2.0 file writes one workflow per process with its approvals, deadlines and operation steps, that validate accepts with no errors, prints a line with the file's line for each element outside the sequential subset and writes it as a could question citing that line, and asks for the operations the file names with a must question that names them.
     verification: test
     needs: [NEED-8]
@@ -93,6 +94,7 @@ requirements:
       - An element only the code has, merged with a documents tree that speaks of its section, is written inferred, starting its why with "Undocumented, from code.", with a question that is must for an operation, a permission, a role, a personal or credential field, or a source given outside, and should otherwise.
       - A tree validate reports an error in, and a source two trees declare differently, are each refused with status 1.
       - A question that names the operation a workflow's trigger refers to is left out as joined, and the trigger written, when another tree declares that operation; a name no tree declares keeps its question.
+      - A printed tree and a parsed tree of one repository merge into operations with both trees' citations; the parsed tree's question whether the running system registers an operation is left out where the printed tree has it, an operation only the parsed tree declares is a must question citing its line, and one only the printed tree has a could question.
     verification: test
     needs: [NEED-8]
     why: The comparison between surfaces, and between the documents and the code, is where a specification extracted from an existing system finds what is wrong with it; done by hand it is skipped where the two look alike, and a choice made quietly between two sources hides the disagreement the owner must settle.

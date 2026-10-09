@@ -30,6 +30,9 @@ type mergeTree struct {
 	dir   string // with symbolic links resolved
 	title string
 	side  string
+	// How its code sources were read: printed by the running system or
+	// parsed from source, when they all say the same; "" otherwise.
+	reading string
 }
 
 // element is one element of the merged specification: an entry of a
@@ -95,6 +98,7 @@ func Merge(specs []*spec.Spec, out string) (*Result, error) {
 	asked += m.valueObjectQuestions()
 	asked += m.sideQuestions()
 	asked += m.quantityQuestions()
+	asked += m.readingQuestions()
 	m.placeholders()
 	m.unchecked()
 	return m.write(asked)
@@ -217,9 +221,17 @@ func checkTree(s *spec.Spec) (*mergeTree, error) {
 	if len(sources) == 0 {
 		t.side = documentsSide
 	}
+	readings := map[string]bool{}
 	for _, p := range sources {
 		if source.Str(source.Child(p.Value, "kind")) != "code" {
 			t.side = documentsSide
+			continue
+		}
+		readings[source.Str(source.Child(p.Value, "reading"))] = true
+	}
+	if len(readings) == 1 {
+		for r := range readings {
+			t.reading = r
 		}
 	}
 	return t, nil
@@ -281,7 +293,7 @@ func (m *merger) joinSource(key string, ds []declared) (*yaml.Node, error) {
 		editions[source.Str(source.Child(d.node, "edition"))] = true
 		for _, p := range source.Pairs(d.node) {
 			switch k := p.Key.Value; k {
-			case "clauses", "edition", "url":
+			case "clauses", "edition", "url", "reading":
 			default:
 				if !sameNode(p.Value, source.Child(first.node, k)) {
 					return nil, m.differ(key, first, d, k)
@@ -289,7 +301,7 @@ func (m *merger) joinSource(key string, ds []declared) (*yaml.Node, error) {
 			}
 		}
 		for _, p := range source.Pairs(first.node) {
-			if source.Child(d.node, p.Key.Value) == nil {
+			if source.Child(d.node, p.Key.Value) == nil && p.Key.Value != "reading" {
 				return nil, m.differ(key, first, d, p.Key.Value)
 			}
 		}
@@ -326,6 +338,15 @@ func (m *merger) joinSource(key string, ds []declared) (*yaml.Node, error) {
 			set(n, "url", url)
 		case "clauses":
 			set(n, "clauses", joinClauses(ds))
+		case "reading":
+			// A source read both ways, printed and parsed, says neither.
+			same := true
+			for _, d := range ds {
+				same = same && sameNode(source.Child(d.node, "reading"), p.Value)
+			}
+			if same {
+				set(n, "reading", copyNode(p.Value))
+			}
 		default:
 			set(n, p.Key.Value, copyNode(p.Value))
 		}
@@ -811,6 +832,9 @@ func (m *merger) treeQuestions() {
 		for _, p := range source.Pairs(source.Child(t.s.Root, spec.QuestionsSection)) {
 			q := copyNode(p.Value)
 			blocks := source.Items(source.Child(q, "blocks"))
+			if m.registered(ti, t, p.Key.Value, q) {
+				continue
+			}
 			if m.join(ti, t, p.Key.Value, q) {
 				continue
 			}
@@ -881,6 +905,54 @@ func (m *merger) treeQuestions() {
 			m.addQuestion(q, file)
 		}
 	}
+}
+
+// registered leaves out a parsed tree's question whether the running
+// system registers one of its operations (ADR-075): the question is a
+// must question blocking that one operation and nothing else. A printed
+// tree that gives the operation answers it; when printed trees give
+// operations and not this one, readingQuestions asks it again with what
+// they printed, so the parsed tree's is left out too.
+func (m *merger) registered(ti int, t *mergeTree, id string, q *yaml.Node) bool {
+	blocks := source.Items(source.Child(q, "blocks"))
+	if t.reading != "parsed" || source.Str(source.Child(q, "priority")) != "must" || len(blocks) != 1 {
+		return false
+	}
+	b, ok := spec.ParseBlock(blocks[0].Value)
+	if !ok || !b.IsPointer() || len(b.Tokens) != 3 || b.Tokens[0] != "paths" || !contains(pathMethods, b.Tokens[2]) {
+		return false
+	}
+	steps := treeSteps(t.s.Root, b.Tokens)
+	if !given(follow(t.s.Root, steps)) {
+		return false
+	}
+	var printers []string
+	printed := false
+	for _, other := range m.trees {
+		if other.reading != "printed" || len(source.Pairs(source.Child(other.s.Root, "paths"))) == 0 {
+			continue
+		}
+		printed = true
+		if given(follow(other.s.Root, steps)) {
+			printers = append(printers, other.title)
+		}
+	}
+	switch {
+	case len(printers) > 0:
+		m.res.say("answered: %s of %s, on %s, is left out; %s %s it as the running system registers it", id, t.s.Dir, m.pointerOf(steps), joinAnd(printers), printOrPrints(len(printers)))
+		return true
+	case printed:
+		m.res.say("asked again: %s of %s, on %s, is left out; the merge asks it with what the running system printed", id, t.s.Dir, m.pointerOf(steps))
+		return true
+	}
+	return false
+}
+
+func printOrPrints(n int) string {
+	if n == 1 {
+		return "prints"
+	}
+	return "print"
 }
 
 // join writes the name a question gives at the one key it blocks, when
@@ -1415,6 +1487,88 @@ func (m *merger) priorityWhy(e *element, n *yaml.Node, priority, only string) st
 	return only + ", and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found."
 }
 
+// readingQuestions compares the operations a printed tree and a parsed
+// tree give (ADR-075): an operation only the parsed tree declares is a
+// must question, since the running system does not list it; one only the
+// printed tree has is a could question, since the parser does not follow
+// the code that registers it. Grants and the other surfaces join these
+// rows with their readers.
+func (m *merger) readingQuestions() int {
+	speaks := map[string]bool{}
+	for _, ptr := range m.order {
+		if e := m.elements[ptr]; e.section == "paths" {
+			for _, ti := range e.trees {
+				speaks[m.trees[ti].reading] = true
+			}
+		}
+	}
+	if !speaks["printed"] || !speaks["parsed"] {
+		return 0
+	}
+	var printers []string
+	for _, t := range m.trees {
+		if t.reading == "printed" && len(source.Pairs(source.Child(t.s.Root, "paths"))) > 0 {
+			printers = append(printers, t.title)
+		}
+	}
+	asked := 0
+	for _, ptr := range m.order {
+		e := m.elements[ptr]
+		if e.section != "paths" {
+			continue
+		}
+		readings := map[string]bool{}
+		cites := map[string]*yaml.Node{"printed": {Kind: yaml.SequenceNode}, "parsed": {Kind: yaml.SequenceNode}}
+		var steps []mergeStep
+		for _, tok := range e.tokens {
+			steps = append(steps, mergeStep{key: tok})
+		}
+		for _, ti := range e.trees {
+			r := m.trees[ti].reading
+			readings[r] = true
+			if c := cites[r]; c != nil {
+				for _, cite := range citesOn(m.trees[ti].s.Root, steps) {
+					c.Content = append(c.Content, copyNode(cite))
+				}
+			}
+		}
+		if readings["printed"] == readings["parsed"] {
+			continue
+		}
+		node := m.elementNode(e)
+		label := m.label(e, node)
+		op := "#" + source.Pointer(e.tokens...)
+		var q *yaml.Node
+		if readings["parsed"] {
+			q = mapping(
+				"question", fmt.Sprintf("Declared, not registered: %s is declared at %s, and the running system does not list it in %s. Is it code that is never reached, or reached only under a setting, or does the printer miss it?", label, clausesOf(mapping("cites", cites["parsed"]))[0], joinAnd(printers)),
+				"kind", "decision",
+				"priority", "must",
+				"blocks", []string{op},
+				"decidedBy", owner,
+				"options", []string{"Served: the printer is to list it", "Not served: the code is to change, or the setting that switches it on is to be named"},
+				"why", "Only the parsed source declares it, and what the running system lists is what it serves; an operation declared and not served is dead code or switched on by a setting, and an operation is where an open endpoint is found.",
+				"cites", flowItems(cites["parsed"]),
+			)
+			m.res.say("question Q-%d (must): %s: declared in the source read, not registered by the running system", len(m.questions)+1, op)
+		} else {
+			q = mapping(
+				"question", fmt.Sprintf("Registered by code the reader does not follow: %s is in %s, and the source read declares it nowhere the reader follows, such as a loop, a condition, a helper or a module. Does the specification need where it is declared?", label, joinAnd(clausesOf(mapping("cites", cites["printed"])))),
+				"kind", "decision",
+				"priority", "could",
+				"blocks", []string{op},
+				"decidedBy", owner,
+				"why", "The running system lists it, so it is served; the parser only lacks its place in the source, and nothing waits for the answer.",
+				"cites", flowItems(cites["printed"]),
+			)
+			m.res.say("question Q-%d (could): %s: registered by the running system, not found in the source read", len(m.questions)+1, op)
+		}
+		m.addQuestion(q, questionFile(q))
+		asked++
+	}
+	return asked
+}
+
 // --- Writing ---------------------------------------------------------------
 
 func (m *merger) write(asked int) (*Result, error) {
@@ -1438,7 +1592,11 @@ func (m *merger) write(asked int) (*Result, error) {
 				n++
 			}
 		}
-		lines = append(lines, fmt.Sprintf("tree %s: %s, on the %s side: %s and %s", t.s.Dir, t.title, t.side, plural(n, "element"), plural(q, "question")))
+		side := t.side
+		if t.reading != "" {
+			side += ", " + t.reading
+		}
+		lines = append(lines, fmt.Sprintf("tree %s: %s, on the %s side: %s and %s", t.s.Dir, t.title, side, plural(n, "element"), plural(q, "question")))
 	}
 	m.res.Lines = append(lines, m.res.Lines...)
 	m.res.say("merged %s, each an entry of a section or an operation: %d in more than one tree, and %s the trees disagree on", plural(count, "element"), shared, plural(len(m.disputeOrd), "key"))

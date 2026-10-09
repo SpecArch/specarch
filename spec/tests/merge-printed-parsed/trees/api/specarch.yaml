@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: desk
+  version: 0.1.0
+  description: |
+    The OpenAPI document api.openapi.json, read at commit ec4d1d1d8727140a93c52c450e3351776ac2f953: every operation and component schema is a clause, every operation is written under its path citing it, every component schema of type object that an operation creates or a path with a parameter answers is an entity, and every other one a schema. What the document does not say is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  api:
+    kind: code
+    title: desk
+    edition: ec4d1d1d8727140a93c52c450e3351776ac2f953
+    url: ../../src/api.openapi.json
+    clauses:
+      - {clause: /paths/~1loans~1close/post, title: POST /loans/close}
+      - {clause: /paths/~1loans~1report/post, title: POST /loans/report}
+    reading: printed

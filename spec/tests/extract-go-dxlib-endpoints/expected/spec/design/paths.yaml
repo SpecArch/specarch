@@ -1,0 +1,59 @@
+permissions:
+  loans.read:
+    origin: inferred
+    why: 'dxlib names the privilege LOANS.READ, and by the rule of ADR-076 a privilege named in capitals, digits and underscores, in segments joined by dots, is the permission of that name in lower case with every underscore a dot: loans.read.'
+    cites:
+      - {source: code, clause: 'api/endpoints.go:17', says: POST /loans/list checks LOANS.READ in its privileges.}
+  loans.write:
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/endpoints.go:38', says: POST /loans/renew checks loans.write in its privileges.}
+paths:
+  /loans/list:
+    post:
+      operationId: postLoansList
+      summary: List loans
+      description: Lists the loans.
+      permission: loans.read
+      responses:
+        "404":
+          problem: loan-not-found
+        "422": {}
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:17', says: 'NewEndPoint registers POST /loans/list; its handler is ListLoans, its middlewares are RequireSession, and it checks LOANS.READ.'}
+        - {source: code, clause: 'api/loans.go:10', says: The handler of POST /loans/list reads the parameter member and answers 404 LOAN_NOT_FOUND and 422 LOAN_OVERDUE.}
+  /loans/renew:
+    post:
+      operationId: postLoansRenew
+      summary: Renew a loan
+      description: Renews a loan for another period.
+      permission: loans.write
+      responses:
+        "400": {}
+        "409": {}
+        "422": {}
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:38', says: 'NewEndPoint registers POST /loans/renew; its handler is a function literal, it has no middleware, and it checks loans.write.'}
+        - {source: code, clause: 'api/endpoints.go:40', says: 'The handler of POST /loans/renew reads the parameters id and note and answers 409 LOAN_OVERDUE, 409 LOAN_ON_HOLD, 422 and 400.'}
+  /loans/{id}:
+    parameters:
+      - {name: id, in: path, required: true}
+    get:
+      operationId: getLoansById
+      summary: Show a loan
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/endpoints.go:21', says: 'NewEndPoint registers GET /loans/{id}; its handler is handlers.ShowLoan, it has no middleware, and it checks no privilege.'}
+errors:
+  loan-not-found:
+    status: 404
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/loans.go:13', says: Answers 404 with the reason LOAN_NOT_FOUND.}
+  loan-on-hold:
+    status: 409
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/endpoints.go:49', says: Answers 409 with the reason LOAN_ON_HOLD.}

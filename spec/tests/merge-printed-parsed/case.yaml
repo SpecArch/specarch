@@ -1,0 +1,17 @@
+arguments: [merge, --out, spec, trees/api, trees/routes, trees/code]
+exitStatus: 0
+standardOutput: |
+  tree trees/api: desk, on the code, printed side: 5 elements and 4 questions
+  tree trees/routes: Routes of code, on the code, printed side: 3 elements and 1 question
+  tree trees/code: Go source of code, on the code, parsed side: 4 elements and 8 questions
+  asked twice: Q-1 of trees/routes, on #/permissions/loans.write, is left out; Q-2 of trees/api asks it
+  answered: Q-1 of trees/code, on #/paths/~1loans~1close/post/responses, is left out; desk and Routes of code give it
+  answered: Q-2 of trees/code, on #/paths/~1loans~1close/post, is left out; desk and Routes of code print it as the running system registers it
+  asked again: Q-4 of trees/code, on #/paths/~1loans~1purge/post, is left out; the merge asks it with what the running system printed
+  answered: Q-5 of trees/code, on #/permissions/loans.write/description, is left out; Routes of code gives it
+  asked twice: Q-6 of trees/code, on #/permissions/loans.write, is left out; Q-2 of trees/api asks it
+  merged 6 elements, each an entry of a section or an operation: 3 in more than one tree, and 1 key the trees disagree on
+  wrote 10 questions: 7 from the trees, numbered again in the order the trees are given, and 3 the merge asked
+  question Q-8 (must): #/paths/~1loans~1close/post/operationId: the trees disagree
+  question Q-9 (could): #/paths/~1loans~1report/post: registered by the running system, not found in the source read
+  question Q-10 (must): #/paths/~1loans~1purge/post: declared in the source read, not registered by the running system

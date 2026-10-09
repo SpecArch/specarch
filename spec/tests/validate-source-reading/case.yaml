@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:6:82: error: /sources/manual/reading: schema: this key is not allowed here; remove it [schema@specarch.yaml#/sources/manual/reading]
+  specarch.yaml:7:73: error: /sources/notes/reading: schema: guessed is not allowed here; use one of parsed, printed [schema@specarch.yaml#/sources/notes/reading]

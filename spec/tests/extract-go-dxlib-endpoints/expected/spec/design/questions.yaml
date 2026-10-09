@@ -1,0 +1,262 @@
+questions:
+  Q-1:
+    question: 'api/broken.go does not parse as Go (api/broken.go:3:14: expected '')'', found ''{''), so what it registers is not read. Does it register an endpoint?'
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: A file the parser cannot read may register an endpoint, and an endpoint not read is one a reader must not miss.
+    cites:
+      - {source: code, clause: api/broken.go, says: Does not parse as Go.}
+  Q-2:
+    question: api/endpoints.go:26 registers an endpoint with NewEndPoint in a loop at api/endpoints.go:25, so the reader cannot tell how many endpoints it registers, or whether it registers one. Which endpoints does the running system register here?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: Syntax does not run the code; only the running system's own list of endpoints, such as the document dxlib emits, says what a loop or a condition registers.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:26', says: Calls NewEndPoint in a loop.}
+  Q-3:
+    question: api/endpoints.go:31 registers an endpoint with NewEndPoint behind a condition at api/endpoints.go:30, so the reader cannot tell how many endpoints it registers, or whether it registers one. Which endpoints does the running system register here?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: Syntax does not run the code; only the running system's own list of endpoints, such as the document dxlib emits, says what a loop or a condition registers.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:31', says: Calls NewEndPoint behind a condition.}
+  Q-4:
+    question: api/endpoints.go:35 registers an endpoint whose URI archivePath(...) the reader does not read as a literal. Which method and path does it register?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: A path or a method computed at run time is a guess for syntax; an endpoint is never written from a guess.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:35', says: Calls NewEndPoint with URI archivePath(...).}
+  Q-5:
+    question: 'api/endpoints.go:43: the handler of POST /loans/renew reads a parameter whose name field is not a literal. Which parameter does it read?'
+    kind: decision
+    priority: should
+    blocks: ['#/paths/~1loans~1renew/post']
+    decidedBy: system-owner
+    why: Syntax cannot tell which name a computed value holds.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:43', says: Calls GetParameterValueAsString with a name that is not a literal.}
+  Q-6:
+    question: 'api/endpoints.go:44: the handler of POST /loans/renew reads the parameter note, which the endpoint does not declare; dxlib answers such a read with an error at run time. Is note a parameter of the operation, or is the read a mistake?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1renew/post', '#/paths/~1loans~1renew/post/parameters']
+    decidedBy: system-owner
+    why: dxlib's getter fails for a name the endpoint does not declare, so the code cannot work as written.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:44', says: Calls GetParameterValueAsString("note").}
+  Q-7:
+    question: 'api/endpoints.go:52: the handler of POST /loans/renew answers 422 with an empty reason, so dxlib answers the status''s own text. Which problem does it answer?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1renew/post/responses/422/problem']
+    decidedBy: system-owner
+    why: A refusal with no reason of its own names no problem type, and a response names one once the specification declares them.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:52', says: Answers 422 with an empty reason.}
+  Q-8:
+    question: 'api/endpoints.go:55: the handler of POST /loans/renew answers 400 with WriteResponseAsError, which gives no reason of its own. Which problem does it answer?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1renew/post/responses/400/problem']
+    decidedBy: system-owner
+    why: A refusal with no reason of its own names no problem type, and a response names one once the specification declares them.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:55', says: Answers 400 with WriteResponseAsError.}
+  Q-9:
+    question: 'api/endpoints.go:57: the handler of POST /loans/renew answers with WriteResponseAndNewErrorf the status statusFor(...), which the reader does not read as a literal refusal status. Which status does it answer, and when?'
+    kind: decision
+    priority: should
+    blocks: ['#/paths/~1loans~1renew/post/responses']
+    decidedBy: system-owner
+    why: Only a literal status between 400 and 599 says which refusal the code answers.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:57', says: Calls WriteResponseAndNewErrorf with a status that is not a literal refusal status.}
+  Q-10:
+    question: api/endpoints.go:60 registers POST /loans/list, which api/endpoints.go:17 registers too; dxlib stops the service at the second. Which one does the running system serve?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1list/post', paths]
+    decidedBy: system-owner
+    why: dxlib refuses a method and URI registered twice when it starts, so at most one of these runs.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:60', says: Registers POST /loans/list a second time.}
+  Q-11:
+    question: api/endpoints.go:66 calls NewEndPoint with 13 arguments, and dxlib's takes 14, so the reader does not know what it registers. Which endpoint does it register?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: A registration the reader cannot read is an endpoint it would miss.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:66', says: Calls NewEndPoint with 13 arguments.}
+  Q-12:
+    question: What does POST /loans/list answer when it succeeds, and what does each response mean?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1list/post/responses/404/description', '#/paths/~1loans~1list/post/responses/422/description']
+    decidedBy: system-owner
+    why: The source names the refusals a handler answers with a literal status, not its success response or what each response means; the document dxlib emits declares them.
+  Q-13:
+    question: Does the running system register POST /loans/list? It is declared at api/endpoints.go:17, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1list/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:17', says: Registers POST /loans/list with NewEndPoint.}
+  Q-14:
+    question: The handler of POST /loans/renew answers 409 with the reasons loan-on-hold and loan-overdue, and a response names one problem. Which problem does 409 answer, or should the reasons be one?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1renew/post/responses/409/problem']
+    decidedBy: system-owner
+    why: A response in the meta-model names one problem type.
+  Q-15:
+    question: What does POST /loans/renew answer when it succeeds, and what does each response mean?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1renew/post/responses/400/description', '#/paths/~1loans~1renew/post/responses/409/description', '#/paths/~1loans~1renew/post/responses/422/description']
+    decidedBy: system-owner
+    why: The source names the refusals a handler answers with a literal status, not its success response or what each response means; the document dxlib emits declares them.
+  Q-16:
+    question: Does the running system register POST /loans/renew? It is declared at api/endpoints.go:38, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1renew/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:38', says: Registers POST /loans/renew with NewEndPoint.}
+  Q-17:
+    question: 'What values does each path parameter of /loans/{id} take: id?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1{id}/parameters/0/schema']
+    decidedBy: system-owner
+    why: A URI names its parameters and not the values they take; the document dxlib emits gives each one's type.
+  Q-18:
+    question: 'GET /loans/{id} checks no privilege: it registers it with none, so dxlib lets through every caller its middlewares admit (it has no middleware). Is it meant to be open to everyone (public), or which permission should it check?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1{id}/get/permission']
+    decidedBy: system-owner
+    why: dxlib checks no privilege on an endpoint that names none, and whether a caller must sign in is decided by its middlewares, which are code; an open endpoint is never written as public without the owner's word.
+  Q-19:
+    question: What does GET /loans/{id} answer when it succeeds, and what does each response mean?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1{id}/get/responses']
+    decidedBy: system-owner
+    why: The source names the refusals a handler answers with a literal status, not its success response or what each response means; the document dxlib emits declares them.
+  Q-20:
+    question: GET /loans/{id}'s handler handlers.ShowLoan is not a function the reader finds by syntax in the files read, such as a method or a function outside the module, so the parameters it reads and the problems it answers are not read. Which does it read and answer?
+    kind: decision
+    priority: should
+    blocks: ['#/paths/~1loans~1{id}/get']
+    decidedBy: system-owner
+    why: Syntax alone finds a function declared in the module and named directly, and no other.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:21', says: Its handler is handlers.ShowLoan.}
+  Q-21:
+    question: Does the running system register GET /loans/{id}? It is declared at api/endpoints.go:21, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1{id}/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:21', says: 'Registers GET /loans/{id} with NewEndPoint.'}
+  Q-22:
+    question: 'What does each permission allow: loans.read, loans.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.read/description', '#/permissions/loans.write/description']
+    decidedBy: system-owner
+    why: The source names the privilege an endpoint checks and not what it is for.
+  Q-23:
+    question: 'Which role grants each permission: loans.read, loans.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.read', '#/permissions/loans.write']
+    decidedBy: system-owner
+    why: The source names the privilege an endpoint checks and not who holds it.
+  Q-24:
+    question: Handlers answer the reason LOAN_OVERDUE with the statuses 409 and 422, and a problem has one status. Which status is it, or are these two problems?
+    kind: decision
+    priority: must
+    blocks: [errors, '#/paths/~1loans~1list/post/responses/422/problem']
+    decidedBy: system-owner
+    why: A problem type in the meta-model has one status, so the reason is not written as one, and the responses that answer it name no problem.
+    cites:
+      - {source: code, clause: 'api/loans.go:15', says: Answers 422 with the reason LOAN_OVERDUE.}
+  Q-25:
+    question: 'What is each problem''s title, and when is it answered: loan-not-found, loan-on-hold?'
+    kind: decision
+    priority: must
+    blocks: ['#/errors/loan-not-found/title', '#/errors/loan-not-found/condition', '#/errors/loan-on-hold/title', '#/errors/loan-on-hold/condition']
+    decidedBy: system-owner
+    why: The source gives a problem's status and reason, and not a title a person reads or the condition it is answered under.
+  Q-26:
+    question: 'Not held: api/endpoints.go:63: the endpoint HEAD /loans/list: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:63', says: 'Not held: the endpoint HEAD /loans/list: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out.'}
+  Q-27:
+    question: 'Not held: api/endpoints.go:69: NewWSEndPoint registers the WebSocket endpoint /loans/feed, and the meta-model has no socket; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:69', says: 'Not held: NewWSEndPoint registers the WebSocket endpoint /loans/feed, and the meta-model has no socket; left out.'}
+  Q-28:
+    question: 'Not held: api/endpoints.go:71: RegisterHandler binds closeLoan of the OpenAPI document the service loads to the handler CloseLoan; the document gives its method and path, and extract openapi reads it, so the handler is left out here. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:71', says: 'Not held: RegisterHandler binds closeLoan of the OpenAPI document the service loads to the handler CloseLoan; the document gives its method and path, and extract openapi reads it, so the handler is left out here.'}
+  Q-29:
+    question: 'Not held: api/endpoints.go:17: the endpoint POST /loans/list: dxlib names it post_loans_list from its URI, which is not camelCase, as an operationId is; it is named postLoansList. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1loans~1list/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:17', says: 'Not held: the endpoint POST /loans/list: dxlib names it post_loans_list from its URI, which is not camelCase, as an operationId is; it is named postLoansList.'}
+  Q-30:
+    question: 'Not held: api/endpoints.go:38: the endpoint POST /loans/renew: dxlib names it loans_renew from its URI, which is not camelCase, as an operationId is; it is named postLoansRenew. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1loans~1renew/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:38', says: 'Not held: the endpoint POST /loans/renew: dxlib names it loans_renew from its URI, which is not camelCase, as an operationId is; it is named postLoansRenew.'}
+  Q-31:
+    question: 'Not held: api/endpoints.go:21: the endpoint GET /loans/{id}: dxlib names it loans_id from its URI, which is not camelCase, as an operationId is; it is named getLoansById. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1loans~1{id}/get']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/endpoints.go:21', says: 'Not held: the endpoint GET /loans/{id}: dxlib names it loans_id from its URI, which is not camelCase, as an operationId is; it is named getLoansById.'}

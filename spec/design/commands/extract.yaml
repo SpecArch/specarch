@@ -106,10 +106,22 @@ commands:
         its permission, when it is lower-case words joined by dots and not
         `public`, and every such permission is declared citing the first
         operation that checks it, its description and the role that grants
-        it must questions; none, more than one, a name of another form,
-        `public` and a value that is not a list of names are each a must
-        question on the operation's permission, never written as public; a
-        name listed twice counts once. The security such an operation is
+        it must questions. A name in dxlib_module's form, words in
+        capitals and digits joined by underscores in segments joined by
+        dots (`ORDER.CREATE`, `GLOBAL.SET_MAINTENANCE_MODE`, `EVERYTHING`),
+        is mapped by the fixed rule of ADR-076: the name in lower case,
+        with every underscore a dot; that permission is declared inferred,
+        the rule its why, citing the operation. None, more than one, a
+        name of another form or one the rule makes into no permission
+        name, two names that give one permission, `public` and a value
+        that is not a list of names are each a must question on the
+        operation's permission, never written as public; a name listed
+        twice counts once. The question on an operation with no privilege
+        names its middlewares when `x-dxlib-middlewares` lists them. A
+        document every operation of which is in dxlib's dialect is what
+        the running service printed (ADR-076), so its source is a code
+        source with `reading: printed`, its clauses the operations' and
+        component schemas' pointers as for any document. The security such an operation is
         given prints a line, since it is not its permission. Its other
         `x-dxlib-` keys print a line as any extension does, and so does
         `x-dxlib-privileges` on an operation without
@@ -203,6 +215,61 @@ commands:
         question on the workflow. Each line names the file's line, and
         the lines come in the file's order.
 
+      - `go`: the tracked Go files under the paths, in one repository,
+        each read by the standard library's parser by its syntax alone
+        (ADR-075), as one code source with `reading: parsed` whose clauses
+        are the files read. A test file, and a file in a folder below a
+        path read that is named `testdata` or `vendor` or whose name
+        starts with a dot or an underscore, is left out, as the go
+        command leaves it out of `./...`; a file that
+        does not parse is a must question, and the rest are read. The
+        module path in `go.mod` resolves a handler in another package of
+        the module. In a file that imports dxlib's `api` package
+        (ADR-076), each `NewEndPoint` call whose URI is a string literal,
+        or literals joined by `+`, and whose method is one or a `net/http`
+        constant, outside a loop and a condition of its function, is an
+        operation under its path, named as dxlib names it from its URI
+        (and its method, when the URI has several), or, when that is not
+        camelCase, by its method and path as extract openapi names it,
+        with a line; its title is the summary, its description the
+        description, the URI's parameters its path parameters, and its
+        privileges read as extract openapi reads `x-dxlib-privileges`,
+        mapping included. It cites its registration's `path:line`, saying
+        its handler, its middlewares and its privileges, and its
+        handler's first line, saying the parameters the handler reads and
+        the refusals it answers. The handler is read where it is a
+        function literal, a function of the same package, or a function
+        of another package of the module named through its import; any
+        other is a should question. In the handler, each
+        `GetParameterValue...` call on the request with a literal name
+        is a parameter read, and one whose name the endpoint's literal
+        parameter list does not declare is a must question, since dxlib
+        fails it at run time; a name that is not a literal is a should
+        question. Each `WriteResponseAndNewErrorf`,
+        `WriteResponseAsErrorMessageNotLogged`, `WriteResponseAndLogAsError`
+        or `WriteResponseAsError` call with a literal status from 400 to
+        599, or a `net/http` constant, is a response of that status; its
+        literal reason, in kebab-case, names the problem it answers,
+        declared under `errors` with that status, citing the call, its
+        title and condition a must question. A reason that is not a
+        literal, an empty one, a call with no reason, two reasons at one
+        status and one reason at two statuses are each a must question on
+        the response's problem, and a status that is not a literal is a
+        should question. A registration in a loop or behind a condition,
+        one whose URI or method is not a literal, one with another number
+        of arguments than dxlib's, and the same method and URI a second
+        time are each a must question, and no operation. A WebSocket
+        endpoint (`NewWSEndPoint`, or `NewEndPoint` with
+        `EndPointTypeWS`), a `RegisterHandler` call, whose operation the
+        document the service loads declares, and a method the meta-model
+        does not hold print a line. Each operation carries a must
+        question on whether the running system registers it, which a
+        printed tree answers in the merge, and one on its success
+        response and what each response means; an operation with no
+        privilege, several or one that does not map is asked as in
+        extract openapi. A file that imports dxlib's `api` package and
+        gives nothing read prints a line.
+
       Every reader follows these rules:
 
       - The tree's root tracks origin. The code readers declare one code
@@ -210,7 +277,10 @@ commands:
         `code`), whose
         `edition` is the full hash of the commit read and whose `url` is
         the repository's folder relative to `--out`. Clauses are paths from
-        the repository's root.
+        the repository's root. Its `reading` says how it was read:
+        `printed` for router, database and permissions, which read a list
+        the running system printed, and `parsed` for go, which reads the
+        source itself (ADR-075).
       - Every element is `origin: stated` and cites where it was read.
         What the surface does not say is a question, never a value: a
         constraint's message, which no catalogue holds, a check the
@@ -253,11 +323,11 @@ commands:
     permission: public
     arguments:
       - name: source
-        description: "The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages` or `workflows`."
+        description: "The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows` or `go`."
         required: true
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
       - name: paths
-        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder; for workflows, one BPMN 2.0 XML file."
+        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository."
         required: true
         repeatable: true
         schema: { type: string }
@@ -277,8 +347,11 @@ commands:
       One line naming the commit read and the paths it was the last change
       to; one line per count, saying what was counted and how; one line per
       object the specification could not hold, naming it, saying why and
-      naming the question that asks about it; and one line per file that
-      says it is generated from another source.
+      naming the question that asks about it; one line naming a dialect
+      the reader reads, or a document read as what the running system
+      printed; one line per file that imports a library the reader knows
+      and gives nothing it reads; and one line per file that says it is
+      generated from another source.
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written

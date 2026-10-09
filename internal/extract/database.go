@@ -119,6 +119,7 @@ func Database(dumpPath, out, key string) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
+	set(src, "reading", "printed")
 	stages := []string{"design"}
 	if len(d.questions.Content) > 0 {
 		stages = []string{"requirements", "design"}

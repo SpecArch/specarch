@@ -15,3 +15,4 @@ sources:
     url: ../service
     clauses:
       - {clause: access, title: The grants the permission check built from here reads}
+    reading: printed

@@ -209,8 +209,10 @@ func (c *checker) checkOriginTracked(d *design) {
 
 // Covered splits the diagnostics into the ones to report and the ones an
 // open must question covers: a required key missing at or under a pointer
-// the question blocks, the warnings about that element, and a permission
-// no role grants when the question blocks that permission. A pointer to an
+// the question blocks, the warnings about that element, the problem a
+// response must name once problem types are declared when the question
+// blocks that problem, and a permission no role grants when the question
+// blocks that permission. A pointer to an
 // element known only by name, an empty mapping such as a field with
 // nothing but its name, covers everything under it. A wrong value next to
 // the gap stays an error. root is the merged specification.
@@ -261,6 +263,11 @@ func Covered(ds []Diagnostic, root *yaml.Node) (kept, covered []Diagnostic) {
 			isCovered = under(d.Path) || contains(keys[d.Path], missing)
 		case d.Severity == Warning:
 			isCovered = under(d.Path) || d.Rule == RuleAcceptanceMissing && contains(keys[d.Path], "acceptance")
+		case d.Rule == RuleProblem && strings.HasSuffix(d.Message, " names one under problem"):
+			// A response whose problem the source does not name, while
+			// the specification declares problem types: the problem is
+			// the key missing, and a question on it says it is not known.
+			isCovered = under(d.Path) || contains(keys[d.Path], "problem")
 		case d.Rule == RulePermissionUngranted:
 			// The grant is what is missing, and it is written in a role,
 			// not under the permission; a question on the permission

@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: Merge of 3 trees
+  version: 0.1.0
+  description: |
+    The elements of these trees, merged in this order: desk; Routes of code; Go source of code. Every element cites where it was read; where the trees disagree, or the documents and the code do, a question asks which is right.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  api:
+    kind: code
+    title: desk
+    edition: ec4d1d1d8727140a93c52c450e3351776ac2f953
+    url: ../../src/api.openapi.json
+    clauses:
+      - {clause: /paths/~1loans~1close/post, title: POST /loans/close}
+      - {clause: /paths/~1loans~1report/post, title: POST /loans/report}
+    reading: printed
+  code:
+    kind: code
+    title: The code repository
+    edition: ec4d1d1d8727140a93c52c450e3351776ac2f953
+    url: ../../src
+    clauses:
+      - {clause: code, title: The routes the router built from here registers}
+      - {clause: code/endpoints.go, title: 'Go source, read by its syntax'}

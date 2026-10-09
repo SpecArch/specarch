@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "code sources read printed and parsed, a document source that says how it was read, and a code source whose reading is neither printed nor parsed"
+when: "validate is run"
+then: "it accepts both code sources, reports the document source's reading and the reading that is neither, and exits 1"
+verifies: [SA-44]

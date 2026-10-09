@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 308 design tests, 121 golden and 187 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 310 design tests, 122 golden and 188 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 304 |
+| system | 306 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -959,6 +959,22 @@ Scenario: golden; level: system; verifies SA-43.
 - When: generate ui is run with --unapproved
 - Then: it writes the page's HTML and module, events.js with the page's and the operation's events, and theme.css with the tokens as custom properties and the rules the target's token settings name, and exits 0
 
+#### generate-ui-typescript
+
+Scenario: golden; level: system; verifies SA-52.
+
+- Given: a specification with two task pages, one signing in with an email address and a password that has a pattern and leading to a view with a route parameter from the answer, one accepting an invitation with a field of no title, a password typed twice and two checks across fields, and a view; an implementation file in TypeScript whose ui target is platform web in nextjs-carbon; and specarch-gen-ui-typescript built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it writes each task page's schema, its fields' keywords and the password's rules, its checks as rules, its refusals and its events, and its page.tsx with the routes its events lead to, the components under screens and every text in strings.ts; it warns that the field with no title is labelled by its name and that the view is left out, and exits 0
+
+#### generate-ui-typescript-refused
+
+Scenario: red; level: system; verifies SA-52.
+
+- Given: the specification of the golden case, whose invitation page also shows a field of type integer and checks it with an expression that adds; an implementation file in TypeScript whose ui target is platform web in nextjs-carbon; and specarch-gen-ui-typescript built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it reports the integer field at the page's field and the addition at the check's expression as errors, each saying what this version writes, writes nothing, and exits 1
+
 #### generate-unapproved
 
 Scenario: golden; level: system; verifies SA-20.
@@ -1025,7 +1041,7 @@ Scenario: golden; level: system; verifies SA-32.
 
 - Given: a specification with a list page and two implementation files: one in TypeScript whose ui target is platform web, framework nextjs-carbon, and one in JavaScript whose ui target is platform web and names no framework, so plain-javascript
 - When: idioms is run
-- Then: it lists ui-components 1.0.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and not for the JavaScript file, and exits 0
+- Then: it lists ui-components 1.1.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and not for the JavaScript file, and exits 0
 
 #### idioms-usage-error
 
@@ -2531,7 +2547,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-170 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+176 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2611,6 +2627,12 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-43 | acceptance 3 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 4 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 5 | golden | SA-43 names no harm |
+| requirement SA-52 | acceptance 1 | golden | SA-52 names no harm |
+| requirement SA-52 | acceptance 2 | golden | SA-52 names no harm |
+| requirement SA-52 | acceptance 3 | golden | SA-52 names no harm |
+| requirement SA-52 | acceptance 4 | golden | SA-52 names no harm |
+| requirement SA-52 | acceptance 5 | golden | SA-52 names no harm |
+| requirement SA-52 | acceptance 6 | golden | SA-52 names no harm |
 | requirement SA-48 | acceptance 1 | golden | SA-48 names no harm |
 | requirement SA-48 | acceptance 2 | golden | SA-48 names no harm |
 | requirement SA-48 | acceptance 3 | golden | SA-48 names no harm |

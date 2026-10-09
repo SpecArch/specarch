@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: generate
+level: system
+scenario: red
+given: "the specification of the golden case, whose invitation page also shows a field of type integer and checks it with an expression that adds; an implementation file in TypeScript whose ui target is platform web in nextjs-carbon; and specarch-gen-ui-typescript built from this repository on PATH"
+when: "generate ui is run with --unapproved"
+then: "it reports the integer field at the page's field and the addition at the check's expression as errors, each saying what this version writes, writes nothing, and exits 1"
+verifies: [SA-52]

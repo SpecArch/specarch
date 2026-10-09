@@ -176,15 +176,16 @@ jobs:
           for target in techspec requirements testplan traceability deployment commissioning questions problems changes releases; do go run ./cmd/specarch document $target --check spec examples/library-lending || exit 1; done
           for target in techspec requirements traceability questions problems; do go run ./cmd/specarch document $target --check examples/lending-desk || exit 1; done
       - name: Generated code and data are current
-        # The library's migrations, OpenAPI document and screens are checked
-        # in, so a design change that leaves them stale fails here. The
+        # The library's migrations, OpenAPI document and screens, in plain
+        # JavaScript and on Next.js, are checked in, so a design change that
+        # leaves them stale fails here. The
         # example is not approved, hence --unapproved. Its tests target
         # writes into the service's own tree, which the example does not
         # hold, and the lending desk's SQL and OpenAPI are generated only
         # with --out, in the step above.
         run: |
           mkdir -p "$RUNNER_TEMP/bin"
-          for generator in sql openapi ui; do go build -o "$RUNNER_TEMP/bin/specarch-gen-$generator" ./cmd/specarch-gen-$generator || exit 1; done
+          for generator in sql openapi ui ui-typescript; do go build -o "$RUNNER_TEMP/bin/specarch-gen-$generator" ./cmd/specarch-gen-$generator || exit 1; done
           export PATH="$RUNNER_TEMP/bin:$PATH"
           for target in sql openapi ui; do go run ./cmd/specarch generate $target --check --unapproved examples/library-lending || exit 1; done
 

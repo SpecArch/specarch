@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.6.0-dev of the specification: 5 stakeholders, 9 needs and 51 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.6.0-dev of the specification: 5 stakeholders, 9 needs and 52 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 ## 1. Purpose and scope
 
@@ -32,7 +32,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-49, SA-46, SA-32, SA-9, SA-10 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-49, SA-46, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-19 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
@@ -63,6 +63,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-41 | functional | should | accepted | A specification shall declare a read model under views, an entity's row with fields read through its relations and counts of its related records added, which is never written, and specarch validate shall check every path, count and use of a view. |
 | SA-42 | functional | should | accepted | A specification shall define the behaviour, structure and rules of a user interface without naming a stack, the events of a page and where each leads among them, and specarch validate shall check them. |
 | SA-43 | functional | should | accepted | specarch generate ui shall write, through a plug-in, the list pages of a specification for the web in plain JavaScript, with no package, bundler or build step, so that the screens follow the design's pages, events, states, accessibility and theme. |
+| SA-52 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui-typescript, the task pages of a specification for the web on Next.js's app router and IBM's Carbon design system, from an implementation file in TypeScript, so that sign-in and the forms like it follow the design's fields, checks, refusals and events, drawn by the components the ui-components idiom names. |
 | SA-48 | functional | should | accepted | A specification shall declare a value object under schemas, data passed around but not stored and with no identity, which a request body, a response, a message, another schema and an entity's field may refer to and a relation may not, and specarch validate shall check every use of one. |
 | SA-49 | functional | should | accepted | A specification shall be able to say, once for the whole interface, that its properties go on the wire in snake_case while it names them in camelCase, and specarch validate shall refuse two properties of one object that would go on the wire under one name. |
 | SA-50 | functional | should | accepted | An entity's field shall be able to hold a value object, one schema or a list of them, stored in columns of the entity's row or as one JSON value as the field's storage says, and specarch validate shall refuse a value object that cannot be stored that way. |
@@ -382,6 +383,23 @@ Acceptance criteria:
 - The library lending example's loans list, written by hand before the generator, was reproduced by it apart from its header.
 
 **Insight:** A screen written by hand drifts from the pages, states and messages the owner reviewed; written from them, it says what the design says, and a change to the design reaches the screen on the next run.
+
+### SA-52
+
+specarch generate ui shall write, through specarch-gen-ui-typescript, the task pages of a specification for the web on Next.js's app router and IBM's Carbon design system, from an implementation file in TypeScript, so that sign-in and the forms like it follow the design's fields, checks, refusals and events, drawn by the components the ui-components idiom names.
+
+Kind: functional; priority: should; status: accepted; verified by test; refines NEED-2.
+
+Acceptance criteria:
+
+- Each task page becomes a schema file under app/ at its route that holds data only, one object literal typed with satisfies by the task-page part's schema type, and a page.tsx that builds the texts of the schema, hands both to the part's component with the routes its events lead to, and reads returnTo; the keys of the schema are the names of the ui-components idiom, the project's override first.
+- A field is the request body's property, of type string, drawn by the text, email or password field part by its format, and checked before the request is sent by its required, minLength, maxLength and pattern; a password field shows those rules under it. A check across fields becomes a rule in the schema's data, of names, constants, comparisons, &&, ||, ! and size.
+- A refusal is shown under the field the failed state names, or above the form; each success the operation answers leads to its page with its route parameters taken from the answer, and its message is announced there without moving focus. An event to another task page hands on returnTo, the page sign-in was asked for from, and an event to any other page gives way to it.
+- The components that read the schemas are written once under screens/ on plain Carbon, and every text once in strings.ts in the target's language, each a string key the schemas name, typed so that a key without an entry fails tsc.
+- A target that is not platform web in nextjs-carbon, a file not in TypeScript, a target with no language, a field that is not of type string or holds an enum or a format other than email and password, fields entered twice, a check with any other operator or function, a refusal the operation does not answer, and a file in the output folder this plug-in did not write are refused; other page kinds are reported and left out.
+- The library lending example's sign-in and second-factor screens, written by hand before the generator, were reproduced by it apart from the header, and the example builds with tsc --noEmit, its lint and next build.
+
+**Insight:** The project that asked builds its screens on Next.js and Carbon, and a screen written by hand there drifts from the design as one in plain JavaScript does; sign-in comes first because it stands in front of every other screen.
 
 ### SA-48
 

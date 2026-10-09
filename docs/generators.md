@@ -358,6 +358,37 @@ lending example's loans list, written by hand before the generator; the
 first real plain JavaScript project repeats the check against its own
 first screen (ADR-040).
 
+### TypeScript on Next.js and Carbon
+
+`specarch-gen-ui-typescript` writes, for a `ui` target of platform `web`
+and framework `nextjs-carbon` in an implementation file in TypeScript,
+each task page as `page.schema.ts` and `page.tsx` under `app/` at the
+page's route (`{param}` becomes `[param]`), the components that read the
+schemas once under `screens/`, and every text once in `strings.ts`, in the
+language `settings.language` names, which is required. The schema file is
+data only: one object literal typed with `satisfies`, whose keys are the
+names of the `ui-components` idiom (`docs/idioms.md`), a project's
+override first, laid out as prettier lays out an object literal at a width
+of 140. `page.tsx` hands the component the schema, the texts it names and
+the routes its events lead to. A field is a property of the request body of
+type string, drawn by the text, email or password field part by its
+format and checked by its keywords before the request is sent; a password
+shows its rules under it. A check across fields is written as a rule in
+the data, of names, constants, comparisons, `&&`, `||`, `!` and `size`; any
+other operator or function is refused at the check. A refusal shows under
+the field its failed state names, or above the form; each success leads to
+its page, its message announced there. A page reads `returnTo` from its
+query and hands it on to another task page, and an event to any other
+page goes to it instead, when it is a path of this site. The service is
+called at `NEXT_PUBLIC_API_URL`. The generator writes no package, lock file
+or configuration, and refuses to write over a file in its output folder it
+did not write.
+
+Lists, forms and views are reported and left out of this version; the
+steps of `docs/ui-nextjs-carbon.md` add them. The screens it is checked
+against are the library lending example's sign-in and second-factor
+screens, written by hand before the generator (ADR-067).
+
 ## Tests from the specification
 
 The specification says what is tested; the implementation file says with

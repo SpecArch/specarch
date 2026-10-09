@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-067:
+    title: The TypeScript generator writes task pages first, each a schema of data a component reads, its checks as rules in that data, and returnTo handed on until sign-in is done
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Step 2 of docs/ui-nextjs-carbon.md writes the sign-in task forms on
+      Next.js and Carbon (ADR-051). A task page's checks are expressions,
+      but its schema file holds data only and a page that renders on the
+      server hands the browser only what can be serialised. sign-in leads
+      on to the second factor or, when it is done, back to the page that
+      asked for it, and the design says neither which page asked nor how
+      a message reaches the next page. The example's reference screens
+      were written by hand first and committed alone (ADR-040's rule).
+    decision: |
+      specarch-gen-ui-typescript writes, per task page, page.schema.ts
+      and page.tsx at the page's route under app/, {param} becoming
+      [param]; once per application the components under screens/ and
+      every text in strings.ts. A check becomes a rule in the data, a
+      nested array of an operator and its operands (field, value, !,
+      size, the comparisons, && and ||), which the components evaluate;
+      any other operator or function is refused at the check, never
+      dropped. Texts are string keys, page by page and the screens' own,
+      and page.tsx hands the component the texts its schema names. A page
+      reads returnTo from its query; an event to another task page hands
+      it on, an event to any other page goes to it in place of its own
+      when it is a path of this site. A message is kept in the session's
+      storage for the page an event leads to, and the Notice the layout
+      shows announces it there. A field of type string with format
+      email or password, or none, is all a task page shows in this
+      version; other fields, and fields entered twice, are refused. The
+      service is called directly at NEXT_PUBLIC_API_URL until step 6
+      brings the server routes. The schema is laid out as prettier lays
+      out an object literal at a width of 140, so a generated file reads
+      as one written by hand.
+    consequences: |
+      The example's sign-in and second-factor screens were reproduced
+      apart from the header, and strings.ts differs from the reference
+      only by the password reset's texts, which the reference did not
+      hold; the reset page is generated with them, and the application
+      builds with tsc, its lint and next build. A check the browser cannot
+      evaluate stops generation until it is rewritten or left to the
+      server. The guard that sends a person to sign-in with returnTo comes
+      with the lists in step 3, so until then returnTo is given only by a
+      link.
+    why: |
+      A rule as data keeps the schema file data, comparable as a value
+      (Q9), and serialisable from the server to the browser, where a
+      function is neither; the few operators a form needs are a small
+      evaluator, and refusing the rest keeps every check either in the
+      browser or reported. returnTo in the query, rather than a cookie,
+      keeps the pages stateless and visible in the address, and checking
+      it is a local path stops an open redirect. The session's storage
+      carries a message across a navigation without a server or a query
+      parameter a person could forge.
+    satisfies: [SA-52]

@@ -169,6 +169,21 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: A screen written by hand drifts from the pages, states and messages the owner reviewed; written from them, it says what the design says, and a change to the design reaches the screen on the next run.
+  SA-52:
+    statement: specarch generate ui shall write, through specarch-gen-ui-typescript, the task pages of a specification for the web on Next.js's app router and IBM's Carbon design system, from an implementation file in TypeScript, so that sign-in and the forms like it follow the design's fields, checks, refusals and events, drawn by the components the ui-components idiom names.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - Each task page becomes a schema file under app/ at its route that holds data only, one object literal typed with satisfies by the task-page part's schema type, and a page.tsx that builds the texts of the schema, hands both to the part's component with the routes its events lead to, and reads returnTo; the keys of the schema are the names of the ui-components idiom, the project's override first.
+      - A field is the request body's property, of type string, drawn by the text, email or password field part by its format, and checked before the request is sent by its required, minLength, maxLength and pattern; a password field shows those rules under it. A check across fields becomes a rule in the schema's data, of names, constants, comparisons, &&, ||, ! and size.
+      - A refusal is shown under the field the failed state names, or above the form; each success the operation answers leads to its page with its route parameters taken from the answer, and its message is announced there without moving focus. An event to another task page hands on returnTo, the page sign-in was asked for from, and an event to any other page gives way to it.
+      - The components that read the schemas are written once under screens/ on plain Carbon, and every text once in strings.ts in the target's language, each a string key the schemas name, typed so that a key without an entry fails tsc.
+      - A target that is not platform web in nextjs-carbon, a file not in TypeScript, a target with no language, a field that is not of type string or holds an enum or a format other than email and password, fields entered twice, a check with any other operator or function, a refusal the operation does not answer, and a file in the output folder this plug-in did not write are refused; other page kinds are reported and left out.
+      - The library lending example's sign-in and second-factor screens, written by hand before the generator, were reproduced by it apart from the header, and the example builds with tsc --noEmit, its lint and next build.
+    verification: test
+    needs: [NEED-2]
+    why: The project that asked builds its screens on Next.js and Carbon, and a screen written by hand there drifts from the design as one in plain JavaScript does; sign-in comes first because it stands in front of every other screen.
   SA-48:
     statement: A specification shall declare a value object under schemas, data passed around but not stored and with no identity, which a request body, a response, a message, another schema and an entity's field may refer to and a relation may not, and specarch validate shall check every use of one.
     kind: functional

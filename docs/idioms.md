@@ -298,7 +298,7 @@ reads it. It applies to a file with that framework whose specification
 has `pages`. Its parts are one per thing drawn: `application` (the
 packages every screen imports, and where the components that read the
 schemas live), `list-page`, `form-page`, `view-page`, `task-page`, a part
-per field type (`text-field`, `text-area-field`, `password-field`,
+per field type (`text-field`, `text-area-field`, `email-field`, `password-field`,
 `number-field`, `date-field`, `select-field`, `checkbox-field`,
 `lookup-field`), `confirm-dialog`, `notification` and `menu`. Each names,
 under `names`, the component, the schema type it takes, the Carbon

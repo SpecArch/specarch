@@ -27,7 +27,7 @@ steps. In short:
    with screens built by hand.
 
 Questions Q1 to Q10 at the end were the owner's, who answered each as
-recommended on 2026-10-09 (ADR-051). Step 1 is built.
+recommended on 2026-10-09 (ADR-051). Steps 1 and 2 are built.
 
 ## Where SpecArch stands
 
@@ -159,11 +159,11 @@ components use one keeps it inside its own library, behind the override.
 
 ## The libraries, checked
 
-The example's web application, built in step 2, needs these. Their
-licences were checked, and the set was resolved and scanned before any
-is taken (pnpm 12.9.1, 400 packages, syft, grype and osv-scanner); step 2
-pins the newest versions then, scans again and records the result in the
-implementation file's `libraries` and the commit.
+The example's web application, `examples/library-lending/web-nextjs`,
+pins these, the newest when it was built; its lock file resolves 453
+packages (pnpm 12.9.1), scanned with syft, grype and osv-scanner, and the
+implementation file's `libraries` records them with the reason for each
+version held back.
 
 | Package | Version checked | Licence | Use |
 |---|---|---|---|
@@ -230,11 +230,12 @@ lock file passes the scan with the reasons on record:
 | `language-subtag-registry`, CC0-1.0 | `licence_exceptions` | a list the accessibility lint reads; never shipped in a page |
 | `braces` 3.0.3, GHSA-vfj7-8cjw-p6xm | `vulnerabilities` | no fixed version; reached only through the lint, which reads the project's own patterns, never a visitor's; review by 2027-04-09, or when a fixed release exists, and again when step 2 pins its versions |
 
-`sharp` and its LGPL `@img/sharp-libvips-*` are not accepted: step 2's
-`pnpm-workspace.yaml` removes them with `overrides: { sharp: "-" }`. The
+`sharp` and its LGPL `@img/sharp-libvips-*` are not accepted: the
+example's `pnpm-workspace.yaml` removes them with `overrides: { sharp: "-" }`,
+and its `allowBuilds` denies every dependency's install script by name. The
 packages the shipped `ui-components` idiom names are under its
-`application` part's `libraries`, at the versions checked; step 2 pins the
-newest then in the example's implementation file, with its scan.
+`application` part's `libraries`; the example's implementation file pins
+them.
 
 ## Building the generator
 
@@ -255,23 +256,26 @@ needs Q1, Q4 and Q5; step 2 needs Q2, Q3, Q6, Q7 and Q10.
    one on `plain-javascript`, an override of it rendering a stack its file
    does not have is refused with the same message in both builds, and
    conformance cases show all three.
-2. **Task forms: sign-in, second factor, password reset.** First the
-   reference: the library lending example gains its TypeScript
-   implementation file, the sign-in and second-factor operations (Q6),
-   and a Next.js application under `examples/library-lending/web-nextjs/`
-   whose sign-in and second-factor screens are written by hand on plain
-   Carbon, committed alone, with its `package.json`, `pnpm-lock.yaml` and
-   `pnpm-workspace.yaml`, the libraries pinned and scanned (Q10), and a CI
-   job that runs `pnpm install`, `tsc --noEmit`, the lint and `next build`
-   on it. Then `specarch-gen-ui-typescript` with the per-page schema and
-   `page.tsx`, the task-page part, the events of a task form (to the
-   second factor when the answer asks for it, back to the page that asked
-   for sign-in with its parameters kept), the password rules from the
-   request schema (Q7), and a requirement of its own. Waits for the 0.2
-   step that adds a page with no entity. Done when the generator writes
-   the two screens and the password reset as the reference has them,
-   apart from the header, the CI job builds the result, and a second run
-   writes the same bytes.
+2. **Built: task forms, sign-in, second factor, password reset.** First
+   the reference: the library lending example gained the second factor,
+   `signIn` answering 201 when it is asked for and `confirmSecondFactor`
+   taking the code (Q6), and a Next.js application under
+   `examples/library-lending/web-nextjs/` whose sign-in and second-factor
+   screens were written by hand on plain Carbon and committed alone, with
+   its `package.json`, `pnpm-lock.yaml` and `pnpm-workspace.yaml`, the
+   libraries pinned and scanned (Q10), and a CI job that runs
+   `pnpm install`, `tsc --noEmit`, the lint and `next build` on it. Then
+   the example's TypeScript implementation file and
+   `specarch-gen-ui-typescript` (SA-52, ADR-067): per task page the schema
+   and `page.tsx`, the components under `screens/` and the texts in
+   `strings.ts`; the events of a task form, to the second factor on 201,
+   and back to the page that asked for sign-in through `returnTo`; checks
+   as rules in the schema's data; the password rules from the request
+   schema (Q7). The task-page part names its `checks`, `failed` and
+   `events`, and an `email-field` part joins the idiom (1.1.0). The
+   generator wrote the two screens as the reference has them, apart from
+   the header, and `strings.ts` apart from the password reset's texts; the
+   CI job builds the result, and a second run writes the same bytes.
 3. **Lists, with the override.** List pages with server-side paging,
    sort, search and typed filters (the paginated-list idiom's names), a
    column picker, a refresh that keeps the page, the soft-delete idiom's

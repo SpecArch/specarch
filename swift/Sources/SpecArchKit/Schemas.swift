@@ -8504,7 +8504,7 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: ui-components
-version: 1.0.0
+version: 1.1.0
 concern: ui-components
 stacks: [nextjs-carbon]
 reads: [pages]
@@ -8589,7 +8589,15 @@ parts:
     description: A form that submits to an operation without loading a record, such as sign-in.
     stack:
       nextjs-carbon:
-        names: { component: TaskPage, schemaType: TaskPageSchema, carbonForm: Form, carbonSubmit: Button, carbonError: InlineNotification, title: title, submit: submit, fields: fields }
+        names: { component: TaskPage, schemaType: TaskPageSchema, carbonForm: Form, carbonSubmit: Button, carbonError: InlineNotification, title: title, submit: submit, fields: fields, checks: checks, failed: failed, events: events }
+        code: |
+          The fields in a Form, each drawn by its field part, checked by
+          their keywords and the page's checks before the request is sent;
+          a refusal under the field it names or in an InlineNotification;
+          each success the operation answers leads where its event says.
+          An event to another task page hands on returnTo, the page
+          sign-in was asked for from; an event to any other page gives way
+          to it.
   text-field:
     description: A field of type string with no format the other field parts take.
     stack:
@@ -8600,6 +8608,11 @@ parts:
     stack:
       nextjs-carbon:
         names: { type: textArea, schemaType: TextAreaFieldSchema, carbon: TextArea, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly }
+  email-field:
+    description: A field of format email.
+    stack:
+      nextjs-carbon:
+        names: { type: email, schemaType: EmailFieldSchema, carbon: TextInput, name: name, label: label, required: required, maxLength: maxLength }
   password-field:
     description: A field of format password, its rules shown under it.
     stack:

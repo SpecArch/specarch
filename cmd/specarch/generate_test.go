@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/SpecArch/specarch/internal/generate"
@@ -16,7 +17,11 @@ func TestPluginRequestIdioms(t *testing.T) {
 	s := spec.Load("../../examples/library-lending/spec")
 	l := loaded{spec: s}
 	for _, impl := range s.Implementations {
-		l.impls = append(l.impls, generate.Implementation{Node: source.Parse(impl.Data).Root, Path: impl.Path})
+		// The Go file names the openapi target; the TypeScript file
+		// builds the web screens only.
+		if strings.HasSuffix(impl.Path, ".go.specarch-implementation.yaml") {
+			l.impls = append(l.impls, generate.Implementation{Node: source.Parse(impl.Data).Root, Path: impl.Path})
+		}
 	}
 	req := newPluginRequest(l, "openapi", "out", l.impls)
 	if len(req.Implementations) != 1 {

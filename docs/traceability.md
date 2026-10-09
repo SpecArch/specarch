@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.6.0-dev of the specification: 9 needs, 51 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.6.0-dev of the specification: 9 needs, 52 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 ## 1. Needs to requirements
 
 | Need | Status | Refined by |
 |---|---|---|
 | NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-49, SA-46, SA-32, SA-9, SA-10 |
+| NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-49, SA-46, SA-32, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-19 |
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-35, SA-47, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
@@ -73,6 +73,7 @@ Version 0.6.0-dev of the specification: 9 needs, 51 requirements, and 0 gaps. Ea
 | SA-49 | NEED-2 | enums Rule; decisions ADR-062 | tests extract-openapi-snake-case; tests generate-openapi-wire-names; tests validate-wire-names |
 | SA-50 | NEED-1 | enums Rule; decisions ADR-063 | tests generate-sql-value-object-fields; tests validate-value-object-fields; tests validate-value-object-fields-valid |
 | SA-51 | NEED-1, NEED-8 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066 | tests document-problems-lists; tests document-problems-none |
+| SA-52 | NEED-2 | decisions ADR-067 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 
 ## 3. Gaps
 

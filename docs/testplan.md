@@ -4,6 +4,10 @@
 
 Version 0.6.0-dev of the specification: 349 design tests, 142 golden and 207 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
+
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
@@ -2862,7 +2866,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-215 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+219 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -3059,6 +3063,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-45 | acceptance 5 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 6 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 7 | golden | SA-45 names no harm |
+| requirement SA-57 | acceptance 1 | golden | SA-57 names no harm |
+| requirement SA-57 | acceptance 2 | golden | SA-57 names no harm |
+| requirement SA-57 | acceptance 3 | golden | SA-57 names no harm |
+| requirement SA-57 | acceptance 4 | golden | SA-57 names no harm |
 | requirement SA-1 | acceptance 1 | golden | SA-1 names no harm |
 | requirement SA-1 | acceptance 2 | golden | SA-1 names no harm |
 | requirement SA-2 | acceptance 1 | golden | SA-2 names no harm |

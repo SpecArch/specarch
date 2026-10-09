@@ -2,7 +2,9 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 56 requirements, 5 entities, 12 commands, 7 algorithms, 349 tests, 80 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 57 requirements, 5 entities, 12 commands, 7 algorithms, 349 tests, 81 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Introduction and goals
 
@@ -5656,6 +5658,55 @@ the source of the data model.
 
 **Insight:** Following router values, rather than matching a method name on any receiver, keeps a call such as a cache's Get from being read as a route: only a value the reader saw made, given or declared as a router registers one. Reading a type of the module with ServeMux's Handle method as a ServeMux is what lets a ServeMux service keep a route table at all, since ServeMux lists nothing, and the recorder pattern is how such a service prints one; it is the method set ServeMux itself has, so it is no guess. A function no call names is where a program's routing starts, as main or a handler factory; walking the rest last, with routers of unknown place, means a registration is never dropped, only asked about. A check named by the project, because syntax cannot tell a permission check from any call that takes a string, and guessing by a name such as Require would write a permission the code does not check; ADR-076 noted that a router without dxlib's chain names its check this way. Naming the argument, because checks differ in where the permission goes (Require(permission, handler), Allowed(request, permission)), and a rule of the reader's own about it would be ambiguity. encoding/json's rules for the body, since they are what the handler accepts: a field with no tag goes on the wire by its Go name, which is neither camelCase nor snake_case, so it is left out with a line rather than renamed. A 64-bit integer is a must question, as the validator's unsafe_integer rule and extract openapi ask it, since encoding/json writes it as a number. Only validator rules whose meaning a keyword holds exactly are written: min and max count characters as minLength and maxLength do; dive, cross-field rules and the like have no keyword and print a line.
 
+### ADR-083: A result is shown early and traced to its elements, and a remark from acceptance comes back as a change request that becomes a decision, a question or a rejection
+
+Status: proposed, 2026-10-09.
+
+Context: People never write a complete specification. Some of it is left
+out, some is wrong in a way nobody sees until the system is in
+front of them, and the people who will use it attend the user
+acceptance test rather than the requirements meetings, and ask
+there for changes. SpecArch reads an incomplete specification and
+marks its problems, but its path ends at code: documents are the
+only result shown before approval, nothing generated names the
+element it came from, and the change and defect records have no
+acceptance phase, no build, no observed and expected, and no way
+to say whether the specification was silent, wrong or right with
+the need changed.
+
+Decision: The loop is designed in docs/acceptance.md and reuses what exists.
+A result is shown early: documents are written for an incomplete
+specification, the marked draft of the owner's option B for ADR-066
+is the build a tester runs, and every generated file names the specification's version
+and digest. Every generated output carries the JSON pointer of the
+element it came from, and the problem ids when marked; an
+environment with trace true shows it to the tester and sends it in
+an answer header, and no other environment shows it. A remark is a
+change or defect record with phase acceptance, the build it is
+against, where it was seen, what was observed and expected, and for
+a change its cause: omitted, wrong or changed. Its analysis ends in
+a decision that names the change request under answers, with the
+elements it changes carrying origin decided; in an open question
+the change names; or in a rejection. The changes document shows
+what an open change reaches before it is made, and the approval
+stays whole: it records the commit it was made at, and diff
+against that commit shows the approver what changed and which
+record covers it, its version check skipped when both sides have
+the same version.
+
+Consequences: The record schema, both validator builds, the generators, the
+changes and releases documents and the deployment stage gain what
+docs/acceptance.md lists, in the steps it numbers. A decision may
+name a change request, the one link from the specification to a
+record. Until the marked draft is built, a preview before approval
+still needs --unapproved.
+
+**Insight:** A specification that compiles can still be the wrong one, and only the people who use the system find out, by looking at it. A remark that cannot name the element it is about is applied by guesswork, and one applied to the generated code instead of the specification is overwritten by the next generation. The JSON pointer is the id the records, the problems and diff already use, so a tester's remark lands where the analyst works without a second id scheme. A pointer names the inside of the system, so it is shown only where a tester needs it. The cause keeps apart what measures the requirements work (omitted and wrong) from what is normal change, and a defect stays measured against the specification, so triage still has a reference. Approval stays of exactly what was read, as ADR-019 says; diff makes reading again cheap without approving part of a specification. Points for the owner are listed in the last section of docs/acceptance.md.
+
+**Note:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.4.11: The validation process provides objective evidence that the system fulfils its intended use in its intended operational environment. <https://www.iso.org/standard/63712.html>
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.6: A complete set of requirements holds no to-be-defined, to-be-specified or to-be-resolved clause; resolving them is iterative, within a time set by risk and dependency. <https://www.iso.org/standard/72089.html>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -6042,6 +6093,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted |
 | NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted |
+| NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted |
 
 ### Requirements
 
@@ -6094,6 +6146,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-30 | A specification built from existing documents and existing code shall cite each element to the document section or the code file and line it came from, mappings of an implementation file included, and specarch gaps shall show for every source that lists its outline which elements each section or file produced and which produced nothing. | functional | must | accepted | test | A mapping stated without a citation is reported as origin_citation, and one inferred without a reason as origin_reason, in both builds. gaps on a specification whose manual and code list their clauses prints, per source, the elements under each clause, the count of clauses that produced nothing, and every citation that names a clause outside the outline. | NEED-8 |
 | SA-44 | specarch extract shall read one surface of an existing system into a specification tree in which every element carries its origin and cites where it was read, name the commit it read, refuse a source no commit names, and give byte-identical output for the same sources at the same commit. | functional | must | accepted | test | extract database on a committed catalogue dump writes a tree that validate accepts with no errors, and a second run writes the same bytes. A column type the meta-model cannot hold is printed as a line naming it, and is a could question in the tree citing its table. A dump older than the last change to the path it was made from, a path with changes not committed and a shallow clone are each refused with status 1. extract outline on a folder writes a source listing its files as clauses, and gaps on that tree lists each of them as producing nothing. extract router on a committed route table writes one operation per method and path pair, with its path parameters and the permission it checks, that validate accepts with no errors, and a route that checks no permission is a must question. extract openapi on a document in dxlib's dialect writes the one privilege an operation's x-dxlib-privileges names as its permission and declares it, maps a name in dxlib_module's capitals by the rule of ADR-076 and declares that permission inferred, and asks a must question for an operation that names none, more than one, public, two names that give one permission or a name the rule cannot map. extract go on a committed Go module on dxlib writes each endpoint NewEndPoint registers with literal values as an operation citing its registration's and its handler's file and line, with the parameters the handler reads and the problems it answers, in a code source with reading parsed, and asks a must question for a registration in a loop, behind a condition or computed, and for a parameter read the endpoint does not declare. extract go on a committed Go module on dxlib and dxlib_module also writes each table NewModelDBTable declares with literal names as the entity extract database writes for it, the roles its seeds grant with the permissions mapped by the rule of ADR-076, and each setting it reads or a dxlib configuration file holds under configuration, and asks a must question for each gate on a setting it finds in an endpoint's middleware, in the words extract permissions uses. extract permissions maps a privilege in dxlib_module's capitals by the rule of ADR-076 and declares the permission inferred, and asks a must question on a grant of EVERYTHING, a name the rule cannot map and two names that give one permission. extract workflows on a committed BPMN 2.0 file writes one workflow per process with its approvals, deadlines and operation steps, that validate accepts with no errors, prints a line with the file's line for each element outside the sequential subset and writes it as a could question citing that line, and asks for the operations the file names with a must question that names them. | NEED-8 |
 | SA-45 | specarch merge shall merge the partial specification trees the readers write into one specification that keeps the citations of every tree, turn every disagreement between the trees into a must question that cites both, and give byte-identical output for the same trees in the same order. | functional | must | accepted | test | The database and router trees of one repository, read at different commits, merge into one specification with one code source at the newer commit, which validate accepts with no errors and gaps reads, and a second run writes the same bytes. Two trees that give the same key of the same element different values merge into the element without that key and a must question citing both. An element only the code has, merged with a documents tree that speaks of its section, is written inferred, starting its why with "Undocumented, from code.", with a question that is must for an operation, a permission, a role, a personal or credential field, or a source given outside, and should otherwise. A tree validate reports an error in, and a source two trees declare differently, are each refused with status 1. A question that names the operation a workflow's trigger refers to is left out as joined, and the trigger written, when another tree declares that operation; a name no tree declares keeps its question. A printed tree and a parsed tree of one repository merge into operations with both trees' citations; the parsed tree's question whether the running system registers an operation is left out where the printed tree has it, an operation only the parsed tree declares is a must question citing its line, and one only the printed tree has a could question. The same rows compare entities with a catalogue tree and roles with a permission table tree; a role both give grants what the permission table grants, a grant only a seed makes is a must question and one only the table holds a could question, and a gate on one check that both trees ask is asked once with both citations. | NEED-8 |
+| SA-57 | Every output SpecArch generates shall name the element of the specification it came from, and a remark made at the user acceptance test shall be recorded as a change request or a defect that names the build it is about, where it was seen, what was observed and what was expected, and why the result was not what was wanted, and shall enter the specification as a decision, a question or a rejection, with what it reaches listed before anything changes. | functional | should | proposed | test | A web page generated from a page of the specification carries the page's pointer and the pointer of each field and action it draws, and a build for an environment that shows the trace shows the pointer, the version and the digest on screen. A change request in the acceptance phase without the build, what was observed or what was expected is reported, and so is one analysed without a cause. A decision that answers a change request whose decision is not approved is reported. The changes document lists, under each open change request, the tests, outputs, documents and approval its pointers reach. | NEED-10 |
 | SA-1 | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. | functional | must | accepted | test | A file that breaks the schema is reported with rule schema, its file, line and YAML path. A file that passes the schema and every other rule produces no output and status 0. | NEED-1 |
 | SA-2 | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. | functional | must | accepted | test | A misspelt relation target, enum, operation, page, algorithm, decision, requirement, need, stakeholder, source or environment is reported with its own rule, naming the file and line of the reference. A name defined in two files of the specification is reported with both files. An operation, command or page's enabledBy that is not a setting of configuration, or names one that is not boolean, is reported as setting; a valid one derives the case disabled by <setting>, the element refused with the setting off. | NEED-1, NEED-4 |
 | SA-3 | Every check constraint, condition of a unique constraint and formula shall parse and type-check in the fixed expression language. | functional | must | accepted | test | An expression outside the subset is refused with a message naming the construct. An expression that mixes types without a written conversion is refused with the conversion to write. A unique constraint's where is an expression over the entity's fields that gives true or false, like a check; a where on a check constraint is refused. | NEED-1 |
@@ -6212,6 +6265,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on SA-45:** The comparison between surfaces, and between the documents and the code, is where a specification extracted from an existing system finds what is wrong with it; done by hand it is skipped where the two look alike, and a choice made quietly between two sources hides the disagreement the owner must settle.
 
+**Problem on SA-57:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
+
+**Insight on SA-57:** People never write a complete specification, and the people who will use a system see it first at the user acceptance test; a remark that cannot name the element it is about, or that has no way back into the specification, is lost or applied by hand where the next generation overwrites it.
+
 **Insight on SA-1:** The schema is the one definition of a file's shape; checking it first means every later rule can assume the shape.
 
 **Note on SA-6:** From The go command, Go documentation, 1.26: The Go tools print one problem per line as file:line, which editors and CI already parse. <https://go.dev/doc/>
@@ -6282,6 +6339,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-54 | decisions ADR-069; decisions ADR-079 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-value-objects; tests generate-ui-typescript-value-objects-refused |
 | SA-55 | decisions ADR-071 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-56 | decisions ADR-074 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
+| SA-57 | decisions ADR-083 |   |
 
 ## Sources
 

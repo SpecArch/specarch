@@ -1,0 +1,69 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-083:
+    title: A result is shown early and traced to its elements, and a remark from acceptance comes back as a change request that becomes a decision, a question or a rejection
+    status: proposed
+    date: "2026-10-09"
+    context: |
+      People never write a complete specification. Some of it is left
+      out, some is wrong in a way nobody sees until the system is in
+      front of them, and the people who will use it attend the user
+      acceptance test rather than the requirements meetings, and ask
+      there for changes. SpecArch reads an incomplete specification and
+      marks its problems, but its path ends at code: documents are the
+      only result shown before approval, nothing generated names the
+      element it came from, and the change and defect records have no
+      acceptance phase, no build, no observed and expected, and no way
+      to say whether the specification was silent, wrong or right with
+      the need changed.
+    decision: |
+      The loop is designed in docs/acceptance.md and reuses what exists.
+      A result is shown early: documents are written for an incomplete
+      specification, the marked draft of the owner's option B for ADR-066
+      is the build a tester runs, and every generated file names the specification's version
+      and digest. Every generated output carries the JSON pointer of the
+      element it came from, and the problem ids when marked; an
+      environment with trace true shows it to the tester and sends it in
+      an answer header, and no other environment shows it. A remark is a
+      change or defect record with phase acceptance, the build it is
+      against, where it was seen, what was observed and expected, and for
+      a change its cause: omitted, wrong or changed. Its analysis ends in
+      a decision that names the change request under answers, with the
+      elements it changes carrying origin decided; in an open question
+      the change names; or in a rejection. The changes document shows
+      what an open change reaches before it is made, and the approval
+      stays whole: it records the commit it was made at, and diff
+      against that commit shows the approver what changed and which
+      record covers it, its version check skipped when both sides have
+      the same version.
+    consequences: |
+      The record schema, both validator builds, the generators, the
+      changes and releases documents and the deployment stage gain what
+      docs/acceptance.md lists, in the steps it numbers. A decision may
+      name a change request, the one link from the specification to a
+      record. Until the marked draft is built, a preview before approval
+      still needs --unapproved.
+    why: |
+      A specification that compiles can still be the wrong one, and only
+      the people who use the system find out, by looking at it. A remark
+      that cannot name the element it is about is applied by guesswork,
+      and one applied to the generated code instead of the specification
+      is overwritten by the next generation. The JSON pointer is the id
+      the records, the problems and diff already use, so a tester's
+      remark lands where the analyst works without a second id scheme.
+      A pointer names the inside of the system, so it is shown only where
+      a tester needs it. The cause keeps apart what measures the
+      requirements work (omitted and wrong) from what is normal change,
+      and a defect stays measured against the specification, so triage
+      still has a reference. Approval stays of exactly what was read, as
+      ADR-019 says; diff makes reading again cheap without approving part
+      of a specification. Points for the owner are listed in the last
+      section of docs/acceptance.md.
+    satisfies: [SA-57]
+    cites:
+      - source: iso-12207
+        clause: "6.4.11"
+        says: "The validation process provides objective evidence that the system fulfils its intended use in its intended operational environment."
+      - source: iso-29148
+        clause: "5.2.6"
+        says: "A complete set of requirements holds no to-be-defined, to-be-specified or to-be-resolved clause; resolving them is iterative, within a time set by risk and dependency."

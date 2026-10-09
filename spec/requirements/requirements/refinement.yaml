@@ -101,3 +101,16 @@ requirements:
     verification: test
     needs: [NEED-8]
     why: The comparison between surfaces, and between the documents and the code, is where a specification extracted from an existing system finds what is wrong with it; done by hand it is skipped where the two look alike, and a choice made quietly between two sources hides the disagreement the owner must settle.
+  SA-57:
+    statement: Every output SpecArch generates shall name the element of the specification it came from, and a remark made at the user acceptance test shall be recorded as a change request or a defect that names the build it is about, where it was seen, what was observed and what was expected, and why the result was not what was wanted, and shall enter the specification as a decision, a question or a rejection, with what it reaches listed before anything changes.
+    kind: functional
+    priority: should
+    status: proposed
+    acceptance:
+      - A web page generated from a page of the specification carries the page's pointer and the pointer of each field and action it draws, and a build for an environment that shows the trace shows the pointer, the version and the digest on screen.
+      - A change request in the acceptance phase without the build, what was observed or what was expected is reported, and so is one analysed without a cause.
+      - A decision that answers a change request whose decision is not approved is reported.
+      - The changes document lists, under each open change request, the tests, outputs, documents and approval its pointers reach.
+    verification: test
+    needs: [NEED-10]
+    why: People never write a complete specification, and the people who will use a system see it first at the user acceptance test; a remark that cannot name the element it is about, or that has no way back into the specification, is lost or applied by hand where the next generation overwrites it.

@@ -7,11 +7,47 @@
         "driver": {
           "name": "specarch",
           "informationUri": "https://github.com/SpecArch/specarch",
-          "rules": []
+          "rules": [
+            {
+              "id": "requirement_unverified"
+            }
+          ]
         }
       },
       "columnKind": "unicodeCodePoints",
-      "results": []
+      "results": [
+        {
+          "ruleId": "requirement_unverified",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements/refinement.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 104,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/requirements/SA-57",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57"
+          }
+        }
+      ]
     }
   ]
 }

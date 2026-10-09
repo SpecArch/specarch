@@ -48,6 +48,13 @@ and the history file. Make no other change in that folder.
   it is incomplete, and does every problem surface in the problems file
   and at the entry? A rule that refuses something is an error at that
   entry, never a definition left unread.
+- A specification is never complete (`docs/principles.md`, A
+  specification is never complete): people leave things out, and end
+  users see the system only at the user acceptance test, where they ask
+  for changes. Every design choice and decision record also checks: does
+  this make a result fast to show early, and is a change request from
+  someone looking at that result cheap to take back into the
+  specification (`docs/acceptance.md`)?
 - Follow `docs/principles.md` (the Low IQ Tax): full-word keys, one way to
   say one thing, no placeholders, ambiguity is an error, summary first.
 - Design and implementation stay apart: `*.specarch-design.yaml` holds the

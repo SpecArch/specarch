@@ -1,8 +1,10 @@
 # Principles
 
 SpecArch follows two principles. It is a compiler for specifications: it
-reads every definition, however incomplete or wrong, and lists every
-problem where the author can find and fix it. And it follows the Low IQ
+reads every definition, however incomplete or wrong, lists every problem
+where the author can find and fix it, and is built for a specification
+that is never complete, so that a result is shown early and a remark on
+it finds its way back into the specification. And it follows the Low IQ
 Tax: every file, key, message and document should cost its reader as
 little thinking as possible.
 
@@ -33,9 +35,38 @@ entry; it never leaves a definition unread. The validator's report, one line
 per problem with its file, line, YAML path, rule and message, is the start
 of the problems file.
 
-Every design choice and every decision record checks two things: does this
-keep the definition readable when it is incomplete, and does every problem
-it can meet surface in the problems file and at the entry?
+### A specification is never complete
+
+People never write a whole and complete specification. Something is
+always left out, and some of what is written is wrong in a way nobody
+sees until the system is in front of them. The people who will use the
+system rarely attend the requirements meetings; they attend the user
+acceptance test, look at a screen, and ask for a change. A specification
+that compiles can still be the wrong one, and the only way to find out is
+to show what it builds. So:
+
+4. SpecArch shows a result early. The documents are written for an
+   incomplete or invalid specification, marked where it is incomplete, and
+   code can be generated before approval for people to try, kept apart
+   from the approved output (`docs/acceptance.md`), so that people see
+   something long before the specification is finished.
+5. Everything SpecArch generates says which element of the specification
+   it came from, so that a person looking at a screen, an answer or a test
+   can name the exact element a remark is about.
+6. A remark from someone looking at the result is an input like any
+   other: a change request with who asked, when, against which build,
+   what they saw and what they expected. It goes back into the
+   specification as a decision, a question or a rejection, with what it
+   reaches shown before anything changes, and comes out again in the next
+   build. Both kinds of remark are normal and both are kept: the
+   specification was wrong or silent, or it was right and the need
+   changed.
+
+Every design choice and every decision record checks four things: does this
+keep the definition readable when it is incomplete, does every problem it
+can meet surface in the problems file and at the entry, does it make a
+result fast to show early, and is a change request from someone looking at
+that result cheap to take back into the specification?
 
 ## The Low IQ Tax
 

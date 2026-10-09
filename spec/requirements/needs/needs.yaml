@@ -36,3 +36,7 @@ needs:
     statement: I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out.
     stakeholders: [specification-author, implementer]
     status: accepted
+  NEED-10:
+    statement: I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build.
+    stakeholders: [reviewer, specification-author]
+    status: accepted

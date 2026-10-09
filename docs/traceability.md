@@ -2,7 +2,11 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.6.0-dev of the specification: 9 needs, 56 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.6.0-dev of the specification: 10 needs, 57 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
 
 ## 1. Needs to requirements
 
@@ -17,6 +21,7 @@ Version 0.6.0-dev of the specification: 9 needs, 56 requirements, and 0 gaps. Ea
 | NEED-7 | accepted | SA-14 |
 | NEED-8 | accepted | SA-46, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-51 |
 | NEED-9 | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22 |
+| NEED-10 | accepted | SA-57 |
 
 ## 2. Requirements to design and verification
 
@@ -78,8 +83,11 @@ Version 0.6.0-dev of the specification: 9 needs, 56 requirements, and 0 gaps. Ea
 | SA-54 | NEED-2 | decisions ADR-069; decisions ADR-079 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-value-objects; tests generate-ui-typescript-value-objects-refused |
 | SA-55 | NEED-2 | decisions ADR-071 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-56 | NEED-2 | decisions ADR-074 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
+| SA-57 | NEED-10 | decisions ADR-083 |   |
 
 ## 3. Gaps
 
-None: every need is refined, and every requirement has acceptance criteria, is satisfied once there is a design, and is verified once there are tests, checks or monitors.
+The work the specification still owes, the same gaps the validator warns about. Rejected needs and rejected or retired requirements are left out.
+
+- Requirements no test, check or monitor verifies: SA-57.
 

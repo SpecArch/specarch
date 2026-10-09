@@ -1762,7 +1762,7 @@ From the implementation file version 0.1.0.
 The Go implementation of the specification in `spec/`: one static binary,
 `specarch`, installed with `go install ./cmd/specarch`.
 
-Stack: language Go 1.26; toolchain go 1.26.0; platforms darwin/arm64, darwin/amd64, linux/amd64, linux/arm64, windows/amd64.
+Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd64, linux/amd64, linux/arm64, windows/amd64.
 
 #### Libraries
 

@@ -169,7 +169,7 @@ specification and checks the release between them, and `derive` writes a
 draft test for every derived case no test covers, and `idioms` lists the
 idioms each implementation file uses. It has two builds from
 the same design.
-The Go build has every verb. With Go 1.26 or later:
+The Go build has every verb. With Go 1.27.2 or later:
 
     go install github.com/SpecArch/specarch/cmd/specarch@v0.5.0
 

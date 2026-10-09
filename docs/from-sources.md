@@ -35,7 +35,7 @@ from the documents, by the rules of section 3.2. `docs/extraction.md` is the met
 The repository being specified pins one exact build of `specarch`, so
 that every run of the agent and every reviewer sees the same rules.
 
-With Go 1.26 or later, install by release tag:
+With Go 1.27.2 or later, install by release tag:
 
     go install github.com/SpecArch/specarch/cmd/specarch@v0.5.0
 

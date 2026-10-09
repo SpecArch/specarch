@@ -786,7 +786,7 @@ func (rd *pageReader) write() {
 			permissionCites[pg.permission] = append(permissionCites[pg.permission], pg)
 		}
 		rd.askContent(pg)
-		if pg.permission == "" {
+		if pg.permission == "" && !rd.middlewareAsks(pg.route) {
 			rd.question(
 				fmt.Sprintf("Which permission does the page at %s check, or is it open to everyone (public)?", pg.route),
 				[]string{"#/pages/" + pg.name + "/permission"},

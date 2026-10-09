@@ -268,7 +268,8 @@ commands:
         which routes it covers; its function's call of a named check
         with one literal permission is the permission of every page and
         operation it surely covers that has none; anything else is the
-        must question on the pages and operations it may cover. A page
+        must question on the pages and operations it may cover, asking
+        each one's permission in the place of its own question. A page
         schema is read as the compiler reads it, its object exported by
         default or by a const, a name a const of the files read gives,
         imported or its own, read as that const's value; a value that is

@@ -53,7 +53,8 @@ decisions:
       never as a silent fact. A middleware check is applied only to the
       routes its matcher surely selects, since a page's parameter may or
       may not take a matcher's literal segment; those it may select are
-      asked. What follows an if on req.method, and a switch's default
+      asked, in one question that also asks each one's permission, since
+      merge keeps one of two questions on the same key. What follows an if on req.method, and a switch's default
       branch, run for every other method, so those methods are asked
       rather than read as absent. A page holds no values of its route's
       parameters, so generateStaticParams' values print a line on a page

@@ -525,7 +525,7 @@ func (rd *pageReader) writeRoutes() {
 					"A server action is a function, and the router gives it no route; the path is where the page that calls it is served, which is what a client sees.",
 				)
 			}
-			if permission == "" {
+			if permission == "" && !rd.middlewareAsks(rf.path) {
 				asked := fmt.Sprintf("%s checks no permission that its file's place names.", label)
 				if unguarded != "" {
 					asked = unguarded
@@ -755,7 +755,20 @@ func (rd *pageReader) askReadMiddleware(mw *nextMiddleware) {
 	default:
 		why = fmt.Sprintf("%s checks %s, and its matcher may or may not select these routes, since a route's parameter can take a matcher's literal segment.", mw.file, mw.permission)
 	}
-	rd.citedQuestion(fmt.Sprintf("%s runs before %s and may check who is signed in, send them elsewhere or answer by itself. What does it check on each of them? %s", mw.file, joinAnd(routes), why), blocks,
+	rd.citedQuestion(fmt.Sprintf("%s runs before %s and may check who is signed in, send them elsewhere or answer by itself. %s Which permission does each of them check, or is it open to everyone (public)?", mw.file, joinAnd(routes), why), blocks,
 		"A check that runs before every route it covers is how a permission is usually given, so what the code does not say is asked, never assumed.",
 		mw.file, "The router runs it before the routes its matcher selects.")
+}
+
+// middlewareAsks says whether a read middleware may cover a route and
+// gives it no permission, so that its question asks for the route's
+// permission in the place of the route's own.
+func (rd *pageReader) middlewareAsks(route string) bool {
+	for _, mw := range rd.mw {
+		sure, may := mw.covers(route)
+		if may && !(sure && mw.permission != "") {
+			return true
+		}
+	}
+	return false
 }

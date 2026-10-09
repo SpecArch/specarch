@@ -174,8 +174,8 @@ implementation file's `libraries` and the commit.
 | `@carbon/themes` | 11.83.0 | Apache-2.0 | the theme tokens |
 | `@carbon/icons-react` | 11.90.0 | Apache-2.0 | icons |
 | `sass` (build) | 1.105.1 | MIT | Carbon's styles are Sass |
-| `typescript` (build) | 6.0.3 | Apache-2.0 | `tsc --noEmit`; 7.0 is outside `eslint-config-next`'s peer range |
-| `eslint` (build) | 9.39.5 | MIT | the lint; 10 is outside `eslint-config-next`'s peer range |
+| `typescript` (build) | 6.0.3 | Apache-2.0 | `tsc --noEmit`; 7.0 is outside the range `typescript-eslint` takes, which `eslint-config-next` lints with (below 6.1) |
+| `eslint` (build) | 9.39.5 | MIT | the lint; 10 is outside the range of the React, accessibility and import plug-ins `eslint-config-next` brings |
 | `eslint-config-next` (build) | 16.4.0 | MIT | Next.js's lint rules |
 | `@types/react`, `@types/react-dom`, `@types/node` (build) | 19.3.0, 19.3.0, 26.6.4 | MIT | types |
 

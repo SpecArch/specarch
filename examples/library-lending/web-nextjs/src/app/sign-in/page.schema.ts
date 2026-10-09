@@ -1,0 +1,27 @@
+import type { TaskPageSchema } from "@/screens";
+
+export const schema = {
+  title: "sign-in.title",
+  submit: { operation: "signIn", method: "POST", path: "/sessions" },
+  fields: [
+    { type: "email", name: "email", label: "sign-in.fields.email", required: true },
+    {
+      type: "password",
+      name: "password",
+      label: "sign-in.fields.password",
+      required: true,
+      minLength: 8,
+      maxLength: 200,
+      rules: [
+        { text: "screens.minLength", count: 8 },
+        { text: "screens.maxLength", count: 200 },
+      ],
+    },
+  ],
+  checks: [],
+  failed: [{ status: 401, problem: "sign-in-refused", message: "sign-in.failed.sign-in-refused", field: "password" }],
+  events: [
+    { status: 200, navigate: "members-list", message: "sign-in.onSubmitted.200" },
+    { status: 201, navigate: "second-factor", keepsReturnTo: true },
+  ],
+} satisfies TaskPageSchema;

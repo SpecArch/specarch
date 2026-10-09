@@ -1,0 +1,38 @@
+# The web application of the library lending example: one package, no
+# workspace members of its own.
+packages:
+  - .
+
+# sharp resizes images for next/image. These pages resize none, and its
+# libvips build is LGPL-3.0-or-later, so it is removed.
+overrides:
+  sharp: "-"
+
+# No dependency runs an install script. Each Carbon and IBM Plex package
+# runs IBM's telemetry (ibmtelemetry) as one; @parcel/watcher and
+# unrs-resolver run one that only checks the prebuilt binary their
+# optional dependencies already install.
+allowBuilds:
+  "@carbon/colors": false
+  "@carbon/feature-flags": false
+  "@carbon/grid": false
+  "@carbon/icon-helpers": false
+  "@carbon/icons-react": false
+  "@carbon/layout": false
+  "@carbon/motion": false
+  "@carbon/react": false
+  "@carbon/styles": false
+  "@carbon/themes": false
+  "@carbon/type": false
+  "@carbon/utilities": false
+  "@ibm/plex": false
+  "@ibm/plex-mono": false
+  "@ibm/plex-sans": false
+  "@ibm/plex-sans-arabic": false
+  "@ibm/plex-sans-devanagari": false
+  "@ibm/plex-sans-hebrew": false
+  "@ibm/plex-sans-thai": false
+  "@ibm/plex-sans-thai-looped": false
+  "@ibm/plex-serif": false
+  "@parcel/watcher": false
+  unrs-resolver: false

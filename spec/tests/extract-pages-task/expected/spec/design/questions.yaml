@@ -1,4 +1,5 @@
 questions:
+  # specarch-problem: question: open_question: (must, decision) For the page at /members, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
     question: For the page at /members, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
     kind: decision
@@ -6,6 +7,7 @@ questions:
     blocks: ['#/pages/members/kind', '#/pages/members/title', '#/pages/members/entity', '#/pages/members/source', '#/pages/members/submit', '#/pages/members/columns']
     decidedBy: system-owner
     why: The folders name a page's route and not what it shows.
+  # specarch-problem: question: open_question: (must, decision) Which permission does the page at /members check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
   Q-2:
     question: Which permission does the page at /members check, or is it open to everyone (public)?
     kind: decision
@@ -13,6 +15,7 @@ questions:
     blocks: ['#/pages/members/permission']
     decidedBy: system-owner
     why: The folders name a page's route and not who may open it, and a page open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) The page at /sign-in submits to operation signIn, which its schema names; this tree does not declare it, so it waits for the tree that does. Is it that operation? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
     question: The page at /sign-in submits to operation signIn, which its schema names; this tree does not declare it, so it waits for the tree that does. Is it that operation?
     kind: decision
@@ -21,6 +24,7 @@ questions:
     decidedBy: system-owner
     names: signIn
     why: The schema names the operation and not its method or path, so the page's submit waits for the tree that declares it; specarch merge writes it once one does.
+  # specarch-problem: question: open_question: (could, decision) Not held: app/sign-in/page.schema.ts: entity Member is for a list, a form or a view, and the page is a task, which submits without loading a record; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
     question: 'Not held: app/sign-in/page.schema.ts: entity Member is for a list, a form or a view, and the page is a task, which submits without loading a record; left out. Does the specification need it, written another way or described by hand?'
     kind: decision

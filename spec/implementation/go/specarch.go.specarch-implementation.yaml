@@ -125,7 +125,7 @@ layout:
     description: The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents; questions writes the open questions and what they hold up, the text gaps prints. Every one renders why as an Insight, each citation as a Note, an element's origin as an Origin line and the open questions about it as Open question paragraphs.
     implements: ["#/algorithms/markersWellFormed"]
   internal/problems:
-    description: The problems of a specification, valid or not, gathered from validate's diagnostics and the open questions into one list with ids, columns and notes, and written as problems.txt and as a SARIF 2.1.0 log.
+    description: The problems of a specification, valid or not, gathered from validate's diagnostics and the open questions into one list with ids, columns and notes, written as problems.txt and as a SARIF 2.1.0 log, and marked above their entries in the YAML files of the specification.
     implements: ["#/entities/Problem", "#/entities/ProblemNote", "#/enums/ProblemSeverity"]
   internal/validate:
     description: Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases with the rank of each and the cases left out, the life-cycle links and traceability warnings, the open questions and what they cover, origin, implementation references, and the records beside the specification.

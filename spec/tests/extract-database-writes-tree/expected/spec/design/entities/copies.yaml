@@ -14,6 +14,7 @@ entities:
     relations:
       branches: {target: Branches, kind: many-to-one, via: branchCode, onDelete: cascade}
     constraints:
+      # specarch-problem: warning: test_golden_missing: Copies constraint copies_title_not_empty has no golden scenario; add one under tests, for example copies-title-not-empty-succeeds: { entity: Copies, constraint: copies_title_not_empty, scenario: golden, given: "...", when: "a Copies keeping it is saved", then: "it is saved" } [test_golden_missing@design/entities/copies.yaml#/entities/Copies/constraints/copies_title_not_empty]
       copies_title_not_empty: {kind: check, expression: size(title) > 0}
     origin: stated
     cites:

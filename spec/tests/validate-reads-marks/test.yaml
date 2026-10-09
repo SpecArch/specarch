@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification whose fragments carry the marks of its problems"
+when: "validate is run"
+then: "it reads the marks as the comments they are and reports the same problems at the lines on disk, the same in both builds, and writes nothing"
+verifies: [SA-51]

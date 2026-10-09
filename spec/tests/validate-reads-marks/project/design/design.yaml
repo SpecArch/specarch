@@ -1,0 +1,17 @@
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: integer, format: int32 }
+      days: { type: integer, format: int32 }
+    required: [id, days]
+    primaryKey: [id]
+    satisfies: [CASE-1, CASE-2]
+    constraints:
+      # specarch-problem: warning: test_golden_missing: Loan constraint loan_days has no golden scenario; add one under tests, for example loan-days-succeeds: { entity: Loan, constraint: loan_days, scenario: golden, given: "...", when: "a Loan keeping it is saved", then: "it is saved" } [test_golden_missing@design/design.yaml#/entities/Loan/constraints/loan_days]
+      loan_days:
+        kind: check
+        # specarch-problem: error: expression_name: the check: dayz is not a name this expression can use; use one of days, id [expression_name@design/design.yaml#/entities/Loan/constraints/loan_days/expression]
+        expression: |
+          dayz > 0
+        message: A loan lasts at least one day.

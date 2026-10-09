@@ -10,9 +10,13 @@ entities:
     required: [id, loanedOn, dueOn, remindOn]
     primaryKey: [id]
     constraints:
+      # specarch-problem: warning: test_golden_missing: Loans constraint loans_loan_period has no golden scenario; add one under tests, for example loans-loan-period-succeeds: { entity: Loans, constraint: loans_loan_period, scenario: golden, given: "...", when: "a Loans keeping it is saved", then: "it is saved" } [test_golden_missing@design/entities/loans.yaml#/entities/Loans/constraints/loans_loan_period]
       loans_loan_period: {kind: check, expression: dueOn == loanedOn + duration("P14D"), message: A loan is due 14 days after it is made., satisfies: [HANDBOOK-1]}
+      # specarch-problem: warning: test_golden_missing: Loans constraint loans_reminder_period has no golden scenario; add one under tests, for example loans-reminder-period-succeeds: { entity: Loans, constraint: loans_reminder_period, scenario: golden, given: "...", when: "a Loans keeping it is saved", then: "it is saved" } [test_golden_missing@design/entities/loans.yaml#/entities/Loans/constraints/loans_reminder_period]
       loans_reminder_period: {kind: check, expression: remindOn == dueOn - duration("P2D"), message: The reminder goes out 2 days before the due date., satisfies: [HANDBOOK-2]}
+      # specarch-problem: warning: test_golden_missing: Loans constraint loans_return_period has no golden scenario; add one under tests, for example loans-return-period-succeeds: { entity: Loans, constraint: loans_return_period, scenario: golden, given: "...", when: "a Loans keeping it is saved", then: "it is saved" } [test_golden_missing@design/entities/loans.yaml#/entities/Loans/constraints/loans_return_period]
       loans_return_period: {kind: check, expression: returnedOn == null || returnedOn <= dueOn + duration("P60D"), message: A loan is returned within 60 days of its due date.}
+      # specarch-problem: warning: test_golden_missing: Loans constraint loans_returned_after_loan has no golden scenario; add one under tests, for example loans-returned-after-loan-succeeds: { entity: Loans, constraint: loans_returned_after_loan, scenario: golden, given: "...", when: "a Loans keeping it is saved", then: "it is saved" } [test_golden_missing@design/entities/loans.yaml#/entities/Loans/constraints/loans_returned_after_loan]
       loans_returned_after_loan: {kind: check, expression: returnedOn == null || returnedOn >= loanedOn, message: A book is returned after it is lent.}
     origin: stated
     cites:

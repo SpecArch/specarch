@@ -18,7 +18,8 @@ In short:
   and `problems.sarif`, the machine form, in SARIF 2.1.0. It writes them for
   an invalid specification too: that is when they are needed most.
 - Every file SpecArch writes marks the entry a problem touches with the
-  problem's line, in that file's own comment form. The next run writes the
+  problem's line, in that file's own comment form, and `document problems`
+  marks the fragments an author writes as well. The next run writes the
   marks again from the problems it finds, so a fixed problem loses its mark.
 
 ## 1. What exists, and how it is unified
@@ -238,10 +239,27 @@ In a YAML fragment:
   writes the current marks; it never touches any other line, so the file's
   own formatting and comments stay. The edit is on the text, not by writing
   the YAML out again.
-- A mark moves every line below it down. So the marks are written first,
-  and the problems are then read from the marked files: the lines in the
-  problems file are the lines on disk. A mark is a comment, which no
-  validator reads, so the second reading finds the same problems.
+- A problem about the file as a whole, or one whose pointer leads to no
+  entry of the file (a file that does not parse), is marked above the
+  file's first line that is not blank or a comment, so a schema line at
+  the top stays first.
+- Only the problem's own entry is marked. A note, at a source or at an
+  entry a question blocks, is not: a question is marked at its entry in
+  the questions file, where it is answered.
+- A mark moves every line below it down. So the problems file gives the
+  lines of the marked files: the lines in it are the lines on disk after
+  the run. A mark is a comment, which no validator reads, so the marked
+  files have the same problems.
+- `document problems` marks every YAML file in the specification's folder
+  that the specification read: the root file, its fragments, its
+  implementation files, and a fragment that does not parse. A file the
+  specification does not read, such as an input of a conformance case,
+  is never touched. With `--check` it writes nothing and fails when a
+  file's marks are not the ones it would write, as for any output.
+- `extract` and `merge` mark the tree they write, and `derive` the draft
+  tests it writes; only `document problems` edits a file an author wrote.
+- A mark is not part of what is approved: the approval digest leaves the
+  mark lines out, so writing or removing marks never voids an approval.
 
 ### 5.1 In a Markdown document
 
@@ -292,14 +310,17 @@ is never marked: a problem cites it in a note instead.
    validate case is recorded again.
 4. **Marks in specification fragments**: in every tree extract, merge and
    derive write, and in hand-written fragments when `document problems`
-   runs (ADR-065, open point 1).
+   runs, on every run (ADR-066).
 5. **extract's "could not hold" lines become could questions** in the tree,
    each citing the source line.
 6. **Documents are written for an invalid specification**, marked, with
    status 1: a Problem paragraph at the element for an error or a warning,
    and `gaps` lists the errors with the questions instead of refusing.
-7. **Marks in generated code, SQL, OpenAPI, tests and UI**, as far as
-   ADR-065's open point 2 allows.
+7. **Marks in generated code, SQL, OpenAPI, tests and UI**, and a marked
+   draft (ADR-066): while a must or should question blocks what a target
+   reads, or the version has no approval, generate may write a draft with
+   every gap marked at its entry, labelled a draft in every file and never
+   taken for the approved output.
 8. **A fragment that does not parse keeps what can be read** (ADR-080):
    the file is read entry by entry by its indentation; an entry that
    parses is kept, a broken one is held by its name with no value, or

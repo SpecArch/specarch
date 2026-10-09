@@ -11,12 +11,18 @@ paths:
   /branches/{branchCode}/copies:
     parameters:
       - {name: branchCode, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation listCopies has no red scenario for "denied without copies.read"; add under tests list-copies-denied-without-copies-read: { operation: listCopies, scenario: red, covers: [denied without copies.read], given: "a caller without copies.read", when: "listCopies is called", then: "it is refused as not allowed" } [test_case_missing.158b2b61@design/paths.yaml#/paths/~1branches~1{branchCode}~1copies/get]
+    # specarch-problem: warning: test_case_missing: operation listCopies has no red scenario for "not found branchCode"; add under tests list-copies-not-found-branch-code: { operation: listCopies, scenario: red, covers: [not found branchCode], given: "no record has that branchCode", when: "listCopies is called with that branchCode", then: "it is refused as not found" } [test_case_missing.a494154c@design/paths.yaml#/paths/~1branches~1{branchCode}~1copies/get]
+    # specarch-problem: warning: test_golden_missing: operation listCopies has no golden scenario; add one under tests, for example list-copies-succeeds: { operation: listCopies, scenario: golden, given: "a caller with copies.read", when: "listCopies is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1branches~1{branchCode}~1copies/get]
     get:
       operationId: listCopies
       permission: copies.read
       origin: stated
       cites:
         - {source: code, clause: 'router GET /branches/{branchCode}/copies', says: 'GET /branches/{branchCode}/copies checks copies.read; its handler is ListCopies.'}
+    # specarch-problem: warning: test_case_missing: operation clearShelf has no red scenario for "denied without copies.write"; add under tests clear-shelf-denied-without-copies-write: { operation: clearShelf, scenario: red, covers: [denied without copies.write], given: "a caller without copies.write", when: "clearShelf is called", then: "it is refused as not allowed" } [test_case_missing.0d2703d1@design/paths.yaml#/paths/~1branches~1{branchCode}~1copies/delete]
+    # specarch-problem: warning: test_case_missing: operation clearShelf has no red scenario for "not found branchCode"; add under tests clear-shelf-not-found-branch-code: { operation: clearShelf, scenario: red, covers: [not found branchCode], given: "no record has that branchCode", when: "clearShelf is called with that branchCode", then: "it is refused as not found" } [test_case_missing.8aea766c@design/paths.yaml#/paths/~1branches~1{branchCode}~1copies/delete]
+    # specarch-problem: warning: test_golden_missing: operation clearShelf has no golden scenario; add one under tests, for example clear-shelf-succeeds: { operation: clearShelf, scenario: golden, given: "a caller with copies.write", when: "clearShelf is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1branches~1{branchCode}~1copies/delete]
     delete:
       operationId: clearShelf
       permission: copies.write
@@ -24,6 +30,8 @@ paths:
       cites:
         - {source: code, clause: 'router DELETE /branches/{branchCode}/copies', says: 'DELETE /branches/{branchCode}/copies checks copies.write; its handler is ClearShelf.'}
   /copies:
+    # specarch-problem: warning: test_golden_missing: operation addCopy has no golden scenario; add one under tests, for example add-copy-succeeds: { operation: addCopy, scenario: golden, given: "any caller", when: "addCopy is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1copies/post]
+    # specarch-problem: warning: test_red_missing: operation addCopy has no red scenario; add one under tests, for example add-copy-refused: { operation: addCopy, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1copies/post]
     post:
       operationId: addCopy
       origin: stated
@@ -32,12 +40,18 @@ paths:
   /copies/{copyId}:
     parameters:
       - {name: copyId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation putCopiesByCopyId has no red scenario for "denied without copies.write"; add under tests put-copies-by-copy-id-denied-without-copies-write: { operation: putCopiesByCopyId, scenario: red, covers: [denied without copies.write], given: "a caller without copies.write", when: "putCopiesByCopyId is called", then: "it is refused as not allowed" } [test_case_missing.1d017208@design/paths.yaml#/paths/~1copies~1{copyId}/put]
+    # specarch-problem: warning: test_case_missing: operation putCopiesByCopyId has no red scenario for "not found copyId"; add under tests put-copies-by-copy-id-not-found-copy-id: { operation: putCopiesByCopyId, scenario: red, covers: [not found copyId], given: "no record has that copyId", when: "putCopiesByCopyId is called with that copyId", then: "it is refused as not found" } [test_case_missing.97f0197e@design/paths.yaml#/paths/~1copies~1{copyId}/put]
+    # specarch-problem: warning: test_golden_missing: operation putCopiesByCopyId has no golden scenario; add one under tests, for example put-copies-by-copy-id-succeeds: { operation: putCopiesByCopyId, scenario: golden, given: "a caller with copies.write", when: "putCopiesByCopyId is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1copies~1{copyId}/put]
     put:
       operationId: putCopiesByCopyId
       permission: copies.write
       origin: stated
       cites:
         - {source: code, clause: 'router PUT /copies/{copyId}', says: 'PUT /copies/{copyId} checks copies.write; its handler is SaveCopy.'}
+    # specarch-problem: warning: test_case_missing: operation patchCopiesByCopyId has no red scenario for "denied without copies.write"; add under tests patch-copies-by-copy-id-denied-without-copies-write: { operation: patchCopiesByCopyId, scenario: red, covers: [denied without copies.write], given: "a caller without copies.write", when: "patchCopiesByCopyId is called", then: "it is refused as not allowed" } [test_case_missing.402cb386@design/paths.yaml#/paths/~1copies~1{copyId}/patch]
+    # specarch-problem: warning: test_case_missing: operation patchCopiesByCopyId has no red scenario for "not found copyId"; add under tests patch-copies-by-copy-id-not-found-copy-id: { operation: patchCopiesByCopyId, scenario: red, covers: [not found copyId], given: "no record has that copyId", when: "patchCopiesByCopyId is called with that copyId", then: "it is refused as not found" } [test_case_missing.c45c2a80@design/paths.yaml#/paths/~1copies~1{copyId}/patch]
+    # specarch-problem: warning: test_golden_missing: operation patchCopiesByCopyId has no golden scenario; add one under tests, for example patch-copies-by-copy-id-succeeds: { operation: patchCopiesByCopyId, scenario: golden, given: "a caller with copies.write", when: "patchCopiesByCopyId is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1copies~1{copyId}/patch]
     patch:
       operationId: patchCopiesByCopyId
       permission: copies.write
@@ -45,6 +59,8 @@ paths:
       cites:
         - {source: code, clause: 'router PATCH /copies/{copyId}', says: 'PATCH /copies/{copyId} checks copies.write; its handler is SaveCopy.'}
   /health:
+    # specarch-problem: warning: test_golden_missing: operation health has no golden scenario; add one under tests, for example health-succeeds: { operation: health, scenario: golden, given: "any caller", when: "health is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1health/get]
+    # specarch-problem: warning: test_red_missing: operation health has no red scenario; add one under tests, for example health-refused: { operation: health, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1health/get]
     get:
       operationId: health
       origin: stated

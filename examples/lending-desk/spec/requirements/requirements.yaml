@@ -87,6 +87,7 @@ requirements:
       - { source: desk-code, clause: "lending/routes.go:42", says: "GET /members/{cardNumber}/loans, checked against loans.read." }
 
 questions:
+  # specarch-problem: question: open_question: (must, decision) Is the loan period 21 days, as the manual says, or 14 days, as the service does? Decided by desk-manager. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
     question: Is the loan period 21 days, as the manual says, or 14 days, as the service does?
     kind: decision
@@ -99,6 +100,7 @@ questions:
       - { source: desk-manual, clause: "3.3", says: "The loan period is 21 days." }
       - { source: desk-code, clause: "lending/model.go:8", says: "LoanPeriod is 14 days." }
       - { source: desk-code, clause: "migrations/001_init.sql:18", says: "The loans table checks that due_on is loaned_on plus 14." }
+  # specarch-problem: question: open_question: (should, decision) The service lists a member's loans, which the manual never mentions. Is that wanted, and who may use it? Decided by desk-manager. Answer with a decision record that names Q-2 under answers. [Q-2]
   Q-2:
     question: The service lists a member's loans, which the manual never mentions. Is that wanted, and who may use it?
     kind: decision
@@ -107,6 +109,7 @@ questions:
     decidedBy: desk-manager
     options: ["Keep it for desk staff, and add it to the manual", "Take it out of the service"]
     why: Undocumented, from code.
+  # specarch-problem: question: open_question: (must, decision) How is each requirement shown to be met? Decided by desk-manager. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
     question: How is each requirement shown to be met?
     kind: decision

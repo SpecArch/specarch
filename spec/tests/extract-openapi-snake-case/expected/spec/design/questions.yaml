@@ -1,4 +1,5 @@
 questions:
+  # specarch-problem: question: open_question: (must, decision) Which permission does POST /loans check? The document gives it no security. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
     question: Which permission does POST /loans check? The document gives it no security.
     kind: decision
@@ -6,6 +7,7 @@ questions:
     blocks: ['#/paths/~1loans/post/permission']
     decidedBy: system-owner
     why: A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.
+  # specarch-problem: question: open_question: (must, decision) Which fields identify one Loan, its primary key? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
   Q-2:
     question: Which fields identify one Loan, its primary key?
     kind: decision
@@ -13,6 +15,7 @@ questions:
     blocks: ['#/entities/Loan/primaryKey']
     decidedBy: system-owner
     why: A schema says what a record carries, not which of its fields identify it.
+  # specarch-problem: question: open_question: (could, decision) Not held: schema Loan, property line_2: read as line2, it goes on the wire as line2 under info.wireNames snake_case, which is not its name; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
     question: 'Not held: schema Loan, property line_2: read as line2, it goes on the wire as line2 under info.wireNames snake_case, which is not its name; left out. Does the specification need it, written another way or described by hand?'
     kind: decision

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: document
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification whose fragments already carry the marks of its problems, and its problems files"
+when: "document problems is run"
+then: "it writes nothing, since a second run writes the same bytes, prints the errors at the lines on disk, and exits 1"
+verifies: [SA-51]

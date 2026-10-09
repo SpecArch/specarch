@@ -42,7 +42,7 @@ commands:
     reads:
       - { path: "{paths}", description: The specifications. }
     writes:
-      - { path: "tests/<name>/test.yaml under each specification's folder", description: One draft test per derived case no test covers. }
+      - { path: "tests/<name>/test.yaml under each specification's folder", description: "One draft test per derived case no test covers, each problem in it marked above its entry with a `# specarch-problem:` line (ADR-066); no other file is touched." }
     standardOutput: The errors of an invalid specification, one line each; otherwise the path of each test written, one per line.
     standardError: A usage message on a usage error, the reason on an unreadable path, each test left out, kept or not written with the reason, and the count written.
     exitCodes:

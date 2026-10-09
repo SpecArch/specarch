@@ -41,6 +41,7 @@ func runDerive(args []string, stdout, stderr io.Writer) int {
 	}
 	written, collisions := 0, 0
 	for _, l := range specs {
+		var drafts []string
 		for _, dr := range validate.Drafts(l.spec.Root) {
 			folder := filepath.Join(l.spec.Dir, "tests", dr.Name)
 			if len(dr.BlockedBy) > 0 {
@@ -66,7 +67,14 @@ func runDerive(args []string, stdout, stderr io.Writer) int {
 				return 2
 			}
 			fmt.Fprintln(stdout, filepath.ToSlash(file))
+			drafts = append(drafts, file)
 			written++
+		}
+		if len(drafts) > 0 {
+			if err := markWritten(l.spec.Dir, drafts); err != nil {
+				fmt.Fprintf(stderr, "specarch derive: cannot mark the problems in the drafts of %s: %v\n", l.spec.Dir, err)
+				return 2
+			}
 		}
 	}
 	fmt.Fprintf(stderr, "specarch derive: %s written\n", plural(written, "draft test"))

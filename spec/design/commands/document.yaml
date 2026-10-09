@@ -110,6 +110,23 @@ commands:
       problems too, and a file that does not parse is read as far as its
       entries parse (ADR-080).
 
+      The problems target also marks each problem in the YAML files of the
+      specification that it read, hand-written or not (ADR-066): a comment
+      line `# specarch-problem: severity: rule: message [id]` above the
+      line where the entry starts in block style (the key of its pair or
+      the `-` of its item; for an entry inside a flow collection or a
+      block scalar, the block-style entry that holds it), with the entry's
+      indentation, the marks of one entry in the order of the problems
+      file. A problem about a file as a whole is marked above its first
+      line that is not blank or a comment. A run takes out every line
+      that starts with `# specarch-problem:` after its indentation and
+      writes the marks of the problems it finds, editing the text, so a
+      fixed problem loses its mark and no other line changes. The
+      problems files give the lines of the marked files; since a message
+      can name a line, the marks are written and the specification read
+      again until the two agree, so a second run writes the same bytes.
+      With `--check` the marked files are compared like any output.
+
       In every document an element's why is an Insight and each citation
       a Note (ADR-015), and a document that cites sources ends with them.
     permission: public
@@ -139,6 +156,7 @@ commands:
       - { path: "specarch.md", description: "Only the regions between markers. Nothing is written with `--check`." }
       - { path: "{out}/problems.txt", description: "The problems, for the problems target, written whether or not the specification is valid. Nothing is written with `--check`." }
       - { path: "{out}/problems.sarif", description: "The same problems as a SARIF 2.1.0 log, for the problems target." }
+      - { path: "{paths}", description: "For the problems target, the marks of the problems in every YAML file of the specification it read; no other line of a file changes. Nothing is written with `--check`." }
     standardOutput: |
       The errors of an invalid specification and the errors of a
       marker, one line each; a warning for each specification with no

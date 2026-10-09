@@ -259,6 +259,17 @@ cites a standard for it, the document shows an Insight or a Note next to
 the element; wherever it says how an element is known, an Origin line; and
 wherever an open question blocks an element, the question.
 
+`specarch document problems` writes `problems.txt` and `problems.sarif`,
+every error, warning and open question as one compiler line each, and
+marks each one in the YAML files of the specification, hand-written or
+not: a `# specarch-problem:` comment line above the entry, with the
+problem's severity, rule, message and id. The next run takes out every
+such line and writes the marks of what it finds, so a fixed problem loses
+its mark and nothing else in the file changes. `extract` and `merge` mark
+the trees they write in the same way, and `derive` the drafts it writes.
+A mark is not part of what is approved: writing or removing one never
+voids an approval.
+
 ## From an old document to code
 
 A specification built from what exists, a prose document or running code,

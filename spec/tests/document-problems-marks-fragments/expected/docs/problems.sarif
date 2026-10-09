@@ -1,0 +1,269 @@
+{
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "specarch",
+          "informationUri": "https://github.com/SpecArch/specarch",
+          "rules": [
+            {
+              "id": "duplicate_key"
+            },
+            {
+              "id": "expression_name"
+            },
+            {
+              "id": "need"
+            },
+            {
+              "id": "open_question"
+            },
+            {
+              "id": "question_stage"
+            },
+            {
+              "id": "test_golden_missing"
+            },
+            {
+              "id": "yaml_syntax"
+            }
+          ]
+        }
+      },
+      "columnKind": "unicodeCodePoints",
+      "results": [
+        {
+          "ruleId": "test_golden_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Loan constraint loan_days has no golden scenario; add one under tests, for example loan-days-succeeds: { entity: Loan, constraint: loan_days, scenario: golden, given: \"...\", when: \"a Loan keeping it is saved\", then: \"it is saved\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 12,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/entities/Loan/constraints/loan_days",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_golden_missing@design/design.yaml#/entities/Loan/constraints/loan_days"
+          }
+        },
+        {
+          "ruleId": "expression_name",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "the check: dayz is not a name this expression can use; use one of days, id"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 16,
+                  "startColumn": 11
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/entities/Loan/constraints/loan_days/expression",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "expression_name@design/design.yaml#/entities/Loan/constraints/loan_days/expression"
+          }
+        },
+        {
+          "ruleId": "yaml_syntax",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "the [ that starts on this line is not closed; close it with ], and separate its items with commas"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/requirements/broken.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 4,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "yaml_syntax@requirements/broken.yaml#/"
+          }
+        },
+        {
+          "ruleId": "need",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "NEED-9 is not a need of the specification; there are none in the specification"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 24,
+                  "startColumn": 9
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/requirements/CASE-2/needs/0",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "need@requirements/requirements.yaml#/requirements/CASE-2/needs/0"
+          }
+        },
+        {
+          "ruleId": "open_question",
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "(should, decision) Is the loan period 14 days or 21? It blocks design. Decided by owner. Answer with a decision record that names Q-1 under answers."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 30,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/questions/Q-1",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "Q-1"
+          },
+          "properties": {
+            "priority": "should",
+            "questionKind": "decision",
+            "decidedBy": "owner",
+            "options": [
+              "14 days",
+              "21 days"
+            ],
+            "blocks": [
+              "design"
+            ]
+          }
+        },
+        {
+          "ruleId": "question_stage",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "question Q-1 sits under requirements/ but is about the design stage; move it to design/"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 30,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/questions/Q-1",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "question_stage@requirements/requirements.yaml#/questions/Q-1"
+          }
+        },
+        {
+          "ruleId": "duplicate_key",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "key \"blocks\" is already defined on line 37"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 38,
+                  "startColumn": 5
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/questions/Q-1/blocks",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "duplicate_key@requirements/requirements.yaml#/questions/Q-1/blocks"
+          }
+        }
+      ]
+    }
+  ]
+}

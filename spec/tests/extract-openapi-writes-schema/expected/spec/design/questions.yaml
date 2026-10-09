@@ -1,4 +1,5 @@
 questions:
+  # specarch-problem: question: open_question: (must, decision) Which permission does POST /holds check? The document gives it no security. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
     question: Which permission does POST /holds check? The document gives it no security.
     kind: decision
@@ -6,6 +7,7 @@ questions:
     blocks: ['#/paths/~1holds/post/permission']
     decidedBy: system-owner
     why: A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.
+  # specarch-problem: question: open_question: (must, decision) Which fields identify one Hold, its primary key? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
   Q-2:
     question: Which fields identify one Hold, its primary key?
     kind: decision

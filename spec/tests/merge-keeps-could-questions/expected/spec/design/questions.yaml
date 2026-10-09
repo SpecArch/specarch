@@ -1,4 +1,5 @@
 questions:
+  # specarch-problem: question: open_question: (must, decision) What does POST /loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
     question: What does POST /loans do, and what does it answer?
     kind: decision
@@ -6,6 +7,7 @@ questions:
     blocks: ['#/paths/~1loans/post/summary', '#/paths/~1loans/post/responses']
     decidedBy: system-owner
     why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /loans/{loanId}/return take: loanId? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
   Q-2:
     question: 'What values does each path parameter of /loans/{loanId}/return take: loanId?'
     kind: decision
@@ -13,6 +15,7 @@ questions:
     blocks: ['#/paths/~1loans~1{loanId}~1return/parameters/0/schema']
     decidedBy: system-owner
     why: A route table names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does POST /loans/{loanId}/return do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
     question: What does POST /loans/{loanId}/return do, and what does it answer?
     kind: decision
@@ -20,6 +23,7 @@ questions:
     blocks: ['#/paths/~1loans~1{loanId}~1return/post/summary', '#/paths/~1loans~1{loanId}~1return/post/responses']
     decidedBy: system-owner
     why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What does POST /members do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
     question: What does POST /members do, and what does it answer?
     kind: decision
@@ -27,6 +31,7 @@ questions:
     blocks: ['#/paths/~1members/post/summary', '#/paths/~1members/post/responses']
     decidedBy: system-owner
     why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /members/{cardNumber}/loans take: cardNumber? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:
     question: 'What values does each path parameter of /members/{cardNumber}/loans take: cardNumber?'
     kind: decision
@@ -34,6 +39,7 @@ questions:
     blocks: ['#/paths/~1members~1{cardNumber}~1loans/parameters/0/schema']
     decidedBy: system-owner
     why: A route table names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does GET /members/{cardNumber}/loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
   Q-6:
     question: What does GET /members/{cardNumber}/loans do, and what does it answer?
     kind: decision
@@ -41,6 +47,7 @@ questions:
     blocks: ['#/paths/~1members~1{cardNumber}~1loans/get/summary', '#/paths/~1members~1{cardNumber}~1loans/get/responses']
     decidedBy: system-owner
     why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: loans.read, loans.write, members.write? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
   Q-7:
     question: 'What does each permission allow: loans.read, loans.write, members.write?'
     kind: decision
@@ -48,6 +55,7 @@ questions:
     blocks: ['#/permissions/loans.read/description', '#/permissions/loans.write/description', '#/permissions/members.write/description']
     decidedBy: system-owner
     why: A route table names the permission a route checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: loans.read, loans.write, members.write? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
   Q-8:
     question: 'Which role grants each permission: loans.read, loans.write, members.write?'
     kind: decision
@@ -55,6 +63,7 @@ questions:
     blocks: ['#/permissions/loans.read', '#/permissions/loans.write', '#/permissions/members.write']
     decidedBy: system-owner
     why: A route table names the permission a route checks and not who holds it.
+  # specarch-problem: question: open_question: (could, decision) Not held: route GET /members/{cardNumber}/loans: its handler MemberLoans serves more than one route; the operation is named getMembersByCardNumberLoans. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
   Q-9:
     question: 'Not held: route GET /members/{cardNumber}/loans: its handler MemberLoans serves more than one route; the operation is named getMembersByCardNumberLoans. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -64,6 +73,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'examples/lending-desk/sources/code GET /members/{cardNumber}/loans', says: 'Not held: route GET /members/{cardNumber}/loans: its handler MemberLoans serves more than one route; the operation is named getMembersByCardNumberLoans.'}
+  # specarch-problem: question: open_question: (must, decision) What is each role for, and who holds it: desk-staff? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
   Q-10:
     question: 'What is each role for, and who holds it: desk-staff?'
     kind: decision
@@ -71,6 +81,7 @@ questions:
     blocks: ['#/roles/desk-staff/description']
     decidedBy: system-owner
     why: A permission table names a role and what it grants, not who holds it.
+  # specarch-problem: question: open_question: (could, decision) Not held: grant of "Loans:Read" to desk-staff: the permission's name is not lower-case words joined by dots; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
   Q-11:
     question: 'Not held: grant of "Loans:Read" to desk-staff: the permission''s name is not lower-case words joined by dots; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -80,6 +91,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: examples/lending-desk/sources/code role desk-staff, says: 'Not held: grant of "Loans:Read" to desk-staff: the permission''s name is not lower-case words joined by dots; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: grant of public to desk-staff: public is open to everyone and granted by no role; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
   Q-12:
     question: 'Not held: grant of public to desk-staff: public is open to everyone and granted by no role; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -89,6 +101,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: examples/lending-desk/sources/code role desk-staff, says: 'Not held: grant of public to desk-staff: public is open to everyone and granted by no role; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: grant of loans.read to "Desk_Clerk": the role's name is not kebab-case, which a role name is; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
   Q-13:
     question: 'Not held: grant of loans.read to "Desk_Clerk": the role''s name is not kebab-case, which a role name is; left out. Does the specification need it, written another way or described by hand?'
     kind: decision

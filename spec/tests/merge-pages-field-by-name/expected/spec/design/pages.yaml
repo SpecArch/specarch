@@ -4,11 +4,16 @@ permissions:
     cites:
       - {source: code, clause: 'examples/lending-desk/sources/web/app/(desk)/members/[cardNumber]/loans/page.schema.ts', says: 'The page at /members/{cardNumber}/loans checks loans.read.'}
 pages:
+  # specarch-problem: warning: test_golden_missing: page loans-new has no golden scenario; add one under tests, for example loans-new-succeeds: { page: loans-new, scenario: golden, given: "any caller", when: "the page loans-new is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/loans-new]
+  # specarch-problem: warning: test_red_missing: page loans-new has no red scenario; add one under tests, for example loans-new-refused: { page: loans-new, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/loans-new]
   loans-new:
     route: /loans/new
     origin: stated
     cites:
       - {source: code, clause: examples/lending-desk/sources/web/app/(desk)/loans/new/page.tsx, says: 'The folder (desk)/loans/new holds page.tsx, so the router serves a page at /loans/new.'}
+  # specarch-problem: warning: test_case_missing: page members-by-card-number-loans has no red scenario for "not found cardNumber"; add under tests members-by-card-number-loans-not-found-card-number: { page: members-by-card-number-loans, scenario: red, covers: [not found cardNumber], given: "no record has that cardNumber", when: "the page members-by-card-number-loans is opened for that cardNumber", then: "it says the record was not found" } [test_case_missing.1254ce25@design/pages.yaml#/pages/members-by-card-number-loans]
+  # specarch-problem: warning: test_case_missing: page members-by-card-number-loans has no red scenario for "denied without loans.read"; add under tests members-by-card-number-loans-denied-without-loans-read: { page: members-by-card-number-loans, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "the page members-by-card-number-loans is opened", then: "it is refused as not allowed" } [test_case_missing.8f4f77e6@design/pages.yaml#/pages/members-by-card-number-loans]
+  # specarch-problem: warning: test_golden_missing: page members-by-card-number-loans has no golden scenario; add one under tests, for example members-by-card-number-loans-succeeds: { page: members-by-card-number-loans, scenario: golden, given: "a caller with loans.read", when: "the page members-by-card-number-loans is opened for a record that exists", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/members-by-card-number-loans]
   members-by-card-number-loans:
     kind: list
     title: Loans of a member
@@ -21,6 +26,8 @@ pages:
     cites:
       - {source: code, clause: 'examples/lending-desk/sources/web/app/(desk)/members/[cardNumber]/loans/page.tsx', says: 'The folder (desk)/members/[cardNumber]/loans holds page.tsx, so the router serves a page at /members/{cardNumber}/loans.'}
       - {source: code, clause: 'examples/lending-desk/sources/web/app/(desk)/members/[cardNumber]/loans/page.schema.ts', says: 'The page''s schema gives its kind, title, entity, permission, source, columns and compactColumns.'}
+  # specarch-problem: warning: test_golden_missing: page root has no golden scenario; add one under tests, for example root-succeeds: { page: root, scenario: golden, given: "any caller", when: "the page root is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/root]
+  # specarch-problem: warning: test_red_missing: page root has no red scenario; add one under tests, for example root-refused: { page: root, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/root]
   root:
     route: /
     origin: stated

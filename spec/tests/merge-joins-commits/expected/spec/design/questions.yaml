@@ -1,16 +1,19 @@
 questions:
+  # specarch-problem: question: open_question: (could, decision) Is a card number ever reused once a member leaves? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
     question: Is a card number ever reused once a member leaves?
     kind: decision
     priority: could
     blocks: ['#/entities/Members']
     decidedBy: system-owner
+  # specarch-problem: question: open_question: (must, decision) What does GET /members/{cardNumber} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
   Q-2:
     question: What does GET /members/{cardNumber} do, and what does it answer?
     kind: decision
     priority: must
     blocks: ['#/paths/~1members~1{cardNumber}/get/summary', '#/paths/~1members~1{cardNumber}/get/responses']
     decidedBy: system-owner
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /members/{cardNumber} take: cardNumber? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
     question: 'What values does each path parameter of /members/{cardNumber} take: cardNumber?'
     kind: decision

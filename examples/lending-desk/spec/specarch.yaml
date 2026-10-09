@@ -51,6 +51,7 @@ sources:
       - { clause: seeds/001_roles.sql, title: The seed of the roles tables }
 
 questions:
+  # specarch-problem: question: open_question: (should, material) Which cases must the service be tested on, and with what data? Twenty-two cases follow from the design (run specarch validate to list them; specarch derive writes them as drafts). It blocks tests. Decided by desk-manager. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:
     question: Which cases must the service be tested on, and with what data? Twenty-two cases follow from the design (run specarch validate to list them; specarch derive writes them as drafts).
     kind: material

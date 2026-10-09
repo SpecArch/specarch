@@ -1,4 +1,5 @@
 questions:
+  # specarch-problem: question: open_question: (must, decision) What is a user told when each constraint of table public.branches fails: branches_fine_not_negative, branches_name_unique? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
     question: 'What is a user told when each constraint of table public.branches fails: branches_fine_not_negative, branches_name_unique?'
     kind: decision
@@ -6,6 +7,7 @@ questions:
     blocks: ['#/entities/Branches/constraints/branches_fine_not_negative/message', '#/entities/Branches/constraints/branches_name_unique/message']
     decidedBy: system-owner
     why: A constraint carries the message a user reads, and a database catalogue holds none.
+  # specarch-problem: question: open_question: (must, decision) What is a user told when each constraint of table public.copies fails: copies_title_not_empty? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
   Q-2:
     question: 'What is a user told when each constraint of table public.copies fails: copies_title_not_empty?'
     kind: decision
@@ -13,6 +15,7 @@ questions:
     blocks: ['#/entities/Copies/constraints/copies_title_not_empty/message']
     decidedBy: system-owner
     why: A constraint carries the message a user reads, and a database catalogue holds none.
+  # specarch-problem: question: open_question: (must, decision) Table public.notes has no primary key in the catalogue. Which fields identify one of its records? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
     question: Table public.notes has no primary key in the catalogue. Which fields identify one of its records?
     kind: decision
@@ -20,6 +23,7 @@ questions:
     blocks: ['#/entities/Notes/primaryKey']
     decidedBy: system-owner
     why: Every entity names the fields that identify a record, and the catalogue gives none for this table.
+  # specarch-problem: question: open_question: (could, decision) Not held: column public.branches.float_cash, money: the meta-model has no type for it; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
     question: 'Not held: column public.branches.float_cash, money: the meta-model has no type for it; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -29,6 +33,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: migrations public.branches, says: 'Not held: column public.branches.float_cash, money: the meta-model has no type for it; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: column public.copies.label, character(4): CHAR pads its value with spaces to its width, which the meta-model cannot say; written as a string of at most 4 characters. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:
     question: 'Not held: column public.copies.label, character(4): CHAR pads its value with spaces to its width, which the meta-model cannot say; written as a string of at most 4 characters. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -38,6 +43,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: migrations public.copies, says: 'Not held: column public.copies.label, character(4): CHAR pads its value with spaces to its width, which the meta-model cannot say; written as a string of at most 4 characters.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: column public.copies.shelved_at: its default now() is not a value the meta-model can hold. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
   Q-6:
     question: 'Not held: column public.copies.shelved_at: its default now() is not a value the meta-model can hold. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -47,6 +53,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: migrations public.copies, says: 'Not held: column public.copies.shelved_at: its default now() is not a value the meta-model can hold.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: index copies_title of public.copies, CREATE INDEX copies_title ON public.copies USING btree (title): the meta-model has no index. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
   Q-7:
     question: 'Not held: index copies_title of public.copies, CREATE INDEX copies_title ON public.copies USING btree (title): the meta-model has no index. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -56,6 +63,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: migrations public.copies, says: 'Not held: index copies_title of public.copies, CREATE INDEX copies_title ON public.copies USING btree (title): the meta-model has no index.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: view public.lent_copies: a view is not read from the catalogue; describe it under views by hand. Does the specification need it, written another way or described by hand? It blocks views. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
   Q-8:
     question: 'Not held: view public.lent_copies: a view is not read from the catalogue; describe it under views by hand. Does the specification need it, written another way or described by hand?'
     kind: decision

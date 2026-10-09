@@ -1,4 +1,5 @@
 questions:
+  # specarch-problem: question: open_question: (must, decision) What does POST /loans do, and what does it answer? The document gives no summary. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
     question: What does POST /loans do, and what does it answer? The document gives no summary.
     kind: decision
@@ -6,6 +7,7 @@ questions:
     blocks: ['#/paths/~1loans/post/summary']
     decidedBy: system-owner
     why: An operation needs a summary and its responses, and the document does not give them.
+  # specarch-problem: question: open_question: (must, decision) Which permission does POST /loans check? The document says it needs no security. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
   Q-2:
     question: Which permission does POST /loans check? The document says it needs no security.
     kind: decision
@@ -13,6 +15,7 @@ questions:
     blocks: ['#/paths/~1loans/post/permission']
     decidedBy: system-owner
     why: A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /loans/{loanId} that the document does not declare take: loanId? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
     question: 'What values does each path parameter of /loans/{loanId} that the document does not declare take: loanId?'
     kind: decision
@@ -20,6 +23,7 @@ questions:
     blocks: ['#/paths/~1loans~1{loanId}/parameters/0/schema']
     decidedBy: system-owner
     why: The path's template names the parameter, and the document declares no schema for it.
+  # specarch-problem: question: open_question: (must, decision) Which permission does GET /loans/{loanId} check? The document gives it the security staff with the scopes loans. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
     question: Which permission does GET /loans/{loanId} check? The document gives it the security staff with the scopes loans.
     kind: decision
@@ -27,6 +31,7 @@ questions:
     blocks: ['#/paths/~1loans~1{loanId}/get/permission']
     decidedBy: system-owner
     why: A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.
+  # specarch-problem: question: open_question: (must, decision) Which fields identify one Loan, its primary key? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:
     question: Which fields identify one Loan, its primary key?
     kind: decision
@@ -34,6 +39,7 @@ questions:
     blocks: ['#/entities/Loan/primaryKey']
     decidedBy: system-owner
     why: A schema says what a record carries, not which of its fields identify it.
+  # specarch-problem: question: open_question: (must, decision) Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
   Q-6:
     question: 'Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale?'
     kind: decision
@@ -41,6 +47,7 @@ questions:
     blocks: ['#/paths/~1loans/post/requestBody/content/application~1json/schema/properties/copies/format', '#/entities/Loan/properties/id/format', '#/entities/Loan/properties/fee/format']
     decidedBy: system-owner
     why: The meta-model needs a number's width, and the document gives none it holds; choosing one would be a guess.
+  # specarch-problem: question: open_question: (could, decision) Not held: operation POST /loans: its operationId create-loan is not camelCase, which an operationId is; it is named postLoans. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
   Q-7:
     question: 'Not held: operation POST /loans: its operationId create-loan is not camelCase, which an operationId is; it is named postLoans. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -50,6 +57,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: openapi, clause: /paths/~1loans/post, says: 'Not held: operation POST /loans: its operationId create-loan is not camelCase, which an operationId is; it is named postLoans.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: operation POST /loans: tags, which the meta-model does not hold here; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
   Q-8:
     question: 'Not held: operation POST /loans: tags, which the meta-model does not hold here; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -59,6 +67,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: openapi, clause: /paths/~1loans/post, says: 'Not held: operation POST /loans: tags, which the meta-model does not hold here; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: operation HEAD /loans/{loanId}: the meta-model holds the methods get, post, put, patch and delete; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
   Q-9:
     question: 'Not held: operation HEAD /loans/{loanId}: the meta-model holds the methods get, post, put, patch and delete; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -68,6 +77,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: openapi, clause: '/paths/~1loans~1{loanId}', says: 'Not held: operation HEAD /loans/{loanId}: the meta-model holds the methods get, post, put, patch and delete; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: operation GET /loans/{loanId}, parameter session: the meta-model holds a parameter in the path, the query or a header, not a cookie; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
   Q-10:
     question: 'Not held: operation GET /loans/{loanId}, parameter session: the meta-model holds a parameter in the path, the query or a header, not a cookie; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -77,6 +87,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: openapi, clause: '/paths/~1loans~1{loanId}/get', says: 'Not held: operation GET /loans/{loanId}, parameter session: the meta-model holds a parameter in the path, the query or a header, not a cookie; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: operation GET /loans/{loanId}, response 4XX: the meta-model holds a response code or default, not a range; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
   Q-11:
     question: 'Not held: operation GET /loans/{loanId}, response 4XX: the meta-model holds a response code or default, not a range; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -86,6 +97,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: openapi, clause: '/paths/~1loans~1{loanId}/get', says: 'Not held: operation GET /loans/{loanId}, response 4XX: the meta-model holds a response code or default, not a range; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: operation GET /loans/{loanId}: the extension x-rate-group, whose meaning the document's own tools define; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
   Q-12:
     question: 'Not held: operation GET /loans/{loanId}: the extension x-rate-group, whose meaning the document''s own tools define; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -95,6 +107,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: openapi, clause: '/paths/~1loans~1{loanId}/get', says: 'Not held: operation GET /loans/{loanId}: the extension x-rate-group, whose meaning the document''s own tools define; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: schema Loan, property due_on: its name is snake_case, and the document's other names are camelCase; a specification names its properties on the wire one way (info.wireNames); left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
   Q-13:
     question: 'Not held: schema Loan, property due_on: its name is snake_case, and the document''s other names are camelCase; a specification names its properties on the wire one way (info.wireNames); left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -104,6 +117,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: openapi, clause: /components/schemas/Loan, says: 'Not held: schema Loan, property due_on: its name is snake_case, and the document''s other names are camelCase; a specification names its properties on the wire one way (info.wireNames); left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: schema Loan, property note: allOf combines schemas, which the field subset does not; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
   Q-14:
     question: 'Not held: schema Loan, property note: allOf combines schemas, which the field subset does not; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -113,6 +127,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: openapi, clause: /components/schemas/Loan, says: 'Not held: schema Loan, property note: allOf combines schemas, which the field subset does not; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: schema Loan, property note: no type the meta-model holds is left; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
   Q-15:
     question: 'Not held: schema Loan, property note: no type the meta-model holds is left; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -122,6 +137,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: openapi, clause: /components/schemas/Loan, says: 'Not held: schema Loan, property note: no type the meta-model holds is left; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: schema loanList: its name is not PascalCase, which an entity's or an enum's is; written in place wherever it is referred to. Does the specification need it, written another way or described by hand? It blocks schemas. Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
   Q-16:
     question: 'Not held: schema loanList: its name is not PascalCase, which an entity''s or an enum''s is; written in place wherever it is referred to. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -131,6 +147,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: openapi, clause: /components/schemas/loanList, says: 'Not held: schema loanList: its name is not PascalCase, which an entity''s or an enum''s is; written in place wherever it is referred to.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: the document's servers: the meta-model does not hold it; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
   Q-17:
     question: 'Not held: the document''s servers: the meta-model does not hold it; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -140,6 +157,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: openapi, clause: /servers, says: 'Not held: the document''s servers: the meta-model does not hold it; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: the document's tags: the meta-model does not hold it; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
   Q-18:
     question: 'Not held: the document''s tags: the meta-model does not hold it; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -149,6 +167,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: openapi, clause: /tags, says: 'Not held: the document''s tags: the meta-model does not hold it; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: components.securitySchemes: a security scheme is not a permission; named in each operation's permission question, and left out. Does the specification need it, written another way or described by hand? It blocks permissions. Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
   Q-19:
     question: 'Not held: components.securitySchemes: a security scheme is not a permission; named in each operation''s permission question, and left out. Does the specification need it, written another way or described by hand?'
     kind: decision

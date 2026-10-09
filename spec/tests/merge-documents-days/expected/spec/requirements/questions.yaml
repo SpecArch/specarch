@@ -1,4 +1,5 @@
 questions:
+  # specarch-problem: question: open_question: (must, decision) Is it 21 days, as HANDBOOK-1 says ("The loan period is 21 days."), or 14 days, as the check loans_loan_period of Loans has it (dueOn == loanedOn + duration("P14D"))? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
     question: Is it 21 days, as HANDBOOK-1 says ("The loan period is 21 days."), or 14 days, as the check loans_loan_period of Loans has it (dueOn == loanedOn + duration("P14D"))?
     kind: decision

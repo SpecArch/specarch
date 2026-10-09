@@ -14,6 +14,7 @@ entities:
       books: {target: Books, kind: many-to-one, via: barcode, onDelete: restrict}
       members: {target: Members, kind: many-to-one, via: cardNumber, onDelete: restrict}
     constraints:
+      # specarch-problem: warning: test_golden_missing: Loans constraint loans_loan_period has no golden scenario; add one under tests, for example loans-loan-period-succeeds: { entity: Loans, constraint: loans_loan_period, scenario: golden, given: "...", when: "a Loans keeping it is saved", then: "it is saved" } [test_golden_missing@design/entities/loans.yaml#/entities/Loans/constraints/loans_loan_period]
       loans_loan_period: {kind: check, expression: dueOn == loanedOn + duration("P14D")}
     origin: stated
     cites:

@@ -1,5 +1,7 @@
 paths:
   /holds:
+    # specarch-problem: warning: test_case_missing: operation placeHold has no red scenario for "missing barcode"; add under tests place-hold-missing-barcode: { operation: placeHold, scenario: red, covers: [missing barcode], given: "...", when: "placeHold is called without barcode", then: "it is refused" } [test_case_missing@design/openapi.yaml#/paths/~1holds/post]
+    # specarch-problem: warning: test_golden_missing: operation placeHold has no golden scenario; add one under tests, for example place-hold-succeeds: { operation: placeHold, scenario: golden, given: "any caller", when: "placeHold is called with values inside every limit", then: "it answers 201: The hold, placed." } [test_golden_missing@design/openapi.yaml#/paths/~1holds/post]
     post:
       operationId: placeHold
       summary: Place a hold on a book

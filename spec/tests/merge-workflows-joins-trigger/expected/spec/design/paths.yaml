@@ -7,6 +7,9 @@ paths:
   /loans/{loanId}/write-off-requests:
     parameters:
       - {name: loanId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation requestWriteOff has no red scenario for "denied without loans.write"; add under tests request-write-off-denied-without-loans-write: { operation: requestWriteOff, scenario: red, covers: [denied without loans.write], given: "a caller without loans.write", when: "requestWriteOff is called", then: "it is refused as not allowed" } [test_case_missing.a936acd6@design/paths.yaml#/paths/~1loans~1{loanId}~1write-off-requests/post]
+    # specarch-problem: warning: test_case_missing: operation requestWriteOff has no red scenario for "not found loanId"; add under tests request-write-off-not-found-loan-id: { operation: requestWriteOff, scenario: red, covers: [not found loanId], given: "no record has that loanId", when: "requestWriteOff is called with that loanId", then: "it is refused as not found" } [test_case_missing.b6136ff7@design/paths.yaml#/paths/~1loans~1{loanId}~1write-off-requests/post]
+    # specarch-problem: warning: test_golden_missing: operation requestWriteOff has no golden scenario; add one under tests, for example request-write-off-succeeds: { operation: requestWriteOff, scenario: golden, given: "a caller with loans.write", when: "requestWriteOff is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1loans~1{loanId}~1write-off-requests/post]
     post:
       operationId: requestWriteOff
       permission: loans.write

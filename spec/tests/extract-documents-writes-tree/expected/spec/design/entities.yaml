@@ -18,6 +18,7 @@ entities:
     cites:
       - {source: handbook, clause: "2.1", says: 'A table of the fields of Loans: loaned on, fee, phone number.'}
 questions:
+  # specarch-problem: question: open_question: (must, decision) Which fields identify one Members, its primary key? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
     question: Which fields identify one Members, its primary key?
     kind: decision
@@ -25,6 +26,7 @@ questions:
     blocks: ['#/entities/Members/primaryKey']
     decidedBy: system-owner
     why: A table of fields does not say which of them identify a record.
+  # specarch-problem: question: open_question: (must, decision) Which fields identify one Loans, its primary key? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
     question: Which fields identify one Loans, its primary key?
     kind: decision
@@ -32,6 +34,7 @@ questions:
     blocks: ['#/entities/Loans/primaryKey']
     decidedBy: system-owner
     why: A table of fields does not say which of them identify a record.
+  # specarch-problem: question: open_question: (should, decision) How sensitive is each of these fields of Loans: loanedOn? Public, internal, personal or credential. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:
     question: 'How sensitive is each of these fields of Loans: loanedOn? Public, internal, personal or credential.'
     kind: decision
@@ -39,6 +42,7 @@ questions:
     blocks: ['#/entities/Loans/properties/loanedOn/sensitivity']
     decidedBy: system-owner
     why: The document has no sensitivity column for them and no sentence that calls them personal or a credential.
+  # specarch-problem: question: open_question: (could, decision) Not held: field fee of Loans, at line 21, of type "money": the meta-model holds no type for it; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
   Q-7:
     question: 'Not held: field fee of Loans, at line 21, of type "money": the meta-model holds no type for it; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -48,6 +52,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: handbook, clause: "2.1", says: 'Not held: field fee of Loans, at line 21, of type "money": the meta-model holds no type for it; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: the table at line 36, headed Day | Hours: only a table whose first column is Field, and whose others are Type, Required, Sensitivity or Description, is read. Does the specification need it, written another way or described by hand? It blocks entities. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
   Q-8:
     question: 'Not held: the table at line 36, headed Day | Hours: only a table whose first column is Field, and whose others are Type, Required, Sensitivity or Description, is read. Does the specification need it, written another way or described by hand?'
     kind: decision

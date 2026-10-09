@@ -5,6 +5,8 @@ paths:
         in: header
         required: true
         schema: {type: string, maxLength: 8}
+    # specarch-problem: warning: test_case_missing: operation postLoans has no red scenario for "missing cardNumber"; add under tests post-loans-missing-card-number: { operation: postLoans, scenario: red, covers: [missing cardNumber], given: "...", when: "postLoans is called without cardNumber", then: "it is refused" } [test_case_missing@design/openapi.yaml#/paths/~1loans/post]
+    # specarch-problem: warning: test_golden_missing: operation postLoans has no golden scenario; add one under tests, for example post-loans-succeeds: { operation: postLoans, scenario: golden, given: "any caller", when: "postLoans is called with values inside every limit", then: "it answers 201: The new loan." } [test_golden_missing@design/openapi.yaml#/paths/~1loans/post]
     post:
       operationId: postLoans
       requestBody:
@@ -32,6 +34,9 @@ paths:
   /loans/{loanId}:
     parameters:
       - {name: loanId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation getLoan has no red scenario for "expand not one of its values"; add under tests get-loan-expand-not-one-of-its-values: { operation: getLoan, scenario: red, covers: [expand not one of its values], given: "...", when: "getLoan is called with expand set to a value it does not allow", then: "it is refused" } [test_case_missing.4a690dd4@design/openapi.yaml#/paths/~1loans~1{loanId}/get]
+    # specarch-problem: warning: test_case_missing: operation getLoan has no red scenario for "not found loanId"; add under tests get-loan-not-found-loan-id: { operation: getLoan, scenario: red, covers: [not found loanId], given: "no record has that loanId", when: "getLoan is called with that loanId", then: "it is refused as not found" } [test_case_missing.a2f1002e@design/openapi.yaml#/paths/~1loans~1{loanId}/get]
+    # specarch-problem: warning: test_golden_missing: operation getLoan has no golden scenario; add one under tests, for example get-loan-succeeds: { operation: getLoan, scenario: golden, given: "any caller", when: "getLoan is called with values inside every limit", then: "it answers 200: The loan." } [test_golden_missing@design/openapi.yaml#/paths/~1loans~1{loanId}/get]
     get:
       operationId: getLoan
       summary: One loan

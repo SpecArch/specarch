@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: document
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification whose fragments hold an error in a block list item, an error inside a block scalar's expression, a key defined twice, a fragment that does not parse under a comment, a question, a comment at the end of a line, and a mark of a problem that is fixed"
+when: "document problems is run"
+then: "it writes each problem's mark on the line above its entry with the entry's indentation, the marks of one entry in the order of the problems file, the mark of the broken fragment below its comment, takes out the mark of the fixed problem, leaves every other line as it was, and writes problems.txt and problems.sarif with the lines of the marked files, the line a message names included, and exits 1"
+verifies: [SA-51]

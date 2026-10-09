@@ -1,4 +1,5 @@
 questions:
+  # specarch-problem: question: open_question: (must, decision) What does POST /loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
     question: What does POST /loans do, and what does it answer?
     kind: decision
@@ -6,6 +7,7 @@ questions:
     blocks: ['#/paths/~1loans/post/summary', '#/paths/~1loans/post/responses']
     decidedBy: system-owner
     why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /loans/{loanId}/return take: loanId? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
   Q-2:
     question: 'What values does each path parameter of /loans/{loanId}/return take: loanId?'
     kind: decision
@@ -13,6 +15,7 @@ questions:
     blocks: ['#/paths/~1loans~1{loanId}~1return/parameters/0/schema']
     decidedBy: system-owner
     why: A route table names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does POST /loans/{loanId}/return do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
     question: What does POST /loans/{loanId}/return do, and what does it answer?
     kind: decision
@@ -20,6 +23,7 @@ questions:
     blocks: ['#/paths/~1loans~1{loanId}~1return/post/summary', '#/paths/~1loans~1{loanId}~1return/post/responses']
     decidedBy: system-owner
     why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What does POST /members do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
     question: What does POST /members do, and what does it answer?
     kind: decision
@@ -27,6 +31,7 @@ questions:
     blocks: ['#/paths/~1members/post/summary', '#/paths/~1members/post/responses']
     decidedBy: system-owner
     why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /members/{cardNumber}/loans take: cardNumber? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:
     question: 'What values does each path parameter of /members/{cardNumber}/loans take: cardNumber?'
     kind: decision
@@ -34,6 +39,7 @@ questions:
     blocks: ['#/paths/~1members~1{cardNumber}~1loans/parameters/0/schema']
     decidedBy: system-owner
     why: A route table names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does GET /members/{cardNumber}/loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
   Q-6:
     question: What does GET /members/{cardNumber}/loans do, and what does it answer?
     kind: decision
@@ -41,6 +47,7 @@ questions:
     blocks: ['#/paths/~1members~1{cardNumber}~1loans/get/summary', '#/paths/~1members~1{cardNumber}~1loans/get/responses']
     decidedBy: system-owner
     why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: loans.read, loans.write, members.write? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
   Q-7:
     question: 'What does each permission allow: loans.read, loans.write, members.write?'
     kind: decision
@@ -48,6 +55,7 @@ questions:
     blocks: ['#/permissions/loans.read/description', '#/permissions/loans.write/description', '#/permissions/members.write/description']
     decidedBy: system-owner
     why: A route table names the permission a route checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: loans.read, loans.write, members.write? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
   Q-8:
     question: 'Which role grants each permission: loans.read, loans.write, members.write?'
     kind: decision
@@ -55,6 +63,7 @@ questions:
     blocks: ['#/permissions/loans.read', '#/permissions/loans.write', '#/permissions/members.write']
     decidedBy: system-owner
     why: A route table names the permission a route checks and not who holds it.
+  # specarch-problem: question: open_question: (must, decision) What does GET /health do, and what does it answer? The document gives no summary. Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
   Q-9:
     question: What does GET /health do, and what does it answer? The document gives no summary.
     kind: decision
@@ -62,6 +71,7 @@ questions:
     blocks: ['#/paths/~1health/get/summary']
     decidedBy: system-owner
     why: An operation needs a summary and its responses, and the document does not give them.
+  # specarch-problem: question: open_question: (must, decision) Which permission does GET /health check? The document gives it no security. Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
   Q-10:
     question: Which permission does GET /health check? The document gives it no security.
     kind: decision
@@ -69,6 +79,7 @@ questions:
     blocks: ['#/paths/~1health/get/permission']
     decidedBy: system-owner
     why: A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.
+  # specarch-problem: question: open_question: (must, decision) Which permission does GET /hello check? The document gives it no security. Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
   Q-11:
     question: Which permission does GET /hello check? The document gives it no security.
     kind: decision
@@ -76,6 +87,7 @@ questions:
     blocks: ['#/paths/~1hello/get/permission']
     decidedBy: system-owner
     why: A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.
+  # specarch-problem: question: open_question: (must, decision) Undocumented, from code: is operation lendBook (POST /loans) meant to be part of the system? The code has it at examples/lending-desk/sources/code POST /loans, and no document mentions it. Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
   Q-12:
     question: 'Undocumented, from code: is operation lendBook (POST /loans) meant to be part of the system? The code has it at examples/lending-desk/sources/code POST /loans, and no document mentions it.'
     kind: decision
@@ -86,6 +98,7 @@ questions:
     why: Only the code has it, and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found.
     cites:
       - {source: code, clause: examples/lending-desk/sources/code POST /loans, says: POST /loans checks loans.write; its handler is LendBook.}
+  # specarch-problem: question: open_question: (must, decision) Undocumented, from code: is operation returnBook (POST /loans/{loanId}/return) meant to be part of the system? The code has it at examples/lending-desk/sources/code POST /loans/{loanId}/return, and no document mentions it. Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
   Q-13:
     question: 'Undocumented, from code: is operation returnBook (POST /loans/{loanId}/return) meant to be part of the system? The code has it at examples/lending-desk/sources/code POST /loans/{loanId}/return, and no document mentions it.'
     kind: decision
@@ -96,6 +109,7 @@ questions:
     why: Only the code has it, and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found.
     cites:
       - {source: code, clause: 'examples/lending-desk/sources/code POST /loans/{loanId}/return', says: 'POST /loans/{loanId}/return checks loans.write; its handler is ReturnBook.'}
+  # specarch-problem: question: open_question: (must, decision) Undocumented, from code: is operation registerMember (POST /members) meant to be part of the system? The code has it at examples/lending-desk/sources/code POST /members, and no document mentions it. Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
   Q-14:
     question: 'Undocumented, from code: is operation registerMember (POST /members) meant to be part of the system? The code has it at examples/lending-desk/sources/code POST /members, and no document mentions it.'
     kind: decision
@@ -106,6 +120,7 @@ questions:
     why: Only the code has it, and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found.
     cites:
       - {source: code, clause: examples/lending-desk/sources/code POST /members, says: POST /members checks members.write; its handler is RegisterMember.}
+  # specarch-problem: question: open_question: (must, decision) Undocumented, from code: is operation listMemberLoans (GET /members/{cardNumber}/loans) meant to be part of the system? The code has it at examples/lending-desk/sources/code GET /members/{cardNumber}/loans, and no document mentions it. Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
   Q-15:
     question: 'Undocumented, from code: is operation listMemberLoans (GET /members/{cardNumber}/loans) meant to be part of the system? The code has it at examples/lending-desk/sources/code GET /members/{cardNumber}/loans, and no document mentions it.'
     kind: decision

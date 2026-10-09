@@ -16,6 +16,8 @@ import (
 	"strings"
 
 	"go.yaml.in/yaml/v3"
+
+	"github.com/SpecArch/specarch/internal/source"
 )
 
 // Record is one approval.
@@ -61,7 +63,9 @@ func Name(version string) string {
 
 // Digest is the SHA-256 of every .yaml file under the specification's
 // folder, taken in byte order of their paths relative to that folder, each
-// as its path, a zero byte, its bytes and a zero byte.
+// as its path, a zero byte, its bytes and a zero byte. A file's problem
+// marks are left out: they say what a run found, not what was approved, so
+// writing or removing them never voids an approval.
 func Digest(specDir string) (string, error) {
 	var paths []string
 	err := filepath.WalkDir(specDir, func(p string, d fs.DirEntry, err error) error {
@@ -102,7 +106,7 @@ func Digest(specDir string) (string, error) {
 		}
 		h.Write([]byte(k))
 		h.Write([]byte{0})
-		h.Write(data)
+		h.Write(source.StripMarks(data))
 		h.Write([]byte{0})
 	}
 	return "sha256:" + hex.EncodeToString(h.Sum(nil)), nil

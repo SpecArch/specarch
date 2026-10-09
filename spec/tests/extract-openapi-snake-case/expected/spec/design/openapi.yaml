@@ -1,5 +1,9 @@
 paths:
   /loans:
+    # specarch-problem: warning: test_case_missing: operation lendBook has no red scenario for "missing barcode"; add under tests lend-book-missing-barcode: { operation: lendBook, scenario: red, covers: [missing barcode], given: "...", when: "lendBook is called without barcode", then: "it is refused" } [test_case_missing.68aaa23d@design/openapi.yaml#/paths/~1loans/post]
+    # specarch-problem: warning: test_case_missing: operation lendBook has no red scenario for "cardNumber not matching its pattern"; add under tests lend-book-card-number-not-matching-its-pattern: { operation: lendBook, scenario: red, covers: [cardNumber not matching its pattern], given: "...", when: "lendBook is called with cardNumber in the wrong form", then: "it is refused" } [test_case_missing.6ccbe6b8@design/openapi.yaml#/paths/~1loans/post]
+    # specarch-problem: warning: test_case_missing: operation lendBook has no red scenario for "missing cardNumber"; add under tests lend-book-missing-card-number: { operation: lendBook, scenario: red, covers: [missing cardNumber], given: "...", when: "lendBook is called without cardNumber", then: "it is refused" } [test_case_missing.e24ae930@design/openapi.yaml#/paths/~1loans/post]
+    # specarch-problem: warning: test_golden_missing: operation lendBook has no golden scenario; add one under tests, for example lend-book-succeeds: { operation: lendBook, scenario: golden, given: "any caller", when: "lendBook is called with values inside every limit", then: "it answers 201: The new loan." } [test_golden_missing@design/openapi.yaml#/paths/~1loans/post]
     post:
       operationId: lendBook
       summary: Lend a book

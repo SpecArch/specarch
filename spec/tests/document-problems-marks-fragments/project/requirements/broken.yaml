@@ -1,0 +1,3 @@
+# A fragment that does not parse.
+requirements:
+  CASE-3: [unclosed

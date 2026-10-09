@@ -10,7 +10,9 @@ entities:
     required: [code, name, openedOn, finePerDay]
     primaryKey: [code]
     constraints:
+      # specarch-problem: warning: test_golden_missing: Branches constraint branches_fine_not_negative has no golden scenario; add one under tests, for example branches-fine-not-negative-succeeds: { entity: Branches, constraint: branches_fine_not_negative, scenario: golden, given: "...", when: "a Branches keeping it is saved", then: "it is saved" } [test_golden_missing@design/entities/branches.yaml#/entities/Branches/constraints/branches_fine_not_negative]
       branches_fine_not_negative: {kind: check, expression: 'finePerDay >= decimal("0", 0)'}
+      # specarch-problem: warning: test_golden_missing: Branches constraint branches_name_unique has no golden scenario; add one under tests, for example branches-name-unique-succeeds: { entity: Branches, constraint: branches_name_unique, scenario: golden, given: "no Branches with the same values exists", when: "a Branches is saved", then: "it is saved" } [test_golden_missing@design/entities/branches.yaml#/entities/Branches/constraints/branches_name_unique]
       branches_name_unique: {kind: unique, fields: [name]}
     origin: stated
     cites:

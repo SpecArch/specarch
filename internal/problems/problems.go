@@ -38,6 +38,7 @@ type Note struct {
 	Line    int
 	Column  int
 	Message string
+	disk    string // the file as read, for its marks
 }
 
 // Problem is one error, warning or open question.
@@ -54,6 +55,7 @@ type Problem struct {
 	// A question's own fields, for the SARIF properties.
 	Priority, Kind, DecidedBy string
 	Options, Blocks           []string
+	disk                      string // the file as read, for its marks
 }
 
 // String is the problem line: file:line:column: severity: pointer: rule:
@@ -141,6 +143,7 @@ func (c *collector) diagnostic(d validate.Diagnostic) Problem {
 		Path:     d.Path,
 		Rule:     string(d.Rule),
 		Message:  d.Message,
+		disk:     d.File,
 	}
 	tokens := validate.Tokens(d.Path)
 	if root := c.placer.TreeOf(d.File, tokens); root != nil {
@@ -182,9 +185,9 @@ func (c *collector) citeNotes(cites *yaml.Node) []Note {
 		if says != "" {
 			text += ": " + oneParagraph(says)
 		}
-		note := Note{File: c.rel(c.fileOf(cite)), Line: cite.Line, Column: cite.Column, Message: text}
+		note := Note{File: c.rel(c.fileOf(cite)), Line: cite.Line, Column: cite.Column, Message: text, disk: c.fileOf(cite)}
 		if file, line, ok := c.citedLine(key, clause); ok {
-			note.File, note.Line, note.Column = c.rel(file), line, 1
+			note.File, note.Line, note.Column, note.disk = c.rel(file), line, 1, file
 		}
 		out = append(out, note)
 	}
@@ -235,6 +238,7 @@ func (c *collector) question(q source.Pair, missing map[string][]string) Problem
 		ID:        id,
 		Severity:  Question,
 		File:      c.rel(c.fileOf(q.Key)),
+		disk:      c.fileOf(q.Key),
 		Line:      q.Key.Line,
 		Column:    q.Key.Column,
 		Path:      source.Pointer("questions", id),
@@ -262,7 +266,7 @@ func (c *collector) question(q source.Pair, missing map[string][]string) Problem
 		} else if keys := missing[source.Pointer(b.Tokens...)]; len(keys) > 0 {
 			text += ", which leaves out " + strings.Join(keys, ", ")
 		}
-		p.Notes = append(p.Notes, Note{File: c.rel(c.fileOf(start)), Line: start.Line, Column: start.Column, Message: text})
+		p.Notes = append(p.Notes, Note{File: c.rel(c.fileOf(start)), Line: start.Line, Column: start.Column, Message: text, disk: c.fileOf(start)})
 	}
 	var b strings.Builder
 	fmt.Fprintf(&b, "(%s, %s) %s", p.Priority, p.Kind, oneParagraph(str("question")))

@@ -1,0 +1,3 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [requirements, design]

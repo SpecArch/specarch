@@ -533,7 +533,7 @@ commands:
     reads:
       - { path: "{paths}", description: The surface being read. }
     writes:
-      - { path: "{out}/", description: The as-built specification tree. }
+      - { path: "{out}/", description: "The as-built specification tree, each problem validate finds in it and each open question marked above its entry with a `# specarch-problem:` line, as document problems marks a fragment (ADR-066)." }
     standardOutput: |
       One line naming the commit read and the paths it was the last change
       to; one line per count, saying what was counted and how; one line per

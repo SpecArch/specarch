@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-066:
-    title: Problem marks go into the fragments an author edits when document problems runs, and generated code is marked only where the approval gate lets it be written
-    status: proposed
+    title: Problem marks go into every fragment of a specification when document problems runs, and generated code may be written as a marked draft beside the approval gate
+    status: accepted
     date: "2026-10-09"
     context: |
       ADR-065 marks every entry a problem touches in every file SpecArch
@@ -14,33 +14,50 @@ decisions:
       approval (ADR-017, ADR-019), so they have nothing to carry a mark
       while those problems stand.
     decision: |
-      Hand-written fragments: specarch document problems writes the marks
-      into every fragment of the specification, hand-written or not, with
-      no option to turn it off; validate stays read-only and never
-      writes a mark. The marks are comment lines that start with
-      "# specarch-problem:", edited as text, so nothing else in the file
-      changes.
+      Fragments: specarch document problems writes the marks into every
+      YAML file of the specification it read, hand-written or not, on
+      every run, with no option to turn it off. The trees extract and
+      merge write are marked when they are written, and so are the draft
+      tests derive writes; no command but document problems edits a file
+      the author wrote. validate stays read-only and never writes a mark.
+      A mark is a comment line that starts with "# specarch-problem:",
+      above the line where the entry starts in block style, with the
+      entry's indentation: the problem's line from the severity on, with
+      its stable id, and without the pointer. A run takes every such line
+      out and writes the marks of the problems it finds, as text, so a
+      fixed problem loses its mark and no other line of the file changes.
+      A mark is never part of what is approved: the approval digest leaves
+      the mark lines out.
 
-      Generated code: the approval gate stays as it is. Generated code,
-      SQL, OpenAPI, tests and UI carry the marks of the problems that do
-      not stop generation: warnings and could questions, and must or
-      should questions on what the target does not read. An error, or a
-      must or should question on what the target reads, still stops
-      generation, and the problems file lists it at the entry.
+      Generated code: the approval gate stays for real output. Generated
+      code, SQL, OpenAPI, tests and UI from a specification that is
+      approved and whose blocking questions are answered carry the marks
+      of the problems that remain. While a must or should question blocks
+      what a target reads, or the version has no approval, generate may
+      instead write a draft: every gap is marked at its entry, the draft
+      says it is a draft in every file and where it is written, and it is
+      never taken for the approved output. An error still stops
+      generation.
     consequences: |
       An author who runs document problems sees each problem above its
       entry in the file they edit, and the next run removes the marks of
       what they fixed. An editor that holds a fragment open reloads it
-      after the run. Code never ships from a specification that is not
-      approved, and a draft of code is not offered beside the gate.
+      after the run. A file a run marks is checked with --check like any
+      output, so a stale mark fails CI. Writing a mark never voids an
+      approval. Code that reaches production comes only from an approved
+      specification; a draft shows the shape of the code and every gap in
+      it while the questions are still being answered. The draft is built
+      in step 7 of docs/diagnostics.md.
     why: |
       The owner asked for the marks in the fragments themselves, and a
       comment line is the one change to a YAML file that leaves its
       meaning, its formatting and its other comments as they were. A
-      single command that writes them, rather than validate, keeps the
-      check after every save free of writes, and a command without a
-      switch is one mode fewer. The approval gate exists so that what
-      reaches production was read and accepted by a person; a marked
-      draft beside it would be code that skipped that reading, and a
-      mark does not stop it being run.
+      single command that writes them into hand-written files, rather than
+      validate, keeps the check after every save free of writes, and a
+      command without a switch is one mode fewer. The approval gate exists
+      so that what reaches production was read and accepted by a person;
+      a draft keeps that, because it says what it is in every file and is
+      never what approval names, while letting the author see the code
+      and its gaps before the questions are settled, as a compiler shows
+      every problem rather than stopping at the first.
     satisfies: [SA-51]

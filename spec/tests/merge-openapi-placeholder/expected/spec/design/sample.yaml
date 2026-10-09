@@ -1,5 +1,7 @@
 paths:
   /health:
+    # specarch-problem: warning: test_golden_missing: operation getHealth has no golden scenario; add one under tests, for example get-health-succeeds: { operation: getHealth, scenario: golden, given: "any caller", when: "getHealth is called", then: "it answers 200: Healthy." } [test_golden_missing@design/sample.yaml#/paths/~1health/get]
+    # specarch-problem: warning: test_red_missing: operation getHealth has no red scenario; add one under tests, for example get-health-refused: { operation: getHealth, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/sample.yaml#/paths/~1health/get]
     get:
       operationId: getHealth
       responses:
@@ -9,6 +11,8 @@ paths:
       cites:
         - {source: sample, clause: /paths/~1health/get, says: 'GET /health, with no summary.'}
   /hello:
+    # specarch-problem: warning: test_golden_missing: operation sayHello has no golden scenario; add one under tests, for example say-hello-succeeds: { operation: sayHello, scenario: golden, given: "any caller", when: "sayHello is called", then: "it answers 200: A greeting." } [test_golden_missing@design/sample.yaml#/paths/~1hello/get]
+    # specarch-problem: warning: test_red_missing: operation sayHello has no red scenario; add one under tests, for example say-hello-refused: { operation: sayHello, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/sample.yaml#/paths/~1hello/get]
     get:
       operationId: sayHello
       summary: Say hello

@@ -1,4 +1,5 @@
 questions:
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /members/{cardNumber}/loans take: cardNumber? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
     question: 'What values does each path parameter of /members/{cardNumber}/loans take: cardNumber?'
     kind: decision
@@ -6,6 +7,7 @@ questions:
     blocks: ['#/paths/~1members~1{cardNumber}~1loans/parameters/0/schema']
     decidedBy: system-owner
     why: A route table names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does GET /members/{cardNumber}/loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
   Q-2:
     question: What does GET /members/{cardNumber}/loans do, and what does it answer?
     kind: decision
@@ -13,6 +15,7 @@ questions:
     blocks: ['#/paths/~1members~1{cardNumber}~1loans/get/summary', '#/paths/~1members~1{cardNumber}~1loans/get/responses']
     decidedBy: system-owner
     why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: loans.read? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
     question: 'What does each permission allow: loans.read?'
     kind: decision
@@ -20,6 +23,7 @@ questions:
     blocks: ['#/permissions/loans.read/description']
     decidedBy: system-owner
     why: A route table names the permission a route checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: loans.read? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
     question: 'Which role grants each permission: loans.read?'
     kind: decision
@@ -27,6 +31,7 @@ questions:
     blocks: ['#/permissions/loans.read']
     decidedBy: system-owner
     why: A route table names the permission a route checks and not who holds it.
+  # specarch-problem: question: open_question: (must, decision) For the page at /loans/new, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:
     question: For the page at /loans/new, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
     kind: decision
@@ -34,6 +39,7 @@ questions:
     blocks: ['#/pages/loans-new/kind', '#/pages/loans-new/title', '#/pages/loans-new/entity', '#/pages/loans-new/source', '#/pages/loans-new/submit', '#/pages/loans-new/columns']
     decidedBy: system-owner
     why: The folders name a page's route and not what it shows.
+  # specarch-problem: question: open_question: (must, decision) Which permission does the page at /loans/new check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
   Q-6:
     question: Which permission does the page at /loans/new check, or is it open to everyone (public)?
     kind: decision
@@ -41,6 +47,7 @@ questions:
     blocks: ['#/pages/loans-new/permission']
     decidedBy: system-owner
     why: The folders name a page's route and not who may open it, and a page open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the page at /, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
   Q-7:
     question: For the page at /, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
     kind: decision
@@ -48,6 +55,7 @@ questions:
     blocks: ['#/pages/root/kind', '#/pages/root/title', '#/pages/root/entity', '#/pages/root/source', '#/pages/root/submit', '#/pages/root/columns']
     decidedBy: system-owner
     why: The folders name a page's route and not what it shows.
+  # specarch-problem: question: open_question: (must, decision) Which permission does the page at / check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
   Q-8:
     question: Which permission does the page at / check, or is it open to everyone (public)?
     kind: decision
@@ -55,6 +63,7 @@ questions:
     blocks: ['#/pages/root/permission']
     decidedBy: system-owner
     why: The folders name a page's route and not who may open it, and a page open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) What is the primary key of Loans, and what does each field the pages show hold: barcode, dueOn, loanedOn, returnedOn? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
   Q-9:
     question: 'What is the primary key of Loans, and what does each field the pages show hold: barcode, dueOn, loanedOn, returnedOn?'
     kind: decision

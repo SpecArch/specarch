@@ -177,7 +177,7 @@ commands:
     reads:
       - { path: "{trees}", description: The partial specification trees. }
     writes:
-      - { path: "{out}/", description: The merged specification. }
+      - { path: "{out}/", description: "The merged specification, each problem validate finds in it and each open question marked above its entry with a `# specarch-problem:` line, as document problems marks a fragment (ADR-066); the marks of the trees read are not carried over." }
     standardOutput: |
       One line per tree naming its title, its side, its reading where it
       has one, and what it holds; one line per

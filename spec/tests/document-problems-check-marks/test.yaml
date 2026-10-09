@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: document
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification whose fragments lack the marks of its problems and hold the mark of a problem that is fixed, beside current problems files"
+when: "document problems is run with --check"
+then: "it writes nothing, names each fragment whose marks are not the ones it would write as differing, and the problems files, whose lines the marks would move, and exits 1"
+verifies: [SA-51]

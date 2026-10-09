@@ -1,0 +1,13 @@
+arguments: [document, problems, --check, --out, docs, project]
+exitStatus: 1
+standardOutput: |
+  project/design/design.yaml:16:11: error: /entities/Loan/constraints/loan_days/expression: expression_name: the check: dayz is not a name this expression can use; use one of days, id [expression_name@design/design.yaml#/entities/Loan/constraints/loan_days/expression]
+  project/requirements/broken.yaml:4:3: error: /: yaml_syntax: the [ that starts on this line is not closed; close it with ], and separate its items with commas [yaml_syntax@requirements/broken.yaml#/]
+  project/requirements/requirements.yaml:24:9: error: /requirements/CASE-2/needs/0: need: NEED-9 is not a need of the specification; there are none in the specification [need@requirements/requirements.yaml#/requirements/CASE-2/needs/0]
+  project/requirements/requirements.yaml:30:3: error: /questions/Q-1: question_stage: question Q-1 sits under requirements/ but is about the design stage; move it to design/ [question_stage@requirements/requirements.yaml#/questions/Q-1]
+  project/requirements/requirements.yaml:38:5: error: /questions/Q-1/blocks: duplicate_key: key "blocks" is already defined on line 34 [duplicate_key@requirements/requirements.yaml#/questions/Q-1/blocks]
+  project/design/design.yaml: differs from what document writes; run specarch document without --check
+  project/requirements/broken.yaml: differs from what document writes; run specarch document without --check
+  project/requirements/requirements.yaml: differs from what document writes; run specarch document without --check
+  docs/problems.txt: differs from what document writes; run specarch document without --check
+  docs/problems.sarif: differs from what document writes; run specarch document without --check

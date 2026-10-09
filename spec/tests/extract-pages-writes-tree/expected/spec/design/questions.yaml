@@ -1,4 +1,5 @@
 questions:
+  # specarch-problem: question: open_question: (must, decision) The page at /orders reads operation listOrders, which its schema names; this tree does not declare it, so it waits for the tree that does. Is it that operation? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
     question: The page at /orders reads operation listOrders, which its schema names; this tree does not declare it, so it waits for the tree that does. Is it that operation?
     kind: decision
@@ -7,6 +8,7 @@ questions:
     decidedBy: system-owner
     names: listOrders
     why: The schema names the operation and not its method or path, so the page's source waits for the tree that declares it; specarch merge writes it once one does.
+  # specarch-problem: question: open_question: (must, decision) For the page at /orders/{orderId}, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
   Q-2:
     question: For the page at /orders/{orderId}, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
     kind: decision
@@ -14,6 +16,7 @@ questions:
     blocks: ['#/pages/orders-by-order-id/kind', '#/pages/orders-by-order-id/title', '#/pages/orders-by-order-id/entity', '#/pages/orders-by-order-id/source', '#/pages/orders-by-order-id/submit', '#/pages/orders-by-order-id/columns']
     decidedBy: system-owner
     why: The folders name a page's route, and its schema does not give these.
+  # specarch-problem: question: open_question: (must, decision) Which permission does the page at /orders/{orderId} check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
     question: Which permission does the page at /orders/{orderId} check, or is it open to everyone (public)?
     kind: decision
@@ -21,6 +24,7 @@ questions:
     blocks: ['#/pages/orders-by-order-id/permission']
     decidedBy: system-owner
     why: The folders name a page's route and not who may open it, and a page open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the page at /, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
     question: For the page at /, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
     kind: decision
@@ -28,6 +32,7 @@ questions:
     blocks: ['#/pages/root/kind', '#/pages/root/title', '#/pages/root/entity', '#/pages/root/source', '#/pages/root/submit', '#/pages/root/columns']
     decidedBy: system-owner
     why: The folders name a page's route and not what it shows.
+  # specarch-problem: question: open_question: (must, decision) Which permission does the page at / check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:
     question: Which permission does the page at / check, or is it open to everyone (public)?
     kind: decision
@@ -35,6 +40,7 @@ questions:
     blocks: ['#/pages/root/permission']
     decidedBy: system-owner
     why: The folders name a page's route and not who may open it, and a page open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the page at /status, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
   Q-6:
     question: For the page at /status, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
     kind: decision
@@ -42,6 +48,7 @@ questions:
     blocks: ['#/pages/status/kind', '#/pages/status/title', '#/pages/status/entity', '#/pages/status/source', '#/pages/status/submit', '#/pages/status/columns']
     decidedBy: system-owner
     why: The folders name a page's route and not what it shows.
+  # specarch-problem: question: open_question: (must, decision) Which permission does the page at /status check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
   Q-7:
     question: Which permission does the page at /status check, or is it open to everyone (public)?
     kind: decision
@@ -49,6 +56,7 @@ questions:
     blocks: ['#/pages/status/permission']
     decidedBy: system-owner
     why: The folders name a page's route and not who may open it, and a page open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) What is the primary key of Order, and what does each field the pages show hold: number, placedOn, total? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
   Q-8:
     question: 'What is the primary key of Order, and what does each field the pages show hold: number, placedOn, total?'
     kind: decision
@@ -56,6 +64,7 @@ questions:
     blocks: ['#/entities/Order/primaryKey', '#/entities/Order/properties/number', '#/entities/Order/properties/placedOn', '#/entities/Order/properties/total']
     decidedBy: system-owner
     why: The schema of the page at /orders names the entity and the fields it shows, not their types or the entity's key.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: orders.read? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
   Q-9:
     question: 'What does each permission allow: orders.read?'
     kind: decision
@@ -63,6 +72,7 @@ questions:
     blocks: ['#/permissions/orders.read/description']
     decidedBy: system-owner
     why: A page schema names the permission a page checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: orders.read? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
   Q-10:
     question: 'Which role grants each permission: orders.read?'
     kind: decision
@@ -70,6 +80,7 @@ questions:
     blocks: ['#/permissions/orders.read']
     decidedBy: system-owner
     why: A page schema names the permission a page checks and not who holds it.
+  # specarch-problem: question: open_question: (could, decision) Not held: app/about/page.mdx: a page file the router serves only when its configuration adds the extension, which the folders do not say; left out. Does the specification need it, written another way or described by hand? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
   Q-11:
     question: 'Not held: app/about/page.mdx: a page file the router serves only when its configuration adds the extension, which the folders do not say; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -79,6 +90,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: app/about/page.mdx, says: 'Not held: a page file the router serves only when its configuration adds the extension, which the folders do not say; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/api/orders/route.ts: a route handler serves an operation, which the router reader reads, not a page; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
   Q-12:
     question: 'Not held: app/api/orders/route.ts: a route handler serves an operation, which the router reader reads, not a page; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -88,6 +100,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: app/api/orders/route.ts, says: 'Not held: a route handler serves an operation, which the router reader reads, not a page; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/(.)photo/page.tsx: the folder (.)photo is an intercepting route, which shows another route's page in place; the meta-model has no page for it; left out. Does the specification need it, written another way or described by hand? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
   Q-13:
     question: 'Not held: app/(.)photo/page.tsx: the folder (.)photo is an intercepting route, which shows another route''s page in place; the meta-model has no page for it; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -97,6 +110,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: app/(.)photo/page.tsx, says: 'Not held: the folder (.)photo is an intercepting route, which shows another route''s page in place; the meta-model has no page for it; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/@modal/page.tsx: the folder @modal is a parallel route, a slot of a layout and not a route; the meta-model has no page for it; left out. Does the specification need it, written another way or described by hand? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
   Q-14:
     question: 'Not held: app/@modal/page.tsx: the folder @modal is a parallel route, a slot of a layout and not a route; the meta-model has no page for it; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -106,6 +120,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: app/@modal/page.tsx, says: 'Not held: the folder @modal is a parallel route, a slot of a layout and not a route; the meta-model has no page for it; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/_parts/page.tsx: the folder _parts is private, which the router does not serve; left out. Does the specification need it, written another way or described by hand? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
   Q-15:
     question: 'Not held: app/_parts/page.tsx: the folder _parts is private, which the router does not serve; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -115,6 +130,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: app/_parts/page.tsx, says: 'Not held: the folder _parts is private, which the router does not serve; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/orders/[...rest]/page.tsx: the folder [...rest] is a catch-all segment, and a page's route holds one whole parameter per segment; left out. Does the specification need it, written another way or described by hand? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
   Q-16:
     question: 'Not held: app/orders/[...rest]/page.tsx: the folder [...rest] is a catch-all segment, and a page''s route holds one whole parameter per segment; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -124,6 +140,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'app/orders/[...rest]/page.tsx', says: 'Not held: the folder [...rest] is a catch-all segment, and a page''s route holds one whole parameter per segment; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/(shop)/orders/page.schema.ts: actions and refresh are not read; the reader takes only the page keywords whose values a tree of pages can hold. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
   Q-17:
     question: 'Not held: app/(shop)/orders/page.schema.ts: actions and refresh are not read; the reader takes only the page keywords whose values a tree of pages can hold. Does the specification need it, written another way or described by hand?'
     kind: decision
@@ -133,6 +150,7 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: app/(shop)/orders/page.schema.ts, says: 'Not held: actions and refresh are not read; the reader takes only the page keywords whose values a tree of pages can hold.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/(shop)/orders/page.schema.ts: compactColumns status is not among the page's columns; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
   Q-18:
     question: 'Not held: app/(shop)/orders/page.schema.ts: compactColumns status is not among the page''s columns; left out. Does the specification need it, written another way or described by hand?'
     kind: decision

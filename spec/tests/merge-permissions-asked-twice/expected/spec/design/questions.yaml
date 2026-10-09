@@ -1,4 +1,5 @@
 questions:
+  # specarch-problem: question: open_question: (must, decision) What does POST /loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
     question: What does POST /loans do, and what does it answer?
     kind: decision
@@ -6,6 +7,7 @@ questions:
     blocks: ['#/paths/~1loans/post/summary', '#/paths/~1loans/post/responses']
     decidedBy: system-owner
     why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /loans/{loanId}/return take: loanId? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
   Q-2:
     question: 'What values does each path parameter of /loans/{loanId}/return take: loanId?'
     kind: decision
@@ -13,6 +15,7 @@ questions:
     blocks: ['#/paths/~1loans~1{loanId}~1return/parameters/0/schema']
     decidedBy: system-owner
     why: A route table names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does POST /loans/{loanId}/return do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
     question: What does POST /loans/{loanId}/return do, and what does it answer?
     kind: decision
@@ -20,6 +23,7 @@ questions:
     blocks: ['#/paths/~1loans~1{loanId}~1return/post/summary', '#/paths/~1loans~1{loanId}~1return/post/responses']
     decidedBy: system-owner
     why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What does POST /members do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
     question: What does POST /members do, and what does it answer?
     kind: decision
@@ -27,6 +31,7 @@ questions:
     blocks: ['#/paths/~1members/post/summary', '#/paths/~1members/post/responses']
     decidedBy: system-owner
     why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /members/{cardNumber}/loans take: cardNumber? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:
     question: 'What values does each path parameter of /members/{cardNumber}/loans take: cardNumber?'
     kind: decision
@@ -34,6 +39,7 @@ questions:
     blocks: ['#/paths/~1members~1{cardNumber}~1loans/parameters/0/schema']
     decidedBy: system-owner
     why: A route table names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does GET /members/{cardNumber}/loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
   Q-6:
     question: What does GET /members/{cardNumber}/loans do, and what does it answer?
     kind: decision
@@ -41,6 +47,7 @@ questions:
     blocks: ['#/paths/~1members~1{cardNumber}~1loans/get/summary', '#/paths/~1members~1{cardNumber}~1loans/get/responses']
     decidedBy: system-owner
     why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: loans.read, loans.write, members.write? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
   Q-7:
     question: 'What does each permission allow: loans.read, loans.write, members.write?'
     kind: decision
@@ -48,6 +55,7 @@ questions:
     blocks: ['#/permissions/loans.read/description', '#/permissions/loans.write/description', '#/permissions/members.write/description']
     decidedBy: system-owner
     why: A route table names the permission a route checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: loans.read, loans.write, members.write? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
   Q-8:
     question: 'Which role grants each permission: loans.read, loans.write, members.write?'
     kind: decision
@@ -55,6 +63,7 @@ questions:
     blocks: ['#/permissions/loans.read', '#/permissions/loans.write', '#/permissions/members.write']
     decidedBy: system-owner
     why: A route table names the permission a route checks and not who holds it.
+  # specarch-problem: question: open_question: (must, decision) What is each role for, and who holds it: desk-staff? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
   Q-9:
     question: 'What is each role for, and who holds it: desk-staff?'
     kind: decision

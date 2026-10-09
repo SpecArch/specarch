@@ -1,5 +1,7 @@
 paths:
   /archiveLoan:
+    # specarch-problem: warning: test_case_missing: operation archiveLoan has no red scenario for "denied without loans.write"; add under tests archive-loan-denied-without-loans-write: { operation: archiveLoan, scenario: red, covers: [denied without loans.write], given: "a caller without loans.write", when: "archiveLoan is called", then: "it is refused as not allowed" } [test_case_missing@design/openapi.yaml#/paths/~1archiveLoan/post]
+    # specarch-problem: warning: test_golden_missing: operation archiveLoan has no golden scenario; add one under tests, for example archive-loan-succeeds: { operation: archiveLoan, scenario: golden, given: "a caller with loans.write", when: "archiveLoan is called", then: "it answers 200: The loan archived." } [test_golden_missing@design/openapi.yaml#/paths/~1archiveLoan/post]
     post:
       operationId: archiveLoan
       summary: Archive a loan
@@ -21,6 +23,8 @@ paths:
       cites:
         - {source: openapi, clause: /paths/~1auditLoan/post, says: 'POST /auditLoan: Audit a loan.'}
   /cancelLoan:
+    # specarch-problem: warning: test_golden_missing: operation cancelLoan has no golden scenario; add one under tests, for example cancel-loan-succeeds: { operation: cancelLoan, scenario: golden, given: "any caller", when: "cancelLoan is called", then: "it answers 200: The loan cancelled." } [test_golden_missing@design/openapi.yaml#/paths/~1cancelLoan/post]
+    # specarch-problem: warning: test_red_missing: operation cancelLoan has no red scenario; add one under tests, for example cancel-loan-refused: { operation: cancelLoan, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/openapi.yaml#/paths/~1cancelLoan/post]
     post:
       operationId: cancelLoan
       summary: Cancel a loan
@@ -31,6 +35,8 @@ paths:
       cites:
         - {source: openapi, clause: /paths/~1cancelLoan/post, says: 'POST /cancelLoan: Cancel a loan.'}
   /createLoan:
+    # specarch-problem: warning: test_case_missing: operation createLoan has no red scenario for "denied without loans.write"; add under tests create-loan-denied-without-loans-write: { operation: createLoan, scenario: red, covers: [denied without loans.write], given: "a caller without loans.write", when: "createLoan is called", then: "it is refused as not allowed" } [test_case_missing@design/openapi.yaml#/paths/~1createLoan/post]
+    # specarch-problem: warning: test_golden_missing: operation createLoan has no golden scenario; add one under tests, for example create-loan-succeeds: { operation: createLoan, scenario: golden, given: "a caller with loans.write", when: "createLoan is called", then: "it answers 200: The loan made." } [test_golden_missing@design/openapi.yaml#/paths/~1createLoan/post]
     post:
       operationId: createLoan
       summary: Lend a copy
@@ -42,6 +48,8 @@ paths:
         - {source: openapi, clause: /paths/~1createLoan/post, says: 'POST /createLoan: Lend a copy.'}
       permission: loans.write
   /exportAll:
+    # specarch-problem: warning: test_golden_missing: operation exportAll has no golden scenario; add one under tests, for example export-all-succeeds: { operation: exportAll, scenario: golden, given: "any caller", when: "exportAll is called", then: "it answers 200: The export." } [test_golden_missing@design/openapi.yaml#/paths/~1exportAll/post]
+    # specarch-problem: warning: test_red_missing: operation exportAll has no red scenario; add one under tests, for example export-all-refused: { operation: exportAll, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/openapi.yaml#/paths/~1exportAll/post]
     post:
       operationId: exportAll
       summary: Export every record
@@ -53,6 +61,8 @@ paths:
         - {source: openapi, clause: /paths/~1exportAll/post, says: 'POST /exportAll: Export every record.'}
       permission: export.all
   /health:
+    # specarch-problem: warning: test_golden_missing: operation health has no golden scenario; add one under tests, for example health-succeeds: { operation: health, scenario: golden, given: "any caller", when: "health is called", then: "it answers 200: Up." } [test_golden_missing@design/openapi.yaml#/paths/~1health/post]
+    # specarch-problem: warning: test_red_missing: operation health has no red scenario; add one under tests, for example health-refused: { operation: health, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/openapi.yaml#/paths/~1health/post]
     post:
       operationId: health
       summary: Say the service is up
@@ -63,6 +73,8 @@ paths:
       cites:
         - {source: openapi, clause: /paths/~1health/post, says: 'POST /health: Say the service is up.'}
   /listBooks:
+    # specarch-problem: warning: test_golden_missing: operation listBooks has no golden scenario; add one under tests, for example list-books-succeeds: { operation: listBooks, scenario: golden, given: "any caller", when: "listBooks is called", then: "it answers 200: The books." } [test_golden_missing@design/openapi.yaml#/paths/~1listBooks/post]
+    # specarch-problem: warning: test_red_missing: operation listBooks has no red scenario; add one under tests, for example list-books-refused: { operation: listBooks, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/openapi.yaml#/paths/~1listBooks/post]
     post:
       operationId: listBooks
       summary: List the books
@@ -73,6 +85,8 @@ paths:
       cites:
         - {source: openapi, clause: /paths/~1listBooks/post, says: 'POST /listBooks: List the books.'}
   /listLoans:
+    # specarch-problem: warning: test_case_missing: operation listLoans has no red scenario for "denied without loans.read"; add under tests list-loans-denied-without-loans-read: { operation: listLoans, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "listLoans is called", then: "it is refused as not allowed" } [test_case_missing@design/openapi.yaml#/paths/~1listLoans/post]
+    # specarch-problem: warning: test_golden_missing: operation listLoans has no golden scenario; add one under tests, for example list-loans-succeeds: { operation: listLoans, scenario: golden, given: "a caller with loans.read", when: "listLoans is called", then: "it answers 200: The loans." } [test_golden_missing@design/openapi.yaml#/paths/~1listLoans/post]
     post:
       operationId: listLoans
       summary: List the loans
@@ -95,6 +109,8 @@ paths:
         - {source: openapi, clause: /paths/~1purgeAll/post, says: 'POST /purgeAll: Remove every record.'}
       permission: everything
   /renewLoan:
+    # specarch-problem: warning: test_golden_missing: operation renewLoan has no golden scenario; add one under tests, for example renew-loan-succeeds: { operation: renewLoan, scenario: golden, given: "any caller", when: "renewLoan is called", then: "it answers 200: The loan renewed." } [test_golden_missing@design/openapi.yaml#/paths/~1renewLoan/post]
+    # specarch-problem: warning: test_red_missing: operation renewLoan has no red scenario; add one under tests, for example renew-loan-refused: { operation: renewLoan, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/openapi.yaml#/paths/~1renewLoan/post]
     post:
       operationId: renewLoan
       summary: Renew a loan
@@ -136,6 +152,8 @@ paths:
         - {source: openapi, clause: /paths/~1setMaintenance/post, says: 'POST /setMaintenance: Put the service in maintenance.'}
       permission: global.set.maintenance.mode
   /showLoan:
+    # specarch-problem: warning: test_case_missing: operation showLoan has no red scenario for "denied without loans.read"; add under tests show-loan-denied-without-loans-read: { operation: showLoan, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "showLoan is called", then: "it is refused as not allowed" } [test_case_missing@design/openapi.yaml#/paths/~1showLoan/post]
+    # specarch-problem: warning: test_golden_missing: operation showLoan has no golden scenario; add one under tests, for example show-loan-succeeds: { operation: showLoan, scenario: golden, given: "a caller with loans.read", when: "showLoan is called", then: "it answers 200: The loan." } [test_golden_missing@design/openapi.yaml#/paths/~1showLoan/post]
     post:
       operationId: showLoan
       summary: Show one loan
@@ -147,6 +165,8 @@ paths:
         - {source: openapi, clause: /paths/~1showLoan/post, says: 'POST /showLoan: Show one loan.'}
       permission: loans.read
   /tagLoan:
+    # specarch-problem: warning: test_golden_missing: operation tagLoan has no golden scenario; add one under tests, for example tag-loan-succeeds: { operation: tagLoan, scenario: golden, given: "any caller", when: "tagLoan is called", then: "it answers 200: The loan tagged." } [test_golden_missing@design/openapi.yaml#/paths/~1tagLoan/post]
+    # specarch-problem: warning: test_red_missing: operation tagLoan has no red scenario; add one under tests, for example tag-loan-refused: { operation: tagLoan, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/openapi.yaml#/paths/~1tagLoan/post]
     post:
       operationId: tagLoan
       summary: Tag a loan

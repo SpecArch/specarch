@@ -1,4 +1,5 @@
 questions:
+  # specarch-problem: question: open_question: (must, decision) Not built yet. The documents have operation renewLoan (POST /loans/{loanId}/renew), and the code read for paths does not: is it to be built, or are the documents to change? It blocks implementation. Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
   Q-7:
     question: 'Not built yet. The documents have operation renewLoan (POST /loans/{loanId}/renew), and the code read for paths does not: is it to be built, or are the documents to change?'
     kind: decision

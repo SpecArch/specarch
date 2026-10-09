@@ -82,6 +82,10 @@ func runMerge(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "specarch merge: cannot write %s: %v\n", out, err)
 		return 2
 	}
+	if err := markWritten(out, nil); err != nil {
+		fmt.Fprintf(stderr, "specarch merge: cannot mark the problems in %s: %v\n", out, err)
+		return 2
+	}
 	for _, line := range res.Lines {
 		fmt.Fprintln(stdout, line)
 	}

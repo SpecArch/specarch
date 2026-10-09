@@ -1,0 +1,36 @@
+# The requirements of the case, kept by hand.
+stakeholders:
+  owner: { description: The product owner. }
+
+requirements:
+  CASE-1:
+    statement: A member shall borrow at most five books.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A sixth loan is refused.]
+    origin: inferred
+    why: The desk has few books.   # said at the desk
+
+  CASE-2:
+    statement: A loan shall last the loan period.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A loan is due after the loan period.]
+    # The need below was renamed.
+    needs:
+      - NEED-9
+    origin: inferred
+    why: The desk says so.
+      # specarch-problem: error: change_log: a problem that is fixed [change_log@requirements/requirements.yaml#/requirements/CASE-2/why]
+questions:
+  Q-1:
+    question: Is the loan period 14 days or 21?
+    kind: decision
+    priority: should
+    decidedBy: owner
+    options: ["14 days", "21 days"]
+    blocks: [design]
+    blocks: [design]
+    why: The manual and the service differ.

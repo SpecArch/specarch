@@ -1,0 +1,38 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+enums:
+  Shelf:
+    type: string
+    enum: [fiction, reference]
+entities:
+  Author:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      email: { type: string, format: email, maxLength: 320, atRest: encrypted, lookup: hash }
+    required: [id, email]
+    primaryKey: [id]
+    constraints:
+      author_email_unique: { kind: unique, fields: [email], message: The email is taken. }
+  Book:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      authorId: { type: string, format: uuid }
+      title: { type: string, maxLength: 300 }
+      shelf: { $ref: "#/enums/Shelf" }
+      pages: { type: integer, format: int32, minimum: 1 }
+      price: { type: string, format: decimal, precision: 23, scale: 4 }
+      withdrawnOn: { type: [string, "null"], format: date }
+      subtitle: { type: string, maxLength: 200 }
+    required: [id, authorId, title, shelf, pages, price]
+    primaryKey: [id]
+    audited: true
+    deletion: soft
+    relations:
+      author: { target: Author, kind: many-to-one, via: authorId, onDelete: restrict }
+    constraints:
+      book_has_pages: { kind: check, expression: "pages >= 1 && (withdrawnOn == null || size(title) > 0)", message: A book has pages. }

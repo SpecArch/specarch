@@ -97,3 +97,16 @@ requirements:
     verification: test
     needs: [NEED-3, NEED-10]
     why: A workflow is reviewed by people who read BPMN diagrams and run BPMN engines, so the design must reach them in that format; written by hand, the diagram drifts from the workflow on the first change, and one that cannot be read back cannot take a change made in a modeller back into the specification.
+  SA-59:
+    statement: specarch generate shall mark every warning and open question at the entry each generated file shows for it, shall write a draft labelled as one in every file when --unapproved lets it past open questions or a missing approval, and shall write the rest of a target's output with an entry the target cannot express marked at that entry and exit 1.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - generate --unapproved on a specification with a must question that blocks an entity writes the target's files, each saying it is a draft and naming the question, and the entity's entry carries the question's mark.
+      - A warning at an operation is marked above its handler in Go, in x-specarch-marks on the operation in OpenAPI, and a warning at an entity above its table in SQL.
+      - A target that cannot express one entry writes the rest with an error mark at that entry, prints the error and exits 1; SQL writes no migration then, and an approved run over a migration a draft wrote is an error.
+      - generate without --out passes over a specification that names no output folder for the target with an output_folder warning and writes the others.
+    verification: test
+    needs: [NEED-3, NEED-8]
+    why: The people who answer the questions judge a result faster from the code and screens than from documents, and a compiler that stops at the first gap hides every other one; a draft that says what it is, with each gap at its entry, shows both without letting unapproved code pass for approved.

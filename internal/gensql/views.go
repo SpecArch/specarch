@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/SpecArch/specarch/internal/mark"
 	"github.com/SpecArch/specarch/internal/ownership"
 )
 
@@ -56,7 +57,7 @@ func (g *gen) createViews() []string {
 			continue
 		}
 		if stmt := g.createView(name); stmt != "" {
-			out = append(out, stmt)
+			out = append(out, g.marks("/views/"+mark.Escape(name), "")+stmt)
 		}
 	}
 	return out

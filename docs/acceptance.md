@@ -8,16 +8,15 @@ they bring is a change request about something they saw. This document
 designs the loop that takes such a remark back into the specification and
 out again in the next build. The decision is ADR-083, which is proposed
 until the owner settles the points in its last section; nothing here is
-built yet except the principle, and the steps are listed at the end.
+built yet except the principle and the marked draft, and the steps are
+listed at the end.
 
 In short:
 
 - Show a result early: the documents are written for an incomplete or
   invalid specification, and a marked draft of the code, the UI included,
-  is generated and run before approval, labelled as a draft. The draft is
-  the owner's option B for ADR-066, built in its own step; until it is,
-  a preview before approval is `generate --unapproved`, which carries no
-  label.
+  is generated and run before approval, labelled as a draft: the owner's
+  option B for ADR-066, `generate --unapproved` (ADR-086).
 - Trace the result to the specification: every generated screen, field,
   action, endpoint, message and test carries the JSON pointer of the
   element it came from, and the problem id when it is marked. A build for
@@ -72,15 +71,12 @@ is the person who finds what was left out.
   are (`docs/diagnostics.md`, step 6). They are the first result, and the
   one a reviewer reads.
 - Code. The approval gate stays for the code that may be released
-  (ADR-019). Beside it, the marked draft lets `generate` write a draft while questions are
-  open or the approval is missing, with every gap marked at the entry. A
-  draft of the server and the UI is what a tester runs. A draft says it is
-  one in its header, and a build made from it says so on every screen and
-  in every answer (section 2), so it is never taken for the approved
-  output. The draft is the owner's option B for ADR-066, which ADR-066
-  records once its own step is built; ADR-066 as it reads in this
-  repository offers no draft beside the gate, and until the draft is
-  built a preview before approval is `generate --unapproved`, unlabelled.
+  (ADR-019). Beside it, the marked draft lets `generate --unapproved` write a draft while questions are
+  open or the approval is missing, with every gap marked at the entry
+  (ADR-066, ADR-086). A draft of the server and the UI is what a tester
+  runs. A draft says it is one in every file, and a build made from it
+  will say so on every screen and in every answer (section 2, step 5), so
+  it is never taken for the approved output.
 - Build identity. Every generated file outside the specification (code,
   SQL, OpenAPI, tests, UI) names the specification's `info.version` and
   its digest, the digest the approval record keeps (ADR-019), taken
@@ -255,10 +251,7 @@ a step below.
 - `docs/refinement.md`: the path ends at code, and nothing comes back
   from a result. Its only reviewer reads documents, which the people who
   will use the system do not. "A change to an approved specification is a
-  change request" names no acceptance phase and no build. The gate
-  refuses every code target before approval, so before the marked draft a
-  preview needs `--unapproved`, whose output says nothing about being
-  unapproved.
+  change request" names no acceptance phase and no build.
 - `docs/from-sources.md`: the procedure ends at approval; it has no step
   for remarks on the first build, and its agent instructions do not say
   how to record one.

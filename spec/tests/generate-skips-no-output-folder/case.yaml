@@ -1,0 +1,5 @@
+arguments: [generate, openapi, --unapproved, with, without]
+exitStatus: 0
+standardOutput: |
+  without/specarch.yaml:1:1: warning: /: output_folder: no implementation file names an output folder for openapi under targets, so this specification has no openapi output; name one, or give --out [output_folder@specarch.yaml#/]
+plugins: [openapi]

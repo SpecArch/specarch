@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: generate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an approved specification whose migrations folder holds a migration a draft wrote, and specarch-gen-sql on PATH"
+when: "generate sql is run"
+then: "it reports that the migration was written by a draft and the approved schema starts in a new folder, writes nothing and exits 1"
+verifies: [SA-59]

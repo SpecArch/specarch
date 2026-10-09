@@ -15,6 +15,8 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/SpecArch/specarch/internal/mark"
 )
 
 // Request is what specarch writes on a plug-in's standard input.
@@ -25,6 +27,10 @@ type Request struct {
 	Specification   map[string]any   `json:"specification"`
 	Implementations []Implementation `json:"implementations"`
 	Output          string           `json:"output"`
+	// Draft is the notice a draft carries, or "" for the approved output.
+	Draft string `json:"draft"`
+	// Problems are the problems to mark, in the order of the problems file.
+	Problems []mark.Problem `json:"problems"`
 }
 
 // Implementation is one implementation file in the request.
@@ -126,6 +132,24 @@ func pascal(s string) string {
 type writer struct{ b strings.Builder }
 
 func (w *writer) line(format string, args ...any) { fmt.Fprintf(&w.b, format+"\n", args...) }
+
+// marks writes the problems placed at an element as comment lines.
+func (w *writer) marks(s Suite, ptr, indent string) {
+	for _, m := range s.Marks[ptr] {
+		w.line("%s// %s", indent, m)
+	}
+}
+
+// head writes the draft notice and the marks of the file as a whole under
+// a header.
+func (w *writer) head(s Suite, marks bool) {
+	if s.Draft != "" {
+		w.line("// %s", s.Draft)
+	}
+	if marks {
+		w.marks(s, mark.File, "")
+	}
+}
 
 // failed is the answer of a plug-in that could not write its file.
 func failed(r *Request, message string) Response {

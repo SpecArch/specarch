@@ -24,8 +24,8 @@
       <path class="head" d="M0,0 L10,5 L0,10 z"/>
     </marker>
   </defs>
-  <!-- Draft: no approval record covers the specification's files as they are, so this file is not the approved output. -->
-  <text class="draft" x="16" y="20">Draft: not from an approved specification</text>
+  <!-- Draft: the specification is not approved: there is no records/approvals/1.0.0.yaml beside the specification; this file is not the approved output. -->
+  <text class="draft" x="16" y="20">Draft: not the approved output</text>
   <g transform="translate(0,24)">
     <!-- specarch-problem: warning: test_case_missing: workflow waiver has no red scenario for "deadline passes at manager"; add under tests waiver-deadline-passes-at-manager: { workflow: waiver, scenario: red, covers: [deadline passes at manager], given: "a request waiting at manager", when: "P3D passes with no answer", then: "the request ends refused and grantWaiver is not called" } [test_case_missing.4826c9f6@specarch.yaml#/workflows/waiver] -->
     <!-- specarch-problem: warning: test_case_missing: workflow waiver has no red scenario for "approval without waivers.approve"; add under tests waiver-approval-without-waivers-approve: { workflow: waiver, scenario: red, covers: [approval without waivers.approve], given: "a caller without waivers.approve", when: "they approve a request waiting at lead", then: "it is refused as not allowed, and the request still waits" } [test_case_missing.4951dfa1@specarch.yaml#/workflows/waiver] -->

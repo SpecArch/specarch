@@ -80,6 +80,8 @@ layout:
     description: The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema; an entity or view another stakeholder owns gets no statement, and the snapshot lists it as owned.
   internal/ownership:
     description: Reads the ownedBy marks of an implementation file's mappings, which every generator that builds code or data follows by leaving the owned elements out.
+  internal/mark:
+    description: The rule every generator plug-in places the request's problems by, at the deepest entry its output shows, a question at what it blocks and a target's own problem where the whole output is marked, and the mark's text each target writes in its comment form.
   internal/typerows:
     description: Matches a field to a row of a type rendering, for the validator and the generators alike.
   cmd/specarch-gen-openapi:

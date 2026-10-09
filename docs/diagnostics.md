@@ -223,9 +223,10 @@ the marks of problems that are fixed.
 | Specification fragments (YAML) | `# specarch-problem: error: relation_target: ... [id]` above the entry |
 | Markdown documents | the Open question paragraph for a question (as now), and a Problem paragraph for an error or a warning, at the element |
 | BPMN 2.0 XML | `<!-- specarch-problem: ... -->` before the element; `--` in the text is written `- -`, which XML forbids in a comment |
-| Go, Swift, Dart, TypeScript, tests, UI | `// specarch-problem: ...` above the declaration (`{/* */}` inside JSX) |
+| Go, Swift, Dart, TypeScript, JavaScript, tests, UI | `// specarch-problem: ...` above the declaration, or under the header of a file that is the entry (a page) |
+| HTML and CSS of the UI | `<!-- specarch-problem: ... -->` and `/* specarch-problem: ... */` under the header, with `--` written `- -` and `*/` written `* /` |
 | SQL | `-- specarch-problem: ...` above the statement or column |
-| OpenAPI | `x-specarch-problems`, a list of `{id, severity, rule, message}` on the object; JSON keeps no comment, and OpenAPI allows `x-` keys on its objects |
+| OpenAPI | `x-specarch-marks`, a list of `{id, severity, rule, message}` on the object; JSON keeps no comment, OpenAPI allows `x-` keys on its objects, and `x-specarch-problems` already names the problem catalogue |
 
 In a YAML fragment:
 
@@ -293,15 +294,39 @@ of the paragraph and the id already give:
 - The command prints the errors, writes every document, and exits 1;
   with `--check` it compares and exits 1 as well.
 
-`generate bpmn` writes the BPMN mark, in the BPMN file and in its SVG,
-from the problems the plug-in request carries (`docs/generators.md`,
-Plug-ins): a warning before the element its pointer leads to, an open
-question before each element it blocks. A problem of one workflow is
-marked only in that workflow's files; one of the whole `workflows`
-section, or of an operation or a role, in every file that shows it; one
-at an element no file shows, such as another path, only in the problems
-file. In the SVG, which draws no shape for an operation or a role, their
-marks stand before the start event or the task that names them. A source SpecArch reads, such as a BPMN file given
+`generate` writes the marks of every code target from the problems the
+plug-in request carries (`docs/generators.md`, Plug-ins), by one rule
+(`internal/mark`, ADR-086):
+
+- A warning is marked at the deepest entry the file shows that holds its
+  pointer, an open question at each entry it blocks. A question that
+  blocks a whole section the file shows is marked under the header.
+- A problem at an entry the file leaves out, such as one another
+  stakeholder owns or a page the target does not write, is not marked in
+  it; the problems file lists it.
+- The target's own problems, which specarch gives their ids and hands the
+  plug-in on a second run, are marked the same way, and one that no entry
+  holds, such as one about the target's settings, is marked where the
+  output as a whole is: under the header of the file that stands for it.
+- Where each target puts them: SQL above the `CREATE TABLE` of an entity
+  and above the first column of a field, and in a later migration above
+  the first statement that changes the entity's table; OpenAPI on the
+  schema, the property and the operation; the go-dxlib file above the
+  table's entry, the operation's request type and the job's task; a test
+  file above the test or worked example; the web UI under the header of
+  each file of a page, with the marks of the screens as a whole in
+  `events.js` of the plain JavaScript UI and `application.ts` of the
+  TypeScript one; BPMN before the element, in the
+  BPMN file and in its SVG, whose marks for an operation or a role stand
+  before the start event or the task that names them.
+- A migration is written once, so it keeps the marks of the run that wrote
+  it; the next migration carries the marks of what it changes.
+- A draft says so under the header of every file, with the notice the
+  request carries: the questions that block what the target reads and the
+  approval's state. OpenAPI also carries it as `x-specarch-draft` on
+  `info`, and the SVG of a workflow shows it on the picture.
+
+A source SpecArch reads, such as a BPMN file given
 to `extract workflows`, is never marked: a problem cites it in a note
 instead.
 

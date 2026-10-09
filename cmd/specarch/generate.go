@@ -17,6 +17,7 @@ import (
 
 	"github.com/SpecArch/specarch/internal/approval"
 	"github.com/SpecArch/specarch/internal/generate"
+	"github.com/SpecArch/specarch/internal/mark"
 	"github.com/SpecArch/specarch/internal/problems"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
@@ -45,26 +46,15 @@ type pluginRequest struct {
 	// plug-in that adds files (a migration, a snapshot) knows what is
 	// there without reading the disk.
 	Existing []pluginFile `json:"existing"`
-	// Draft is true when no approval record covers the specification's
-	// files as they are and --unapproved let the run go on: the output is
-	// a draft and says so.
-	Draft bool `json:"draft"`
+	// Draft is the notice every file of a draft carries, saying why it is
+	// not the approved output, or "" when the output is approved
+	// (ADR-086).
+	Draft string `json:"draft"`
 	// Problems are the specification's warnings and open questions, in
-	// the order of the problems file, so the output marks each one at its
-	// entry (docs/diagnostics.md).
-	Problems []pluginProblem `json:"problems"`
-}
-
-// pluginProblem is one problem of the specification as a plug-in marks it:
-// its pointer into the merged specification ("" for a problem outside it,
-// such as in an implementation file), and for a question what it blocks.
-type pluginProblem struct {
-	ID       string   `json:"id"`
-	Severity string   `json:"severity"`
-	Rule     string   `json:"rule"`
-	Message  string   `json:"message"`
-	Pointer  string   `json:"pointer"`
-	Blocks   []string `json:"blocks,omitempty"`
+	// the order of the problems file, and on the second run the errors
+	// the plug-in reported, so the output marks each one at its entry
+	// (docs/diagnostics.md).
+	Problems []mark.Problem `json:"problems"`
 }
 
 type pluginImplementation struct {
@@ -125,9 +115,21 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "specarch generate: %q is not a target name; a target is kebab-case, such as openapi or sql\n", target)
 		return 2
 	}
-	specs, status := loadSpecs(paths, "generate", stdout, stderr)
+	all, status := loadSpecs(paths, "generate", stdout, stderr)
 	if status != 0 {
 		return status
+	}
+	var specs []loaded
+	for _, l := range all {
+		if out == "" && !namesOutput(l, target) {
+			fmt.Fprintln(stdout, noOutputFolder(l, target, "output").String())
+			continue
+		}
+		specs = append(specs, l)
+	}
+	if len(specs) == 0 {
+		fmt.Fprintf(stderr, "specarch generate: no output folder for %s in any specification given; give --out, or an implementation file whose targets name %s and its output\n", target, target)
+		return 2
 	}
 	groups := make([][]pluginGroup, len(specs))
 	for i, l := range specs {
@@ -141,10 +143,13 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 		}
 		groups[i] = g
 	}
-	for _, l := range specs {
-		if status := gate(l, target, set["unapproved"], stderr); status != 0 {
+	drafts := make([]string, len(specs))
+	for i, l := range specs {
+		draft, status := gate(l, target, set["unapproved"], stderr)
+		if status != 0 {
 			return status
 		}
+		drafts[i] = draft
 	}
 	var plan []planned
 	failed := false
@@ -156,15 +161,42 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 				return status
 			}
 			req := newPluginRequest(l, target, folder, g.impls)
-			req.Draft = set["unapproved"] && !approvedNow(l)
+			req.Draft = drafts[i]
 			resp, status := runPlugin(g.exe, g.name, req, stderr)
 			if status != 0 {
 				return status
 			}
+			var own []mark.Problem
 			for _, d := range placePlugin(l.spec, resp.Diagnostics) {
 				fmt.Fprintln(stdout, d.String())
 				if d.Severity == validate.Error {
 					failed = true
+				}
+				own = append(own, mark.Problem{ID: d.ID, Severity: string(d.Severity), Rule: string(d.Rule), Message: d.Message, Pointer: pluginPointer(l, d), Target: true})
+			}
+			// A target that cannot express an entry writes the rest with
+			// that entry marked: the plug-in runs again with what it
+			// reported among the problems, so its files mark them with the
+			// ids given here, and an error makes the run exit 1 (ADR-086).
+			if len(own) > 0 {
+				req.Problems = append(req.Problems, own...)
+				if resp, status = runPlugin(g.exe, g.name, req, stderr); status != 0 {
+					return status
+				}
+				// The second run reports what the first did; anything new
+				// is printed and counts as well.
+				printed := map[string]bool{}
+				for _, p := range own {
+					printed[p.ID] = true
+				}
+				for _, d := range placePlugin(l.spec, resp.Diagnostics) {
+					if printed[d.ID] {
+						continue
+					}
+					fmt.Fprintln(stdout, d.String())
+					if d.Severity == validate.Error {
+						failed = true
+					}
 				}
 			}
 			for _, f := range resp.Files {
@@ -177,15 +209,33 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 			}
 		}
 	}
-	if failed {
-		fmt.Fprintf(stderr, "specarch generate: the plug-in for %s reported errors, so nothing was written\n", target)
-		return 1
-	}
 	sort.SliceStable(plan, func(i, j int) bool { return plan[i].path < plan[j].path })
 	if check {
-		return checkPlan("generate", plan, stdout, stderr)
+		status = checkPlan("generate", plan, stdout, stderr)
+	} else {
+		status = writePlan("generate", plan, stderr)
 	}
-	return writePlan("generate", plan, stderr)
+	if status == 0 && failed {
+		if len(plan) == 0 {
+			fmt.Fprintf(stderr, "specarch generate: %s reported errors and answered no files\n", target)
+		} else {
+			fmt.Fprintf(stderr, "specarch generate: %s cannot express every entry; the rest is made, with each entry it could not write marked at its place\n", target)
+		}
+		return 1
+	}
+	return status
+}
+
+// pluginPointer is the pointer into the merged specification a placed
+// plug-in diagnostic is marked at: its path when it is about the
+// specification, and "" when it is about an implementation file.
+func pluginPointer(l loaded, d validate.Diagnostic) string {
+	for _, i := range l.spec.Implementations {
+		if filepath.Clean(i.Path) == filepath.Clean(d.File) {
+			return ""
+		}
+	}
+	return d.Path
 }
 
 // pluginGroup is one plug-in, the implementation files it is run with,
@@ -278,14 +328,14 @@ func pluginGroups(l loaded, target string, stderr io.Writer) ([]pluginGroup, int
 
 // pluginProblems are the warnings and open questions of a specification in
 // the order of its problems file, each with the pointer a mark is placed by.
-func pluginProblems(l loaded, folder string) []pluginProblem {
+func pluginProblems(l loaded, folder string) []mark.Problem {
 	pointers := map[string]string{}
 	for _, m := range l.marks(folder) {
 		pointers[m.ID] = m.Pointer
 	}
-	out := []pluginProblem{}
+	out := []mark.Problem{}
 	for _, p := range problems.Collect(l.spec, l.diags, l.covered, folder) {
-		pp := pluginProblem{ID: p.ID, Severity: string(p.Severity), Rule: p.Rule, Message: p.Message, Pointer: pointers[p.ID]}
+		pp := mark.Problem{ID: p.ID, Severity: string(p.Severity), Rule: p.Rule, Message: p.Message, Pointer: pointers[p.ID]}
 		if p.Severity == problems.Question {
 			pp.Pointer, pp.Blocks = p.Path, p.Blocks
 		}
@@ -368,34 +418,42 @@ func projectIdiomPath(implPath, name string) string {
 }
 
 // gate refuses to generate a target while a must or should question blocks
-// a section it reads, and without an approval of the files as they are,
-// unless --unapproved was given.
-func gate(l loaded, target string, unapproved bool, stderr io.Writer) int {
+// a section it reads, and without an approval of the files as they are.
+// With --unapproved it lets both through and answers the notice the draft
+// carries; a specification with a blocking question is never approved, so
+// both are the one case of output from a specification not yet approved
+// (ADR-066, ADR-086).
+func gate(l loaded, target string, unapproved bool, stderr io.Writer) (string, int) {
+	var reasons []string
 	if ids := generate.Holding(l.spec.Root, l.impls, target); len(ids) > 0 {
 		verb := "block"
 		if len(ids) == 1 {
 			verb = "blocks"
 		}
-		fmt.Fprintf(stderr, "specarch generate: %s of %s %s what %s reads (%s); answer them before generating, as specarch gaps lists them\n",
-			plural(len(ids), "open question"), l.spec.Dir, verb, target, strings.Join(ids, ", "))
-		return 1
-	}
-	if unapproved {
-		return 0
+		if !unapproved {
+			fmt.Fprintf(stderr, "specarch generate: %s of %s %s what %s reads (%s); answer them before generating, as specarch gaps lists them, or pass --unapproved for a draft\n",
+				plural(len(ids), "open question"), l.spec.Dir, verb, target, strings.Join(ids, ", "))
+			return "", 1
+		}
+		noun := "open question"
+		if len(ids) > 1 {
+			noun = "open questions"
+		}
+		reasons = append(reasons, fmt.Sprintf("%s %s %s what %s reads", noun, strings.Join(ids, ", "), verb, target))
 	}
 	version := source.Str(source.Child(source.Child(l.spec.Root, "info"), "version"))
 	if approved, text := approval.State(l.spec.Dir, version); !approved {
-		fmt.Fprintf(stderr, "specarch generate: %s is %s; read the documents and run specarch approve --by <stakeholder> %s, or pass --unapproved\n", l.spec.Dir, text, l.spec.Dir)
-		return 1
+		if !unapproved {
+			fmt.Fprintf(stderr, "specarch generate: %s is %s; read the documents and run specarch approve --by <stakeholder> %s, or pass --unapproved for a draft\n", l.spec.Dir, text, l.spec.Dir)
+			return "", 1
+		}
+		reasons = append(reasons, "the specification is "+text)
 	}
-	return 0
-}
-
-// approvedNow reports whether an approval record covers the
-// specification's files as they are.
-func approvedNow(l loaded) bool {
-	approved, _ := approval.State(l.spec.Dir, source.Str(source.Child(source.Child(l.spec.Root, "info"), "version")))
-	return approved
+	if len(reasons) == 0 {
+		return "", 0
+	}
+	// The notice goes into comments of every form, so it is one line.
+	return strings.Join(strings.Fields("Draft: "+strings.Join(reasons, ", and ")+"; this file is not the approved output."), " "), 0
 }
 
 func validTarget(t string) bool {

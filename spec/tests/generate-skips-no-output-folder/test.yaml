@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: generate
+level: system
+scenario: golden
+given: "two specifications, one whose implementation file names an output folder for openapi and one with no implementation file, and specarch-gen-openapi on PATH"
+when: "generate openapi --unapproved is run on both"
+then: "it warns with output_folder that the second has no openapi output, writes the first one's document, and exits 0"
+verifies: [SA-59]

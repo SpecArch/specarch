@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 361 design tests, 150 golden and 211 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 364 design tests, 152 golden and 212 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.6.0-dev of the specification: 361 design tests, 150 golden and 211 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 357 |
+| system | 360 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -990,6 +990,14 @@ Scenario: golden; level: system; verifies SA-58.
 - When: generate bpmn is run
 - Then: it writes one BPMN file and one SVG per workflow, with no draft label, each marking only its own workflow's warnings, the last approval's gateway ending the request approved or, by its default flow, refused, the operation-only workflow with no refused end and its description escaped, and exits 0
 
+#### generate-draft-open-questions
+
+Scenario: golden; level: system; verifies SA-59.
+
+- Given: a specification with a must question that blocks an entity and a should question that blocks the paths, no approval, and specarch-gen-openapi on PATH
+- When: generate openapi --unapproved is run
+- Then: it writes the document as a draft: the notice names both questions and the missing approval, the entity's schema carries the must question in x-specarch-marks, the document carries the should question, and it exits 0
+
 #### generate-go-dxlib
 
 Scenario: golden; level: system; verifies SA-40.
@@ -1044,7 +1052,7 @@ Scenario: red; level: system; verifies SA-39.
 
 - Given: a specification whose field names an enum by $ref and narrows it with an enum beside it, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH
 - When: generate openapi is run with --unapproved
-- Then: it reports at the field that the enum beside the $ref cannot be carried in the dxlib dialect, writes nothing, and exits 1
+- Then: it reports at the field that the enum beside the $ref cannot be carried in the dxlib dialect, writes the document as a draft with that error in x-specarch-marks on the field, and exits 1
 
 #### generate-openapi-owned
 
@@ -1092,7 +1100,7 @@ Scenario: red; level: system; covers exit 1.
 
 - Given: a plug-in that answers an error diagnostic
 - When: generate strict is run
-- Then: it prints the diagnostic, writes nothing and exits 1
+- Then: it prints the diagnostic, runs the plug-in again with it among the problems, writes nothing since the plug-in answers no file, and exits 1
 
 #### generate-refuses-open-question
 
@@ -1109,6 +1117,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-20.
 - Given: a specification without open questions and without an approval record, and specarch-gen-echo on PATH
 - When: generate echo is run
 - Then: it refuses because the specification is not approved, writes nothing and exits 1
+
+#### generate-skips-no-output-folder
+
+Scenario: golden; level: system; verifies SA-59.
+
+- Given: two specifications, one whose implementation file names an output folder for openapi and one with no implementation file, and specarch-gen-openapi on PATH
+- When: generate openapi --unapproved is run on both
+- Then: it warns with output_folder that the second has no openapi output, writes the first one's document, and exits 0
 
 #### generate-sql
 
@@ -1149,6 +1165,14 @@ Scenario: golden; level: system; verifies SA-46.
 - Given: an output folder whose migrations created the authors and books tables, a specification that now marks Author as owned by the catalogue team and adds a field to Author and one to Book, and specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved
 - Then: it writes 0002_expand.sql with the new column of books and the view made again, no statement about authors and no drop, and a snapshot that lists Author under owned, and exits 0
+
+#### generate-sql-refuses-draft-migration
+
+Scenario: red; level: system; covers exit 1; verifies SA-59.
+
+- Given: an approved specification whose migrations folder holds a migration a draft wrote, and specarch-gen-sql on PATH
+- When: generate sql is run
+- Then: it reports that the migration was written by a draft and the approved schema starts in a new folder, writes nothing and exits 1
 
 #### generate-sql-value-object
 
@@ -1244,7 +1268,7 @@ Scenario: red; level: system; verifies SA-52, SA-53, SA-54, SA-55, SA-56.
 
 - Given: the specification of the golden case, whose invitation page also shows a field of type integer, checks it with an expression that adds, and whose operation answers a 201 the page has no event for; a form that leaves out a field its request body requires and checks with an expression that calls int; a view that hides a decimal field by ordering it and offers an action that runs an operation and then opens another page; a form whose loaded child rows its source's answer does not carry, one whose loaded rows are not locked, and one whose request body has no array for its rows; a menu that holds a group inside a group and an entry that opens a page whose route takes a parameter; a first implementation file whose settings give a view a hook, a form a hook for a field it does not show and a layout that is not page, tabs or steps, name a translation whose file misses a key and drops a placeholder, and have the server routes page a list that pages itself and give another a page size above its maximum, and a second that names no session, the specification's own language as a translation, a routes path that is not a path, a service variable Next.js sends the browser and a token with no header; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it reports, for the first file, the page size, the two hooks, the layout, the list that pages itself, the dropped placeholder and the missing key under the settings; for the second, the routes path, the service variable, the token and the translation under the settings; for each file, the integer field at the page's field, the addition at the check's expression and the 201 at the page's onSubmitted, the required field left out at the form, the call at its check's expression, the decimal ordered at the view's condition and the page opened at its action's then, the rows not carried at the first form's relation, the rows not locked at the second form's child rows and the missing array at the third form's relation, the inner group at its entry and the entry to the page with a parameter at its page; and for the second, each page that needs a permission no session can tell; as errors, writes nothing, and exits 1
+- Then: it reports, for the first file, the page size, the two hooks, the layout, the list that pages itself, the dropped placeholder and the missing key under the settings; for the second, the routes path, the service variable, the token and the translation under the settings; for each file, the integer field at the page's field, the addition at the check's expression and the 201 at the page's onSubmitted, the required field left out at the form, the call at its check's expression, the decimal ordered at the view's condition and the page opened at its action's then, the rows not carried at the first form's relation, the rows not locked at the second form's child rows and the missing array at the third form's relation, the inner group at its entry and the entry to the page with a parameter at its page; and for the second, each page that needs a permission no session can tell; as errors; writes the files it can as a draft, with these errors marked in application.ts, since none of the pages they are at is written, and exits 1
 
 #### generate-ui-typescript-value-objects
 
@@ -1260,7 +1284,7 @@ Scenario: red; level: system; verifies SA-54.
 
 - Given: a specification whose member holds an address, a contact whose one part is a moment of format date-time, and a tree kept as JSON whose nodes hold a list of nodes; a list of members with the address as a column; a form that shows the address, the contact and the tree, asks for the address twice and edits visits as rows whose one field holds an address; an implementation file in TypeScript whose ui target is nextjs-carbon and whose settings give the address a hook; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it refuses, each at its entry, the value among a row's fields, the hook and the second entry on the address, the contact's part of format date-time by its path, the tree's children as the schema met again inside itself, and the address as a column, writes nothing, and exits 1
+- Then: it refuses, each at its entry, the value among a row's fields, the hook and the second entry on the address, the contact's part of format date-time by its path, the tree's children as the schema met again inside itself, and the address as a column; writes the files it can as a draft, with these errors marked in application.ts, and exits 1
 
 #### generate-unapproved
 
@@ -2962,7 +2986,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-223 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+227 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -3112,6 +3136,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-58 | acceptance 2 | golden | SA-58 names no harm |
 | requirement SA-58 | acceptance 3 | golden | SA-58 names no harm |
 | requirement SA-58 | acceptance 4 | golden | SA-58 names no harm |
+| requirement SA-59 | acceptance 1 | golden | SA-59 names no harm |
+| requirement SA-59 | acceptance 2 | golden | SA-59 names no harm |
+| requirement SA-59 | acceptance 3 | golden | SA-59 names no harm |
+| requirement SA-59 | acceptance 4 | golden | SA-59 names no harm |
 | requirement SA-32 | acceptance 1 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 2 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 3 | golden | SA-32 names no harm |

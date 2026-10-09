@@ -1,0 +1,46 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+
+entities:
+  Book:
+    description: A book on the shelves.
+    properties:
+      id: { type: string, format: uuid }
+      title: { type: string, maxLength: 200 }
+    required: [id, title]
+    primaryKey: [id]
+
+permissions:
+  books.read: { description: See books. }
+roles:
+  desk: { description: The desk., permissions: [books.read] }
+
+paths:
+  /books/{bookId}:
+    get:
+      operationId: getBook
+      summary: One book
+      permission: books.read
+      parameters:
+        - { name: bookId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: The book.
+          content: { application/json: { schema: { $ref: "#/entities/Book" } } }
+
+questions:
+  Q-1:
+    question: Does a book keep its edition?
+    kind: material
+    priority: must
+    blocks: ["#/entities/Book"]
+    decidedBy: owner
+  Q-2:
+    question: Who may read a book?
+    kind: decision
+    priority: should
+    blocks: [paths]
+    decidedBy: owner

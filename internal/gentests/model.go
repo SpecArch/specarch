@@ -6,6 +6,8 @@ import (
 	"slices"
 	"sort"
 	"strings"
+
+	"github.com/SpecArch/specarch/internal/mark"
 )
 
 // Suite is what a specification's tests are, before they are written in a
@@ -18,6 +20,8 @@ type Suite struct {
 	Root       string // the root file as seen from the output folder
 	Tests      []Test
 	Algorithms []Algorithm
+	Draft      string              // the draft notice, or ""
+	Marks      map[string][]string // the mark lines placed at each test and algorithm, by pointer, and at the file as a whole
 }
 
 // Test is one design test.
@@ -137,6 +141,20 @@ func Build(r *Request) Suite {
 		a, _ := algorithms[name].(map[string]any)
 		if alg, ok := g.algorithm(name, a); ok {
 			s.Algorithms = append(s.Algorithms, alg)
+		}
+	}
+	s.Draft = r.Draft
+	var elements []string
+	for _, t := range s.Tests {
+		elements = append(elements, "/tests/"+mark.Escape(t.Name))
+	}
+	for _, a := range s.Algorithms {
+		elements = append(elements, "/algorithms/"+mark.Escape(a.Name))
+	}
+	s.Marks = map[string][]string{}
+	for ptr, ps := range mark.Place(r.Problems, elements, []string{"/tests", "/algorithms"}) {
+		for _, p := range ps {
+			s.Marks[ptr] = append(s.Marks[ptr], mark.Line(p))
 		}
 	}
 	return s

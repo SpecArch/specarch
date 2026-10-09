@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 58 requirements, 5 entities, 12 commands, 7 algorithms, 361 tests, 83 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 59 requirements, 5 entities, 12 commands, 7 algorithms, 364 tests, 84 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -65,7 +65,7 @@ The interfaces the system offers, as its clients see them.
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written |
 | extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go, or a path that could not be read or written |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open and no specification has an error; 1: at least one must or should question is open, or a specification has an error; 2: usage error, or a path that could not be read |
-| generate | Write code or data from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads, the specification is not approved, the plug-in reported an error, or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written |
+| generate | Write code or data from a specification | public | 0: written, a draft included, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads or the specification is not approved and `--unapproved` was not given, the plug-in reported an error (what it answered is written or checked), or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder in any specification given, or a file that could not be read or written |
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
 | idioms diff | Print a shipped idiom's parts beside each override's | public | 0: the overrides were printed, or there was none; 2: usage error, an idiom this program does not ship, a path that could not be read, or a specification with errors |
 | merge | Merge the partial specifications the readers wrote into one | public | 0: the merged specification was written; 1: a tree could not be merged: it does not track origin, validate reports an error in it, it holds tests, implementation files or records, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at; 2: usage error, fewer than two trees, or a folder that could not be read or written |
@@ -353,7 +353,7 @@ Primary key: path.
 | Rule | form_field | a page's fieldConditions name a field it does not show, make a field read-only on a page that is not a form, or give readOnly and readOnlyWhen together; its checks or enteredTwice are on a page that is not a form or a task, or a check's field or a field entered twice is not one the page shows; or a check's message is not a full sentence |
 | Rule | value_object | a relation leads to a schema, a schema is named like an entity or a view, storage is on a field that holds no schema or inside a value or is columns on a list, or a value kept in columns is optional with no required part that is never null or holds a list of schemas, itself or a reference to an entity |
 | Rule | wire_name | the specification names its wire names (info.wireNames) and two properties of one object, an entity's, a view's with its entity's, or a body's, a parameter's or a message's, go on the wire under one name |
-| Rule | output_folder | document is given no --out, and no implementation file of a specification names an output folder for the target under targets, so that specification has no such document (a warning, ADR-073) |
+| Rule | output_folder | document or generate is given no --out, and no implementation file of a specification names an output folder for the target under targets, so that specification has no such output (a warning, ADR-073, ADR-086) |
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
@@ -1331,15 +1331,22 @@ sequenceDiagram
 ### Command generate
 
 Validates its input first and writes nothing from an invalid
-specification. Then refuses, with status 1, while a must or should
-question blocks a section the target reads: the sections the
-implementation file names under `targets.<target>.reads`, or every
-section when it names none. Then refuses, with status 1, when
+specification. Without `--out`, passes over a specification whose
+implementation files name no output folder for the target, with a
+warning of rule output_folder at their targets, as document does
+(ADR-073), and exits 2 when every specification given is passed
+over. Then refuses, with status 1, while a must or should question
+blocks a section the target reads: the sections the implementation
+file names under `targets.<target>.reads`, or every section when it
+names none. Then refuses, with status 1, when
 `records/approvals/<version>.yaml` is missing or its digest is not the
-digest of the specification's files now, unless `--unapproved` is
-given. Then writes the target into the folder it owns, and nothing
-outside it. With `--check` nothing is written: the output is made in
-memory and compared with what is on disk.
+digest of the specification's files now. `--unapproved` lets the run
+through both refusals and makes the output a draft: every file says
+it is one, naming the questions that block what the target reads and
+the approval's state, and a draft exits 0 (ADR-066, ADR-086). Then
+writes the target into the folder it owns, and nothing outside it.
+With `--check` nothing is written: the output is made in memory and
+compared with what is on disk.
 
 A target this program does not build in is produced by a plug-in found
 on PATH. For each implementation file that names the target under
@@ -1362,15 +1369,15 @@ that applies and the project's `override`) and `output` (the folder
 the files are for), and `existing`, the text files already in that
 folder by their path in it, so a plug-in that adds files, such as a
 migration beside a snapshot, knows what is there without reading the
-disk; `draft`, true when no approval record covers the
-specification's files as they are and `--unapproved` let the run go
-on, so the output says it is a draft; and `problems`, the
-specification's warnings and open questions in the order of its
-problems file, each with its `id`, `severity`, `rule`, `message`,
-the `pointer` into the merged specification it is marked at (empty
-for a problem outside it, such as in an implementation file) and,
-for a question, what it `blocks`, so the output marks each one at
-the entry it shows for it (docs/diagnostics.md). The plug-in answers on its standard output,
+disk; `draft`, the notice every file of a draft carries, from
+"Draft:" to "this file is not the approved output", or empty for the
+approved output; and `problems`, the specification's warnings and
+open questions in the order of its problems file, each with its
+`id`, `severity`, `rule`, `message`, the `pointer` into the merged
+specification it is marked at (empty for a problem outside it, such
+as in an implementation file) and, for a question, what it
+`blocks`, so the output marks each one at the entry it shows for it
+(docs/diagnostics.md). The plug-in answers on its standard output,
 as JSON, with `files` (each a `path` relative to the output folder and
 its `content`) and `diagnostics` (each with the validator's fields:
 file, line, severity, path, rule, message, and a column when it
@@ -1380,7 +1387,14 @@ merged specification, is put at the fragment, line and column that
 entry was read from; a column not given is derived as validate
 derives it; and the id is made as validate makes it. It prints the
 diagnostics in validate's line, refuses a path outside the output folder,
-and writes or checks the files itself. A plug-in that exits with
+and writes or checks the files itself. When the plug-in answers
+with diagnostics, the program runs it once more with them added to
+`problems`, each with its id and `target: true`, so the files mark
+the target's own problems as well; it writes what that run answers.
+A plug-in that cannot express an entry answers the rest of its
+output with that entry marked, and an error makes the run exit 1
+after the files are written or checked; a plug-in that can write
+nothing answers no file (ADR-086). A plug-in that exits with
 another status, or answers with something else, fails the run with
 status 2; its standard error is passed through.
 
@@ -1402,13 +1416,14 @@ the target up.
 | `<paths>` | string, one or more | yes | Folders holding specifications, searched as validate searches them. |
 | `--out` | string |   | The folder the target owns. Without it, the folder the implementation files' `targets` name for the target, relative to each implementation file; they must agree. |
 | `--check` | bool |   | Make the output in memory and fail when the files on disk differ. Writes nothing. |
-| `--unapproved` | bool |   | Generate from a specification that no approval record covers. The refusal is the default; this says, visibly, that the output is not from an approved specification. |
+| `--unapproved` | bool |   | Write a draft from a specification that is not approved yet, because no approval record covers its files as they are or an open must or should question blocks what the target reads. The refusal is the default; with this, every file says it is a draft and why. |
 
 Reads `{paths}`: The specifications and their implementation files; `records/approvals/<version>.yaml`: The approval of the specification's version, beside its folder; `{out}`: The current output, with `--check`; `specarch-gen-{target} on PATH`: The plug-in for a target that is not built in.
 
 Writes `{out}/`: The files the target produces, as the plug-in answers them. Nothing is written with `--check`.
 
-Standard output: The diagnostics of an invalid specification and the diagnostics the
+Standard output: The diagnostics of an invalid specification, the output_folder
+warning of each specification passed over, and the diagnostics the
 plug-in answers with, one line each. With `--check`, one line per
 file that differs or is missing.
 
@@ -1871,6 +1886,7 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | cmd/specarch-gen-sql | The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk. | #/commands/generate |
 | internal/gensql | The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema; an entity or view another stakeholder owns gets no statement, and the snapshot lists it as owned. |   |
 | internal/ownership | Reads the ownedBy marks of an implementation file's mappings, which every generator that builds code or data follows by leaving the owned elements out. |   |
+| internal/mark | The rule every generator plug-in places the request's problems by, at the deepest entry its output shows, a question at what it blocks and a target's own problem where the whole output is marked, and the mark's text each target writes in its comment form. |   |
 | internal/typerows | Matches a field to a row of a type rendering, for the validator and the generators alike. |   |
 | cmd/specarch-gen-openapi | The plug-in behind generate openapi. Reads the request on standard input, answers the OpenAPI document on standard output, and never touches the disk. | #/commands/generate |
 | internal/genopenapi | The OpenAPI 3.1 document in the standard dialect, the design field for field, with the problem catalogue and lists paged through the paginated-list idiom; and in the dxlib dialect, what dxlib's reader binds. |   |
@@ -2539,8 +2555,8 @@ without a conversion, so every operator follows one rule.
 Consequences: A reader who knows C, Java or JavaScript reads the expressions. A
 formula's result has exactly its declared type, and a worked example
 is checked to the last digit. Generators translate a parsed
-expression, and a construct the target cannot express fails
-generation.
+expression, and a construct the target cannot express is an error
+at its entry (ADR-086).
 
 **Insight:** CEL keeps int, uint and double apart and never converts between them by itself because an implicit conversion is where precision is lost without anyone noticing; a subset of a real language is one less grammar to learn and cannot drift from it.
 
@@ -4874,8 +4890,9 @@ of the problems that remain. While a must or should question blocks
 what a target reads, or the version has no approval, generate may
 instead write a draft: every gap is marked at its entry, the draft
 says it is a draft in every file and where it is written, and it is
-never taken for the approved output. An error still stops
-generation.
+never taken for the approved output. An error in the specification
+still stops generation; ADR-086 says what a target does with an
+entry it cannot express.
 
 Consequences: An author who runs document problems sees each problem above its
 entry in the file they edit, and the next run removes the marks of
@@ -5180,8 +5197,8 @@ output folders still stop it with exit 2.
 Consequences: `document <target> --check spec examples` runs through for every
 target, warns for the lending desk at testplan, deployment and
 commissioning, and CI runs that loop as CONTRIBUTING.md gives it.
-The problems target follows the same rule. generate keeps its own
-rule for an output folder.
+The problems target follows the same rule, and so does generate
+(ADR-086).
 
 **Insight:** The targets an implementation file names are how a specification says which documents it has, so one that names none for a target has chosen not to have it; that is not an error in it, and it is no reason to stop the documents of the others. SpecArch reads what it is given and puts each problem at the entry rather than refusing the run (docs/principles.md), so the missing folder is a warning at the targets where a folder would be named. A run in which every specification is passed over has made nothing at all, and exit 0 there would read as a check that passed; it stays an error. Two folders that disagree leave the output's place ambiguous, which is an error, not a choice.
 
@@ -5909,6 +5926,99 @@ builds data leaves out what another stakeholder owns.
 
 **Note:** From Business Process Model and Notation (BPMN), Version 2.0, with its XML schemas, 2011, clause 12: BPMN Diagram Interchange gives each element its shape's bounds and each sequence flow its waypoints. <https://www.omg.org/spec/BPMN/2.0/>
 
+### ADR-086: Generated code, SQL, OpenAPI, tests and UI carry every problem at its entry, a draft is written while questions are open or approval is missing, and an entry a target cannot express is marked while the rest is written
+
+Status: accepted, 2026-10-09.
+
+Context: ADR-066 (option B) lets generate write a marked draft beside the
+approval gate, and ADR-065 marks every entry a problem touches in
+every file SpecArch writes; until this decision only the BPMN target
+wrote marks or a draft notice (ADR-085). The gate refused every
+target while a must or should question blocked what it reads, with
+no way past it, and --unapproved passed only the missing approval.
+A target that could not express one entry, such as a column name
+too long for the engine, failed the whole generation and wrote
+nothing (docs/generators.md, rule 4; ADR-004; ADR-029), so one gap
+hid the rest of the output. generate stopped with exit 2 at a
+specification that named no output folder for the target, while
+document passes it over with a warning (ADR-073).
+
+Decision: Draft: --unapproved lets a run through both gates, the open
+questions that block what the target reads and the missing
+approval. A specification with such a question cannot be approved
+(specarch approve refuses it, and an answer changes the files the
+approval covers), so both are the one case of output from a
+specification that is not yet approved, and one switch says it.
+specarch writes the plug-in request's draft as the notice every
+file carries: "Draft:", the questions that block what the target
+reads and the approval's state, and "this file is not the approved
+output". It is empty for the approved output. A draft exits 0, as a
+document with a Draft notice does, since the run was asked for.
+
+Marks: every plug-in marks the request's problems by one rule
+(internal/mark): a warning at the deepest entry the output shows
+that holds its pointer, a question at each entry it blocks, and a
+question that blocks a whole section the output shows under the
+file's header. A problem at an entry the output leaves out, such as
+one another stakeholder owns, is not marked; the problems file
+lists it. Each target writes the mark in its own comment form
+(docs/diagnostics.md, section 5). OpenAPI carries them as
+x-specarch-marks, a list of id, severity, rule and message on the
+object, and the notice as x-specarch-draft on info:
+x-specarch-problems already names the problem catalogue on
+components. A file with many entries marks each at its declaration;
+a page or a workflow written as a file of its own carries its marks
+under the header; the marks of the output as a whole stand in the
+file that stands for it (application.ts, events.js, the migration,
+the document).
+
+A target's own problems: when a plug-in reports diagnostics,
+specarch places them and gives them their ids as it does for
+validate, prints them, and runs the plug-in once more with them
+among the problems, marked as the target's own, so the files mark
+them with the same ids; a target's problem that no entry holds,
+such as one about its settings, is marked where the output's whole
+is. A plug-in that reports an error still answers what it can
+write: the entry it cannot express is left out or written as far as
+it can be, and marked. specarch writes or checks those files and
+exits 1. Where nothing can be written, such as a test framework the
+plug-in does not write for, the plug-in answers no file.
+
+SQL is the exception to writing the rest: a migration is written
+once and applied in order, and the snapshot beside it records what
+the migrations built, so a migration with an entry left out would
+be applied and recorded as complete, and fixing the specification
+afterwards could not bring the entry back. specarch-gen-sql answers
+no migration while it has an error. For the same reason a
+migration a draft wrote keeps its notice, and an approved run over
+a folder that holds one is an error: the approved schema starts in
+a new folder.
+
+Output folder: without --out, generate passes over a specification
+whose implementation files name no output folder for the target,
+with the output_folder warning document prints (ADR-073), and runs
+the others; when every specification is passed over it exits 2.
+
+Consequences: generate --unapproved on a specification with open questions writes
+a draft of every target, each file saying so; without the switch
+the gate refuses as before. Every generated file carries the marks
+of the problems that remain, so a stale mark fails --check like any
+output. A plug-in that reports a diagnostic runs twice. The cases
+that recorded a refusal for an inexpressible entry now record the
+marked output and exit 1, except SQL's. draft is text in the
+request, so a plug-in that read it as true or false is rebuilt; one
+that ignores problems still works, without marks. A build's
+on-screen draft label is the trace step of docs/acceptance.md, not
+this one. The guard on migrations knows a draft by its notice, so a
+migration written by --unapproved before the notice existed is not
+recognised, and a draft run over a folder of approved migrations is
+not refused: nothing in a migration tells an approved one from an
+earlier draft. An approved run whose target reports an error writes
+the files without the entry it cannot express, over the previous
+output, and exits 1.
+
+**Insight:** A compiler shows every problem rather than the first (docs/principles.md): a draft lets the people who answer the questions see the code and every gap in it, and a target that writes all it can, with the one entry it cannot write marked there, shows what else is ready and keeps the error in view. The approval gate exists so that what reaches production was read and accepted by a person; the draft keeps that, because it is asked for by name, says what it is in every file, and SQL, the one output that cannot be taken back once applied, refuses to build on it. The rule that places a mark is shared so every target puts a problem at the same entry, and running the plug-in again rather than having it mark its own diagnostics keeps the ids where they are made, in specarch. A specification that names no folder for a target has chosen not to have that output, as for a document.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -6031,26 +6141,29 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | gaps-usage-error | command gaps | system | red | no folder | gaps is run without arguments | it prints how to use it and exits 2 |
 | generate-bpmn | command generate | system | golden | a specification with no approval record, a workflow of two approvals, the first escalating to the second after a day, and an operation step, warnings at the workflow and its operations, and a could question on the second approval's deadline; specarch-gen-bpmn built from this repository on PATH | generate bpmn is run with --unapproved | it writes waiver.bpmn, BPMN 2.0 with its diagram, and waiver.svg, both labelled as a draft, with each warning marked before the element it concerns and the question before the deadline's timer, and exits 0 |
 | generate-bpmn-approved | command generate | system | golden | an approved specification with a write-off workflow, an approval then an operation step, a reinstatement workflow whose one step is an approval, and a workflow of one operation step whose description holds & and angle brackets; specarch-gen-bpmn built from this repository on PATH | generate bpmn is run | it writes one BPMN file and one SVG per workflow, with no draft label, each marking only its own workflow's warnings, the last approval's gateway ending the request approved or, by its default flow, refused, the operation-only workflow with no refused end and its description escaped, and exits 0 |
+| generate-draft-open-questions | command generate | system | golden | a specification with a must question that blocks an entity and a should question that blocks the paths, no approval, and specarch-gen-openapi on PATH | generate openapi --unapproved is run | it writes the document as a draft: the notice names both questions and the missing approval, the entity's schema carries the must question in x-specarch-marks, the document carries the should question, and it exits 0 |
 | generate-go-dxlib | command generate | system | golden | the specification of generate-openapi-dxlib plus a job run every hour, and an implementation file with a go-dxlib target naming the package and the database; specarch-gen-go-dxlib built from this repository on PATH | generate go-dxlib is run with --unapproved | it writes one Go file for dxlib: the tables, the handlers registered by operationId that read every parameter with dxlib's getters, check the constraints dxlib does not enforce, and run the standard list, create and read operations, the privilege, role and menu seeds, and the job registered as a task, and exits 0 |
 | generate-go-dxlib-value-objects | command generate | system | golden | a member whose address is kept in columns with a location inside it, whose preferences are kept as JSON and whose phones are a list, listed, created and read by standard operations, and an implementation file with a go-dxlib target; specarch-gen-go-dxlib built from this repository on PATH | generate go-dxlib is run with --unapproved | it writes a Go struct for each schema with a pointer per part, reads the address into one and the phones into a slice, refuses a value without a required part, writes the address into the column of each part and the preferences and phones as JSON, answers a created or read member with its columns folded back into the address and its JSON read, warns that the paging list answers the row as stored, and exits 0 |
 | generate-no-plugin | command generate | system | red | a target this build does not have and no specarch-gen-openapi on PATH | generate openapi is run | it says there is no generator for the target and exits 2 |
 | generate-openapi | command generate | system | golden | a specification with an enum, an audited entity, a problem catalogue and a list of the entity with search, filter, sort and a page size, and an implementation file in Go whose openapi target names a security scheme; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes openapi.yaml, OpenAPI 3.1.0, with the list paged by the paginated-list names in its envelope, the 404 as a problem document, the audit fields read-only and the security scheme on the operation, and exits 0 |
 | generate-openapi-dxlib | command generate | system | golden | a specification with a list, a create with limits, a read by id answering a problem, an audited and softly deleted entity, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes the document dxlib binds: one POST per operation at /<operationId> with every parameter in its JSON body, a dxlib type on every field and the constraints dxlib does not enforce listed as unenforced, privileges, dxlib's error body and list envelope, and no security scheme, and exits 0 |
 | generate-openapi-dxlib-ref-siblings | command generate | system | golden | a specification whose field names an enum by $ref with a description, a maxLength and a sensitivity beside it, a query parameter with a description whose schema names the enum, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes the $ref with only extensions beside it, which is all dxlib's reader takes there: the maxLength listed as unenforced and the sensitivity as an extension; it warns at the field and at the parameter that the description is left out, and exits 0 |
-| generate-openapi-dxlib-ref-siblings-refused | command generate | system | red | a specification whose field names an enum by $ref and narrows it with an enum beside it, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it reports at the field that the enum beside the $ref cannot be carried in the dxlib dialect, writes nothing, and exits 1 |
+| generate-openapi-dxlib-ref-siblings-refused | command generate | system | red | a specification whose field names an enum by $ref and narrows it with an enum beside it, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it reports at the field that the enum beside the $ref cannot be carried in the dxlib dialect, writes the document as a draft with that error in x-specarch-marks on the field, and exits 1 |
 | generate-openapi-owned | command generate | system | golden | a specification whose Author entity and the operation that reads one author the implementation file marks as owned by the catalogue team, another operation that answers an Author, and specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes openapi.yaml with no Author schema and no path for the owned operation, the other operation still referring to the Author schema, and exits 0 |
 | generate-openapi-ref-siblings | command generate | system | golden | a specification whose fields and response name an enum or an entity by $ref with keywords beside it: a description, a default, deprecated, a title, a sensitivity and readOnly, and an implementation file in Go with an openapi target; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes openapi.yaml with every keyword beside its $ref, JSON Schema's as they are and SpecArch's as extensions, and exits 0 |
 | generate-openapi-view-ref-path | command generate | system | golden | a view of loans with a path through the loan's member to the member's address, a field that is not required and names a value object by $ref, and an implementation file in Go with an openapi target; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes the view's address as the read-only $ref with no type and no description beside it, warns at the path that the document does not say it may have no value, writes the document, and exits 0 |
 | generate-openapi-wire-names | command generate | system | golden | a specification whose wire names are snake_case, with an audited entity of names of two words, a nested object with an acronym, and a list of the entity filtered and sorted by such names, and an implementation file in Go with an openapi target; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes openapi.yaml with every property, required list, audit field, filter, sort value, paging parameter and envelope field in snake_case, the path parameter as the specification names it, and exits 0 |
 | generate-plugin-path-outside | command generate | system | red | a plug-in that answers a path outside the output folder | generate escape is run | it refuses the path, writes nothing and exits 2 |
-| generate-plugin-reports-error | command generate | system | red | a plug-in that answers an error diagnostic | generate strict is run | it prints the diagnostic, writes nothing and exits 1 |
+| generate-plugin-reports-error | command generate | system | red | a plug-in that answers an error diagnostic | generate strict is run | it prints the diagnostic, runs the plug-in again with it among the problems, writes nothing since the plug-in answers no file, and exits 1 |
 | generate-refuses-open-question | command generate | system | red | a specification with a must question that blocks an entity, and specarch-gen-echo on PATH | generate echo is run | it refuses because the question blocks what the target reads, writes nothing and exits 1 |
 | generate-refuses-unapproved | command generate | system | red | a specification without open questions and without an approval record, and specarch-gen-echo on PATH | generate echo is run | it refuses because the specification is not approved, writes nothing and exits 1 |
+| generate-skips-no-output-folder | command generate | system | golden | two specifications, one whose implementation file names an output folder for openapi and one with no implementation file, and specarch-gen-openapi on PATH | generate openapi --unapproved is run on both | it warns with output_folder that the second has no openapi output, writes the first one's document, and exits 0 |
 | generate-sql | command generate | system | golden | a specification with an enum, an audited entity with soft deletion, a unique and a check constraint, an encrypted field found by hash, and a relation, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0001_expand.sql, each column through the type-rendering rows with the enum's check, the audit and deleted columns, the hash column the unique constraint is on, the translated check and the foreign key, and snapshot.yaml beside it, and exits 0 |
 | generate-sql-expand | command generate | system | golden | the specification of generate-sql with its first migration and snapshot in the output folder, and one new field, a subtitle that may be left out; specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0002_expand.sql, which adds the subtitle column, leaves 0001_expand.sql as it was, writes the snapshot again, and exits 0 |
 | generate-sql-identifier-length | command generate | system | red | a member whose correspondence address, kept in columns, holds courier instructions with a part whose column name passes the 64 characters MariaDB takes, and an implementation file whose sql target is MariaDB; specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it reports the column at the field that holds the value, with its length and the limit, writes nothing, and exits 1 |
 | generate-sql-owned | command generate | system | golden | a specification whose Author entity the implementation file marks as owned by the catalogue team, a Book entity with a foreign key to it and a view that joins it, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes no table for Author, the books table with its foreign key to authors and the view joining authors, and a snapshot that keeps Author's shape and lists it under owned, and exits 0 |
 | generate-sql-owned-handed-over | command generate | system | golden | an output folder whose migrations created the authors and books tables, a specification that now marks Author as owned by the catalogue team and adds a field to Author and one to Book, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0002_expand.sql with the new column of books and the view made again, no statement about authors and no drop, and a snapshot that lists Author under owned, and exits 0 |
+| generate-sql-refuses-draft-migration | command generate | system | red | an approved specification whose migrations folder holds a migration a draft wrote, and specarch-gen-sql on PATH | generate sql is run | it reports that the migration was written by a draft and the approved schema starts in a new folder, writes nothing and exits 1 |
 | generate-sql-value-object | command generate | system | golden | a specification with an entity and a schema that a response refers to, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0001_expand.sql with the entity's table and nothing for the schema, and snapshot.yaml beside it, and exits 0 |
 | generate-sql-value-object-fields | command generate | system | golden | an entity whose fields hold schemas: a required and an optional address in columns, with an optional location inside each, preferences stored as json and a list of phones, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes each address as columns named after the field and the part, NOT NULL only where every level is required, a check that an optional value is wholly absent or has its required parts, and preferences and phones as one JSONB column each, and exits 0 |
 | generate-stack-fallback | command generate | system | golden | a specification whose implementation file is in Go, with only specarch-gen-echo on PATH | generate echo is run with --unapproved | it runs specarch-gen-echo, writes its file into the output the implementation file names, and exits 0 |
@@ -6062,9 +6175,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-tests-value-objects | command generate | system | golden | a member whose address holds a location and whose phones are a list of schemas, and design tests that store a member with them, send them and expect them back; an implementation file in Go with a tests target; specarch-gen-tests-go built from this repository on PATH | generate tests is run with --unapproved | it writes each value object as an object value with its parts, a location inside an address with its own, and the phones as a list value with an object per item, each part with the type its schema gives, and exits 0 |
 | generate-ui | command generate | system | golden | a specification with a list page that filters by an enum, keeps one column on a compact screen, declares its empty, filtered empty and failed states, runs an operation on a row with a message and no confirmation, and a theme of two colours; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH | generate ui is run with --unapproved | it writes the page's HTML and module, events.js with the page's and the operation's events, and theme.css with the tokens as custom properties and the rules the target's token settings name, and exits 0 |
 | generate-ui-typescript | command generate | system | golden | a specification with two task pages, a list page that filters by an enum and by a date it may filter, searches, sorts two of its columns, keeps one on a compact screen, opens a page from its toolbar and a view from a row, and suspends a row while it is active after a confirmation that asks for the reason, a public list; a form that registers a member in two titled sections, with a text, an enum, a date, an integer, a boolean, a text without a maximum and a PIN typed twice, a branch picked from a list that searches, a field read-only while the status is inactive and one hidden while the newsletter is off, a check across two fields and an idempotency key; a form that loads a member and changes it, with a field always read-only and one read-only by an expression; a view that hides a field by an expression, opens the second form and suspends the member while active after a confirmation that asks for the reason; a form that loads a member answering a view with the rows of their visits and adds visits as rows, locked when loaded, at most five, with a field the rows' items do not take; a form that starts an approval, answered 202; the inbox of that approval's step, approving a request after a confirmation; a list read from an operation that answers every branch whole; two menus; and a theme with a dark mode, a print mode and a dimension; two implementation files in TypeScript in one folder, each with its ui target in nextjs-carbon, its own output and the session's operation in its settings, a hook for the registration's date and its sections as tabs in one and steps in the other, one owning the administration menu and the sign-in operation to another stakeholder, with server routes whose settings page the branches, a translation into en-GB whose file in the output folder keeps an entry no screen uses, and its theme's parts mapped to tokens with a space among them, and the other owning the branches page, calling the service directly and drawing lists through a library of its own by an override; and specarch-gen-ui-typescript built from this repository on PATH | generate ui is run with --unapproved | it runs the plug-in once per output folder; each writes the task pages, the list's schema and page behind the guard with the derived test that it is refused without its permission, the public list with no such test, each form's and the view's schema and page behind the guard with its derived test, the visits' rows with the loaded ones read from the view's property and only the fields the items take sent, the approval's form with its event under 202, the inbox as a list with its row action, the registration's hook handed on by page.client.tsx from page.hooks.ts, application.ts with the session and the menu without the owned one, the menu's derived test, the components under screens, the texts in strings.ts with the en-GB translation in the first, language.ts, theme.scss with Carbon's themes and, in the first, the parts' colours in light and dark, and in the first a route.ts per path a page calls, the branches paged by their route, none for the owned sign-in, the routes' settings and their derived test; the second imports the list's component and schema type from the library and names its columns by the override; each warns that the field with no title is labelled by its name and that the print mode is left out, the first that the translation's unused entry and the space are left out, the second that the theme reaches no Carbon token, and exits 0 |
-| generate-ui-typescript-refused | command generate | system | red | the specification of the golden case, whose invitation page also shows a field of type integer, checks it with an expression that adds, and whose operation answers a 201 the page has no event for; a form that leaves out a field its request body requires and checks with an expression that calls int; a view that hides a decimal field by ordering it and offers an action that runs an operation and then opens another page; a form whose loaded child rows its source's answer does not carry, one whose loaded rows are not locked, and one whose request body has no array for its rows; a menu that holds a group inside a group and an entry that opens a page whose route takes a parameter; a first implementation file whose settings give a view a hook, a form a hook for a field it does not show and a layout that is not page, tabs or steps, name a translation whose file misses a key and drops a placeholder, and have the server routes page a list that pages itself and give another a page size above its maximum, and a second that names no session, the specification's own language as a translation, a routes path that is not a path, a service variable Next.js sends the browser and a token with no header; and specarch-gen-ui-typescript built from this repository on PATH | generate ui is run with --unapproved | it reports, for the first file, the page size, the two hooks, the layout, the list that pages itself, the dropped placeholder and the missing key under the settings; for the second, the routes path, the service variable, the token and the translation under the settings; for each file, the integer field at the page's field, the addition at the check's expression and the 201 at the page's onSubmitted, the required field left out at the form, the call at its check's expression, the decimal ordered at the view's condition and the page opened at its action's then, the rows not carried at the first form's relation, the rows not locked at the second form's child rows and the missing array at the third form's relation, the inner group at its entry and the entry to the page with a parameter at its page; and for the second, each page that needs a permission no session can tell; as errors, writes nothing, and exits 1 |
+| generate-ui-typescript-refused | command generate | system | red | the specification of the golden case, whose invitation page also shows a field of type integer, checks it with an expression that adds, and whose operation answers a 201 the page has no event for; a form that leaves out a field its request body requires and checks with an expression that calls int; a view that hides a decimal field by ordering it and offers an action that runs an operation and then opens another page; a form whose loaded child rows its source's answer does not carry, one whose loaded rows are not locked, and one whose request body has no array for its rows; a menu that holds a group inside a group and an entry that opens a page whose route takes a parameter; a first implementation file whose settings give a view a hook, a form a hook for a field it does not show and a layout that is not page, tabs or steps, name a translation whose file misses a key and drops a placeholder, and have the server routes page a list that pages itself and give another a page size above its maximum, and a second that names no session, the specification's own language as a translation, a routes path that is not a path, a service variable Next.js sends the browser and a token with no header; and specarch-gen-ui-typescript built from this repository on PATH | generate ui is run with --unapproved | it reports, for the first file, the page size, the two hooks, the layout, the list that pages itself, the dropped placeholder and the missing key under the settings; for the second, the routes path, the service variable, the token and the translation under the settings; for each file, the integer field at the page's field, the addition at the check's expression and the 201 at the page's onSubmitted, the required field left out at the form, the call at its check's expression, the decimal ordered at the view's condition and the page opened at its action's then, the rows not carried at the first form's relation, the rows not locked at the second form's child rows and the missing array at the third form's relation, the inner group at its entry and the entry to the page with a parameter at its page; and for the second, each page that needs a permission no session can tell; as errors; writes the files it can as a draft, with these errors marked in application.ts, since none of the pages they are at is written, and exits 1 |
 | generate-ui-typescript-value-objects | command generate | system | golden | a specification whose member holds an optional address kept in columns with a location inside it, a required billing address kept as JSON, and a list of one to three phone numbers, each a number and whether it is a mobile; a form that adds a member in two titled sections, a form that loads a member and changes the address and the phone numbers with the name read-only, and a view of the member; one implementation file in TypeScript whose ui target is nextjs-carbon; and specarch-gen-ui-typescript built from this repository on PATH | generate ui is run with --unapproved | each form writes the address and the billing address as values, their parts in the order of their names with the location nested in each, required as the schema says and the value itself required for the billing address only, and the phone numbers as a list of values of at least one and at most three items; the view writes the parts of each value and marks the phone numbers a list; the components under screens draw them, and a part's text key is the field's with the path to it; it warns that the longitude, which has no title, is labelled by its name, naming its path, and exits 0 |
-| generate-ui-typescript-value-objects-refused | command generate | system | red | a specification whose member holds an address, a contact whose one part is a moment of format date-time, and a tree kept as JSON whose nodes hold a list of nodes; a list of members with the address as a column; a form that shows the address, the contact and the tree, asks for the address twice and edits visits as rows whose one field holds an address; an implementation file in TypeScript whose ui target is nextjs-carbon and whose settings give the address a hook; and specarch-gen-ui-typescript built from this repository on PATH | generate ui is run with --unapproved | it refuses, each at its entry, the value among a row's fields, the hook and the second entry on the address, the contact's part of format date-time by its path, the tree's children as the schema met again inside itself, and the address as a column, writes nothing, and exits 1 |
+| generate-ui-typescript-value-objects-refused | command generate | system | red | a specification whose member holds an address, a contact whose one part is a moment of format date-time, and a tree kept as JSON whose nodes hold a list of nodes; a list of members with the address as a column; a form that shows the address, the contact and the tree, asks for the address twice and edits visits as rows whose one field holds an address; an implementation file in TypeScript whose ui target is nextjs-carbon and whose settings give the address a hook; and specarch-gen-ui-typescript built from this repository on PATH | generate ui is run with --unapproved | it refuses, each at its entry, the value among a row's fields, the hook and the second entry on the address, the contact's part of format date-time by its path, the tree's children as the schema met again inside itself, and the address as a column; writes the files it can as a draft, with these errors marked in application.ts, and exits 1 |
 | generate-unapproved | command generate | system | golden | a specification without an approval record, and specarch-gen-echo on PATH | generate echo is run with --unapproved | it writes the files under out/ and exits 0 |
 | generate-usage-error | command generate | system | red | no target | generate is run without arguments | it prints how to use it and exits 2 |
 | generate-with-plugin | command generate | system | golden | an approved specification, its approval record beside it, and specarch-gen-echo on PATH, which answers two files | generate echo is run with --out out | it writes both files under out/ and exits 0 |
@@ -6347,6 +6460,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-16 | specarch document shall write, besides the technical specification, the requirements specification, the test plan, the traceability matrix, the deployment guide and the commissioning procedure with its sign-off sheet. | functional | must | accepted | test | Each of the five targets writes <target>.md into the folder it owns, with the generated-from header. The commissioning procedure has a Result column for every step and a sign-off sheet with a row for every signer. | NEED-3, NEED-5 |
 | SA-46 | An implementation file shall mark an element another stakeholder owns, one mapping at a time, naming that stakeholder; no generator shall write a marked element, and validate, diff, gaps and the gates shall still read it. | functional | must | accepted | test | An entity whose mapping names a stakeholder under ownedBy gets no table from generate sql and no schema from generate openapi, while a foreign key or a reference to it is still written. An operation whose mapping names a stakeholder under ownedBy gets no operation from generate openapi. A page, or a menu or a menu entry, whose mapping names a stakeholder under ownedBy gets no page and no menu entry from generate ui; a mapping may name a menu or an entry of one, '#/menus/<menu>/items/<entry>', as it names any other element, and one that points at nothing is refused, the same in both builds. validate and gaps read the marked element as before, and a question that blocks it still holds generation up. ownedBy naming no stakeholder of the specification is reported, the same in both builds. | NEED-2, NEED-8 |
 | SA-58 | specarch generate bpmn shall write, through a plug-in, each workflow of a specification as a BPMN 2.0 XML file with its diagram, and the diagram as SVG, that specarch extract workflows reads back to the same workflow, each problem marked at the element it concerns and a draft labelled as one. | functional | must | accepted | test | Each workflow is one process in a file of its own, in the sequential subset of ADR-054, with BPMN DI shapes and edges laid out by a fixed rule, so two runs write the same bytes. extract workflows reads a generated file back to the workflow's description, step names and kinds, approvers, deadlines, and refusal or escalation, and names its trigger and operations in the questions that merge fills; an approval that is the last step comes back as one. Each warning and open question at an element a file shows is marked as an XML comment before that element, in the BPMN file and in the SVG; a problem of one workflow is marked only in that workflow's files. Output generated with --unapproved from a specification no approval record covers says it is a draft, in the BPMN file and visibly in the SVG. | NEED-3, NEED-10 |
+| SA-59 | specarch generate shall mark every warning and open question at the entry each generated file shows for it, shall write a draft labelled as one in every file when --unapproved lets it past open questions or a missing approval, and shall write the rest of a target's output with an entry the target cannot express marked at that entry and exit 1. | functional | must | accepted | test | generate --unapproved on a specification with a must question that blocks an entity writes the target's files, each saying it is a draft and naming the question, and the entity's entry carries the question's mark. A warning at an operation is marked above its handler in Go, in x-specarch-marks on the operation in OpenAPI, and a warning at an entity above its table in SQL. A target that cannot express one entry writes the rest with an error mark at that entry, prints the error and exits 1; SQL writes no migration then, and an approved run over a migration a draft wrote is an error. generate without --out passes over a specification that names no output folder for the target with an output_folder warning and writes the others. | NEED-3, NEED-8 |
 | SA-32 | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. | functional | must | accepted | test | An idiom key naming no idiom, an exclusion or override without why, an override naming an unknown part or defining one it does not list, rendering a stack that is not the file's, or changing a shipped contract statement is each reported under its rule in both builds; an override copied from an older version is warned about. A field that no row of the type rendering matches for a stack of the implementation file, such as a decimal wider than Oracle holds, is reported as idiom_contract. An override that replaces the Oracle text rows for MAX_STRING_SIZE = EXTENDED validates without a diagnostic. The shipped set holds the fifteen idioms of the first set and ui-components, each statement marked with what checks it, and every one passes the idiom schema and cites only the sources it declares. A ui target's framework, given or by its platform's default, is a stack of its implementation file, so specarch idioms lists ui-components for a TypeScript file whose ui target is nextjs-carbon and not for one on plain-javascript, and an override rendering nextjs-carbon in a file on plain-javascript is reported as idiom_stack in both builds. | NEED-2 |
 | SA-11 | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. | functional | must | accepted | test | A tree whose root lists its stages and holds each stage's files under that folder validates. A file in the wrong folder, a section in the wrong file, a listed stage without a folder, and a folder that is not a stage are each reported as layout. | NEED-4 |
 | SA-12 | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. | functional | must | accepted | test | A specification with only a requirements stage validates with no error. A requirement no design element satisfies, a requirement no test, check or monitor verifies, and a need no requirement refines are reported as warnings once the later stage exists. | NEED-5 |
@@ -6448,6 +6562,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on SA-58:** A workflow is reviewed by people who read BPMN diagrams and run BPMN engines, so the design must reach them in that format; written by hand, the diagram drifts from the workflow on the first change, and one that cannot be read back cannot take a change made in a modeller back into the specification.
 
+**Insight on SA-59:** The people who answer the questions judge a result faster from the code and screens than from documents, and a compiler that stops at the first gap hides every other one; a draft that says what it is, with each gap at its entry, shows both without letting unapproved code pass for approved.
+
 **Insight on SA-32:** How a decimal, a text column or a missing value is held on a stack is decided once and read by every generator and every agent; without the table each implementation file restates it in prose, each a little differently.
 
 **Insight on SA-11:** One file for a whole system grows past what a reader can navigate; a tree whose folder names say what is inside lets the reader walk to a thing.
@@ -6519,7 +6635,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-17 | enums Rule; commands validate; decisions ADR-017 | tests validate-question-answered; tests validate-question-block; tests validate-question-covers-field-by-name; tests validate-question-covers-missing; tests validate-question-covers-problem; tests validate-question-covers-ungranted; tests validate-question-names; tests validate-question-should-not-covering; tests validate-question-stage |
 | SA-18 | enums Rule; commands validate; decisions ADR-018 | tests document-draft-notice; tests validate-origin; tests validate-origin-tracked |
 | SA-19 | enums DocumentTarget; commands document; commands gaps | tests document-draft-notice; tests document-writes-questions; tests gaps-lists-questions; tests gaps-names-question; tests gaps-none |
-| SA-20 | commands approve; commands generate; decisions ADR-019 | tests approve-refuses-open-question; tests approve-refuses-stale-document; tests approve-writes-record; tests generate-refuses-open-question; tests generate-refuses-unapproved; tests generate-unapproved |
+| SA-20 | commands approve; commands generate; decisions ADR-019; decisions ADR-086 | tests approve-refuses-open-question; tests approve-refuses-stale-document; tests approve-writes-record; tests generate-refuses-open-question; tests generate-refuses-unapproved; tests generate-unapproved |
 | SA-21 | commands validate; decisions ADR-020; decisions ADR-054; decisions ADR-055 | tests validate-derived-acceptance; tests validate-derived-cases-harm; tests validate-derived-cases-listed; tests validate-derived-cases-mistakes; tests validate-derived-decision-table; tests validate-derived-flow; tests validate-enabled-by; tests validate-schema-harm-unknown; tests validate-test-subject-no-state-machine |
 | SA-22 | commands document; decisions ADR-020 | tests document-testplan-left-out; tests document-traceability-harm; tests document-writes-traceability |
 | SA-23 | enums Rule; commands validate | tests validate-change-applied; tests validate-change-decision; tests validate-commissioning-record; tests validate-defect-duplicate; tests validate-defect-test; tests validate-incident-link; tests validate-layout-records-in-spec; tests validate-record-name; tests validate-record-ref; tests validate-record-schema; tests validate-record-tracker; tests validate-records-valid |
@@ -6550,7 +6666,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-48 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |
 | SA-49 | enums Rule; decisions ADR-062 | tests extract-openapi-snake-case; tests generate-openapi-wire-names; tests validate-wire-names |
 | SA-50 | enums Rule; decisions ADR-063; decisions ADR-077; decisions ADR-078 | tests extract-database-json-column; tests generate-go-dxlib-value-objects; tests generate-sql-identifier-length; tests generate-sql-value-object-fields; tests generate-tests-value-objects; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests validate-value-object-fields; tests validate-value-object-fields-valid; tests validate-value-object-part-cases; tests validate-value-object-part-cases-covered |
-| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066; decisions ADR-080 | tests document-check-invalid; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-check-marks; tests document-problems-implementation-broken; tests document-problems-lists; tests document-problems-marks-current; tests document-problems-marks-fragments; tests document-problems-none; tests validate-reads-marks; tests validate-yaml-syntax-entries |
+| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066; decisions ADR-080; decisions ADR-086 | tests document-check-invalid; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-check-marks; tests document-problems-implementation-broken; tests document-problems-lists; tests document-problems-marks-current; tests document-problems-marks-fragments; tests document-problems-none; tests validate-reads-marks; tests validate-yaml-syntax-entries |
 | SA-52 | decisions ADR-067 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-53 | decisions ADR-068 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-54 | decisions ADR-069; decisions ADR-079 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-value-objects; tests generate-ui-typescript-value-objects-refused |
@@ -6558,6 +6674,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-56 | decisions ADR-074 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-57 | decisions ADR-083 |   |
 | SA-58 | commands generate; decisions ADR-085 | tests extract-workflows-reads-generated-bpmn; tests extract-workflows-reads-generated-last-approval; tests generate-bpmn; tests generate-bpmn-approved |
+| SA-59 | commands generate; decisions ADR-086 | tests generate-draft-open-questions; tests generate-skips-no-output-folder; tests generate-sql-refuses-draft-migration |
 
 ## Sources
 

@@ -1,0 +1,109 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-086:
+    title: Generated code, SQL, OpenAPI, tests and UI carry every problem at its entry, a draft is written while questions are open or approval is missing, and an entry a target cannot express is marked while the rest is written
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      ADR-066 (option B) lets generate write a marked draft beside the
+      approval gate, and ADR-065 marks every entry a problem touches in
+      every file SpecArch writes; until this decision only the BPMN target
+      wrote marks or a draft notice (ADR-085). The gate refused every
+      target while a must or should question blocked what it reads, with
+      no way past it, and --unapproved passed only the missing approval.
+      A target that could not express one entry, such as a column name
+      too long for the engine, failed the whole generation and wrote
+      nothing (docs/generators.md, rule 4; ADR-004; ADR-029), so one gap
+      hid the rest of the output. generate stopped with exit 2 at a
+      specification that named no output folder for the target, while
+      document passes it over with a warning (ADR-073).
+    decision: |
+      Draft: --unapproved lets a run through both gates, the open
+      questions that block what the target reads and the missing
+      approval. A specification with such a question cannot be approved
+      (specarch approve refuses it, and an answer changes the files the
+      approval covers), so both are the one case of output from a
+      specification that is not yet approved, and one switch says it.
+      specarch writes the plug-in request's draft as the notice every
+      file carries: "Draft:", the questions that block what the target
+      reads and the approval's state, and "this file is not the approved
+      output". It is empty for the approved output. A draft exits 0, as a
+      document with a Draft notice does, since the run was asked for.
+
+      Marks: every plug-in marks the request's problems by one rule
+      (internal/mark): a warning at the deepest entry the output shows
+      that holds its pointer, a question at each entry it blocks, and a
+      question that blocks a whole section the output shows under the
+      file's header. A problem at an entry the output leaves out, such as
+      one another stakeholder owns, is not marked; the problems file
+      lists it. Each target writes the mark in its own comment form
+      (docs/diagnostics.md, section 5). OpenAPI carries them as
+      x-specarch-marks, a list of id, severity, rule and message on the
+      object, and the notice as x-specarch-draft on info:
+      x-specarch-problems already names the problem catalogue on
+      components. A file with many entries marks each at its declaration;
+      a page or a workflow written as a file of its own carries its marks
+      under the header; the marks of the output as a whole stand in the
+      file that stands for it (application.ts, events.js, the migration,
+      the document).
+
+      A target's own problems: when a plug-in reports diagnostics,
+      specarch places them and gives them their ids as it does for
+      validate, prints them, and runs the plug-in once more with them
+      among the problems, marked as the target's own, so the files mark
+      them with the same ids; a target's problem that no entry holds,
+      such as one about its settings, is marked where the output's whole
+      is. A plug-in that reports an error still answers what it can
+      write: the entry it cannot express is left out or written as far as
+      it can be, and marked. specarch writes or checks those files and
+      exits 1. Where nothing can be written, such as a test framework the
+      plug-in does not write for, the plug-in answers no file.
+
+      SQL is the exception to writing the rest: a migration is written
+      once and applied in order, and the snapshot beside it records what
+      the migrations built, so a migration with an entry left out would
+      be applied and recorded as complete, and fixing the specification
+      afterwards could not bring the entry back. specarch-gen-sql answers
+      no migration while it has an error. For the same reason a
+      migration a draft wrote keeps its notice, and an approved run over
+      a folder that holds one is an error: the approved schema starts in
+      a new folder.
+
+      Output folder: without --out, generate passes over a specification
+      whose implementation files name no output folder for the target,
+      with the output_folder warning document prints (ADR-073), and runs
+      the others; when every specification is passed over it exits 2.
+    why: |
+      A compiler shows every problem rather than the first
+      (docs/principles.md): a draft lets the people who answer the
+      questions see the code and every gap in it, and a target that writes
+      all it can, with the one entry it cannot write marked there, shows
+      what else is ready and keeps the error in view. The approval gate
+      exists so that what reaches production was read and accepted by a
+      person; the draft keeps that, because it is asked for by name, says
+      what it is in every file, and SQL, the one output that cannot be
+      taken back once applied, refuses to build on it. The rule that
+      places a mark is shared so every target puts a problem at the same
+      entry, and running the plug-in again rather than having it mark its
+      own diagnostics keeps the ids where they are made, in specarch. A
+      specification that names no folder for a target has chosen not to
+      have that output, as for a document.
+    consequences: |
+      generate --unapproved on a specification with open questions writes
+      a draft of every target, each file saying so; without the switch
+      the gate refuses as before. Every generated file carries the marks
+      of the problems that remain, so a stale mark fails --check like any
+      output. A plug-in that reports a diagnostic runs twice. The cases
+      that recorded a refusal for an inexpressible entry now record the
+      marked output and exit 1, except SQL's. draft is text in the
+      request, so a plug-in that read it as true or false is rebuilt; one
+      that ignores problems still works, without marks. A build's
+      on-screen draft label is the trace step of docs/acceptance.md, not
+      this one. The guard on migrations knows a draft by its notice, so a
+      migration written by --unapproved before the notice existed is not
+      recognised, and a draft run over a folder of approved migrations is
+      not refused: nothing in a migration tells an approved one from an
+      earlier draft. An approved run whose target reports an error writes
+      the files without the entry it cannot express, over the previous
+      output, and exits 1.
+    satisfies: [SA-59, SA-20, SA-51]

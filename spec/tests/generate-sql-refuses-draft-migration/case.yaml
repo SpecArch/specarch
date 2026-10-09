@@ -1,0 +1,5 @@
+arguments: [generate, sql, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:1:1: error: /: generator: 0001_expand.sql was written by a draft, and the specification is approved now; a draft's migrations are not the approved schema, so start a new folder for the approved one [generator@specarch.yaml#/]
+plugins: [sql]

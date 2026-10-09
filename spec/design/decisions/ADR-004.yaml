@@ -27,8 +27,8 @@ decisions:
       A reader who knows C, Java or JavaScript reads the expressions. A
       formula's result has exactly its declared type, and a worked example
       is checked to the last digit. Generators translate a parsed
-      expression, and a construct the target cannot express fails
-      generation.
+      expression, and a construct the target cannot express is an error
+      at its entry (ADR-086).
     satisfies: [SA-3, SA-4]
     cites:
       - source: cel

@@ -24,8 +24,8 @@
       <path class="head" d="M0,0 L10,5 L0,10 z"/>
     </marker>
   </defs>
-  <!-- Draft: no approval record covers the specification's files as they are, so this file is not the approved output. -->
-  <text class="draft" x="16" y="20">Draft: not from an approved specification</text>
+  <!-- Draft: the specification is not approved: there is no records/approvals/0.1.0.yaml beside the specification; this file is not the approved output. -->
+  <text class="draft" x="16" y="20">Draft: not the approved output</text>
   <g transform="translate(0,24)">
     <polyline class="line" points="82,80 142,80" marker-end="url(#head)"/>
     <polyline class="line" points="267,80 327,80" marker-end="url(#head)"/>

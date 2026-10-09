@@ -4,5 +4,5 @@ level: system
 scenario: red
 given: "a specification whose member holds an address, a contact whose one part is a moment of format date-time, and a tree kept as JSON whose nodes hold a list of nodes; a list of members with the address as a column; a form that shows the address, the contact and the tree, asks for the address twice and edits visits as rows whose one field holds an address; an implementation file in TypeScript whose ui target is nextjs-carbon and whose settings give the address a hook; and specarch-gen-ui-typescript built from this repository on PATH"
 when: "generate ui is run with --unapproved"
-then: "it refuses, each at its entry, the value among a row's fields, the hook and the second entry on the address, the contact's part of format date-time by its path, the tree's children as the schema met again inside itself, and the address as a column, writes nothing, and exits 1"
+then: "it refuses, each at its entry, the value among a row's fields, the hook and the second entry on the address, the contact's part of format date-time by its path, the tree's children as the schema met again inside itself, and the address as a column; writes the files it can as a draft, with these errors marked in application.ts, and exits 1"
 verifies: [SA-54]

@@ -25,11 +25,17 @@ a step, the emitter stops at that tool's input and lets it do the rest.
 3. Hand-written files are never touched. The one exception is a Markdown
    document, which is rewritten only between its `specarch:generate`
    markers.
-4. What the target cannot express fails generation. A check constraint the
-   database cannot evaluate, a decimal the language has no type for, a page
-   kind the component library does not render: each is an error naming the
-   object. There is no warning-only mode, because an omission that is only
-   warned about is the same as a silent one by the next release.
+4. What the target cannot express is an error at that entry. A check
+   constraint the database cannot evaluate, a decimal the language has no
+   type for, a page kind the component library does not render: each is an
+   error naming the object, marked at the entry in the output, and the run
+   exits 1. The rest of the output is still written, so one gap does not
+   hide what else is ready; the entry is left out or written as far as the
+   target can, and its mark says why. SQL is the exception: a migration is
+   written once and applied in order, so one with an entry missing would be
+   recorded as complete, and SQL writes no migration while it has an error
+   (ADR-086). There is no warning-only mode, because an omission that is
+   only warned about is the same as a silent one by the next release.
 5. One reviewed input becomes one typed output, and the input is the thing
    under review. This is the sqlc rule: the query is the spec, the function
    is derived, and nobody reviews the function. For SpecArch the YAML is the
@@ -47,13 +53,16 @@ file's language in lower case (`specarch-gen-tests-go`), and
 stack and one that serves every stack; files that find the same plug-in
 and name the same output folder run it together, each run writing into the
 folder its files name, so two front ends of one stack are two
-implementation files, each with its own output. `specarch` validates the specification, refuses
-while a must or should question blocks a section the target reads (the
-sections the implementation file names under `targets.<target>.reads`, or
-every section when it names none) and refuses without an approval record
-of the files as they are unless `--unapproved` is given (`docs/refinement.md`),
-then runs the plug-in once per specification, and writes on its standard
-input one JSON object:
+implementation files, each with its own output. `specarch` validates the specification, passes
+over one whose implementation files name no output folder for the target
+when `--out` is not given (an `output_folder` warning, as for a document),
+refuses while a must or should question blocks a section the target reads
+(the sections the implementation file names under `targets.<target>.reads`,
+or every section when it names none) and refuses without an approval
+record of the files as they are; `--unapproved` lets it through both and
+the output is a draft (`docs/refinement.md`). It then runs the plug-in
+once per specification, and writes on its standard input one JSON
+object:
 
 | Key | Holds |
 |---|---|
@@ -64,8 +73,8 @@ input one JSON object:
 | `implementations` | one object per implementation file: `file`, `content` (the file as plain values), `settings` (the target's settings from it, when any), and `idioms`: each idiom the file uses, with its `name`, `version`, how it applies (`as`: shipped, overridden, project or excluded), the `content` of the idiom that applies and the project's `override`, so a plug-in renders through an override without reading the disk |
 | `existing` | the text files already in the output folder, each a `path` in it and its `content`, so a plug-in that adds files knows what is there |
 | `output` | the folder the files are for |
-| `draft` | true when no approval record covers the specification's files as they are and `--unapproved` let the run go on, so the output says it is a draft |
-| `problems` | the specification's warnings and open questions in the order of its problems file, each with its `id`, `severity`, `rule`, `message`, the `pointer` into the merged specification it is marked at (empty for one outside it) and, for a question, what it `blocks`, so the output marks each one at its entry (`docs/diagnostics.md`, section 5) |
+| `draft` | the notice every file of a draft carries, from "Draft:" to "this file is not the approved output", naming the questions that block what the target reads and the approval's state; empty for the approved output |
+| `problems` | the specification's warnings and open questions in the order of its problems file, each with its `id`, `severity`, `rule`, `message`, the `pointer` into the merged specification it is marked at (empty for one outside it) and, for a question, what it `blocks`, so the output marks each one at its entry (`docs/diagnostics.md`, section 5); on a second run also the plug-in's own diagnostics, with `target: true` |
 
 The plug-in answers on its standard output with one JSON object: `files`,
 each a `path` relative to the output folder and its `content`, and
@@ -73,10 +82,21 @@ each a `path` relative to the output folder and its `content`, and
 `severity`, `path`, `rule`, `message`), and exits 0. `specarch` prints the
 diagnostics, refuses a path outside the output folder, and writes or
 compares the files itself, so `--check` and rule 1 hold for every plug-in
-without each one implementing them. A plug-in that exits with another
-status, or answers with anything else, fails the run with status 2; its
-standard error is passed through. The request and answer structs are in
-`cmd/specarch/generate.go`.
+without each one implementing them. When a plug-in answers with
+diagnostics, `specarch` gives each its place and id as validate does and
+runs the plug-in once more with them among the problems, so its files mark
+them too; what that run answers is written, and an error makes the run
+exit 1 (rule 4). A plug-in that exits with another status, or answers with
+anything else, fails the run with status 2; its standard error is passed
+through. The request and answer structs are in `cmd/specarch/generate.go`.
+
+Every shipped plug-in marks the problems by one rule, `internal/mark`: a
+warning at the deepest entry its output shows that holds the warning's
+pointer, a question at each entry it blocks, a question that blocks a
+whole section under the header, and a problem of the target itself that no
+entry holds, such as one about its settings, where the output as a whole
+is marked. A problem at an entry the output leaves out is in the problems
+file only. Each writes the draft notice under its header, in every file.
 
 A plug-in that builds code or data leaves out every element another
 stakeholder owns: one whose mapping in an implementation file of the

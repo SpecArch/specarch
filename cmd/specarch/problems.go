@@ -48,7 +48,7 @@ func runProblems(paths []string, out string, check bool, stdout, stderr io.Write
 		}
 		if out == "" && !namesOutput(l, "problems") {
 			printErrors(diags, nil, stdout)
-			fmt.Fprintln(stdout, noOutputFolder(l, "problems").String())
+			fmt.Fprintln(stdout, noOutputFolder(l, "problems", "document").String())
 			skipped++
 			continue
 		}

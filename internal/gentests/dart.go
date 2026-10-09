@@ -3,6 +3,8 @@ package gentests
 import (
 	"fmt"
 	"strings"
+
+	"github.com/SpecArch/specarch/internal/mark"
 )
 
 // The two files the Dart plug-in writes in the target's folder: the
@@ -40,6 +42,7 @@ func GenerateDart(r *Request) Response {
 
 	lib := &writer{}
 	lib.line("%s", header)
+	lib.head(s, false)
 	lib.line("")
 	lib.line("// The values, the harness and the checks the design tests of %s use.", s.Title)
 	lib.line("// The project's %s imports it too, to give newHarness.", DartHarnessFile)
@@ -50,6 +53,7 @@ func GenerateDart(r *Request) Response {
 
 	w := &writer{}
 	w.line("%s", header)
+	w.head(s, true)
 	w.line("")
 	w.line("// The design tests and worked examples of %s, run through the", s.Title)
 	w.line("// Harness the project gives them in newHarness, in %s.", DartHarnessFile)
@@ -66,6 +70,7 @@ func GenerateDart(r *Request) Response {
 			w.line("")
 		}
 		first = false
+		w.marks(s, "/tests/"+mark.Escape(t.Name), "  ")
 		dartTest(w, t)
 	}
 	for _, a := range s.Algorithms {
@@ -73,6 +78,7 @@ func GenerateDart(r *Request) Response {
 			w.line("")
 		}
 		first = false
+		w.marks(s, "/algorithms/"+mark.Escape(a.Name), "  ")
 		dartAlgorithm(w, a)
 	}
 	w.line("}")

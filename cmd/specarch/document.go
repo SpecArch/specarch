@@ -157,7 +157,7 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 	skipped := 0
 	for _, l := range specs {
 		if out == "" && !namesOutput(l, target) {
-			fmt.Fprintln(stdout, noOutputFolder(l, target).String())
+			fmt.Fprintln(stdout, noOutputFolder(l, target, "document").String())
 			skipped++
 			continue
 		}
@@ -284,9 +284,9 @@ func namesOutput(l loaded, target string) bool {
 // folder for the target (ADR-073), at the targets of the first
 // implementation file that has them, or at that file, or at the root file
 // when there is none, placed and given its id as validate's are.
-func noOutputFolder(l loaded, target string) validate.Diagnostic {
+func noOutputFolder(l loaded, target, kind string) validate.Diagnostic {
 	d := validate.Diagnostic{File: l.spec.RootFile, Line: 1, Severity: validate.Warning, Path: "/", Rule: validate.RuleOutputFolder,
-		Message: fmt.Sprintf("no implementation file names an output folder for %s under targets, so this specification has no %s document; name one, or give --out", target, target)}
+		Message: fmt.Sprintf("no implementation file names an output folder for %s under targets, so this specification has no %s %s; name one, or give --out", target, target, kind)}
 	if len(l.impls) > 0 {
 		d.File = l.impls[0].Path
 	}
@@ -302,9 +302,10 @@ func noOutputFolder(l loaded, target string) validate.Diagnostic {
 }
 
 // outputFolder is --out, or the folder the implementation files name for
-// the target under targets; they must agree. document passes over a
-// specification that names none before it gets here (ADR-073); generate
-// still stops at it with exit 2.
+// the target under targets; they must agree. document and generate pass
+// over a specification that names none before it gets here (ADR-073,
+// ADR-086); generate still stops with exit 2 at a plug-in whose
+// implementation files name none while another plug-in's do.
 func outputFolder(l loaded, target, out string, stderr io.Writer) (string, int) {
 	if out != "" {
 		return filepath.Clean(out), 0

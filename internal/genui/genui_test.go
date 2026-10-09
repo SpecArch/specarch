@@ -47,8 +47,22 @@ func request(t *testing.T, change func(specification, content map[string]any)) *
 	return r
 }
 
+// unmarked is a generated file without its draft notice and marks, which
+// specarch's request carries and this test's request does not.
+func unmarked(content string) string {
+	var out []string
+	for _, l := range strings.SplitAfter(content, "\n") {
+		text := strings.TrimLeft(l, "/*<!- ")
+		if !strings.HasPrefix(text, "Draft: ") && !strings.HasPrefix(text, "specarch-problem: ") {
+			out = append(out, l)
+		}
+	}
+	return strings.Join(out, "")
+}
+
 // TestExample checks the generator writes exactly the screens committed in
-// the example, the first of which was written by hand before it.
+// the example, the first of which was written by hand before it, but for
+// the draft notice and the marks.
 func TestExample(t *testing.T) {
 	resp := Generate(request(t, func(map[string]any, map[string]any) {}))
 	for _, d := range resp.Diagnostics {
@@ -64,15 +78,17 @@ func TestExample(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if f.Content != string(want) {
+		if f.Content != unmarked(string(want)) {
 			t.Errorf("%s differs from the example's", f.Path)
 		}
 	}
 }
 
 // TestRefusals refuses a target that is not plain JavaScript for the web,
-// a target without a language, a filter its list cannot ask for, a list
-// that does not page, and an API in the dxlib dialect.
+// a target without a language and an API in the dxlib dialect, with no
+// file, and reports a filter its list cannot ask for and a list that does
+// not page as errors with the files still written, so specarch can mark
+// them there.
 func TestRefusals(t *testing.T) {
 	ui := func(content map[string]any) map[string]any {
 		return content["targets"].(map[string]any)["ui"].(map[string]any)
@@ -101,8 +117,18 @@ func TestRefusals(t *testing.T) {
 		for _, d := range resp.Diagnostics {
 			found = found || d.Severity == "error" && strings.Contains(d.Message, c.want)
 		}
-		if !found || len(resp.Files) != 0 {
-			t.Errorf("%s: want an error with %q and no file, got %v", c.name, c.want, resp.Diagnostics)
+		page := c.name == "filter" || c.name == "paging"
+		written := map[string]bool{}
+		for _, f := range resp.Files {
+			written[f.Path] = true
+		}
+		switch {
+		case !found:
+			t.Errorf("%s: want an error with %q, got %v", c.name, c.want, resp.Diagnostics)
+		case !page && len(resp.Files) != 0:
+			t.Errorf("%s: want no file, got %d", c.name, len(resp.Files))
+		case page && (!written["events.js"] || !written["members-list.html"]):
+			t.Errorf("%s: want the files written, got %v", c.name, written)
 		}
 	}
 }

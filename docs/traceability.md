@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.6.0-dev of the specification: 10 needs, 58 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.6.0-dev of the specification: 10 needs, 59 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -14,12 +14,12 @@ Version 0.6.0-dev of the specification: 10 needs, 58 requirements, and 1 gap. Ea
 |---|---|---|
 | NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
 | NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-46, SA-32, SA-9, SA-10 |
-| NEED-3 | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-58, SA-19 |
+| NEED-3 | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-19 |
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-35, SA-47, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
 | NEED-6 | accepted | SA-15, SA-13 |
 | NEED-7 | accepted | SA-14 |
-| NEED-8 | accepted | SA-46, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-51 |
+| NEED-8 | accepted | SA-46, SA-59, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-51 |
 | NEED-9 | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22 |
 | NEED-10 | accepted | SA-58, SA-57 |
 
@@ -46,7 +46,7 @@ Version 0.6.0-dev of the specification: 10 needs, 58 requirements, and 1 gap. Ea
 | SA-17 | NEED-8 | enums Rule; commands validate; decisions ADR-017 | tests validate-question-answered; tests validate-question-block; tests validate-question-covers-field-by-name; tests validate-question-covers-missing; tests validate-question-covers-problem; tests validate-question-covers-ungranted; tests validate-question-names; tests validate-question-should-not-covering; tests validate-question-stage |
 | SA-18 | NEED-8 | enums Rule; commands validate; decisions ADR-018 | tests document-draft-notice; tests validate-origin; tests validate-origin-tracked |
 | SA-19 | NEED-8, NEED-3 | enums DocumentTarget; commands document; commands gaps | tests document-draft-notice; tests document-writes-questions; tests gaps-lists-questions; tests gaps-names-question; tests gaps-none |
-| SA-20 | NEED-8 | commands approve; commands generate; decisions ADR-019 | tests approve-refuses-open-question; tests approve-refuses-stale-document; tests approve-writes-record; tests generate-refuses-open-question; tests generate-refuses-unapproved; tests generate-unapproved |
+| SA-20 | NEED-8 | commands approve; commands generate; decisions ADR-019; decisions ADR-086 | tests approve-refuses-open-question; tests approve-refuses-stale-document; tests approve-writes-record; tests generate-refuses-open-question; tests generate-refuses-unapproved; tests generate-unapproved |
 | SA-21 | NEED-9 | commands validate; decisions ADR-020; decisions ADR-054; decisions ADR-055 | tests validate-derived-acceptance; tests validate-derived-cases-harm; tests validate-derived-cases-listed; tests validate-derived-cases-mistakes; tests validate-derived-decision-table; tests validate-derived-flow; tests validate-enabled-by; tests validate-schema-harm-unknown; tests validate-test-subject-no-state-machine |
 | SA-22 | NEED-9, NEED-3 | commands document; decisions ADR-020 | tests document-testplan-left-out; tests document-traceability-harm; tests document-writes-traceability |
 | SA-23 | NEED-5 | enums Rule; commands validate | tests validate-change-applied; tests validate-change-decision; tests validate-commissioning-record; tests validate-defect-duplicate; tests validate-defect-test; tests validate-incident-link; tests validate-layout-records-in-spec; tests validate-record-name; tests validate-record-ref; tests validate-record-schema; tests validate-record-tracker; tests validate-records-valid |
@@ -77,7 +77,7 @@ Version 0.6.0-dev of the specification: 10 needs, 58 requirements, and 1 gap. Ea
 | SA-48 | NEED-1 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |
 | SA-49 | NEED-2 | enums Rule; decisions ADR-062 | tests extract-openapi-snake-case; tests generate-openapi-wire-names; tests validate-wire-names |
 | SA-50 | NEED-1 | enums Rule; decisions ADR-063; decisions ADR-077; decisions ADR-078 | tests extract-database-json-column; tests generate-go-dxlib-value-objects; tests generate-sql-identifier-length; tests generate-sql-value-object-fields; tests generate-tests-value-objects; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests validate-value-object-fields; tests validate-value-object-fields-valid; tests validate-value-object-part-cases; tests validate-value-object-part-cases-covered |
-| SA-51 | NEED-1, NEED-8 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066; decisions ADR-080 | tests document-check-invalid; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-check-marks; tests document-problems-implementation-broken; tests document-problems-lists; tests document-problems-marks-current; tests document-problems-marks-fragments; tests document-problems-none; tests validate-reads-marks; tests validate-yaml-syntax-entries |
+| SA-51 | NEED-1, NEED-8 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066; decisions ADR-080; decisions ADR-086 | tests document-check-invalid; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-check-marks; tests document-problems-implementation-broken; tests document-problems-lists; tests document-problems-marks-current; tests document-problems-marks-fragments; tests document-problems-none; tests validate-reads-marks; tests validate-yaml-syntax-entries |
 | SA-52 | NEED-2 | decisions ADR-067 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-53 | NEED-2 | decisions ADR-068 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-54 | NEED-2 | decisions ADR-069; decisions ADR-079 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-value-objects; tests generate-ui-typescript-value-objects-refused |
@@ -85,6 +85,7 @@ Version 0.6.0-dev of the specification: 10 needs, 58 requirements, and 1 gap. Ea
 | SA-56 | NEED-2 | decisions ADR-074 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-57 | NEED-10 | decisions ADR-083 |   |
 | SA-58 | NEED-3, NEED-10 | commands generate; decisions ADR-085 | tests extract-workflows-reads-generated-bpmn; tests extract-workflows-reads-generated-last-approval; tests generate-bpmn; tests generate-bpmn-approved |
+| SA-59 | NEED-3, NEED-8 | commands generate; decisions ADR-086 | tests generate-draft-open-questions; tests generate-skips-no-output-folder; tests generate-sql-refuses-draft-migration |
 
 ## 3. Gaps
 

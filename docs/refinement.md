@@ -263,8 +263,14 @@ and in `docs/conventions.md`.
    installed the plug-in writes it.
 2. If `records/approvals/<version>.yaml` is missing, or its digest is not the
    digest of the files now, it refuses with status 1 and says why, and how to
-   approve. `--unapproved` lets it through, on purpose and visibly; the
-   refusal is the default.
+   approve.
+
+`--unapproved` lets a run through both, on purpose and visibly; the
+refusal is the default. What it writes is a draft: every file says it is
+one, names the questions that block what the target reads and the
+approval's state, and carries each gap's mark at its entry (ADR-066,
+ADR-086). A specification with such a question cannot be approved, so the
+two refusals are one case, output from a specification not approved yet.
 
 `could` questions hold nothing. The documents are never refused: a
 specification with open questions is exactly what the documents must show,

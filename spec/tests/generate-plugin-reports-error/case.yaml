@@ -2,4 +2,3 @@ arguments: [generate, strict, --out, out, --unapproved, project]
 exitStatus: 1
 standardOutput: |
   project/specarch.yaml:4:3: error: /entities/Item: plugin: the target cannot express an entity without a description; add one [plugin@specarch.yaml#/entities/Item]
-

@@ -1555,8 +1555,9 @@ files voids the approval. `specarch generate` refuses a target while a
 `must` or `should` question blocks a section it reads (the sections the
 implementation file names under `targets.<name>.reads`, or every section),
 and refuses without an approval whose digest is the digest of the files
-now, unless `--unapproved` is given. An earlier approval of the same
-version is replaced.
+now; `--unapproved` lets it through both and writes a draft that says so
+in every file (ADR-086). An earlier approval of the same version is
+replaced.
 
 ### What the schema cannot check
 

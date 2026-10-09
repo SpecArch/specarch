@@ -36,8 +36,9 @@ decisions:
       what a target reads, or the version has no approval, generate may
       instead write a draft: every gap is marked at its entry, the draft
       says it is a draft in every file and where it is written, and it is
-      never taken for the approved output. An error still stops
-      generation.
+      never taken for the approved output. An error in the specification
+      still stops generation; ADR-086 says what a target does with an
+      entry it cannot express.
     consequences: |
       An author who runs document problems sees each problem above its
       entry in the file they edit, and the next run removes the marks of

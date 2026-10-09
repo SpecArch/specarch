@@ -4,15 +4,22 @@ commands:
     summary: Write code or data from a specification
     description: |
       Validates its input first and writes nothing from an invalid
-      specification. Then refuses, with status 1, while a must or should
-      question blocks a section the target reads: the sections the
-      implementation file names under `targets.<target>.reads`, or every
-      section when it names none. Then refuses, with status 1, when
+      specification. Without `--out`, passes over a specification whose
+      implementation files name no output folder for the target, with a
+      warning of rule output_folder at their targets, as document does
+      (ADR-073), and exits 2 when every specification given is passed
+      over. Then refuses, with status 1, while a must or should question
+      blocks a section the target reads: the sections the implementation
+      file names under `targets.<target>.reads`, or every section when it
+      names none. Then refuses, with status 1, when
       `records/approvals/<version>.yaml` is missing or its digest is not the
-      digest of the specification's files now, unless `--unapproved` is
-      given. Then writes the target into the folder it owns, and nothing
-      outside it. With `--check` nothing is written: the output is made in
-      memory and compared with what is on disk.
+      digest of the specification's files now. `--unapproved` lets the run
+      through both refusals and makes the output a draft: every file says
+      it is one, naming the questions that block what the target reads and
+      the approval's state, and a draft exits 0 (ADR-066, ADR-086). Then
+      writes the target into the folder it owns, and nothing outside it.
+      With `--check` nothing is written: the output is made in memory and
+      compared with what is on disk.
 
       A target this program does not build in is produced by a plug-in found
       on PATH. For each implementation file that names the target under
@@ -35,15 +42,15 @@ commands:
       the files are for), and `existing`, the text files already in that
       folder by their path in it, so a plug-in that adds files, such as a
       migration beside a snapshot, knows what is there without reading the
-      disk; `draft`, true when no approval record covers the
-      specification's files as they are and `--unapproved` let the run go
-      on, so the output says it is a draft; and `problems`, the
-      specification's warnings and open questions in the order of its
-      problems file, each with its `id`, `severity`, `rule`, `message`,
-      the `pointer` into the merged specification it is marked at (empty
-      for a problem outside it, such as in an implementation file) and,
-      for a question, what it `blocks`, so the output marks each one at
-      the entry it shows for it (docs/diagnostics.md). The plug-in answers on its standard output,
+      disk; `draft`, the notice every file of a draft carries, from
+      "Draft:" to "this file is not the approved output", or empty for the
+      approved output; and `problems`, the specification's warnings and
+      open questions in the order of its problems file, each with its
+      `id`, `severity`, `rule`, `message`, the `pointer` into the merged
+      specification it is marked at (empty for a problem outside it, such
+      as in an implementation file) and, for a question, what it
+      `blocks`, so the output marks each one at the entry it shows for it
+      (docs/diagnostics.md). The plug-in answers on its standard output,
       as JSON, with `files` (each a `path` relative to the output folder and
       its `content`) and `diagnostics` (each with the validator's fields:
       file, line, severity, path, rule, message, and a column when it
@@ -53,7 +60,14 @@ commands:
       entry was read from; a column not given is derived as validate
       derives it; and the id is made as validate makes it. It prints the
       diagnostics in validate's line, refuses a path outside the output folder,
-      and writes or checks the files itself. A plug-in that exits with
+      and writes or checks the files itself. When the plug-in answers
+      with diagnostics, the program runs it once more with them added to
+      `problems`, each with its id and `target: true`, so the files mark
+      the target's own problems as well; it writes what that run answers.
+      A plug-in that cannot express an entry answers the rest of its
+      output with that entry marked, and an error makes the run exit 1
+      after the files are written or checked; a plug-in that can write
+      nothing answers no file (ADR-086). A plug-in that exits with
       another status, or answers with something else, fails the run with
       status 2; its standard error is passed through.
 
@@ -83,7 +97,7 @@ commands:
         description: Make the output in memory and fail when the files on disk differ. Writes nothing.
         schema: { type: boolean, default: false }
       unapproved:
-        description: Generate from a specification that no approval record covers. The refusal is the default; this says, visibly, that the output is not from an approved specification.
+        description: Write a draft from a specification that is not approved yet, because no approval record covers its files as they are or an open must or should question blocks what the target reads. The refusal is the default; with this, every file says it is a draft and why.
         schema: { type: boolean, default: false }
     reads:
       - { path: "{paths}", description: The specifications and their implementation files. }
@@ -93,16 +107,17 @@ commands:
     writes:
       - { path: "{out}/", description: "The files the target produces, as the plug-in answers them. Nothing is written with `--check`." }
     standardOutput: |
-      The diagnostics of an invalid specification and the diagnostics the
+      The diagnostics of an invalid specification, the output_folder
+      warning of each specification passed over, and the diagnostics the
       plug-in answers with, one line each. With `--check`, one line per
       file that differs or is missing.
     standardError: A usage message on a usage error, the reason a plug-in was not found or failed, the plug-in's own standard error, and a one-line count at the end.
     exitCodes:
-      "0": written, or with `--check` the output is current
-      "1": a specification has an error, an open question blocks what the target reads, the specification is not approved, the plug-in reported an error, or with `--check` the output differs
-      "2": usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written
+      "0": written, a draft included, or with `--check` the output is current
+      "1": a specification has an error, an open question blocks what the target reads or the specification is not approved and `--unapproved` was not given, the plug-in reported an error (what it answered is written or checked), or with `--check` the output differs
+      "2": usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder in any specification given, or a file that could not be read or written
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-14, SA-20, SA-31, SA-46, SA-58]
+    satisfies: [SA-7, SA-8, SA-14, SA-20, SA-31, SA-46, SA-58, SA-59]
     why: |
       One program with verbs, and generators as plug-ins found on PATH, is
       the pattern of protoc, git and kubectl: one name to learn and install,

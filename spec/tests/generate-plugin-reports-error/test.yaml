@@ -5,4 +5,4 @@ scenario: red
 covers: [exit 1]
 given: "a plug-in that answers an error diagnostic"
 when: "generate strict is run"
-then: "it prints the diagnostic, writes nothing and exits 1"
+then: "it prints the diagnostic, runs the plug-in again with it among the problems, writes nothing since the plug-in answers no file, and exits 1"

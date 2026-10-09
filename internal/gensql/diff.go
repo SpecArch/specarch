@@ -7,6 +7,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/mark"
 	"github.com/SpecArch/specarch/internal/ownership"
 )
 
@@ -68,7 +69,16 @@ func (g *gen) diff(prevText string) *steps {
 			g.cannot("/entities/"+name, "the table of %s changed in its mapping, which reads as a drop and a create; rename the table by hand in a migration of its own", name)
 			continue
 		}
+		expand, contract := len(s.expand), len(s.contract)
 		fks = append(fks, g.diffEntity(s, name, obj0(pe[name]), e, obj0(prev["enums"]), obj0(cur["enums"]))...)
+		// The marks of an entity and its fields go above the first
+		// statement that changes its table.
+		switch {
+		case len(s.expand) > expand:
+			s.expand[expand] = g.entityMarks(name) + s.expand[expand]
+		case len(s.contract) > contract:
+			s.contract[contract] = g.entityMarks(name) + s.contract[contract]
+		}
 	}
 	for _, name := range sortedKeys(pe) {
 		if ce[name] == nil && !ownedIn(prev, "entities", name) {
@@ -82,7 +92,7 @@ func (g *gen) diff(prevText string) *steps {
 	var creates []string
 	for _, name := range create {
 		if stmt := g.createView(name); stmt != "" {
-			creates = append(creates, stmt)
+			creates = append(creates, g.marks("/views/"+mark.Escape(name), "")+stmt)
 		}
 	}
 	if len(g.diags) > 0 {

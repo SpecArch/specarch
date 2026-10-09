@@ -40,6 +40,6 @@ decisions:
       `document <target> --check spec examples` runs through for every
       target, warns for the lending desk at testplan, deployment and
       commissioning, and CI runs that loop as CONTRIBUTING.md gives it.
-      The problems target follows the same rule. generate keeps its own
-      rule for an output folder.
+      The problems target follows the same rule, and so does generate
+      (ADR-086).
     satisfies: [SA-7]

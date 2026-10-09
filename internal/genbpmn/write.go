@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+
+	"github.com/SpecArch/specarch/internal/mark"
 )
 
 // The ids the marks of the file as a whole and of the process are kept
@@ -16,66 +18,50 @@ const (
 )
 
 // marksOf places each problem at the deepest element the file shows that
-// holds its pointer: a question at each entry it blocks. A problem outside
-// the elements the file shows is in the problems file only.
-func marksOf(wf *workflow, problems []Problem) map[string][]string {
-	type element struct{ ptr, id string }
-	elements := []element{{"/workflows", definitionsID}, {wf.ptr, processID}}
+// holds its pointer, by the rule of internal/mark: the whole workflows
+// section, and an error no element holds, at the definitions.
+func marksOf(wf *workflow, problems []mark.Problem) map[string][]string {
+	byPointer := map[string]string{wf.ptr: processID}
 	for _, s := range wf.shapes {
 		switch s.kind {
 		case "startEvent", "userTask", "serviceTask":
-			elements = append(elements, element{s.ptr, s.id})
+			byPointer[s.ptr] = s.id
 		case "boundaryEvent":
 			step := strings.TrimSuffix(s.ptr, "/deadline")
 			for _, key := range []string{"deadline", "onDeadline", "escalateTo"} {
-				elements = append(elements, element{step + "/" + key, s.id})
+				byPointer[step+"/"+key] = s.id
 			}
 		}
 	}
 	for _, r := range wf.roles {
-		elements = append(elements, element{"/roles/" + escape(r), "role-" + r})
+		byPointer["/roles/"+escape(r)] = "role-" + r
 	}
 	for _, op := range wf.operations {
 		if p := wf.opPointers[op]; p != "" {
-			elements = append(elements, element{p, "operation-" + op})
+			byPointer[p] = "operation-" + op
 		}
 	}
+	elements := make([]string, 0, len(byPointer))
+	for p := range byPointer {
+		elements = append(elements, p)
+	}
+	byPointer[mark.File] = definitionsID
 	out := map[string][]string{}
+	// Another workflow's problem is not this file's, even the target's own.
+	var mine []mark.Problem
 	for _, p := range problems {
-		pointers := []string{p.Pointer}
-		if p.Severity == "question" {
-			pointers = nil
-			for _, b := range p.Blocks {
-				switch {
-				case strings.HasPrefix(b, "#/"):
-					pointers = append(pointers, b[1:])
-				case strings.HasPrefix(b, "/"):
-					pointers = append(pointers, b)
-				default:
-					pointers = append(pointers, "/"+escape(b))
-				}
-			}
+		if !strings.HasPrefix(p.Pointer, "/workflows/") || p.Pointer == wf.ptr || strings.HasPrefix(p.Pointer, wf.ptr+"/") {
+			mine = append(mine, p)
 		}
-		line := comment(fmt.Sprintf("specarch-problem: %s: %s: %s [%s]", p.Severity, p.Rule, strings.Join(strings.Fields(p.Message), " "), p.ID))
-		for _, ptr := range pointers {
-			best := element{}
-			for _, e := range elements {
-				// The file as a whole holds a problem of the whole section,
-				// and not one of another workflow.
-				under := strings.HasPrefix(ptr, e.ptr+"/") && e.id != definitionsID
-				if (ptr == e.ptr || under) && len(e.ptr) > len(best.ptr) {
-					best = e
-				}
-			}
-			if best.id == "" {
-				continue
-			}
-			seen := false
-			for _, m := range out[best.id] {
-				seen = seen || m == line
-			}
-			if !seen {
-				out[best.id] = append(out[best.id], line)
+	}
+	placed := mark.Place(mine, elements, []string{"/workflows"})
+	slices.Sort(elements)
+	for _, p := range problems {
+		line := comment(mark.Line(p))
+		for _, ptr := range append([]string{mark.File}, elements...) {
+			id := byPointer[ptr]
+			if slices.ContainsFunc(placed[ptr], func(q mark.Problem) bool { return q.ID == p.ID }) && !slices.Contains(out[id], line) {
+				out[id] = append(out[id], line)
 			}
 		}
 	}
@@ -101,16 +87,14 @@ func (wf *workflow) partial() string {
 	return fmt.Sprintf("Workflow %s in the sequential subset of BPMN 2.0: its steps, the roles that approve, the deadlines and the operations by name. The subject, the permission each approval checks, the events and the requirements are in the specification only.", wf.name)
 }
 
-const draftText = "Draft: no approval record covers the specification's files as they are, so this file is not the approved output."
-
 // bpmn writes the workflow as a BPMN 2.0 XML file.
-func (wf *workflow) bpmn(header string, draft bool) string {
+func (wf *workflow) bpmn(header, draft string) string {
 	var b strings.Builder
 	b.WriteString(`<?xml version="1.0" encoding="UTF-8"?>` + "\n")
 	b.WriteString(comment(header) + "\n")
 	b.WriteString(comment(wf.partial()) + "\n")
-	if draft {
-		b.WriteString(comment(draftText) + "\n")
+	if draft != "" {
+		b.WriteString(comment(draft) + "\n")
 	}
 	mark := func(id, indent string) {
 		for _, m := range wf.marks[id] {
@@ -197,9 +181,9 @@ func (wf *workflow) bpmn(header string, draft bool) string {
 
 // svg draws the same diagram as an SVG picture, in the colours of the
 // reader's light or dark scheme.
-func (wf *workflow) svg(header string, draft bool) string {
+func (wf *workflow) svg(header, draft string) string {
 	top := 0
-	if draft {
+	if draft != "" {
 		top = 24
 	}
 	var b strings.Builder
@@ -231,8 +215,8 @@ func (wf *workflow) svg(header string, draft bool) string {
     </marker>
   </defs>
 `)
-	if draft {
-		fmt.Fprintf(&b, "  %s\n  <text class=\"draft\" x=\"16\" y=\"20\">%s</text>\n", comment(draftText), esc("Draft: not from an approved specification"))
+	if draft != "" {
+		fmt.Fprintf(&b, "  %s\n  <text class=\"draft\" x=\"16\" y=\"20\">%s</text>\n", comment(draft), esc("Draft: not the approved output"))
 	}
 	fmt.Fprintf(&b, "  <g transform=\"translate(0,%d)\">\n", top)
 	for _, m := range wf.marks[definitionsID] {

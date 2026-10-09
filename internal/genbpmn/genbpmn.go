@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"sort"
 
+	"github.com/SpecArch/specarch/internal/mark"
 	"github.com/SpecArch/specarch/internal/ownership"
 )
 
@@ -24,31 +25,16 @@ type Request struct {
 	Specification   map[string]any   `json:"specification"`
 	Implementations []Implementation `json:"implementations"`
 	Output          string           `json:"output"`
-	// Draft is true when no approval record covers the specification's
-	// files as they are and the run was told to go on without one.
-	Draft bool `json:"draft"`
-	// Problems are the specification's warnings and open questions, in
-	// the order of the problems file.
-	Problems []Problem `json:"problems"`
+	// Draft is the notice a draft carries, or "" for the approved output.
+	Draft string `json:"draft"`
+	// Problems are the problems to mark, in the order of the problems file.
+	Problems []mark.Problem `json:"problems"`
 }
 
 // Implementation is one implementation file in the request.
 type Implementation struct {
 	File    string         `json:"file"`
 	Content map[string]any `json:"content"`
-}
-
-// Problem is one problem of the specification, as a file marks it.
-type Problem struct {
-	ID       string `json:"id"`
-	Severity string `json:"severity"`
-	Rule     string `json:"rule"`
-	Message  string `json:"message"`
-	// Pointer leads into the merged specification, or is "" for a problem
-	// outside it.
-	Pointer string `json:"pointer"`
-	// Blocks are what a question blocks, as it names them.
-	Blocks []string `json:"blocks,omitempty"`
 }
 
 // File is one file the plug-in answers with.

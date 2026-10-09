@@ -1,0 +1,8 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+
+enums:
+  Shelf:
+    type: string
+    description: Where a book stands.
+    enum: [fiction, history]

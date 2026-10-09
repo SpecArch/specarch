@@ -14,6 +14,15 @@ const MaxOpenLoans = 5
 type Member struct {
 	CardNumber string // printed on the card, 10 digits
 	FullName   string
+	Address    *Address // nil when the member gave none
+}
+
+// Address is where a member lives. One that is given has its street and
+// city; the postcode may be left out.
+type Address struct {
+	Street   string
+	City     string
+	Postcode string
 }
 
 // Book is one copy on the shelves.

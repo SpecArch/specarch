@@ -1,0 +1,23 @@
+specarchImplementation: "0.1"
+
+info:
+  title: The notes service in Dart
+  version: 0.1.0
+
+implements:
+  file: ../specarch.yaml
+  version: 0.1.0
+
+stack:
+  language: { name: Dart, version: "3.11" }
+
+bindings:
+  http:
+    framework: shelf_router
+    permissionChecks:
+      - package: lib/auth
+        function: requirePermission
+        permissionArgument: 1
+      - package: lib/auth
+        function: needs
+        permissionArgument: 1

@@ -1,0 +1,16 @@
+configuration:
+  debug:
+    schema: {type: boolean}
+    origin: stated
+    cites:
+      - {source: code, clause: 'svc/lib/server.dart:24', says: 'Reads bool.fromEnvironment("DEBUG"), given with --dart-define.'}
+  notesSecret:
+    schema: {type: string}
+    origin: stated
+    cites:
+      - {source: code, clause: 'svc/lib/server.dart:25', says: 'Reads Platform.environment["NOTES_SECRET"].'}
+  port:
+    schema: {type: integer, default: 8080}
+    origin: stated
+    cites:
+      - {source: code, clause: 'svc/lib/server.dart:23', says: 'Reads int.fromEnvironment("PORT"), given with --dart-define.'}

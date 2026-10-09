@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a code-facts dump of a Dart service and an implementation file naming two checks: a shelf_router Router mounted under /api by another, registering routes with the check wrapping a handler, a handler that calls it, a closure, and a parameter with a pattern; dart_frog routes, an index with no method compared and a parameter route switching on the method with a check in one case, a default branch and a middleware that calls no check; a retrofit API with a base URL, dio calls with an absolute and a relative path, and an http call with one value interpolated into a segment; and settings fromEnvironment and Platform.environment give"
+when: "extract dart is run on the dump with the implementation file"
+then: "it writes one operation per route under its mount, named after its handler or by its method and path, with the permission the check names; one operation per method the dart_frog handler switches on, its permission from its case's check; a dependency per host the clients call; and the settings with their types and defaults; asks a must question on each route's summary and responses, its parameters' values, whether the running system registers it and its permission where no check gives one, naming the middleware that calls none, on the methods of the index route and on the other methods the default branch serves; a should question on the relative path and the interpolated value; prints a line for the parameter with a pattern; and exits 0"
+verifies: [SA-44]

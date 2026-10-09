@@ -12,7 +12,7 @@ import (
 
 // extractSources are the surfaces this build reads, in the order the usage
 // text lists them.
-var extractSources = []string{"outline", "database", "router", "documents", "openapi", "permissions", "pages", "workflows", "go", "swift", "javascript"}
+var extractSources = []string{"outline", "database", "router", "documents", "openapi", "permissions", "pages", "workflows", "go", "swift", "javascript", "dart"}
 
 var sourceKey = regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
 
@@ -94,6 +94,9 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case source == "swift" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract swift reads one code-facts dump, and was given %d paths\n", len(paths))
 		return 2
+	case source == "dart" && len(paths) != 1:
+		fmt.Fprintf(stderr, "specarch extract dart reads one code-facts dump, and was given %d paths\n", len(paths))
+		return 2
 	case source == "javascript" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract javascript reads one code-facts dump, and was given %d paths\n", len(paths))
 		return 2
@@ -103,8 +106,8 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case implementation != "" && source == "pages" && facts == "":
 		fmt.Fprintf(stderr, "specarch extract pages takes --implementation only with --facts, since only the code a dump holds calls the checks it names\n")
 		return 2
-	case implementation != "" && source != "go" && source != "swift" && source != "javascript" && source != "pages":
-		fmt.Fprintf(stderr, "specarch extract %s takes no --implementation; only go, swift, javascript and pages read the permission checks an implementation file names\n", source)
+	case implementation != "" && source != "go" && source != "swift" && source != "javascript" && source != "dart" && source != "pages":
+		fmt.Fprintf(stderr, "specarch extract %s takes no --implementation; only go, swift, javascript, dart and pages read the permission checks an implementation file names\n", source)
 		return 2
 	case source == "openapi" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract openapi reads one OpenAPI document, and was given %d paths; one source is written per document file\n", len(paths))
@@ -138,6 +141,8 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		res, err = extract.Swift(paths[0], out, key, implementation)
 	case "javascript":
 		res, err = extract.JavaScript(paths[0], out, key, implementation)
+	case "dart":
+		res, err = extract.Dart(paths[0], out, key, implementation)
 	}
 	if err != nil {
 		var refusal *extract.Refusal

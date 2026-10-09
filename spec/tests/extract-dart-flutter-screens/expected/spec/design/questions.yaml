@@ -1,0 +1,181 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) The route /about at app/lib/router.dart:28 shows AboutBox, which is not a class of the files read. Which screen is it? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: The route /about at app/lib/router.dart:28 shows AboutBox, which is not a class of the files read. Which screen is it?
+    kind: decision
+    priority: must
+    blocks: [pages]
+    decidedBy: system-owner
+    why: A screen is read from its widget's own class, and only tracked files are read.
+    cites:
+      - {source: code, clause: 'app/lib/router.dart:28', says: Shows AboutBox.}
+  # specarch-problem: question: open_question: (must, decision) For the screen HistoryScreen, what are its kind, route, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: For the screen HistoryScreen, what are its kind, route, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/history/kind', '#/pages/history/route', '#/pages/history/entity', '#/pages/history/source', '#/pages/history/submit', '#/pages/history/columns']
+    decidedBy: system-owner
+    why: A Flutter widget says what it draws, not which of the four kinds of page it is or the operations behind it. Navigator opens it with no route of its own.
+    cites:
+      - {source: code, clause: 'app/lib/screens/notes.dart:30', says: class HistoryScreen.}
+  # specarch-problem: question: open_question: (must, decision) Which permission does the screen HistoryScreen check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: Which permission does the screen HistoryScreen check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/history/permission']
+    decidedBy: system-owner
+    why: An app's screen checks nothing for the server, and a guard written as code says nothing by syntax, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the screen NoteScreen, what are its kind, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: For the screen NoteScreen, what are its kind, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/note/kind', '#/pages/note/title', '#/pages/note/entity', '#/pages/note/source', '#/pages/note/submit', '#/pages/note/columns']
+    decidedBy: system-owner
+    why: A Flutter widget says what it draws, not which of the four kinds of page it is or the operations behind it.
+    cites:
+      - {source: code, clause: 'app/lib/screens/notes.dart:17', says: class NoteScreen.}
+  # specarch-problem: question: open_question: (must, decision) What does a person tap on the screen NoteScreen to follow each of its ways to another screen? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: What does a person tap on the screen NoteScreen to follow each of its ways to another screen?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/note/actions/0/label']
+    decidedBy: system-owner
+    why: A navigate action has a label, and a navigation call gives none.
+    cites:
+      - {source: code, clause: 'app/lib/screens/notes.dart:17', says: class NoteScreen.}
+  # specarch-problem: question: open_question: (must, decision) GoRouter's redirect at app/lib/router.dart:6 runs before every route, and it is code; which permission does the screen NoteScreen check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: GoRouter's redirect at app/lib/router.dart:6 runs before every route, and it is code; which permission does the screen NoteScreen check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/note/permission']
+    decidedBy: system-owner
+    why: An app's screen checks nothing for the server, and a guard written as code says nothing by syntax, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (should, decision) The field body of the screen NoteFormScreen at app/lib/screens/notes.dart:53 is checked by a validator the reader does not read: _check(...). What does it allow? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: 'The field body of the screen NoteFormScreen at app/lib/screens/notes.dart:53 is checked by a validator the reader does not read: _check(...). What does it allow?'
+    kind: decision
+    priority: should
+    blocks: ['#/pages/note-form/fields']
+    decidedBy: system-owner
+    why: A rule written as code is not one a field says by syntax.
+    cites:
+      - {source: code, clause: 'app/lib/screens/notes.dart:53', says: Checks body.}
+  # specarch-problem: question: open_question: (should, decision) app/lib/screens/notes.dart:54 has a TextFormField with a controller, which names no property of a model. Which field of the screen NoteFormScreen is it? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: app/lib/screens/notes.dart:54 has a TextFormField with a controller, which names no property of a model. Which field of the screen NoteFormScreen is it?
+    kind: decision
+    priority: should
+    blocks: ['#/pages/note-form/fields']
+    decidedBy: system-owner
+    why: A field is read from the property a form field saves to, or its name.
+    cites:
+      - {source: code, clause: 'app/lib/screens/notes.dart:54', says: Declares a TextFormField.}
+  # specarch-problem: question: open_question: (must, decision) For the screen NoteFormScreen, what are its kind, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: For the screen NoteFormScreen, what are its kind, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/note-form/kind', '#/pages/note-form/title', '#/pages/note-form/entity', '#/pages/note-form/source', '#/pages/note-form/submit', '#/pages/note-form/columns']
+    decidedBy: system-owner
+    why: A Flutter widget says what it draws, not which of the four kinds of page it is or the operations behind it.
+    cites:
+      - {source: code, clause: 'app/lib/screens/notes.dart:37', says: class NoteFormScreen.}
+  # specarch-problem: question: open_question: (must, decision) GoRouter's redirect at app/lib/router.dart:6 runs before every route, and it is code; which permission does the screen NoteFormScreen check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: GoRouter's redirect at app/lib/router.dart:6 runs before every route, and it is code; which permission does the screen NoteFormScreen check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/note-form/permission']
+    decidedBy: system-owner
+    why: An app's screen checks nothing for the server, and a guard written as code says nothing by syntax, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the screen NotesScreen, what are its kind, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: For the screen NotesScreen, what are its kind, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/notes/kind', '#/pages/notes/entity', '#/pages/notes/source', '#/pages/notes/submit', '#/pages/notes/columns']
+    decidedBy: system-owner
+    why: A Flutter widget says what it draws, not which of the four kinds of page it is or the operations behind it.
+    cites:
+      - {source: code, clause: 'app/lib/screens/notes.dart:4', says: class NotesScreen.}
+  # specarch-problem: question: open_question: (must, decision) What does a person tap on the screen NotesScreen to follow each of its ways to another screen? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: What does a person tap on the screen NotesScreen to follow each of its ways to another screen?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/notes/actions/0/label', '#/pages/notes/actions/1/label']
+    decidedBy: system-owner
+    why: A navigate action has a label, and a navigation call gives none.
+    cites:
+      - {source: code, clause: 'app/lib/screens/notes.dart:4', says: class NotesScreen.}
+  # specarch-problem: question: open_question: (must, decision) GoRouter's redirect at app/lib/router.dart:6 runs before every route, and it is code; which permission does the screen NotesScreen check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: GoRouter's redirect at app/lib/router.dart:6 runs before every route, and it is code; which permission does the screen NotesScreen check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/notes/permission']
+    decidedBy: system-owner
+    why: An app's screen checks nothing for the server, and a guard written as code says nothing by syntax, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the screen SettingsScreen, what are its kind, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: For the screen SettingsScreen, what are its kind, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/settings/kind', '#/pages/settings/title', '#/pages/settings/entity', '#/pages/settings/source', '#/pages/settings/submit', '#/pages/settings/columns']
+    decidedBy: system-owner
+    why: A Flutter widget says what it draws, not which of the four kinds of page it is or the operations behind it.
+    cites:
+      - {source: code, clause: 'app/lib/screens/settings.dart:3', says: class SettingsScreen.}
+  # specarch-problem: question: open_question: (must, decision) GoRouter's redirect at app/lib/router.dart:6 runs before every route, and it is code; which permission does the screen SettingsScreen check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: GoRouter's redirect at app/lib/router.dart:6 runs before every route, and it is code; which permission does the screen SettingsScreen check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/settings/permission']
+    decidedBy: system-owner
+    why: An app's screen checks nothing for the server, and a guard written as code says nothing by syntax, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) What is the title of the menu entry of NotesScreen, a branch of StatefulShellRoute at app/lib/router.dart:13? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: What is the title of the menu entry of NotesScreen, a branch of StatefulShellRoute at app/lib/router.dart:13?
+    kind: decision
+    priority: must
+    blocks: ['#/menus/notes/title']
+    decidedBy: system-owner
+    why: A menu entry has a title, and a branch gives none by syntax.
+    cites:
+      - {source: code, clause: 'app/lib/router.dart:13', says: A branch shows NotesScreen.}
+  # specarch-problem: question: open_question: (must, decision) What is the title of the menu entry of SettingsScreen, a branch of StatefulShellRoute at app/lib/router.dart:23? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
+    question: What is the title of the menu entry of SettingsScreen, a branch of StatefulShellRoute at app/lib/router.dart:23?
+    kind: decision
+    priority: must
+    blocks: ['#/menus/settings/title']
+    decidedBy: system-owner
+    why: A menu entry has a title, and a branch gives none by syntax.
+    cites:
+      - {source: code, clause: 'app/lib/router.dart:23', says: A branch shows SettingsScreen.}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/lib/router.dart:27: the route /files/*: the segment * is a pattern, which a path template cannot say; left out. Does the specification need it, written another way or described by hand? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
+    question: 'Not held: app/lib/router.dart:27: the route /files/*: the segment * is a pattern, which a path template cannot say; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [pages]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/lib/router.dart:27', says: 'Not held: the route /files/*: the segment * is a pattern, which a path template cannot say; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/lib/screens/notes.dart:52: the field title must not be empty, as its validator checks; a page's field holds no rule, which its entity's field does. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
+    question: 'Not held: app/lib/screens/notes.dart:52: the field title must not be empty, as its validator checks; a page''s field holds no rule, which its entity''s field does. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/pages/note-form/fields']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/lib/screens/notes.dart:52', says: 'Not held: the field title must not be empty, as its validator checks; a page''s field holds no rule, which its entity''s field does.'}

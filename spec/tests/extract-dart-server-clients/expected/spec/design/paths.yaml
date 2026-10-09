@@ -1,0 +1,72 @@
+permissions:
+  notes.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'svc/lib/server.dart:9', says: 'GET /api/notes and GET /notes/{id} check notes.read.'}
+  notes.write:
+    origin: stated
+    cites:
+      - {source: code, clause: 'svc/lib/server.dart:10', says: POST /api/notes checks notes.write.}
+paths:
+  /api/notes:
+    # specarch-problem: warning: test_case_missing: operation list has no red scenario for "denied without notes.read"; add under tests list-denied-without-notes-read: { operation: list, scenario: red, covers: [denied without notes.read], given: "a caller without notes.read", when: "list is called", then: "it is refused as not allowed" } [test_case_missing@design/paths.yaml#/paths/~1api~1notes/get]
+    # specarch-problem: warning: test_golden_missing: operation list has no golden scenario; add one under tests, for example list-succeeds: { operation: list, scenario: golden, given: "a caller with notes.read", when: "list is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1notes/get]
+    get:
+      operationId: list
+      permission: notes.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'svc/lib/server.dart:9', says: 'Registers GET /api/notes on api. Its check at svc/lib/server.dart:9 names notes.read.'}
+        - {source: code, clause: 'svc/lib/server.dart:16', says: The handler _list.}
+    # specarch-problem: warning: test_case_missing: operation create has no red scenario for "denied without notes.write"; add under tests create-denied-without-notes-write: { operation: create, scenario: red, covers: [denied without notes.write], given: "a caller without notes.write", when: "create is called", then: "it is refused as not allowed" } [test_case_missing@design/paths.yaml#/paths/~1api~1notes/post]
+    # specarch-problem: warning: test_golden_missing: operation create has no golden scenario; add one under tests, for example create-succeeds: { operation: create, scenario: golden, given: "a caller with notes.write", when: "create is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1notes/post]
+    post:
+      operationId: create
+      permission: notes.write
+      origin: stated
+      cites:
+        - {source: code, clause: 'svc/lib/server.dart:10', says: 'Registers POST /api/notes on api. Its check at svc/lib/server.dart:19 names notes.write.'}
+        - {source: code, clause: 'svc/lib/server.dart:18', says: The handler _create.}
+  /api/notes/{noteId}:
+    parameters:
+      - {name: noteId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation getApiNotesByNoteId has no red scenario for "not found noteId"; add under tests get-api-notes-by-note-id-not-found-note-id: { operation: getApiNotesByNoteId, scenario: red, covers: [not found noteId], given: "no record has that noteId", when: "getApiNotesByNoteId is called with that noteId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1api~1notes~1{noteId}/get]
+    # specarch-problem: warning: test_golden_missing: operation getApiNotesByNoteId has no golden scenario; add one under tests, for example get-api-notes-by-note-id-succeeds: { operation: getApiNotesByNoteId, scenario: golden, given: "any caller", when: "getApiNotesByNoteId is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1notes~1{noteId}/get]
+    get:
+      operationId: getApiNotesByNoteId
+      origin: stated
+      cites:
+        - {source: code, clause: 'svc/lib/server.dart:11', says: Registers GET /api/notes/<noteId> on api.}
+  /notes/{id}:
+    parameters:
+      - {name: id, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation getNotesById has no red scenario for "not found id"; add under tests get-notes-by-id-not-found-id: { operation: getNotesById, scenario: red, covers: [not found id], given: "no record has that id", when: "getNotesById is called with that id", then: "it is refused as not found" } [test_case_missing.f394ac7d@design/paths.yaml#/paths/~1notes~1{id}/get]
+    # specarch-problem: warning: test_case_missing: operation getNotesById has no red scenario for "denied without notes.read"; add under tests get-notes-by-id-denied-without-notes-read: { operation: getNotesById, scenario: red, covers: [denied without notes.read], given: "a caller without notes.read", when: "getNotesById is called", then: "it is refused as not allowed" } [test_case_missing.f3bf47b1@design/paths.yaml#/paths/~1notes~1{id}/get]
+    # specarch-problem: warning: test_golden_missing: operation getNotesById has no golden scenario; add one under tests, for example get-notes-by-id-succeeds: { operation: getNotesById, scenario: golden, given: "a caller with notes.read", when: "getNotesById is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1notes~1{id}/get]
+    get:
+      operationId: getNotesById
+      permission: notes.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'svc/frog/routes/notes/[id].dart:5', says: 'dart_frog serves GET /notes/{id} from svc/frog/routes/notes/[id].dart. Its check at svc/frog/routes/notes/[id].dart:8 names notes.read.'}
+    # specarch-problem: warning: test_case_missing: operation deleteNotesById has no red scenario for "not found id"; add under tests delete-notes-by-id-not-found-id: { operation: deleteNotesById, scenario: red, covers: [not found id], given: "no record has that id", when: "deleteNotesById is called with that id", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1notes~1{id}/delete]
+    # specarch-problem: warning: test_golden_missing: operation deleteNotesById has no golden scenario; add one under tests, for example delete-notes-by-id-succeeds: { operation: deleteNotesById, scenario: golden, given: "any caller", when: "deleteNotesById is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1notes~1{id}/delete]
+    delete:
+      operationId: deleteNotesById
+      origin: stated
+      cites:
+        - {source: code, clause: 'svc/frog/routes/notes/[id].dart:5', says: 'dart_frog serves DELETE /notes/{id} from svc/frog/routes/notes/[id].dart.'}
+dependencies:
+  archiveExampleOrg:
+    origin: stated
+    cites:
+      - {source: code, clause: 'svc/lib/api.dart:9', says: 'Calls GET https://archive.example.org/v2/notes/{id} with retrofit''s @GET.'}
+      - {source: code, clause: 'svc/lib/api.dart:12', says: 'Calls POST https://archive.example.org/v2/notes with retrofit''s @POST.'}
+  statusExampleOrg:
+    origin: stated
+    cites:
+      - {source: code, clause: 'svc/lib/api.dart:17', says: 'Calls GET https://status.example.org/ping with dio''s get.'}
+  weatherExampleOrg:
+    origin: stated
+    cites:
+      - {source: code, clause: 'svc/lib/api.dart:19', says: 'Calls GET https://weather.example.org/today/{id} with http.get.'}

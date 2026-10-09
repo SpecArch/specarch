@@ -1,0 +1,17 @@
+arguments: [extract, dart, --implementation, implementation/notes.dart.specarch-implementation.yaml, --out, spec, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [svc]
+    - [facts.json]
+exitStatus: 0
+standardOutput: |
+  commit a6284914281b8d3ee51de7b5f41d68118ea13b75: the last change to svc, as the code-facts dump facts.json names it
+  checks: implementation/notes.dart.specarch-implementation.yaml names the permission checks lib/auth.requirePermission and lib/auth.needs
+  counted 6 Dart files, 0 of them with syntax the analyzer could not read, and 56 facts: every tracked Dart file under svc, and every fact the dump holds
+  routes: counted 4 registrations: every call of get, post, put, patch, delete, head, options or all with a path and a handler on a shelf_router Router
+  routes: counted 2 route files under routes/: every dart_frog file with an onRequest
+  clients: counted 5 calls: every method of a retrofit @RestApi, and every get, post, put, patch and delete of http and dio
+  settings: counted 3 reads: every fromEnvironment and every read of Platform.environment
+  wrote 0 pages, 0 schemas, 0 enums, 5 operations, 3 dependencies, 3 settings and 27 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  not held: svc/lib/server.dart:12: the route GET /api/files/<path|.*>: the parameter <path|.*> has a pattern, which a path template cannot say; left out; could question Q-27

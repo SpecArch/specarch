@@ -452,7 +452,7 @@
             "type": "object",
             "properties": {
               "package": {
-                "description": "Where the check is declared, as the language names it: a Go import path (the folder from the repository's root where no go.mod is read), a module path of JavaScript or TypeScript, a Swift module.",
+                "description": "Where the check is declared, as the language names it: a Go import path (the folder from the repository's root where no go.mod is read), a module path of JavaScript or TypeScript, a Swift module, or a Dart file's path from the folder read without .dart.",
                 "type": "string",
                 "minLength": 1
               },

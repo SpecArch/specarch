@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a code-facts dump of a Flutter app whose GoRouter has a redirect and a StatefulShellRoute of two branches, with nested GoRoutes of a literal path, a parameter, a page builder, a wildcard and a widget of a package; whose screens have an AppBar with a literal title and one with a computed one, go and push calls with literal routes, and a Navigator.push to a screen no route serves; and a form whose TextFormFields save to a draft's properties, one with an empty test as its validator, one with another validator, and one with only a controller"
+when: "extract dart is run on the dump"
+then: "it writes one page per route whose builder shows a widget of the files read, named after the widget, with its route, its AppBar's literal title, its saved fields and a navigate action per go, push and Navigator.push call; a page for the screen Navigator opens with no route, its route asked; a menu entry for each branch, its title asked; asks a must question on each page's kind and the rest, its permission naming the redirect, each link's label and the widget of a package; asks a should question on the field with only a controller and on the validator it does not read; prints a line for the wildcard and for the empty test; and exits 0"
+verifies: [SA-44]

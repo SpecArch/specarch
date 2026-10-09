@@ -509,10 +509,17 @@ changes `extract.yaml` first.
     --facts` reads Nuxt's pages with `definePageMeta`, their named and
     global middleware, and Nitro handlers with their checks, validated
     bodies and route parameters. `$fetch` and `useFetch` are clients.
-21. Dart and Flutter: `readers/dart/` on the analyzer package; go_router
-    and Navigator, form fields, `json_serializable` and `freezed` models,
-    retrofit, dio and `http` clients, `shelf_router` and dart_frog routes,
-    `fromEnvironment` settings.
+21. Built. Dart and Flutter (ADR-092): `readers/dart/` on the analyzer
+    package 14.4.0, pinned exactly, BSD-3-Clause with a BSD and MIT
+    tree, its SBOM scan clean, through `parseString`, resolving no
+    package. `extract dart` reads a committed dump and writes go_router's
+    and MaterialApp's routes as pages with their AppBar titles, the
+    fields their forms save and their go, push and Navigator.push links,
+    StatefulShellRoute branches as menu entries, json_serializable and
+    freezed classes as schemas with their wire names and enums,
+    retrofit, dio and http calls as dependencies, shelf_router and
+    dart_frog routes with the project's named check, and the settings
+    `fromEnvironment` and `Platform.environment` give.
 
 ## What goes wrong
 

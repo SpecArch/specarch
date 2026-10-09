@@ -1,0 +1,13 @@
+{
+    "codeFacts": 1,
+    "language": "dart",
+    "parser": {"name": "analyzer", "version": "14.0.0"},
+    "path": "app",
+    "commit": "43f8018c06a01427bd6a26fb7c18f74d7c524fd8",
+    "files": [
+        {"file": "app/lib/main.dart", "syntaxErrors": 0}
+    ],
+    "facts": [
+        {"kind":"method","file":"app/lib/main.dart","line":1,"column":1,"name":"main","parameters":[],"returns":"void"}
+    ]
+}

@@ -1,0 +1,61 @@
+pages:
+  # specarch-problem: warning: test_golden_missing: page history has no golden scenario; add one under tests, for example history-succeeds: { page: history, scenario: golden, given: "any caller", when: "the page history is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/history]
+  # specarch-problem: warning: test_red_missing: page history has no red scenario; add one under tests, for example history-refused: { page: history, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/history]
+  history:
+    title: History
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/lib/screens/notes.dart:30', says: class HistoryScreen.}
+      - {source: code, clause: 'app/lib/screens/notes.dart:34', says: Its AppBar's title is "History".}
+  # specarch-problem: warning: test_case_missing: page note has no red scenario for "not found noteId"; add under tests note-not-found-note-id: { page: note, scenario: red, covers: [not found noteId], given: "no record has that noteId", when: "the page note is opened for that noteId", then: "it says the record was not found" } [test_case_missing@design/pages.yaml#/pages/note]
+  # specarch-problem: warning: test_golden_missing: page note has no golden scenario; add one under tests, for example note-succeeds: { page: note, scenario: golden, given: "any caller", when: "the page note is opened for a record that exists", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/note]
+  note:
+    route: /notes/{noteId}
+    actions:
+      - {kind: navigate, target: history}
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/lib/router.dart:18', says: 'The route /notes/{noteId} shows NoteScreen.'}
+      - {source: code, clause: 'app/lib/screens/notes.dart:17', says: class NoteScreen.}
+      - {source: code, clause: 'app/lib/screens/notes.dart:24', says: Navigator.push opens HistoryScreen.}
+  # specarch-problem: warning: test_golden_missing: page note-form has no golden scenario; add one under tests, for example note-form-succeeds: { page: note-form, scenario: golden, given: "any caller", when: "the page note-form is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/note-form]
+  # specarch-problem: warning: test_red_missing: page note-form has no red scenario; add one under tests, for example note-form-refused: { page: note-form, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/note-form]
+  note-form:
+    route: /notes/new
+    fields: [title, body]
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/lib/router.dart:17', says: The route /notes/new shows NoteFormScreen.}
+      - {source: code, clause: 'app/lib/screens/notes.dart:37', says: class NoteFormScreen.}
+      - {source: code, clause: 'app/lib/screens/notes.dart:52', says: A TextFormField saves the field title.}
+      - {source: code, clause: 'app/lib/screens/notes.dart:53', says: A TextFormField saves the field body.}
+  # specarch-problem: warning: test_golden_missing: page notes has no golden scenario; add one under tests, for example notes-succeeds: { page: notes, scenario: golden, given: "any caller", when: "the page notes is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/notes]
+  # specarch-problem: warning: test_red_missing: page notes has no red scenario; add one under tests, for example notes-refused: { page: notes, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/notes]
+  notes:
+    route: /notes
+    title: Notes
+    actions:
+      - {kind: navigate, target: note-form}
+      - {kind: navigate, target: note}
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/lib/router.dart:13', says: The route /notes shows NotesScreen.}
+      - {source: code, clause: 'app/lib/screens/notes.dart:4', says: class NotesScreen.}
+      - {source: code, clause: 'app/lib/screens/notes.dart:10', says: Its AppBar's title is "Notes".}
+      - {source: code, clause: 'app/lib/screens/notes.dart:11', says: go("/notes/new") opens /notes/new.}
+      - {source: code, clause: 'app/lib/screens/notes.dart:12', says: push("/notes/42") opens /notes/42.}
+  # specarch-problem: warning: test_golden_missing: page settings has no golden scenario; add one under tests, for example settings-succeeds: { page: settings, scenario: golden, given: "any caller", when: "the page settings is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/settings]
+  # specarch-problem: warning: test_red_missing: page settings has no red scenario; add one under tests, for example settings-refused: { page: settings, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/settings]
+  settings:
+    route: /settings
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/lib/router.dart:23', says: The route /settings shows SettingsScreen.}
+      - {source: code, clause: 'app/lib/screens/settings.dart:3', says: class SettingsScreen.}
+menus:
+  # specarch-problem: warning: origin_missing: notes carries no origin, and the specification tracks origin; add origin: stated, inferred or decided [origin_missing@design/pages.yaml#/menus/notes]
+  notes:
+    page: notes
+  # specarch-problem: warning: origin_missing: settings carries no origin, and the specification tracks origin; add origin: stated, inferred or decided [origin_missing@design/pages.yaml#/menus/settings]
+  settings:
+    page: settings

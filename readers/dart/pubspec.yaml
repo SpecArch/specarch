@@ -1,0 +1,13 @@
+name: code_facts_dart
+description: >-
+  The Dart reader of specarch extract: it parses Dart source with the
+  analyzer package and writes the facts specarch extract dart reads, as a
+  code-facts dump.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  analyzer: 14.4.0

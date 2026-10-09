@@ -1,0 +1,18 @@
+arguments: [extract, dart, --out, spec, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [app]
+    - [facts.json]
+exitStatus: 0
+standardOutput: |
+  commit 3a65fa23d2f3d0856db5bc09ad2d67c3d55d077c: the last change to app, as the code-facts dump facts.json names it
+  counted 3 Dart files, 0 of them with syntax the analyzer could not read, and 30 facts: every tracked Dart file under app, and every fact the dump holds
+  generated: app/lib/note.g.dart is the output of a code generator; its input, the file it is part of, is read instead
+  models: counted 19 fields of 3 models and 1 enum: every field of a json_serializable class and every parameter of a freezed factory, and every enum they hold
+  wrote 0 pages, 3 schemas, 1 enum, 0 operations, 0 dependencies, 0 settings and 8 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  not held: app/lib/note.dart:37: Author.email goes on the wire as mail_address, which info.wireNames cannot give; written by its Dart name; could question Q-4
+  not held: app/lib/note.dart:39: Author.rating goes on the wire as stars, which info.wireNames cannot give; written by its Dart name; could question Q-5
+  not held: app/lib/note.dart:25: Note.extra: the type Map<String, String>, a map or a set, which a field does not hold; left out; could question Q-6
+  not held: app/lib/note.dart:27: Note.dirty is left out of its JSON by its @JsonKey; left out; could question Q-7
+  not held: app/lib/note.dart:11: Mood.happy is "Very Happy" on the wire, and an enum's values are snake_case words; left out; could question Q-8

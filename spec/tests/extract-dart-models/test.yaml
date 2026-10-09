@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a code-facts dump of Dart models: a json_serializable class that renames its fields to snake_case, with a nullable field, an int, a DateTime, an enum whose @JsonValue gives its wire values one of which is not a snake_case word, a list, a map, a field its @JsonKey leaves out of JSON and a static field; a json_serializable class with @JsonKey names, one the snake_case form of its field and one another name, a num, a double, a nullable model, a Uri and a type of a package; a freezed class whose factory gives required fields, a @Default, a @JsonKey name and a list of a model; and a file a code generator wrote"
+when: "extract dart is run on the dump"
+then: "it writes each model as a schema with its fields by their Dart types, required where not nullable and with no default, the default @Default gives, references to the models and the enum, and the enum with its wire values; writes info.wireNames snake_case; asks a must question on the width of the ints, on the num and on the type of a package; prints a line for the map, the field left out of JSON, the wire name info.wireNames cannot give, the enum value that is not a snake_case word, and the generated file; and exits 0"
+verifies: [SA-44]

@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: Dart source of app
+  version: 0.1.0
+  description: |
+    The Dart source under app, read at commit 3a65fa23d2f3d0856db5bc09ad2d67c3d55d077c by the analyzer 14.4.0 through the code-facts dump, by its syntax alone, resolving no package. Every element cites the line that declares it; what the source does not say as a literal, or through an idiom the reader knows, is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+  wireNames: snake_case
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 3a65fa23d2f3d0856db5bc09ad2d67c3d55d077c
+    url: ../repo
+    clauses:
+      - {clause: app/lib/note.dart, title: 'Dart source, read by its syntax'}
+      - {clause: app/lib/note.g.dart, title: 'Dart source a code generator wrote, not read'}
+      - {clause: app/lib/shelf.dart, title: 'Dart source, read by its syntax'}
+    reading: parsed

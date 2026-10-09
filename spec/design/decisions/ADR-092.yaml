@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-092:
+    title: extract dart reads a code-facts dump the analyzer package's parseString wrote, resolving no package, and turns its facts into screens, models, routes, clients and settings in Go
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Step 21 of docs/extraction.md reads Dart and Flutter, the last
+      language of the plan. The analyzer package is the parser of the
+      Dart SDK's own tools. A resolved unit needs pub get and the pub
+      cache, which no commit holds; parseString gives syntax alone.
+      Flutter declares screens through go_router, MaterialApp and
+      Navigator, forms through form fields and their callbacks, models
+      through json_serializable's and freezed's annotations on classes a
+      code generator reads, clients through retrofit's annotations, dio
+      and http, and servers through shelf_router and dart_frog's routes
+      folder. In Dart 3 a switch case may be a pattern.
+    decision: |
+      readers/dart is a Dart package that pins analyzer 14.4.0 exactly
+      with pubspec.lock committed, and writes the code-facts dump of
+      ADR-075 with the language dart: imports, classes with their
+      annotations, fields, constructors and methods with their
+      parameters, enums with their values' annotations, calls and
+      instance creations with their arguments as values (a closure by its
+      parameters and what it returns, an assignment by its target), the
+      comparisons of a request's method and the branch of one a call is
+      in, and reads of Platform.environment. specarch pins the same
+      version and refuses a dump another one made. A file a code
+      generator wrote is listed and not read. In Go, the screens,
+      models, routes, clients and settings are read as extract.yaml
+      lists; the implementation file's permissionChecks names a Dart check
+      by the path of its file from the folder read, without .dart.
+    why: |
+      parseString needs nothing but the file, so the dump is made from a
+      commit with no pub get, and a package's types are known only by
+      the names the code writes, which is what the idiom table keys on.
+      Pinning the analyzer holds the facts to one parser, as SwiftSyntax
+      and the TypeScript compiler are held; its tree is BSD-3-Clause and
+      MIT and its SBOM scan is clean.
+
+      A model is read from the class the generator reads, not the
+      generator's output, because the output is generated and says so;
+      the annotations are the statement. A field a form saves is named
+      by the property its onSaved assigns, the one place the syntax ties a
+      control to a model; a controller names a variable, not a property,
+      so it is asked. A validator's empty or length test is a rule a
+      page's field cannot hold, so it is a line for the entity's field,
+      not a page key. A redirect is code, and only its question names it,
+      since syntax cannot say whom it lets through. dart_frog's folder is
+      its router, read like the other file-system routers, and its
+      handler's comparisons say which methods it serves; what a default
+      branch serves is asked. A check called in a switch case gives only
+      that case's method its permission, which the branch of each call
+      records.
+
+      Every surface is read from one dump with no build, no device and no
+      emulator, so a result shows early, and every guess is a question at
+      its line.
+    consequences: |
+      A Flutter app or a Dart server is read from a committed dump; making
+      the dump needs the Dart SDK and fetches the analyzer once. An
+      analyzer upgrade remakes every Dart dump. Flavour files and the
+      configuration a --dart-define-from-file gives are not read yet;
+      joining a client's call to its operation by method and path waits,
+      as for every reader.
+    satisfies: [SA-44]

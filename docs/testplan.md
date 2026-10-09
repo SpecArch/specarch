@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 386 design tests, 166 golden and 220 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 390 design tests, 169 golden and 221 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.6.0-dev of the specification: 386 design tests, 166 golden and 220 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 382 |
+| system | 386 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -641,6 +641,38 @@ Scenario: golden; level: system; verifies SA-16, SA-22.
 - Then: it writes traceability.md with both matrices and lists as gaps the unrefined need, the requirement without acceptance criteria and the one nothing satisfies or verifies, with no Harm column since no requirement names a harm, and exits 0
 
 ### Command extract
+
+#### extract-dart-flutter-screens
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a code-facts dump of a Flutter app whose GoRouter has a redirect and a StatefulShellRoute of two branches, with nested GoRoutes of a literal path, a parameter, a page builder, a wildcard and a widget of a package; whose screens have an AppBar with a literal title and one with a computed one, go and push calls with literal routes, and a Navigator.push to a screen no route serves; and a form whose TextFormFields save to a draft's properties, one with an empty test as its validator, one with another validator, and one with only a controller
+- When: extract dart is run on the dump
+- Then: it writes one page per route whose builder shows a widget of the files read, named after the widget, with its route, its AppBar's literal title, its saved fields and a navigate action per go, push and Navigator.push call; a page for the screen Navigator opens with no route, its route asked; a menu entry for each branch, its title asked; asks a must question on each page's kind and the rest, its permission naming the redirect, each link's label and the widget of a package; asks a should question on the field with only a controller and on the validator it does not read; prints a line for the wildcard and for the empty test; and exits 0
+
+#### extract-dart-models
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a code-facts dump of Dart models: a json_serializable class that renames its fields to snake_case, with a nullable field, an int, a DateTime, an enum whose @JsonValue gives its wire values one of which is not a snake_case word, a list, a map, a field its @JsonKey leaves out of JSON and a static field; a json_serializable class with @JsonKey names, one the snake_case form of its field and one another name, a num, a double, a nullable model, a Uri and a type of a package; a freezed class whose factory gives required fields, a @Default, a @JsonKey name and a list of a model; and a file a code generator wrote
+- When: extract dart is run on the dump
+- Then: it writes each model as a schema with its fields by their Dart types, required where not nullable and with no default, the default @Default gives, references to the models and the enum, and the enum with its wire values; writes info.wireNames snake_case; asks a must question on the width of the ints, on the num and on the type of a package; prints a line for the map, the field left out of JSON, the wire name info.wireNames cannot give, the enum value that is not a snake_case word, and the generated file; and exits 0
+
+#### extract-dart-parser-version
+
+Scenario: red; level: system; verifies SA-44.
+
+- Given: a code-facts dump of Dart that another version of the analyzer than the one this release pins made
+- When: extract dart is run on the dump
+- Then: it refuses the dump, naming the version that made it and the one it reads, writes nothing and exits 1
+
+#### extract-dart-server-clients
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a code-facts dump of a Dart service and an implementation file naming two checks: a shelf_router Router mounted under /api by another, registering routes with the check wrapping a handler, a handler that calls it, a closure, and a parameter with a pattern; dart_frog routes, an index with no method compared and a parameter route switching on the method with a check in one case, a default branch and a middleware that calls no check; a retrofit API with a base URL, dio calls with an absolute and a relative path, and an http call with one value interpolated into a segment; and settings fromEnvironment and Platform.environment give
+- When: extract dart is run on the dump with the implementation file
+- Then: it writes one operation per route under its mount, named after its handler or by its method and path, with the permission the check names; one operation per method the dart_frog handler switches on, its permission from its case's check; a dependency per host the clients call; and the settings with their types and defaults; asks a must question on each route's summary and responses, its parameters' values, whether the running system registers it and its permission where no check gives one, naming the middleware that calls none, on the methods of the index route and on the other methods the default branch serves; a should question on the relative path and the interpolated value; prints a line for the parameter with a pattern; and exits 0
 
 #### extract-database-json-column
 

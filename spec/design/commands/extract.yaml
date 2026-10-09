@@ -907,6 +907,86 @@ commands:
         `v-model` binds, and a name property given by a value, are should
         questions. `$fetch` and `useFetch` are clients as `fetch` is.
 
+      - `dart`: one code-facts dump of Dart source (ADR-092), written by
+        `tools/code-facts/dump-dart.sh`, which runs the Dart reader
+        `readers/dart` on the tracked Dart files under a committed folder.
+        The reader parses each with the analyzer package 14.4.0, pinned
+        exactly with `pubspec.lock` committed, through `parseString`,
+        which gives syntax without resolving a package, so no pub cache is
+        read; it writes facts, not elements: imports, classes with their
+        annotations, fields, constructors and methods with their
+        parameters, enums, calls and instance creations with their
+        arguments written as values, comparisons of a request's method and
+        the branch a call is in, and reads of `Platform.environment`. The
+        dump is refused when another analyzer version made it, when its
+        files are not the folder's tracked Dart files, and when it is
+        stale. The source is one code source with `reading: parsed`; a
+        file a code generator wrote (`.g.dart`, `.freezed.dart`) prints a
+        line and is not read, since its input is.
+
+        go_router's `GoRouter(routes:)` gives pages: each `GoRoute` with a
+        literal path, nested paths joined, whose `builder` or
+        `pageBuilder` returns one widget of the files read, named after
+        the widget in kebab-case without `Screen`, `Page` or `View`; a
+        `ShellRoute`'s routes are read through it, and each branch of a
+        `StatefulShellRoute` is a menu entry for its first page, its title
+        a must question. `MaterialApp`'s `home` and literal `routes` are
+        pages too, and a widget `Navigator.push` opens with a
+        `MaterialPageRoute` and no route is a page whose route is asked. A
+        page's title is its `AppBar`'s literal `Text`, read in the widget
+        and its `State`; its fields are what a `TextFormField` or another
+        form field saves in `onSaved` (`(v) => draft.title = v`) or names
+        with `name:`; a field with only a controller and a validator the
+        reader does not read are should questions, and an empty test or a
+        length check prints a line, since a page's field holds no rule.
+        Each `go`, `push` and `Navigator.push` that opens a page read is a
+        navigate action, its label a must question. A `redirect`, on the
+        router or a route, is code, and is named in the question on the
+        permission of every page it covers; a path that is not a literal,
+        a widget outside the files read and a route declared twice are
+        must questions, a wildcard and a parameter with a pattern a line.
+
+        A class with `@JsonSerializable` is a schema of its instance
+        fields, and one with `@freezed` a schema of its factory's
+        parameters; each is a field by its Dart type (`String`, `bool`,
+        `double`, `DateTime` as a date-time, `Uri`, `List<T>`, a model or
+        an enum of the files read), nullable for `T?`, required unless
+        nullable or given a default, with the default `@Default` or a
+        field's initial value gives; an `int`'s width is one must question
+        with every other number's, and a `num`, `dynamic` and a type
+        outside the files read are must questions, a map and a set a line.
+        `FieldRename.snake` and a `@JsonKey(name:)` that is the field's
+        snake_case form give `info.wireNames: snake_case`, and any other
+        name prints a line; a field `@JsonKey` leaves out of JSON prints a
+        line. An enum a model holds is an enum, its values the
+        `@JsonValue` strings or its names, each a snake_case word or a
+        line.
+
+        Server routes are shelf_router's `get`, `post`, `put`, `patch`,
+        `delete`, `head`, `options` and `all` on a `Router` a variable
+        holds, through a cascade or not, under every `mount` of the files
+        read, with a literal path, `<name>` the parameter `{name}`; and
+        dart_frog's `routes/` folder, read as a file-system router, each
+        file's `onRequest` serving the methods it compares the request's
+        method with, `HttpMethod.get` and the like, what a default branch
+        serves a must question, and a file that compares none asked for its
+        methods. A route is named after its handler or by its method and
+        path, with the must questions extract go asks of a parsed route;
+        its permission is the one literal permission a check the
+        implementation file names gives, wrapping its handler, called in
+        it in the branch of its method, or called in a dart_frog
+        `_middleware.dart` above it; none, several and one that is not a
+        literal are must questions, naming a middleware that calls no
+        check. Calls to another system are retrofit's `@GET` and the like
+        under a `@RestApi` with its `baseUrl`, and dio's and http's `get`,
+        `post`, `put`, `patch` and `delete` given a literal URL,
+        `Uri.parse` of one, `Uri.https` or an interpolation of one value
+        per segment; each declares a dependency named after the host, and
+        a URL with no host or built from other parts is a should question.
+        A setting is read where `String`, `int` or `bool.fromEnvironment`
+        or `Platform.environment` names it by a literal, with its type and
+        its `defaultValue`, and written as extract javascript writes one.
+
       Every reader follows these rules:
 
       - The tree's root tracks origin. The code readers declare one code
@@ -916,7 +996,7 @@ commands:
         the repository's folder relative to `--out`. Clauses are paths from
         the repository's root. Its `reading` says how it was read:
         `printed` for router, database and permissions, which read a list
-        the running system printed, and `parsed` for go, swift and javascript,
+        the running system printed, and `parsed` for go, swift, javascript and dart,
         which read the source itself (ADR-075).
       - Every element is `origin: stated` and cites where it was read.
         What the surface does not say is a question, never a value: a
@@ -960,11 +1040,11 @@ commands:
     permission: public
     arguments:
       - name: source
-        description: "The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `go`, `swift` or `javascript`."
+        description: "The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `go`, `swift`, `javascript` or `dart`."
         required: true
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
       - name: paths
-        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository; for swift and javascript, one code-facts dump."
+        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump."
         required: true
         repeatable: true
         schema: { type: string }
@@ -974,7 +1054,7 @@ commands:
         schema: { type: string }
         required: true
       implementation:
-        description: For go, swift and javascript, and for pages with --facts, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through.
+        description: For go, swift, javascript and dart, and for pages with --facts, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through.
         schema: { type: string }
       facts:
         description: For pages, a code-facts dump of JavaScript and TypeScript, made by tools/code-facts/dump-javascript.sh of a folder that holds the router's folder, through which the Next.js files' code is read.
@@ -994,8 +1074,8 @@ commands:
       the reader reads, or a document read as what the running system
       printed; one line per file that imports a library the reader knows
       and gives nothing it reads; one line per gate on a setting, naming
-      the check and the setting; for go, swift, javascript and pages
-      with --facts, one line naming the checks the implementation file
+      the check and the setting; for go, swift, javascript, dart and
+      pages with --facts, one line naming the checks the implementation file
       names; for pages with --facts, one line naming the dump, one per
       middleware file saying what it covers and checks, and one counting
       the server actions; and one line per file that says it is
@@ -1004,6 +1084,6 @@ commands:
     exitCodes:
       "0": the specification was written
       "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML"
-      "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript or pages, or to pages without --facts, --facts given to a source other than pages, or a path that could not be read or written
+      "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, or to pages without --facts, --facts given to a source other than pages, or a path that could not be read or written
     satisfies: [SA-11, SA-44]
     why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

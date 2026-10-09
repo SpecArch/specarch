@@ -390,11 +390,14 @@ named once in the implementation file, under `bindings.ui.components`.
 
 ## Dart and Flutter
 
-Read by the analyzer package (BSD-3-Clause, the parser of the Dart SDK's
-own tools) in `readers/dart/`, a Dart package with `pubspec.lock`
-committed, using `parseString`, which gives syntax without resolving
-packages; a resolved unit needs `pub get` and the pub cache, which is no
-commit.
+Read by the analyzer package 14.4.0 (BSD-3-Clause, the parser of the Dart
+SDK's own tools), pinned exactly, in `readers/dart/`, a Dart package with
+`pubspec.lock` committed, using `parseString`, which gives syntax without
+resolving packages; a resolved unit needs `pub get` and the pub cache,
+which is no commit (ADR-092). `tools/code-facts/dump-dart.sh` runs it on
+the tracked Dart files of a committed folder, and `specarch extract dart`
+reads the dump. A file a code generator wrote (`.g.dart`, `.freezed.dart`)
+is listed and not read.
 
 | Surface | Source | Why |
 |---|---|---|
@@ -403,7 +406,7 @@ commit.
 | models | `@JsonSerializable` and `freezed` classes, `@JsonKey(name:)` giving wire names | the code generator's input, not its output, since the output is generated and says so |
 | API clients | retrofit's `@GET('/loans/{id}')` annotations; dio and `http` calls with a literal path or one interpolated value per segment | as for JavaScript |
 | server routes | `shelf_router`'s `router.get('/loans/<id>', ...)`; dart_frog's `routes/` folders, read as a file-system router | as for Go |
-| configuration | `String.fromEnvironment('NAME')` and the other `fromEnvironment` constructors; flavour files read as data | as for Go |
+| configuration | `String.fromEnvironment('NAME')` and the other `fromEnvironment` constructors, and `Platform.environment['NAME']`; flavour files read as data in a later step | as for Go |
 
 ## Why this order
 

@@ -1,0 +1,27 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) The setting PORT is read as a whole number. How wide is it? Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
+  Q-24:
+    question: The setting PORT is read as a whole number. How wide is it?
+    kind: decision
+    priority: must
+    blocks: ['#/configuration/port/schema/format']
+    decidedBy: system-owner
+    why: Every integer in a specification has a width, and the code states none.
+    cites:
+      - {source: code, clause: 'svc/lib/server.dart:23', says: Reads PORT as a whole number.}
+  # specarch-problem: question: open_question: (must, decision) What is each setting for, where does its value come from, and is it a secret: DEBUG, NOTES_SECRET, PORT? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
+  Q-25:
+    question: 'What is each setting for, where does its value come from, and is it a secret: DEBUG, NOTES_SECRET, PORT?'
+    kind: decision
+    priority: must
+    blocks: ['#/configuration/debug/description', '#/configuration/debug/secret', '#/configuration/notesSecret/description', '#/configuration/port/description', '#/configuration/port/secret']
+    decidedBy: system-owner
+    why: The source names the settings it reads and not what they are for.
+  # specarch-problem: question: open_question: (must, decision) Is each of these settings a secret: NOTES_SECRET? Each name says it may hold a credential, and the source does not say. Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
+  Q-26:
+    question: 'Is each of these settings a secret: NOTES_SECRET? Each name says it may hold a credential, and the source does not say.'
+    kind: decision
+    priority: must
+    blocks: ['#/configuration/notesSecret/secret']
+    decidedBy: system-owner
+    why: A secret's value is never written in a specification, and the name alone does not say which a setting is; a value import.meta.env gives a browser is readable by anyone who loads the page.

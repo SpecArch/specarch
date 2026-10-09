@@ -1,0 +1,79 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Author.rating at app/lib/note.dart:39: it is a num, an int or a double. Which is it, and how wide? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'Author.rating at app/lib/note.dart:39: it is a num, an int or a double. Which is it, and how wide?'
+    kind: decision
+    priority: must
+    blocks: ['#/schemas/Author/properties/rating/format']
+    decidedBy: system-owner
+    why: A num is either kind of number, and a field has one.
+    cites:
+      - {source: code, clause: 'app/lib/note.dart:39', says: Declares rating.}
+  # specarch-problem: question: open_question: (must, decision) Author.contact at app/lib/note.dart:43: the source declares the type Contact, which is not a model or an enum of the files read, such as a type of a package. Which type is it? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: 'Author.contact at app/lib/note.dart:43: the source declares the type Contact, which is not a model or an enum of the files read, such as a type of a package. Which type is it?'
+    kind: decision
+    priority: must
+    blocks: ['#/schemas/Author/properties/contact']
+    decidedBy: system-owner
+    why: Only tracked files are read, and a type of a package is not known.
+    cites:
+      - {source: code, clause: 'app/lib/note.dart:43', says: Declares contact.}
+  # specarch-problem: question: open_question: (must, decision) Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale?'
+    kind: decision
+    priority: must
+    blocks: ['#/schemas/Note/properties/pages/format', '#/schemas/Shelf/properties/capacity/format']
+    decidedBy: system-owner
+    why: A Dart int is 64 bits on the native platforms and a double on the web, and the meta-model needs a width; choosing one would be a guess.
+  # specarch-problem: question: open_question: (could, decision) Not held: app/lib/note.dart:37: Author.email goes on the wire as mail_address, which info.wireNames cannot give; written by its Dart name. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: 'Not held: app/lib/note.dart:37: Author.email goes on the wire as mail_address, which info.wireNames cannot give; written by its Dart name. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/schemas/Author/properties/email']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/lib/note.dart:37', says: 'Not held: Author.email goes on the wire as mail_address, which info.wireNames cannot give; written by its Dart name.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/lib/note.dart:39: Author.rating goes on the wire as stars, which info.wireNames cannot give; written by its Dart name. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: 'Not held: app/lib/note.dart:39: Author.rating goes on the wire as stars, which info.wireNames cannot give; written by its Dart name. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/schemas/Author/properties/rating']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/lib/note.dart:39', says: 'Not held: Author.rating goes on the wire as stars, which info.wireNames cannot give; written by its Dart name.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/lib/note.dart:25: Note.extra: the type Map<String, String>, a map or a set, which a field does not hold; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: 'Not held: app/lib/note.dart:25: Note.extra: the type Map<String, String>, a map or a set, which a field does not hold; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/schemas/Note']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/lib/note.dart:25', says: 'Not held: Note.extra: the type Map<String, String>, a map or a set, which a field does not hold; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/lib/note.dart:27: Note.dirty is left out of its JSON by its @JsonKey; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: 'Not held: app/lib/note.dart:27: Note.dirty is left out of its JSON by its @JsonKey; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/schemas/Note']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/lib/note.dart:27', says: 'Not held: Note.dirty is left out of its JSON by its @JsonKey; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: app/lib/note.dart:11: Mood.happy is "Very Happy" on the wire, and an enum's values are snake_case words; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: 'Not held: app/lib/note.dart:11: Mood.happy is "Very Happy" on the wire, and an enum''s values are snake_case words; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/enums/Mood']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'app/lib/note.dart:11', says: 'Not held: Mood.happy is "Very Happy" on the wire, and an enum''s values are snake_case words; left out.'}

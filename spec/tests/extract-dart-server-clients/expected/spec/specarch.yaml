@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: Dart source of svc
+  version: 0.1.0
+  description: |
+    The Dart source under svc, read at commit a6284914281b8d3ee51de7b5f41d68118ea13b75 by the analyzer 14.4.0 through the code-facts dump, by its syntax alone, resolving no package. Every element cites the line that declares it; what the source does not say as a literal, or through an idiom the reader knows, is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design, deployment]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: a6284914281b8d3ee51de7b5f41d68118ea13b75
+    url: ../repo
+    clauses:
+      - {clause: svc/frog/routes/index.dart, title: 'Dart source, read by its syntax'}
+      - {clause: 'svc/frog/routes/notes/[id].dart', title: 'Dart source, read by its syntax'}
+      - {clause: svc/frog/routes/notes/_middleware.dart, title: 'Dart source, read by its syntax'}
+      - {clause: svc/lib/api.dart, title: 'Dart source, read by its syntax'}
+      - {clause: svc/lib/auth.dart, title: 'Dart source, read by its syntax'}
+      - {clause: svc/lib/server.dart, title: 'Dart source, read by its syntax'}
+    reading: parsed

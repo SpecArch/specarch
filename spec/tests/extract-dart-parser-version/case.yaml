@@ -1,0 +1,8 @@
+arguments: [extract, dart, --out, spec, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [app]
+    - [facts.json]
+exitStatus: 1
+standardOutput: ""

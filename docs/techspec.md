@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 60 requirements, 5 entities, 12 commands, 7 algorithms, 386 tests, 90 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 60 requirements, 5 entities, 12 commands, 7 algorithms, 390 tests, 91 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -63,7 +63,7 @@ The interfaces the system offers, as its clients see them.
 | derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors, or a draft's name is taken by another draft or by a test of another subject; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, there is no release record for the new version, or a specification has errors; 2: usage error, or a path that could not be read |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written |
-| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript or pages, or to pages without --facts, --facts given to a source other than pages, or a path that could not be read or written |
+| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, or to pages without --facts, --facts given to a source other than pages, or a path that could not be read or written |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open and no specification has an error; 1: at least one must or should question is open, or a specification has an error; 2: usage error, or a path that could not be read |
 | generate | Write code or data from a specification | public | 0: written, a draft included, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads or the specification is not approved and `--unapproved` was not given, the plug-in reported an error (what it answered is written or checked), or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder in any specification given, or a file that could not be read or written |
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
@@ -1627,6 +1627,86 @@ The sources this build reads:
   `v-model` binds, and a name property given by a value, are should
   questions. `$fetch` and `useFetch` are clients as `fetch` is.
 
+- `dart`: one code-facts dump of Dart source (ADR-092), written by
+  `tools/code-facts/dump-dart.sh`, which runs the Dart reader
+  `readers/dart` on the tracked Dart files under a committed folder.
+  The reader parses each with the analyzer package 14.4.0, pinned
+  exactly with `pubspec.lock` committed, through `parseString`,
+  which gives syntax without resolving a package, so no pub cache is
+  read; it writes facts, not elements: imports, classes with their
+  annotations, fields, constructors and methods with their
+  parameters, enums, calls and instance creations with their
+  arguments written as values, comparisons of a request's method and
+  the branch a call is in, and reads of `Platform.environment`. The
+  dump is refused when another analyzer version made it, when its
+  files are not the folder's tracked Dart files, and when it is
+  stale. The source is one code source with `reading: parsed`; a
+  file a code generator wrote (`.g.dart`, `.freezed.dart`) prints a
+  line and is not read, since its input is.
+
+  go_router's `GoRouter(routes:)` gives pages: each `GoRoute` with a
+  literal path, nested paths joined, whose `builder` or
+  `pageBuilder` returns one widget of the files read, named after
+  the widget in kebab-case without `Screen`, `Page` or `View`; a
+  `ShellRoute`'s routes are read through it, and each branch of a
+  `StatefulShellRoute` is a menu entry for its first page, its title
+  a must question. `MaterialApp`'s `home` and literal `routes` are
+  pages too, and a widget `Navigator.push` opens with a
+  `MaterialPageRoute` and no route is a page whose route is asked. A
+  page's title is its `AppBar`'s literal `Text`, read in the widget
+  and its `State`; its fields are what a `TextFormField` or another
+  form field saves in `onSaved` (`(v) => draft.title = v`) or names
+  with `name:`; a field with only a controller and a validator the
+  reader does not read are should questions, and an empty test or a
+  length check prints a line, since a page's field holds no rule.
+  Each `go`, `push` and `Navigator.push` that opens a page read is a
+  navigate action, its label a must question. A `redirect`, on the
+  router or a route, is code, and is named in the question on the
+  permission of every page it covers; a path that is not a literal,
+  a widget outside the files read and a route declared twice are
+  must questions, a wildcard and a parameter with a pattern a line.
+
+  A class with `@JsonSerializable` is a schema of its instance
+  fields, and one with `@freezed` a schema of its factory's
+  parameters; each is a field by its Dart type (`String`, `bool`,
+  `double`, `DateTime` as a date-time, `Uri`, `List<T>`, a model or
+  an enum of the files read), nullable for `T?`, required unless
+  nullable or given a default, with the default `@Default` or a
+  field's initial value gives; an `int`'s width is one must question
+  with every other number's, and a `num`, `dynamic` and a type
+  outside the files read are must questions, a map and a set a line.
+  `FieldRename.snake` and a `@JsonKey(name:)` that is the field's
+  snake_case form give `info.wireNames: snake_case`, and any other
+  name prints a line; a field `@JsonKey` leaves out of JSON prints a
+  line. An enum a model holds is an enum, its values the
+  `@JsonValue` strings or its names, each a snake_case word or a
+  line.
+
+  Server routes are shelf_router's `get`, `post`, `put`, `patch`,
+  `delete`, `head`, `options` and `all` on a `Router` a variable
+  holds, through a cascade or not, under every `mount` of the files
+  read, with a literal path, `<name>` the parameter `{name}`; and
+  dart_frog's `routes/` folder, read as a file-system router, each
+  file's `onRequest` serving the methods it compares the request's
+  method with, `HttpMethod.get` and the like, what a default branch
+  serves a must question, and a file that compares none asked for its
+  methods. A route is named after its handler or by its method and
+  path, with the must questions extract go asks of a parsed route;
+  its permission is the one literal permission a check the
+  implementation file names gives, wrapping its handler, called in
+  it in the branch of its method, or called in a dart_frog
+  `_middleware.dart` above it; none, several and one that is not a
+  literal are must questions, naming a middleware that calls no
+  check. Calls to another system are retrofit's `@GET` and the like
+  under a `@RestApi` with its `baseUrl`, and dio's and http's `get`,
+  `post`, `put`, `patch` and `delete` given a literal URL,
+  `Uri.parse` of one, `Uri.https` or an interpolation of one value
+  per segment; each declares a dependency named after the host, and
+  a URL with no host or built from other parts is a should question.
+  A setting is read where `String`, `int` or `bool.fromEnvironment`
+  or `Platform.environment` names it by a literal, with its type and
+  its `defaultValue`, and written as extract javascript writes one.
+
 Every reader follows these rules:
 
 - The tree's root tracks origin. The code readers declare one code
@@ -1636,7 +1716,7 @@ Every reader follows these rules:
   the repository's folder relative to `--out`. Clauses are paths from
   the repository's root. Its `reading` says how it was read:
   `printed` for router, database and permissions, which read a list
-  the running system printed, and `parsed` for go, swift and javascript,
+  the running system printed, and `parsed` for go, swift, javascript and dart,
   which read the source itself (ADR-075).
 - Every element is `origin: stated` and cites where it was read.
   What the surface does not say is a question, never a value: a
@@ -1682,10 +1762,10 @@ Every reader follows these rules:
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
-| `<source>` | string | yes | The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `go`, `swift` or `javascript`. |
-| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository; for swift and javascript, one code-facts dump. |
+| `<source>` | string | yes | The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `go`, `swift`, `javascript` or `dart`. |
+| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump. |
 | `--out` | string | yes | The folder the specification is written into; it becomes the specification's root folder. |
-| `--implementation` | string |   | For go, swift and javascript, and for pages with --facts, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through. |
+| `--implementation` | string |   | For go, swift, javascript and dart, and for pages with --facts, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through. |
 | `--facts` | string |   | For pages, a code-facts dump of JavaScript and TypeScript, made by tools/code-facts/dump-javascript.sh of a folder that holds the router's folder, through which the Next.js files' code is read. |
 | `--source-key` | string |   | The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given. |
 
@@ -1700,8 +1780,8 @@ naming the question that asks about it; one line naming a dialect
 the reader reads, or a document read as what the running system
 printed; one line per file that imports a library the reader knows
 and gives nothing it reads; one line per gate on a setting, naming
-the check and the setting; for go, swift, javascript and pages
-with --facts, one line naming the checks the implementation file
+the check and the setting; for go, swift, javascript, dart and
+pages with --facts, one line naming the checks the implementation file
 names; for pages with --facts, one line naming the dump, one per
 middleware file saying what it covers and checks, and one counting
 the server actions; and one line per file that says it is
@@ -2311,6 +2391,7 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | golang.org/x/exp | v0.0.0-20240823005443-9b4947da3948 | BSD-3-Clause | Needed by the CEL parser. |
 | typescript | 6.0.3 | Apache-2.0 | The TypeScript compiler, run on Node by the JavaScript reader of specarch extract, readers/javascript, which writes the code-facts dump the Go build reads (ADR-089); not linked into specarch. The last release whose compiler API is stable and whose package has no dependency. Pinned exactly in readers/javascript/package.json and package-lock.json, and the Go build refuses a dump another version made. SBOM scan on 2026-10-09: syft 1.54.0, grype 0.120.0 and osv-scanner 2.6.0 found no vulnerability. |
 | @vue/compiler-sfc | 3.5.43 | MIT | Splits a Vue single-file component into its script blocks and template in the JavaScript reader, readers/javascript (ADR-091); not linked into specarch. Pinned exactly in readers/javascript/package.json, with its tree in package-lock.json: @vue/compiler-core, -dom, -ssr and @vue/shared 3.5.43, @babel/parser 7.29.9, @babel/types 7.29.8 and its two helpers 7.29.7, postcss 8.5.29, magic-string 0.30.21, @jridgewell/sourcemap-codec 1.6.0, estree-walker 2.0.2 and nanoid 3.3.20 (MIT), entities 7.0.1 (BSD-2-Clause), source-map-js 1.2.2 (BSD-3-Clause) and picocolors 1.1.1 (ISC). The Go build refuses a dump another version split. SBOM scan on 2026-10-09: syft 1.54.0, grype 0.120.0 and osv-scanner 2.6.0 found no vulnerability. |
+| analyzer | 14.4.0 | BSD-3-Clause | Parses Dart source with parseString in the Dart reader of specarch extract, readers/dart (ADR-092); not linked into specarch. Pinned exactly in readers/dart/pubspec.yaml, with its tree in pubspec.lock: _fe_analyzer_shared 108.0.0, async 2.13.1, collection 1.19.1, convert 3.1.2, crypto 3.0.7, file 7.0.1, glob 2.2.0, meta 1.19.0, package_config 3.0.0, path 1.9.1, pub_semver 2.2.1, source_span 1.10.2, string_scanner 1.4.1, term_glyph 1.2.2, typed_data 1.4.0 and watcher 1.2.1 (BSD-3-Clause), and yaml 3.1.4 (MIT). The Go build refuses a dump another version made. SBOM scan on 2026-10-09: syft 1.54.0, grype 0.120.0 and osv-scanner 2.6.0 found no vulnerability. |
 
 #### Layout
 
@@ -2319,8 +2400,9 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
-| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the JavaScript and TypeScript reader of a code-facts dump with the message catalogues it reads as data, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about. |   |
+| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the JavaScript and TypeScript reader of a code-facts dump with the message catalogues it reads as data, the Dart reader of a code-facts dump, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about. |   |
 | readers/javascript | The JavaScript and TypeScript reader of specarch extract, a Node program on the TypeScript compiler and @vue/compiler-sfc, code-facts-javascript.mjs: it builds one program over the files it is given, a .vue file's script blocks among them, and writes the facts specarch extract javascript reads as a code-facts dump (ADR-089). tools/code-facts/dump-javascript.sh runs it on the tracked files of a committed folder. |   |
+| readers/dart | The Dart reader of specarch extract, a Dart package with one program, bin/code_facts_dart.dart: it parses Dart source with the analyzer's parseString and writes the facts specarch extract dart reads as a code-facts dump (ADR-092). tools/code-facts/dump-dart.sh runs it on the tracked Dart files of a committed folder. |   |
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
 | cmd/specarch-gen-sql | The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk. | #/commands/generate |
@@ -6785,6 +6867,45 @@ permission.
 
 **Insight:** @vue/compiler-sfc is the parser Vue's own tools split a component with, so it accepts what Vue accepts; its parts are MIT, BSD and ISC, and its SBOM scan is clean. Keeping every character's position lets the facts cite the .vue file a person opens, with no source map to carry, and lets the checker resolve the script's imports and types as it does any file. Template expressions are written by their syntax only, since the checker does not see the template; a name there is not resolved, and what it would give is a question. A component binds a field only where the project says so: guessing from a tag's name (anything with v-model) would write fields for a date picker and a tag cloud alike. The key names the component and what it binds once for every screen, as permissionChecks names a check once for every route, and it is checked by both validators. A component used with no import is matched by its name because Nuxt and a global registration supply it without one, and the implementation file is the project's own statement of which components those are. Nuxt injects its helpers with no import, so a name is all the syntax gives; a project that shadows one is read wrongly, which a test of the result shows. Middleware that a page runs gives it a permission only when every one the page runs is read and they name one permission between them; several, or one unread, are asked, since a page checks one permission and an unread middleware may check another. Every screen and route is read from one dump with no build and no browser, so a result shows early and each guess is a question at its line.
 
+### ADR-092: extract dart reads a code-facts dump the analyzer package's parseString wrote, resolving no package, and turns its facts into screens, models, routes, clients and settings in Go
+
+Status: accepted, 2026-10-09.
+
+Context: Step 21 of docs/extraction.md reads Dart and Flutter, the last
+language of the plan. The analyzer package is the parser of the
+Dart SDK's own tools. A resolved unit needs pub get and the pub
+cache, which no commit holds; parseString gives syntax alone.
+Flutter declares screens through go_router, MaterialApp and
+Navigator, forms through form fields and their callbacks, models
+through json_serializable's and freezed's annotations on classes a
+code generator reads, clients through retrofit's annotations, dio
+and http, and servers through shelf_router and dart_frog's routes
+folder. In Dart 3 a switch case may be a pattern.
+
+Decision: readers/dart is a Dart package that pins analyzer 14.4.0 exactly
+with pubspec.lock committed, and writes the code-facts dump of
+ADR-075 with the language dart: imports, classes with their
+annotations, fields, constructors and methods with their
+parameters, enums with their values' annotations, calls and
+instance creations with their arguments as values (a closure by its
+parameters and what it returns, an assignment by its target), the
+comparisons of a request's method and the branch of one a call is
+in, and reads of Platform.environment. specarch pins the same
+version and refuses a dump another one made. A file a code
+generator wrote is listed and not read. In Go, the screens,
+models, routes, clients and settings are read as extract.yaml
+lists; the implementation file's permissionChecks names a Dart check
+by the path of its file from the folder read, without .dart.
+
+Consequences: A Flutter app or a Dart server is read from a committed dump; making
+the dump needs the Dart SDK and fetches the analyzer once. An
+analyzer upgrade remakes every Dart dump. Flavour files and the
+configuration a --dart-define-from-file gives are not read yet;
+joining a client's call to its operation by method and path waits,
+as for every reader.
+
+**Insight:** parseString needs nothing but the file, so the dump is made from a commit with no pub get, and a package's types are known only by the names the code writes, which is what the idiom table keys on. Pinning the analyzer holds the facts to one parser, as SwiftSyntax and the TypeScript compiler are held; its tree is BSD-3-Clause and MIT and its SBOM scan is clean. A model is read from the class the generator reads, not the generator's output, because the output is generated and says so; the annotations are the statement. A field a form saves is named by the property its onSaved assigns, the one place the syntax ties a control to a model; a controller names a variable, not a property, so it is asked. A validator's empty or length test is a rule a page's field cannot hold, so it is a line for the entity's field, not a page key. A redirect is code, and only its question names it, since syntax cannot say whom it lets through. dart_frog's folder is its router, read like the other file-system routers, and its handler's comparisons say which methods it serves; what a default branch serves is asked. A check called in a switch case gives only that case's method its permission, which the branch of each call records. Every surface is read from one dump with no build, no device and no emulator, so a result shows early, and every guess is a question at its line.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -6864,6 +6985,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-writes-techspec | command document | system | golden | a design file and an implementation file that names techspec's output folder | document techspec is run on both | it writes techspec/shop.techspec.md with every chapter the design fills, chapter 7 from the implementation file, and exits 0 |
 | document-writes-testplan | command document | system | golden | a specification with a golden and a red test of one entity constraint, one with a why | document testplan is run | it writes testplan.md with the count of each scenario, the levels, both test cases under their subject with given, when and then, and exits 0 |
 | document-writes-traceability | command document | system | golden | needs, two requirements, an entity that satisfies one and a test that verifies it, and a rejected need | document traceability is run | it writes traceability.md with both matrices and lists as gaps the unrefined need, the requirement without acceptance criteria and the one nothing satisfies or verifies, with no Harm column since no requirement names a harm, and exits 0 |
+| extract-dart-flutter-screens | command extract | system | golden | a code-facts dump of a Flutter app whose GoRouter has a redirect and a StatefulShellRoute of two branches, with nested GoRoutes of a literal path, a parameter, a page builder, a wildcard and a widget of a package; whose screens have an AppBar with a literal title and one with a computed one, go and push calls with literal routes, and a Navigator.push to a screen no route serves; and a form whose TextFormFields save to a draft's properties, one with an empty test as its validator, one with another validator, and one with only a controller | extract dart is run on the dump | it writes one page per route whose builder shows a widget of the files read, named after the widget, with its route, its AppBar's literal title, its saved fields and a navigate action per go, push and Navigator.push call; a page for the screen Navigator opens with no route, its route asked; a menu entry for each branch, its title asked; asks a must question on each page's kind and the rest, its permission naming the redirect, each link's label and the widget of a package; asks a should question on the field with only a controller and on the validator it does not read; prints a line for the wildcard and for the empty test; and exits 0 |
+| extract-dart-models | command extract | system | golden | a code-facts dump of Dart models: a json_serializable class that renames its fields to snake_case, with a nullable field, an int, a DateTime, an enum whose @JsonValue gives its wire values one of which is not a snake_case word, a list, a map, a field its @JsonKey leaves out of JSON and a static field; a json_serializable class with @JsonKey names, one the snake_case form of its field and one another name, a num, a double, a nullable model, a Uri and a type of a package; a freezed class whose factory gives required fields, a @Default, a @JsonKey name and a list of a model; and a file a code generator wrote | extract dart is run on the dump | it writes each model as a schema with its fields by their Dart types, required where not nullable and with no default, the default @Default gives, references to the models and the enum, and the enum with its wire values; writes info.wireNames snake_case; asks a must question on the width of the ints, on the num and on the type of a package; prints a line for the map, the field left out of JSON, the wire name info.wireNames cannot give, the enum value that is not a snake_case word, and the generated file; and exits 0 |
+| extract-dart-parser-version | command extract | system | red | a code-facts dump of Dart that another version of the analyzer than the one this release pins made | extract dart is run on the dump | it refuses the dump, naming the version that made it and the one it reads, writes nothing and exits 1 |
+| extract-dart-server-clients | command extract | system | golden | a code-facts dump of a Dart service and an implementation file naming two checks: a shelf_router Router mounted under /api by another, registering routes with the check wrapping a handler, a handler that calls it, a closure, and a parameter with a pattern; dart_frog routes, an index with no method compared and a parameter route switching on the method with a check in one case, a default branch and a middleware that calls no check; a retrofit API with a base URL, dio calls with an absolute and a relative path, and an http call with one value interpolated into a segment; and settings fromEnvironment and Platform.environment give | extract dart is run on the dump with the implementation file | it writes one operation per route under its mount, named after its handler or by its method and path, with the permission the check names; one operation per method the dart_frog handler switches on, its permission from its case's check; a dependency per host the clients call; and the settings with their types and defaults; asks a must question on each route's summary and responses, its parameters' values, whether the running system registers it and its permission where no check gives one, naming the middleware that calls none, on the methods of the index route and on the other methods the default branch serves; a should question on the relative path and the interpolated value; prints a line for the parameter with a pattern; and exits 0 |
 | extract-database-json-column | command extract | system | golden | a repository holding a catalogue dump whose members table has a jsonb column that is NOT NULL and a json column that may be null | extract database is run on the dump | it writes each JSON column as a field of type object, the nullable one allowing null, asks a should question at each field which schema it holds, and exits 0 |
 | extract-database-stale-dump | command extract | system | red | a catalogue dump made at the commit that added the first migration, and a later commit that adds a second migration to the same folder | extract database is run on the dump | it refuses the dump as stale, naming both commits, writes nothing and exits 1 |
 | extract-database-writes-tree | command extract | system | golden | a repository whose first commit holds its migrations and whose second holds the catalogue dump made from them, naming the first; the tables have a small integer key, a decimal with a default, a money column, a unique key, a check the expressions can say and one they can say as a list of values, an enum type, a fixed-width text, an identity column, a foreign key with cascade, an index, a table without a primary key and a view | extract database is run on the dump | it writes one entity per table, with the types, keys, relations and constraints it can hold, a question for every constraint message and for the missing primary key, names the commit, counts what it read, prints a line and writes a could question citing the table for the money column, the fixed width, the default it cannot hold, the index and the view, and exits 0 |
@@ -7450,7 +7575,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-41 | enums Rule; decisions ADR-033; decisions ADR-070 | tests validate-views; tests validate-views-valid |
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064; decisions ADR-082 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-action-with; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
-| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081; decisions ADR-084; decisions ADR-087; decisions ADR-089; decisions ADR-090; decisions ADR-091 | tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-tables-seeds; tests extract-go-http-handlers; tests extract-go-routers; tests extract-javascript-express-routes; tests extract-javascript-fastify-validators; tests extract-javascript-parser-version; tests extract-javascript-plain-checkjs; tests extract-javascript-react-screens; tests extract-javascript-stale-dump; tests extract-javascript-template-parser-version; tests extract-javascript-vue-router; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-next-api-facts; tests extract-pages-next-app-facts; tests extract-pages-next-pages-router; tests extract-pages-nuxt-facts; tests extract-pages-nuxt-pages; tests extract-pages-nuxt-server; tests extract-pages-nuxt-server-facts; tests extract-pages-route-twice; tests extract-pages-router-guess; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-swift-clients-settings; tests extract-swift-models; tests extract-swift-parser-version; tests extract-swift-screens; tests extract-swift-stale-dump; tests extract-swift-vapor-routes; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read; tests validate-source-reading |
+| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081; decisions ADR-084; decisions ADR-087; decisions ADR-089; decisions ADR-090; decisions ADR-091; decisions ADR-092 | tests extract-dart-flutter-screens; tests extract-dart-models; tests extract-dart-parser-version; tests extract-dart-server-clients; tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-tables-seeds; tests extract-go-http-handlers; tests extract-go-routers; tests extract-javascript-express-routes; tests extract-javascript-fastify-validators; tests extract-javascript-parser-version; tests extract-javascript-plain-checkjs; tests extract-javascript-react-screens; tests extract-javascript-stale-dump; tests extract-javascript-template-parser-version; tests extract-javascript-vue-router; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-next-api-facts; tests extract-pages-next-app-facts; tests extract-pages-next-pages-router; tests extract-pages-nuxt-facts; tests extract-pages-nuxt-pages; tests extract-pages-nuxt-server; tests extract-pages-nuxt-server-facts; tests extract-pages-route-twice; tests extract-pages-router-guess; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-swift-clients-settings; tests extract-swift-models; tests extract-swift-parser-version; tests extract-swift-screens; tests extract-swift-stale-dump; tests extract-swift-vapor-routes; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read; tests validate-source-reading |
 | SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-077 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-printed-parsed; tests merge-printed-parsed-grants; tests merge-source-differs; tests merge-tree-invalid; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests merge-workflows-joins-trigger; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046; decisions ADR-068 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-mapping-menu-entry; tests validate-owned-by-unknown |
 | SA-47 | enums Rule; decisions ADR-054 | tests document-techspec-open-workflow; tests validate-maker-checker; tests validate-workflow; tests validate-workflow-valid |

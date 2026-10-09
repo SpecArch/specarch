@@ -1,0 +1,48 @@
+enums:
+  Mood:
+    type: string
+    enum: [calm, in_a_hurry]
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/lib/note.dart:5', says: 'enum Mood has the values calm, in_a_hurry.'}
+schemas:
+  Author:
+    type: object
+    properties:
+      name: {type: string}
+      email: {type: string}
+      rating: {type: number}
+      score: {type: number, format: double}
+      favourite: {$ref: '#/schemas/Note'}
+      site: {type: [string, "null"], format: uri}
+      contact: {}
+    required: [name, email, rating, score, contact]
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/lib/note.dart:31', says: class Author is @JsonSerializable.}
+  Note:
+    type: object
+    properties:
+      id: {type: string}
+      title: {type: string}
+      body: {type: [string, "null"]}
+      pages: {type: integer}
+      createdAt: {type: string, format: date-time}
+      mood: {$ref: '#/enums/Mood'}
+      tags: {type: array, items: {type: string}}
+    required: [id, title, pages, createdAt, mood]
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/lib/note.dart:14', says: class Note is @JsonSerializable.}
+  Shelf:
+    type: object
+    properties:
+      id: {type: string}
+      label: {type: string}
+      capacity: {type: integer, default: 10}
+      roomName: {type: [string, "null"]}
+      notes: {type: array, items: {$ref: '#/schemas/Note'}}
+    required: [id, label, notes]
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/lib/shelf.dart:6', says: class Shelf is @freezed.}

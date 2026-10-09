@@ -1,0 +1,14 @@
+arguments: [extract, dart, --out, spec, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [app]
+    - [facts.json]
+exitStatus: 0
+standardOutput: |
+  commit 720c92fe880464efb965cd729ee11495c8574ca6: the last change to app, as the code-facts dump facts.json names it
+  counted 3 Dart files, 0 of them with syntax the analyzer could not read, and 71 facts: every tracked Dart file under app, and every fact the dump holds
+  screens: counted 6 routes and 3 navigation calls: every GoRoute of a GoRouter, MaterialApp's home and routes, and every push, go and Navigator.push
+  wrote 5 pages, 0 schemas, 0 enums, 0 operations, 0 dependencies, 0 settings and 19 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  not held: app/lib/router.dart:27: the route /files/*: the segment * is a pattern, which a path template cannot say; left out; could question Q-18
+  not held: app/lib/screens/notes.dart:52: the field title must not be empty, as its validator checks; a page's field holds no rule, which its entity's field does; could question Q-19

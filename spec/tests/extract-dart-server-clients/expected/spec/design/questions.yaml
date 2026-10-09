@@ -1,0 +1,213 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which methods does svc/frog/routes/index.dart serve at /, and for each, what does it do, what does it answer and which permission does it check? Its onRequest compares the request's method with no HttpMethod. It blocks paths. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: Which methods does svc/frog/routes/index.dart serve at /, and for each, what does it do, what does it answer and which permission does it check? Its onRequest compares the request's method with no HttpMethod.
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: dart_frog serves every method at a route file's place, and the handler decides which it answers.
+    cites:
+      - {source: code, clause: 'svc/frog/routes/index.dart:3', says: onRequest serves /.}
+  # specarch-problem: question: open_question: (must, decision) The handler of /notes/{id} at svc/frog/routes/notes/[id].dart:5 serves GET and DELETE, and its switch on the method at svc/frog/routes/notes/[id].dart:12 has a default branch. Which other methods does it serve? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: The handler of /notes/{id} at svc/frog/routes/notes/[id].dart:5 serves GET and DELETE, and its switch on the method at svc/frog/routes/notes/[id].dart:12 has a default branch. Which other methods does it serve?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: A handler serves every method a request comes with, and the reader reads the ones it names.
+    cites:
+      - {source: code, clause: 'svc/frog/routes/notes/[id].dart:5', says: 'onRequest serves /notes/{id}.'}
+  # specarch-problem: question: open_question: (must, decision) What does GET /api/notes do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: What does GET /api/notes do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1notes/get/summary', '#/paths/~1api~1notes/get/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /api/notes? It is declared at svc/lib/server.dart:9, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: Does the running system register GET /api/notes? It is declared at svc/lib/server.dart:9, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1notes/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'svc/lib/server.dart:9', says: Registers GET /api/notes.}
+  # specarch-problem: question: open_question: (must, decision) What does POST /api/notes do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: What does POST /api/notes do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1notes/post/summary', '#/paths/~1api~1notes/post/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /api/notes? It is declared at svc/lib/server.dart:10, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: Does the running system register POST /api/notes? It is declared at svc/lib/server.dart:10, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1notes/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'svc/lib/server.dart:10', says: Registers POST /api/notes.}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /api/notes/{noteId} take: noteId? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: 'What values does each path parameter of /api/notes/{noteId} take: noteId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1notes~1{noteId}/parameters/0/schema']
+    decidedBy: system-owner
+    why: A route names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does GET /api/notes/{noteId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: What does GET /api/notes/{noteId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1notes~1{noteId}/get/summary', '#/paths/~1api~1notes~1{noteId}/get/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) GET /api/notes/{noteId} checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: GET /api/notes/{noteId} checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1notes~1{noteId}/get/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /api/notes/{noteId}? It is declared at svc/lib/server.dart:11, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: Does the running system register GET /api/notes/{noteId}? It is declared at svc/lib/server.dart:11, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1notes~1{noteId}/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'svc/lib/server.dart:11', says: 'Registers GET /api/notes/{noteId}.'}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /notes/{id} take: id? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: 'What values does each path parameter of /notes/{id} take: id?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes~1{id}/parameters/0/schema']
+    decidedBy: system-owner
+    why: A route names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does GET /notes/{id} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: What does GET /notes/{id} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes~1{id}/get/summary', '#/paths/~1notes~1{id}/get/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /notes/{id}? It is declared at svc/frog/routes/notes/[id].dart:5, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: Does the running system register GET /notes/{id}? It is declared at svc/frog/routes/notes/[id].dart:5, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes~1{id}/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'svc/frog/routes/notes/[id].dart:5', says: 'Registers GET /notes/{id}.'}
+  # specarch-problem: question: open_question: (must, decision) What does DELETE /notes/{id} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: What does DELETE /notes/{id} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes~1{id}/delete/summary', '#/paths/~1notes~1{id}/delete/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) DELETE /notes/{id} runs the middleware svc/frog/routes/notes/_middleware.dart, which calls no check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: DELETE /notes/{id} runs the middleware svc/frog/routes/notes/_middleware.dart, which calls no check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes~1{id}/delete/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register DELETE /notes/{id}? It is declared at svc/frog/routes/notes/[id].dart:5, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: Does the running system register DELETE /notes/{id}? It is declared at svc/frog/routes/notes/[id].dart:5, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes~1{id}/delete']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'svc/frog/routes/notes/[id].dart:5', says: 'Registers DELETE /notes/{id}.'}
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: notes.read, notes.write? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
+    question: 'What does each permission allow: notes.read, notes.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/notes.read/description', '#/permissions/notes.write/description']
+    decidedBy: system-owner
+    why: The source names the permission a route checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: notes.read, notes.write? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
+    question: 'Which role grants each permission: notes.read, notes.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/notes.read', '#/permissions/notes.write']
+    decidedBy: system-owner
+    why: The source names the permission a route checks and not who holds it.
+  # specarch-problem: question: open_question: (should, decision) svc/lib/api.dart:18 calls POST /local/notes, which names no host. Which system does it call, and is it an operation of this system? It blocks dependencies. Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
+    question: svc/lib/api.dart:18 calls POST /local/notes, which names no host. Which system does it call, and is it an operation of this system?
+    kind: decision
+    priority: should
+    blocks: [dependencies]
+    decidedBy: system-owner
+    why: A dependency is named by the system it calls, and the URL does not name one.
+    cites:
+      - {source: code, clause: 'svc/lib/api.dart:18', says: Calls POST /local/notes.}
+  # specarch-problem: question: open_question: (should, decision) svc/lib/api.dart:19 calls GET https://weather.example.org/today/{id}, filling {id} from values of the code. What does each hold? Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
+  Q-20:
+    question: svc/lib/api.dart:19 calls GET https://weather.example.org/today/{id}, filling {id} from values of the code. What does each hold?
+    kind: decision
+    priority: should
+    blocks: ['#/dependencies/weatherExampleOrg']
+    decidedBy: system-owner
+    why: A part of a URL interpolated from a value is a parameter, and the code says only which variable fills it.
+    cites:
+      - {source: code, clause: 'svc/lib/api.dart:19', says: 'Calls GET https://weather.example.org/today/{id} with http.get.'}
+  # specarch-problem: question: open_question: (must, decision) What is the system archiveExampleOrg the source calls, and how long may one call to it take before the caller gives up? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  Q-21:
+    question: What is the system archiveExampleOrg the source calls, and how long may one call to it take before the caller gives up?
+    kind: decision
+    priority: must
+    blocks: ['#/dependencies/archiveExampleOrg/description', '#/dependencies/archiveExampleOrg/timeout']
+    decidedBy: system-owner
+    why: The source names the URL it calls, and not what the system is or a time limit, which every dependency has.
+  # specarch-problem: question: open_question: (must, decision) What is the system statusExampleOrg the source calls, and how long may one call to it take before the caller gives up? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
+  Q-22:
+    question: What is the system statusExampleOrg the source calls, and how long may one call to it take before the caller gives up?
+    kind: decision
+    priority: must
+    blocks: ['#/dependencies/statusExampleOrg/description', '#/dependencies/statusExampleOrg/timeout']
+    decidedBy: system-owner
+    why: The source names the URL it calls, and not what the system is or a time limit, which every dependency has.
+  # specarch-problem: question: open_question: (must, decision) What is the system weatherExampleOrg the source calls, and how long may one call to it take before the caller gives up? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
+  Q-23:
+    question: What is the system weatherExampleOrg the source calls, and how long may one call to it take before the caller gives up?
+    kind: decision
+    priority: must
+    blocks: ['#/dependencies/weatherExampleOrg/description', '#/dependencies/weatherExampleOrg/timeout']
+    decidedBy: system-owner
+    why: The source names the URL it calls, and not what the system is or a time limit, which every dependency has.
+  # specarch-problem: question: open_question: (could, decision) Not held: svc/lib/server.dart:12: the route GET /api/files/<path|.*>: the parameter <path|.*> has a pattern, which a path template cannot say; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
+  Q-27:
+    question: 'Not held: svc/lib/server.dart:12: the route GET /api/files/<path|.*>: the parameter <path|.*> has a pattern, which a path template cannot say; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'svc/lib/server.dart:12', says: 'Not held: the route GET /api/files/<path|.*>: the parameter <path|.*> has a pattern, which a path template cannot say; left out.'}

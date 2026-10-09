@@ -40,6 +40,14 @@ and the history file. Make no other change in that folder.
 
 ## How SpecArch is built
 
+- SpecArch is a compiler for specifications (`docs/principles.md`): it
+  reads an incomplete or wrong definition, never refuses to read it and
+  never silently drops it; every problem goes into the one problems file
+  and is marked at the entry in every output. Every design choice and
+  decision record checks it: does this keep the definition readable when
+  it is incomplete, and does every problem surface in the problems file
+  and at the entry? A rule that refuses something is an error at that
+  entry, never a definition left unread.
 - Follow `docs/principles.md` (the Low IQ Tax): full-word keys, one way to
   say one thing, no placeholders, ambiguity is an error, summary first.
 - Design and implementation stay apart: `*.specarch-design.yaml` holds the

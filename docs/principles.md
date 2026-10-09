@@ -1,14 +1,51 @@
 # Principles
 
-SpecArch follows one principle, called the Low IQ Tax: every file, key,
-message and document should cost its reader as little thinking as possible.
+SpecArch follows two principles. It is a compiler for specifications: it
+reads every definition, however incomplete or wrong, and lists every
+problem where the author can find and fix it. And it follows the Low IQ
+Tax: every file, key, message and document should cost its reader as
+little thinking as possible.
+
+## A compiler for specifications
+
+SpecArch is a validator and a compiler for specifications. People fix a
+specification the way they fix code: from a compiler's list of errors, one
+place at a time. A tool that refuses to read a definition, or quietly drops
+the part it cannot use, hides exactly what the author has to fix. So:
+
+1. SpecArch accepts an incomplete or wrong definition. It never refuses to
+   read one and never silently drops any of it. What it cannot use is a
+   problem, reported at the place it is.
+2. Every problem, whether an error, a warning or an open question, is
+   listed in one problems file the user can open. Each has a stable id,
+   the file, line and column of the entry, its JSON pointer, the source it
+   came from, and how to fix it.
+3. Every output SpecArch writes (specification fragments, documents, BPMN,
+   code, SQL, OpenAPI, tests, screens) marks the entry a problem touches, so
+   a reader sees at once that it is wrong or incomplete, and the problem's
+   id leads to the exact place.
+
+Reading everything and not guessing go together. SpecArch does not pick a
+meaning for an ambiguous entry: it reads the entry, records the ambiguity
+as a problem, and leaves the choice to the author. Where these documents say
+a rule refuses something, the refusal is an error in that list, at that
+entry; it never leaves a definition unread. The validator's report, one line
+per problem with its file, line, YAML path, rule and message, is the start
+of the problems file.
+
+Every design choice and every decision record checks two things: does this
+keep the definition readable when it is incomplete, and does every problem
+it can meet surface in the problems file and at the entry?
+
+## The Low IQ Tax
+
 Brain power is finite, and the reader is often tired, new, or the author six
 months later. So SpecArch keeps what changes often apart from what rarely
-changes, says everything plainly and explicitly, and refuses what it cannot
+changes, says everything plainly and explicitly, and reports what it cannot
 interpret instead of guessing. The core of anything in SpecArch should be
 understood in about five seconds.
 
-## The rules
+### The rules
 
 1. Write for the tired reader. Simplicity over magic. If the core of a
    file, a key or a message cannot be grasped in about five seconds, it is
@@ -92,7 +129,8 @@ outside the list is refused with a message that names it.
 
 The validator's messages say what is wrong, where it is (file, line and
 YAML path) and how to fix it, in one plain sentence each. It reports every
-problem in one run. It does not guess: a file it cannot interpret fails.
+problem in one run. It does not guess: what it cannot interpret is an error
+at the place it stops, and every other file is still read.
 
 ### Generated output
 

@@ -11,9 +11,13 @@ SpecArch is personally owned and published under Apache-2.0. Anyone may use it
 under that licence, including for commercial work. See `NOTICE` for the name
 and for what you own in generated output.
 
-SpecArch is built on one principle, the Low IQ Tax: every file, key and
-message should cost its reader as little thinking as possible. It is set out
-in `docs/principles.md`, and the rest of SpecArch follows from it.
+SpecArch is built on two principles, set out in `docs/principles.md`; the
+rest of SpecArch follows from them. It is a compiler for specifications: it
+reads an incomplete or wrong definition rather than refusing it, and every
+problem is reported at the place the author fixes it, with the entry it
+touches marked in what SpecArch writes.
+And it follows the Low IQ Tax: every file, key and message should cost its
+reader as little thinking as possible.
 
 ## The format
 
@@ -128,7 +132,7 @@ a defect in the roadmap, not an accepted state.
 | `records/` | SpecArch's own records: its releases |
 | `swift/` | the Swift build of `specarch` |
 | `history/` | what changed and why, one file per day |
-| `docs/principles.md` | the Low IQ Tax principle and how SpecArch applies it |
+| `docs/principles.md` | the two principles, a compiler for specifications and the Low IQ Tax, and how SpecArch applies them |
 | `docs/conventions.md` | the tree layout, YAML layout, Markdown sections, generated and hand-drawn diagrams |
 | `docs/stages.md` | the seven life-cycle stages: what each holds, which standard says so, and why |
 | `docs/maintenance.md` | after commissioning: change requests, defects, releases, incidents and operation, and the records that hold them; the release rules, the diff verb and their documents as designed |

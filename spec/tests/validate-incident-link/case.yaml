@@ -1,4 +1,4 @@
 arguments: [validate, project]
 exitStatus: 0
 standardOutput: |
-  records/incidents/INC-1.yaml:9: warning: /status: incident_link: INC-1 is resolved but leads to no defect and no change; name the defects or changes that follow from it, or say in noChange why there are none
+  records/incidents/INC-1.yaml:9:9: warning: /status: incident_link: INC-1 is resolved but leads to no defect and no change; name the defects or changes that follow from it, or say in noChange why there are none [incident_link@../records/incidents/INC-1.yaml#/status]

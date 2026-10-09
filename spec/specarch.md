@@ -82,10 +82,12 @@ erDiagram
   Diagnostic {
     string file PK, FK
     Severity severity
-    int32 line PK
-    string path PK
-    Rule rule PK
+    int32 line
+    int32 column
+    string path
+    Rule rule
     string message
+    string id PK
   }
   GeneratedFile {
     string path PK
@@ -199,9 +201,10 @@ implementation file says how its build is made.
 The program has no roles: anyone who has it may run it, and it touches only
 the files it is given and the folder a target owns.
 
-Diagnostics: `file:line: severity: /yaml/path: rule: message`, for example
+Diagnostics: `file:line:column: severity: /yaml/path: rule: message [id]`,
+for example
 
-    spec/design/entities/member.yaml:12: error: /entities/Member/relations/loans/target: relation_target: Lone is not an entity of the specification; did you mean Loan?
+    spec/design/entities/member.yaml:12:17: error: /entities/Member/relations/loans/target: relation_target: Lone is not an entity of the specification; did you mean Loan? [relation_target@design/entities/member.yaml#/entities/Member/relations/loans/target]
 
 Numbers in expressions have CEL's types plus decimal. Int, uint and decimal
 arithmetic is exact; a formula's decimal result may not have more places

@@ -1,5 +1,5 @@
 arguments: [validate, .]
 exitStatus: 0
 standardOutput: |
-  specarch.yaml:4: warning: /requirements/FEE-1: test_case_missing: requirement FEE-1 has no golden scenario for "acceptance 2"; add under tests fee-1-acceptance-2: { requirement: FEE-1, scenario: golden, covers: [acceptance 2], given: "...", when: "...", then: "A return a year late is charged no more than the replacement cost." }
-  specarch.yaml:13: warning: /requirements/FEE-2: requirement_unverified: no test, commissioning check or monitor verifies requirement FEE-2; add verifies: [FEE-2] to the test that shows it is met
+  specarch.yaml:4:3: warning: /requirements/FEE-1: test_case_missing: requirement FEE-1 has no golden scenario for "acceptance 2"; add under tests fee-1-acceptance-2: { requirement: FEE-1, scenario: golden, covers: [acceptance 2], given: "...", when: "...", then: "A return a year late is charged no more than the replacement cost." } [test_case_missing@specarch.yaml#/requirements/FEE-1]
+  specarch.yaml:13:3: warning: /requirements/FEE-2: requirement_unverified: no test, commissioning check or monitor verifies requirement FEE-2; add verifies: [FEE-2] to the test that shows it is met [requirement_unverified@specarch.yaml#/requirements/FEE-2]

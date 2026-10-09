@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 312 design tests, 123 golden and 189 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 315 design tests, 124 golden and 191 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 308 |
+| system | 311 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -154,6 +154,24 @@ Scenario: golden; level: system; verifies SA-28.
 - Given: a specification whose operation has a golden test, a required field, a permission, 403 and 409 responses, and satisfies a requirement with a harm
 - When: derive is run
 - Then: it writes five draft tests, each origin inferred, with verifies, a why and the status or caller the design gives, lists them and exits 0
+
+### Diagnostic constraint diagnostic_column_positive
+
+#### diagnostic-column-from-one
+
+Scenario: golden; level: system.
+
+- Given: a problem at a key that starts a line with no indentation
+- When: the diagnostic is made
+- Then: its column is 1
+
+#### diagnostic-column-zero
+
+Scenario: red; level: system; covers violates diagnostic_column_positive.
+
+- Given: a problem about the whole file, found before any line was read
+- When: a diagnostic with column 0 is made
+- Then: it is refused; a problem about the whole file is reported at line 1, column 1
 
 ### Diagnostic constraint diagnostic_line_positive
 
@@ -1230,6 +1248,14 @@ Scenario: golden; level: system; verifies SA-13.
 - Given: elements that carry why and citations of declared sources
 - When: validate is run
 - Then: it prints nothing and exits 0
+
+#### validate-column-block-and-unicode
+
+Scenario: red; level: system; covers exit 1.
+
+- Given: a version written as true after a title with letters outside ASCII, and a formula in a block scalar that names an input that does not exist on its second line
+- When: validate is run
+- Then: it reports the version at its column counted in Unicode characters, and the name at its column inside the block, and exits 1
 
 #### validate-commissioning-record
 

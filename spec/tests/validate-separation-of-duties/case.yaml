@@ -1,8 +1,8 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |+
-  specarch.yaml:13: error: /roles/clerk: separation_of_duties: role clerk grants loans.create and loans.writeoff of set lend-and-write-off, and no holder may have 2 of its permissions; split them between roles
-  specarch.yaml:32: error: /separationOfDuties/misnamed/permissions/0: separation_of_duties: set misnamed names permission loans.creat, which is not declared; add it under permissions; did you mean loans.create?
-  specarch.yaml:32: error: /separationOfDuties/misnamed/permissions/1: separation_of_duties: set misnamed names public, which everyone holds, so no role can be kept from it; name only permissions a role grants
-  specarch.yaml:36: error: /separationOfDuties/unreachable/cardinality: separation_of_duties: set unreachable asks that no holder reach 3 of its permissions but names only 2, so no role can ever break it; lower cardinality to 2 or name more permissions
-  specarch.yaml:40: error: /separationOfDuties/too-small/cardinality: schema: 1 is below the minimum of 2
+  specarch.yaml:13:3: error: /roles/clerk: separation_of_duties: role clerk grants loans.create and loans.writeoff of set lend-and-write-off, and no holder may have 2 of its permissions; split them between roles [separation_of_duties@specarch.yaml#/roles/clerk]
+  specarch.yaml:32:19: error: /separationOfDuties/misnamed/permissions/0: separation_of_duties: set misnamed names permission loans.creat, which is not declared; add it under permissions; did you mean loans.create? [separation_of_duties@specarch.yaml#/separationOfDuties/misnamed/permissions/0]
+  specarch.yaml:32:32: error: /separationOfDuties/misnamed/permissions/1: separation_of_duties: set misnamed names public, which everyone holds, so no role can be kept from it; name only permissions a role grants [separation_of_duties@specarch.yaml#/separationOfDuties/misnamed/permissions/1]
+  specarch.yaml:36:18: error: /separationOfDuties/unreachable/cardinality: separation_of_duties: set unreachable asks that no holder reach 3 of its permissions but names only 2, so no role can ever break it; lower cardinality to 2 or name more permissions [separation_of_duties@specarch.yaml#/separationOfDuties/unreachable/cardinality]
+  specarch.yaml:40:18: error: /separationOfDuties/too-small/cardinality: schema: 1 is below the minimum of 2 [schema@specarch.yaml#/separationOfDuties/too-small/cardinality]

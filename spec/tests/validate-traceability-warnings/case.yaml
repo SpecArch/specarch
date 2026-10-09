@@ -1,8 +1,8 @@
 arguments: [validate, .]
 exitStatus: 0
 standardOutput: |
-  specarch.yaml:7: warning: /needs/NEED-2: need_unrefined: no requirement refines need NEED-2; add a requirement with needs: [NEED-2], or set the need's status to rejected
-  specarch.yaml:9: warning: /requirements/CASE-1: acceptance_missing: requirement CASE-1 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion
-  specarch.yaml:9: warning: /requirements/CASE-1: requirement_unsatisfied: no design element satisfies requirement CASE-1; add satisfies: [CASE-1] to the entity, operation, command, page, algorithm or decision that meets it
-  specarch.yaml:9: warning: /requirements/CASE-1: requirement_unverified: no test, commissioning check or monitor verifies requirement CASE-1; add verifies: [CASE-1] to the test that shows it is met
+  specarch.yaml:7:11: warning: /needs/NEED-2: need_unrefined: no requirement refines need NEED-2; add a requirement with needs: [NEED-2], or set the need's status to rejected [need_unrefined@specarch.yaml#/needs/NEED-2]
+  specarch.yaml:9:3: warning: /requirements/CASE-1: acceptance_missing: requirement CASE-1 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@specarch.yaml#/requirements/CASE-1]
+  specarch.yaml:9:3: warning: /requirements/CASE-1: requirement_unsatisfied: no design element satisfies requirement CASE-1; add satisfies: [CASE-1] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@specarch.yaml#/requirements/CASE-1]
+  specarch.yaml:9:3: warning: /requirements/CASE-1: requirement_unverified: no test, commissioning check or monitor verifies requirement CASE-1; add verifies: [CASE-1] to the test that shows it is met [requirement_unverified@specarch.yaml#/requirements/CASE-1]
 

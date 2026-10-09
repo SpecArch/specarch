@@ -1,5 +1,5 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:26: error: /checks/service-answers/environment: environment: prod is not an environment of the specification; use one of production, staging
+  specarch.yaml:26:18: error: /checks/service-answers/environment: environment: prod is not an environment of the specification; use one of production, staging [environment@specarch.yaml#/checks/service-answers/environment]
 

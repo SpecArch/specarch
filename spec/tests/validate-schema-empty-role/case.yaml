@@ -1,5 +1,5 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:4: error: /permissions/items.read: permission_ungranted: no role grants items.read, so nobody can use what it guards; add it to a role, or use public if it is meant for everyone
-  specarch.yaml:6: error: /roles/clerk/permissions: schema: this list is empty; give at least one item, or leave the key out where that is allowed
+  specarch.yaml:4:15: error: /permissions/items.read: permission_ungranted: no role grants items.read, so nobody can use what it guards; add it to a role, or use public if it is meant for everyone [permission_ungranted@specarch.yaml#/permissions/items.read]
+  specarch.yaml:6:46: error: /roles/clerk/permissions: schema: this list is empty; give at least one item, or leave the key out where that is allowed [schema@specarch.yaml#/roles/clerk/permissions]

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+entity: Diagnostic
+constraint: diagnostic_column_positive
+level: system
+scenario: red
+covers: [violates diagnostic_column_positive]
+given: a problem about the whole file, found before any line was read
+when: a diagnostic with column 0 is made
+then: it is refused; a problem about the whole file is reported at line 1, column 1

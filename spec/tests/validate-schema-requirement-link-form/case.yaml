@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:8: error: /roles/clerk/satisfies/1: schema: "lib-1" does not have the right form; it must be an ID: an upper-case prefix, a dash and a number or name, such as LIB-5 or NEED-1
+  specarch.yaml:8:79: error: /roles/clerk/satisfies/1: schema: "lib-1" does not have the right form; it must be an ID: an upper-case prefix, a dash and a number or name, such as LIB-5 or NEED-1 [schema@specarch.yaml#/roles/clerk/satisfies/1]

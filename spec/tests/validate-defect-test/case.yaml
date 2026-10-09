@@ -1,5 +1,5 @@
 arguments: [validate, project]
 exitStatus: 1
 standardOutput: |
-  records/defects/DEF-1.yaml:10: error: /status: defect_test: DEF-1 is fixed but names no test; add test with the test that fails before the fix and passes after
-  records/defects/DEF-2.yaml:10: error: /test: defect_test: test catalogue-prints neither verifies a requirement DEF-2 violates nor is about an element it violates; add the requirement to the test's verifies, or name the test that shows the fix
+  records/defects/DEF-1.yaml:10:9: error: /status: defect_test: DEF-1 is fixed but names no test; add test with the test that fails before the fix and passes after [defect_test@../records/defects/DEF-1.yaml#/status]
+  records/defects/DEF-2.yaml:10:7: error: /test: defect_test: test catalogue-prints neither verifies a requirement DEF-2 violates nor is about an element it violates; add the requirement to the test's verifies, or name the test that shows the fix [defect_test@../records/defects/DEF-2.yaml#/test]

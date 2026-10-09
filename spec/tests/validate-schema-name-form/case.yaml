@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:5: error: /sources/second_list: schema: the name second_list is not valid: it must be kebab-case, such as members-list; rename it
+  specarch.yaml:5:16: error: /sources/second_list: schema: the name second_list is not valid: it must be kebab-case, such as members-list; rename it [schema@specarch.yaml#/sources/second_list]

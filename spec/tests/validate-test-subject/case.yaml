@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |+
-  specarch.yaml:4: error: /tests/publish-works: test_subject: test publish-works is about operation publishItem, which is not in the specification; name an operationId, command, page, job, flow, workflow, requirement with acceptance criteria, entity with a state machine, or an entity's constraint or transition that exists
+  specarch.yaml:4:18: error: /tests/publish-works: test_subject: test publish-works is about operation publishItem, which is not in the specification; name an operationId, command, page, job, flow, workflow, requirement with acceptance criteria, entity with a state machine, or an entity's constraint or transition that exists [test_subject@specarch.yaml#/tests/publish-works]

@@ -27,7 +27,7 @@ Most of the pieces exist. They are joined, not replaced.
 
 | What exists | What it becomes |
 |---|---|
-| validate's line, `file:line: severity: /pointer: rule: message` | The problem line, with the column added after the line and the id at the end (section 3). validate keeps printing today's line until the editor reads the new one (step 3). |
+| validate's line | The problem line, `file:line:column: severity: /pointer: rule: message [id]` (section 3), printed by validate in both builds and by generate for a plug-in's diagnostics. |
 | validate's errors and warnings | Problems of severity error and warning, with the same rule and message. |
 | A diagnostic's message, "what is wrong and how to fix it" | Stays the one place that says how to fix it (section 2.4). |
 | Open questions (`questions:`), listed by `gaps` and the questions document | Problems of severity question. Their id is the question's id (`Q-4`). The questions document stays the document for the people who decide. |
@@ -58,11 +58,13 @@ questions document writes it: `(must, decision)`.
 - Lines and columns start at 1, as GCC, Clang, the Go tools and SARIF count
   them. LSP counts from 0; a reader for an LSP client subtracts one. A
   column counts Unicode characters, as the YAML parsers of both builds do.
-- The column is that of the node the pointer names when the problem is on
-  that node's line (its value, or else its key), and otherwise that of the
-  first character on the line that is not a space, such as a line inside an
-  expression. Step 3 replaces the second case with the column inside the
-  expression, which the expression parser knows.
+- In an expression, the column is the one inside the expression, which
+  the expression parser knows, counted from the expression's first
+  character (after the quote of a quoted scalar, from the block's
+  indentation in a block scalar). Otherwise it is that of the node the
+  pointer names when the problem is on that node's line (its value, or else
+  its key), and otherwise that of the first character on the line that is
+  not a space.
 - A problem about the whole file (`/`) is at line 1, column 1, where the
   file starts.
 - A question is at its own entry in the questions file, where it is
@@ -145,24 +147,21 @@ severity it keeps validate's order: pointer, rule, message; the id closes
 the line in brackets. A specification with no problem gets the two lines
 only, the first saying "no problems".
 
-### 3.1 What the editor needs
+### 3.1 What the editor reads
 
-The editor (`myowncodeeditor`, `Sources/Core/SpecArch.swift`) parses
-validate's line. It takes the text before `: error: ` or `: warning: ` and
-splits off the last `:` as the line, so a line with a column would read the
-column as the line and `file:12` as the file, and a `question` or `note`
-line is skipped. Before validate prints the new line (step 3), the editor
-needs to:
+The editor (`myowncodeeditor`, `Sources/Core/SpecArch.swift`) parses the
+problem line, from validate and from the problems file. It:
 
-1. accept an optional column: when the place ends in `:<line>:<column>`,
-   take both, and jump to the column;
-2. accept the severities `question` and `note`, showing a note under the
+1. accepts an optional column: when the place ends in `:<line>:<column>`,
+   it takes both, and jumps to the column;
+2. accepts the severities `question` and `note`, showing a note under the
    problem before it;
-3. take the id in brackets at the end of the message, and show it;
-4. offer `problems.txt` of the open specification as its Problems list
+3. takes the id in brackets at the end of the message of a line with a
+   column, and shows it;
+4. offers `problems.txt` of the open specification as its Problems list
    when the file is there, beside what validate prints on save.
 
-A line without a column keeps working, so the editor can change first.
+A line without a column still reads, with no column and no id.
 
 ## 4. The machine form: SARIF 2.1.0
 

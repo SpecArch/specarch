@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  case.go.specarch-implementation.yaml:6: error: /mappings/#~1entities~1Item: design_ref: #/entities/Item does not point at anything in the specification; correct the pointer (a / inside a name is written ~1)
+  case.go.specarch-implementation.yaml:6:22: error: /mappings/#~1entities~1Item: design_ref: #/entities/Item does not point at anything in the specification; correct the pointer (a / inside a name is written ~1) [design_ref@case.go.specarch-implementation.yaml#/mappings/#~1entities~1Item]

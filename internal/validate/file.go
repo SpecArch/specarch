@@ -56,13 +56,24 @@ func CheckSpec(s *spec.Spec) []Diagnostic {
 // sorted.
 func CheckSpecCovered(s *spec.Spec) (kept, covered []Diagnostic) {
 	all := checkSpecAll(s)
+	p := SpecPlacer(s)
 	if s.Root == nil {
+		p.Place(all)
+		Sort(all)
 		return all, nil
 	}
 	kept, covered = Covered(all, s.Root)
+	p.Place(kept)
+	p.Place(covered)
 	Sort(kept)
 	Sort(covered)
 	return kept, covered
+}
+
+// SpecPlacer places the diagnostics of a specification: ids name files
+// from the specification's folder.
+func SpecPlacer(s *spec.Spec) *Placer {
+	return &Placer{Root: s.Root, Files: s.Files, RootFile: s.RootFile, Dir: s.Dir}
 }
 
 func checkSpecAll(s *spec.Spec) []Diagnostic {
@@ -102,6 +113,7 @@ func CheckImplementation(path string, data []byte, load Loader) []Diagnostic {
 	c := &checker{file: path}
 	c.runImplementation(data, nil, load)
 	ds := withoutEchoes(c.diags)
+	(&Placer{Dir: filepath.Dir(path)}).Place(ds)
 	Sort(ds)
 	return ds
 }
@@ -115,6 +127,7 @@ func CheckNamed(path string) []Diagnostic {
 	} else {
 		c.addLine(1, "/", RuleFileKind, "the file is neither %s nor an implementation file (*%s); name a specification's folder or root file", RootFile, ImplementationSuffix)
 	}
+	(&Placer{Dir: filepath.Dir(path)}).Place(c.diags)
 	return c.diags
 }
 
@@ -162,6 +175,7 @@ type checker struct {
 	files map[*yaml.Node]string // the file of each node of a merged specification
 	root  *yaml.Node
 	diags []Diagnostic
+	text  Placer // the lines of the files read, for an expression's column
 }
 
 func (c *checker) fileOf(n *yaml.Node) string {

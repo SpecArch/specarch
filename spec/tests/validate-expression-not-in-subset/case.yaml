@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:9: error: /algorithms/total/formula: expression_syntax: the formula, column 7: % (remainder) is not part of SpecArch expressions
+  specarch.yaml:9:21: error: /algorithms/total/formula: expression_syntax: the formula: % (remainder) is not part of SpecArch expressions [expression_syntax@specarch.yaml#/algorithms/total/formula]

@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:9: error: /algorithms/total/formula: expression_type: the formula gives a decimal of no fixed scale, but the output's scale is 2; say how to round with round(x, 2)
+  specarch.yaml:9:14: error: /algorithms/total/formula: expression_type: the formula gives a decimal of no fixed scale, but the output's scale is 2; say how to round with round(x, 2) [expression_type@specarch.yaml#/algorithms/total/formula]

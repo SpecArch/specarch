@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:11: error: /algorithms/total/examples/0/expected: example_expected: the expected value of "three items" has 3 decimal places, but the field's scale is 2; round it
+  specarch.yaml:11:77: error: /algorithms/total/examples/0/expected: example_expected: the expected value of "three items" has 3 decimal places, but the field's scale is 2; round it [example_expected@specarch.yaml#/algorithms/total/examples/0/expected]

@@ -1,6 +1,6 @@
 arguments: [validate, project]
 exitStatus: 1
 standardOutput: |
-  records/defects/DEF-1.yaml:10: error: /status: defect_duplicate: DEF-1 is a duplicate but names no defect; add duplicateOf with the defect it repeats
-  records/defects/DEF-2.yaml:10: error: /duplicateOf: defect_duplicate: DEF-1 is itself a duplicate; name the defect DEF-1 repeats instead
-  records/defects/DEF-3.yaml:10: error: /duplicateOf: defect_duplicate: DEF-9 is not a defect: there is no records/defects/DEF-9.yaml and no source of kind defect-set with prefix DEF
+  records/defects/DEF-1.yaml:10:9: error: /status: defect_duplicate: DEF-1 is a duplicate but names no defect; add duplicateOf with the defect it repeats [defect_duplicate@../records/defects/DEF-1.yaml#/status]
+  records/defects/DEF-2.yaml:10:14: error: /duplicateOf: defect_duplicate: DEF-1 is itself a duplicate; name the defect DEF-1 repeats instead [defect_duplicate@../records/defects/DEF-2.yaml#/duplicateOf]
+  records/defects/DEF-3.yaml:10:14: error: /duplicateOf: defect_duplicate: DEF-9 is not a defect: there is no records/defects/DEF-9.yaml and no source of kind defect-set with prefix DEF [defect_duplicate@../records/defects/DEF-3.yaml#/duplicateOf]

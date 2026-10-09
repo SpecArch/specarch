@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:8: error: /monitors/catalogue-latency/environment: environment: prod is not an environment of the specification; use one of production
+  specarch.yaml:8:18: error: /monitors/catalogue-latency/environment: environment: prod is not an environment of the specification; use one of production [environment@specarch.yaml#/monitors/catalogue-latency/environment]

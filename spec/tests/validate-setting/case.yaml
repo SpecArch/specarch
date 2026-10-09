@@ -1,5 +1,5 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  case.go.specarch-implementation.yaml:13: error: /deployments/live/configuration/dailyrate: setting: dailyrate is not a setting of the specification's configuration; did you mean dailyRate?
+  case.go.specarch-implementation.yaml:13:18: error: /deployments/live/configuration/dailyrate: setting: dailyrate is not a setting of the specification's configuration; did you mean dailyRate? [setting@case.go.specarch-implementation.yaml#/deployments/live/configuration/dailyrate]
 

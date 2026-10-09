@@ -38,8 +38,13 @@ commands:
       disk. The plug-in answers on its standard output,
       as JSON, with `files` (each a `path` relative to the output folder and
       its `content`) and `diagnostics` (each with the validator's fields:
-      file, line, severity, path, rule, message), and exits 0. The program
-      prints the diagnostics, refuses a path outside the output folder,
+      file, line, severity, path, rule, message, and a column when it
+      knows one), and exits 0. The program places each diagnostic at its
+      entry: one at the root file, whose path leads to an entry of the
+      merged specification, is put at the fragment, line and column that
+      entry was read from; a column not given is derived as validate
+      derives it; and the id is made as validate makes it. It prints the
+      diagnostics in validate's line, refuses a path outside the output folder,
       and writes or checks the files itself. A plug-in that exits with
       another status, or answers with something else, fails the run with
       status 2; its standard error is passed through.

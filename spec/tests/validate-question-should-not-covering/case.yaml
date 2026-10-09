@@ -1,6 +1,6 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:7: warning: /requirements/CASE-1: acceptance_missing: requirement CASE-1 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion
-  specarch.yaml:8: error: /requirements/CASE-1: schema: priority is missing; add it here
+  specarch.yaml:7:3: warning: /requirements/CASE-1: acceptance_missing: requirement CASE-1 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@specarch.yaml#/requirements/CASE-1]
+  specarch.yaml:8:5: error: /requirements/CASE-1: schema: priority is missing; add it here [schema@specarch.yaml#/requirements/CASE-1]
 

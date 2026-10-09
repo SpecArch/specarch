@@ -1,20 +1,20 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:7: error: /stakeholders/owner/origin: origin_citation: origin is stated but nothing is cited; add cites with the source and where in it this is stated
-  specarch.yaml:9: warning: /requirements/CASE-1: requirement_unsatisfied: no design element satisfies requirement CASE-1; add satisfies: [CASE-1] to the entity, operation, command, page, algorithm or decision that meets it
-  specarch.yaml:9: error: /requirements/CASE-1/origin: origin_reason: origin is inferred but why is missing; say from what evidence this was concluded
-  specarch.yaml:10: warning: /requirements/CASE-2: requirement_unsatisfied: no design element satisfies requirement CASE-2; add satisfies: [CASE-2] to the entity, operation, command, page, algorithm or decision that meets it
-  specarch.yaml:10: error: /requirements/CASE-2/origin: origin_decision: origin is decided but decidedIn is missing; name the decision that settled this
-  specarch.yaml:11: warning: /requirements/CASE-3: requirement_unsatisfied: no design element satisfies requirement CASE-3; add satisfies: [CASE-3] to the entity, operation, command, page, algorithm or decision that meets it
-  specarch.yaml:11: error: /requirements/CASE-3/decidedIn: origin_decision: ADR-009 is not a decision of the specification; did you mean ADR-001?
-  specarch.yaml:12: warning: /requirements/CASE-4: requirement_unsatisfied: no design element satisfies requirement CASE-4; add satisfies: [CASE-4] to the entity, operation, command, page, algorithm or decision that meets it
-  specarch.yaml:12: error: /requirements/CASE-4/decidedIn: origin_decision: ADR-002 is proposed, not accepted; an element rests only on an accepted decision
-  specarch.yaml:13: warning: /requirements/CASE-5: requirement_unsatisfied: no design element satisfies requirement CASE-5; add satisfies: [CASE-5] to the entity, operation, command, page, algorithm or decision that meets it
-  specarch.yaml:13: error: /requirements/CASE-5/decidedIn: origin_decision: decidedIn is set but origin is stated; set origin: decided, or remove decidedIn
-  specarch.yaml:14: warning: /requirements/CASE-6: requirement_unsatisfied: no design element satisfies requirement CASE-6; add satisfies: [CASE-6] to the entity, operation, command, page, algorithm or decision that meets it
-  specarch.yaml:14: error: /requirements/CASE-6/decidedIn: origin_decision: decidedIn is set but origin is missing; set origin: decided, or remove decidedIn
-  specarch.yaml:15: warning: /requirements/CASE-7: requirement_unsatisfied: no design element satisfies requirement CASE-7; add satisfies: [CASE-7] to the entity, operation, command, page, algorithm or decision that meets it
-  specarch.yaml:16: warning: /requirements/CASE-8: requirement_unsatisfied: no design element satisfies requirement CASE-8; add satisfies: [CASE-8] to the entity, operation, command, page, algorithm or decision that meets it
-  specarch.yaml:25: error: /decisions/ADR-001/origin: origin_decision: a decision is not decided by another decision; set supersededBy on the one it replaces, or state or infer it
+  specarch.yaml:7:53: error: /stakeholders/owner/origin: origin_citation: origin is stated but nothing is cited; add cites with the source and where in it this is stated [origin_citation@specarch.yaml#/stakeholders/owner/origin]
+  specarch.yaml:9:11: warning: /requirements/CASE-1: requirement_unsatisfied: no design element satisfies requirement CASE-1; add satisfies: [CASE-1] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@specarch.yaml#/requirements/CASE-1]
+  specarch.yaml:9:110: error: /requirements/CASE-1/origin: origin_reason: origin is inferred but why is missing; say from what evidence this was concluded [origin_reason@specarch.yaml#/requirements/CASE-1/origin]
+  specarch.yaml:10:11: warning: /requirements/CASE-2: requirement_unsatisfied: no design element satisfies requirement CASE-2; add satisfies: [CASE-2] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@specarch.yaml#/requirements/CASE-2]
+  specarch.yaml:10:110: error: /requirements/CASE-2/origin: origin_decision: origin is decided but decidedIn is missing; name the decision that settled this [origin_decision@specarch.yaml#/requirements/CASE-2/origin]
+  specarch.yaml:11:11: warning: /requirements/CASE-3: requirement_unsatisfied: no design element satisfies requirement CASE-3; add satisfies: [CASE-3] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@specarch.yaml#/requirements/CASE-3]
+  specarch.yaml:11:134: error: /requirements/CASE-3/decidedIn: origin_decision: ADR-009 is not a decision of the specification; did you mean ADR-001? [origin_decision@specarch.yaml#/requirements/CASE-3/decidedIn]
+  specarch.yaml:12:11: warning: /requirements/CASE-4: requirement_unsatisfied: no design element satisfies requirement CASE-4; add satisfies: [CASE-4] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@specarch.yaml#/requirements/CASE-4]
+  specarch.yaml:12:132: error: /requirements/CASE-4/decidedIn: origin_decision: ADR-002 is proposed, not accepted; an element rests only on an accepted decision [origin_decision@specarch.yaml#/requirements/CASE-4/decidedIn]
+  specarch.yaml:13:11: warning: /requirements/CASE-5: requirement_unsatisfied: no design element satisfies requirement CASE-5; add satisfies: [CASE-5] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@specarch.yaml#/requirements/CASE-5]
+  specarch.yaml:13:131: error: /requirements/CASE-5/decidedIn: origin_decision: decidedIn is set but origin is stated; set origin: decided, or remove decidedIn [origin_decision@specarch.yaml#/requirements/CASE-5/decidedIn]
+  specarch.yaml:14:11: warning: /requirements/CASE-6: requirement_unsatisfied: no design element satisfies requirement CASE-6; add satisfies: [CASE-6] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@specarch.yaml#/requirements/CASE-6]
+  specarch.yaml:14:113: error: /requirements/CASE-6/decidedIn: origin_decision: decidedIn is set but origin is missing; set origin: decided, or remove decidedIn [origin_decision@specarch.yaml#/requirements/CASE-6/decidedIn]
+  specarch.yaml:15:11: warning: /requirements/CASE-7: requirement_unsatisfied: no design element satisfies requirement CASE-7; add satisfies: [CASE-7] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@specarch.yaml#/requirements/CASE-7]
+  specarch.yaml:16:11: warning: /requirements/CASE-8: requirement_unsatisfied: no design element satisfies requirement CASE-8; add satisfies: [CASE-8] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@specarch.yaml#/requirements/CASE-8]
+  specarch.yaml:25:13: error: /decisions/ADR-001/origin: origin_decision: a decision is not decided by another decision; set supersededBy on the one it replaces, or state or infer it [origin_decision@specarch.yaml#/decisions/ADR-001/origin]
 

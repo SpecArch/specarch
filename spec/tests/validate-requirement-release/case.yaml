@@ -1,6 +1,6 @@
 arguments: [validate, project]
 exitStatus: 1
 standardOutput: |
-  project/specarch.yaml:24: error: /requirements/CASE-3/release: record_ref: release 1.0.1 is withdrawn, so no requirement is meant for it; name a planned or released release
-  project/specarch.yaml:31: error: /requirements/CASE-4/release: record_ref: 2.0.0 is not a release: there is no records/releases/2.0.0.yaml; add it with status planned, or name a release that exists
-  project/specarch.yaml:38: error: /requirements/CASE-5/release: schema: "1.1" does not have the right form; it must be a release's version, major.minor.patch with no pre-release, such as 1.2.0
+  project/specarch.yaml:24:14: error: /requirements/CASE-3/release: record_ref: release 1.0.1 is withdrawn, so no requirement is meant for it; name a planned or released release [record_ref@specarch.yaml#/requirements/CASE-3/release]
+  project/specarch.yaml:31:14: error: /requirements/CASE-4/release: record_ref: 2.0.0 is not a release: there is no records/releases/2.0.0.yaml; add it with status planned, or name a release that exists [record_ref@specarch.yaml#/requirements/CASE-4/release]
+  project/specarch.yaml:38:14: error: /requirements/CASE-5/release: schema: "1.1" does not have the right form; it must be a release's version, major.minor.patch with no pre-release, such as 1.2.0 [schema@specarch.yaml#/requirements/CASE-5/release]

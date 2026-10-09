@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:2:40: error: /info/version: schema: this is a boolean, but a string is expected here [schema@specarch.yaml#/info/version]
+  specarch.yaml:11:11: error: /algorithms/total/formula: expression_name: the formula: prise is not a name this expression can use; use one of count, price [expression_name@specarch.yaml#/algorithms/total/formula]

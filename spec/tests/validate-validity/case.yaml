@@ -1,6 +1,6 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:12: error: /entities/Card/validity/from: validity: from issuedAt is a date-time and until validUntil is a date; give both the same format
-  specarch.yaml:20: error: /entities/Pass/validity/from: validity: issued is not a field of Pass, so it cannot say when a record is valid; use one of id, until
-  specarch.yaml:20: error: /entities/Pass/validity/until: validity: until has no format, but a validity field must be a date or a date-time
+  specarch.yaml:12:23: error: /entities/Card/validity/from: validity: from issuedAt is a date-time and until validUntil is a date; give both the same format [validity@specarch.yaml#/entities/Card/validity/from]
+  specarch.yaml:20:23: error: /entities/Pass/validity/from: validity: issued is not a field of Pass, so it cannot say when a record is valid; use one of id, until [validity@specarch.yaml#/entities/Pass/validity/from]
+  specarch.yaml:20:38: error: /entities/Pass/validity/until: validity: until has no format, but a validity field must be a date or a date-time [validity@specarch.yaml#/entities/Pass/validity/until]

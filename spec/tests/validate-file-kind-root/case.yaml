@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:1: error: /specarchImplementation: file_kind: specarch.yaml is a specification's root file but starts with specarchImplementation; an implementation file is named <name>.<stack>.specarch-implementation.yaml
+  specarch.yaml:1:25: error: /specarchImplementation: file_kind: specarch.yaml is a specification's root file but starts with specarchImplementation; an implementation file is named <name>.<stack>.specarch-implementation.yaml [file_kind@specarch.yaml#/specarchImplementation]

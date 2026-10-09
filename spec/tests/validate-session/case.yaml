@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:3: error: /session/idleTimeout: session: PT0M is no time at all; give the session a limit above zero
+  specarch.yaml:3:25: error: /session/idleTimeout: session: PT0M is no time at all; give the session a limit above zero [session@specarch.yaml#/session/idleTimeout]

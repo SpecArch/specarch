@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a version written as true after a title with letters outside ASCII, and a formula in a block scalar that names an input that does not exist on its second line
+when: validate is run
+then: it reports the version at its column counted in Unicode characters, and the name at its column inside the block, and exits 1

@@ -1,4 +1,4 @@
 arguments: [document, requirements, --out, docs, project]
 exitStatus: 1
 standardOutput: |
-  project/specarch.yaml:7: error: /stakeholders/clerk/cites/0/source: source: policy is not a declared source: the specification declares none; add it under sources in specarch.yaml
+  project/specarch.yaml:7:19: error: /stakeholders/clerk/cites/0/source: source: policy is not a declared source: the specification declares none; add it under sources in specarch.yaml [source@specarch.yaml#/stakeholders/clerk/cites/0/source]

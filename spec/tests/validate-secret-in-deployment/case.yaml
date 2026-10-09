@@ -1,5 +1,5 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  case.go.specarch-implementation.yaml:13: error: /deployments/live/configuration/databaseUrl: secret_value: databaseUrl is a secret, and a secret's value is never written in a specification; remove it and say in the setting's description where the value comes from
+  case.go.specarch-implementation.yaml:13:20: error: /deployments/live/configuration/databaseUrl: secret_value: databaseUrl is a secret, and a secret's value is never written in a specification; remove it and say in the setting's description where the value comes from [secret_value@case.go.specarch-implementation.yaml#/deployments/live/configuration/databaseUrl]
 

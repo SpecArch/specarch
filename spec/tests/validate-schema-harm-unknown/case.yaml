@@ -1,5 +1,5 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:4: warning: /requirements/ITEM-1: test_case_missing: requirement ITEM-1 has no golden scenario for "acceptance 1"; add under tests item-1-acceptance-1: { requirement: ITEM-1, scenario: golden, covers: [acceptance 1], given: "...", when: "...", then: "An added item is in the stock." }
-  specarch.yaml:10: error: /requirements/ITEM-1/harm/0: schema: reputation is not allowed here; use one of availability, data-loss, money, privacy, safety, security
+  specarch.yaml:4:3: warning: /requirements/ITEM-1: test_case_missing: requirement ITEM-1 has no golden scenario for "acceptance 1"; add under tests item-1-acceptance-1: { requirement: ITEM-1, scenario: golden, covers: [acceptance 1], given: "...", when: "...", then: "An added item is in the stock." } [test_case_missing@specarch.yaml#/requirements/ITEM-1]
+  specarch.yaml:10:12: error: /requirements/ITEM-1/harm/0: schema: reputation is not allowed here; use one of availability, data-loss, money, privacy, safety, security [schema@specarch.yaml#/requirements/ITEM-1/harm/0]

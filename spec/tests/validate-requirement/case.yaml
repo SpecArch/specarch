@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:15: error: /algorithms/total/satisfies/1: requirement: SHOP-1 is not a requirement of the specification; use one of LIB-1
+  specarch.yaml:15:24: error: /algorithms/total/satisfies/1: requirement: SHOP-1 is not a requirement of the specification; use one of LIB-1 [requirement@specarch.yaml#/algorithms/total/satisfies/1]

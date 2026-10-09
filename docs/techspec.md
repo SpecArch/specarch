@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 55 requirements, 5 entities, 12 commands, 7 algorithms, 312 tests, 70 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 55 requirements, 5 entities, 12 commands, 7 algorithms, 315 tests, 70 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -80,10 +80,12 @@ erDiagram
   Diagnostic {
     string file PK, FK
     Severity severity
-    int32 line PK
-    string path PK
-    Rule rule PK
+    int32 line
+    int32 column
+    string path
+    Rule rule
     string message
+    string id PK
   }
   GeneratedFile {
     string path PK
@@ -121,19 +123,21 @@ erDiagram
 
 ### Diagnostic
 
-One problem found in one file. Printed as one line:
-`file:line: severity: /yaml/path: rule: message`.
+One problem found in one file. Printed as one line, the problem line
+of ADR-065: `file:line:column: severity: /yaml/path: rule: message [id]`.
 
 | Field | Type | Required | Limits | Description |
 |---|---|---|---|---|
 | file | string | yes |   | The file's path as given. |
 | severity | Severity | yes |   |   |
 | line | int32 | yes | at least 1 | Line of the YAML node the problem is at; for an expression, the line inside the expression. |
+| column | int32 | yes | at least 1 | From 1, in Unicode characters: for an expression, the column inside the expression; otherwise the column of the node the path names when the problem is on its line (its value, or else its key), and else of the first character on the line that is not a space. |
 | path | string | yes |   | JSON pointer to the node, such as `/entities/Loan/relations/member/target`; `/` for the whole file. |
 | rule | Rule | yes |   |   |
 | message | string | yes | at least 1 character | What is wrong and how to fix it, in one plain sentence. |
+| id | string | yes | at least 1 character | `<rule>@<file>#<path>`, the file relative to the specification's folder, or to the file's own folder for a file checked on its own, with `.<tag>` after the rule, eight hex digits of the FNV-1a hash of the message, when one rule reports several diagnostics at one path of one file, and `-2`, `-3` and on after the tag when the message repeats as well. It names what is wrong, not where it is printed, so it stays while lines move (ADR-065). |
 
-Primary key: file, line, path, rule.
+Primary key: file, id.
 
 | Relation | Kind | Target | Via | On delete |
 |---|---|---|---|---|
@@ -142,6 +146,7 @@ Primary key: file, line, path, rule.
 | Constraint | Rule | Message |
 |---|---|---|
 | diagnostic_line_positive | check `line >= 1` | Every diagnostic points at a line. |
+| diagnostic_column_positive | check `column >= 1` | Every diagnostic points at a column. |
 
 ### GeneratedFile
 
@@ -984,8 +989,13 @@ migration beside a snapshot, knows what is there without reading the
 disk. The plug-in answers on its standard output,
 as JSON, with `files` (each a `path` relative to the output folder and
 its `content`) and `diagnostics` (each with the validator's fields:
-file, line, severity, path, rule, message), and exits 0. The program
-prints the diagnostics, refuses a path outside the output folder,
+file, line, severity, path, rule, message, and a column when it
+knows one), and exits 0. The program places each diagnostic at its
+entry: one at the root file, whose path leads to an entry of the
+merged specification, is put at the fragment, line and column that
+entry was read from; a column not given is derived as validate
+derives it; and the id is made as validate makes it. It prints the
+diagnostics in validate's line, refuses a path outside the output folder,
 and writes or checks the files itself. A plug-in that exits with
 another status, or answers with something else, fails the run with
 status 2; its standard error is passed through.
@@ -1248,7 +1258,7 @@ file, not only the first.
 
 Reads `{paths}`: Root files, the files under their stage folders, and implementation files; `records/ beside each specification's folder`: The change, defect, release, incident, commissioning and approval records of that specification; `the specification named in each standalone implementation file's `implements``: Read to resolve that file's references.
 
-Standard output: One line per diagnostic, sorted by file, then line, then path, then rule.
+Standard output: One line per diagnostic, `file:line:column: severity: /yaml/path: rule: message [id]`, sorted by file, then line, column, path, rule, message and id.
 
 Standard error: A usage message on a usage error, the reason on an unreadable path, and a one-line count at the end, with the number of open questions when there are any.
 
@@ -2074,7 +2084,8 @@ Status: accepted, 2026-10-07.
 Context: A validator that stops at the first error makes a large file take as many runs as it has errors.
 
 Decision: All problems in all files are reported, one per line, in the form
-`file:line: severity: /yaml/path: rule: message`, sorted. The severity
+`file:line:column: severity: /yaml/path: rule: message [id]`, the
+problem line of ADR-065, sorted. The severity
 is error or warning; only errors make a file invalid. The rule is a value of
 the `Rule` enum. Status 0 means valid, 1 invalid, 2 a usage or read
 error.
@@ -4628,6 +4639,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | derive-task-page-checks | command derive | system | golden | a specification whose task page checks that the confirmation equals the new password, checks that two of its fields are given and has the new password entered twice, satisfying a requirement with a harm | derive is run | it writes, among the operation's and the requirement's drafts, a test for the confirmation check broken, one for each way the other check breaks and one for the password entered twice differently, lists them and exits 0 |
 | derive-usage-error | command derive | system | red | no folder | derive is run with no arguments | it prints how to use it and exits 2 |
 | derive-writes-drafts | command derive | system | golden | a specification whose operation has a golden test, a required field, a permission, 403 and 409 responses, and satisfies a requirement with a harm | derive is run | it writes five draft tests, each origin inferred, with verifies, a why and the status or caller the design gives, lists them and exits 0 |
+| diagnostic-column-from-one | Diagnostic constraint diagnostic_column_positive | system | golden | a problem at a key that starts a line with no indentation | the diagnostic is made | its column is 1 |
+| diagnostic-column-zero | Diagnostic constraint diagnostic_column_positive | system | red | a problem about the whole file, found before any line was read | a diagnostic with column 0 is made | it is refused; a problem about the whole file is reported at line 1, column 1 |
 | diagnostic-line-from-one | Diagnostic constraint diagnostic_line_positive | system | golden | a problem on the first line of a file | the diagnostic is made | its line is 1 |
 | diagnostic-line-zero | Diagnostic constraint diagnostic_line_positive | system | red | a problem found before any line was read | a diagnostic with line 0 is made | it is refused; a problem about the whole file is reported on line 1 |
 | diff-classifies-changes | command diff | system | golden | a new version that drops an enum value, requires a field it did not, and adds an optional query parameter, released as 2.0.0 by a major change naming them | diff is run | the enum and the entity are major with the reason, the operation minor, the major step passes, and it exits 0 |
@@ -4760,6 +4773,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-change-log-warning | command validate | system | golden | a description that says how the file changed | validate is run | it warns with change_log and exits 0, since the file is still valid |
 | validate-child-rows | command validate | system | red | a form with child rows of a relation, a maximum and locked loaded rows; child rows with a field the relation's entity lacks, a relation named twice and a relation the entity lacks; child rows of a many-to-one relation; child rows on a view; and a test covering a case past the maximum the form does not have | validate is run | it reports field once, page four times and test_case once, names loans with more than 6 rows among the form's cases, and exits 1 |
 | validate-cites | command validate | system | golden | elements that carry why and citations of declared sources | validate is run | it prints nothing and exits 0 |
+| validate-column-block-and-unicode | command validate | system | red | a version written as true after a title with letters outside ASCII, and a formula in a block scalar that names an input that does not exist on its second line | validate is run | it reports the version at its column counted in Unicode characters, and the name at its column inside the block, and exits 1 |
 | validate-commissioning-record | command validate | system | red | a commissioning record whose results name a check that does not exist and whose version is not a release | validate is run | it reports commissioning_record for each and exits 1 |
 | validate-compact-columns | command validate | system | red | a list that keeps one of its columns on a compact screen, a list whose compact columns name one it does not have, and a view with compact columns | validate is run | it reports page twice, and exits 1 |
 | validate-concept-cases-listed | command validate | system | golden | a session, a dependency an operation calls, an idempotency key on that operation, a guard on it, and a validity on the entity its body names, with no tests | validate is run | it warns for the expired session, the dependency failing and timing out with the 503 the operation declares, the repeated request, the concurrent write, and the caller without the permission, each with a test to copy; the expired record and the reused key, occasional cases of an operation with no harm, are left to the test plan; and it exits 0 |

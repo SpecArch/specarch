@@ -209,8 +209,31 @@ extension Checker {
             case .typeMismatch: rule = .expressionType
             case .syntax: rule = .expressionSyntax
             }
-            addFile(fileOf(n), exprLine(n, e.line), ptr, rule, "\(what), column \(e.column): \(e.message)")
+            addFile(fileOf(n), exprLine(n, e.line), ptr, rule, "\(what): \(e.message)")
+            diags[diags.count - 1].column = exprColumn(n, e.line, e.column)
         }
+    }
+
+    /// The file column of a column inside an expression scalar: counted
+    /// from the scalar's first character on its own line, after the quote
+    /// of a quoted one, and from the block's indentation in a block scalar.
+    func exprColumn(_ n: YNode, _ line: Int, _ column: Int) -> Int {
+        if n.style == .literal || n.style == .folded {
+            let file = fileOf(n)
+            var l = n.line + 1
+            while l <= exprLine(n, line) {
+                if !text.text(file, l).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    return text.indent(file, l) + column
+                }
+                l += 1
+            }
+            return column
+        }
+        if line > 1 {
+            return text.indent(fileOf(n), exprLine(n, line)) + column
+        }
+        if n.style == .quoted { return n.column + column }
+        return n.column + column - 1
     }
 
     func checkExpressions(_ d: Design) {

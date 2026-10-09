@@ -1,4 +1,4 @@
 arguments: [derive, project]
 exitStatus: 1
 standardOutput: |
-  project/specarch.yaml:25: error: /paths/~1items/post/permission: permission_undeclared: operation createItem needs permission items.add, which is not declared; add it under permissions; use one of items.create, items.read
+  project/specarch.yaml:25:19: error: /paths/~1items/post/permission: permission_undeclared: operation createItem needs permission items.add, which is not declared; add it under permissions; use one of items.create, items.read [permission_undeclared@specarch.yaml#/paths/~1items/post/permission]

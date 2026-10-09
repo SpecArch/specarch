@@ -108,8 +108,32 @@ func (c *checker) exprErrors(n *yaml.Node, ptr, what string, errs []expr.Error) 
 		case expr.TypeMismatch:
 			rule = RuleExpressionType
 		}
-		c.addFile(c.fileOf(n), exprLine(n, e.Line), ptr, rule, "%s, column %d: %s", what, e.Column, e.Message)
+		c.addFile(c.fileOf(n), exprLine(n, e.Line), ptr, rule, "%s: %s", what, e.Message)
+		c.diags[len(c.diags)-1].Column = c.exprColumn(n, e.Line, e.Column)
 	}
+}
+
+// exprColumn is the file column of a column inside an expression scalar:
+// counted from the scalar's first character on its own line, after the
+// quote of a quoted one, and from the block's indentation in a block
+// scalar.
+func (c *checker) exprColumn(n *yaml.Node, line, column int) int {
+	if n.Style&(yaml.LiteralStyle|yaml.FoldedStyle) != 0 {
+		file := c.fileOf(n)
+		for l := n.Line + 1; l <= exprLine(n, line); l++ {
+			if strings.TrimSpace(c.text.line(file, l)) != "" {
+				return c.text.indent(file, l) + column
+			}
+		}
+		return column
+	}
+	if line > 1 {
+		return c.text.indent(c.fileOf(n), exprLine(n, line)) + column
+	}
+	if n.Style&(yaml.DoubleQuotedStyle|yaml.SingleQuotedStyle) != 0 {
+		return n.Column + column
+	}
+	return n.Column + column - 1
 }
 
 func (c *checker) checkExpressions(d *design) {

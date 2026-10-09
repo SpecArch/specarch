@@ -2,18 +2,20 @@
 entities:
   Diagnostic:
     description: |
-      One problem found in one file. Printed as one line:
-      `file:line: severity: /yaml/path: rule: message`.
+      One problem found in one file. Printed as one line, the problem line
+      of ADR-065: `file:line:column: severity: /yaml/path: rule: message [id]`.
     type: object
     properties:
       file: { type: string, description: The file's path as given. }
       severity: { $ref: "#/enums/Severity" }
       line: { type: integer, format: int32, minimum: 1, description: "Line of the YAML node the problem is at; for an expression, the line inside the expression." }
+      column: { type: integer, format: int32, minimum: 1, description: "From 1, in Unicode characters: for an expression, the column inside the expression; otherwise the column of the node the path names when the problem is on its line (its value, or else its key), and else of the first character on the line that is not a space." }
       path: { type: string, description: "JSON pointer to the node, such as `/entities/Loan/relations/member/target`; `/` for the whole file." }
       rule: { $ref: "#/enums/Rule" }
       message: { type: string, minLength: 1, description: "What is wrong and how to fix it, in one plain sentence." }
-    required: [file, line, severity, path, rule, message]
-    primaryKey: [file, line, path, rule]
+      id: { type: string, minLength: 1, description: "`<rule>@<file>#<path>`, the file relative to the specification's folder, or to the file's own folder for a file checked on its own, with `.<tag>` after the rule, eight hex digits of the FNV-1a hash of the message, when one rule reports several diagnostics at one path of one file, and `-2`, `-3` and on after the tag when the message repeats as well. It names what is wrong, not where it is printed, so it stays while lines move (ADR-065)." }
+    required: [file, line, column, severity, path, rule, message, id]
+    primaryKey: [file, id]
     relations:
       specFile: { target: SpecFile, kind: many-to-one, via: file }
     constraints:
@@ -21,4 +23,8 @@ entities:
         kind: check
         expression: line >= 1
         message: Every diagnostic points at a line.
+      diagnostic_column_positive:
+        kind: check
+        expression: column >= 1
+        message: Every diagnostic points at a column.
     satisfies: [SA-6]

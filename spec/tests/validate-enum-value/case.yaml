@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:7: error: /enums/ItemState/valueDescriptions/gone: enum_value: gone is not a value of enum ItemState; describe only its values; use one of draft, live
+  specarch.yaml:7:55: error: /enums/ItemState/valueDescriptions/gone: enum_value: gone is not a value of enum ItemState; describe only its values; use one of draft, live [enum_value@specarch.yaml#/enums/ItemState/valueDescriptions/gone]

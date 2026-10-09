@@ -1,5 +1,5 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:10: warning: /paths/~1items/post: test_case_missing: operation createItem has no red scenario for "missing name"; add under tests create-item-missing-name: { operation: createItem, scenario: red, covers: [missing name], given: "...", when: "createItem is called without name", then: "it is refused" }
-  specarch.yaml:37: error: /tests/create-item-missing-name/covers/0: test_case: "missing title" is not a case of operation createItem; its cases are: missing name, name shorter than 1 character, name of 1 character, name longer than 40 characters, name of 40 characters, denied without items.create, response 409
+  specarch.yaml:10:7: warning: /paths/~1items/post: test_case_missing: operation createItem has no red scenario for "missing name"; add under tests create-item-missing-name: { operation: createItem, scenario: red, covers: [missing name], given: "...", when: "createItem is called without name", then: "it is refused" } [test_case_missing@specarch.yaml#/paths/~1items/post]
+  specarch.yaml:37:14: error: /tests/create-item-missing-name/covers/0: test_case: "missing title" is not a case of operation createItem; its cases are: missing name, name shorter than 1 character, name of 1 character, name longer than 40 characters, name of 40 characters, denied without items.create, response 409 [test_case@specarch.yaml#/tests/create-item-missing-name/covers/0]

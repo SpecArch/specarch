@@ -1,6 +1,6 @@
 arguments: [generate, ui, --unapproved, project]
 exitStatus: 0
 standardOutput: |
-  project/specarch.yaml:1: warning: /pages/invitation/fields/3: generator: nickname has no title, so its label is its name; give the property a title
-  project/specarch.yaml:1: warning: /pages/invitation/fields/3: generator: nickname has no title, so its label is its name; give the property a title
+  project/specarch.yaml:364:44: warning: /pages/invitation/fields/3: generator: nickname has no title, so its label is its name; give the property a title [generator@specarch.yaml#/pages/invitation/fields/3]
+  project/specarch.yaml:364:44: warning: /pages/invitation/fields/3: generator: nickname has no title, so its label is its name; give the property a title [generator@specarch.yaml#/pages/invitation/fields/3]
 plugins: [ui-typescript]

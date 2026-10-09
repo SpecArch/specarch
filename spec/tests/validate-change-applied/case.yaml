@@ -1,7 +1,7 @@
 arguments: [validate, project]
 exitStatus: 1
 standardOutput: |
-  records/changes/CR-1.yaml:11: error: /affects/adds/0: change_applied: CR-1 is implemented but #/commands/authors, which it adds, is not in the specification; add it, or set the change back to approved
-  records/changes/CR-1.yaml:11: error: /affects/removes/0: change_applied: CR-1 is implemented but CASE-1, which it removes, is still in the specification; remove it, or give the requirement status retired
-  records/changes/CR-2.yaml:11: warning: /affects/adds/0: change_applied: #/tests/catalogue-prints, which CR-2 adds, is already in the specification; if the change is carried out, set its status to implemented, or name it under changes
-  records/changes/CR-2.yaml:11: error: /affects/changes/0: change_applied: CASE-2, which CR-2 changes, is not in the specification; a change can only change or remove what exists
+  records/changes/CR-1.yaml:11:19: error: /affects/adds/0: change_applied: CR-1 is implemented but #/commands/authors, which it adds, is not in the specification; add it, or set the change back to approved [change_applied@../records/changes/CR-1.yaml#/affects/adds/0]
+  records/changes/CR-1.yaml:11:52: error: /affects/removes/0: change_applied: CR-1 is implemented but CASE-1, which it removes, is still in the specification; remove it, or give the requirement status retired [change_applied@../records/changes/CR-1.yaml#/affects/removes/0]
+  records/changes/CR-2.yaml:11:19: warning: /affects/adds/0: change_applied: #/tests/catalogue-prints, which CR-2 adds, is already in the specification; if the change is carried out, set its status to implemented, or name it under changes [change_applied@../records/changes/CR-2.yaml#/affects/adds/0]
+  records/changes/CR-2.yaml:11:58: error: /affects/changes/0: change_applied: CASE-2, which CR-2 changes, is not in the specification; a change can only change or remove what exists [change_applied@../records/changes/CR-2.yaml#/affects/changes/0]

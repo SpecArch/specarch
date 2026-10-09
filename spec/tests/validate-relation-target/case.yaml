@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:11: error: /entities/Item/relations/owner/target: relation_target: Ownr is not an entity of the specification; use one of Item
+  specarch.yaml:11:24: error: /entities/Item/relations/owner/target: relation_target: Ownr is not an entity of the specification; use one of Item [relation_target@specarch.yaml#/entities/Item/relations/owner/target]

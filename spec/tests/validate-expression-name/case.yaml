@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:9: error: /algorithms/total/formula: expression_name: the formula, column 9: cout is not a name this expression can use; use one of count, price
+  specarch.yaml:9:22: error: /algorithms/total/formula: expression_name: the formula: cout is not a name this expression can use; use one of count, price [expression_name@specarch.yaml#/algorithms/total/formula]

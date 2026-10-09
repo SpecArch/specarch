@@ -1,19 +1,19 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |+
-  specarch.yaml:15: error: /theme/tokens/color/wrongHex/$value: theme: color.wrongHex: hex #000001 is not the colour the components give, #000000; correct one of them
-  specarch.yaml:16: error: /theme/tokens/color/p3/$value: theme: color.p3: a colour here is in the srgb colour space, the one WCAG 2.2 computes contrast in; give colorSpace: srgb and its three components
-  specarch.yaml:17: error: /theme/tokens/color/loop/$value: theme: color.loop: the aliases lead back to color.loop
-  specarch.yaml:19: error: /theme/tokens/color/gap/$value: theme: color.gap: space.small is a dimension token, and this one is a color
-  specarch.yaml:20: error: /theme/tokens/color/hexInt/$value: theme: color.hexInt: an srgb colour has three components, red, green and blue, each from 0 to 1
-  specarch.yaml:22: error: /theme/tokens/color/newline/$value: theme: color.newline: hex is the six digits of CSS hex notation, such as #1b1f24
-  specarch.yaml:29: error: /theme/tokens/space/large/$value: theme: space.large: a dimension is a value and a unit, px or rem
-  specarch.yaml:33: error: /theme/tokens/font/untyped: theme: font.untyped has no $type, and no group above it gives one; give it the type of its value
-  specarch.yaml:34: error: /theme/tokens/font/typo/$valu: schema: $valu is not a key this object can have; remove it or correct its spelling
-  specarch.yaml:36: error: /theme/tokens/motion/ease: theme: motion.ease is a cubicBezier token, which SpecArch does not take yet; it takes color, dimension, fontFamily, fontWeight, duration and number
-  specarch.yaml:42: error: /theme/modes/dark/color.missing: theme: color.missing is not a token of the theme
-  specarch.yaml:45: error: /theme/pairs/1: theme: color.link on color.background has a contrast of 2.81:1 in the dark mode, below the 4.5:1 WCAG 2.2 asks of text at level AA (1.4.3)
-  specarch.yaml:46: error: /theme/pairs/2: theme: color.muted on color.background has a contrast of 2.84:1, below the 4.5:1 WCAG 2.2 asks of text at level AA (1.4.3)
-  specarch.yaml:47: error: /theme/pairs/3: theme: color.muted on color.background has a contrast of 2.84:1, below the 3:1 WCAG 2.2 asks of large text at level AA (1.4.3)
-  specarch.yaml:48: error: /theme/pairs/4: theme: color.veil on color.background is translucent, so its contrast depends on what lies beneath; pair opaque colours
-  specarch.yaml:49: error: /theme/pairs/5/text: theme: space.small is a dimension token, and a pair is of colours
+  specarch.yaml:15:27: error: /theme/tokens/color/wrongHex/$value: theme: color.wrongHex: hex #000001 is not the colour the components give, #000000; correct one of them [theme@specarch.yaml#/theme/tokens/color/wrongHex/$value]
+  specarch.yaml:16:21: error: /theme/tokens/color/p3/$value: theme: color.p3: a colour here is in the srgb colour space, the one WCAG 2.2 computes contrast in; give colorSpace: srgb and its three components [theme@specarch.yaml#/theme/tokens/color/p3/$value]
+  specarch.yaml:17:23: error: /theme/tokens/color/loop/$value: theme: color.loop: the aliases lead back to color.loop [theme@specarch.yaml#/theme/tokens/color/loop/$value]
+  specarch.yaml:19:22: error: /theme/tokens/color/gap/$value: theme: color.gap: space.small is a dimension token, and this one is a color [theme@specarch.yaml#/theme/tokens/color/gap/$value]
+  specarch.yaml:20:25: error: /theme/tokens/color/hexInt/$value: theme: color.hexInt: an srgb colour has three components, red, green and blue, each from 0 to 1 [theme@specarch.yaml#/theme/tokens/color/hexInt/$value]
+  specarch.yaml:22:26: error: /theme/tokens/color/newline/$value: theme: color.newline: hex is the six digits of CSS hex notation, such as #1b1f24 [theme@specarch.yaml#/theme/tokens/color/newline/$value]
+  specarch.yaml:29:24: error: /theme/tokens/space/large/$value: theme: space.large: a dimension is a value and a unit, px or rem [theme@specarch.yaml#/theme/tokens/space/large/$value]
+  specarch.yaml:33:16: error: /theme/tokens/font/untyped: theme: font.untyped has no $type, and no group above it gives one; give it the type of its value [theme@specarch.yaml#/theme/tokens/font/untyped]
+  specarch.yaml:34:37: error: /theme/tokens/font/typo/$valu: schema: $valu is not a key this object can have; remove it or correct its spelling [schema@specarch.yaml#/theme/tokens/font/typo/$valu]
+  specarch.yaml:36:13: error: /theme/tokens/motion/ease: theme: motion.ease is a cubicBezier token, which SpecArch does not take yet; it takes color, dimension, fontFamily, fontWeight, duration and number [theme@specarch.yaml#/theme/tokens/motion/ease]
+  specarch.yaml:42:22: error: /theme/modes/dark/color.missing: theme: color.missing is not a token of the theme [theme@specarch.yaml#/theme/modes/dark/color.missing]
+  specarch.yaml:45:7: error: /theme/pairs/1: theme: color.link on color.background has a contrast of 2.81:1 in the dark mode, below the 4.5:1 WCAG 2.2 asks of text at level AA (1.4.3) [theme@specarch.yaml#/theme/pairs/1]
+  specarch.yaml:46:7: error: /theme/pairs/2: theme: color.muted on color.background has a contrast of 2.84:1, below the 4.5:1 WCAG 2.2 asks of text at level AA (1.4.3) [theme@specarch.yaml#/theme/pairs/2]
+  specarch.yaml:47:7: error: /theme/pairs/3: theme: color.muted on color.background has a contrast of 2.84:1, below the 3:1 WCAG 2.2 asks of large text at level AA (1.4.3) [theme@specarch.yaml#/theme/pairs/3]
+  specarch.yaml:48:7: error: /theme/pairs/4: theme: color.veil on color.background is translucent, so its contrast depends on what lies beneath; pair opaque colours [theme@specarch.yaml#/theme/pairs/4]
+  specarch.yaml:49:15: error: /theme/pairs/5/text: theme: space.small is a dimension token, and a pair is of colours [theme@specarch.yaml#/theme/pairs/5/text]

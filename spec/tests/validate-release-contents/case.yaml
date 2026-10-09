@@ -1,7 +1,7 @@
 arguments: [validate, project]
 exitStatus: 1
 standardOutput: |
-  records/changes/CR-2.yaml:14: error: /release: release_contents: release 1.0.0 does not include CR-2; add CR-2 to its includes, or name the release that does
-  records/changes/CR-3.yaml:14: error: /release: release_contents: release 1.1.0 is planned, so CR-3 cannot be released in it yet; set CR-3's status back, or release 1.1.0
-  records/releases/1.0.0.yaml:6: error: /includes/0: release_contents: CR-1 is approved, but a released release includes only changes that are implemented or released; take it out of includes, or carry the change out first
-  records/releases/1.0.0.yaml:6: error: /includes/1: release_contents: DEF-1 is confirmed, but a released release includes only defects that are fixed or released; take it out of includes, or fix the defect first
+  records/changes/CR-2.yaml:14:10: error: /release: release_contents: release 1.0.0 does not include CR-2; add CR-2 to its includes, or name the release that does [release_contents@../records/changes/CR-2.yaml#/release]
+  records/changes/CR-3.yaml:14:10: error: /release: release_contents: release 1.1.0 is planned, so CR-3 cannot be released in it yet; set CR-3's status back, or release 1.1.0 [release_contents@../records/changes/CR-3.yaml#/release]
+  records/releases/1.0.0.yaml:6:12: error: /includes/0: release_contents: CR-1 is approved, but a released release includes only changes that are implemented or released; take it out of includes, or carry the change out first [release_contents@../records/releases/1.0.0.yaml#/includes/0]
+  records/releases/1.0.0.yaml:6:18: error: /includes/1: release_contents: DEF-1 is confirmed, but a released release includes only defects that are fixed or released; take it out of includes, or fix the defect first [release_contents@../records/releases/1.0.0.yaml#/includes/1]

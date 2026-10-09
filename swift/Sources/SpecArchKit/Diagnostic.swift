@@ -119,14 +119,19 @@ public enum Severity: String, Sendable {
 public struct Diagnostic: CustomStringConvertible {
     public let file: String
     public let line: Int
+    public var column: Int = 0
     public var severity: Severity
     public let path: String
     public let rule: Rule
     public let message: String
+    /// Names what is wrong, not where it is printed (ADR-065): set by a
+    /// Placer.
+    public var id: String = ""
 
-    /// The one-line form: file:line: severity: /yaml/path: rule: message.
+    /// The problem line: file:line:column: severity: /yaml/path: rule:
+    /// message [id].
     public var description: String {
-        "\(file):\(line): \(severity.rawValue): \(path): \(rule.rawValue): \(message)"
+        "\(file):\(line):\(column): \(severity.rawValue): \(path): \(rule.rawValue): \(message) [\(id)]"
     }
 }
 
@@ -135,15 +140,17 @@ public func byteLess(_ a: String, _ b: String) -> Bool {
     a.utf8.lexicographicallyPrecedes(b.utf8)
 }
 
-/// Orders diagnostics by file, line, path, rule and message.
+/// Orders diagnostics by file, line, column, path, rule, message and id.
 public func sortDiagnostics(_ ds: inout [Diagnostic]) {
     ds = ds.enumerated().sorted { x, y in
         let a = x.element, b = y.element
         if a.file != b.file { return byteLess(a.file, b.file) }
         if a.line != b.line { return a.line < b.line }
+        if a.column != b.column { return a.column < b.column }
         if a.path != b.path { return byteLess(a.path, b.path) }
         if a.rule != b.rule { return byteLess(a.rule.rawValue, b.rule.rawValue) }
         if a.message != b.message { return byteLess(a.message, b.message) }
+        if a.id != b.id { return byteLess(a.id, b.id) }
         return x.offset < y.offset
     }.map { $0.element }
 }

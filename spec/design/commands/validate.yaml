@@ -28,7 +28,7 @@ commands:
       - { path: "{paths}", description: "Root files, the files under their stage folders, and implementation files." }
       - { path: "records/ beside each specification's folder", description: "The change, defect, release, incident, commissioning and approval records of that specification." }
       - { path: "the specification named in each standalone implementation file's `implements`", description: Read to resolve that file's references. }
-    standardOutput: One line per diagnostic, sorted by file, then line, then path, then rule.
+    standardOutput: "One line per diagnostic, `file:line:column: severity: /yaml/path: rule: message [id]`, sorted by file, then line, column, path, rule, message and id."
     standardError: A usage message on a usage error, the reason on an unreadable path, and a one-line count at the end, with the number of open questions when there are any.
     exitCodes:
       "0": every input is valid

@@ -1,6 +1,6 @@
 arguments: [generate, openapi, --unapproved, project]
 exitStatus: 0
 standardOutput: |
-  project/specarch.yaml:1: warning: /paths/~1books/post/requestBody/properties/edition: generator: edition is required and may be null; dxlib reads a null and a left-out parameter alike, as not given, so it is not required in the dxlib dialect and the handler decides what not given means
-  project/specarch.yaml:1: warning: /entities/Book/properties/edition: generator: edition is required and may be null; dxlib reads a null and a left-out parameter alike, as not given, so it is not required in the dxlib dialect and the handler decides what not given means
+  project/specarch.yaml:1:1: warning: /paths/~1books/post/requestBody/properties/edition: generator: edition is required and may be null; dxlib reads a null and a left-out parameter alike, as not given, so it is not required in the dxlib dialect and the handler decides what not given means [generator@specarch.yaml#/paths/~1books/post/requestBody/properties/edition]
+  project/specarch.yaml:21:16: warning: /entities/Book/properties/edition: generator: edition is required and may be null; dxlib reads a null and a left-out parameter alike, as not given, so it is not required in the dxlib dialect and the handler decides what not given means [generator@specarch.yaml#/entities/Book/properties/edition]
 plugins: [openapi]

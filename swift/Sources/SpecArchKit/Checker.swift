@@ -29,9 +29,16 @@ func checkSpec(_ s: Spec) -> [Diagnostic] {
 /// Runs every check and returns the diagnostics to report and, apart, the
 /// ones an open must question covers (see covered), both sorted.
 func checkSpecCovered(_ s: Spec) -> (kept: [Diagnostic], covered: [Diagnostic]) {
-    let all = checkSpecAll(s)
-    guard let root = s.root else { return (all, []) }
+    var all = checkSpecAll(s)
+    let placer = Placer(spec: s)
+    guard let root = s.root else {
+        placer.place(&all)
+        sortDiagnostics(&all)
+        return (all, [])
+    }
     var (kept, covered) = coveredByQuestions(all, root)
+    placer.place(&kept)
+    placer.place(&covered)
     sortDiagnostics(&kept)
     sortDiagnostics(&covered)
     return (kept, covered)
@@ -75,6 +82,7 @@ func checkImplementationFile(path: String, data: Data, load: @escaping Loader) -
     let c = Checker(file: path)
     c.runImplementation(data, nil, load)
     var ds = withoutEchoes(c.diags)
+    Placer(dir: dirPath(path)).place(&ds)
     sortDiagnostics(&ds)
     return ds
 }
@@ -88,7 +96,9 @@ func checkNamed(_ path: String) -> [Diagnostic] {
     } else {
         c.addLine(1, "/", .fileKind, "the file is neither \(rootFile) nor an implementation file (*\(implementationSuffix)); name a specification's folder or root file")
     }
-    return c.diags
+    var ds = c.diags
+    Placer(dir: dirPath(path)).place(&ds)
+    return ds
 }
 
 /// Drops a diagnostic that only repeats a schema error: one at the same
@@ -118,6 +128,7 @@ final class Checker {
     let files: [ObjectIdentifier: String]  // the file of each node of a merged specification
     var root: YNode!
     var diags: [Diagnostic] = []
+    let text = Placer(dir: "") // the lines of the files read, for an expression's column
 
     init(file: String, files: [ObjectIdentifier: String] = [:]) {
         self.file = file

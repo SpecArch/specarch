@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  case.go.specarch-implementation.yaml:10: error: /deployments/live/monitors/catalogue-latncy: monitor: catalogue-latncy is not a monitor of the specification; did you mean catalogue-latency?
+  case.go.specarch-implementation.yaml:10:25: error: /deployments/live/monitors/catalogue-latncy: monitor: catalogue-latncy is not a monitor of the specification; did you mean catalogue-latency? [monitor@case.go.specarch-implementation.yaml#/deployments/live/monitors/catalogue-latncy]

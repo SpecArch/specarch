@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:8: error: /entities/Item/properties/views/format: unsafe_integer: an int64 sent as a JSON number loses digits above 2^53 in JavaScript and other readers; carry it as type: string, format: int64, or bound it with minimum and maximum inside 9007199254740991
+  specarch.yaml:8:39: error: /entities/Item/properties/views/format: unsafe_integer: an int64 sent as a JSON number loses digits above 2^53 in JavaScript and other readers; carry it as type: string, format: int64, or bound it with minimum and maximum inside 9007199254740991 [unsafe_integer@specarch.yaml#/entities/Item/properties/views/format]

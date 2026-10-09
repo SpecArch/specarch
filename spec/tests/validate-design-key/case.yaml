@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  case.go.specarch-implementation.yaml:5: error: /entities: design_key: entities belongs to the specification, not to one implementation; move it to the specification's files
+  case.go.specarch-implementation.yaml:5:11: error: /entities: design_key: entities belongs to the specification, not to one implementation; move it to the specification's files [design_key@case.go.specarch-implementation.yaml#/entities]

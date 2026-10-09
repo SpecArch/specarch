@@ -1,6 +1,6 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:6: warning: /needs/NEED-1: need_unrefined: no requirement refines need NEED-1; add a requirement with needs: [NEED-1], or set the need's status to rejected
-  specarch.yaml:15: error: /requirements/CASE-1/needs/0: need: NEED-9 is not a need of the specification; did you mean NEED-1?
+  specarch.yaml:6:11: warning: /needs/NEED-1: need_unrefined: no requirement refines need NEED-1; add a requirement with needs: [NEED-1], or set the need's status to rejected [need_unrefined@specarch.yaml#/needs/NEED-1]
+  specarch.yaml:15:13: error: /requirements/CASE-1/needs/0: need: NEED-9 is not a need of the specification; did you mean NEED-1? [need@specarch.yaml#/requirements/CASE-1/needs/0]
 

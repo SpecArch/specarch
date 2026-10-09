@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:3: error: /info: duplicate_key: key "info" is already defined on line 2
+  specarch.yaml:3:1: error: /info: duplicate_key: key "info" is already defined on line 2 [duplicate_key@specarch.yaml#/info]

@@ -212,11 +212,12 @@ Check specifications; a folder is searched for them, and a folder holding
 
     specarch validate spec/ examples/
 
-Every problem is one line: the file, the line, `error` or `warning`, the
-YAML path in the specification, the rule, and one sentence saying what is
-wrong and how to fix it.
+Every problem is one line, in the form compilers use: the file, the line,
+the column, `error` or `warning`, the YAML path in the specification, the
+rule, one sentence saying what is wrong and how to fix it, and the
+problem's id in brackets, which stays the same while lines move.
 
-    design/entities/order.yaml:12: error: /entities/Order/relations/customer/target: relation_target: Custmer is not an entity of the specification; did you mean Customer?
+    design/entities/order.yaml:12:17: error: /entities/Order/relations/customer/target: relation_target: Custmer is not an entity of the specification; did you mean Customer? [relation_target@design/entities/order.yaml#/entities/Order/relations/customer/target]
 
 The exit status is 0 when every input is valid (warnings may be printed), 1
 when any has an error, and 2 for a usage error, a path that cannot be

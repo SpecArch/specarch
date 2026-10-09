@@ -1,0 +1,14 @@
+specarch: "0.1"
+info: { title: "Café ☕ menu", version: true }
+algorithms:
+  total:
+    inputs:
+      count: { type: integer, format: int32, minimum: 0 }
+      price: { type: string, format: decimal, precision: 10, scale: 2 }
+    output: { type: string, format: decimal, precision: 12, scale: 2 }
+    formula: |
+      decimal(count, 0)
+        * prise
+    examples:
+      - { name: three items, inputs: { count: 3, price: "2.50" }, expected: "7.50" }
+    pseudocode: return count * price

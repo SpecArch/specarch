@@ -241,15 +241,20 @@ const (
 type Diagnostic struct {
 	File     string
 	Line     int
+	Column   int
 	Severity Severity
 	Path     string
 	Rule     Rule
 	Message  string
+	// ID names what is wrong, not where it is printed (ADR-065): set by
+	// a Placer.
+	ID string
 }
 
-// String is the one-line form: file:line: severity: /yaml/path: rule: message.
+// String is the problem line: file:line:column: severity: /yaml/path:
+// rule: message [id].
 func (d Diagnostic) String() string {
-	return fmt.Sprintf("%s:%d: %s: %s: %s: %s", d.File, d.Line, d.Severity, d.Path, d.Rule, d.Message)
+	return fmt.Sprintf("%s:%d:%d: %s: %s: %s: %s [%s]", d.File, d.Line, d.Column, d.Severity, d.Path, d.Rule, d.Message, d.ID)
 }
 
 // Errors counts the diagnostics that make a file invalid.
@@ -263,7 +268,8 @@ func Errors(ds []Diagnostic) int {
 	return n
 }
 
-// Sort orders diagnostics by file, line, path, rule and message.
+// Sort orders diagnostics by file, line, column, path, rule, message and
+// id.
 func Sort(ds []Diagnostic) {
 	sort.SliceStable(ds, func(i, j int) bool {
 		a, b := ds[i], ds[j]
@@ -273,12 +279,18 @@ func Sort(ds []Diagnostic) {
 		if a.Line != b.Line {
 			return a.Line < b.Line
 		}
+		if a.Column != b.Column {
+			return a.Column < b.Column
+		}
 		if a.Path != b.Path {
 			return a.Path < b.Path
 		}
 		if a.Rule != b.Rule {
 			return a.Rule < b.Rule
 		}
-		return a.Message < b.Message
+		if a.Message != b.Message {
+			return a.Message < b.Message
+		}
+		return a.ID < b.ID
 	})
 }

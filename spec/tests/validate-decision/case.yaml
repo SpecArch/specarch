@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:7: error: /decisions/ADR-001/supersededBy: decision: ADR-002 is not a decision of the specification; did you mean ADR-001?
+  specarch.yaml:7:19: error: /decisions/ADR-001/supersededBy: decision: ADR-002 is not a decision of the specification; did you mean ADR-001? [decision@specarch.yaml#/decisions/ADR-001/supersededBy]

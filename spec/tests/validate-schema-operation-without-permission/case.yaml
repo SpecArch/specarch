@@ -1,6 +1,6 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:10: error: /paths/~1items/post: schema: permission is missing; add it here
-  specarch.yaml:10: warning: /paths/~1items/post: test_case_missing: operation createItem has no red scenario for "missing name"; add under tests create-item-missing-name: { operation: createItem, scenario: red, covers: [missing name], given: "...", when: "createItem is called without name", then: "it is refused" }
-  specarch.yaml:10: warning: /paths/~1items/post: test_golden_missing: operation createItem has no golden scenario; add one under tests, for example create-item-succeeds: { operation: createItem, scenario: golden, given: "any caller", when: "createItem is called with values inside every limit", then: "it answers 201: Added." }
+  specarch.yaml:10:7: error: /paths/~1items/post: schema: permission is missing; add it here [schema@specarch.yaml#/paths/~1items/post]
+  specarch.yaml:10:7: warning: /paths/~1items/post: test_case_missing: operation createItem has no red scenario for "missing name"; add under tests create-item-missing-name: { operation: createItem, scenario: red, covers: [missing name], given: "...", when: "createItem is called without name", then: "it is refused" } [test_case_missing@specarch.yaml#/paths/~1items/post]
+  specarch.yaml:10:7: warning: /paths/~1items/post: test_golden_missing: operation createItem has no golden scenario; add one under tests, for example create-item-succeeds: { operation: createItem, scenario: golden, given: "any caller", when: "createItem is called with values inside every limit", then: "it answers 201: Added." } [test_golden_missing@specarch.yaml#/paths/~1items/post]

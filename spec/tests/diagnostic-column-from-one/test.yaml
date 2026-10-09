@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+entity: Diagnostic
+constraint: diagnostic_column_positive
+level: system
+scenario: golden
+given: a problem at a key that starts a line with no indentation
+when: the diagnostic is made
+then: its column is 1

@@ -1,6 +1,6 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  design/algorithms/total.yaml:7: error: /algorithms/total/formula: expression_name: the formula, column 9: cout is not a name this expression can use; use one of count, price
-  design/entities/item.yaml:9: warning: /entities/Item/constraints/stock_counted: test_golden_missing: Item constraint stock_counted has no golden scenario; add one under tests, for example stock-counted-succeeds: { entity: Item, constraint: stock_counted, scenario: golden, given: "...", when: "a Item keeping it is saved", then: "it is saved" }
-  design/entities/item.yaml:11: error: /entities/Item/constraints/stock_counted/expression: expression_type: the check gives an int, but a check must give true or false; compare the values with ==, <, > or similar
+  design/algorithms/total.yaml:7:22: error: /algorithms/total/formula: expression_name: the formula: cout is not a name this expression can use; use one of count, price [expression_name@design/algorithms/total.yaml#/algorithms/total/formula]
+  design/entities/item.yaml:9:7: warning: /entities/Item/constraints/stock_counted: test_golden_missing: Item constraint stock_counted has no golden scenario; add one under tests, for example stock-counted-succeeds: { entity: Item, constraint: stock_counted, scenario: golden, given: "...", when: "a Item keeping it is saved", then: "it is saved" } [test_golden_missing@design/entities/item.yaml#/entities/Item/constraints/stock_counted]
+  design/entities/item.yaml:11:21: error: /entities/Item/constraints/stock_counted/expression: expression_type: the check gives an int, but a check must give true or false; compare the values with ==, <, > or similar [expression_type@design/entities/item.yaml#/entities/Item/constraints/stock_counted/expression]

@@ -1,5 +1,5 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  implementation/go/case.swift.specarch-implementation.yaml:1: error: /: layout: the folder says the stack is go but the file name says swift; make them agree
+  implementation/go/case.swift.specarch-implementation.yaml:1:1: error: /: layout: the folder says the stack is go but the file name says swift; make them agree [layout@implementation/go/case.swift.specarch-implementation.yaml#/]
 

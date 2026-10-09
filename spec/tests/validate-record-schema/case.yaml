@@ -1,6 +1,6 @@
 arguments: [validate, project]
 exitStatus: 1
 standardOutput: |
-  records/changes/CR-1.yaml:2: error: /kind: schema: wish is not allowed here; use one of approval, change, commissioning, defect, incident, release
-  records/defects/DEF-1.yaml:1: error: /: schema: violates is missing; add it here
-  records/defects/DEF-1.yaml:6: error: /reported: unquoted_date: 2026-10-12 is read by YAML as a timestamp; quote it: "2026-10-12"
+  records/changes/CR-1.yaml:2:7: error: /kind: schema: wish is not allowed here; use one of approval, change, commissioning, defect, incident, release [schema@../records/changes/CR-1.yaml#/kind]
+  records/defects/DEF-1.yaml:1:1: error: /: schema: violates is missing; add it here [schema@../records/defects/DEF-1.yaml#/]
+  records/defects/DEF-1.yaml:6:11: error: /reported: unquoted_date: 2026-10-12 is read by YAML as a timestamp; quote it: "2026-10-12" [unquoted_date@../records/defects/DEF-1.yaml#/reported]

@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:8: error: /entities/Item/properties/name/satisfies: schema: satisfies is not a key this object can have; remove it or correct its spelling
+  specarch.yaml:8:40: error: /entities/Item/properties/name/satisfies: schema: satisfies is not a key this object can have; remove it or correct its spelling [schema@specarch.yaml#/entities/Item/properties/name/satisfies]

@@ -117,7 +117,7 @@ final class Spec {
             value = doc.value
             return
         }
-        let merged = YNode(kind: .mapping, line: docRoot.line)
+        let merged = YNode(kind: .mapping, line: docRoot.line, column: docRoot.column)
         files[ObjectIdentifier(merged)] = rootPath
         var found: [String: YNode] = [:]
         var listed = Set<String>()
@@ -203,7 +203,7 @@ final class Spec {
         // Sections in life-cycle order after the root file's own keys.
         for name in sectionOrder {
             guard let n = found[name], merged.key(name) == nil else { continue }
-            let key = YNode(kind: .scalar, value: name, tag: "!!str", line: n.line)
+            let key = YNode(kind: .scalar, value: name, tag: "!!str", line: n.line, column: n.column)
             files[ObjectIdentifier(key)] = files[ObjectIdentifier(n)]
             merged.pairs.append((key, n))
         }
@@ -248,7 +248,7 @@ final class Spec {
     private func mergeSection(_ found: inout [String: YNode], _ name: String, _ value: YNode, _ file: String) {
         var target = found[name]
         if target == nil {
-            let t = YNode(kind: .mapping, line: value.line)
+            let t = YNode(kind: .mapping, line: value.line, column: value.column)
             files[ObjectIdentifier(t)] = file
             found[name] = t
             target = t
@@ -366,7 +366,7 @@ final class Spec {
             for pr in doc.problems { problem(tf, pr.line, pr.path, pr.rule, pr.message) }
             guard let docRoot = doc.root else { continue }
             record(docRoot, tf)
-            let key = YNode(kind: .scalar, value: e.name, tag: "!!str", line: max(docRoot.line, 1))
+            let key = YNode(kind: .scalar, value: e.name, tag: "!!str", line: max(docRoot.line, 1), column: 1)
             files[ObjectIdentifier(key)] = tf
             tests.pairs.append((key, docRoot))
         }

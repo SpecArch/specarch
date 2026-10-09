@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:9: error: /algorithms/total/formula: expression_syntax: the formula, column 21: the expression ends where a value or a closing bracket was expected; complete it
+  specarch.yaml:9:35: error: /algorithms/total/formula: expression_syntax: the formula: the expression ends where a value or a closing bracket was expected; complete it [expression_syntax@specarch.yaml#/algorithms/total/formula]

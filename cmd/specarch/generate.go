@@ -18,6 +18,7 @@ import (
 	"github.com/SpecArch/specarch/internal/approval"
 	"github.com/SpecArch/specarch/internal/generate"
 	"github.com/SpecArch/specarch/internal/source"
+	"github.com/SpecArch/specarch/internal/spec"
 	"github.com/SpecArch/specarch/internal/validate"
 )
 
@@ -80,6 +81,7 @@ type pluginFile struct {
 type pluginDiagnostic struct {
 	File     string `json:"file"`
 	Line     int    `json:"line"`
+	Column   int    `json:"column,omitempty"`
 	Severity string `json:"severity"`
 	Path     string `json:"path"`
 	Rule     string `json:"rule"`
@@ -137,9 +139,9 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 			if status != 0 {
 				return status
 			}
-			for _, d := range resp.Diagnostics {
-				fmt.Fprintf(stdout, "%s:%d: %s: %s: %s: %s\n", d.File, d.Line, d.Severity, d.Path, d.Rule, d.Message)
-				if d.Severity == "error" {
+			for _, d := range placePlugin(l.spec, resp.Diagnostics) {
+				fmt.Fprintln(stdout, d.String())
+				if d.Severity == validate.Error {
 					failed = true
 				}
 			}
@@ -385,4 +387,37 @@ func runPlugin(exe, name string, req pluginRequest, stderr io.Writer) (*pluginRe
 		return nil, 2
 	}
 	return &resp, 0
+}
+
+// placePlugin puts a plug-in's diagnostics in validate's line. A plug-in
+// names the entry by its pointer and the root file; one whose pointer leads
+// to an entry of the merged specification is put at the fragment, line and
+// column that entry was read from. The column, when not given, and the id
+// are made as validate makes them.
+func placePlugin(s *spec.Spec, ds []pluginDiagnostic) []validate.Diagnostic {
+	out := make([]validate.Diagnostic, 0, len(ds))
+	for _, d := range ds {
+		v := validate.Diagnostic{File: d.File, Line: d.Line, Column: d.Column, Severity: validate.Severity(d.Severity),
+			Path: d.Path, Rule: validate.Rule(d.Rule), Message: d.Message}
+		if v.Path == "" {
+			v.Path = "/"
+		}
+		if s.Root != nil && d.File == s.RootFile {
+			if start, value, ok := validate.Locate(s.Root, validate.Tokens(v.Path)); ok {
+				file := s.Files[value]
+				if file == "" {
+					file = s.Files[start]
+				}
+				if file != "" {
+					v.File, v.Line, v.Column = file, start.Line, 0
+				}
+			}
+		}
+		if v.Line < 1 {
+			v.Line = 1
+		}
+		out = append(out, v)
+	}
+	validate.SpecPlacer(s).Place(out)
+	return out
 }

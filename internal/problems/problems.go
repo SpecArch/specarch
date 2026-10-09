@@ -5,7 +5,6 @@ package problems
 
 import (
 	"fmt"
-	"hash/fnv"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -72,12 +71,11 @@ func (n Note) String() string {
 // diagnostics validate keeps, covered those an open question covers. Files
 // are named relative to folder, where the problems file is written.
 func Collect(s *spec.Spec, diags, covered []validate.Diagnostic, folder string) []Problem {
-	c := &collector{s: s, folder: folder, texts: map[string][]string{}, trees: map[string]*yaml.Node{}}
+	c := &collector{s: s, folder: folder, placer: validate.SpecPlacer(s)}
 	var out []Problem
 	for _, d := range diags {
 		out = append(out, c.diagnostic(d))
 	}
-	numberIDs(out)
 	missing := map[string][]string{}
 	for _, d := range covered {
 		if d.Rule == validate.RuleSchema && strings.HasSuffix(d.Message, " is missing; add it here") {
@@ -114,8 +112,7 @@ func Collect(s *spec.Spec, diags, covered []validate.Diagnostic, folder string) 
 type collector struct {
 	s      *spec.Spec
 	folder string
-	texts  map[string][]string   // the lines of each file read
-	trees  map[string]*yaml.Node // each file parsed on its own
+	placer *validate.Placer // the trees of the files read
 }
 
 // rel names a file relative to the problems file's folder.
@@ -136,149 +133,20 @@ func relSlash(from, to string) string {
 
 func (c *collector) diagnostic(d validate.Diagnostic) Problem {
 	p := Problem{
-		ID:       fmt.Sprintf("%s@%s#%s", d.Rule, relSlash(c.s.Dir, d.File), d.Path),
+		ID:       d.ID,
 		Severity: Severity(d.Severity),
 		File:     c.rel(d.File),
 		Line:     d.Line,
+		Column:   d.Column,
 		Path:     d.Path,
 		Rule:     string(d.Rule),
 		Message:  d.Message,
 	}
-	tokens := tokensOf(d.Path)
-	root := c.treeOf(d.File, tokens)
-	p.Column = c.column(d.File, d.Line, root, tokens)
-	if root != nil {
+	tokens := validate.Tokens(d.Path)
+	if root := c.placer.TreeOf(d.File, tokens); root != nil {
 		p.Notes = c.citations(root, tokens)
 	}
 	return p
-}
-
-// treeOf is the tree a diagnostic's pointer is into: the merged
-// specification when the pointer leads there to a node of that file, and
-// otherwise the file parsed on its own (an implementation file, a record,
-// or a fragment the specification could not merge).
-func (c *collector) treeOf(file string, tokens []string) *yaml.Node {
-	if c.s.Root != nil {
-		if n, ok := source.Resolve(c.s.Root, tokens); ok && c.s.Files[n] == file {
-			return c.s.Root
-		}
-		if len(tokens) == 0 && file == c.s.RootFile {
-			return c.s.Root
-		}
-	}
-	if t, seen := c.trees[file]; seen {
-		return t
-	}
-	var t *yaml.Node
-	if data, err := os.ReadFile(file); err == nil {
-		t = source.Parse(data).Root
-	}
-	c.trees[file] = t
-	return t
-}
-
-// column is the column of the node the pointer names when the problem is on
-// its line (its value, or else its key), and otherwise that of the first
-// character on the line that is not a space.
-func (c *collector) column(file string, line int, root *yaml.Node, tokens []string) int {
-	if root != nil {
-		start, value, ok := locate(root, tokens)
-		if ok {
-			if value != nil && value.Line == line && value.Column > 0 {
-				return value.Column
-			}
-			if start != nil && start.Line == line && start.Column > 0 {
-				return start.Column
-			}
-		}
-	}
-	lines := c.lines(file)
-	if line >= 1 && line <= len(lines) {
-		text := []rune(lines[line-1])
-		for i, r := range text {
-			if r != ' ' && r != '\t' {
-				return i + 1
-			}
-		}
-	}
-	return 1
-}
-
-func (c *collector) lines(file string) []string {
-	if l, seen := c.texts[file]; seen {
-		return l
-	}
-	var l []string
-	if data, err := os.ReadFile(file); err == nil {
-		l = strings.Split(string(data), "\n")
-	}
-	c.texts[file] = l
-	return l
-}
-
-// locate follows a pointer from root. It returns where the deepest entry
-// reached starts (its key, or its item in a list), its value, and whether
-// the whole pointer was reached. For the empty pointer both are the root.
-func locate(root *yaml.Node, tokens []string) (start, value *yaml.Node, whole bool) {
-	start, value = root, root
-	for _, t := range tokens {
-		parent := source.Deref(value)
-		next := source.Child(parent, t)
-		if next == nil {
-			return start, value, false
-		}
-		if parent.Kind == yaml.MappingNode {
-			start = source.Key(parent, t)
-		} else {
-			start = next
-		}
-		value = next
-	}
-	return start, value, true
-}
-
-func tokensOf(ptr string) []string {
-	if ptr == "" || ptr == "/" {
-		return nil
-	}
-	var out []string
-	for _, t := range strings.Split(strings.TrimPrefix(ptr, "/"), "/") {
-		out = append(out, source.UnescapeToken(t))
-	}
-	return out
-}
-
-// numberIDs tells apart the problems of one rule at one pointer of one
-// file: each gets .<tag> after the rule, eight hex digits of the FNV-1a
-// hash of its message, so that fixing one leaves the others' ids as they
-// are. Problems with the same message as well are numbered -2, -3 and on.
-func numberIDs(ps []Problem) {
-	groups := map[string][]int{}
-	var order []string
-	for i, p := range ps {
-		if _, seen := groups[p.ID]; !seen {
-			order = append(order, p.ID)
-		}
-		groups[p.ID] = append(groups[p.ID], i)
-	}
-	for _, id := range order {
-		idx := groups[id]
-		if len(idx) < 2 {
-			continue
-		}
-		seen := map[string]int{}
-		for _, i := range idx {
-			p := &ps[i]
-			h := fnv.New32a()
-			h.Write([]byte(p.Message))
-			tag := fmt.Sprintf("%08x", h.Sum32())
-			seen[tag]++
-			if seen[tag] > 1 {
-				tag = fmt.Sprintf("%s-%d", tag, seen[tag])
-			}
-			p.ID = strings.Replace(p.ID, p.Rule+"@", p.Rule+"."+tag+"@", 1)
-		}
-	}
 }
 
 // citations are the notes of the nearest element at or above the pointer
@@ -387,7 +255,7 @@ func (c *collector) question(q source.Pair, missing map[string][]string) Problem
 			whole = append(whole, block)
 			continue
 		}
-		start, _, reached := locate(c.s.Root, b.Tokens)
+		start, _, reached := validate.Locate(c.s.Root, b.Tokens)
 		text := "blocks " + block
 		if !reached {
 			text += ", which is not given yet"

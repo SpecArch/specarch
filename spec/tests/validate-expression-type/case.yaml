@@ -1,4 +1,4 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:9: error: /algorithms/total/formula: expression_type: the formula, column 7: * needs two numbers of one type, and this is an int * a decimal of scale 2; convert the int with decimal(x, scale)
+  specarch.yaml:9:20: error: /algorithms/total/formula: expression_type: the formula: * needs two numbers of one type, and this is an int * a decimal of scale 2; convert the int with decimal(x, scale) [expression_type@specarch.yaml#/algorithms/total/formula]

@@ -12,15 +12,18 @@ public final class YNode {
     public let tag: String
     public let style: Style
     public let line: Int
+    /// From 1, in Unicode characters.
+    public let column: Int
     public var pairs: [(key: YNode, value: YNode)] = []
     public var items: [YNode] = []
 
-    init(kind: Kind, value: String = "", tag: String = "", style: Style = .plain, line: Int) {
+    init(kind: Kind, value: String = "", tag: String = "", style: Style = .plain, line: Int, column: Int = 1) {
         self.kind = kind
         self.value = value
         self.tag = tag
         self.style = style
         self.line = line
+        self.column = column
     }
 
     /// The value under key in a mapping, or the item at an index in a sequence.
@@ -92,6 +95,7 @@ public func parseYAML(_ text: String) -> Doc {
     // repeat on its own line, as other implementations do, every later
     // repeat is renamed in place and the text is parsed again.
     var duplicates: [(key: String, first: Int, again: Int)] = []
+    var shifts: [Int: Shift] = [:]
     var nodes: [Node] = []
     for _ in 0..<100 {
         do {
@@ -103,7 +107,7 @@ public func parseYAML(_ text: String) -> Doc {
             }
             break
         } catch let YamlError.duplicatedKeysInMapping(keys, context) {
-            guard let renamed = renameDuplicates(in: source, keys: keys, line: context.mark.line, column: context.mark.column, found: &duplicates) else {
+            guard let renamed = renameDuplicates(in: source, keys: keys, line: context.mark.line, column: context.mark.column, found: &duplicates, shifts: &shifts) else {
                 doc.problems.append(Problem(line: context.mark.line, path: "/", rule: "yaml_syntax",
                                             message: "a mapping repeats the key \(keys.joined(separator: ", ")); give each key once"))
                 return doc
@@ -125,7 +129,7 @@ public func parseYAML(_ text: String) -> Doc {
         doc.problems.append(Problem(line: nodes[1].mark?.line ?? 1, path: "/", rule: "yaml_syntax", message: "a file holds one YAML document; found a second"))
         return doc
     }
-    let root = convert(first)
+    let root = convert(first, shifts)
     doc.root = root
     var problems: [Problem] = []
     doc.value = jsonValue(root, path: "", duplicates: duplicates, problems: &problems)
@@ -169,7 +173,7 @@ private func syntaxProblem(_ error: YamlError) -> Problem {
 /// earlier key, keeping the text's lines as they are. Returns nil when the
 /// repeat cannot be found, such as in a flow mapping.
 private func renameDuplicates(in text: String, keys: [String], line: Int, column: Int,
-                              found: inout [(key: String, first: Int, again: Int)]) -> String? {
+                              found: inout [(key: String, first: Int, again: Int)], shifts: inout [Int: Shift]) -> String? {
     var lines = text.components(separatedBy: "\n")
     let indent = column - 1
     var firstLine: [String: Int] = [:]
@@ -189,6 +193,7 @@ private func renameDuplicates(in text: String, keys: [String], line: Int, column
                             let replacement = duplicateMarker + "\(n)"
                             lines[i] = String(repeating: " ", count: lead) + replacement + trimmed.dropFirst(spelled.count)
                             found.append((key, first, i + 1))
+                            shifts[i + 1] = Shift(after: lead + 1, by: replacement.unicodeScalars.count - spelled.unicodeScalars.count)
                             changed = true
                         } else {
                             firstLine[key] = i + 1
@@ -202,7 +207,19 @@ private func renameDuplicates(in text: String, keys: [String], line: Int, column
     return changed ? lines.joined(separator: "\n") : nil
 }
 
-private func convert(_ n: Node) -> YNode {
+/// How far a renamed repeated key moved the columns after it on its line,
+/// so that a node keeps the column it has in the text as written.
+struct Shift {
+    let after: Int
+    let by: Int
+}
+
+private func convert(_ n: Node, _ shifts: [Int: Shift]) -> YNode {
+    let line = n.mark?.line ?? 1
+    var column = n.mark?.column ?? 1
+    if let s = shifts[line], column > s.after {
+        column -= s.by
+    }
     switch n {
     case .scalar(let s):
         let style: YNode.Style
@@ -213,17 +230,17 @@ private func convert(_ n: Node) -> YNode {
         default: style = .plain
         }
         let tag = resolveTag(s.string, explicit: s.tag.description, style: style)
-        return YNode(kind: .scalar, value: s.string, tag: tag, style: style, line: s.mark?.line ?? 1)
+        return YNode(kind: .scalar, value: s.string, tag: tag, style: style, line: line, column: column)
     case .mapping(let m):
-        let node = YNode(kind: .mapping, line: m.mark?.line ?? 1)
-        for (k, v) in m { node.pairs.append((convert(k), convert(v))) }
+        let node = YNode(kind: .mapping, line: line, column: column)
+        for (k, v) in m { node.pairs.append((convert(k, shifts), convert(v, shifts))) }
         return node
     case .sequence(let q):
-        let node = YNode(kind: .sequence, line: q.mark?.line ?? 1)
-        node.items = q.map(convert)
+        let node = YNode(kind: .sequence, line: line, column: column)
+        node.items = q.map { convert($0, shifts) }
         return node
     case .alias:
-        return YNode(kind: .scalar, value: "", tag: "!!null", line: n.mark?.line ?? 1)
+        return YNode(kind: .scalar, value: "", tag: "!!null", line: line, column: column)
     }
 }
 

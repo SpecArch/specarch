@@ -1,6 +1,6 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:13: warning: /pages/items-list: test_golden_missing: page items-list has no golden scenario; add one under tests, for example items-list-succeeds: { page: items-list, scenario: golden, given: "any caller", when: "the page items-list is opened", then: "it shows the page" }
-  specarch.yaml:13: warning: /pages/items-list: test_red_missing: page items-list has no red scenario; add one under tests, for example items-list-refused: { page: items-list, scenario: red, given: "...", when: "...", then: "it is refused" }
-  specarch.yaml:13: error: /pages/items-list/source: operation: listItems is not an operationId of the specification; there are none in the specification
+  specarch.yaml:13:15: warning: /pages/items-list: test_golden_missing: page items-list has no golden scenario; add one under tests, for example items-list-succeeds: { page: items-list, scenario: golden, given: "any caller", when: "the page items-list is opened", then: "it shows the page" } [test_golden_missing@specarch.yaml#/pages/items-list]
+  specarch.yaml:13:15: warning: /pages/items-list: test_red_missing: page items-list has no red scenario; add one under tests, for example items-list-refused: { page: items-list, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@specarch.yaml#/pages/items-list]
+  specarch.yaml:13:117: error: /pages/items-list/source: operation: listItems is not an operationId of the specification; there are none in the specification [operation@specarch.yaml#/pages/items-list/source]

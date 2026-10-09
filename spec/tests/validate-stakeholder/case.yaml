@@ -1,5 +1,5 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:6: error: /needs/NEED-1/stakeholders/0: stakeholder: clerks is not a stakeholder of the specification; did you mean clerk?
+  specarch.yaml:6:72: error: /needs/NEED-1/stakeholders/0: stakeholder: clerks is not a stakeholder of the specification; did you mean clerk? [stakeholder@specarch.yaml#/needs/NEED-1/stakeholders/0]
 

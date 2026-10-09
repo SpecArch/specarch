@@ -1,0 +1,63 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+permissions:
+  members.create: { description: Add members. }
+roles:
+  clerk: { description: Staff., permissions: [members.create] }
+paths:
+  /members:
+    post:
+      operationId: createMember
+      summary: Add a member
+      permission: members.create
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Member" }
+      responses:
+        "201": { description: Added. }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      name: { type: string }
+      address: { $ref: "#/schemas/Address" }
+      phones: { type: array, items: { $ref: "#/schemas/Phone" }, storage: json }
+    required: [id, name]
+    primaryKey: [id]
+schemas:
+  Address:
+    type: object
+    properties:
+      street: { type: string, maxLength: 200 }
+      city: { type: string, maxLength: 100, mistakes: rare }
+      location: { $ref: "#/schemas/Location" }
+    required: [street, city]
+  Location:
+    type: object
+    properties:
+      latitude: { type: number, format: double }
+      longitude: { type: number, format: double }
+    required: [latitude]
+  Phone:
+    type: object
+    properties:
+      number: { type: string, maxLength: 30 }
+    required: [number]
+tests:
+  create-member-succeeds:
+    operation: createMember
+    level: system
+    scenario: golden
+    given: "a caller with members.create"
+    when: "createMember is called with values inside every limit"
+    then: "it answers 201: Added."
+  create-member-missing-address-street:
+    operation: createMember
+    level: system
+    scenario: red
+    covers: [missing address.street]
+    given: "a caller with members.create"
+    when: "createMember is called with an address without its street"
+    then: "it is refused"

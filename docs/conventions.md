@@ -1408,6 +1408,7 @@ mistake:
 | Found in the design | Case | Scenario | Frequency |
 |---|---|---|---|
 | a required field of a request body | `missing <field>` | red | frequent |
+| a required part of a value object a body field holds, at any depth, or of each item of a list of them | `missing <field>.<part>` | red | frequent |
 | `minimum` / `maximum` of a field or parameter | `<field> below minimum N` / `<field> above maximum N` | red | occasional |
 | | `<field> at minimum N` / `<field> at maximum N` | golden | occasional |
 | `exclusiveMinimum` / `exclusiveMaximum` | `<field> at exclusive minimum N` / `... maximum N` | red | occasional |

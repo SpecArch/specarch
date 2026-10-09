@@ -47,6 +47,9 @@ func Generate(r *genopenapi.Request) genopenapi.Response {
 		return g.response(nil)
 	}
 	g.entities = obj(g.spec["entities"])
+	g.schemas = obj(g.spec["schemas"])
+	g.values, g.columns, g.helpers = map[string]bool{}, map[string]bool{}, map[string]bool{}
+	g.folds = map[string]bool{}
 	g.collectLists()
 
 	var body strings.Builder
@@ -55,6 +58,7 @@ func Generate(r *genopenapi.Request) genopenapi.Response {
 	g.handlers()
 	g.seeds()
 	g.tasks()
+	g.valueTypes()
 	if g.failed() {
 		return g.response(nil)
 	}
@@ -111,6 +115,11 @@ type gen struct {
 	listView                 map[string]string   // per entity, the view its lists page through, "-" for none
 	mixed                    map[string]bool     // entities listed in two ways, reported once
 	patterns                 [][2]string         // the regexp variables the checks use: name, pattern
+	schemas                  map[string]any
+	values                   map[string]bool // the schemas a request carries, written as Go types
+	columns                  map[string]bool // the schemas kept in columns, which write their parts into a row
+	folds                    map[string]bool // the entities whose stored row is folded into the interface's shape
+	helpers                  map[string]bool // the helper functions the file uses
 }
 
 func (g *gen) line(format string, args ...any) { fmt.Fprintf(g.w, format+"\n", args...) }
@@ -302,6 +311,11 @@ type operation struct {
 	node, item       map[string]any
 }
 
+// pointer is the operation's JSON pointer in the specification.
+func (o operation) pointer() string {
+	return "/paths/" + strings.NewReplacer("~", "~0", "/", "~1").Replace(o.path) + "/" + o.method
+}
+
 func (g *gen) operations() []operation {
 	var out []operation
 	paths := obj(g.spec["paths"])
@@ -319,6 +333,7 @@ func (g *gen) operations() []operation {
 
 // param is one parameter of an operation as dxlib reads it.
 type param struct {
+	name        string // the design's name
 	wire, field string // the name on the wire, and the accessor's field
 	schema      map[string]any
 	required    bool
@@ -335,7 +350,7 @@ func (g *gen) params(o operation) []param {
 			return
 		}
 		seen[w] = true
-		out = append(out, param{wire: w, field: pascal(name), schema: s, required: req})
+		out = append(out, param{name: name, wire: w, field: pascal(name), schema: s, required: req})
 	}
 	for _, p := range append(list(o.item["parameters"]), list(o.node["parameters"])...) {
 		pm := obj(p)
@@ -374,6 +389,13 @@ func (g *gen) params(o operation) []param {
 
 // goType is the Go type of a parameter and the dxlib getter that reads it.
 func (g *gen) goType(s map[string]any) (typ, getter string) {
+	if name, many := valueObjectOf(s); name != "" && g.schemas[name] != nil {
+		g.useValue(name)
+		if many {
+			return "[]" + pascal(name), readValue
+		}
+		return "*" + pascal(name), readValue
+	}
 	t, _ := genopenapi.DXType(s)
 	// A nullable type reads as its base: dxlib's getter answers a null and a
 	// left-out parameter alike, with Has false.
@@ -463,11 +485,16 @@ func (g *gen) operation(o operation) {
 	g.line("")
 	g.line("func read%s(aepr *api.DXAPIEndPointRequest) (r %s, err error) {", req, req)
 	for _, p := range params {
-		_, getter := g.goType(p.schema)
-		g.line("\tif r.Has%s, r.%s, err = aepr.%s(%q); err != nil {", p.field, p.field, getter, p.wire)
+		typ, getter := g.goType(p.schema)
+		if getter == readValue {
+			g.helper("readValue")
+			g.line("\tif r.Has%s, r.%s, err = readValue[%s](aepr, %q); err != nil {", p.field, p.field, typ, p.wire)
+		} else {
+			g.line("\tif r.Has%s, r.%s, err = aepr.%s(%q); err != nil {", p.field, p.field, getter, p.wire)
+		}
 		g.line("\t\treturn r, err")
 		g.line("\t}")
-		if v, ok := g.defaultValue("/paths/"+o.path+"/"+o.method, p.wire, p.schema); ok {
+		if v, ok := g.defaultValue(o.pointer(), p.wire, p.schema); ok {
 			g.line("\tif !r.Has%s {", p.field)
 			g.line("\t\tr.%s = %s", p.field, v)
 			g.line("\t}")
@@ -552,6 +579,9 @@ func (g *gen) listBody(o operation, entity string) {
 		g.line("\t\treturn aepr.WriteResponseAndNewErrorf(http.StatusUnprocessableEntity, \"\", \"%%s\", \"INVALID_PARAMETER:row_per_page:maximum: %s\")", max)
 		g.line("\t}")
 	}
+	if g.holdsValues(entity) {
+		g.problem("warning", o.pointer(), "%s lists %s through dxlib's paging list, which answers each row as it is stored: a value kept in columns as the columns of its parts, and one kept as JSON as its text; give the rows the interface's shape in the service", o.id, entity)
+	}
 	g.line("\treturn Tables.%s.RequestSearchPagingList(aepr)", entity)
 }
 
@@ -561,6 +591,9 @@ func (g *gen) createBody(entity string, params []param) {
 	uid, _ := g.keyed(entity)
 	g.line("\tdata := utils.JSON{}")
 	for _, p := range params {
+		if g.storeValue(entity, p) {
+			continue
+		}
 		if _, ok := p.schema["default"]; ok && p.schema["default"] != nil {
 			g.line("\tdata[%q] = r.%s", p.wire, p.field)
 			continue
@@ -585,6 +618,7 @@ func (g *gen) createBody(entity string, params []param) {
 	g.line("\tif err != nil {")
 	g.line("\t\treturn err")
 	g.line("\t}")
+	g.foldRow(entity)
 	g.line("\taepr.WriteResponseAsJSON(http.StatusCreated, nil, row)")
 	g.line("\treturn nil")
 }
@@ -609,6 +643,7 @@ func (g *gen) readBody(entity string, params []param) {
 	g.line("\tif row == nil {")
 	g.line("\t\treturn aepr.WriteResponseAndNewErrorf(http.StatusNotFound, \"\", \"%s_NOT_FOUND:%%s\", r.%s)", strings.ToUpper(snakeName(entity)), key.field)
 	g.line("\t}")
+	g.foldRow(entity)
 	g.line("\taepr.WriteResponseAsJSON(http.StatusOK, nil, row)")
 	g.line("\treturn nil")
 }
@@ -620,12 +655,15 @@ func (g *gen) checks(o operation, name, req string, params []param) {
 	g.line("// document lists under x-specarch-unenforced.")
 	g.line("func check%s(aepr *api.DXAPIEndPointRequest, r %s) error {", name, req)
 	for _, p := range params {
+		g.missingCheck(p)
+	}
+	for _, p := range params {
 		typ, _ := g.goType(p.schema)
 		for _, u := range genopenapi.Unenforced(p.schema) {
 			k, v, _ := strings.Cut(u, ": ")
 			cond := g.condition(k, v, typ, "r."+p.field)
 			if cond == "" {
-				g.problem("warning", "/paths/"+o.path+"/"+o.method, "%s's %s of %s is not checked by dxlib, and go-dxlib has no check for it; check it in the service", o.id, u, p.wire)
+				g.problem("warning", o.pointer(), "%s's %s of %s is not checked by dxlib, and go-dxlib has no check for it; check it in the service", o.id, u, p.wire)
 				continue
 			}
 			g.imports["net/http"] = true

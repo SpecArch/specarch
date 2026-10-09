@@ -1,0 +1,5 @@
+arguments: [generate, sql, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:12:30: error: /entities/Member/properties/correspondenceAddress: generator: the column correspondence_address_instructions_for_the_courier_when_nobody_is_at_home_to_sign_for_it is 89 characters long, and mariadb takes at most 64; shorten the names it is made of [generator@specarch.yaml#/entities/Member/properties/correspondenceAddress]
+plugins: [sql]

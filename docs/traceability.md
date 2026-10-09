@@ -52,7 +52,7 @@ Version 0.6.0-dev of the specification: 9 needs, 56 requirements, and 0 gaps. Ea
 | SA-28 | NEED-9 | commands derive; decisions ADR-055 | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-name-taken; tests derive-page-elements; tests derive-page-named-after-operation; tests derive-root-tests; tests derive-skips-blocked; tests derive-task-page-checks; tests derive-usage-error; tests derive-writes-drafts |
 | SA-29 | NEED-9 | enums Rule; commands validate; decisions ADR-021 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
 | SA-30 | NEED-8 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests gaps-outline-not-read; tests validate-mapping-origin |
-| SA-31 | NEED-9 | commands generate; decisions ADR-041 | tests generate-stack-fallback; tests generate-stack-plugin; tests generate-tests-dart; tests generate-tests-framework-refused; tests generate-tests-go; tests generate-tests-swift |
+| SA-31 | NEED-9 | commands generate; decisions ADR-041; decisions ADR-078 | tests generate-stack-fallback; tests generate-stack-plugin; tests generate-tests-dart; tests generate-tests-framework-refused; tests generate-tests-go; tests generate-tests-swift; tests generate-tests-value-objects |
 | SA-32 | NEED-2 | commands idioms; commands idioms diff; decisions ADR-023; decisions ADR-028 | tests idioms-diff; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-lists-ui-framework; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems; tests validate-idiom-stack-framework |
 | SA-33 | NEED-1, NEED-2 | decisions ADR-024 | tests validate-stored-data; tests validate-stored-data-valid |
 | SA-34 | NEED-1, NEED-2 | decisions ADR-025 | tests validate-interface-problems; tests validate-interface-valid |
@@ -61,7 +61,7 @@ Version 0.6.0-dev of the specification: 9 needs, 56 requirements, and 0 gaps. Ea
 | SA-37 | NEED-2 | decisions ADR-029; decisions ADR-061 | tests generate-sql |
 | SA-38 | NEED-2 | decisions ADR-030 | tests generate-sql-expand |
 | SA-39 | NEED-2 | decisions ADR-031 | tests generate-openapi-dxlib |
-| SA-40 | NEED-2 | decisions ADR-032 | tests generate-go-dxlib |
+| SA-40 | NEED-2 | decisions ADR-032; decisions ADR-078 | tests generate-go-dxlib; tests generate-go-dxlib-value-objects |
 | SA-41 | NEED-2 | enums Rule; decisions ADR-033; decisions ADR-070 | tests validate-views; tests validate-views-valid |
 | SA-42 | NEED-2 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |
 | SA-43 | NEED-2 | decisions ADR-040 | tests generate-ui |
@@ -71,7 +71,7 @@ Version 0.6.0-dev of the specification: 9 needs, 56 requirements, and 0 gaps. Ea
 | SA-47 | NEED-1, NEED-5 | enums Rule; decisions ADR-054 | tests document-techspec-open-workflow; tests validate-maker-checker; tests validate-workflow; tests validate-workflow-valid |
 | SA-48 | NEED-1 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |
 | SA-49 | NEED-2 | enums Rule; decisions ADR-062 | tests extract-openapi-snake-case; tests generate-openapi-wire-names; tests validate-wire-names |
-| SA-50 | NEED-1 | enums Rule; decisions ADR-063; decisions ADR-077 | tests extract-database-json-column; tests generate-sql-value-object-fields; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests validate-value-object-fields; tests validate-value-object-fields-valid |
+| SA-50 | NEED-1 | enums Rule; decisions ADR-063; decisions ADR-077; decisions ADR-078 | tests extract-database-json-column; tests generate-go-dxlib-value-objects; tests generate-sql-identifier-length; tests generate-sql-value-object-fields; tests generate-tests-value-objects; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests validate-value-object-fields; tests validate-value-object-fields-valid; tests validate-value-object-part-cases; tests validate-value-object-part-cases-covered |
 | SA-51 | NEED-1, NEED-8 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066 | tests document-check-invalid; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-lists; tests document-problems-none |
 | SA-52 | NEED-2 | decisions ADR-067 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-53 | NEED-2 | decisions ADR-068 | tests generate-ui-typescript; tests generate-ui-typescript-refused |

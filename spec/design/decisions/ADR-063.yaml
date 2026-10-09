@@ -82,8 +82,8 @@ decisions:
       which the differ writes only as a destructive contract step; moving
       the data over is a migration written by hand. The database reader cannot tell a value object
       from columns that share a prefix or from a JSON column; reading them
-      back is merge's, with the tree that names the schema. A derived case
-      for a missing required part, the Go model's type for the field, and
-      a form's nested section are later steps; the design says what each
-      reads.
+      back is merge's, with the tree that names the schema. A required
+      part a value can lack is a derived case, and go-dxlib reads, checks
+      and stores a value as its storage says (ADR-078); a form's nested
+      section is not written yet.
     satisfies: [SA-1, SA-48, SA-50]

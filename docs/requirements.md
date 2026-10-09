@@ -516,6 +516,10 @@ Acceptance criteria:
 - A field refers to a schema, or holds a list whose items refer to one; storage columns, the default for one value, keeps each part in a column named after the field and the part, and storage json, the only storage for a list, keeps the value in one JSON column.
 - Storage on a field that holds no schema or inside a value, columns on a list, an optional value in columns whose schema has no required part that is never null, and a list of schemas, a cycle or a reference to an entity inside a value in columns are refused as value_object, the same in both builds.
 - specarch generate sql writes a value in columns as one column per part, NOT NULL only where every value above the part is required, with a check that an optional value is wholly absent or has its required parts, and a value in json as the dialect's JSON column, on every dialect it writes; a part added to a schema is a column added by the next migration.
+- specarch validate derives a red case missing <field>.<part> for every required part a value a request body holds can lack, at any depth and for each item of a list, the same in both builds; a part's mistakes key ranks it.
+- The test generators give a value object its parts and a list its items, each typed by its schema, and compare a value got part by part and item by item.
+- specarch generate go-dxlib reads a value into a Go struct and a list into a slice, refuses a value without a required part, writes it into its columns or as JSON as its storage says, and answers a created or read record with the value gathered back.
+- specarch generate sql refuses a table, column, constraint or index name longer than the dialect takes, at the field it comes from.
 
 **Insight:** A member's address or a list of phone numbers is a value with no identity that a record holds, and a design could only write its parts as loose fields of the entity or make it an entity with a made-up key.
 

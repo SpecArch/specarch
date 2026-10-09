@@ -6,11 +6,15 @@ Version 0.1.0 of the specification: 0 needs, 7 requirements, and 7 gaps. Each re
 
 **Draft:** 4 open questions concern this document (Q-5, Q-1, Q-2, Q-3); see the open questions document, or run specarch gaps.
 
-**Problems:** 22 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 24 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: test_case_missing: operation registerMember has no red scenario for "cardNumber not matching its pattern"; add under tests register-member-card-number-not-matching-its-pattern: { operation: registerMember, scenario: red, covers: [cardNumber not matching its pattern], given: "...", when: "registerMember is called with cardNumber in the wrong form", then: "it is refused" } [test_case_missing.8225af9c@design/design.yaml#/paths/~1members/post]
 
 **Problem:** warning: test_case_missing: operation registerMember has no red scenario for "denied without members.write"; add under tests register-member-denied-without-members-write: { operation: registerMember, scenario: red, covers: [denied without members.write], given: "a caller without members.write", when: "registerMember is called", then: "it is refused as not allowed" } [test_case_missing.585bd96d@design/design.yaml#/paths/~1members/post]
+
+**Problem:** warning: test_case_missing: operation registerMember has no red scenario for "missing address.city"; add under tests register-member-missing-address-city: { operation: registerMember, scenario: red, covers: [missing address.city], given: "...", when: "registerMember is called with address without its city", then: "it is refused" } [test_case_missing.d50a0522@design/design.yaml#/paths/~1members/post]
+
+**Problem:** warning: test_case_missing: operation registerMember has no red scenario for "missing address.street"; add under tests register-member-missing-address-street: { operation: registerMember, scenario: red, covers: [missing address.street], given: "...", when: "registerMember is called with address without its street", then: "it is refused" } [test_case_missing.c3528a16@design/design.yaml#/paths/~1members/post]
 
 **Problem:** warning: test_case_missing: operation registerMember has no red scenario for "missing cardNumber"; add under tests register-member-missing-card-number: { operation: registerMember, scenario: red, covers: [missing cardNumber], given: "...", when: "registerMember is called without cardNumber", then: "it is refused" } [test_case_missing.f0ddd858@design/design.yaml#/paths/~1members/post]
 

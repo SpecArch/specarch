@@ -26,7 +26,9 @@ decisions:
       body<Operation>, which the service writes. Permissions, roles and the
       menu are data for the service to seed; a job that repeats at an
       interval is a task calling job<Name>, which the service writes. No
-      model types and no schema are written.
+      entity model types and no schema are written; the only types beside
+      the request structs are those of the value objects a request carries
+      (ADR-078).
     consequences: |
       A missing body or job function is a compile error in the service,
       which is where it is noticed. Encryption keys, scheduled and consuming

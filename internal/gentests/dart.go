@@ -169,7 +169,30 @@ func dartValue(v Value) string {
 	if v.Null {
 		return "Value.none"
 	}
-	return fmt.Sprintf("const Value(%s, %s)", dartString(v.Kind), dartString(v.Text))
+	return "const " + dartPlain(v)
+}
+
+// dartPlain is a value without const, for inside a const one.
+func dartPlain(v Value) string {
+	if v.Null {
+		return "Value.none"
+	}
+	out := fmt.Sprintf("Value(%s, %s", dartString(v.Kind), dartString(v.Text))
+	if len(v.Parts) > 0 {
+		var parts []string
+		for _, f := range v.Parts {
+			parts = append(parts, dartString(f.Name)+": "+dartPlain(f.Value))
+		}
+		out += ", parts: {" + strings.Join(parts, ", ") + "}"
+	}
+	if len(v.Items) > 0 {
+		var items []string
+		for _, item := range v.Items {
+			items = append(items, dartPlain(item))
+		}
+		out += ", items: [" + strings.Join(items, ", ") + "]"
+	}
+	return out + ")"
 }
 
 func dartStrings(list []string) string {
@@ -213,14 +236,18 @@ func dartString(s string) string {
 const dartPrelude = `/// A value of the design with its type, as the specification writes it:
 /// text is the value's text, kind its type in the expression language
 /// (int, uint, double, decimal, string, bool, enum, date, timestamp,
-/// duration, time, bytes or null).
+/// duration, time, bytes, object, list or null). An object, such as a value
+/// object, has its parts in parts and a list its items in items, each with
+/// its own type; text is then the value as JSON.
 class Value {
-  const Value(this.kind, this.text);
+  const Value(this.kind, this.text, {this.parts = const {}, this.items = const []});
 
   static const none = Value('null', '');
 
   final String kind;
   final String text;
+  final Map<String, Value> parts;
+  final List<Value> items;
 
   @override
   String toString() => kind == 'null' ? 'null' : '$kind $text';
@@ -279,13 +306,26 @@ abstract interface class Harness {
   Future<Value> compute(String mapping, Fields input);
 }
 
-/// Whether two values are equal in their type: decimals and numbers by
-/// value, everything else by text.
+/// Whether a value got is the value wanted, in its type: decimals and
+/// numbers by value, an object when it holds every part wanted, a list item
+/// by item, everything else by text.
 bool sameValue(Value a, Value b) {
   switch (a.kind) {
     case 'decimal' || 'int' || 'uint' || 'double':
       final x = _number(a.text), y = _number(b.text);
       return x != null && x == y;
+    case 'object':
+      return b.kind == 'object' && holds(a.parts, b.parts);
+    case 'list':
+      if (b.kind != 'list' || a.items.length != b.items.length) {
+        return false;
+      }
+      for (var i = 0; i < a.items.length; i++) {
+        if (!sameValue(a.items[i], b.items[i])) {
+          return false;
+        }
+      }
+      return true;
   }
   return a.kind == b.kind && a.text == b.text;
 }

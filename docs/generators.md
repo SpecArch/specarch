@@ -213,7 +213,18 @@ missing. Permissions, roles and the menu are `Privileges`, `Roles` and
 are snake_case, as in the dxlib dialect, because dxlib's standard
 operations take a parameter's name as its column's.
 
-The file holds no data model, since `specarch-gen-sql` writes the schema.
+A parameter that holds a value object is read into a Go struct named
+after its schema, and a list of them into a slice of it; each part is a
+pointer, nil when not given, so the check refuses a value without a
+required part as dxlib refuses a missing parameter. A create writes a value
+kept in columns into the column of each part, named as `specarch-gen-sql`
+names it, and a value kept as JSON as its text, and a create or a read
+answers the stored row in the interface's shape: the columns gathered back
+into the value and the JSON read. dxlib's paging list answers rows as they
+are stored, so a list of an entity holding a value is warned about.
+
+The file holds no data model besides those structs, since `specarch-gen-sql`
+writes the schema.
 Encryption keys, scheduled and consuming jobs, and the seeding stay the
 service's, and the generator warns where a design asks for them.
 
@@ -273,6 +284,14 @@ runs, and a list through it fails until the migration ends. An added
 field named like an audit, deleted or hash column, a path that ends in a
 field only written, and a many-to-many count whose join entity has more
 than one relation to either side are refused.
+
+Every name a table is written with, the table's, its columns', and its
+constraints', indexes' and foreign keys', must fit the dialect: 63 bytes
+on PostgreSQL, which cuts a longer name silently so two long names can
+become one, 64 characters on MariaDB, and 128 characters on SQL Server and
+128 bytes on Oracle, which refuse a longer one. A column named after the
+path to a part of a value is the name most likely to pass it, and a name
+that does is refused at the field it comes from.
 
 Migrations are new files only. The emitter keeps a snapshot of the spec as it
 stood after the last generated migration, diffs the current spec against it,
@@ -543,7 +562,10 @@ A test whose design gives a fixture, an input and an expected outcome is
 complete; one without a call calls `body<TestName>(t, h)`, which the
 project writes too, so the package does not compile until every such body
 exists. Values carry their type in the expression language, and decimals
-are compared as decimals. The package name is `specarchtests`, or the
+are compared as decimals. An object, such as a value object a field holds,
+carries its parts and a list its items, each typed by its schema, and a
+value got is the value wanted when it holds every part wanted and has the
+items wanted in order. The package name is `specarchtests`, or the
 `package` the target's `settings` give, which must be the package of the
 other files in that folder. Its subject and scenario go into the test's
 name, so a failing red test says which refusal broke. A design test marked

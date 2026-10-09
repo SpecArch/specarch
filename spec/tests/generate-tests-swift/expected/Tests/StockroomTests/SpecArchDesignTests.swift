@@ -11,10 +11,14 @@ enum SpecArch {
     /// A value of the design with its type, as the specification writes
     /// it: text is the value's text, kind its type in the expression
     /// language (int, uint, double, decimal, string, bool, enum, date,
-    /// timestamp, duration, time, bytes or null).
+    /// timestamp, duration, time, bytes, object, list or null). An object,
+    /// such as a value object, has its parts in parts and a list its items
+    /// in items, each with its own type; text is then the value as JSON.
     struct Value: Sendable, CustomStringConvertible {
         var kind: String
         var text: String
+        var parts: Record = [:]
+        var items: [Value] = []
 
         static let null = Value(kind: "null", text: "")
 
@@ -56,8 +60,9 @@ enum SpecArch {
         func compute(_ mapping: String, input: Record) async throws -> Value
     }
 
-    /// Whether two values are equal in their type: decimals and numbers by
-    /// value, everything else by text.
+    /// Whether a value got is the value wanted, in its type: decimals and
+    /// numbers by value, an object when it holds every part wanted, a list
+    /// item by item, everything else by text.
     static func same(_ a: Value, _ b: Value) -> Bool {
         switch a.kind {
         case "decimal", "int", "uint", "double":
@@ -65,6 +70,10 @@ enum SpecArch {
                 return false
             }
             return x == y
+        case "object":
+            return b.kind == "object" && holds(a.parts, b.parts)
+        case "list":
+            return b.kind == "list" && a.items.count == b.items.count && zip(a.items, b.items).allSatisfy { same($0, $1) }
         default:
             return a.kind == b.kind && a.text == b.text
         }

@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 331 design tests, 131 golden and 200 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 336 design tests, 134 golden and 202 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 327 |
+| system | 332 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -874,6 +874,14 @@ Scenario: golden; level: system; verifies SA-40.
 - When: generate go-dxlib is run with --unapproved
 - Then: it writes one Go file for dxlib: the tables, the handlers registered by operationId that read every parameter with dxlib's getters, check the constraints dxlib does not enforce, and run the standard list, create and read operations, the privilege, role and menu seeds, and the job registered as a task, and exits 0
 
+#### generate-go-dxlib-value-objects
+
+Scenario: golden; level: system; verifies SA-40, SA-50.
+
+- Given: a member whose address is kept in columns with a location inside it, whose preferences are kept as JSON and whose phones are a list, listed, created and read by standard operations, and an implementation file with a go-dxlib target; specarch-gen-go-dxlib built from this repository on PATH
+- When: generate go-dxlib is run with --unapproved
+- Then: it writes a Go struct for each schema with a pointer per part, reads the address into one and the phones into a slice, refuses a value without a required part, writes the address into the column of each part and the preferences and phones as JSON, answers a created or read member with its columns folded back into the address and its JSON read, warns that the paging list answers the row as stored, and exits 0
+
 #### generate-no-plugin
 
 Scenario: red; level: system; covers exit 2; verifies SA-14.
@@ -962,6 +970,14 @@ Scenario: golden; level: system; verifies SA-38.
 - When: generate sql is run with --unapproved
 - Then: it writes 0002_expand.sql, which adds the subtitle column, leaves 0001_expand.sql as it was, writes the snapshot again, and exits 0
 
+#### generate-sql-identifier-length
+
+Scenario: red; level: system; verifies SA-50.
+
+- Given: a member whose correspondence address, kept in columns, holds courier instructions with a part whose column name passes the 64 characters MariaDB takes, and an implementation file whose sql target is MariaDB; specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved
+- Then: it reports the column at the field that holds the value, with its length and the limit, writes nothing, and exits 1
+
 #### generate-sql-owned
 
 Scenario: golden; level: system; verifies SA-46.
@@ -1041,6 +1057,14 @@ Scenario: golden; level: system; verifies SA-31.
 - Given: the specification of generate-tests-go, and an implementation file in Swift with a tests target and no testing framework named; specarch-gen-tests-swift built from this repository on PATH
 - When: generate tests is run with --unapproved
 - Then: it writes one Swift Testing file: the same tests as in Go through SpecArch.Harness, async and throwing, a body to write by hand for the test with no call, the reason of the test that does not apply, the worked examples with decimals as decimals, and exits 0
+
+#### generate-tests-value-objects
+
+Scenario: golden; level: system; verifies SA-31, SA-50.
+
+- Given: a member whose address holds a location and whose phones are a list of schemas, and design tests that store a member with them, send them and expect them back; an implementation file in Go with a tests target; specarch-gen-tests-go built from this repository on PATH
+- When: generate tests is run with --unapproved
+- Then: it writes each value object as an object value with its parts, a location inside an address with its own, and the phones as a list value with an object per item, each part with the type its schema gives, and exits 0
 
 #### generate-ui
 
@@ -2634,6 +2658,22 @@ Scenario: golden; level: system; verifies SA-50.
 - When: validate is run
 - Then: it reports nothing and exits 0
 
+#### validate-value-object-part-cases
+
+Scenario: red; level: system; verifies SA-50.
+
+- Given: an operation whose body holds an address with a location inside it and a list of phones, each schema with required parts, the address's city marked mistakes: rare, and a test covering the address without its street
+- When: validate is run
+- Then: it warns that no test covers the location without its latitude and a phone without its number, does not warn for the street, which a test covers, or for the city, which is left out as rare, and exits 0
+
+#### validate-value-object-part-cases-covered
+
+Scenario: golden; level: system; verifies SA-50.
+
+- Given: an operation whose body holds an address with a location inside it and a list of phones, and a test covering every required part a value can lack at any depth
+- When: validate is run
+- Then: it reports nothing and exits 0
+
 #### validate-value-objects
 
 Scenario: red; level: system; covers exit 1; verifies SA-48.
@@ -2718,7 +2758,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-206 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+210 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2841,6 +2881,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-50 | acceptance 1 | golden | SA-50 names no harm |
 | requirement SA-50 | acceptance 2 | golden | SA-50 names no harm |
 | requirement SA-50 | acceptance 3 | golden | SA-50 names no harm |
+| requirement SA-50 | acceptance 4 | golden | SA-50 names no harm |
+| requirement SA-50 | acceptance 5 | golden | SA-50 names no harm |
+| requirement SA-50 | acceptance 6 | golden | SA-50 names no harm |
+| requirement SA-50 | acceptance 7 | golden | SA-50 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

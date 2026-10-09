@@ -380,6 +380,9 @@ func (d *design) operationSubject(o operation) *subject {
 	}
 	sort.Strings(names)
 	for _, n := range names {
+		d.partCases(s, o.id, n, body[n], map[string]bool{})
+	}
+	for _, n := range names {
 		d.limitCases(s, n, body[n], call)
 	}
 	for _, p := range append(source.Items(source.Child(o.pathItem, "parameters")), source.Items(source.Child(o.node, "parameters"))...) {
@@ -526,6 +529,34 @@ func (d *design) responseIsList(op *yaml.Node) bool {
 		}
 	}
 	return false
+}
+
+// partCases adds a case for every required part of the value a body field
+// holds, a schema or a list of them: a value given without one is refused,
+// at any depth (missing address.street, missing address.location.latitude).
+// seen holds the schemas on the way down, so a cycle ends.
+func (d *design) partCases(s *subject, op, path string, field *yaml.Node, seen map[string]bool) {
+	name, many := valueObjectOf(field)
+	schema := d.schemas[name]
+	if schema == nil || seen[name] {
+		return
+	}
+	seen[name] = true
+	defer delete(seen, name)
+	holder := path
+	if many {
+		holder = "an item of " + path
+	}
+	for _, r := range source.Items(source.Child(schema, "required")) {
+		part := source.Child(source.Child(schema, "properties"), r.Value)
+		if part == nil {
+			continue
+		}
+		s.fieldCase("red", "missing "+path+"."+r.Value, frequent, path+"."+r.Value, part, "...", op+" is called with "+holder+" without its "+r.Value, "it is refused")
+	}
+	for _, p := range source.Pairs(source.Child(schema, "properties")) {
+		d.partCases(s, op, path+"."+p.Key.Value, p.Value, seen)
+	}
 }
 
 // requestFields returns the request body's fields and its required ones.

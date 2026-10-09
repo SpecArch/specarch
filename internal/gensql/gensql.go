@@ -422,7 +422,9 @@ func (g *gen) tables() []table {
 		if g.owned.Covers(ownership.Entity("entities", name)) {
 			continue
 		}
-		out = append(out, g.table(name, obj0(entities[name])))
+		t := g.table(name, obj0(entities[name]))
+		g.checkNames(name, t)
+		out = append(out, t)
 	}
 	return out
 }

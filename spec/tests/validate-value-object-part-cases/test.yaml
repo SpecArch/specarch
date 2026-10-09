@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+given: "an operation whose body holds an address with a location inside it and a list of phones, each schema with required parts, the address's city marked mistakes: rare, and a test covering the address without its street"
+when: "validate is run"
+then: "it warns that no test covers the location without its latitude and a phone without its number, does not warn for the street, which a test covers, or for the city, which is left out as rare, and exits 0"
+verifies: [SA-50]

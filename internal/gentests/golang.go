@@ -152,7 +152,18 @@ func goValue(v Value) string {
 	if v.Null {
 		return `Value{Kind: "null"}`
 	}
-	return fmt.Sprintf("Value{Kind: %q, Text: %q}", v.Kind, v.Text)
+	out := fmt.Sprintf("Value{Kind: %q, Text: %q", v.Kind, v.Text)
+	if len(v.Parts) > 0 {
+		out += ", Parts: " + goRecord(v.Parts)
+	}
+	if len(v.Items) > 0 {
+		var items []string
+		for _, item := range v.Items {
+			items = append(items, goValue(item))
+		}
+		out += ", Items: []Value{" + strings.Join(items, ", ") + "}"
+	}
+	return out + "}"
 }
 
 // goPrelude is the part of every generated file that does not depend on the
@@ -160,10 +171,14 @@ func goValue(v Value) string {
 const goPrelude = `// Value is a value of the design with its type, as the specification
 // writes it: Text is the value's text, Kind its type in the expression
 // language (int, uint, double, decimal, string, bool, enum, date,
-// timestamp, duration, time, bytes or null).
+// timestamp, duration, time, bytes, object, list or null). An object, such
+// as a value object, has its parts in Parts and a list its items in Items,
+// each with its own type; Text is then the value as JSON.
 type Value struct {
-	Kind string
-	Text string
+	Kind  string
+	Text  string
+	Parts Record
+	Items []Value
 }
 
 // Record is a record or an input: values by field or parameter name.
@@ -200,14 +215,27 @@ type Harness interface {
 	Compute(t *testing.T, mapping string, in Record) Value
 }
 
-// same reports whether two values are equal in their type: decimals and
-// numbers by value, everything else by text.
+// same reports whether a value got is the value wanted, in its type:
+// decimals and numbers by value, an object when it holds every part wanted,
+// a list item by item, everything else by text.
 func same(a, b Value) bool {
 	switch a.Kind {
 	case "decimal", "int", "uint", "double":
 		x, okx := new(big.Rat).SetString(a.Text)
 		y, oky := new(big.Rat).SetString(b.Text)
 		return okx && oky && x.Cmp(y) == 0
+	case "object":
+		return b.Kind == "object" && holds(a.Parts, b.Parts)
+	case "list":
+		if b.Kind != "list" || len(a.Items) != len(b.Items) {
+			return false
+		}
+		for i := range a.Items {
+			if !same(a.Items[i], b.Items[i]) {
+				return false
+			}
+		}
+		return true
 	}
 	return a.Kind == b.Kind && a.Text == b.Text
 }

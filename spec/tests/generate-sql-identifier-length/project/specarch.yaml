@@ -1,0 +1,28 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      name: { type: string, maxLength: 200 }
+      correspondenceAddress: { $ref: "#/schemas/Address" }
+    required: [id, name]
+    primaryKey: [id]
+schemas:
+  Address:
+    description: Where a member takes post.
+    type: object
+    properties:
+      street: { type: string, maxLength: 200 }
+      city: { type: string, maxLength: 100 }
+      instructionsForTheCourier: { $ref: "#/schemas/Instructions" }
+    required: [street, city]
+  Instructions:
+    type: object
+    properties:
+      whenNobodyIsAtHomeToSignForIt: { type: string, maxLength: 200 }
+    required: [whenNobodyIsAtHomeToSignForIt]

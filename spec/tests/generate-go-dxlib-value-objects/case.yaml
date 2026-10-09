@@ -1,0 +1,5 @@
+arguments: [generate, go-dxlib, --unapproved, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:51:5: warning: /paths/~1members/get: generator: listMembers lists Member through dxlib's paging list, which answers each row as it is stored: a value kept in columns as the columns of its parts, and one kept as JSON as its text; give the rows the interface's shape in the service [generator@specarch.yaml#/paths/~1members/get]
+plugins: [go-dxlib]

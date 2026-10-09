@@ -157,6 +157,136 @@
           "kind": "fail",
           "level": "warning",
           "message": {
+            "text": "operation registerMember has no red scenario for \"missing address.street\"; add under tests register-member-missing-address-street: { operation: registerMember, scenario: red, covers: [missing address.street], given: \"...\", when: \"registerMember is called with address without its street\", then: \"it is refused\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 103,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1members/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing.c3528a16@design/design.yaml#/paths/~1members/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 116,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 2.2: Desk staff register new members."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 32,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:32: RegisterMember answers 201."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "operation registerMember has no red scenario for \"missing address.city\"; add under tests register-member-missing-address-city: { operation: registerMember, scenario: red, covers: [missing address.city], given: \"...\", when: \"registerMember is called with address without its city\", then: \"it is refused\" }"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 103,
+                  "startColumn": 7
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1members/post",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "test_case_missing.d50a0522@design/design.yaml#/paths/~1members/post"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 116,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 2.2: Desk staff register new members."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 32,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:32: RegisterMember answers 201."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "test_case_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
             "text": "operation registerMember has no red scenario for \"missing fullName\"; add under tests register-member-missing-full-name: { operation: registerMember, scenario: red, covers: [missing fullName], given: \"...\", when: \"registerMember is called without fullName\", then: \"it is refused\" }"
           },
           "locations": [

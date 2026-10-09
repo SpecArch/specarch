@@ -323,6 +323,10 @@ extension Design {
             s.fieldCase("red", "missing " + f, frequent, f, body[f], "...", o.id + " is called without " + f, "it is refused")
         }
         for n in body.keys.sorted(by: byteLess) {
+            var seen = Set<String>()
+            partCases(s, o.id, n, body[n], &seen)
+        }
+        for n in body.keys.sorted(by: byteLess) {
             limitCases(s, n, body[n], call)
         }
         for p in items(o.pathItem.child("parameters")) + items(o.node.child("parameters")) {
@@ -415,6 +419,24 @@ extension Design {
             }
         }
         return false
+    }
+
+    /// Adds a case for every required part of the value a body field holds,
+    /// a schema or a list of them: a value given without one is refused, at
+    /// any depth. seen holds the schemas on the way down, so a cycle ends.
+    func partCases(_ s: Subject, _ op: String, _ path: String, _ field: YNode?, _ seen: inout Set<String>) {
+        let (name, many) = valueObjectOf(field)
+        guard let schema = schemas[name], !seen.contains(name) else { return }
+        seen.insert(name)
+        defer { seen.remove(name) }
+        let holder = many ? "an item of " + path : path
+        for r in items(schema.child("required")) {
+            guard let part = child(schema.child("properties"), r.value) else { continue }
+            s.fieldCase("red", "missing " + path + "." + r.value, frequent, path + "." + r.value, part, "...", op + " is called with " + holder + " without its " + r.value, "it is refused")
+        }
+        for p in pairs(schema.child("properties")) {
+            partCases(s, op, path + "." + p.key.value, p.value, &seen)
+        }
     }
 
     /// The request body's fields and its required ones. For a $ref to an

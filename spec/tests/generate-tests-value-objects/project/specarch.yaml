@@ -1,0 +1,76 @@
+specarch: "0.1"
+info: { title: Members, version: 1.0.0 }
+stages: [implementation]
+permissions:
+  members.create: { description: Add members. }
+roles:
+  clerk: { description: Staff., permissions: [members.create] }
+paths:
+  /members:
+    post:
+      operationId: createMember
+      summary: Add a member
+      permission: members.create
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Member" }
+      responses:
+        "201":
+          description: Added.
+          content: { application/json: { schema: { $ref: "#/entities/Member" } } }
+        "422": { description: A field is missing or wrong. }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      name: { type: string, maxLength: 200 }
+      address: { $ref: "#/schemas/Address" }
+      phones: { type: array, items: { $ref: "#/schemas/Phone" } }
+    required: [id, name]
+    primaryKey: [id]
+schemas:
+  Address:
+    type: object
+    properties:
+      street: { type: string, maxLength: 200 }
+      city: { type: string, maxLength: 100 }
+      location: { $ref: "#/schemas/Location" }
+    required: [street, city]
+  Location:
+    type: object
+    properties:
+      latitude: { type: number, format: double }
+      longitude: { type: number, format: double }
+    required: [latitude]
+  Phone:
+    type: object
+    properties:
+      number: { type: string, maxLength: 30 }
+    required: [number]
+tests:
+  create-member-missing-address-street:
+    operation: createMember
+    level: system
+    scenario: red
+    covers: [missing address.street]
+    given: "a clerk"
+    when: "createMember is called with an address without its street"
+    then: "it is refused"
+    fixture:
+      caller: clerk
+      Member:
+        - { id: 2b1c6f0e-8f5d-4c41-9a7e-1d2f3a4b5c6d, name: Ann, address: { street: 1 High Street, city: Leeds, location: { latitude: 53.8, longitude: -1.55 } }, phones: [{ number: "0113 496 0000" }] }
+    input: { name: Bob, address: { city: Leeds } }
+    expect: { status: 422 }
+  create-member-succeeds:
+    operation: createMember
+    level: system
+    scenario: golden
+    given: "a clerk"
+    when: "createMember is called"
+    then: "it answers 201"
+    fixture: { caller: clerk }
+    input: { name: Bob, address: { street: 2 Low Lane, city: York }, phones: [{ number: "01904 000000" }] }
+    expect: { status: 201, body: { name: Bob, address: { street: 2 Low Lane, city: York } } }

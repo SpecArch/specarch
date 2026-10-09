@@ -18,6 +18,9 @@ import (
 
 const fixture = "../../spec/tests/generate-go-dxlib/project"
 
+// valueFixture is a specification whose member holds value objects.
+const valueFixture = "../../spec/tests/generate-go-dxlib-value-objects/project"
+
 // generate runs the generator on the fixture, with the go-dxlib target's
 // settings as specarch passes them.
 func generate(t *testing.T) genopenapi.Response {
@@ -36,6 +39,12 @@ func generateWith(t *testing.T, change func(specification map[string]any)) genop
 // specification, with the mappings at the pointers given marked as owned
 // by another stakeholder.
 func generateOwning(t *testing.T, change func(specification map[string]any), owned []string) genopenapi.Response {
+	t.Helper()
+	return generateFrom(t, fixture, change, owned)
+}
+
+// generateFrom runs the generator on the specification in a folder.
+func generateFrom(t *testing.T, fixture string, change func(specification map[string]any), owned []string) genopenapi.Response {
 	t.Helper()
 	s := spec.Load(fixture)
 	if len(s.Problems) > 0 {
@@ -113,17 +122,27 @@ func TestParts(t *testing.T) {
 
 var bodyCall = regexp.MustCompile(`return (body([A-Za-z0-9]+))\(aepr, r\)`)
 
-// TestCompiles builds the file against dxlib, beside the bodies and jobs a
-// service writes. It needs a dxlib checkout, named by SPECARCH_DXLIB, and
-// is skipped without one.
+// TestCompiles builds the file of each fixture against dxlib, beside the
+// bodies and jobs a service writes. It needs a dxlib checkout, named by
+// SPECARCH_DXLIB, and is skipped without one.
 func TestCompiles(t *testing.T) {
 	dxlib := os.Getenv("SPECARCH_DXLIB")
 	if dxlib == "" {
 		t.Skip("SPECARCH_DXLIB names no dxlib checkout, so the file cannot be compiled against dxlib here")
 	}
-	src := generate(t).Files[0].Content
+	for _, f := range []string{fixture, valueFixture} {
+		t.Run(filepath.Base(filepath.Dir(f)), func(t *testing.T) {
+			compiles(t, dxlib, generateFrom(t, f, func(map[string]any) {}, nil).Files[0].Content)
+		})
+	}
+}
+
+var packageName = regexp.MustCompile(`(?m)^package (\w+)$`)
+
+func compiles(t *testing.T, dxlib, src string) {
+	pkg := packageName.FindStringSubmatch(src)[1]
 	var stub strings.Builder
-	stub.WriteString("package catalogue\n\nimport (\n\t\"github.com/donnyhardyanto/dxlib/api\"\n\t\"github.com/donnyhardyanto/dxlib/task\"\n)\n\nvar _ = api.DXAPI{}\n\n")
+	stub.WriteString("package " + pkg + "\n\nimport (\n\t\"github.com/donnyhardyanto/dxlib/api\"\n\t\"github.com/donnyhardyanto/dxlib/task\"\n)\n\nvar _ = api.DXAPI{}\n\nvar _ = task.DXTask{}\n\n")
 	for _, m := range bodyCall.FindAllStringSubmatch(src, -1) {
 		fmt.Fprintf(&stub, "func %s(aepr *api.DXAPIEndPointRequest, r %sRequest) error { return nil }\n", m[1], m[2])
 	}
@@ -132,7 +151,7 @@ func TestCompiles(t *testing.T) {
 	}
 	dir := t.TempDir()
 	files := map[string]string{
-		"go.mod":            "module catalogue\n\ngo 1.27.1\n\nrequire github.com/donnyhardyanto/dxlib v0.0.0\n\nreplace github.com/donnyhardyanto/dxlib => " + dxlib + "\n",
+		"go.mod":            "module " + pkg + "\n\ngo 1.27.1\n\nrequire github.com/donnyhardyanto/dxlib v0.0.0\n\nreplace github.com/donnyhardyanto/dxlib => " + dxlib + "\n",
 		FileName:            src,
 		"service_bodies.go": stub.String(),
 	}

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: golden
+given: "an operation whose body holds an address with a location inside it and a list of phones, and a test covering every required part a value can lack at any depth"
+when: "validate is run"
+then: "it reports nothing and exits 0"
+verifies: [SA-50]

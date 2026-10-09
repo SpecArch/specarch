@@ -48,11 +48,15 @@ type Field struct {
 }
 
 // Value is one value of the design: its type in the expression language
-// and its text, or null.
+// and its text, or null. An object, a value object or a record, has its
+// parts by name and a list its items, each with the type its schema gives;
+// Text is then the value as JSON.
 type Value struct {
-	Null bool
-	Kind string
-	Text string
+	Null  bool
+	Kind  string
+	Text  string
+	Parts []Field
+	Items []Value
 }
 
 // Call is what a test does: an operation called, a command run or a page
@@ -430,7 +434,21 @@ func (g *walker) value(v any, field map[string]any) Value {
 	if v == nil {
 		return Value{Null: true, Kind: "null"}
 	}
-	return Value{Kind: kind(field, v), Text: text(v)}
+	out := Value{Kind: kind(field, v), Text: text(v)}
+	switch x := v.(type) {
+	case map[string]any:
+		var parts map[string]map[string]any
+		if field != nil {
+			parts = g.schemaFields(field)
+		}
+		out.Parts = g.record(x, parts)
+	case []any:
+		items, _ := field["items"].(map[string]any)
+		for _, item := range x {
+			out.Items = append(out.Items, g.value(item, items))
+		}
+	}
+	return out
 }
 
 // kind is a field's type in the expression language, or, when the field is
@@ -442,6 +460,10 @@ func kind(field map[string]any, v any) string {
 			return "double"
 		case bool:
 			return "bool"
+		case map[string]any:
+			return "object"
+		case []any:
+			return "list"
 		}
 		return "string"
 	}

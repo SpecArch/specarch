@@ -1,0 +1,11 @@
+specarchImplementation: "0.1"
+info: { title: Members in Go, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+mappings:
+  "#/entities/Member": { target: members }
+targets:
+  tests:
+    # testdata keeps the recorded Go file out of the repository's own build.
+    output: ../../../testdata
+    settings: { package: members }

@@ -1,0 +1,92 @@
+specarch: "0.1"
+info: { title: Members, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      name: { type: string, minLength: 1, maxLength: 200 }
+      address: { $ref: "#/schemas/Address" }
+      preferences: { $ref: "#/schemas/Preferences", storage: json }
+      phones: { type: array, items: { $ref: "#/schemas/Phone" }, maxItems: 5 }
+    required: [id, name]
+    primaryKey: [id]
+schemas:
+  Address:
+    description: Where a member lives.
+    type: object
+    properties:
+      street: { type: string, maxLength: 200 }
+      city: { type: string, maxLength: 100 }
+      postCode: { type: string, maxLength: 20 }
+      location: { $ref: "#/schemas/Location" }
+    required: [street, city]
+  Location:
+    type: object
+    properties:
+      latitude: { type: number, format: double }
+      longitude: { type: number, format: double }
+    required: [latitude, longitude]
+  Preferences:
+    type: object
+    properties:
+      language: { type: string, maxLength: 10 }
+      newsletter: { type: boolean }
+  Phone:
+    type: object
+    properties:
+      kind: { type: string, enum: [home, mobile] }
+      number: { type: string, maxLength: 30 }
+    required: [number]
+permissions:
+  members.read: { description: See members. }
+  members.write: { description: Add members. }
+roles:
+  desk: { description: The desk., permissions: [members.read, members.write] }
+paths:
+  /members:
+    get:
+      operationId: listMembers
+      summary: The members
+      permission: members.read
+      listOf:
+        entity: Member
+        searchable: [name]
+        pageSize: { default: 20, maximum: 100 }
+      responses:
+        "200":
+          description: A page of members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+    post:
+      operationId: createMember
+      summary: Add a member
+      permission: members.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Member" }
+      responses:
+        "201":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+  /members/{memberId}:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getMember
+      summary: One member
+      permission: members.read
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }

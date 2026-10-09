@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: generate
+level: system
+scenario: red
+given: "a member whose correspondence address, kept in columns, holds courier instructions with a part whose column name passes the 64 characters MariaDB takes, and an implementation file whose sql target is MariaDB; specarch-gen-sql built from this repository on PATH"
+when: "generate sql is run with --unapproved"
+then: "it reports the column at the field that holds the value, with its length and the limit, writes nothing, and exits 1"
+verifies: [SA-50]

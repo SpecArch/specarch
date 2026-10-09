@@ -1,0 +1,88 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-078:
+    title: A required part of a value is a derived case, test values carry their parts, go-dxlib reads a value into a struct and stores it as its storage says, and a name over the dialect's limit is refused
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      An entity's field may hold a value object, kept in the columns of
+      its parts or as JSON (ADR-063). A request body that holds one can
+      leave out a required part of it as easily as a required field of its
+      own, and nothing derived a case for it. The test generators wrote an
+      object as JSON text with no type for its parts, and gave an object
+      whose field they did not know the type string. go-dxlib read a value
+      as a JSON map and inserted it under the field's own name, a column
+      generate sql never writes. A column named after the path to a part,
+      and a check named after its table and column, can be longer than an
+      engine takes.
+    decision: |
+      For every request body field that holds a schema, or a list of them,
+      the validator derives a red case missing <field>.<part> for each
+      required part of the schema, and through every schema part at any
+      depth (missing address.location.latitude), frequent as a missing
+      field is, unless the part's mistakes key says otherwise. A list's
+      case is about an item of it. A cycle ends where a schema repeats.
+
+      The test generators write an object as a value of kind object with
+      its parts, and a list as a value of kind list with its items, each
+      typed by the schema the field refers to, or as written where the
+      field is not known; the value's text stays its JSON. A value got is
+      the value wanted when it holds every part wanted, as a record holds
+      a field, and a list when its items are the items wanted in order.
+
+      go-dxlib writes a Go struct for each schema a request carries, named
+      after the schema, each part a pointer that is nil when the part is
+      not given, a part holding a schema its struct and a list a slice. A
+      parameter holding a value is read into a pointer to the struct, and
+      a list into a slice, by decoding what dxlib reads; a value that does
+      not decode is refused as an invalid parameter, and one without a
+      required part as dxlib refuses a missing parameter, naming the
+      part's path. A create writes a value kept in columns into the column
+      of each part, named by the same path generate sql names it by, and a
+      value kept as JSON, or a list, as its JSON text. A create and a read
+      answer the stored row with the columns of each value gathered back
+      into it, a value whose columns are all null left out, and each JSON
+      text read; dxlib's paging list writes its answer itself, so a list
+      of an entity holding a value is warned about.
+
+      generate sql refuses every name a table is written with, the
+      table's, its columns', and its constraints', indexes' and foreign
+      keys', that is longer than the dialect takes: 63 bytes on
+      PostgreSQL, 64 characters on MariaDB, 128 characters on SQL Server
+      and 128 bytes on Oracle, at the field a column comes from or at the
+      entity.
+    why: |
+      A missing part is the same mistake as a missing field one level
+      down, and the service refuses it the same way, so it is derived and
+      ranked the same way; the derived case names the path the refusal
+      names. Typed parts let a harness build the value the service
+      receives and compare a decimal part as a decimal, which JSON text
+      cannot; holding the parts wanted rather than equal text lets a
+      response carry parts a test does not name, as a record does. A
+      pointer per part is how Go's encoding/json tells a part left out
+      from one given as its zero value, which the required check needs; a
+      struct gives the service the value's shape where a map gives only
+      keys. The columns are named by the path, as generate sql writes them
+      out, so what the handler inserts is what the migration created, and
+      the answer is gathered back because the interface gives the value,
+      not its columns. The limits are the engines' own: PostgreSQL keeps
+      at most NAMEDATALEN-1 bytes of an identifier and cuts the rest with
+      a notice, so two long names sharing their first 63 bytes become one
+      and a later migration names a different object; MariaDB takes 64
+      characters for a table, column, index or constraint name; SQL
+      Server's identifiers are sysname, 128 characters; Oracle takes 128
+      bytes from Database 12.2, with the compatible setting at 12.2 or
+      above, as every release still supported, 19c onwards, has; 30 bytes
+      before that. The other engines refuse the statement at run
+      time, after the migration is written; refusing it at generation
+      names the field instead.
+    consequences: |
+      An operation whose body holds a value with required parts gets a
+      case per part, so a design that covers its body fields covers its
+      parts too, or marks them with mistakes. A harness written for text
+      only must read an object's parts and a list's items. A list of an
+      entity holding a value answers its stored row until the service
+      shapes it; the read and the create do not. A view reading a value's
+      parts is still refused (ADR-063), and a form's nested section is the
+      UI generator's, not written yet.
+    satisfies: [SA-31, SA-40, SA-50]

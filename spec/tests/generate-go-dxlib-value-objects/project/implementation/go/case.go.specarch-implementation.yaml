@@ -1,0 +1,9 @@
+specarchImplementation: "0.1"
+info: { title: Members on dxlib, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+targets:
+  go-dxlib:
+    # testdata keeps the recorded Go file out of the repository's own build.
+    output: ../../../testdata
+    settings: { package: members, databaseNameId: members }

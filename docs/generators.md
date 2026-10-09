@@ -379,7 +379,11 @@ other operator or function is refused at the check. A refusal shows under
 the field its failed state names, or above the form; each success leads to
 its page, its message announced there. A page reads `returnTo` from its
 query and hands it on to another task page, and an event to any other
-page goes to it instead, when it is a path of this site. The service is
+page goes to it instead, when the browser reads it as the same origin.
+A default failed state is the message for any refusal the page names
+none for. Fields in sections, actions, `enabledBy`, a permission other
+than public, and a success the operation answers with no event are
+refused. The service is
 called at `NEXT_PUBLIC_API_URL`. The generator writes no package, lock file
 or configuration, and refuses to write over a file in its output folder it
 did not write.

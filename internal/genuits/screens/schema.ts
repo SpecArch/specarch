@@ -58,9 +58,12 @@ export interface CheckSchema {
   readonly field?: string;
 }
 
-/** A problem the operation answers, and where the page shows it. */
+/**
+ * A problem the operation answers, and where the page shows it; with no
+ * status, every problem the page names no message for.
+ */
 export interface FailureSchema {
-  readonly status: number;
+  readonly status?: number;
   readonly problem: string;
   readonly message: StringKey;
   readonly field?: string;

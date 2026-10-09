@@ -963,17 +963,17 @@ Scenario: golden; level: system; verifies SA-43.
 
 Scenario: golden; level: system; verifies SA-52.
 
-- Given: a specification with two task pages, one signing in with an email address and a password that has a pattern and leading to a view with a route parameter from the answer, one accepting an invitation with a field of no title, a password typed twice and two checks across fields, and a view; an implementation file in TypeScript whose ui target is platform web in nextjs-carbon; and specarch-gen-ui-typescript built from this repository on PATH
+- Given: a specification with two task pages, one signing in with an email address and a password that has a pattern, a default failed state, and leading to a view with a route parameter from the answer, one accepting an invitation with a field of no title, a password typed twice and two checks across fields, and a view; an implementation file in TypeScript whose ui target is platform web in nextjs-carbon; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it writes each task page's schema, its fields' keywords and the password's rules, its checks as rules, its refusals and its events, and its page.tsx with the routes its events lead to, the components under screens and every text in strings.ts; it warns that the field with no title is labelled by its name and that the view is left out, and exits 0
+- Then: it writes each task page's schema, its fields' keywords and the password's rules, its checks as rules, its refusals with the default one without a status, and its events, and its page.tsx with the routes its events lead to, the components under screens and every text in strings.ts; it warns that the field with no title is labelled by its name and that the view is left out, and exits 0
 
 #### generate-ui-typescript-refused
 
 Scenario: red; level: system; verifies SA-52.
 
-- Given: the specification of the golden case, whose invitation page also shows a field of type integer and checks it with an expression that adds; an implementation file in TypeScript whose ui target is platform web in nextjs-carbon; and specarch-gen-ui-typescript built from this repository on PATH
+- Given: the specification of the golden case, whose invitation page also shows a field of type integer and checks it with an expression that adds, and whose operation answers a 201 the page has no event for; an implementation file in TypeScript whose ui target is platform web in nextjs-carbon; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it reports the integer field at the page's field and the addition at the check's expression as errors, each saying what this version writes, writes nothing, and exits 1
+- Then: it reports the integer field at the page's field, the addition at the check's expression and the 201 at the page's onSubmitted as errors, each saying what this version writes, writes nothing, and exits 1
 
 #### generate-unapproved
 

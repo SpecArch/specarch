@@ -20,6 +20,7 @@ export const strings = {
   "screens.pattern": "This is not in the form asked for.",
   "screens.required": "Fill this in.",
   "screens.rule.pattern": "It matches {pattern}.",
+  "sign-in.failed.default": "Signing in does not work right now. Try again later.",
   "sign-in.failed.sign-in-refused": "The email address or the password is wrong.",
   "sign-in.fields.email": "Email address",
   "sign-in.fields.password": "Password",

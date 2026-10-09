@@ -160,7 +160,7 @@ components use one keeps it inside its own library, behind the override.
 ## The libraries, checked
 
 The example's web application, `examples/library-lending/web-nextjs`,
-pins these, the newest when it was built; its lock file resolves 453
+pins these; its lock file resolves 453
 packages (pnpm 12.9.1), scanned with syft, grype and osv-scanner, and the
 implementation file's `libraries` records them with the reason for each
 version held back.
@@ -228,7 +228,7 @@ lock file passes the scan with the reasons on record:
 |---|---|---|
 | `caniuse-lite`, CC-BY-4.0 | `licence_exceptions` | browser data Next.js reads while it builds; never shipped in a page, as a container base image's packages are accepted |
 | `language-subtag-registry`, CC0-1.0 | `licence_exceptions` | a list the accessibility lint reads; never shipped in a page |
-| `braces` 3.0.3, GHSA-vfj7-8cjw-p6xm | `vulnerabilities` | no fixed version; reached only through the lint, which reads the project's own patterns, never a visitor's; review by 2027-04-09, or when a fixed release exists, and again when step 2 pins its versions |
+| `braces` 3.0.3, GHSA-vfj7-8cjw-p6xm | `vulnerabilities` | no fixed version; reached only through the lint, which reads the project's own patterns, never a visitor's; review by 2027-04-09, or when a fixed release exists |
 
 `sharp` and its LGPL `@img/sharp-libvips-*` are not accepted: the
 example's `pnpm-workspace.yaml` removes them with `overrides: { sharp: "-" }`,
@@ -256,26 +256,25 @@ needs Q1, Q4 and Q5; step 2 needs Q2, Q3, Q6, Q7 and Q10.
    one on `plain-javascript`, an override of it rendering a stack its file
    does not have is refused with the same message in both builds, and
    conformance cases show all three.
-2. **Built: task forms, sign-in, second factor, password reset.** First
-   the reference: the library lending example gained the second factor,
-   `signIn` answering 201 when it is asked for and `confirmSecondFactor`
-   taking the code (Q6), and a Next.js application under
-   `examples/library-lending/web-nextjs/` whose sign-in and second-factor
-   screens were written by hand on plain Carbon and committed alone, with
-   its `package.json`, `pnpm-lock.yaml` and `pnpm-workspace.yaml`, the
-   libraries pinned and scanned (Q10), and a CI job that runs
-   `pnpm install`, `tsc --noEmit`, the lint and `next build` on it. Then
-   the example's TypeScript implementation file and
-   `specarch-gen-ui-typescript` (SA-52, ADR-067): per task page the schema
-   and `page.tsx`, the components under `screens/` and the texts in
-   `strings.ts`; the events of a task form, to the second factor on 201,
-   and back to the page that asked for sign-in through `returnTo`; checks
-   as rules in the schema's data; the password rules from the request
-   schema (Q7). The task-page part names its `checks`, `failed` and
-   `events`, and an `email-field` part joins the idiom (1.1.0). The
-   generator wrote the two screens as the reference has them, apart from
-   the header, and `strings.ts` apart from the password reset's texts; the
-   CI job builds the result, and a second run writes the same bytes.
+2. **Built: task forms, sign-in, second factor, password reset.** The
+   library lending example has a second factor, `signIn` answering 201
+   when it is asked for and `confirmSecondFactor` taking the code (Q6),
+   and a Next.js application under `examples/library-lending/web-nextjs/`
+   with its `package.json`, `pnpm-lock.yaml` and `pnpm-workspace.yaml`, the
+   libraries pinned and scanned (Q10), which a CI job installs, checks with
+   `tsc --noEmit` and the lint, and builds. Its sign-in and second-factor
+   screens are the reference, written by hand on plain Carbon in a commit
+   of their own before the generator. `specarch-gen-ui-typescript` (SA-52,
+   ADR-067) writes, from the example's TypeScript implementation file, per
+   task page the schema and `page.tsx`, the components under `screens/`
+   and the texts in `strings.ts`; the events of a task form, to the second
+   factor on 201, and back to the page that asked for sign-in through
+   `returnTo`; checks as rules in the schema's data; the password rules
+   from the request schema (Q7). The task-page part names its `checks`,
+   `failed` and `events`, and the idiom has an `email-field` part. Done:
+   generated over the reference, the two screens differ only by the
+   header and `strings.ts` only by the password reset's texts; the CI job
+   builds the result, and a second run writes the same bytes.
 3. **Lists, with the override.** List pages with server-side paging,
    sort, search and typed filters (the paginated-list idiom's names), a
    column picker, a refresh that keeps the page, the soft-delete idiom's

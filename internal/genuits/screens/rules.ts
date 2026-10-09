@@ -10,6 +10,15 @@ function length(value: string): number {
   return Array.from(value).length;
 }
 
+/** Whether a value matches a pattern; one the browser cannot read matches nothing. */
+function matches(pattern: string, value: string): boolean {
+  try {
+    return new RegExp(pattern, "u").test(value);
+  } catch {
+    return false;
+  }
+}
+
 function fieldProblem(field: FieldSchema, value: string, texts: Texts): string | undefined {
   if (value === "") {
     return field.required ? say(texts, "screens.required") : undefined;
@@ -20,7 +29,7 @@ function fieldProblem(field: FieldSchema, value: string, texts: Texts): string |
   if (field.maxLength !== undefined && length(value) > field.maxLength) {
     return say(texts, { text: "screens.maxLength", count: field.maxLength });
   }
-  if ("pattern" in field && field.pattern !== undefined && !new RegExp(field.pattern, "u").test(value)) {
+  if ("pattern" in field && field.pattern !== undefined && !matches(field.pattern, value)) {
     return say(texts, "screens.pattern");
   }
   if (field.type === "email" && !email.test(value)) {

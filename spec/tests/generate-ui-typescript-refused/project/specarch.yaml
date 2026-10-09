@@ -93,6 +93,7 @@ paths:
                 age: { type: integer, format: int32, minimum: 16, maximum: 150, title: Age }
               required: [invitation, password, repeat]
       responses:
+        "201": { description: "Accepted, and the account waits for a librarian." }
         "204": { description: Accepted. }
         "409": { description: Used before., problem: invitation-used }
 pages:
@@ -106,6 +107,7 @@ pages:
     states:
       failed:
         sign-in-refused: { message: The email address or the password is wrong. }
+        default: { message: Signing in does not work right now. Try again later. }
     onSubmitted:
       "200": { navigate: member-view, with: { memberId: memberId }, message: You are signed in. }
   invitation:

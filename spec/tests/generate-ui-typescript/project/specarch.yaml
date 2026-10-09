@@ -105,6 +105,7 @@ pages:
     states:
       failed:
         sign-in-refused: { message: The email address or the password is wrong. }
+        default: { message: Signing in does not work right now. Try again later. }
     onSubmitted:
       "200": { navigate: member-view, with: { memberId: memberId }, message: You are signed in. }
   invitation:

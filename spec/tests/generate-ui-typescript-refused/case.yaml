@@ -4,5 +4,6 @@ standardOutput: |
   project/specarch.yaml:1: warning: /pages/invitation/fields/3: generator: nickname has no title, so its label is its name; give the property a title
   project/specarch.yaml:1: error: /pages/invitation/fields/4: generator: invitation shows age, of type integer, and this version of specarch-gen-ui-typescript writes task fields of type string only
   project/specarch.yaml:1: error: /pages/invitation/checks/old-enough/expression: generator: the check uses +, and this version of specarch-gen-ui-typescript checks in the browser with comparisons, &&, ||, ! and size only; check it on the server, or rewrite it with those
+  project/specarch.yaml:1: error: /pages/invitation/onSubmitted: generator: acceptInvitation answers 201, and invitation says nothing of it, so the page could not tell the person what happened; add onSubmitted "201"
   project/specarch.yaml:1: warning: /pages/member-view: generator: member-view is a view, and this version of specarch-gen-ui-typescript writes task pages only; it is left out
 plugins: [ui-typescript]

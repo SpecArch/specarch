@@ -25,11 +25,17 @@ decisions:
       and page.tsx hands the component the texts its schema names. A page
       reads returnTo from its query; an event to another task page hands
       it on, an event to any other page goes to it in place of its own
-      when it is a path of this site. A message is kept in the session's
+      when the browser, resolving it against the page's origin, reads it
+      as the same origin, and then only to its path, query and fragment;
+      one with a tab, a line break or a backslash is ignored. A message is kept in the session's
       storage for the page an event leads to, and the Notice the layout
       shows announces it there. A field of type string with format
       email or password, or none, is all a task page shows in this
-      version; other fields, and fields entered twice, are refused. The
+      version; other fields, fields given in sections or entered twice,
+      actions, enabledBy, a permission other than public, and a success
+      the operation answers with no event are refused, never dropped. The
+      default failed state is the message for any refusal the page names
+      none for. The
       service is called directly at NEXT_PUBLIC_API_URL until step 6
       brings the server routes. The schema is laid out as prettier lays
       out an object literal at a width of 140, so a generated file reads
@@ -50,8 +56,10 @@ decisions:
       function is neither; the few operators a form needs are a small
       evaluator, and refusing the rest keeps every check either in the
       browser or reported. returnTo in the query, rather than a cookie,
-      keeps the pages stateless and visible in the address, and checking
-      it is a local path stops an open redirect. The session's storage
+      keeps the pages stateless and visible in the address, and resolving
+      it as the browser will, rather than looking at its first characters,
+      stops an open redirect: the URL parser drops tabs and line breaks, so
+      "/<tab>/host" passes a prefix check and leaves the site. The session's storage
       carries a message across a navigation without a server or a query
       parameter a person could forge.
     satisfies: [SA-52]

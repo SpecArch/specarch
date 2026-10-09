@@ -255,6 +255,18 @@ func (g *gen) taskPage(pageName string, pg map[string]any) (string, string, bool
 	if pathParam.MatchString(path) {
 		g.problem("error", at+"/submit", "%s submits to %s at %s, whose path takes a parameter, and this version of %s sends a task's fields in the body only", pageName, submit, path, name)
 	}
+	if pg["sections"] != nil {
+		g.problem("error", at+"/sections", "%s gives its fields in sections, and this version of %s writes a task's fields as one list; list them under fields", pageName, name)
+	}
+	if pg["actions"] != nil {
+		g.problem("error", at+"/actions", "%s has actions, and this version of %s does not write a task page's actions yet", pageName, name)
+	}
+	if text(pg["enabledBy"]) != "" {
+		g.problem("error", at+"/enabledBy", "%s is switched on by %s, and this version of %s does not read configuration, so the page would be served while it is off", pageName, text(pg["enabledBy"]), name)
+	}
+	if p := text(pg["permission"]); p != "public" {
+		g.problem("error", at+"/permission", "%s needs %s, and this version of %s writes public task pages only; the route guard that refuses a page comes with the lists", pageName, p, name)
+	}
 	if list(pg["enteredTwice"]) != nil {
 		g.problem("error", at+"/enteredTwice", "%s has fields entered twice, and this version of %s does not write them yet; compare the two with a check instead", pageName, name)
 	}
@@ -292,6 +304,10 @@ func (g *gen) taskPage(pageName string, pg map[string]any) (string, string, bool
 	failedStates := obj0(obj0(pg["states"])["failed"])
 	for _, problem := range sortedKeys(failedStates) {
 		st := obj0(failedStates[problem])
+		if problem == "default" {
+			failures = append(failures, object([]member{{"problem", str(problem)}, {"message", str(g.say(pageName+".failed.default", text(st["message"])))}}))
+			continue
+		}
 		status := g.problemStatus(op, problem)
 		if status == "" {
 			g.problem("error", at+"/states/failed/"+problem, "%s shows a message for %s, which %s does not answer with a status", pageName, problem, submit)
@@ -307,6 +323,11 @@ func (g *gen) taskPage(pageName string, pg map[string]any) (string, string, bool
 	routes := map[string]string{}
 	pages := obj0(g.spec["pages"])
 	submitted := obj0(pg["onSubmitted"])
+	for _, status := range sortedKeys(obj0(op["responses"])) {
+		if _, ok := submitted[status]; !ok && strings.HasPrefix(status, "2") {
+			g.problem("error", at+"/onSubmitted", "%s answers %s, and %s says nothing of it, so the page could not tell the person what happened; add onSubmitted %q", submit, status, pageName, status)
+		}
+	}
 	for _, status := range sortedKeys(submitted) {
 		ev := obj0(submitted[status])
 		entry := []member{{"status", raw(status)}}

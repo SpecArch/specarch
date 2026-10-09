@@ -20,24 +20,32 @@ export interface TaskPageProps {
   readonly returnTo?: string;
 }
 
-/** A path on this site, never another origin. */
-function local(path: string | undefined): path is string {
-  return path !== undefined && path.startsWith("/") && !path.startsWith("//") && !path.startsWith("/\\");
+/**
+ * The path, query and fragment of returnTo when it leads to this site, read
+ * as the browser reads it; anything else is ignored.
+ */
+function local(returnTo: string | undefined): string | undefined {
+  if (returnTo === undefined || !returnTo.startsWith("/") || /[\t\n\r\\]/.test(returnTo)) {
+    return undefined;
+  }
+  const url = new URL(returnTo, window.location.origin);
+  return url.origin === window.location.origin ? url.pathname + url.search + url.hash : undefined;
 }
 
 function destination(event: EventSchema, routes: Readonly<Record<string, string>>, body: unknown, returnTo?: string): string | undefined {
   if (event.navigate === undefined) {
     return undefined;
   }
-  if (!event.keepsReturnTo && local(returnTo)) {
-    return returnTo;
+  const back = local(returnTo);
+  if (!event.keepsReturnTo && back !== undefined) {
+    return back;
   }
   const answer = typeof body === "object" && body !== null ? (body as Record<string, unknown>) : {};
   let route = (routes[event.navigate] ?? "/").replace(/\{([^}]+)\}/g, (_, name: string) =>
     encodeURIComponent(String(answer[event.with?.[name] ?? name] ?? "")),
   );
-  if (event.keepsReturnTo && local(returnTo)) {
-    route += "?returnTo=" + encodeURIComponent(returnTo);
+  if (event.keepsReturnTo && back !== undefined) {
+    route += "?returnTo=" + encodeURIComponent(back);
   }
   return route;
 }
@@ -78,9 +86,14 @@ export function TaskPage({ schema, texts, routes, returnTo }: TaskPageProps) {
       setProblems({ "": say(texts, "screens.failed") });
       return;
     }
-    const success = response.ok ? schema.events.find((candidate) => candidate.status === response.status) : undefined;
-    if (success !== undefined) {
-      const answer: unknown = success.with === undefined ? null : await response.json().catch(() => null);
+    if (response.ok) {
+      const success = schema.events.find((candidate) => candidate.status === response.status) ?? { status: response.status };
+      const answer: unknown = success.with === undefined ? null : await response.json().catch(() => undefined);
+      if (answer === undefined) {
+        setBusy(false);
+        setProblems({ "": say(texts, "screens.failed") });
+        return;
+      }
       const route = destination(success, routes, answer, returnTo);
       if (success.message !== undefined) {
         leave(say(texts, success.message), (route ?? window.location.pathname).split(/[?#]/)[0]);
@@ -94,7 +107,8 @@ export function TaskPage({ schema, texts, routes, returnTo }: TaskPageProps) {
       return;
     }
     setBusy(false);
-    const failure = schema.failed.find((candidate) => candidate.status === response.status);
+    const failure =
+      schema.failed.find((candidate) => candidate.status === response.status) ?? schema.failed.find((candidate) => candidate.status === undefined);
     if (failure === undefined) {
       setProblems({ "": say(texts, "screens.failed") });
     } else {

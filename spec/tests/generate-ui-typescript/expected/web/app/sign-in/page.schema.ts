@@ -22,6 +22,9 @@ export const schema = {
     },
   ],
   checks: [],
-  failed: [{ status: 401, problem: "sign-in-refused", message: "sign-in.failed.sign-in-refused" }],
+  failed: [
+    { problem: "default", message: "sign-in.failed.default" },
+    { status: 401, problem: "sign-in-refused", message: "sign-in.failed.sign-in-refused" },
+  ],
   events: [{ status: 200, navigate: "member-view", with: { memberId: "memberId" }, message: "sign-in.onSubmitted.200" }],
 } satisfies TaskPageSchema;

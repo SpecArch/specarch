@@ -5,9 +5,14 @@
   "description": "The JavaScript and TypeScript reader of specarch extract: it reads JavaScript and TypeScript with the TypeScript compiler and writes the facts specarch extract javascript reads, as a code-facts dump.",
   "license": "Apache-2.0",
   "type": "module",
-  "bin": { "code-facts-javascript": "code-facts-javascript.mjs" },
-  "engines": { "node": ">=20" },
+  "bin": {
+    "code-facts-javascript": "code-facts-javascript.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
+    "@vue/compiler-sfc": "3.5.43",
     "typescript": "6.0.3"
   }
 }

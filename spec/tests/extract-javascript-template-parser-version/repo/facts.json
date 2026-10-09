@@ -1,0 +1,14 @@
+{
+    "codeFacts": 1,
+    "language": "javascript",
+    "parser": {"name": "TypeScript", "version": "6.0.3"},
+    "templateParser": {"name": "@vue/compiler-sfc", "version": "3.5.0"},
+    "path": "app",
+    "commit": "bcfc5f6e6147b0e99318c11583a407531c09cced",
+    "files": [
+        {"file": "app/App.vue", "syntaxErrors": 0}
+    ],
+    "facts": [
+        {"kind":"template","file":"app/App.vue","line":2,"column":3,"element":"h1","attributes":[],"children":[{"text":"Notes"}]}
+    ]
+}

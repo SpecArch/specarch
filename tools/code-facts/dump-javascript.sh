@@ -1,8 +1,8 @@
 #!/bin/sh
 # dump-javascript.sh writes the code-facts dump that specarch extract
 # javascript reads (ADR-089). It runs the JavaScript reader,
-# readers/javascript in this repository, on the tracked JavaScript and
-# TypeScript files under a folder and its tsconfig.json and jsconfig.json
+# readers/javascript in this repository, on the tracked JavaScript,
+# TypeScript and Vue files under a folder and its tsconfig.json and jsconfig.json
 # files, and the reader writes every fact the TypeScript compiler gives it
 # with the version of the format, the compiler's name and version, the
 # folder's path from the repository's root and the commit that last
@@ -65,7 +65,7 @@ fi
 
 # The tracked source and configuration files, from the repository's root.
 (cd "$root" && GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -c core.quotePath=false ls-files -- "$path" |
-	grep -E '(\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$|(^|/)(tsconfig|jsconfig)\.json$)' | grep -v '\.d\.[cm]\?ts$' | grep -v '(^|/)node_modules/' || true) >"$dump.files"
+	grep -E '(\.(ts|tsx|mts|cts|js|jsx|mjs|cjs|vue)$|(^|/)(tsconfig|jsconfig)\.json$)' | grep -v '\.d\.[cm]\?ts$' | grep -v '(^|/)node_modules/' || true) >"$dump.files"
 (cd "$root" && node "$reader/code-facts-javascript.mjs" "$path" "$commit" <"$dump.files") >"$dump.tmp"
 rm -f "$dump.files"
 mv "$dump.tmp" "$dump"

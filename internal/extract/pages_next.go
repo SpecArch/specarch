@@ -2,6 +2,7 @@ package extract
 
 import (
 	"fmt"
+	"path"
 	"sort"
 	"strings"
 
@@ -339,6 +340,35 @@ func (rd *pageReader) handlerBody(fn *jsFact) string {
 		return v != nil && v.Call != nil && v.Call.Callee.Member != nil && (v.Call.Callee.Member.Name == "json" || v.Call.Callee.Member.Name == "formData") &&
 			v.Call.Callee.Member.Object.Parameter != nil && v.Call.Callee.Member.Object.Parameter.Index == 0 && v.Call.Callee.Member.Object.Parameter.Function.key() == pos.key()
 	}
+	isEvent := func(v *jsValue) bool {
+		return v != nil && v.Parameter != nil && v.Parameter.Index == 0 && v.Parameter.Function.key() == pos.key()
+	}
+	for _, f := range js.byWithin[pos.key()] {
+		// Nitro: readValidatedBody(event, schema.parse).
+		if f.Kind == "call" && f.Callee != nil && f.Callee.Name != nil && *f.Callee.Name == "readValidatedBody" && len(f.Arguments) == 2 && isEvent(&f.Arguments[0]) {
+			obj := &f.Arguments[1]
+			if obj.Member != nil {
+				obj = &obj.Member.Object
+			}
+			if js.variableOf(obj) != nil {
+				if name := js.validators[obj.Declaration.key()]; name != "" {
+					return name
+				}
+			}
+		}
+	}
+	isBody0 := isBody
+	isBody = func(v *jsValue) bool {
+		if isBody0(v) {
+			return true
+		}
+		if v != nil && v.Name != nil {
+			if vr := js.variableOf(v); vr != nil && vr.Value != nil {
+				v = vr.Value
+			}
+		}
+		return v != nil && v.Call != nil && v.Call.Callee.Name != nil && *v.Call.Callee.Name == "readBody" && len(v.Call.Arguments) > 0 && isEvent(&v.Call.Arguments[0])
+	}
 	for _, f := range js.byWithin[pos.key()] {
 		if f.Kind != "call" || f.Callee == nil || f.Callee.Member == nil || len(f.Arguments) == 0 || !isBody(&f.Arguments[0]) {
 			continue
@@ -545,9 +575,7 @@ func (rd *pageReader) readMiddleware() {
 			}
 		}
 		if fn == nil {
-			if e := js.exports[file]; e != nil {
-				fn = js.functionOf(e.Value)
-			}
+			fn, _ = js.handlerOfExport(file)
 		}
 		if fn != nil {
 			label := "the middleware " + file
@@ -707,4 +735,214 @@ func (rd *pageReader) writeNextPermissions(used map[string][]string, cites map[s
 	}
 	rd.question(fmt.Sprintf("What does each permission allow: %s?", strings.Join(names, ", ")), blocks, "The code names the permission an operation checks and not what it is for.")
 	rd.question(fmt.Sprintf("Which role grants each permission: %s?", strings.Join(names, ", ")), grants, "The code names the permission an operation checks and not who holds it.")
+}
+
+// handlerOfExport is the function a file's default export is, or the
+// function a call it is given to wraps, such as defineEventHandler(fn).
+func (js *jsReader) handlerOfExport(file string) (*jsFact, string) {
+	for _, k := range sortedFnKeys(js.functions) {
+		f := js.functions[k]
+		if f.File == file && f.Exported == "default" && f.Within == nil {
+			return f, js.clause(f)
+		}
+	}
+	e := js.exports[file]
+	if e == nil {
+		return nil, ""
+	}
+	if fn := js.functionOf(e.Value); fn != nil {
+		return fn, js.clause(e)
+	}
+	if e.Value != nil && e.Value.Call != nil {
+		for i := range e.Value.Call.Arguments {
+			if fn := js.functionOf(&e.Value.Call.Arguments[i]); fn != nil {
+				return fn, js.clause(e)
+			}
+		}
+	}
+	return nil, js.clause(e)
+}
+
+// readNuxtPages reads what each Nuxt page's file says: definePageMeta's
+// literal title, layout and named middleware, and its template's fields
+// and columns.
+func (rd *pageReader) readNuxtPages() {
+	js := rd.js
+	if js == nil || rd.router != routerNuxtPages {
+		return
+	}
+	cat := js.readCatalogues()
+	app := path.Dir(rd.base)
+	for _, pg := range rd.pages {
+		if js.files[pg.file] == nil {
+			continue
+		}
+		at := "#/pages/" + pg.name
+		for _, f := range js.calls {
+			if f.File != pg.file || f.Callee == nil || f.Callee.Name == nil || *f.Callee.Name != "definePageMeta" || len(f.Arguments) == 0 {
+				continue
+			}
+			clause := js.clause(f)
+			meta := &f.Arguments[0]
+			if meta.Object == nil {
+				js.question("should", fmt.Sprintf("%s gives definePageMeta %s, which is not a literal object. What does it set?", clause, meta.describe()),
+					[]string{at}, "A page's metadata is read from a literal object.", js.at(clause, "Calls definePageMeta."))
+				continue
+			}
+			var other []string
+			for _, p := range meta.Object {
+				if p.Key == nil {
+					other = append(other, "a computed key")
+					continue
+				}
+				switch *p.Key {
+				case "title":
+					if s, ok := js.constString(p.Value); ok && pg.title == "" {
+						pg.title = s
+						pg.cites = append(pg.cites, js.at(clause, fmt.Sprintf("definePageMeta gives the title %q.", s)))
+					} else if !ok {
+						rd.pageGap(pg, "title", true, clause, "%s: definePageMeta's title is %s, not a literal; asked for instead", clause, p.Value.describe())
+					}
+				case "layout":
+					rd.pageGap(pg, "", false, clause, "%s: definePageMeta gives the layout %s, and a page holds no layout", clause, p.Value.describe())
+					js.cite(clause)
+				case "middleware":
+					var names []jsValue
+					if p.Value.Array != nil {
+						names = p.Value.Array
+					} else {
+						names = []jsValue{*p.Value}
+					}
+					for i := range names {
+						rd.namedMiddleware(pg, &names[i], app, clause)
+					}
+				default:
+					other = append(other, *p.Key)
+				}
+			}
+			if len(other) > 0 {
+				rd.pageGap(pg, "", false, clause, "%s: definePageMeta gives %s, which the reader does not read, since no implementation file key maps a page's metadata", clause, joinAnd(other))
+				js.cite(clause)
+			}
+		}
+		vs := js.readVueScreen(pg.file, at, cat)
+		if pg.title == "" && vs.title != "" {
+			pg.title = vs.title
+		}
+		if pg.lists["fields"] == nil && len(vs.fields) > 0 {
+			pg.lists["fields"] = vs.fields
+		}
+		if pg.lists["columns"] == nil && len(vs.columns) > 0 {
+			pg.lists["columns"] = vs.columns
+		}
+		pg.cites = append(pg.cites, vs.cites...)
+		rd.settleGuards(pg)
+	}
+}
+
+// namedMiddleware reads a route middleware a page names in
+// definePageMeta: the file middleware/<name> beside the pages folder, and
+// the check it calls.
+func (rd *pageReader) namedMiddleware(pg *page, v *jsValue, app, clause string) {
+	js := rd.js
+	name, ok := js.constString(v)
+	if !ok {
+		if fn := js.functionOf(v); fn != nil {
+			rd.pageMiddleware(pg, fn, js.clause(fn), "an inline middleware", clause)
+			return
+		}
+		pg.guards = append(pg.guards, pageGuard{why: fmt.Sprintf("The page at %s runs the middleware %s, which definePageMeta at %s names by a value that is not a literal.", pg.route, v.describe(), clause)})
+		return
+	}
+	for _, ext := range []string{".ts", ".js", ".mjs"} {
+		file := path.Join(app, "middleware", name+ext)
+		if js.files[file] == nil {
+			continue
+		}
+		fn, at := js.handlerOfExport(file)
+		if fn == nil {
+			pg.guards = append(pg.guards, pageGuard{why: fmt.Sprintf("The page at %s runs the middleware %s, whose file %s exports no function the reader finds.", pg.route, name, file)})
+			js.cite(file)
+			return
+		}
+		rd.pageMiddleware(pg, fn, at, "the middleware "+name, clause)
+		return
+	}
+	pg.guards = append(pg.guards, pageGuard{why: fmt.Sprintf("The page at %s runs the middleware %s, which definePageMeta at %s names, and no file middleware/%s of the folder read holds it.", pg.route, name, clause, name)})
+	js.cite(clause)
+}
+
+// pageMiddleware gives a page the permission a middleware it runs checks.
+func (rd *pageReader) pageMiddleware(pg *page, fn *jsFact, at, what, clause string) {
+	p, why := rd.handlerPermission(nextHandler{fn: fn, at: at}, "The page at "+pg.route+", through "+what+",")
+	rd.js.cite(at)
+	if p == "" {
+		pg.guards = append(pg.guards, pageGuard{why: why})
+		return
+	}
+	pg.guards = append(pg.guards, pageGuard{permission: p, at: at, cites: []*yaml.Node{
+		rd.js.at(clause, fmt.Sprintf("definePageMeta runs %s, which checks %s.", what, p)),
+		rd.js.at(at, fmt.Sprintf("%s checks %s.", upperFirst(what), p))}})
+}
+
+// pageGuard is what one middleware a page runs gives it: a permission and
+// its citations, or why it gives none.
+type pageGuard struct {
+	permission, at, why string
+	cites               []*yaml.Node
+}
+
+// settleGuards gives a page the one permission the middleware it runs
+// checks, or asks: none, several, or one the reader cannot read.
+func (rd *pageReader) settleGuards(pg *page) {
+	if p, mw := rd.middlewarePermission(pg.route); p != "" {
+		pg.guards = append(pg.guards, pageGuard{permission: p, at: mw.at, cites: []*yaml.Node{
+			rd.js.at(mw.at, fmt.Sprintf("The middleware %s checks %s before the page at %s.", mw.file, p, pg.route))}})
+	}
+	if len(pg.guards) == 0 || pg.permission != "" {
+		return
+	}
+	var perms, whys []string
+	for _, g := range pg.guards {
+		if g.why != "" {
+			whys = append(whys, g.why)
+		} else if !contains(perms, g.permission) {
+			perms = append(perms, g.permission)
+		}
+	}
+	if len(perms) == 1 && len(whys) == 0 {
+		for _, g := range pg.guards {
+			if pg.permission == "" {
+				pg.permission, pg.permissionAt = g.permission, g.at
+			}
+			pg.cites = append(pg.cites, g.cites...)
+		}
+		return
+	}
+	if len(perms) > 1 {
+		whys = append(whys, fmt.Sprintf("The page at %s runs middleware that checks %s, and a page checks one permission.", pg.route, joinAnd(perms)))
+	} else if len(perms) == 1 {
+		whys = append(whys, fmt.Sprintf("It also runs middleware that checks %s.", perms[0]))
+	}
+	pg.permissionWhy = strings.Join(whys, " ")
+}
+
+// nitroParams asks about each path parameter a Nitro handler reads with
+// getRouterParam that its route's path lacks.
+func (rd *pageReader) nitroParams(rf *routeFile) {
+	js := rd.js
+	if js == nil || rf.handler == nil || rf.handler.fn == nil {
+		return
+	}
+	pos := (&jsPos{File: rf.handler.fn.File, Line: rf.handler.fn.Line, Column: rf.handler.fn.Column}).key()
+	for _, f := range js.byWithin[pos] {
+		if f.Kind != "call" || f.Callee == nil || f.Callee.Name == nil || *f.Callee.Name != "getRouterParam" || len(f.Arguments) < 2 {
+			continue
+		}
+		name, ok := f.Arguments[1].stringLiteral()
+		if ok && !contains(rf.params, name) {
+			js.question("must", fmt.Sprintf("The handler of %s %s reads the path parameter %s at %s, which the path does not have, so it is always undefined. Which parameter is meant?", rf.method, rf.path, name, js.clause(f)),
+				[]string{"#/paths/" + escapeToken(rf.path) + "/parameters"}, "Nitro gives no value for a parameter the route's path does not name, and the handler reads one.", js.at(js.clause(f), "Reads the path parameter "+name+"."))
+		}
+	}
 }

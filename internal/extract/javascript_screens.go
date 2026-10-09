@@ -29,6 +29,9 @@ type jsCatalogue struct {
 // messages/<locale>.json, locales/<locale>.json and
 // locales/<locale>/<namespace>.json, nested keys joined by dots.
 func (js *jsReader) readCatalogues() *jsCatalogue {
+	if js.cat != nil {
+		return js.cat
+	}
 	c := &jsCatalogue{locales: map[string]map[string]string{}, files: map[string][]string{}}
 	for _, f := range js.r.Files {
 		if !js.under(f) || !strings.HasSuffix(f, ".json") || strings.Contains(f, "node_modules/") {
@@ -58,6 +61,7 @@ func (js *jsReader) readCatalogues() *jsCatalogue {
 		c.files[locale] = append(c.files[locale], f)
 		flattenMessages("", doc, c.locales[locale])
 	}
+	js.cat = c
 	if len(c.locales) == 0 {
 		return c
 	}
@@ -130,7 +134,7 @@ func (js *jsReader) message(v *jsValue, c *jsCatalogue) (text string, why string
 	if s, ok := v.stringLiteral(); ok {
 		return s, "", true
 	}
-	if v.Call == nil || v.Call.Callee.memberName() != "t" {
+	if v.Call == nil || (v.Call.Callee.memberName() != "t" && v.Call.Callee.memberName() != "$t") {
 		return "", v.describe() + ", which is not a literal", false
 	}
 	if len(v.Call.Arguments) == 0 {
@@ -153,7 +157,7 @@ func (js *jsReader) message(v *jsValue, c *jsCatalogue) (text string, why string
 // askComputedKey asks about a t() whose key is not a literal: which text
 // it shows.
 func (js *jsReader) askComputedKey(v *jsValue, clause, block string) {
-	if v == nil || v.Call == nil || v.Call.Callee.memberName() != "t" || len(v.Call.Arguments) == 0 {
+	if v == nil || v.Call == nil || (v.Call.Callee.memberName() != "t" && v.Call.Callee.memberName() != "$t") || len(v.Call.Arguments) == 0 {
 		return
 	}
 	if _, ok := v.Call.Arguments[0].stringLiteral(); ok {

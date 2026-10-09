@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a code-facts dump of a Vue app whose router createRouter is given routes to .vue files imported directly and lazily and to a component of a package, with a beforeEach guard and one route's beforeEnter guard that call the check the implementation file names; whose views have literal headings, PrimeVue Columns and InputTexts the implementation file maps; and one view that calls $fetch with a path of its own system"
+when: "extract javascript is run on the dump with the implementation file"
+then: "it writes one page per route whose component is a .vue file read, named after the file, with its route, its heading as its title, its columns and fields, and the permission its one guard names; asks a must question on each page's kind and the rest, on the route whose two guards name two permissions, on the component from a package, and a should question on the call to its own path; and exits 0"
+verifies: [SA-44]

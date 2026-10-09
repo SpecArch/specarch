@@ -25,16 +25,19 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const ts = require('typescript');
+const sfc = require('@vue/compiler-sfc');
 
 const parserName = 'TypeScript';
 const parserVersion = '6.0.3';
+const vueName = '@vue/compiler-sfc';
+const vueVersion = '3.5.43';
 
 // The modules whose calls and elements the program writes wherever they
 // are used: the libraries specarch extract javascript knows. A module is
 // known when its name is one of these or starts with one and a slash.
 const knownModules = [
   'express', 'fastify', 'zod', 'yup', 'joi', '@hapi/joi', 'react-router', 'react-router-dom',
-  'react-hook-form', '@hookform/resolvers', 'formik', 'axios', 'i18next', 'react-i18next', 'next-intl',
+  'react-hook-form', '@hookform/resolvers', 'formik', 'axios', 'i18next', 'react-i18next', 'next-intl', 'vue-router',
 ];
 
 // The names of the calls the program writes whatever their callee is:
@@ -55,6 +58,9 @@ const callNames = new Set([
   'createBrowserRouter', 'createHashRouter', 'createMemoryRouter', 'useRoutes', 'navigate', 'useNavigate', 'redirect',
   // modules
   'require',
+  // Vue, vue-router, Nuxt and Nitro, whose names Nuxt makes global
+  'definePageMeta', 'defineNuxtRouteMiddleware', 'navigateTo', 'useFetch', '$fetch', 'createRouter', 'beforeEach', 'beforeEnter',
+  'defineEventHandler', 'eventHandler', 'readBody', 'readValidatedBody', 'getQuery', 'getValidatedQuery', 'getRouterParam', 'getRouterParams',
 ]);
 
 // The elements of HTML the program writes: a page's heading, a form and
@@ -83,6 +89,9 @@ function fail(message) {
 if (process.argv.length !== 4) {
   fail('usage: code-facts-javascript <path> <commit> < files');
 }
+if (sfc.version !== vueVersion) {
+  fail(`${vueName} installed is ${sfc.version}, and this reader writes dumps of ${vueVersion}; run npm ci in readers/javascript`);
+}
 if (ts.version !== parserVersion) {
   fail(`the TypeScript compiler installed is ${ts.version}, and this reader writes dumps of ${parserVersion}; run npm ci in readers/javascript`);
 }
@@ -91,8 +100,13 @@ const root = process.cwd();
 const listed = fs.readFileSync(0, 'utf8').split('\n').filter((l) => l !== '');
 const tracked = new Set(listed);
 const slash = (p) => p.split(path.sep).join('/');
-const rel = (f) => slash(path.relative(root, path.resolve(root, f)));
-const isSource = (f) => sourceExtensions.some((e) => f.endsWith(e));
+const virtualToReal = new Map(); // a .vue file's script as a TypeScript file -> the .vue file
+const rel = (f) => {
+  const abs = path.resolve(root, f);
+  if (virtualToReal.has(abs)) return virtualToReal.get(abs);
+  return slash(path.relative(root, abs));
+};
+const isSource = (f) => sourceExtensions.some((e) => f.endsWith(e)) || f.endsWith('.vue');
 const sources = listed.filter(isSource).sort();
 const configs = listed.filter((f) => configNames.has(path.posix.basename(f))).sort();
 
@@ -103,10 +117,35 @@ for (const f of listed) {
   }
 }
 
+// A Vue single-file component's script blocks, <script> and <script
+// setup>, are read as one TypeScript or JavaScript file in which every
+// other character is a space and every line is where it is, so a fact's
+// line and column are the .vue file's own.
+const vue = new Map();
+for (const f of sources.filter((x) => x.endsWith('.vue'))) {
+  const src = fs.readFileSync(path.resolve(root, f), 'utf8');
+  const { descriptor, errors } = sfc.parse(src, { filename: f, sourceMap: false });
+  const blocks = [descriptor.script, descriptor.scriptSetup].filter(Boolean);
+  const chars = Array.from(src, (c) => (c === '\n' || c === '\r' ? c : ' '));
+  const text = src.split('');
+  for (const b of blocks) {
+    for (let i = b.loc.start.offset; i < b.loc.end.offset; i++) chars[i] = text[i];
+  }
+  const lang = blocks.map((b) => b.lang).find(Boolean) || 'js';
+  const ext = { ts: '.ts', tsx: '.tsx', jsx: '.jsx' }[lang] || '.js';
+  const virtual = path.resolve(root, f) + ext;
+  vue.set(f, { virtual, text: chars.join(''), descriptor, errors: errors.length, ext });
+  virtualToReal.set(virtual, f);
+}
+const isVirtual = (f) => virtualToReal.has(path.resolve(root, f));
+
 const libDir = path.dirname(ts.getDefaultLibFilePath({ target: ts.ScriptTarget.ESNext }));
 const isLib = (f) => path.resolve(f).startsWith(libDir + path.sep);
 const allowed = (f) => isLib(f) || tracked.has(rel(f));
-const readAllowed = (f) => (allowed(f) && fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : undefined);
+const readAllowed = (f) => {
+  if (isVirtual(f)) return vue.get(rel(f)).text;
+  return allowed(f) && fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : undefined;
+};
 
 const facts = [];
 const fileList = [];
@@ -162,15 +201,36 @@ const options = {
 };
 const host = ts.createCompilerHost(options, true);
 host.getCurrentDirectory = () => root;
-host.fileExists = (f) => allowed(f) && fs.existsSync(f);
+host.fileExists = (f) => isVirtual(f) || (allowed(f) && !rel(f).endsWith('.vue') && fs.existsSync(f));
 host.readFile = readAllowed;
 host.directoryExists = (d) => isLib(d) || path.resolve(d) === libDir || trackedDirs.has(rel(d)) || rel(d) === '';
 host.getDirectories = () => [];
 host.realpath = (f) => f;
 const getSourceFile = host.getSourceFile.bind(host);
-host.getSourceFile = (f, ...rest) => (allowed(f) ? getSourceFile(f, ...rest) : undefined);
+host.getSourceFile = (f, languageVersion, ...rest) => {
+  if (isVirtual(f)) {
+    const v = vue.get(rel(f));
+    const kind = { '.ts': ts.ScriptKind.TS, '.tsx': ts.ScriptKind.TSX, '.jsx': ts.ScriptKind.JSX }[v.ext] || ts.ScriptKind.JS;
+    return ts.createSourceFile(f, v.text, languageVersion, true, kind);
+  }
+  return allowed(f) && !rel(f).endsWith('.vue') ? getSourceFile(f, languageVersion, ...rest) : undefined;
+};
+// An import of a .vue file resolves to its script, read as above.
+function resolveSpec(specifier, containing) {
+  if (specifier.endsWith('.vue') && specifier.startsWith('.')) {
+    const abs = path.resolve(path.dirname(containing), specifier);
+    const v = vue.get(slash(path.relative(root, abs)));
+    if (v) {
+      const extension = { '.ts': ts.Extension.Ts, '.tsx': ts.Extension.Tsx, '.jsx': ts.Extension.Jsx }[v.ext] || ts.Extension.Js;
+      return { resolvedFileName: v.virtual, extension, isExternalLibraryImport: false };
+    }
+    return undefined;
+  }
+  return ts.resolveModuleName(specifier, containing, options, host).resolvedModule;
+}
+host.resolveModuleNameLiterals = (literals, containing) => literals.map((l) => ({ resolvedModule: resolveSpec(l.text, containing) }));
 
-const program = ts.createProgram({ rootNames: sources.map((f) => path.resolve(root, f)), options, host });
+const program = ts.createProgram({ rootNames: sources.map((f) => (vue.has(f) ? vue.get(f).virtual : path.resolve(root, f))), options, host });
 const checker = program.getTypeChecker();
 
 let sf = null; // the file being read
@@ -995,6 +1055,7 @@ function visit(node) {
         const f = { module: a.text, names: [], dynamic: true };
         const resolved = resolvedModule(a.text);
         if (resolved) f.resolved = resolved;
+        Object.assign(f, context(node));
         emit('import', node, f);
       } else {
         emit('dynamic', node, { what: 'import', value: a ? value(a) : { text: '' }, ...context(node) });
@@ -1060,9 +1121,88 @@ function visit(node) {
   ts.forEachChild(node, visit);
 }
 
+// templateFacts writes the elements of a Vue template: every component,
+// and the heading, form, controls and link of HTML, with their attributes
+// and directives, the literal text they hold, the component they are in,
+// and whether a v-for or a v-if is above them.
+function templateFacts(file, descriptor) {
+  const t = descriptor.template;
+  if (!t || !t.ast) return;
+  const walk = (node, parent, loop, cond) => {
+    if (node.type === 1) {
+      const props = node.props || [];
+      const has = (n) => props.some((p) => p.type === 7 && p.name === n);
+      const inLoop = loop || has('for');
+      const inCond = cond || has('if') || has('else-if') || has('else') || has('show');
+      const component = /^[A-Z]/.test(node.tag) || node.tag.includes('-');
+      let next = parent;
+      if (component || intrinsicElements.has(node.tag)) {
+        const f = { kind: 'template', file, line: node.loc.start.line, column: node.loc.start.column, element: node.tag, attributes: props.map(templateAttr) };
+        const children = [];
+        for (const c of node.children || []) {
+          if (c.type === 2 && c.content.trim() !== '') children.push({ text: c.content.replace(/\s+/g, ' ').trim() });
+          if (c.type === 5 && c.content) children.push({ expression: templateValue(c.content.content) });
+        }
+        if (children.length > 0) f.children = children;
+        if (parent) {
+          f.parent = { line: parent.loc.start.line, column: parent.loc.start.column };
+          f.parentElement = parent.tag;
+        }
+        if (inLoop) f.inLoop = true;
+        if (inCond) f.inCondition = true;
+        facts.push(f);
+        if (component) next = node;
+      }
+      for (const c of node.children || []) walk(c, next, inLoop, inCond);
+      return;
+    }
+    for (const c of node.children || []) walk(c, parent, loop, cond);
+  };
+  walk(t.ast, null, false, false);
+}
+
+function templateAttr(p) {
+  if (p.type === 6) return { name: p.name, value: p.value ? { string: p.value.content } : { boolean: true } };
+  const a = { directive: p.name };
+  if (p.arg && p.arg.content !== undefined) a.name = p.arg.content;
+  if (p.exp && p.exp.content !== undefined) a.value = templateValue(p.exp.content);
+  return a;
+}
+
+// templateValue writes a template's expression by its syntax alone: the
+// checker does not see it, so a name is not resolved.
+function templateValue(src) {
+  const file = ts.createSourceFile('template.ts', '(' + src + ')', ts.ScriptTarget.ESNext, true, ts.ScriptKind.TS);
+  const st = file.statements[0];
+  if (!st || !ts.isExpressionStatement(st)) return { text: src.trim() };
+  const simple = (n, d) => {
+    n = unwrap(n);
+    if (d > 8) return { text: n.getText(file) };
+    if (ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n)) return { string: n.text };
+    if (ts.isNumericLiteral(n)) return { number: n.text };
+    if (n.kind === ts.SyntaxKind.TrueKeyword) return { boolean: true };
+    if (n.kind === ts.SyntaxKind.FalseKeyword) return { boolean: false };
+    if (n.kind === ts.SyntaxKind.NullKeyword) return { null: true };
+    if (ts.isIdentifier(n)) return { name: n.text };
+    if (ts.isPropertyAccessExpression(n)) return { member: { object: simple(n.expression, d + 1), name: n.name.text } };
+    if (ts.isTemplateExpression(n)) {
+      const parts = [];
+      if (n.head.text !== '') parts.push({ text: n.head.text });
+      for (const sp of n.templateSpans) {
+        parts.push({ expression: simple(sp.expression, d + 1) });
+        if (sp.literal.text !== '') parts.push({ text: sp.literal.text });
+      }
+      return { template: parts };
+    }
+    if (ts.isCallExpression(n)) return { call: { callee: simple(n.expression, d + 1), arguments: n.arguments.map((a) => simple(a, d + 1)) } };
+    if (ts.isArrayLiteralExpression(n)) return { array: n.elements.map((e) => simple(e, d + 1)) };
+    return { text: n.getText(file) };
+  };
+  return simple(st.expression, 0);
+}
+
 function resolvedModule(specifier) {
-  const r = ts.resolveModuleName(specifier, sf.fileName, options, host);
-  const m = r.resolvedModule;
+  const m = resolveSpec(specifier, sf.fileName);
   if (m && tracked.has(rel(m.resolvedFileName))) {
     return rel(m.resolvedFileName);
   }
@@ -1076,13 +1216,15 @@ for (const file of [...sources, ...configs].sort()) {
     if (f) facts.push(f);
     continue;
   }
-  sf = program.getSourceFile(path.resolve(root, file));
+  const v = vue.get(file);
+  sf = program.getSourceFile(v ? v.virtual : path.resolve(root, file));
   if (!sf) {
     fileList.push({ file, syntaxErrors: 1 });
     continue;
   }
-  fileList.push({ file, syntaxErrors: program.getSyntacticDiagnostics(sf).length });
+  fileList.push({ file, syntaxErrors: program.getSyntacticDiagnostics(sf).length + (v ? v.errors : 0) });
   visit(sf);
+  if (v) templateFacts(file, v.descriptor);
 }
 
 const indexed = facts.map((f, i) => [f, i]);
@@ -1093,6 +1235,9 @@ lines.push('{');
 lines.push('    "codeFacts": 1,');
 lines.push('    "language": "javascript",');
 lines.push(`    "parser": ${JSON.stringify({ name: parserName, version: parserVersion }).replace(/,/g, ', ').replace(/":/g, '": ')},`);
+if (vue.size > 0) {
+  lines.push(`    "templateParser": ${JSON.stringify({ name: vueName, version: vueVersion }).replace(/,/g, ', ').replace(/":/g, '": ')},`);
+}
 lines.push(`    "path": ${JSON.stringify(folder)},`);
 lines.push(`    "commit": ${JSON.stringify(commit)},`);
 lines.push('    "files": [');

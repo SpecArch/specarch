@@ -1,0 +1,15 @@
+arguments: [extract, javascript, --implementation, implementation/shelf.javascript.specarch-implementation.yaml, --out, spec, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [app]
+    - [facts.json]
+exitStatus: 0
+standardOutput: |
+  commit 9210b0186792af85ac3e0becb0a8c8a637fae703: the last change to app, as the code-facts dump facts.json names it
+  components: implementation/shelf.javascript.specarch-implementation.yaml maps InputText, Calendar and Column
+  checks: implementation/shelf.javascript.specarch-implementation.yaml names the permission check src/auth.requirePermission
+  counted 5 source files, 0 of them with syntax the TypeScript compiler could not read, 0 configuration files and 34 facts: every tracked JavaScript and TypeScript file under app, its tsconfig.json and jsconfig.json files, and every fact the dump holds
+  screens: counted 4 routes: every route with a path and a component that vue-router's createRouter is given in a literal list
+  clients: counted 1 call: every call of fetch, $fetch and useFetch, of axios and its get, post, put, patch, delete, head, options and request, and of an instance axios.create makes
+  wrote 3 pages, 0 schemas, 0 enums, 0 operations, 0 dependencies, 0 settings and 8 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold

@@ -1,0 +1,44 @@
+permissions:
+  desk.use:
+    origin: stated
+    cites:
+      - {source: code, clause: 'site/middleware/session.global.ts:4', says: 'The page at /members/{id} checks desk.use.'}
+pages:
+  # specarch-problem: warning: test_golden_missing: page loans has no golden scenario; add one under tests, for example loans-succeeds: { page: loans, scenario: golden, given: "any caller", when: "the page loans is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/loans]
+  # specarch-problem: warning: test_red_missing: page loans has no red scenario; add one under tests, for example loans-refused: { page: loans, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/loans]
+  loans:
+    title: All loans
+    route: /loans
+    columns: [book, due]
+    origin: stated
+    cites:
+      - {source: code, clause: site/pages/loans/index.vue, says: 'The file loans/index.vue is under site/pages, so the router serves a page at /loans.'}
+      - {source: code, clause: 'site/pages/loans/index.vue:16', says: definePageMeta gives the title "All loans".}
+      - {source: code, clause: 'site/pages/loans/index.vue:5', says: <Column field="book"> is the column book.}
+      - {source: code, clause: 'site/pages/loans/index.vue:6', says: <Column field="due"> is the column due.}
+      - {source: code, clause: 'site/pages/loans/index.vue:3', says: Its heading is "Loans".}
+  # specarch-problem: warning: test_golden_missing: page loans-new has no golden scenario; add one under tests, for example loans-new-succeeds: { page: loans-new, scenario: golden, given: "any caller", when: "the page loans-new is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/loans-new]
+  # specarch-problem: warning: test_red_missing: page loans-new has no red scenario; add one under tests, for example loans-new-refused: { page: loans-new, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/loans-new]
+  loans-new:
+    title: Lend a book
+    route: /loans/new
+    fields: [book, due, note]
+    origin: stated
+    cites:
+      - {source: code, clause: site/pages/loans/new.vue, says: 'The file loans/new.vue is under site/pages, so the router serves a page at /loans/new.'}
+      - {source: code, clause: 'site/pages/loans/new.vue:4', says: <InputText v-model="form.book"> binds the field book.}
+      - {source: code, clause: 'site/pages/loans/new.vue:5', says: <Calendar v-model="form.due"> binds the field due.}
+      - {source: code, clause: 'site/pages/loans/new.vue:6', says: <input v-model="note"> binds the field note.}
+      - {source: code, clause: 'site/pages/loans/new.vue:3', says: Its heading is "Lend a book".}
+  # specarch-problem: warning: test_case_missing: page members-by-id has no red scenario for "denied without desk.use"; add under tests members-by-id-denied-without-desk-use: { page: members-by-id, scenario: red, covers: [denied without desk.use], given: "a caller without desk.use", when: "the page members-by-id is opened", then: "it is refused as not allowed" } [test_case_missing.e4ff0326@design/pages.yaml#/pages/members-by-id]
+  # specarch-problem: warning: test_case_missing: page members-by-id has no red scenario for "not found id"; add under tests members-by-id-not-found-id: { page: members-by-id, scenario: red, covers: [not found id], given: "no record has that id", when: "the page members-by-id is opened for that id", then: "it says the record was not found" } [test_case_missing.f82823c0@design/pages.yaml#/pages/members-by-id]
+  # specarch-problem: warning: test_golden_missing: page members-by-id has no golden scenario; add one under tests, for example members-by-id-succeeds: { page: members-by-id, scenario: golden, given: "a caller with desk.use", when: "the page members-by-id is opened for a record that exists", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/members-by-id]
+  members-by-id:
+    title: Member
+    route: /members/{id}
+    permission: desk.use
+    origin: stated
+    cites:
+      - {source: code, clause: 'site/pages/members/[id].vue', says: 'The file members/[id].vue is under site/pages, so the router serves a page at /members/{id}.'}
+      - {source: code, clause: 'site/pages/members/[id].vue:2', says: Its heading is "Member".}
+      - {source: code, clause: 'site/middleware/session.global.ts:4', says: 'The middleware site/middleware/session.global.ts checks desk.use before the page at /members/{id}.'}

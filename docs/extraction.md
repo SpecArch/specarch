@@ -498,10 +498,17 @@ changes `extract.yaml` first.
     on a route's parameters; and `page.schema.ts` is read as the compiler
     reads it, its consts resolved. The lending desk's web folder is read
     through its dump.
-20. Vue and Nuxt: `@vue/compiler-sfc` in the JavaScript reader, with its
-    licence and SBOM scan; vue-router and Nuxt pages, layouts, route
-    middleware and `definePageMeta`, Nitro handlers, `v-model` fields and
-    a mapped component library such as PrimeVue.
+20. Built. Vue and Nuxt (ADR-091): `@vue/compiler-sfc` 3.5.43 in the
+    JavaScript reader, pinned exactly, MIT with an MIT, BSD and ISC tree,
+    its SBOM scan clean; a `.vue` file's scripts keep their lines and its
+    template's elements are facts. The implementation file names a UI
+    library's components under `bindings.ui.components`, checked by both
+    validators. `extract javascript` reads vue-router's routes as pages
+    with their headings, `v-model` fields, mapped PrimeVue fields and
+    columns, and the permission its guards' check names; `extract pages
+    --facts` reads Nuxt's pages with `definePageMeta`, their named and
+    global middleware, and Nitro handlers with their checks, validated
+    bodies and route parameters. `$fetch` and `useFetch` are clients.
 21. Dart and Flutter: `readers/dart/` on the analyzer package; go_router
     and Navigator, form fields, `json_serializable` and `freezed` models,
     retrofit, dio and `http` clients, `shelf_router` and dart_frog routes,

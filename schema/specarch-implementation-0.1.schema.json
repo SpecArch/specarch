@@ -413,6 +413,38 @@
         "settings": {
           "type": "object"
         },
+        "components": {
+          "description": "SpecArch keyword. The components of the project's UI library that bind a field, which specarch extract reads in a screen's template or JSX: a component bound to a property by v-model, or whose name property names one, is a field of the page, or a column of its list (docs/reading-code.md). Read for the ui binding.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "package": {
+                "description": "The module the component is imported from, as an import names it, such as primevue/inputtext; a component used with no import, registered globally or imported by the framework, is matched by its name.",
+                "type": "string",
+                "minLength": 1
+              },
+              "component": {
+                "description": "The component's name, as the module exports it and a template or JSX writes its tag.",
+                "type": "string",
+                "pattern": "^[A-Z][A-Za-z0-9]*$"
+              },
+              "binds": {
+                "description": "What the component gives the page: a field it edits or shows, or a column of the list it is in.",
+                "type": "string",
+                "enum": ["field", "column"]
+              },
+              "nameProperty": {
+                "description": "The property whose literal value names the field, such as Column's field; when it is left out, the field is the property v-model binds.",
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9-]*$"
+              }
+            },
+            "required": ["package", "component", "binds"],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
         "permissionChecks": {
           "description": "SpecArch keyword. The project's own permission checks, which specarch extract reads in source: a call of one with a literal permission is the permission of the route it wraps, guards as middleware or is made in (docs/reading-code.md). Read for the http binding.",
           "type": "array",

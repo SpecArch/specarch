@@ -1,0 +1,5 @@
+permissions:
+  shelves.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/src/router.ts:16', says: The screens at /about and /shelves check shelves.read.}

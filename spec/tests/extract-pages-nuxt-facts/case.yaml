@@ -1,0 +1,19 @@
+arguments: [extract, pages, --facts, repo/facts.json, --implementation, implementation/desk.javascript.specarch-implementation.yaml, --out, spec, repo/site/pages]
+repository:
+  folder: repo
+  commits:
+    - [site]
+    - [facts.json]
+exitStatus: 0
+standardOutput: |
+  commit b72b487724494f43cdb8e5ad3a7f83bc2e23fcb5: the last change to site/middleware/session.global.ts, site/pages
+  facts: the code-facts dump facts.json of site, made at commit b72b487724494f43cdb8e5ad3a7f83bc2e23fcb5, gives what the router's files say
+  components: implementation/desk.javascript.specarch-implementation.yaml maps InputText, Calendar and Column
+  checks: implementation/desk.javascript.specarch-implementation.yaml names the permission check utils/auth.requirePermission
+  router: the pages of Nuxt, since no tracked package.json at or above site/pages names the framework; the folder holds .vue files, which only Nuxt serves
+  counted 3 page files: the tracked files under site/pages with the extension .vue, .tsx, .ts, .jsx, .js or .mjs, each once
+  middleware: site/middleware/session.global.ts runs before every route, and calls a check of the permission desk.use at site/middleware/session.global.ts:4
+  catalogues: read the message catalogues of en, the one locale there is
+  wrote 3 pages, 0 operations, 0 entities, 1 permission and 12 questions: one page per file or folder the router serves a page from whose route the meta-model holds, 0 schemas read, one operation per route file whose name gives a method the meta-model holds, one entity and one permission per name a schema gives, one question per thing the files' places and the schemas do not say, and one per thing the meta-model cannot hold
+  not held: site/pages/loans/index.vue:16: definePageMeta gives the layout "desk", and a page holds no layout; could question Q-11
+  not held: site/pages/loans/index.vue:16: definePageMeta gives keepalive, which the reader does not read, since no implementation file key maps a page's metadata; could question Q-12

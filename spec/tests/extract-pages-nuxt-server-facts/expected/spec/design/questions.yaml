@@ -1,0 +1,79 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) What does GET /api/loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: What does GET /api/loans do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1loans/get/summary', '#/paths/~1api~1loans/get/responses']
+    decidedBy: system-owner
+    why: A route file's place names the method and the path, and not what the handler does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What does POST /api/loans do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: What does POST /api/loans do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1loans/post/summary', '#/paths/~1api~1loans/post/responses']
+    decidedBy: system-owner
+    why: A route file's place names the method and the path, and not what the handler does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /api/loans/{id} take: id? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'What values does each path parameter of /api/loans/{id} take: id?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1loans~1{id}/parameters/0/schema']
+    decidedBy: system-owner
+    why: A route file's place names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) The handler of GET /api/loans/{id} reads the path parameter loanId at site/server/api/loans/[id].get.ts:2, which the path does not have, so it is always undefined. Which parameter is meant? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: The handler of GET /api/loans/{id} reads the path parameter loanId at site/server/api/loans/[id].get.ts:2, which the path does not have, so it is always undefined. Which parameter is meant?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1loans~1{id}/parameters']
+    decidedBy: system-owner
+    why: Nitro gives no value for a parameter the route's path does not name, and the handler reads one.
+    cites:
+      - {source: code, clause: 'site/server/api/loans/[id].get.ts:2', says: Reads the path parameter loanId.}
+  # specarch-problem: question: open_question: (must, decision) What does GET /api/loans/{id} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: What does GET /api/loans/{id} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1loans~1{id}/get/summary', '#/paths/~1api~1loans~1{id}/get/responses']
+    decidedBy: system-owner
+    why: A route file's place names the method and the path, and not what the handler does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Which methods does site/server/api/loans/[id].ts serve at /api/loans/{id}, and for each, what does it do, what does it answer and which permission does it check? Its path parameters are id. Its handler is at site/server/api/loans/[id].ts:1. It blocks paths. Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: Which methods does site/server/api/loans/[id].ts serve at /api/loans/{id}, and for each, what does it do, what does it answer and which permission does it check? Its path parameters are id. Its handler is at site/server/api/loans/[id].ts:1.
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: A route file's place gives its path and not its methods; its code exports no handler named after a method, or its handler compares req.method with no literal, so the methods are not known by syntax.
+    cites:
+      - {source: code, clause: 'site/server/api/loans/[id].ts', says: 'The file api/loans/[id].ts is under site/server, so the server serves /api/loans/{id} from it.'}
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: loans.read, loans.write? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: 'What does each permission allow: loans.read, loans.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.read/description', '#/permissions/loans.write/description']
+    decidedBy: system-owner
+    why: The code names the permission an operation checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: loans.read, loans.write? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: 'Which role grants each permission: loans.read, loans.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.read', '#/permissions/loans.write']
+    decidedBy: system-owner
+    why: The code names the permission an operation checks and not who holds it.
+  # specarch-problem: question: open_question: (must, decision) site/server/middleware/log.ts runs before /api/loans/{id} and may check who is signed in, send them elsewhere or answer by itself. site/server/middleware/log.ts calls no check the implementation file names. Which permission does each of them check, or is it open to everyone (public)? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: site/server/middleware/log.ts runs before /api/loans/{id} and may check who is signed in, send them elsewhere or answer by itself. site/server/middleware/log.ts calls no check the implementation file names. Which permission does each of them check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1loans~1{id}/get/permission', paths]
+    decidedBy: system-owner
+    why: A check that runs before every route it covers is how a permission is usually given, so what the code does not say is asked, never assumed.
+    cites:
+      - {source: code, clause: site/server/middleware/log.ts, says: The router runs it before the routes its matcher selects.}

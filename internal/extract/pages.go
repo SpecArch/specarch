@@ -54,6 +54,8 @@ type page struct {
 	read                []string            // the keys the schema gave, in the order written
 	cites               []*yaml.Node        // what the code gives besides its files' places, such as a middleware's check
 	permissionAt        string              // where the code checks the permission, when a middleware gives it
+	permissionWhy       string              // why the code gives no permission, when a middleware the page runs is read
+	guards              []pageGuard         // what each middleware a Nuxt page runs gives it
 }
 
 // Pages reads a file-system router's root folder into one page per file or
@@ -349,8 +351,9 @@ func (rd *pageReader) read() error {
 	}
 	rd.res.Lines = append(rd.res.Lines, rd.generated...)
 	rd.names()
+	rd.readNuxtPages()
 	for _, pg := range rd.pages {
-		if pg.permission != "" || rd.js == nil {
+		if pg.permission != "" || pg.permissionWhy != "" || rd.js == nil {
 			continue
 		}
 		if p, mw := rd.middlewarePermission(pg.route); p != "" {
@@ -786,7 +789,11 @@ func (rd *pageReader) write() {
 			permissionCites[pg.permission] = append(permissionCites[pg.permission], pg)
 		}
 		rd.askContent(pg)
-		if pg.permission == "" && !rd.middlewareAsks(pg.route) {
+		if pg.permission == "" && pg.permissionWhy != "" {
+			rd.question(pg.permissionWhy+" Which permission does it check, or is it open to everyone (public)?",
+				[]string{"#/pages/" + pg.name + "/permission"},
+				"A middleware that runs before a page is how a permission is usually given, so what its code does not say is asked, never assumed.")
+		} else if pg.permission == "" && !rd.middlewareAsks(pg.route) {
 			rd.question(
 				fmt.Sprintf("Which permission does the page at %s check, or is it open to everyone (public)?", pg.route),
 				[]string{"#/pages/" + pg.name + "/permission"},

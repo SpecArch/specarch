@@ -1,0 +1,105 @@
+questions:
+  # specarch-problem: question: open_question: (should, decision) site/pages/loans/index.vue:7 gives <Column> its field as extra, which is not a literal. Which field is it? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: site/pages/loans/index.vue:7 gives <Column> its field as extra, which is not a literal. Which field is it?
+    kind: decision
+    priority: should
+    blocks: ['#/pages/loans']
+    decidedBy: system-owner
+    why: A name computed at run time is not known by syntax.
+    cites:
+      - {source: code, clause: 'site/pages/loans/index.vue:7', says: Binds a field by a computed name.}
+  # specarch-problem: question: open_question: (should, decision) site/pages/loans/new.vue:7 binds the component <FancyPicker> with v-model, and the implementation file maps no component of that name. Which field does it bind, if any? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: site/pages/loans/new.vue:7 binds the component <FancyPicker> with v-model, and the implementation file maps no component of that name. Which field does it bind, if any?
+    kind: decision
+    priority: should
+    blocks: ['#/pages/loans-new/fields']
+    decidedBy: system-owner
+    why: A component's v-model binds a field only where the implementation file says the component edits one; a component of a library is otherwise not known.
+    cites:
+      - {source: code, clause: 'site/pages/loans/new.vue:7', says: Binds <FancyPicker> with v-model.}
+  # specarch-problem: question: open_question: (must, decision) For the page at /loans, what are its kind (list, form, view or task), the entity it shows, the operation it reads and the operation it submits to? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: For the page at /loans, what are its kind (list, form, view or task), the entity it shows, the operation it reads and the operation it submits to?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/loans/kind', '#/pages/loans/entity', '#/pages/loans/source', '#/pages/loans/submit']
+    decidedBy: system-owner
+    why: The folders name a page's route and not what it shows.
+  # specarch-problem: question: open_question: (must, decision) The page at /loans runs middleware that checks loans.read and desk.use, and a page checks one permission. Which permission does it check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: The page at /loans runs middleware that checks loans.read and desk.use, and a page checks one permission. Which permission does it check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/loans/permission']
+    decidedBy: system-owner
+    why: A middleware that runs before a page is how a permission is usually given, so what its code does not say is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the page at /loans/new, what are its kind (list, form, view or task), the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: For the page at /loans/new, what are its kind (list, form, view or task), the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/loans-new/kind', '#/pages/loans-new/entity', '#/pages/loans-new/source', '#/pages/loans-new/submit', '#/pages/loans-new/columns']
+    decidedBy: system-owner
+    why: The folders name a page's route and not what it shows.
+  # specarch-problem: question: open_question: (must, decision) The page at /loans/new runs the middleware audit, which definePageMeta at site/pages/loans/new.vue:14 names, and no file middleware/audit of the folder read holds it. The page at /loans/new runs middleware that checks loans.read and desk.use, and a page checks one permission. Which permission does it check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: The page at /loans/new runs the middleware audit, which definePageMeta at site/pages/loans/new.vue:14 names, and no file middleware/audit of the folder read holds it. The page at /loans/new runs middleware that checks loans.read and desk.use, and a page checks one permission. Which permission does it check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/loans-new/permission']
+    decidedBy: system-owner
+    why: A middleware that runs before a page is how a permission is usually given, so what its code does not say is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the page at /members/{id}, what are its kind (list, form, view or task), the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: For the page at /members/{id}, what are its kind (list, form, view or task), the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/members-by-id/kind', '#/pages/members-by-id/entity', '#/pages/members-by-id/source', '#/pages/members-by-id/submit', '#/pages/members-by-id/columns']
+    decidedBy: system-owner
+    why: The folders name a page's route and not what it shows.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: desk.use? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: 'What does each permission allow: desk.use?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/desk.use/description']
+    decidedBy: system-owner
+    why: A page schema names the permission a page checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: desk.use? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: 'Which role grants each permission: desk.use?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/desk.use']
+    decidedBy: system-owner
+    why: A page schema names the permission a page checks and not who holds it.
+  # specarch-problem: question: open_question: (must, decision) Which framework serves the folder site/pages, Next.js or Nuxt? The reader read it as the pages of Nuxt, since no tracked package.json at or above site/pages names the framework; the folder holds .vue files, which only Nuxt serves. It blocks pages. Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: Which framework serves the folder site/pages, Next.js or Nuxt? The reader read it as the pages of Nuxt, since no tracked package.json at or above site/pages names the framework; the folder holds .vue files, which only Nuxt serves.
+    kind: decision
+    priority: must
+    blocks: [pages]
+    decidedBy: system-owner
+    why: Next.js and Nuxt both serve pages from a folder named pages, by different rules, and the package that names the framework does not say which; the reader's choice is a guess, so it is asked.
+  # specarch-problem: question: open_question: (could, decision) Not held: site/pages/loans/index.vue:16: definePageMeta gives the layout "desk", and a page holds no layout. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: 'Not held: site/pages/loans/index.vue:16: definePageMeta gives the layout "desk", and a page holds no layout. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/pages/loans']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'site/pages/loans/index.vue:16', says: 'Not held: definePageMeta gives the layout "desk", and a page holds no layout.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: site/pages/loans/index.vue:16: definePageMeta gives keepalive, which the reader does not read, since no implementation file key maps a page's metadata. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: 'Not held: site/pages/loans/index.vue:16: definePageMeta gives keepalive, which the reader does not read, since no implementation file key maps a page''s metadata. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/pages/loans']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'site/pages/loans/index.vue:16', says: 'Not held: definePageMeta gives keepalive, which the reader does not read, since no implementation file key maps a page''s metadata.'}

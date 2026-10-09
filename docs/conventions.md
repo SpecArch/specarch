@@ -488,6 +488,7 @@ redefined.
 | `stack`, `targets`, `deployments`, `environment` (of a deployment) | SpecArch | in implementation files: the stack, the output folders per target, and where the system really runs |
 | `ownedBy` | SpecArch | in implementation files: on a mapping, the stakeholder that owns an element the project describes but does not generate |
 | `permissionChecks`, `package`, `function`, `permissionArgument` | SpecArch | in implementation files: on a binding, the project's own permission checks, which `specarch extract` reads routes' permissions through (ADR-081) |
+| `components`, `component`, `binds`, `nameProperty` | SpecArch | in implementation files: on the ui binding, the components of the project's UI library that bind a field or name a column, which `specarch extract` reads a screen's fields and columns through (ADR-091) |
 
 ### Traceability links
 

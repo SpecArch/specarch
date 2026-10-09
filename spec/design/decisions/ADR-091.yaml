@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-091:
+    title: Vue single-file components are split by @vue/compiler-sfc in the JavaScript reader, keeping each line where it is, and a project's UI library components are mapped under bindings.ui.components
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Step 20 of docs/extraction.md reads Vue and Nuxt: vue-router's and
+      Nuxt's pages, layouts, route middleware and definePageMeta, Nitro
+      handlers, v-model fields, and a mapped component library such as
+      PrimeVue. A .vue file holds a template and script blocks in one
+      file; the TypeScript compiler reads none of it. A component of a
+      UI library binds a field through v-model or a property of its own
+      (PrimeVue's Column names a column by field), and nothing in the
+      syntax tells a library's input from any other component; the
+      implementation file had no key that says which components bind
+      what, and steps 18 and 19 left that key out. Nuxt makes
+      definePageMeta, defineEventHandler, readBody and the like global,
+      with no import.
+    decision: |
+      readers/javascript pins @vue/compiler-sfc 3.5.43 exactly and splits
+      each tracked .vue file with it. Its <script> and <script setup>
+      blocks are given to the one TypeScript program as a file in which
+      every other character is a space and every line break is kept, so
+      a fact's line and column are the .vue file's own, and an import of
+      a .vue file resolves to that script. The template's elements that
+      are components, a heading, a form, a control or a link are written
+      as facts with their attributes, their directives' expressions by
+      their syntax, their text and the component they are in. The dump
+      names the template parser and its version; specarch refuses
+      another version, and a dump that lists a .vue file and names none.
+      The implementation file gains bindings.ui.components: each a
+      component's package, its name, whether it binds a field or a
+      column, and the property that names the field when that is not
+      v-model. extract javascript reads vue-router's routes as pages;
+      extract pages with --facts reads Nuxt's pages, route middleware and
+      Nitro handlers as it reads Next.js's (ADR-090). Nuxt's globals are
+      matched by their names.
+    why: |
+      @vue/compiler-sfc is the parser Vue's own tools split a component
+      with, so it accepts what Vue accepts; its parts are MIT, BSD and
+      ISC, and its SBOM scan is clean. Keeping every character's position
+      lets the facts cite the .vue file a person opens, with no source
+      map to carry, and lets the checker resolve the script's imports and
+      types as it does any file. Template expressions are written by
+      their syntax only, since the checker does not see the template; a
+      name there is not resolved, and what it would give is a question.
+
+      A component binds a field only where the project says so: guessing
+      from a tag's name (anything with v-model) would write fields for a
+      date picker and a tag cloud alike. The key names the component and
+      what it binds once for every screen, as permissionChecks names a
+      check once for every route, and it is checked by both validators.
+      A component used with no import is matched by its name because
+      Nuxt and a global registration supply it without one, and the
+      implementation file is the project's own statement of which
+      components those are. Nuxt injects its helpers with no import, so a
+      name is all the syntax gives; a project that shadows one is read
+      wrongly, which a test of the result shows.
+
+      Middleware that a page runs gives it a permission only when every
+      one the page runs is read and they name one permission between
+      them; several, or one unread, are asked, since a page checks one
+      permission and an unread middleware may check another. Every
+      screen and route is read from one dump with no build and no
+      browser, so a result shows early and each guess is a question at
+      its line.
+    consequences: |
+      A Vue or Nuxt project is read from a committed dump; making the
+      dump needs Node and installs the Vue compiler with npm ci, and a
+      Vue compiler upgrade remakes every dump that holds a .vue file.
+      Dumps with no .vue file read as before. The same key can map a
+      React library's components; this step reads it in Vue templates
+      only. definePageMeta's keys other than title, layout and middleware
+      print a line until a key maps a project's own metadata, such as a
+      permission.
+    satisfies: [SA-44]

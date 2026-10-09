@@ -1,0 +1,26 @@
+specarchImplementation: "0.1"
+
+info:
+  title: The desk site in Nuxt
+  version: 0.1.0
+
+implements:
+  file: ../specarch.yaml
+  version: 0.1.0
+
+stack:
+  language: { name: TypeScript, version: "6.0" }
+
+bindings:
+  http:
+    framework: Nitro
+    permissionChecks:
+      - package: utils/auth
+        function: requirePermission
+        permissionArgument: 1
+  ui:
+    framework: PrimeVue
+    components:
+      - { package: primevue/inputtext, component: InputText, binds: field }
+      - { package: primevue/calendar, component: Calendar, binds: field }
+      - { package: primevue/column, component: Column, binds: column, nameProperty: field }

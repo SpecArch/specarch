@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  case.typescript.specarch-implementation.yaml:11:69: error: /bindings/ui/components/2/binds: schema: row is not allowed here; use one of column, field [schema@case.typescript.specarch-implementation.yaml#/bindings/ui/components/2/binds]

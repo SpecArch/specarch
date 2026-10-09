@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: an implementation file whose ui binding maps three components of its UI library, one binding a field, one a column by its field property, and one binding a row
+when: validate is run on its folder
+then: it takes the first two and reports the binding of a row as a schema error at that entry, and exits 1
+verifies: [SA-10]

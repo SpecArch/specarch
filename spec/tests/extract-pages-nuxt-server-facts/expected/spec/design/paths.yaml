@@ -1,0 +1,40 @@
+paths:
+  /api/loans:
+    # specarch-problem: warning: test_case_missing: operation getApiLoans has no red scenario for "denied without loans.read"; add under tests get-api-loans-denied-without-loans-read: { operation: getApiLoans, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "getApiLoans is called", then: "it is refused as not allowed" } [test_case_missing@design/paths.yaml#/paths/~1api~1loans/get]
+    # specarch-problem: warning: test_golden_missing: operation getApiLoans has no golden scenario; add one under tests, for example get-api-loans-succeeds: { operation: getApiLoans, scenario: golden, given: "a caller with loans.read", when: "getApiLoans is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1loans/get]
+    get:
+      operationId: getApiLoans
+      permission: loans.read
+      origin: stated
+      cites:
+        - {source: code, clause: site/server/api/loans/index.get.ts, says: 'The file api/loans/index.get.ts is under site/server and its name ends in the method, so the server serves GET /api/loans from it.'}
+        - {source: code, clause: 'site/server/api/loans/index.get.ts:3', says: Exports the handler of GET /api/loans.}
+        - {source: code, clause: 'site/server/api/loans/index.get.ts:3', says: Its check names loans.read.}
+    # specarch-problem: warning: test_case_missing: operation postApiLoans has no red scenario for "missing bookId"; add under tests post-api-loans-missing-book-id: { operation: postApiLoans, scenario: red, covers: [missing bookId], given: "...", when: "postApiLoans is called without bookId", then: "it is refused" } [test_case_missing.4c5e14c3@design/paths.yaml#/paths/~1api~1loans/post]
+    # specarch-problem: warning: test_case_missing: operation postApiLoans has no red scenario for "missing days"; add under tests post-api-loans-missing-days: { operation: postApiLoans, scenario: red, covers: [missing days], given: "...", when: "postApiLoans is called without days", then: "it is refused" } [test_case_missing.65caff28@design/paths.yaml#/paths/~1api~1loans/post]
+    # specarch-problem: warning: test_case_missing: operation postApiLoans has no red scenario for "denied without loans.write"; add under tests post-api-loans-denied-without-loans-write: { operation: postApiLoans, scenario: red, covers: [denied without loans.write], given: "a caller without loans.write", when: "postApiLoans is called", then: "it is refused as not allowed" } [test_case_missing.a8a2bf7c@design/paths.yaml#/paths/~1api~1loans/post]
+    # specarch-problem: warning: test_case_missing: operation postApiLoans has no red scenario for "bookId not a valid uuid"; add under tests post-api-loans-book-id-not-a-valid-uuid: { operation: postApiLoans, scenario: red, covers: [bookId not a valid uuid], given: "...", when: "postApiLoans is called with bookId that is not a valid uuid", then: "it is refused" } [test_case_missing.b8ea09a7@design/paths.yaml#/paths/~1api~1loans/post]
+    # specarch-problem: warning: test_golden_missing: operation postApiLoans has no golden scenario; add one under tests, for example post-api-loans-succeeds: { operation: postApiLoans, scenario: golden, given: "a caller with loans.write", when: "postApiLoans is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1loans/post]
+    post:
+      operationId: postApiLoans
+      permission: loans.write
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/schemas/NewLoan'}}
+      origin: stated
+      cites:
+        - {source: code, clause: site/server/api/loans/index.post.ts, says: 'The file api/loans/index.post.ts is under site/server and its name ends in the method, so the server serves POST /api/loans from it.'}
+        - {source: code, clause: 'site/server/api/loans/index.post.ts:4', says: Exports the handler of POST /api/loans.}
+        - {source: code, clause: 'site/server/api/loans/index.post.ts:4', says: Its check names loans.write.}
+  /api/loans/{id}:
+    parameters:
+      - {name: id, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation getApiLoansById has no red scenario for "not found id"; add under tests get-api-loans-by-id-not-found-id: { operation: getApiLoansById, scenario: red, covers: [not found id], given: "no record has that id", when: "getApiLoansById is called with that id", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1api~1loans~1{id}/get]
+    # specarch-problem: warning: test_golden_missing: operation getApiLoansById has no golden scenario; add one under tests, for example get-api-loans-by-id-succeeds: { operation: getApiLoansById, scenario: golden, given: "any caller", when: "getApiLoansById is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1loans~1{id}/get]
+    get:
+      operationId: getApiLoansById
+      origin: stated
+      cites:
+        - {source: code, clause: 'site/server/api/loans/[id].get.ts', says: 'The file api/loans/[id].get.ts is under site/server and its name ends in the method, so the server serves GET /api/loans/{id} from it.'}
+        - {source: code, clause: 'site/server/api/loans/[id].get.ts:1', says: 'Exports the handler of GET /api/loans/{id}.'}

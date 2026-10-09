@@ -1,0 +1,39 @@
+pages:
+  # specarch-problem: warning: test_case_missing: page about has no red scenario for "denied without shelves.read"; add under tests about-denied-without-shelves-read: { page: about, scenario: red, covers: [denied without shelves.read], given: "a caller without shelves.read", when: "the page about is opened", then: "it is refused as not allowed" } [test_case_missing@design/pages.yaml#/pages/about]
+  # specarch-problem: warning: test_golden_missing: page about has no golden scenario; add one under tests, for example about-succeeds: { page: about, scenario: golden, given: "a caller with shelves.read", when: "the page about is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/about]
+  about:
+    route: /about
+    title: About
+    permission: shelves.read
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/src/router.ts:11', says: The route /about shows app/src/views/AboutView.vue.}
+      - {source: code, clause: app/src/views/AboutView.vue, says: The component of /about.}
+      - {source: code, clause: 'app/src/views/AboutView.vue:2', says: Its heading is "About".}
+  # specarch-problem: warning: test_case_missing: page shelf has no red scenario for "denied without shelves.read"; add under tests shelf-denied-without-shelves-read: { page: shelf, scenario: red, covers: [denied without shelves.read], given: "a caller without shelves.read", when: "the page shelf is opened", then: "it is refused as not allowed" } [test_case_missing@design/pages.yaml#/pages/shelf]
+  # specarch-problem: warning: test_golden_missing: page shelf has no golden scenario; add one under tests, for example shelf-succeeds: { page: shelf, scenario: golden, given: "a caller with shelves.read", when: "the page shelf is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/shelf]
+  shelf:
+    route: /shelves
+    title: Shelves
+    columns: [name, room]
+    permission: shelves.read
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/src/router.ts:9', says: The route /shelves shows app/src/views/ShelfView.vue.}
+      - {source: code, clause: app/src/views/ShelfView.vue, says: The component of /shelves.}
+      - {source: code, clause: 'app/src/views/ShelfView.vue:4', says: <Column field="name"> is the column name.}
+      - {source: code, clause: 'app/src/views/ShelfView.vue:5', says: <Column field="room"> is the column room.}
+      - {source: code, clause: 'app/src/views/ShelfView.vue:2', says: Its heading is "Shelves".}
+  # specarch-problem: warning: test_golden_missing: page shelf-form has no golden scenario; add one under tests, for example shelf-form-succeeds: { page: shelf-form, scenario: golden, given: "any caller", when: "the page shelf-form is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/shelf-form]
+  # specarch-problem: warning: test_red_missing: page shelf-form has no red scenario; add one under tests, for example shelf-form-refused: { page: shelf-form, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/shelf-form]
+  shelf-form:
+    route: /shelves/new
+    title: New shelf
+    fields: [name, room]
+    origin: stated
+    cites:
+      - {source: code, clause: 'app/src/router.ts:10', says: The route /shelves/new shows app/src/views/ShelfForm.vue.}
+      - {source: code, clause: app/src/views/ShelfForm.vue, says: The component of /shelves/new.}
+      - {source: code, clause: 'app/src/views/ShelfForm.vue:3', says: <InputText v-model="shelf.name"> binds the field name.}
+      - {source: code, clause: 'app/src/views/ShelfForm.vue:4', says: <InputText v-model="shelf.room"> binds the field room.}
+      - {source: code, clause: 'app/src/views/ShelfForm.vue:2', says: Its heading is "New shelf".}

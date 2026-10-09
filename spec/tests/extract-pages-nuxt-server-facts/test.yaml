@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a Nuxt server folder read with the code-facts dump of the folder that holds it and an implementation file naming the project's check: route files whose names give their methods, whose defineEventHandler functions call the check with a literal permission, validate the body with readValidatedBody and a zod schema, or read a path parameter the path lacks with getRouterParam; a route file whose name gives no method; and server middleware that calls no check"
+when: "extract pages is run on the server folder with --facts and --implementation"
+then: "it writes each operation with its handler cited, the permission the check names and the body the zod schema gives as a schema; asks a must question on the parameter the path lacks, keeps the question on the methods of the file whose name gives none, citing its handler, and asks the server middleware's question on the operation no check gives a permission, in the place of its own question on its permission; and exits 0"
+verifies: [SA-44]

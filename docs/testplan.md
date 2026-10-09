@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 381 design tests, 163 golden and 218 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 386 design tests, 166 golden and 220 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.6.0-dev of the specification: 381 design tests, 163 golden and 218 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 377 |
+| system | 382 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -770,6 +770,22 @@ Scenario: red; level: system; verifies SA-44.
 - When: extract javascript is run on the dump
 - Then: it refuses the dump as stale, writes nothing and exits 1
 
+#### extract-javascript-template-parser-version
+
+Scenario: red; level: system; verifies SA-44.
+
+- Given: a code-facts dump of a Vue file whose .vue files another version of @vue/compiler-sfc than the one this release pins split
+- When: extract javascript is run on the dump
+- Then: it refuses the dump, naming the version that split the files and the one it reads, writes nothing and exits 1
+
+#### extract-javascript-vue-router
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a code-facts dump of a Vue app whose router createRouter is given routes to .vue files imported directly and lazily and to a component of a package, with a beforeEach guard and one route's beforeEnter guard that call the check the implementation file names; whose views have literal headings, PrimeVue Columns and InputTexts the implementation file maps; and one view that calls $fetch with a path of its own system
+- When: extract javascript is run on the dump with the implementation file
+- Then: it writes one page per route whose component is a .vue file read, named after the file, with its route, its heading as its title, its columns and fields, and the permission its one guard names; asks a must question on each page's kind and the rest, on the route whose two guards name two permissions, on the component from a package, and a should question on the call to its own path; and exits 0
+
 #### extract-not-offered
 
 Scenario: red; level: system; covers exit 2.
@@ -866,6 +882,14 @@ Scenario: golden; level: system; verifies SA-44.
 - When: extract pages is run on the pages folder
 - Then: it reads it as the Pages Router of Next.js because package.json names next, writes one page per file whose route the meta-model holds, a must question citing each API route file that asks for its methods, a must question citing proxy.ts on every page's permission and the paths, names the commit, counts the page and API route files, prints a line and a could question for _app, _document, the 404 page, each catch-all, the .mdx file and the second file on one route, and exits 0
 
+#### extract-pages-nuxt-facts
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a Nuxt pages folder read with the code-facts dump of the folder that holds it and an implementation file naming the project's check and three PrimeVue components, two that bind a field by v-model and Column that names a column by its field property; a list page whose definePageMeta gives a literal title, the named middleware auth that calls the check, a layout and a key no implementation file maps, and whose template's Columns name two columns literally and one by a value; a form page whose definePageMeta names auth and a middleware no file holds, whose heading is a message of the English catalogue, and whose template binds a mapped component by v-model and imports it, one with no import, an input and a component no mapping names; a page with a heading only; global middleware that calls the check; and a catalogue of English
+- When: extract pages is run on the pages folder with --facts and --implementation
+- Then: it writes each page with its title from definePageMeta or its heading, its columns and fields in the order of the template, the permission the global middleware's check gives a page that runs no other; asks a must question on the permission of each page that runs the global middleware and a named one, which check two permissions, and of the page whose middleware no file holds; asks a should question on the column named by a value and the component no mapping names; prints a line for the layout and the key it does not read; and exits 0
+
 #### extract-pages-nuxt-pages
 
 Scenario: golden; level: system; verifies SA-44.
@@ -881,6 +905,14 @@ Scenario: golden; level: system; verifies SA-44.
 - Given: a repository whose server folder holds route files under api and routes whose names end in get, post or delete, one ending in head, one with no method, a catch-all route, a Markdown file, server middleware and a utility file
 - When: extract pages is run on the server folder
 - Then: it writes one operation per route file whose name ends in a method the meta-model holds, under /api for api and at the root for routes, named by its method and path, with its path parameters and a must question for the parameters' values, what each operation does and answers and its permission, a must question citing the file with no method that asks for its methods, a must question citing the middleware on every operation's permission and the paths, names the commit, counts the route and middleware files, prints a line and a could question for the HEAD route, the catch-all and the Markdown file, and exits 0
+
+#### extract-pages-nuxt-server-facts
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a Nuxt server folder read with the code-facts dump of the folder that holds it and an implementation file naming the project's check: route files whose names give their methods, whose defineEventHandler functions call the check with a literal permission, validate the body with readValidatedBody and a zod schema, or read a path parameter the path lacks with getRouterParam; a route file whose name gives no method; and server middleware that calls no check
+- When: extract pages is run on the server folder with --facts and --implementation
+- Then: it writes each operation with its handler cited, the permission the check names and the body the zod schema gives as a schema; asks a must question on the parameter the path lacks, keeps the question on the methods of the file whose name gives none, citing its handler, and asks the server middleware's question on the operation no check gives a permission, in the place of its own question on its permission; and exits 0
 
 #### extract-pages-route-twice
 
@@ -2933,6 +2965,14 @@ Scenario: red; level: system; covers exit 1.
 - Given: a transition whose trigger names nothing in the file
 - When: validate is run
 - Then: it reports trigger and exits 1
+
+#### validate-ui-components
+
+Scenario: red; level: system; covers exit 1; verifies SA-10.
+
+- Given: an implementation file whose ui binding maps three components of its UI library, one binding a field, one a column by its field property, and one binding a row
+- When: validate is run on its folder
+- Then: it takes the first two and reports the binding of a row as a schema error at that entry, and exits 1
 
 #### validate-unique-where
 

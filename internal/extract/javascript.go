@@ -20,6 +20,11 @@ import (
 // (ADR-089).
 const typeScriptVersion = "6.0.3"
 
+// The version of @vue/compiler-sfc whose split of a .vue file the
+// JavaScript reader's dumps hold, as its package-lock.json pins it
+// (ADR-091).
+const vueCompilerVersion = "3.5.43"
+
 // jsDump is a code-facts dump of JavaScript and TypeScript, as
 // tools/code-facts/dump-javascript.sh writes it.
 type jsDump struct {
@@ -29,6 +34,10 @@ type jsDump struct {
 		Name    string `json:"name"`
 		Version string `json:"version"`
 	} `json:"parser"`
+	TemplateParser *struct {
+		Name    string `json:"name"`
+		Version string `json:"version"`
+	} `json:"templateParser"`
 	Path   string `json:"path"`
 	Commit string `json:"commit"`
 	Files  []struct {
@@ -122,6 +131,10 @@ type jsFact struct {
 
 	// dynamic
 	What string `json:"what"`
+
+	// template: an element of a Vue template
+	Element       string `json:"element"`
+	ParentElement string `json:"parentElement"`
 
 	// where it is
 	Within      *jsPos    `json:"within"`
@@ -243,9 +256,10 @@ type jsElement struct {
 }
 
 type jsAttr struct {
-	Name   string   `json:"name"`
-	Value  *jsValue `json:"value"`
-	Spread *jsValue `json:"spread"`
+	Directive string   `json:"directive"` // a Vue directive's name, such as model or bind
+	Name      string   `json:"name"`
+	Value     *jsValue `json:"value"`
+	Spread    *jsValue `json:"spread"`
 }
 
 // jsType is a type as the source states it, in TypeScript's syntax or a
@@ -387,6 +401,11 @@ type jsReader struct {
 	calls      []*jsFact            // in the order of the files
 	accesses   []*jsFact            // reads of the environment or a request
 	elements   []*jsFact            // JSX elements
+	templates  []*jsFact            // the elements of Vue templates
+	pagePerms  map[string][]string  // the routes of the screens that check each permission a guard gives
+	permAt     map[string]string    // where a guard checks each permission
+	cat        *jsCatalogue         // the message catalogues, once read
+	components []uiComponent        // the UI library\'s components the implementation file maps
 	dynamics   []*jsFact            // computed requires, imports and exports
 	configs    []*jsFact            // tsconfig.json and jsconfig.json
 	byWithin   map[string][]*jsFact // the calls, reads, variables and elements of each function, "" for a module's own code
@@ -466,6 +485,7 @@ func JavaScript(dumpPath, out, key, implementation string) (*Result, error) {
 	js.readRoutes()
 	js.readTypes()
 	js.readScreens()
+	js.readVueRoutes(nil)
 	js.readClients()
 	js.readSettings()
 	js.askWidths()
@@ -509,6 +529,13 @@ func openJS(dumpPath, key string) (*jsReader, string, error) {
 		return nil, "", refuse("%s is a code-facts dump of %q, and extract reads one of JavaScript and TypeScript here", dumpPath, d.Language)
 	case d.Parser.Name != "TypeScript" || d.Parser.Version != typeScriptVersion:
 		return nil, "", refuse("%s was made by %s %s, and this specarch reads dumps that the TypeScript compiler %s made; run tools/code-facts/dump-javascript.sh of this release again and commit the dump", dumpPath, d.Parser.Name, d.Parser.Version, typeScriptVersion)
+	case d.TemplateParser != nil && (d.TemplateParser.Name != "@vue/compiler-sfc" || d.TemplateParser.Version != vueCompilerVersion):
+		return nil, "", refuse("%s split its .vue files with %s %s, and this specarch reads dumps that @vue/compiler-sfc %s made; run tools/code-facts/dump-javascript.sh of this release again and commit the dump", dumpPath, d.TemplateParser.Name, d.TemplateParser.Version, vueCompilerVersion)
+	}
+	for _, f := range d.Files {
+		if strings.HasSuffix(f.File, ".vue") && d.TemplateParser == nil {
+			return nil, "", refuse("%s lists the Vue file %s and names no template parser; run tools/code-facts/dump-javascript.sh of this release again and commit the dump", dumpPath, f.File)
+		}
 	}
 	r, dumpName, err := openDump(dumpPath, d.Path, d.Commit, "tools/code-facts/dump-javascript.sh")
 	if err != nil {
@@ -527,7 +554,7 @@ func openJS(dumpPath, key string) (*jsReader, string, error) {
 // jsLibrary is the library a module belongs to among those the reader
 // knows, or "".
 func jsLibrary(module string) string {
-	for _, lib := range []string{"express", "fastify", "zod", "yup", "joi", "@hapi/joi", "react-router", "react-router-dom", "react-hook-form", "formik", "axios", "i18next", "react-i18next", "next-intl"} {
+	for _, lib := range []string{"express", "fastify", "zod", "yup", "joi", "@hapi/joi", "react-router", "react-router-dom", "react-hook-form", "formik", "axios", "i18next", "react-i18next", "next-intl", "vue-router"} {
 		if module == lib || strings.HasPrefix(module, lib+"/") {
 			return lib
 		}
@@ -589,6 +616,8 @@ func (js *jsReader) index(dumpName string) error {
 				js.exports[f.File] = f
 			}
 			js.named = append(js.named, f)
+		case "template":
+			js.templates = append(js.templates, f)
 		case "directive":
 			js.directives[f.File] = append(js.directives[f.File], f.Name)
 		case "dynamic":
@@ -601,7 +630,7 @@ func (js *jsReader) index(dumpName string) error {
 }
 
 func jsSourceFile(f string) bool {
-	for _, e := range []string{".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"} {
+	for _, e := range []string{".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".vue"} {
 		if strings.HasSuffix(f, e) {
 			return true
 		}
@@ -741,6 +770,7 @@ func (js *jsReader) loadChecks(file string) error {
 		return refuse("%s does not parse as YAML", file)
 	}
 	js.checkFile = file
+	js.loadComponents(file, doc.Content[0])
 	list := child(child(child(doc.Content[0], "bindings"), "http"), "permissionChecks")
 	if list == nil {
 		js.res.say("checks: %s names no permission check under bindings.http.permissionChecks", file)

@@ -241,12 +241,12 @@ func (js *jsReader) readClients() {
 		var u *jsValue
 		var base *jsValue
 		switch {
-		case f.Callee.Name != nil && *f.Callee.Name == "fetch" && f.Callee.Declaration == nil && f.Callee.Import == nil:
+		case f.Callee.Name != nil && (*f.Callee.Name == "fetch" || *f.Callee.Name == "$fetch" || *f.Callee.Name == "useFetch") && f.Callee.Declaration == nil && (f.Callee.Import == nil || f.Callee.Import.Module == "ofetch" || strings.HasPrefix(f.Callee.Import.Module, "#")):
 			if len(f.Arguments) == 0 {
 				continue
 			}
 			u = &f.Arguments[0]
-			method, how = "GET", "fetch"
+			method, how = "GET", *f.Callee.Name
 			if len(f.Arguments) > 1 {
 				if m := f.Arguments[1].prop("method"); m != nil {
 					s, ok := js.constString(m)
@@ -359,7 +359,7 @@ func (js *jsReader) readClients() {
 		}
 	}
 	if n > 0 {
-		js.res.say("clients: counted %s: every call of fetch, of axios and its get, post, put, patch, delete, head, options and request, and of an instance axios.create makes", plural(n, "call"))
+		js.res.say("clients: counted %s: every call of fetch, $fetch and useFetch, of axios and its get, post, put, patch, delete, head, options and request, and of an instance axios.create makes", plural(n, "call"))
 	}
 	if len(clients) == 0 {
 		return

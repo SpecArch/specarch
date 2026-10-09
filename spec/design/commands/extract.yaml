@@ -278,6 +278,25 @@ commands:
         since a page holds no values of its route's parameters, and a
         route file's is named in the question on its parameters' values;
         one built at run time is a should question.
+
+        With `--facts`, Nuxt's folders are read for their code too
+        (ADR-091). A page's `definePageMeta` gives its literal title; its
+        layout and every key no implementation file maps print a line; the
+        middleware it names, a file `middleware/<name>` beside the pages
+        folder whose default export calls a named check, and global route
+        middleware whose code does, give the page its permission when they
+        name one literal permission between them, and a must question
+        otherwise, naming each one the reader cannot read. Its template
+        gives its fields and columns as javascript reads a Vue template,
+        and its title from its one heading where definePageMeta gives none.
+        A Nitro route file's operation cites its default export, the
+        function `defineEventHandler` is given, with the permission a
+        named check called in it gives, the body `readValidatedBody` or a
+        validation schema of `readBody` gives, and a must question on a
+        parameter `getRouterParam` reads that its path lacks; server
+        middleware that calls a named check gives every operation its
+        permission, and otherwise asks on each operation no check gives
+        one.
       - `workflows`: one BPMN 2.0 XML file, read with the standard
         library, whose processes are written as `workflows` in the
         sequential subset of ADR-054, one workflow per process, named
@@ -856,6 +875,37 @@ commands:
         A file that imports a library the reader knows and gives nothing
         read prints a line, and so does each file with syntax the compiler
         could not read, which is also a should question.
+
+        Vue single-file components (`.vue`) are read too (ADR-091): the
+        reader splits each with `@vue/compiler-sfc` 3.5.43, pinned
+        exactly, gives the compiler its `<script>` and `<script setup>`
+        blocks as one file in which every other character is a space, so
+        every fact keeps the `.vue` file's own line and column, resolves an
+        import of a `.vue` file to that script, and writes each element of
+        its template that is a component, a heading, a form, a control or
+        a link, with its attributes, its directives' expressions by their
+        syntax, its literal text and the component it is in. The dump then
+        names the template parser and its version, and is refused when
+        another version made it or when it lists a `.vue` file and names
+        none. The routes vue-router's `createRouter` is given in a literal
+        list are pages when their component is a `.vue` file the dump read,
+        imported or loaded by `import()`, named after the file in
+        kebab-case without `Page`, `Screen` or `View`, with their route,
+        their template's one heading as their title, and their fields and
+        columns as below; the permission is the one literal permission the
+        checks the implementation file names give through `beforeEach` and
+        the route's `beforeEnter`, and none or several are a must question.
+        A template's fields are what `v-model` binds on an `input`,
+        `select` or `textarea`, and on a component the implementation
+        file maps under `bindings.ui.components` (`package`, `component`,
+        `binds` a field or a column, and `nameProperty` when a property
+        names the field instead of `v-model`); a mapped component is
+        matched by its tag and, when its file imports it, by the module,
+        and one used with no import by its name, since the framework or a
+        global registration gives it. A column is named by a column
+        component's name property. A component no mapping names that
+        `v-model` binds, and a name property given by a value, are should
+        questions. `$fetch` and `useFetch` are clients as `fetch` is.
 
       Every reader follows these rules:
 

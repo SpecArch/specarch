@@ -1,0 +1,75 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) The route /dashboard at app/src/router.ts:12 shows Dashboard, which is not a .vue file of the files read. Which screen does it show? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: The route /dashboard at app/src/router.ts:12 shows Dashboard, which is not a .vue file of the files read. Which screen does it show?
+    kind: decision
+    priority: must
+    blocks: [pages]
+    decidedBy: system-owner
+    why: A screen is read from its component's own file, and only tracked files are read.
+    cites:
+      - {source: code, clause: 'app/src/router.ts:12', says: Declares the route /dashboard.}
+  # specarch-problem: question: open_question: (must, decision) For the screen app/src/views/AboutView.vue at /about, what are its kind, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: For the screen app/src/views/AboutView.vue at /about, what are its kind, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/about/kind', '#/pages/about/entity', '#/pages/about/source', '#/pages/about/submit', '#/pages/about/columns']
+    decidedBy: system-owner
+    why: A Vue component says what it draws, not which of the four kinds of page it is or the operations behind it.
+    cites:
+      - {source: code, clause: app/src/views/AboutView.vue, says: The component of /about.}
+  # specarch-problem: question: open_question: (must, decision) For the screen app/src/views/ShelfView.vue at /shelves, what are its kind, the entity it shows, the operation it reads and the operation it submits to? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: For the screen app/src/views/ShelfView.vue at /shelves, what are its kind, the entity it shows, the operation it reads and the operation it submits to?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/shelf/kind', '#/pages/shelf/entity', '#/pages/shelf/source', '#/pages/shelf/submit']
+    decidedBy: system-owner
+    why: A Vue component says what it draws, not which of the four kinds of page it is or the operations behind it.
+    cites:
+      - {source: code, clause: app/src/views/ShelfView.vue, says: The component of /shelves.}
+  # specarch-problem: question: open_question: (must, decision) For the screen app/src/views/ShelfForm.vue at /shelves/new, what are its kind, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: For the screen app/src/views/ShelfForm.vue at /shelves/new, what are its kind, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/shelf-form/kind', '#/pages/shelf-form/entity', '#/pages/shelf-form/source', '#/pages/shelf-form/submit', '#/pages/shelf-form/columns']
+    decidedBy: system-owner
+    why: A Vue component says what it draws, not which of the four kinds of page it is or the operations behind it.
+    cites:
+      - {source: code, clause: app/src/views/ShelfForm.vue, says: The component of /shelves/new.}
+  # specarch-problem: question: open_question: (must, decision) The screen at /shelves/new is guarded by 2 checks the implementation file names, and a page checks one permission. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: The screen at /shelves/new is guarded by 2 checks the implementation file names, and a page checks one permission. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/shelf-form/permission']
+    decidedBy: system-owner
+    why: A screen open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: shelves.read? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: 'What does each permission allow: shelves.read?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/shelves.read/description']
+    decidedBy: system-owner
+    why: The source names the permission a screen's guard checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: shelves.read? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: 'Which role grants each permission: shelves.read?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/shelves.read']
+    decidedBy: system-owner
+    why: The source names the permission a screen's guard checks and not who holds it.
+  # specarch-problem: question: open_question: (should, decision) app/src/views/ShelfView.vue:13 calls GET /api/shelves, which names no host. Which system does it call, and is it an operation of this system? It blocks dependencies. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: app/src/views/ShelfView.vue:13 calls GET /api/shelves, which names no host. Which system does it call, and is it an operation of this system?
+    kind: decision
+    priority: should
+    blocks: [dependencies]
+    decidedBy: system-owner
+    why: A dependency is named by the system it calls, and the URL does not name one; a path of this system's own is joined to its operation by method and path only once a question can carry them.
+    cites:
+      - {source: code, clause: 'app/src/views/ShelfView.vue:13', says: Calls GET /api/shelves.}

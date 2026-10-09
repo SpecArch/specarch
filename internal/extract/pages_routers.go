@@ -510,6 +510,9 @@ func (rd *pageReader) writeRoutes() {
 					}
 				}
 			}
+			if rd.router == routerNuxtServer {
+				rd.nitroParams(rf)
+			}
 			set(op, "origin", "stated")
 			set(op, "cites", cites)
 			set(item, rf.key, op)
@@ -630,6 +633,15 @@ func (rd *pageReader) askRouter() {
 // holds into one route file per method its handlers serve, and adds the
 // server actions pages' forms submit to.
 func (rd *pageReader) expandRouteFiles(pages map[string]*page) {
+	if rd.router == routerNuxtServer {
+		// Nitro: the default export, defineEventHandler's function.
+		for _, rf := range rd.routeFiles {
+			if fn, at := rd.js.handlerOfExport(rf.file); fn != nil {
+				rf.handler = &nextHandler{method: rf.method, fn: fn, at: at}
+			}
+		}
+		return
+	}
 	if rd.router != routerApp && rd.router != routerNextPages {
 		return
 	}

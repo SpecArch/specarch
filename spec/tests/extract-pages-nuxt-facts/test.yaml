@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a Nuxt pages folder read with the code-facts dump of the folder that holds it and an implementation file naming the project's check and three PrimeVue components, two that bind a field by v-model and Column that names a column by its field property; a list page whose definePageMeta gives a literal title, the named middleware auth that calls the check, a layout and a key no implementation file maps, and whose template's Columns name two columns literally and one by a value; a form page whose definePageMeta names auth and a middleware no file holds, whose heading is a message of the English catalogue, and whose template binds a mapped component by v-model and imports it, one with no import, an input and a component no mapping names; a page with a heading only; global middleware that calls the check; and a catalogue of English"
+when: "extract pages is run on the pages folder with --facts and --implementation"
+then: "it writes each page with its title from definePageMeta or its heading, its columns and fields in the order of the template, the permission the global middleware's check gives a page that runs no other; asks a must question on the permission of each page that runs the global middleware and a named one, which check two permissions, and of the page whose middleware no file holds; asks a should question on the column named by a value and the component no mapping names; prints a line for the layout and the key it does not read; and exits 0"
+verifies: [SA-44]

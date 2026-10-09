@@ -367,19 +367,23 @@ folders give and what the code says of them:
 
 ## Vue and Nuxt
 
-Vue single-file components are split with `@vue/compiler-sfc` (MIT) in
-the JavaScript reader's program, their script read by the TypeScript
-compiler and their template by `@vue/compiler-dom`. Its dependencies
-(`@babel/parser`, `postcss`, `magic-string`, `source-map-js` and the like)
-are MIT or BSD and are scanned with the reader when the step is built.
-tree-sitter-vue was left for the same reasons as tree-sitter. Plain Vue with
-vue-router is the same reader.
+Vue single-file components are split with `@vue/compiler-sfc` 3.5.43
+(MIT), pinned exactly, in the JavaScript reader's program (ADR-091): their
+script blocks are read by the TypeScript compiler as a file that keeps
+every line and column of the `.vue` file, and their template by
+`@vue/compiler-dom`. Its dependencies (`@babel/parser`, `postcss`,
+`magic-string`, `source-map-js`, `entities` and the like) are MIT, BSD or
+ISC, and the reader's SBOM scan is clean. tree-sitter-vue was left for the
+same reasons as tree-sitter. Plain Vue with vue-router is read by `extract
+javascript`; Nuxt's folders by `extract pages --facts`, as Next.js's are.
+The components of a UI library that bind a field or name a column are
+named once in the implementation file, under `bindings.ui.components`.
 
 | Surface | Source | Why |
 |---|---|---|
 | pages | Nuxt `pages/` (the folder step), layouts by name from `definePageMeta({ layout })`; vue-router's `routes` array with literal paths | the router |
 | guards | Nuxt route middleware (`middleware/` and `definePageMeta({ middleware })`), vue-router's `beforeEach` and `beforeEnter` through a check the implementation file names | a page's permission; any other guard a `must` question on the page |
-| page metadata | `definePageMeta` with literal values: title, permission where the project's own key names it | a key the implementation file does not map is a line |
+| page metadata | `definePageMeta` with literal values: title, layout and middleware; a permission where a key of the project's own names it, once the implementation file has one | a key the implementation file does not map is a line |
 | operations | Nuxt `server/api/` and `server/routes/` files (the folder step), their handlers' `readBody`, `getQuery` and `getRouterParam` with literal names, `readValidatedBody` with a schema the reader knows | as for Express |
 | a screen's fields | `v-model="form.title"` on inputs and on the components of a library the implementation file maps, such as PrimeVue's `InputText`, `Dropdown`, `Calendar` and `DataTable` columns (`<Column field="title">`) | fields by name; a list's columns from the table's columns |
 | API clients | `$fetch`, `useFetch` and axios with a literal method and path | joined to operations by the merge |

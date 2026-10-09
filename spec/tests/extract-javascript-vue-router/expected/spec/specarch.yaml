@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: JavaScript and TypeScript source of app
+  version: 0.1.0
+  description: |
+    The JavaScript and TypeScript source under app, read at commit 9210b0186792af85ac3e0becb0a8c8a637fae703 by the TypeScript compiler 6.0.3 through the code-facts dump, by its syntax and the types it declares, with the message catalogues there read as data. Every element cites the line that declares it; what the source does not say as a literal, or through an idiom the reader knows, is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 9210b0186792af85ac3e0becb0a8c8a637fae703
+    url: ../repo
+    clauses:
+      - {clause: app/src/auth.ts, title: 'TypeScript source, read by its syntax and its declared types'}
+      - {clause: app/src/router.ts, title: 'TypeScript source, read by its syntax and its declared types'}
+      - {clause: app/src/views/AboutView.vue, title: 'TypeScript source, read by its syntax and its declared types'}
+      - {clause: app/src/views/ShelfForm.vue, title: 'TypeScript source, read by its syntax and its declared types'}
+      - {clause: app/src/views/ShelfView.vue, title: 'TypeScript source, read by its syntax and its declared types'}
+    reading: parsed

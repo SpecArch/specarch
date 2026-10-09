@@ -1,0 +1,10 @@
+schemas:
+  NewLoan:
+    type: object
+    properties:
+      bookId: {type: string, format: uuid}
+      days: {type: integer, minimum: 1, maximum: 28, format: int32}
+    required: [bookId, days]
+    origin: stated
+    cites:
+      - {source: code, clause: 'site/utils/schemas.ts:3', says: newLoanSchema is a zod object schema.}

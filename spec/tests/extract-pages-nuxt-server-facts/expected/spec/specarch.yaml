@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: Routes of site/server
+  version: 0.1.0
+  description: |
+    The pages and operations the file-system router rooted at site/server serves, read from the files git tracks there at commit 6baf6f38f7611238e316844f2d002d43b37fab79, with the content of each page that has a schema file from that file. Every page and operation cites its file; what the files' places and the schemas do not say is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 6baf6f38f7611238e316844f2d002d43b37fab79
+    url: ../repo
+    clauses:
+      - {clause: 'site/server/api/loans/[id].get.ts', title: 'The route file of /api/loans/{id}'}
+      - {clause: 'site/server/api/loans/[id].ts', title: 'The route file of /api/loans/{id}'}
+      - {clause: site/server/api/loans/index.get.ts, title: The route file of /api/loans}
+      - {clause: site/server/api/loans/index.post.ts, title: The route file of /api/loans}
+      - {clause: site/server/middleware/log.ts, title: Middleware the router runs before the routes it covers}
+      - {clause: site/utils/auth.ts, title: 'Source the router''s files import, read through the code-facts dump'}
+      - {clause: site/utils/schemas.ts, title: 'Source the router''s files import, read through the code-facts dump'}

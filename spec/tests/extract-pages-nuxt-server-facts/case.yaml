@@ -1,0 +1,17 @@
+arguments: [extract, pages, --facts, repo/facts.json, --implementation, implementation/desk.javascript.specarch-implementation.yaml, --out, spec, repo/site/server]
+repository:
+  folder: repo
+  commits:
+    - [site]
+    - [facts.json]
+exitStatus: 0
+standardOutput: |
+  commit 6baf6f38f7611238e316844f2d002d43b37fab79: the last change to site/server
+  facts: the code-facts dump facts.json of site, made at commit 6baf6f38f7611238e316844f2d002d43b37fab79, gives what the router's files say
+  components: implementation/desk.javascript.specarch-implementation.yaml maps InputText, Calendar and Column
+  checks: implementation/desk.javascript.specarch-implementation.yaml names the permission check utils/auth.requirePermission
+  router: the server routes of Nuxt (Nitro), since the folder is named server
+  counted 4 route files and 1 middleware file: the tracked files under site/server/api and site/server/routes, and under site/server/middleware, with the extension .ts, .js or .mjs, each once
+  middleware: site/server/middleware/log.ts runs before every route, and calls no check the implementation file names
+  validators: counted 1 validation schema: every module-level variable that holds an object schema or an enum of zod, yup or joi
+  wrote 0 pages, 3 operations, 0 entities, 2 permissions and 9 questions: one page per file or folder the router serves a page from whose route the meta-model holds, 0 schemas read, one operation per route file whose name gives a method the meta-model holds, one entity and one permission per name a schema gives, one question per thing the files' places and the schemas do not say, and one per thing the meta-model cannot hold

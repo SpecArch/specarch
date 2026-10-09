@@ -1,5 +1,7 @@
-/** Where the service is, empty when it answers on the page's own origin. */
-export const service = process.env.NEXT_PUBLIC_API_URL ?? "";
+import { application } from "@/application";
+
+/** Where the screens call the service, empty when it answers on the page's own origin. */
+export const service = application.service;
 
 /** The JSON body of an answer, or undefined when it has none or cannot be read. */
 export async function body(response: Response): Promise<unknown> {

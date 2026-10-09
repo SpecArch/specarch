@@ -43,6 +43,7 @@
         "health",
         "rate-limit",
         "ui-components",
+        "design-tokens",
         "other"
       ]
     },

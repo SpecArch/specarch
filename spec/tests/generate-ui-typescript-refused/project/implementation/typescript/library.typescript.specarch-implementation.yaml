@@ -9,6 +9,8 @@ targets:
     framework: nextjs-carbon
     settings:
       language: en
+      translations: [en]
+      server: { routes: api, service: NEXT_PUBLIC_MEMBERS_URL, token: { cookie: members_session } }
 idioms:
   ui-components:
     override: idioms/ui-components.specarch-idiom.yaml

@@ -385,10 +385,8 @@ page goes to it instead, when the browser reads it as the same origin.
 A default failed state is the message for any refusal the page names
 none for. Fields in sections, actions, `enabledBy`, a permission other
 than public, and a success the operation answers with no event are
-refused. The service is
-called at `NEXT_PUBLIC_API_URL`. The generator writes no package, lock file
-or configuration, and refuses to write over a file in its output folder it
-did not write.
+refused. The generator writes no package, lock file or configuration, and
+refuses to write over a file in its output folder it did not write.
 
 Each list page is a schema and a `page.tsx` too, behind the guard. The
 service pages, sorts, searches and filters, through the paginated-list
@@ -477,6 +475,45 @@ by hand before the generator (ADR-067); its lists are built on plain
 Carbon and through the stub of a fictional library (ADR-068), its forms
 and views on both (ADR-069), and its child rows, reasons and approvals on
 both (ADR-071).
+
+The screens call the service at `NEXT_PUBLIC_API_URL`, or, with
+`settings.server`, the application's own server routes: a `route.ts` per
+path a page calls, under the path `settings.server.routes` names, with a
+handler per method called and none for an operation marked `ownedBy`. A
+handler forwards the method, the body and the accept, content-type and
+idempotency headers to the service at the environment variable
+`settings.server.service` names, read on the server only, with the value
+of the cookie `settings.server.token` names in the header it names after
+its scheme and no cookie of the browser; it answers the service's status,
+body, type, location and cookies, so the cookie a service sets when a
+session opens lands on the application's origin. A GET named under
+`settings.server.pages`, whose answer is an array and which has no
+`listOf`, is read whole and answered a page at a time in the paginated-list
+idiom's envelope, at the page size and maximum given there; the list that
+reads it offers no sort, search or filter but its query parameters. A
+service variable starting `NEXT_PUBLIC_`, which Next.js sends the browser,
+a page under the routes' path, and a paged operation that pages itself or
+answers no array are refused. `tests/server.test.ts` runs the forwarding
+and the paging against a stub of fetch.
+
+`settings.translations` lists the languages besides `settings.language`,
+each read from `strings.<language>.json` in the output folder, a JSON
+object of string keys and texts the project writes. A key the screens use
+with no entry, an entry with no text and one that drops a placeholder such
+as `{count}` are errors, and an entry no screen uses is a warning.
+`strings.ts` holds every language, typed so each translation has every
+key; a page reads the language from the cookie the `LanguageChoice`
+component sets for a year, through `chosenLanguage` in `language.ts`, and
+the specification's language without one.
+
+`theme.scss` lays the theme over Carbon's: its light theme in `:root` and
+its dark theme under `prefers-color-scheme: dark`, each merged with the
+colours `settings.tokens` maps from a part (text, background, accent,
+link, danger, border) to a token of the theme, the dark mode's value where
+it gives one. Which Carbon token takes each part is the `design-tokens`
+idiom's (`docs/idioms.md`); a part no Carbon token takes, a token that is
+not a colour and a mode other than dark are reported, and the application's
+own styles use the file after Carbon's (ADR-074).
 
 ## Tests from the specification
 

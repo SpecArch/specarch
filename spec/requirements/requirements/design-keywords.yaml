@@ -231,6 +231,21 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: Rows under a record, a confirmation that keeps a reason, and a request that waits for a second person are the parts of a back-office screen that decide what is written and by whom; drawn from the specification, the screen sends what the service takes and refuses what it would refuse.
+  SA-56:
+    statement: specarch generate ui shall write, through specarch-gen-ui-typescript, the server routes that forward the operations the pages call, the strings in the specification's language and every translation the settings name, and the theme as Carbon's tokens in light and dark, on Next.js and Carbon.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - With settings.server, each path a page calls has a route.ts under its routes path with a handler per method called, none for an operation the TypeScript file marks ownedBy; it forwards the method, body and named headers to the service at the environment variable named, with the session cookie's value as the token header and no browser cookie, and answers the service's status, body, type and cookies.
+      - A GET the settings name under server.pages, answering an array and without listOf, is read whole and answered a page at a time in the paginated-list idiom's envelope; a page size above its maximum is refused.
+      - A service variable Next.js would send the browser, a routes path that is not one, a token without its cookie or header, a paged operation that pages itself or is not a list, and a page under the routes path are refused.
+      - Every key the screens use has an entry in strings.<language>.json for each language settings.translations names; a key without one, an entry without text and one that drops a placeholder fail generation, and an entry no screen uses is a warning. The pages are shown in the language a person chose, kept in a cookie across sessions.
+      - theme.scss lays the colours of the parts settings.tokens maps over Carbon's light theme and, where the system asks for dark, its dark theme with the dark mode's colours, through the design-tokens idiom; a part no Carbon token takes and a mode other than dark are reported and left out.
+      - The library lending example's Carbon application forwards to the service through its routes, is shown in English and Indonesian, and builds with its theme in both modes; the @acme/screens one calls the service directly.
+    verification: test
+    needs: [NEED-2]
+    why: A route written by hand per operation, a key used with no entry in the second language, and colours typed again into a component library are the parts of a front end that drift from the specification without anyone seeing; generated from it, they follow it.
   SA-48:
     statement: A specification shall declare a value object under schemas, data passed around but not stored and with no identity, which a request body, a response, a message, another schema and an entity's field may refer to and a relation may not, and specarch validate shall check every use of one.
     kind: functional

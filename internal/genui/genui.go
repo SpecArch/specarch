@@ -976,6 +976,10 @@ func cssFamily(name string) string {
 // cssName is a token's path as a custom property's name.
 func cssName(path string) string { return strings.ReplaceAll(path, ".", "-") }
 
+// CSSValue writes a token's value in CSS, as cssValue does, for another
+// generator of the web.
+func CSSValue(typ string, v any) string { return cssValue(typ, v) }
+
 // cssValue writes a token's value in CSS: an alias as the property it
 // names, a colour as its hex or, translucent, as rgb with its alpha, a
 // dimension or a duration with its unit, a font family as its list.

@@ -1,0 +1,53 @@
+"use client";
+
+import { Select, SelectItem } from "@carbon/react";
+import { useRouter } from "next/navigation";
+import { say, type Texts } from "./texts";
+
+/** How long the chosen language is kept: a year, in seconds. */
+const keptFor = 60 * 60 * 24 * 365;
+
+export interface LanguageChoiceProps {
+  readonly languages: readonly string[];
+  readonly chosen: string;
+  readonly cookie: string;
+  readonly texts: Texts;
+}
+
+/** A language by its own name, as a speaker of it writes it. */
+function nameOf(language: string): string {
+  try {
+    return new Intl.DisplayNames([language], { type: "language" }).of(language) ?? language;
+  } catch {
+    return language;
+  }
+}
+
+/**
+ * The choice of the language the screens are shown in, kept in a cookie
+ * for a year so it outlasts the session; the page is drawn again in it.
+ * Nothing is drawn when the screens have one language.
+ */
+export function LanguageChoice({ languages, chosen, cookie, texts }: LanguageChoiceProps) {
+  const router = useRouter();
+  if (languages.length < 2) {
+    return null;
+  }
+  return (
+    <Select
+      id="screens-language"
+      inline
+      size="sm"
+      labelText={say(texts, "screens.language")}
+      value={chosen}
+      onChange={(event) => {
+        document.cookie = cookie + "=" + encodeURIComponent(event.target.value) + "; path=/; max-age=" + keptFor + "; samesite=lax";
+        router.refresh();
+      }}
+    >
+      {languages.map((language) => (
+        <SelectItem key={language} value={language} text={nameOf(language)} lang={language} />
+      ))}
+    </Select>
+  );
+}

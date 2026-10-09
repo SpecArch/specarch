@@ -820,12 +820,12 @@ func (g *gen) pageFiles(pageName string, pg map[string]any, part string, schemaM
 	default:
 		fmt.Fprintf(&page, "import { %s } from %q;\nimport { Guard } from %q;\n", component, importFrom, components)
 	}
-	page.WriteString("import { strings, texts } from \"@/strings\";\n")
+	page.WriteString("import { chosenLanguage } from \"@/language\";\nimport { stringOf, texts } from \"@/strings\";\n")
 	if len(hooks) > 0 {
 		page.WriteString("import { HookedForm } from \"./page.client\";\n")
 	}
 	page.WriteString("import { schema } from \"./page.schema\";\n\n")
-	fmt.Fprintf(&page, "export const metadata: Metadata = { title: strings[%q] };\n\n", pageName+".title")
+	page.WriteString(metadataOf(pageName))
 	g.writeRoutes(&page, routes)
 	props := "schema={schema} texts={t} routes={routes}"
 	if pathParam.MatchString(text(pg["route"])) {
@@ -833,9 +833,9 @@ func (g *gen) pageFiles(pageName string, pg map[string]any, part string, schemaM
 		page.WriteString("  const parameters = await params;\n")
 		props += " parameters={parameters}"
 	} else {
-		page.WriteString("export default function Page() {\n")
+		page.WriteString("export default async function Page() {\n")
 	}
-	page.WriteString("  const t = texts(schema);\n  return (\n")
+	page.WriteString("  const t = texts(schema, await chosenLanguage());\n  return (\n")
 	fmt.Fprintf(&page, "    <Guard permission={schema.%s} texts={t}>\n", g.name(part, "permission"))
 	fmt.Fprintf(&page, "      <%s %s />\n", drawn, props)
 	page.WriteString("    </Guard>\n  );\n}\n")

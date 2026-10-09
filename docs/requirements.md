@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.6.0-dev of the specification: 5 stakeholders, 9 needs and 55 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.6.0-dev of the specification: 5 stakeholders, 9 needs and 56 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 ## 1. Purpose and scope
 
@@ -32,7 +32,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-49, SA-46, SA-32, SA-9, SA-10 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-46, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-19 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
@@ -67,6 +67,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-53 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui-typescript, the list pages of a specification on Next.js and Carbon, the menu, and a guard that opens each page only to someone who holds its permission, from one permission each, with a derived test per page and of the menu, drawn through the ui-components idiom a project may override. |
 | SA-54 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui-typescript, the forms and views of a specification on Next.js and Carbon, each field drawn by its type and format or picked from a list, checked by its keywords and the page's checks across fields, read-only or hidden by its conditions, and started by a hook the project writes where the ui target's settings name one. |
 | SA-55 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui-typescript, a form's child rows, the actions of a view that run an operation with the confirmation and the reason they ask for, a form that starts an approval, and the inbox of an approval step, on Next.js and Carbon. |
+| SA-56 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui-typescript, the server routes that forward the operations the pages call, the strings in the specification's language and every translation the settings name, and the theme as Carbon's tokens in light and dark, on Next.js and Carbon. |
 | SA-48 | functional | should | accepted | A specification shall declare a value object under schemas, data passed around but not stored and with no identity, which a request body, a response, a message, another schema and an entity's field may refer to and a relation may not, and specarch validate shall check every use of one. |
 | SA-49 | functional | should | accepted | A specification shall be able to say, once for the whole interface, that its properties go on the wire in snake_case while it names them in camelCase, and specarch validate shall refuse two properties of one object that would go on the wire under one name. |
 | SA-50 | functional | should | accepted | An entity's field shall be able to hold a value object, one schema or a list of them, stored in columns of the entity's row or as one JSON value as the field's storage says, and specarch validate shall refuse a value object that cannot be stored that way. |
@@ -456,6 +457,23 @@ Acceptance criteria:
 - The library lending example's member lends copies as rows under the member's loans, deactivates from the member's view with a reason, asks for a fee waiver that waits for approval, and the desk supervisor approves or refuses it with a reason from the inbox; all build on plain Carbon and through the stub of @acme/screens.
 
 **Insight:** Rows under a record, a confirmation that keeps a reason, and a request that waits for a second person are the parts of a back-office screen that decide what is written and by whom; drawn from the specification, the screen sends what the service takes and refuses what it would refuse.
+
+### SA-56
+
+specarch generate ui shall write, through specarch-gen-ui-typescript, the server routes that forward the operations the pages call, the strings in the specification's language and every translation the settings name, and the theme as Carbon's tokens in light and dark, on Next.js and Carbon.
+
+Kind: functional; priority: should; status: accepted; verified by test; refines NEED-2.
+
+Acceptance criteria:
+
+- With settings.server, each path a page calls has a route.ts under its routes path with a handler per method called, none for an operation the TypeScript file marks ownedBy; it forwards the method, body and named headers to the service at the environment variable named, with the session cookie's value as the token header and no browser cookie, and answers the service's status, body, type and cookies.
+- A GET the settings name under server.pages, answering an array and without listOf, is read whole and answered a page at a time in the paginated-list idiom's envelope; a page size above its maximum is refused.
+- A service variable Next.js would send the browser, a routes path that is not one, a token without its cookie or header, a paged operation that pages itself or is not a list, and a page under the routes path are refused.
+- Every key the screens use has an entry in strings.<language>.json for each language settings.translations names; a key without one, an entry without text and one that drops a placeholder fail generation, and an entry no screen uses is a warning. The pages are shown in the language a person chose, kept in a cookie across sessions.
+- theme.scss lays the colours of the parts settings.tokens maps over Carbon's light theme and, where the system asks for dark, its dark theme with the dark mode's colours, through the design-tokens idiom; a part no Carbon token takes and a mode other than dark are reported and left out.
+- The library lending example's Carbon application forwards to the service through its routes, is shown in English and Indonesian, and builds with its theme in both modes; the @acme/screens one calls the service directly.
+
+**Insight:** A route written by hand per operation, a key used with no entry in the second language, and colours typed again into a component library are the parts of a front end that drift from the specification without anyone seeing; generated from it, they follow it.
 
 ### SA-48
 

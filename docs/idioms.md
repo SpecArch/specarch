@@ -113,7 +113,7 @@ The keys:
 |---|---|
 | `name` | kebab-case; the key an implementation file and an override use |
 | `version` | the idiom's own version, semantic; it moves when a contract statement, a part or a test changes |
-| `concern` | one of a closed list: `type-rendering`, `request-validation`, `error-response`, `list-operations`, `authorization`, `pii-logging`, `audit-fields`, `soft-delete`, `identifiers`, `transactions`, `retries`, `idempotency`, `configuration`, `secrets`, `background-jobs`, `migrations`, `encryption`, `health`, `rate-limit`, `ui-components`, `other` |
+| `concern` | one of a closed list: `type-rendering`, `request-validation`, `error-response`, `list-operations`, `authorization`, `pii-logging`, `audit-fields`, `soft-delete`, `identifiers`, `transactions`, `retries`, `idempotency`, `configuration`, `secrets`, `background-jobs`, `migrations`, `encryption`, `health`, `rate-limit`, `ui-components`, `design-tokens`, `other` |
 | `stacks` | the stacks the idiom renders; `any` for one that is stack-neutral |
 | `reads` | the design keywords it applies to; an idiom applies only to a specification that uses them, so an idiom for `listOf` is silent in a specification without one |
 | `contract` | statements keyed by id, each with `statement`, and `check`: `schema` (a shape the implementation file or an override must carry), `name` (a derivation rule for names, as the conventions derive table names), `document` (something the generated document or code must contain, checked by the generator's `--check`), `test` (a derived test case), or `guidance` (no check) |
@@ -300,7 +300,8 @@ packages every screen imports, and where the components that read the
 schemas live), `list-page`, `form-page`, `view-page`, `task-page`, a part
 per field type (`text-field`, `text-area-field`, `email-field`, `password-field`,
 `number-field`, `date-field`, `select-field`, `checkbox-field`,
-`lookup-field`), `confirm-dialog`, `notification` and `menu`. Each names,
+`lookup-field`), `confirm-dialog`, `notification`, `language-choice` and
+`menu`. Each names,
 under `names`, the component, the schema type it takes, the Carbon
 components it is built on and the keys of its schema; `names` stays a flat
 map of strings, a key per role. The shipped rendering draws with plain
@@ -315,7 +316,28 @@ schema shape `names` cannot say installs its own
 
 | Contract, checked | Contract, guidance |
 |---|---|
-| a page opens only to someone with its permission, and a menu entry shows only to someone with the permission of the page it opens (`test`); a page's schema file is data only, typed with `satisfies`; every text is a string key with an entry; a field is checked by its property's JSON Schema keywords (`document`) | no form or state library in the generated code; a project's own stays inside its library |
+| a page opens only to someone with its permission, and a menu entry shows only to someone with the permission of the page it opens (`test`); a page's schema file is data only, typed with `satisfies`; every text is a string key with an entry in every language; a field is checked by its property's JSON Schema keywords (`document`) | no form or state library in the generated code; a project's own stays inside its library |
+
+## The theme: design-tokens
+
+`design-tokens` says how the theme's design tokens become the tokens of a
+stack's component library. The design holds values and names only;
+which token plays which part (text, background, accent, link, danger,
+border) is the `ui` target's `settings.tokens`, and the idiom names, per
+part, the library's token that takes it, and the library's own themes
+the colours are laid over in each mode. It applies to a file whose
+framework it renders and whose specification has a `theme`. The shipped
+rendering is for `nextjs-carbon`: the part `themes` names Carbon's `white`
+and `g100` themes and the Sass modules that hold them, and the part
+`tokens` maps each Carbon theme token to the part it takes, such as
+`text-primary` from text and `interactive`, `focus` and
+`border-interactive` from accent. Carbon's component tokens and its hover
+and active shades keep Carbon's values. The plain JavaScript generator
+writes the theme as CSS custom properties directly (ADR-040).
+
+| Contract, checked | Contract, guidance |
+|---|---|
+| the light mode is the library's light theme with the parts' colours, the dark mode its dark theme with the dark mode's; only colours are laid over the themes, and a part no token takes is reported (`document`) | the library's tokens around the ones laid over keep the contrast the library gives them |
 
 ## Implementation items
 

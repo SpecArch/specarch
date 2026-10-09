@@ -28,7 +28,7 @@ steps. In short:
    with screens built by hand.
 
 Questions Q1 to Q10 at the end were the owner's, who answered each as
-recommended on 2026-10-09 (ADR-051). Steps 1 to 5 are built.
+recommended on 2026-10-09 (ADR-051). Steps 1 to 6 are built.
 
 ## Where SpecArch stands
 
@@ -317,16 +317,22 @@ needs Q1, Q4 and Q5; step 2 needs Q2, Q3, Q6, Q7 and Q10.
    Done: the member's copies lent as rows under their loans, the member
    deactivated from the view with a reason, a fee waiver asked for and
    approved or refused with a reason from the inbox, built both ways.
-6. **Server routes, strings and theme.** A server route per operation a
-   page calls, when the target puts one between browser and service,
-   adding the session's token and paging what the settings name (Q8), and
-   none for an operation the TypeScript file marks `ownedBy`; the strings
-   file in two languages, the chosen one kept across sessions, and the
-   check that every key has an entry; the theme as Carbon tokens, light
-   and dark, through a token-rendering idiom, the one ADR-040 said a
-   second stack would bring. Waits for nothing. Done when a key used
-   without an entry fails generation, the example's routes forward to the
-   service, and its theme shows in both modes.
+6. **Built: server routes, strings and theme** (SA-56, ADR-074). With
+   `settings.server`, a `route.ts` per path a page calls, under the path
+   the settings name, forwarding to the service at a variable the server
+   alone reads with the session cookie's value as the token header,
+   answering the service's status, body and cookies, and paging an
+   operation the settings name under `pages` (Q8); none for an operation
+   the TypeScript file marks `ownedBy`. `settings.translations` names the
+   languages besides the specification's, each read from
+   `strings.<language>.json`, a file the project writes, with a key
+   without an entry an error; the chosen language kept in a cookie for a
+   year by `LanguageChoice`. The theme as `theme.scss`, Carbon's light and
+   dark themes with the specification's colours laid over them, through
+   the `design-tokens` idiom. Done: the example's Carbon application
+   forwards to the service through sixteen routes, tested against a stub
+   of fetch, is shown in English and Indonesian, and builds with its theme
+   in both modes; the `@acme/screens` one calls the service directly.
 7. **Comparing screens built by hand.** `generate --check` on a folder of
    pages built by hand says per page whether the schema and the page
    match, comparing values (Q9), and prints the difference. Waits for

@@ -2,6 +2,8 @@ specarchImplementation: "0.1"
 info: { title: Case in TypeScript through a library, version: 1.0.0 }
 implements: { file: ../../specarch.yaml, version: 1.0.0 }
 stack: { language: { name: TypeScript, version: "6.0" } }
+mappings:
+  "#/pages/branch-list": { target: the branches page another team writes, ownedBy: administration }
 targets:
   ui:
     output: ../../../library-web

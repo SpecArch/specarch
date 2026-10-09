@@ -5,6 +5,7 @@ export { Field, type FieldProps } from "./Field";
 export { FormPage, type FieldHook, type FormPageProps } from "./FormPage";
 export { Guard, type GuardProps } from "./Guard";
 export { decide, visibleMenu, type Application, type Decision, type MenuEntry, type MenuGroup, type Session } from "./access";
+export { LanguageChoice, type LanguageChoiceProps } from "./LanguageChoice";
 export { ListPage, type ListPageProps } from "./ListPage";
 export { Lookup, type LookupProps } from "./Lookup";
 export { Menu, type MenuProps } from "./Menu";

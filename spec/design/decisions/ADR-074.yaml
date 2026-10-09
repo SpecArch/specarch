@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-074:
+    title: Server routes forward each called operation with the session's token, the strings hold every translation the settings name, and the theme reaches Carbon's tokens through the design-tokens idiom
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Step 6 of docs/ui-nextjs-carbon.md puts the application's own server
+      between the browser and the service, shows the screens in a second
+      language chosen per person, and gives Carbon the specification's
+      theme. The design says none of it: which operations the pages call
+      is in the pages, where the session's token lives and whether a
+      server stands in front of the service are how one stack is built,
+      the second language's texts are not the specification's, and the
+      theme names its own tokens, not Carbon's. The question Q8 answered
+      that a route pages a list only when the ui target's settings name it.
+      A plug-in reads no disk; it is handed the files already in its output
+      folder.
+    decision: |
+      With settings.server, every path a page calls gets a route.ts under
+      the path settings.server.routes names, such as /api, with a handler
+      per method a page calls; an operation the TypeScript file marks
+      ownedBy gets none. A handler forwards the request to the service at
+      the environment variable settings.server.service names, read on the
+      server only, so a NEXT_PUBLIC_ variable is refused: the method, the
+      body, the accept, content-type and idempotency headers, and the
+      value of the cookie settings.server.token names as the header it
+      names, after its scheme; no cookie of the browser is sent. It answers
+      the service's status, body, type, location and Set-Cookie, so a
+      service that opens a session sets its cookie on the application's
+      origin and every later route carries it as the token. A GET named
+      under settings.server.pages, whose answer is an array and which has
+      no listOf, is read whole and answered a page at a time in the
+      paginated-list idiom's envelope, with the page size and maximum the
+      settings give; a size above the maximum is refused, never cut down.
+      The screens call the routes through application.ts, or the service
+      at NEXT_PUBLIC_API_URL without settings.server. settings.translations
+      lists the languages besides settings.language, each read from
+      strings.<language>.json in the output folder, a file the project
+      writes; a key the screens use with no entry, an entry with no text
+      and one that drops a placeholder are errors, and an entry no screen
+      uses is a warning. strings.ts holds every language, typed so each
+      translation has every key, and the pages read the language from a
+      cookie the LanguageChoice component sets for a year. The theme is
+      theme.scss: Carbon's light theme in :root and its dark theme under
+      prefers-color-scheme: dark, each merged with the colours of the parts
+      settings.tokens maps to the theme's tokens, through the new
+      design-tokens idiom, whose part names which Carbon token each part
+      takes. ui-components is 1.5.0, with a language-choice part.
+    consequences: |
+      The library lending example's Carbon application forwards to the
+      service at SERVICE_URL through sixteen routes, shows every screen in
+      English and Indonesian, and lays its theme over Carbon's in both
+      modes; the @acme/screens application calls the service directly and
+      has one language. A derived test runs the forwarding and the paging
+      against a stub of fetch. Carbon's component tokens, such as a
+      button's, and every hover and active shade keep Carbon's values; the
+      theme's spacing and fonts are left out with a warning, as are modes
+      other than dark. A service whose cookie names a Domain other than the
+      application's is not kept by the browser, so it sets its session
+      cookie without one.
+    why: |
+      A route per called operation is what the hand-built applications
+      repeat file by file, and the operations are already in the pages, so
+      the generator can write them and leave out what another team owns.
+      Carrying the token from a cookie the browser cannot read to a header
+      the service checks keeps the token out of the page's script, which is
+      why a server stands in front of the service at all; reading the
+      service's address from a variable Next.js would ship to the browser
+      would undo that. A translation is the project's text, so it lives in
+      the project's file, and a key without an entry is an error because a
+      missing one shows the first language in its place without anyone
+      seeing it. Laying the colours over Carbon's own themes keeps every
+      token the specification does not name at Carbon's value, checked for
+      contrast by Carbon, while the ones it names are the ones its pairs
+      check.
+    satisfies: [SA-56]

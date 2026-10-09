@@ -55,9 +55,11 @@ targets:
     description: |
       The pages as schema files and thin page.tsx files under app/, the
       components that read the schemas under screens/, and every text in
-      strings.ts. The service is called directly, at NEXT_PUBLIC_API_URL.
+      strings.ts, and the theme as Carbon's tokens in theme.scss. The
+      service is called directly, at NEXT_PUBLIC_API_URL.
     settings:
       language: en
+      tokens: { text: color.text, background: color.background, accent: color.accent, link: color.link, danger: color.danger, border: color.border }
       session: { operation: getSession, signedIn: signedIn, permissions: permissions, signIn: sign-in }
       hooks: { loan-form: [lentOn] }
 

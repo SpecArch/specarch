@@ -312,7 +312,8 @@ being the default.
 contrast check reads. The design file holds values and names
 only; a token is used by a stack as that stack's generator writes it (CSS
 custom properties for the web, an asset catalogue and a `Color` extension
-for SwiftUI); an idiom for it arrives with a second stack. A
+for SwiftUI), through the `design-tokens` idiom on Next.js and Carbon
+(`docs/idioms.md`). A
 specification without a theme is valid: the stack's own
 look applies, and the contrast check has nothing to read.
 
@@ -330,7 +331,7 @@ design never names a component:
 |---|---|---|
 | the component library, and the component per page kind and per field type | target settings, and the ui-components idiom | SwiftUI `List` and `Form`; a project's own `DataTable` |
 | the navigation container | target settings | a `NavigationStack` with a tab bar on compact, a split view on regular |
-| how a token becomes code | the stack's generator, and an idiom once a second stack needs one | a `Color` extension over an asset catalogue; CSS custom properties |
+| how a token becomes code | the stack's generator, through the design-tokens idiom where one renders the stack, and which token plays which part in target settings | Carbon's `text-primary` from the part text; CSS custom properties |
 | the compact class in points or pixels | target settings, defaulting to the platform's | 600 density independent pixels |
 | the event bus of the web | the generated code, per the roadmap | one module with every event name as a constant |
 | strings and their translations | a strings file per stack, keyed by page and state | `Localizable.strings` |

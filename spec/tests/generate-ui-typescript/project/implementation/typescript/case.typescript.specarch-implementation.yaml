@@ -4,6 +4,7 @@ implements: { file: ../../specarch.yaml, version: 1.0.0 }
 stack: { language: { name: TypeScript, version: "6.0" } }
 mappings:
   "#/menus/admin": { target: the administration's own menu, ownedBy: administration }
+  "#/paths/~1sessions/post": { target: the administration's own sign-in route, ownedBy: administration }
 targets:
   ui:
     output: ../../../web
@@ -14,3 +15,10 @@ targets:
       session: { operation: getSession, signedIn: open, permissions: granted, signIn: sign-in }
       hooks: { member-form: [joinedOn] }
       layouts: { member-form: tabs }
+      translations: [en-GB]
+      server:
+        routes: /api
+        service: MEMBERS_SERVICE_URL
+        token: { cookie: members_session, header: Authorization, scheme: Bearer }
+        pages: { listAllBranches: { pageSize: 25, maximum: 100 } }
+      tokens: { text: color.text, background: color.background, accent: color.accent, link: color.link, space: space.small }

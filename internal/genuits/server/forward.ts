@@ -1,0 +1,179 @@
+/** Where the server routes answer and forward, and how they carry the session's token. */
+export interface ServerSettings {
+  /** The path the server routes answer under; the rest of a route's path is the service's. */
+  readonly routes: string;
+  /** Where the service is, read on the server only. */
+  readonly service: string;
+  /** The cookie that holds the session's token. */
+  readonly cookie: string;
+  /** The header that carries the token to the service. */
+  readonly header: string;
+  /** The word before the token in the header, empty for none. */
+  readonly scheme: string;
+  /** The request headers sent on to the service, in lower case. */
+  readonly headers: readonly string[];
+  /** The paginated-list idiom's names on the wire, for a route that pages a list. */
+  readonly wire: {
+    readonly page: string;
+    readonly pageSize: string;
+    readonly items: string;
+    readonly totalItems: string;
+    readonly totalPages: string;
+  };
+}
+
+/** How a route pages a list its operation answers whole. */
+export interface Paging {
+  readonly pageSize: number;
+  readonly maximum: number;
+}
+
+/** The session's token: the value of its cookie in the request, if it has one. */
+function tokenOf(request: Request, cookie: string): string | undefined {
+  for (const part of (request.headers.get("cookie") ?? "").split(";")) {
+    const at = part.indexOf("=");
+    if (at > 0 && part.slice(0, at).trim() === cookie) {
+      const value = part.slice(at + 1).trim();
+      return value === "" ? undefined : value;
+    }
+  }
+  return undefined;
+}
+
+/** The service's address for a request to a route, the parameters the route reads itself left out. */
+function targetOf(request: Request, settings: ServerSettings, kept: readonly string[] = []): URL | undefined {
+  const url = new URL(request.url);
+  if (settings.service === "" || !url.pathname.startsWith(settings.routes + "/")) {
+    return undefined;
+  }
+  try {
+    const target = new URL(settings.service.replace(/\/+$/, "") + url.pathname.slice(settings.routes.length));
+    for (const [name, value] of url.searchParams) {
+      if (!kept.includes(name)) {
+        target.searchParams.append(name, value);
+      }
+    }
+    return target;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Sends a request on to the service: its method, body and named headers, and the token in place of every cookie. */
+async function send(request: Request, settings: ServerSettings, target: URL): Promise<Response> {
+  const headers = new Headers();
+  for (const name of settings.headers) {
+    const value = request.headers.get(name);
+    if (value !== null) {
+      headers.set(name, value);
+    }
+  }
+  const token = tokenOf(request, settings.cookie);
+  if (token !== undefined) {
+    headers.set(settings.header, settings.scheme === "" ? token : settings.scheme + " " + token);
+  }
+  const bodied = request.method !== "GET" && request.method !== "HEAD";
+  return fetch(target, {
+    method: request.method,
+    headers,
+    body: bodied ? await request.arrayBuffer() : undefined,
+    redirect: "manual",
+    cache: "no-store",
+  });
+}
+
+/** The headers of the service's answer the browser gets: its type, where it leads, and the cookies it sets. */
+function answerHeaders(response: Response): Headers {
+  const headers = new Headers();
+  for (const name of ["content-type", "location"]) {
+    const value = response.headers.get(name);
+    if (value !== null) {
+      headers.set(name, value);
+    }
+  }
+  for (const cookie of response.headers.getSetCookie()) {
+    headers.append("set-cookie", cookie);
+  }
+  return headers;
+}
+
+/** The answer when the service is not set or cannot be reached. */
+function unreachable(): Response {
+  return new Response(null, { status: 502 });
+}
+
+/**
+ * Forwards a request to the service, the session's token in the header
+ * the settings name, and answers what the service answers.
+ */
+export async function forward(request: Request, settings: ServerSettings): Promise<Response> {
+  const target = targetOf(request, settings);
+  if (target === undefined) {
+    return unreachable();
+  }
+  try {
+    const response = await send(request, settings, target);
+    const empty = response.status === 204 || response.status === 304;
+    return new Response(empty ? null : await response.arrayBuffer(), { status: response.status, headers: answerHeaders(response) });
+  } catch {
+    return unreachable();
+  }
+}
+
+function wholeNumber(value: string | null, fallback: number): number | undefined {
+  if (value === null) {
+    return fallback;
+  }
+  return /^[0-9]{1,9}$/.test(value) ? Number(value) : undefined;
+}
+
+/** Sets a value at a dotted path of names, as the envelope's names may nest. */
+function put(into: Record<string, unknown>, path: string, value: unknown): void {
+  const names = path.split(".");
+  let at = into;
+  for (const name of names.slice(0, -1)) {
+    const next = at[name];
+    at = typeof next === "object" && next !== null ? (next as Record<string, unknown>) : (at[name] = {});
+  }
+  at[names[names.length - 1]] = value;
+}
+
+/**
+ * Reads a list the service answers whole and answers the page asked for,
+ * in the paginated-list idiom's envelope. A page size above the maximum is
+ * refused, never cut down.
+ */
+export async function paged(request: Request, settings: ServerSettings, paging: Paging): Promise<Response> {
+  const asked = new URL(request.url).searchParams;
+  const page = wholeNumber(asked.get(settings.wire.page), 1);
+  const size = wholeNumber(asked.get(settings.wire.pageSize), paging.pageSize);
+  if (page === undefined || page < 1 || size === undefined || size < 1 || size > paging.maximum) {
+    return Response.json(
+      { type: "about:blank", title: "The page or its size is out of range.", status: 400 },
+      { status: 400, headers: { "content-type": "application/problem+json" } },
+    );
+  }
+  const target = targetOf(request, settings, [settings.wire.page, settings.wire.pageSize]);
+  if (target === undefined) {
+    return unreachable();
+  }
+  try {
+    const response = await send(request, settings, target);
+    if (!response.ok) {
+      return new Response(await response.arrayBuffer(), { status: response.status, headers: answerHeaders(response) });
+    }
+    const records: unknown = await response.json();
+    if (!Array.isArray(records)) {
+      return unreachable();
+    }
+    const envelope: Record<string, unknown> = {};
+    put(envelope, settings.wire.items, records.slice((page - 1) * size, page * size));
+    put(envelope, settings.wire.totalItems, records.length);
+    put(envelope, settings.wire.totalPages, Math.ceil(records.length / size));
+    const headers = answerHeaders(response);
+    headers.set("content-type", "application/json");
+    return new Response(JSON.stringify(envelope), { status: 200, headers });
+  } catch {
+    return unreachable();
+  }
+}

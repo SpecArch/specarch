@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: ui-components
-version: 1.4.0
+version: 1.5.0
 concern: ui-components
 stacks: [nextjs-carbon]
 reads: [pages]
@@ -32,7 +32,7 @@ contract:
     statement: A page's schema file holds data only, one object literal typed with satisfies by its part's schemaType; a behaviour data cannot say is a hook imported from a file the generator never writes.
     check: document
   strings:
-    statement: Every text a page shows is a string key with an entry in the strings file.
+    statement: Every text a page shows is a string key with an entry in the strings file, in the specification's language and in every translation the settings name; a key without an entry in one fails generation.
     check: document
   validation:
     statement: A field is checked by the JSON Schema keywords of its property, as the specification writes them, before the request is sent.
@@ -201,6 +201,17 @@ parts:
     stack:
       nextjs-carbon:
         names: { component: Notice, schemaType: NoticeSchema, carbon: ToastNotification, kind: kind, title: title }
+  language-choice:
+    description: The choice of the language the screens are shown in, kept across sessions.
+    stack:
+      nextjs-carbon:
+        names: { component: LanguageChoice, carbon: Select, carbonItem: SelectItem, cookie: language }
+        code: |
+          A Select of the languages strings.ts holds, each by its own name,
+          which keeps the one chosen in the cookie for a year and draws the
+          page again in it; the pages read it on the server through
+          chosenLanguage in language.ts, the specification's language when
+          the cookie holds none. The application's layout places it.
   menu:
     description: The application's menu, from menus.
     stack:

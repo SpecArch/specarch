@@ -7182,6 +7182,7 @@ let idiomSchemaJSON = #"""
         "health",
         "rate-limit",
         "ui-components",
+        "design-tokens",
         "other"
       ]
     },
@@ -7764,6 +7765,77 @@ parts:
           memory and handed out only where it is used, as dxlib's
           configuration (with SensitiveDataKey), secure_memory and vault
           packages do.
+"""#),
+    ("idioms/design-tokens/design-tokens.specarch-idiom.yaml", #"""
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
+specarchIdiom: "0.1"
+name: design-tokens
+version: 1.0.0
+concern: design-tokens
+stacks: [nextjs-carbon]
+reads: [theme]
+description: |
+  How the theme's design tokens become a stack's own tokens. The design
+  holds values and names only (design/theme.yaml); which of them plays
+  which part, such as the text or the background, is the ui target's
+  settings.tokens, and this idiom names, per part, the token of the stack's
+  component library that takes it, and the library's own themes the
+  specification's colours are laid over in each mode.
+why: |
+  A component library draws with its own tokens, and a generated screen
+  looks like one built by hand only when the specification's colours reach
+  those tokens. Naming them in an idiom keeps the library's token names out
+  of the design and the generator, and lets a project that draws through a
+  library of its own name its tokens instead.
+
+contract:
+  modes:
+    statement: The light mode is the library's light theme with the parts' colours laid over it, and the dark mode its dark theme with the dark mode's colours, taken where the system asks for dark; a part with no dark value keeps its own value in both.
+    check: document
+  colours-only:
+    statement: Only colours are laid over the library's themes; its spacing and type scale stay its own, and a part the settings give that no token takes is reported and left out.
+    check: document
+  contrast:
+    statement: The colours laid over the themes are the ones the theme's pairs check for contrast; the library's own tokens around them keep the contrast the library gives them.
+    check: guidance
+
+parts:
+  themes:
+    description: The library's own themes the colours are laid over, and the modules that hold them.
+    stack:
+      nextjs-carbon:
+        names: { light: white, dark: g100, themes: "@carbon/styles/scss/themes", theme: "@carbon/styles/scss/theme" }
+        code: |
+          The generator writes theme.scss in the target's output: in :root,
+          Carbon's theme mixin with the light theme's map merged with the
+          parts' colours, and under prefers-color-scheme: dark the dark
+          theme's map merged with the dark mode's. The application's own
+          styles use it after Carbon's, so its custom properties win.
+  tokens:
+    description: The library's theme token each part of the theme takes, a name per token with the part it takes.
+    stack:
+      nextjs-carbon:
+        names:
+          text-primary: text
+          background: background
+          interactive: accent
+          focus: accent
+          border-interactive: accent
+          link-primary: link
+          support-error: danger
+          text-error: danger
+          border-strong-01: border
+        code: |
+          Each key is a token of Carbon's theme, written as its custom
+          property --cds-<token>; each value is a part the ui target's
+          settings.tokens maps to a token of the specification's theme.
+          Carbon's component tokens, such as button-primary, are resolved
+          from its theme after it and keep Carbon's values; so do the hover
+          and active shades of every token.
+
+tests:
+  - { case: theme with a dark mode, scenario: golden, then: "theme.scss holds the light theme with the parts' colours and, under prefers-color-scheme dark, the dark theme with the dark mode's" }
+  - { case: part no token takes, scenario: red, then: it is reported and left out }
 """#),
     ("idioms/encryption/encrypted-column.specarch-idiom.yaml", #"""
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
@@ -8512,7 +8584,7 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: ui-components
-version: 1.4.0
+version: 1.5.0
 concern: ui-components
 stacks: [nextjs-carbon]
 reads: [pages]
@@ -8543,7 +8615,7 @@ contract:
     statement: A page's schema file holds data only, one object literal typed with satisfies by its part's schemaType; a behaviour data cannot say is a hook imported from a file the generator never writes.
     check: document
   strings:
-    statement: Every text a page shows is a string key with an entry in the strings file.
+    statement: Every text a page shows is a string key with an entry in the strings file, in the specification's language and in every translation the settings name; a key without an entry in one fails generation.
     check: document
   validation:
     statement: A field is checked by the JSON Schema keywords of its property, as the specification writes them, before the request is sent.
@@ -8712,6 +8784,17 @@ parts:
     stack:
       nextjs-carbon:
         names: { component: Notice, schemaType: NoticeSchema, carbon: ToastNotification, kind: kind, title: title }
+  language-choice:
+    description: The choice of the language the screens are shown in, kept across sessions.
+    stack:
+      nextjs-carbon:
+        names: { component: LanguageChoice, carbon: Select, carbonItem: SelectItem, cookie: language }
+        code: |
+          A Select of the languages strings.ts holds, each by its own name,
+          which keeps the one chosen in the cookie for a year and draws the
+          page again in it; the pages read it on the server through
+          chosenLanguage in language.ts, the specification's language when
+          the cookie holds none. The application's layout places it.
   menu:
     description: The application's menu, from menus.
     stack:

@@ -152,6 +152,17 @@ paths:
           content:
             application/json:
               schema: { type: array, items: { $ref: "#/entities/Member" } }
+  /branches/all:
+    get:
+      operationId: listAllBranches
+      summary: Every branch, answered whole
+      permission: members.read
+      responses:
+        "200":
+          description: The branches.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Branch" } }
   /members/{memberId}:
     parameters:
       - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
@@ -400,6 +411,16 @@ pages:
     columns: [name]
     states:
       empty: { message: No member yet. }
+  branch-list:
+    kind: list
+    title: Branches
+    route: /branches
+    entity: Branch
+    permission: members.read
+    source: listAllBranches
+    columns: [name]
+    states:
+      empty: { message: No branch yet. }
   member-form:
     kind: form
     title: Register a member
@@ -500,3 +521,24 @@ menus:
     items:
       members: { title: Members, page: members-list }
 accessibility: { standard: WCAG 2.2, level: AA }
+theme:
+  tokens:
+    color:
+      $type: color
+      text: { $value: { colorSpace: srgb, components: [0.1, 0.1, 0.1], hex: "#1a1a1a" } }
+      background: { $value: { colorSpace: srgb, components: [1, 1, 1], hex: "#ffffff" } }
+      accent: { $value: { colorSpace: srgb, components: [0, 0.3, 0.6], hex: "#004d99" } }
+      link: { $value: "{color.accent}" }
+    space:
+      $type: dimension
+      small: { $value: { value: 8, unit: px } }
+  modes:
+    dark:
+      color.text: { colorSpace: srgb, components: [0.9, 0.9, 0.9], hex: "#e6e6e6" }
+      color.background: { colorSpace: srgb, components: [0.1, 0.1, 0.1], hex: "#1a1a1a" }
+      color.accent: { colorSpace: srgb, components: [0.4, 0.7, 1], hex: "#66b3ff" }
+    print:
+      color.background: { colorSpace: srgb, components: [1, 1, 1], hex: "#ffffff" }
+  pairs:
+    - { text: color.text, background: color.background, use: text }
+    - { text: color.link, background: color.background, use: text }

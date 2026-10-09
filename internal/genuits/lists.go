@@ -133,6 +133,9 @@ func (g *gen) listPage(pageName string, pg map[string]any, sess *session) (strin
 		g.problem("error", at+"/source", "%s reads %s at %s, whose path takes a parameter, and this version of %s reads a list whose path takes none", pageName, sourceID, srcPath, name)
 	}
 	listOf, ok := obj(src["listOf"])
+	if pg, named := g.pagedByServer(sourceID); named && !ok {
+		listOf, ok = map[string]any{"pageSize": map[string]any{"default": pg.pageSize, "maximum": pg.maximum}}, true
+	}
 	size := obj0(listOf["pageSize"])
 	defaultSize, maxSize := text(size["default"]), text(size["maximum"])
 	if defaultSize == "" {
@@ -141,7 +144,7 @@ func (g *gen) listPage(pageName string, pg map[string]any, sess *session) (strin
 	wireNames := g.listNames()
 	switch {
 	case !ok:
-		g.problem("error", at+"/source", "%s pages through its list, and %s has no listOf, so it does not page; give it listOf", pageName, sourceID)
+		g.problem("error", at+"/source", "%s pages through its list, and %s has no listOf, so it does not page; give it listOf, or name it under the ui target's settings.server.pages for a server route to page it", pageName, sourceID)
 	case defaultSize == "":
 		g.problem("error", at+"/source", "%s pages through its list, and the listOf of %s gives no page size; give pageSize a default", pageName, sourceID)
 	case wireNames["page"] == "" || wireNames["items"] == "":
@@ -312,10 +315,10 @@ func (g *gen) listPage(pageName string, pg map[string]any, sess *session) (strin
 	} else {
 		fmt.Fprintf(&page, "import { %s } from %q;\nimport { Guard } from %q;\n", component, importFrom, components)
 	}
-	page.WriteString("import { strings, texts } from \"@/strings\";\nimport { schema } from \"./page.schema\";\n\n")
-	fmt.Fprintf(&page, "export const metadata: Metadata = { title: strings[%q] };\n\n", pageName+".title")
+	page.WriteString("import { chosenLanguage } from \"@/language\";\nimport { stringOf, texts } from \"@/strings\";\nimport { schema } from \"./page.schema\";\n\n")
+	page.WriteString(metadataOf(pageName))
 	g.writeRoutes(&page, routes)
-	page.WriteString("export default function Page() {\n  const t = texts(schema);\n  return (\n")
+	page.WriteString("export default async function Page() {\n  const t = texts(schema, await chosenLanguage());\n  return (\n")
 	fmt.Fprintf(&page, "    <Guard permission={schema.%s} texts={t}>\n", g.name(part, "permission"))
 	fmt.Fprintf(&page, "      <%s schema={schema} texts={t} routes={routes} />\n", component)
 	page.WriteString("    </Guard>\n  );\n}\n")
@@ -454,7 +457,7 @@ func (g *gen) refusalTest(pageName, route, permission, permissionKey string) str
 func (g *gen) application(sess *session, drawn map[string]bool) (string, []string) {
 	var b strings.Builder
 	fmt.Fprintf(&b, "import type { Application } from %q;\n\n", g.name("application", "components"))
-	b.WriteString("/** How the screens read the person's session, where they sign in, and the menu. */\n")
+	b.WriteString("/**\n * Where the screens call the service, how they read the person's session,\n * where they sign in, and the menu.\n */\n")
 	sessionValue := value(raw("null"))
 	signIn := value(raw("null"))
 	if sess != nil {
@@ -513,7 +516,7 @@ func (g *gen) application(sess *session, drawn map[string]bool) (string, []strin
 		}
 		groups = append(groups, object([]member{{"title", str(g.say("menu."+m+".title", text(mp["title"])))}, {"items", array(entries)}}))
 	}
-	b.WriteString(statement("export const application: Application = ", object([]member{{"session", sessionValue}, {"signIn", signIn}, {"menu", array(groups)}}), ";"))
+	b.WriteString(statement("export const application: Application = ", object([]member{{"service", g.serviceValue()}, {"session", sessionValue}, {"signIn", signIn}, {"menu", array(groups)}}), ";"))
 	return b.String(), testsOf
 }
 

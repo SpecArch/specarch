@@ -2,16 +2,19 @@
 import type { Metadata } from "next";
 import { AcmeListScreen } from "@acme/screens/list";
 import { Guard } from "@/screens";
-import { strings, texts } from "@/strings";
+import { chosenLanguage } from "@/language";
+import { stringOf, texts } from "@/strings";
 import { schema } from "./page.schema";
 
-export const metadata: Metadata = { title: strings["loans-list.title"] };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: stringOf("loans-list.title", await chosenLanguage()) };
+}
 
 const routes = {
 };
 
-export default function Page() {
-  const t = texts(schema);
+export default async function Page() {
+  const t = texts(schema, await chosenLanguage());
   return (
     <Guard permission={schema.permission} texts={t}>
       <AcmeListScreen schema={schema} texts={t} routes={routes} />

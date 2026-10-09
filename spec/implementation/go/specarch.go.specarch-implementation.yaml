@@ -99,7 +99,7 @@ layout:
     description: The plug-in behind generate ui for an implementation file in TypeScript. Reads the request on standard input, answers the screens on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
   internal/genuits:
-    description: The task, list and form pages and the views for the web on Next.js and Carbon, with child rows, actions that run an operation after a confirmation and its reason, forms that start an approval and inboxes, each a schema of data and a thin page.tsx, a client file that hands on the hooks a project writes, the guard and the menu from one decision, the derived tests, the components that read the schemas, and the strings, drawn through the ui-components idiom's names.
+    description: The task, list and form pages and the views for the web on Next.js and Carbon, with child rows, actions that run an operation after a confirmation and its reason, forms that start an approval and inboxes, each a schema of data and a thin page.tsx, a client file that hands on the hooks a project writes, the guard and the menu from one decision, the derived tests, the components that read the schemas, the strings in every language the settings name with the check that each key has an entry, the server routes that forward the operations the pages call with the session's token, and the theme over Carbon's through the design-tokens idiom, drawn through the ui-components idiom's names.
   internal/gendxlib:
     description: The Go file of a service on dxlib, its tables, handlers, seeds and tasks, read from the design through the dxlib dialect's names and types.
   cmd/specarch-gen-tests-go:
@@ -278,6 +278,12 @@ testing:
     generated-tests:
       description: Generates the tests of the library lending example in Go, Swift and Dart and compiles them beside a harness that does nothing (go vet; swift build when a Swift 6 toolchain is on PATH; dart analyze, against a stand-in for each framework, when dart is), so a generated file that would not compile in a project fails here.
       run: go test ./internal/gentests
+      level: unit
+      implementationOnly: true
+      ci: true
+    generated-screens:
+      description: Unit tests of the Next.js and Carbon screens' generator, for what the conformance cases reach only through whole runs; every key of the screens' own texts a component names has a text, and a translation that misses a key, drops a placeholder or lacks its file fails while one that keeps a key no screen uses is warned of.
+      run: go test ./internal/genuits
       level: unit
       implementationOnly: true
       ci: true

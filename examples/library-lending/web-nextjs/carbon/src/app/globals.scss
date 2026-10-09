@@ -5,6 +5,9 @@
 );
 @use "@carbon/styles/scss/type";
 @use "@carbon/styles/scss/spacing";
+// The specification's theme over Carbon's, light and dark, after Carbon's
+// own so its tokens win.
+@use "../theme";
 
 // The menu is fixed at the start of the page, 16rem wide; the page sits
 // beside it, and under it on a compact screen, where Carbon hides it.
@@ -16,6 +19,11 @@
   .screens-main {
     margin-inline-start: 16rem;
   }
+}
+
+.screens-language {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .screens-task {

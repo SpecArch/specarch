@@ -40,6 +40,8 @@ export function visibleMenu(menu: readonly MenuGroup[], session: Session): MenuG
 
 /** How the screens read the session, the route that signs in, and the menu. */
 export interface Application {
+  /** Where the screens call the service: the application's server routes, or the service itself. */
+  readonly service: string;
   readonly session: { readonly path: string; readonly signedIn: string; readonly permissions: string } | null;
   readonly signIn: string | null;
   readonly menu: readonly MenuGroup[];

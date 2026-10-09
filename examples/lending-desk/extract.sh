@@ -13,7 +13,10 @@
 #   standard output: manual (extract documents), openapi, database,
 #   router, go, permissions, pages and workflows. The go reader reads the
 #   service's source, with the permission check its implementation file
-#   names, and merges with the route table its printer wrote.
+#   names, and merges with the route table its printer wrote. The pages
+#   reader reads the web folder's code through its code-facts dump,
+#   sources/facts/web.json, which tools/code-facts/dump-javascript.sh
+#   makes again once sources/web changes.
 # - spec: the merged specification, and merge.txt the merge's standard
 #   output.
 # - validate.txt and gaps.txt: what specarch validate and specarch gaps
@@ -66,7 +69,7 @@ $specarch extract go --implementation "$here/spec/implementation/go/lending-desk
 	--out trees/go "$sources/code" >go.txt
 read_surface permissions permissions "$sources/permissions/permissions.json"
 read_surface openapi openapi "$sources/openapi/openapi.yaml"
-read_surface pages pages "$sources/web/app"
+$specarch extract pages --facts "$sources/facts/web.json" --out trees/pages "$sources/web/app" >pages.txt
 read_surface workflows workflows "$sources/workflows/write-off.bpmn"
 
 # The documents first, the code after, so the merge's questions come in

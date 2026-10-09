@@ -1,0 +1,34 @@
+{
+    "codeFacts": 1,
+    "language": "javascript",
+    "parser": {"name": "TypeScript", "version": "6.0.3"},
+    "path": "examples/lending-desk/sources/web",
+    "commit": "f5efe5eea09aa92805437c7b3fa2e4f91711eda0",
+    "files": [
+        {"file": "examples/lending-desk/sources/web/app/(desk)/loans/new/page.tsx", "syntaxErrors": 0},
+        {"file": "examples/lending-desk/sources/web/app/(desk)/members/[cardNumber]/loans/page.schema.ts", "syntaxErrors": 0},
+        {"file": "examples/lending-desk/sources/web/app/(desk)/members/[cardNumber]/loans/page.tsx", "syntaxErrors": 0},
+        {"file": "examples/lending-desk/sources/web/app/layout.tsx", "syntaxErrors": 0},
+        {"file": "examples/lending-desk/sources/web/app/page.tsx", "syntaxErrors": 0},
+        {"file": "examples/lending-desk/sources/web/middleware.ts", "syntaxErrors": 0}
+    ],
+    "facts": [
+        {"kind":"import","file":"examples/lending-desk/sources/web/app/(desk)/loans/new/page.tsx","line":1,"column":1,"module":"@acme/screens","names":[{"imported":"ScreenForm","local":"ScreenForm"}]},
+        {"kind":"function","file":"examples/lending-desk/sources/web/app/(desk)/loans/new/page.tsx","line":3,"column":1,"name":"LendBookPage","parameters":[],"exported":"default"},
+        {"kind":"import","file":"examples/lending-desk/sources/web/app/(desk)/members/[cardNumber]/loans/page.schema.ts","line":2,"column":1,"module":"@acme/screens","names":[{"imported":"PageSchema","local":"PageSchema"}],"typeOnly":true},
+        {"kind":"variable","file":"examples/lending-desk/sources/web/app/(desk)/members/[cardNumber]/loans/page.schema.ts","line":4,"column":14,"name":"schema","declaration":"const","value":{"object":[{"key":"kind","line":5,"value":{"string":"list"}},{"key":"title","line":6,"value":{"string":"Loans of a member"}},{"key":"entity","line":7,"value":{"string":"Loans"}},{"key":"permission","line":8,"value":{"string":"loans.read"}},{"key":"source","line":9,"value":{"string":"listMemberLoans"}},{"key":"columns","line":10,"value":{"array":[{"string":"barcode"},{"string":"loanedOn"},{"string":"dueOn"},{"string":"returnedOn"}]}},{"key":"compactColumns","line":11,"value":{"array":[{"string":"barcode"},{"string":"dueOn"}]}}]},"exported":"named"},
+        {"kind":"import","file":"examples/lending-desk/sources/web/app/(desk)/members/[cardNumber]/loans/page.tsx","line":1,"column":1,"module":"@acme/screens","names":[{"imported":"ScreenList","local":"ScreenList"}]},
+        {"kind":"import","file":"examples/lending-desk/sources/web/app/(desk)/members/[cardNumber]/loans/page.tsx","line":2,"column":1,"module":"./page.schema","names":[{"imported":"schema","local":"schema"}],"resolved":"examples/lending-desk/sources/web/app/(desk)/members/[cardNumber]/loans/page.schema.ts"},
+        {"kind":"function","file":"examples/lending-desk/sources/web/app/(desk)/members/[cardNumber]/loans/page.tsx","line":4,"column":1,"name":"MemberLoansPage","parameters":[{"pattern":"{ params }","type":{"object":[{"name":"params","line":4,"column":61,"type":{"reference":"Promise","library":true,"arguments":[{"object":[{"name":"cardNumber","line":4,"column":79,"type":{"keyword":"string"}}]}]}}]},"typeFrom":"annotation"}],"exported":"default"},
+        {"kind":"import","file":"examples/lending-desk/sources/web/app/layout.tsx","line":1,"column":1,"module":"react","names":[{"imported":"ReactNode","local":"ReactNode"}],"typeOnly":true},
+        {"kind":"function","file":"examples/lending-desk/sources/web/app/layout.tsx","line":3,"column":1,"name":"RootLayout","parameters":[{"pattern":"{ children }","type":{"object":[{"name":"children","line":3,"column":52,"type":{"reference":"ReactNode","import":{"module":"react","imported":"ReactNode"}}}]},"typeFrom":"annotation"}],"exported":"default"},
+        {"kind":"import","file":"examples/lending-desk/sources/web/app/page.tsx","line":1,"column":1,"module":"next/link","names":[{"imported":"default","local":"Link"}]},
+        {"kind":"function","file":"examples/lending-desk/sources/web/app/page.tsx","line":3,"column":1,"name":"DeskHome","parameters":[],"exported":"default"},
+        {"kind":"jsx","file":"examples/lending-desk/sources/web/app/page.tsx","line":6,"column":7,"tag":{"intrinsic":"h1"},"attributes":[],"children":[{"text":"Lending desk"}],"within":{"file":"examples/lending-desk/sources/web/app/page.tsx","line":3,"column":1}},
+        {"kind":"import","file":"examples/lending-desk/sources/web/middleware.ts","line":1,"column":1,"module":"next/server","names":[{"imported":"NextResponse","local":"NextResponse"},{"imported":"NextRequest","local":"NextRequest"}]},
+        {"kind":"function","file":"examples/lending-desk/sources/web/middleware.ts","line":5,"column":1,"name":"middleware","parameters":[{"name":"request","type":{"reference":"NextRequest","import":{"module":"next/server","imported":"NextRequest"}},"typeFrom":"annotation"}],"exported":"named"},
+        {"kind":"call","file":"examples/lending-desk/sources/web/middleware.ts","line":7,"column":12,"callee":{"member":{"object":{"name":"NextResponse","import":{"module":"next/server","imported":"NextResponse"}},"name":"redirect"}},"arguments":[{"new":{"callee":{"name":"URL","library":true},"arguments":[{"string":"/sign-in"},{"member":{"object":{"name":"request","declaration":{"file":"examples/lending-desk/sources/web/middleware.ts","line":5,"column":28},"parameter":{"index":0,"function":{"file":"examples/lending-desk/sources/web/middleware.ts","line":5,"column":1}}},"name":"url"}}]}}],"within":{"file":"examples/lending-desk/sources/web/middleware.ts","line":5,"column":1},"inCondition":true},
+        {"kind":"call","file":"examples/lending-desk/sources/web/middleware.ts","line":9,"column":10,"callee":{"member":{"object":{"name":"NextResponse","import":{"module":"next/server","imported":"NextResponse"}},"name":"next"}},"arguments":[],"within":{"file":"examples/lending-desk/sources/web/middleware.ts","line":5,"column":1}},
+        {"kind":"variable","file":"examples/lending-desk/sources/web/middleware.ts","line":12,"column":14,"name":"config","declaration":"const","value":{"object":[{"key":"matcher","line":12,"value":{"array":[{"string":"/loans/:path*"},{"string":"/members/:path*"}]}}]},"exported":"named"}
+    ]
+}

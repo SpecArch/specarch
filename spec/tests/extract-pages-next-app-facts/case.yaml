@@ -1,0 +1,19 @@
+arguments: [extract, pages, --facts, repo/facts.json, --implementation, implementation/lending.javascript.specarch-implementation.yaml, --out, spec, repo/site/app]
+repository:
+  folder: repo
+  commits:
+    - [site]
+    - [facts.json]
+exitStatus: 0
+standardOutput: |
+  commit afbd90b6d33a0306821d89a9566d5463da28fd33: the last change to site/app, site/middleware.ts
+  facts: the code-facts dump facts.json of site, made at commit afbd90b6d33a0306821d89a9566d5463da28fd33, gives what the router's files say
+  checks: implementation/lending.javascript.specarch-implementation.yaml names the permission checks lib/auth.requirePermission and lib/auth.withPermission
+  router: the App Router of Next.js, since the folder is named neither pages nor server
+  counted 3 page files, 3 route files and 1 schema file: the tracked files under site/app named page.tsx, page.ts, page.jsx or page.js, the route files named route.ts, route.js, route.tsx or route.jsx, and the files named page.schema.ts beside the pages, each once
+  actions: counted 2 server actions with 'use server', 2 of them given to a form's action in a file read
+  middleware: site/middleware.ts runs before the routes "/loans/:path*" match, and calls a check of the permission loans.read at site/middleware.ts:7
+  validators: counted 1 validation schema: every module-level variable that holds an object schema or an enum of zod, yup or joi
+  wrote 3 pages, 6 operations, 1 entity, 2 permissions and 23 questions: one page per file or folder the router serves a page from whose route the meta-model holds, 1 schema read, one operation per route file whose name gives a method the meta-model holds, one entity and one permission per name a schema gives, one question per thing the files' places and the schemas do not say, and one per thing the meta-model cannot hold
+  not held: site/app/api/loans/route.ts:19: site/app/api/loans/route.ts serves HEAD /api/loans, a method the meta-model holds no operation for, which holds GET, POST, PUT, PATCH and DELETE; left out; could question Q-22
+  not held: site/app/loans/[loanId]/page.tsx:1: generateStaticParams gives loanId the values "l-1" and "l-2", and a page holds no values of its route's parameters; could question Q-23

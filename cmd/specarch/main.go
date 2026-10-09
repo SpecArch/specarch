@@ -34,12 +34,13 @@ const usage = `usage:
                                             record that the documents were read and the specification is approved
   specarch generate <target> [--out <folder>] [--check] [--unapproved] <folder>...
                                             write code or data from an approved specification
-  specarch extract <source> [--source-key <key>] [--implementation <file>] --out <folder> <path>...
+  specarch extract <source> [--source-key <key>] [--implementation <file>] [--facts <dump>] --out <folder> <path>...
                                             write a specification from one surface of existing code or
                                             documents; the sources are outline, database, router, documents,
                                             openapi, permissions, pages, workflows, go, swift and javascript;
-                                            go, swift and javascript read the permission checks the
-                                            implementation file names
+                                            go, swift, javascript and pages read the permission checks
+                                            the implementation file names, and pages reads Next.js files'
+                                            code through the --facts dump
   specarch merge --out <folder> <tree>...  merge the trees extract wrote into one specification
   specarch diff <old folder> <new folder>   list what changed between two versions and check the release
   specarch derive <folder>...               write a draft test for every derived case no test covers

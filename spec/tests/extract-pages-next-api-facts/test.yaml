@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a Next.js Pages Router folder in plain JavaScript read with the code-facts dump of the folder that holds it and an implementation file naming two checks: an API route whose default export switches on req.method with a literal case for GET and POST, each calling the check with its own permission, and a default branch; one whose default export is the handler a check wraps, comparing req.method with DELETE; one that does not tell methods apart; and proxy.js whose matcher is a regular expression and whose function calls no check"
+when: "extract pages is run on the pages folder with --facts and --implementation"
+then: "it writes one operation per method an API route's handler compares req.method with, two citations each, with the permission the check its branch calls or the wrapping check names; asks a must question on the other methods each handler that tells methods apart may serve, through its switch's default branch or what follows its comparison; asks, as for any route file, the methods of the route that does not tell them apart, citing its handler; asks a must question on every page and operation proxy.js may cover, since its matcher is a regular expression the reader does not read; and exits 0"
+verifies: [SA-44]

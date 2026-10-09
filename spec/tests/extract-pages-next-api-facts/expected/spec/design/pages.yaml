@@ -1,0 +1,21 @@
+permissions:
+  members.admin:
+    origin: stated
+    cites:
+      - {source: code, clause: 'web/pages/api/members/[memberId].js:10', says: 'DELETE /api/members/{memberId} checks members.admin.'}
+  members.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'web/pages/api/members/index.js:3', says: GET /api/members checks members.read.}
+  members.write:
+    origin: stated
+    cites:
+      - {source: code, clause: 'web/pages/api/members/index.js:3', says: POST /api/members checks members.write.}
+pages:
+  # specarch-problem: warning: test_golden_missing: page root has no golden scenario; add one under tests, for example root-succeeds: { page: root, scenario: golden, given: "any caller", when: "the page root is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/root]
+  # specarch-problem: warning: test_red_missing: page root has no red scenario; add one under tests, for example root-refused: { page: root, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/root]
+  root:
+    route: /
+    origin: stated
+    cites:
+      - {source: code, clause: web/pages/index.jsx, says: 'The file index.jsx is under web/pages, so the router serves a page at /.'}

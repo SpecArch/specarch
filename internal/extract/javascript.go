@@ -80,21 +80,23 @@ type jsFact struct {
 	Resolved string   `json:"resolved"`
 
 	// type, function and variable
-	Declaration string        `json:"declaration"`
-	Name        string        `json:"name"`
-	Exported    string        `json:"exported"`
-	Extends     []string      `json:"extends"`
-	Members     []jsMember    `json:"members"`
-	Decorators  []jsDecorator `json:"decorators"`
-	Type        *jsType       `json:"type"`
-	TypeFrom    string        `json:"typeFrom"`
-	Values      []jsEnumValue `json:"values"`
-	Comment     string        `json:"comment"`
-	Parameters  []jsParam     `json:"parameters"`
-	Returns     *jsType       `json:"returns"`
-	Jsdoc       string        `json:"jsdoc"`
-	Pattern     string        `json:"pattern"`
-	Value       *jsValue      `json:"value"`
+	Declaration  string        `json:"declaration"`
+	Name         string        `json:"name"`
+	Exported     string        `json:"exported"`
+	Extends      []string      `json:"extends"`
+	Members      []jsMember    `json:"members"`
+	Decorators   []jsDecorator `json:"decorators"`
+	Type         *jsType       `json:"type"`
+	TypeFrom     string        `json:"typeFrom"`
+	Values       []jsEnumValue `json:"values"`
+	Comment      string        `json:"comment"`
+	Parameters   []jsParam     `json:"parameters"`
+	Returns      *jsType       `json:"returns"`
+	Jsdoc        string        `json:"jsdoc"`
+	Directives   []string      `json:"directives"`
+	ReturnValues []jsValue     `json:"returnValues"`
+	Pattern      string        `json:"pattern"`
+	Value        *jsValue      `json:"value"`
 
 	// call
 	Callee        *jsValue  `json:"callee"`
@@ -103,11 +105,13 @@ type jsFact struct {
 	AssignedTo    string    `json:"assignedTo"`
 
 	// access
-	Chain     []string    `json:"chain"`
-	Parameter *jsParamRef `json:"parameter"`
-	Default   *jsValue    `json:"default"`
-	Compared  *jsValue    `json:"compared"`
-	WrappedBy string      `json:"wrappedBy"`
+	Chain      []string    `json:"chain"`
+	Parameter  *jsParamRef `json:"parameter"`
+	Default    *jsValue    `json:"default"`
+	Compared   *jsValue    `json:"compared"`
+	WrappedBy  string      `json:"wrappedBy"`
+	Cases      []jsValue   `json:"cases"`
+	HasDefault bool        `json:"hasDefault"`
 
 	// jsx
 	Tag        *jsValue `json:"tag"`
@@ -120,9 +124,17 @@ type jsFact struct {
 	What string `json:"what"`
 
 	// where it is
-	Within      *jsPos `json:"within"`
-	InLoop      bool   `json:"inLoop"`
-	InCondition bool   `json:"inCondition"`
+	Within      *jsPos    `json:"within"`
+	InLoop      bool      `json:"inLoop"`
+	InCondition bool      `json:"inCondition"`
+	Branch      *jsBranch `json:"branch"`
+}
+
+// jsBranch is the branch of a switch's case, or of an if comparing a
+// value with ===, that a fact is in: what is compared, and with which value.
+type jsBranch struct {
+	On    string  `json:"on"`
+	Value jsValue `json:"value"`
 }
 
 type jsName struct {
@@ -366,20 +378,23 @@ type jsReader struct {
 	order    []string
 	dataRead map[string]string
 
-	functions map[string]*jsFact   // by position
-	variables map[string]*jsFact   // by position
-	types     map[string]*jsFact   // by position
-	exports   map[string]*jsFact   // the default export of each file
-	calls     []*jsFact            // in the order of the files
-	accesses  []*jsFact            // reads of the environment or a request
-	elements  []*jsFact            // JSX elements
-	dynamics  []*jsFact            // computed requires, imports and exports
-	configs   []*jsFact            // tsconfig.json and jsconfig.json
-	byWithin  map[string][]*jsFact // the calls, reads, variables and elements of each function, "" for a module's own code
+	functions  map[string]*jsFact   // by position
+	variables  map[string]*jsFact   // by position
+	types      map[string]*jsFact   // by position
+	exports    map[string]*jsFact   // the default export of each file
+	named      []*jsFact            // every export fact: export default and export { a as b }
+	directives map[string][]string  // the directives of each file's prologue, such as 'use server'
+	calls      []*jsFact            // in the order of the files
+	accesses   []*jsFact            // reads of the environment or a request
+	elements   []*jsFact            // JSX elements
+	dynamics   []*jsFact            // computed requires, imports and exports
+	configs    []*jsFact            // tsconfig.json and jsconfig.json
+	byWithin   map[string][]*jsFact // the calls, reads, variables and elements of each function, "" for a module's own code
 
 	questions *yaml.Node
 	deployQs  *yaml.Node
 	nextID    int
+	counter   *int // the question numbers: nextID, or the pages reader's when it reads a dump
 	notHeld   []notHeld
 
 	entities, schemas, enums *yaml.Node
@@ -404,34 +419,11 @@ type jsReader struct {
 // environment the code reads, and message catalogues, each citing its
 // file and line.
 func JavaScript(dumpPath, out, key, implementation string) (*Result, error) {
-	data, err := os.ReadFile(dumpPath)
+	js, dumpName, err := openJS(dumpPath, key)
 	if err != nil {
 		return nil, err
 	}
-	var d jsDump
-	dec := json.NewDecoder(bytes.NewReader(data))
-	dec.DisallowUnknownFields()
-	if err := dec.Decode(&d); err != nil {
-		return nil, refuse("%s is not a code-facts dump: %v", dumpPath, err)
-	}
-	switch {
-	case d.CodeFacts != 1:
-		return nil, refuse("%s is not a code-facts dump in the format tools/code-facts/dump-javascript.sh writes: its codeFacts is %d, not 1", dumpPath, d.CodeFacts)
-	case d.Language != "javascript":
-		return nil, refuse("%s is a code-facts dump of %q, and extract javascript reads one of JavaScript and TypeScript", dumpPath, d.Language)
-	case d.Parser.Name != "TypeScript" || d.Parser.Version != typeScriptVersion:
-		return nil, refuse("%s was made by %s %s, and this specarch reads dumps that the TypeScript compiler %s made; run tools/code-facts/dump-javascript.sh of this release again and commit the dump", dumpPath, d.Parser.Name, d.Parser.Version, typeScriptVersion)
-	}
-	r, dumpName, err := openDump(dumpPath, d.Path, d.Commit, "tools/code-facts/dump-javascript.sh")
-	if err != nil {
-		return nil, err
-	}
-	js := &jsReader{r: r, key: key, res: &Result{Tree: newTree()}, dump: &d, questions: &yaml.Node{Kind: yaml.MappingNode},
-		files: map[string]*jsFile{}, dataRead: map[string]string{}, functions: map[string]*jsFact{}, variables: map[string]*jsFact{},
-		types: map[string]*jsFact{}, exports: map[string]*jsFact{}, byWithin: map[string][]*jsFact{}, counts: map[string]int{}, schemaFrom: map[string]bool{}, queued: map[string]bool{}, validators: map[string]string{}}
-	if err := js.index(dumpName); err != nil {
-		return nil, err
-	}
+	r, d := js.r, js.dump
 	res := js.res
 	res.say("commit %s: the last change to %s, as the code-facts dump %s names it", r.Commit, d.Path, dumpName)
 	if err := js.loadChecks(implementation); err != nil {
@@ -496,6 +488,42 @@ func JavaScript(dumpPath, out, key, implementation string) (*Result, error) {
 	return js.write(out)
 }
 
+// openJS reads and indexes a code-facts dump of JavaScript and
+// TypeScript, refusing one another compiler version made, one whose files
+// are not the folder's and a stale one.
+func openJS(dumpPath, key string) (*jsReader, string, error) {
+	data, err := os.ReadFile(dumpPath)
+	if err != nil {
+		return nil, "", err
+	}
+	var d jsDump
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&d); err != nil {
+		return nil, "", refuse("%s is not a code-facts dump: %v", dumpPath, err)
+	}
+	switch {
+	case d.CodeFacts != 1:
+		return nil, "", refuse("%s is not a code-facts dump in the format tools/code-facts/dump-javascript.sh writes: its codeFacts is %d, not 1", dumpPath, d.CodeFacts)
+	case d.Language != "javascript":
+		return nil, "", refuse("%s is a code-facts dump of %q, and extract reads one of JavaScript and TypeScript here", dumpPath, d.Language)
+	case d.Parser.Name != "TypeScript" || d.Parser.Version != typeScriptVersion:
+		return nil, "", refuse("%s was made by %s %s, and this specarch reads dumps that the TypeScript compiler %s made; run tools/code-facts/dump-javascript.sh of this release again and commit the dump", dumpPath, d.Parser.Name, d.Parser.Version, typeScriptVersion)
+	}
+	r, dumpName, err := openDump(dumpPath, d.Path, d.Commit, "tools/code-facts/dump-javascript.sh")
+	if err != nil {
+		return nil, "", err
+	}
+	js := &jsReader{r: r, key: key, res: &Result{Tree: newTree()}, dump: &d, questions: &yaml.Node{Kind: yaml.MappingNode},
+		files: map[string]*jsFile{}, dataRead: map[string]string{}, functions: map[string]*jsFact{}, variables: map[string]*jsFact{},
+		types: map[string]*jsFact{}, exports: map[string]*jsFact{}, directives: map[string][]string{}, byWithin: map[string][]*jsFact{}, counts: map[string]int{}, schemaFrom: map[string]bool{}, queued: map[string]bool{}, validators: map[string]string{}}
+	js.counter = &js.nextID
+	if err := js.index(dumpName); err != nil {
+		return nil, "", err
+	}
+	return js, dumpName, nil
+}
+
 // jsLibrary is the library a module belongs to among those the reader
 // knows, or "".
 func jsLibrary(module string) string {
@@ -557,7 +585,12 @@ func (js *jsReader) index(dumpName string) error {
 			js.elements = append(js.elements, f)
 			js.byWithin[within] = append(js.byWithin[within], f)
 		case "export":
-			js.exports[f.File] = f
+			if f.Name == "default" {
+				js.exports[f.File] = f
+			}
+			js.named = append(js.named, f)
+		case "directive":
+			js.directives[f.File] = append(js.directives[f.File], f.Name)
 		case "dynamic":
 			js.dynamics = append(js.dynamics, f)
 		default:
@@ -767,8 +800,8 @@ func (js *jsReader) checkOf(callee *jsValue) *permissionCheck {
 
 func (js *jsReader) question(priority, text string, blocks []string, why string, cites ...*yaml.Node) string {
 	into := js.questionsFor(blocks)
-	js.nextID++
-	id := fmt.Sprintf("Q-%d", js.nextID)
+	*js.counter++
+	id := fmt.Sprintf("Q-%d", *js.counter)
 	q := mapping("question", text, "kind", "decision", "priority", priority, "blocks", blocks, "decidedBy", owner, "why", why)
 	if len(cites) > 0 {
 		set(q, "cites", cites)

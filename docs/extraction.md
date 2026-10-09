@@ -484,9 +484,20 @@ changes `extract.yaml` first.
     questions only one asks, which are the ones types answer. A call to
     the system's own path, a project's client wrapper, a component
     library's inputs and ORM models wait for later steps.
-19. Next.js content on the JavaScript reader: route handlers' and API
-    routes' methods, server actions, `middleware.ts`'s matcher and checks,
-    `generateStaticParams`, and `page.schema.ts` with imported constants.
+19. Built. Next.js content on the JavaScript reader (ADR-090): `extract
+    pages --facts` reads the App Router's and the Pages Router's files
+    through the dump of the folder that holds them, with the checks
+    `--implementation` names. A route file's operations are the methods
+    its code serves, exported by name or compared with `req.method`,
+    each with the permission a check wrapping it, called in its branch or
+    called in middleware gives, and the body a validation schema checks;
+    a server action a page's form submits to is an operation at the
+    page's route with a must question on that path; `middleware.ts`'s
+    literal matcher limits its question to the routes it may cover;
+    `generateStaticParams` with literal values is named in the question
+    on a route's parameters; and `page.schema.ts` is read as the compiler
+    reads it, its consts resolved. The lending desk's web folder is read
+    through its dump.
 20. Vue and Nuxt: `@vue/compiler-sfc` in the JavaScript reader, with its
     licence and SBOM scan; vue-router and Nuxt pages, layouts, route
     middleware and `definePageMeta`, Nitro handlers, `v-model` fields and

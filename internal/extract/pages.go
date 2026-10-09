@@ -52,13 +52,15 @@ type page struct {
 	sections            [][2]any            // title, fields
 	named               map[string]string   // source and submit the schema names
 	read                []string            // the keys the schema gave, in the order written
+	cites               []*yaml.Node        // what the code gives besides its files' places, such as a middleware's check
+	permissionAt        string              // where the code checks the permission, when a middleware gives it
 }
 
 // Pages reads a file-system router's root folder into one page per file or
 // folder it serves a page from, with the content of each page that has a
 // schema file from it, and one operation per route file whose name gives
 // its method. The router is told by the folder's name (ADR-084).
-func Pages(root, out, key string) (*Result, error) {
+func Pages(root, out, key, facts, implementation string) (*Result, error) {
 	info, err := os.Stat(root)
 	if err != nil {
 		return nil, err
@@ -86,6 +88,11 @@ func Pages(root, out, key string) (*Result, error) {
 		rd.r = r
 	}
 	commitLine(rd.res, r)
+	if facts != "" {
+		if err := rd.loadFacts(facts, implementation); err != nil {
+			return nil, err
+		}
+	}
 	if err := rd.read(); err != nil {
 		return nil, err
 	}
@@ -96,7 +103,12 @@ func Pages(root, out, key string) (*Result, error) {
 			clauses = append(clauses, flow(mapping("clause", pg.schema, "title", "The schema of the page at "+pg.route)))
 		}
 	}
+	seenRoute := map[string]bool{}
 	for _, rf := range rd.routeFiles {
+		if rf.action != nil || seenRoute[rf.file] {
+			continue
+		}
+		seenRoute[rf.file] = true
 		clauses = append(clauses, flow(mapping("clause", rf.file, "title", "The route file of "+rf.path)))
 	}
 	for _, f := range rd.middleware {
@@ -104,6 +116,17 @@ func Pages(root, out, key string) (*Result, error) {
 	}
 	if rd.packageFile != "" {
 		clauses = append(clauses, flow(mapping("clause", rd.packageFile, "title", "The package that names the framework")))
+	}
+	if rd.js != nil {
+		listed := map[string]bool{}
+		for _, c := range clauses {
+			listed[source0(c)] = true
+		}
+		for _, f := range rd.js.order {
+			if rd.js.files[f].cited && !listed[f] {
+				clauses = append(clauses, flow(mapping("clause", f, "title", "Source the router's files import, read through the code-facts dump")))
+			}
+		}
 	}
 	sort.Slice(clauses, func(i, j int) bool {
 		return source0(clauses[i]) < source0(clauses[j])
@@ -126,6 +149,21 @@ func Pages(root, out, key string) (*Result, error) {
 	}
 	if rd.paths != nil {
 		res.Tree.put("design/paths.yaml", mapping("paths", rd.paths))
+	}
+	if rd.js != nil {
+		models := mapping()
+		if rd.js.enums != nil {
+			set(models, "enums", rd.js.enums)
+		}
+		if rd.js.schemas != nil {
+			set(models, "schemas", rd.js.schemas)
+		}
+		if len(models.Content) > 0 {
+			res.Tree.put("design/models.yaml", models)
+		}
+		if len(rd.pages) == 0 && rd.permissions != nil {
+			res.Tree.put("design/permissions.yaml", mapping("permissions", rd.permissions))
+		}
 	}
 	res.Tree.put("requirements/stakeholders.yaml", mapping("stakeholders", ownerStakeholder()))
 	res.Tree.put("design/questions.yaml", mapping("questions", rd.questions))
@@ -161,6 +199,11 @@ type pageReader struct {
 	routeFiles  []*routeFile // the route files, in the order of their paths
 	paths       *yaml.Node   // the operations route files give, or nil
 	generated   []string     // a line per file read that says it is generated
+
+	js *jsReader         // the code-facts dump of the folder that holds the router, or nil
+	mw []*nextMiddleware // what each middleware file's code says, when the dump holds it
+
+	opPermissions map[string]string // the permission each operation was written with, by its pointer
 }
 
 // pageNotHeld is a thing not held, about a page whose name is known only
@@ -244,6 +287,8 @@ func (rd *pageReader) read() error {
 	var cands []pageCandidate
 	schemas := map[string]string{} // folder below the root -> schema file
 	rd.res.say("router: %s, since %s", rd.routerName(), rd.routerWhy)
+	rd.questions = &yaml.Node{Kind: yaml.MappingNode}
+	rd.adopt()
 	switch rd.router {
 	case routerApp:
 		cands, schemas = rd.collectApp()
@@ -277,6 +322,10 @@ func (rd *pageReader) read() error {
 		rd.pages = append(rd.pages, pg)
 	}
 	rd.settleRouteFiles(byRoute)
+	if rd.js != nil {
+		rd.expandRouteFiles(byRoute)
+		rd.readMiddleware()
+	}
 	schemaFolders := make([]string, 0, len(schemas))
 	for folder := range schemas {
 		schemaFolders = append(schemaFolders, folder)
@@ -300,10 +349,24 @@ func (rd *pageReader) read() error {
 	}
 	rd.res.Lines = append(rd.res.Lines, rd.generated...)
 	rd.names()
+	for _, pg := range rd.pages {
+		if pg.permission != "" || rd.js == nil {
+			continue
+		}
+		if p, mw := rd.middlewarePermission(pg.route); p != "" {
+			pg.permission, pg.permissionAt = p, mw.at
+			pg.cites = append(pg.cites, rd.js.at(mw.at, fmt.Sprintf("The middleware %s checks %s before the page at %s.", mw.file, p, pg.route)))
+		}
+	}
 	rd.write()
+	if rd.js != nil {
+		rd.js.readValidators()
+	}
+	rd.readStaticParams()
 	rd.writeRoutes()
 	rd.askMiddleware()
 	rd.askRouter()
+	rd.takeHeld()
 	permissions := 0
 	if rd.permissions != nil {
 		permissions = len(rd.permissions.Content) / 2
@@ -464,8 +527,15 @@ func (rd *pageReader) readSchema(pg *page) error {
 	if err != nil {
 		return err
 	}
-	o, err := parseSchemaFile(string(data))
-	if err != nil {
+	var o *object
+	if rd.js != nil && rd.js.files[pg.schema] != nil {
+		var why string
+		if o, why = rd.schemaFromFacts(pg); o == nil {
+			rd.pageGap(pg, "kind", true, pg.schema, "%s: the compiler reads no exported object of literals and consts in it, since %s; its content is asked for instead", pg.schema, why)
+			return nil
+		}
+		rd.js.cite(pg.schema)
+	} else if o, err = parseSchemaFile(string(data)); err != nil {
 		rd.pageGap(pg, "kind", true, pg.schema, "%s: outside the subset of TypeScript that is also JSON5 at %v; its content is asked for instead", pg.schema, err)
 		return nil
 	}
@@ -661,7 +731,9 @@ func (pg *page) shown() []string {
 // name, and the questions, in the order of the pages' names.
 func (rd *pageReader) write() {
 	rd.pageNodes = &yaml.Node{Kind: yaml.MappingNode}
-	rd.questions = &yaml.Node{Kind: yaml.MappingNode}
+	if rd.questions == nil {
+		rd.questions = &yaml.Node{Kind: yaml.MappingNode}
+	}
 	entityFields := map[string][]string{}
 	entityCites := map[string][]*page{}
 	permissionCites := map[string][]*page{}
@@ -699,6 +771,7 @@ func (rd *pageReader) write() {
 			}
 			cites = append(cites, citation(rd.key, pg.schema, says))
 		}
+		cites = append(cites, pg.cites...)
 		set(n, "cites", cites)
 		set(rd.pageNodes, pg.name, n)
 		if pg.entity != "" {
@@ -838,7 +911,11 @@ func (rd *pageReader) writePermissions(cites map[string][]*page) {
 			routes = append(routes, pg.route)
 		}
 		first := cites[n][0]
-		cite := []*yaml.Node{citation(rd.key, first.schema, fmt.Sprintf("The page at %s %s %s.", joinAnd(routes), checkOrChecks(len(routes)), n))}
+		clause := first.schema
+		if first.permissionAt != "" {
+			clause = first.permissionAt
+		}
+		cite := []*yaml.Node{citation(rd.key, clause, fmt.Sprintf("The page at %s %s %s.", joinAnd(routes), checkOrChecks(len(routes)), n))}
 		if n == "public" {
 			// public is the meta-model's own word for open to everyone, so
 			// what it allows is known and no role grants it.

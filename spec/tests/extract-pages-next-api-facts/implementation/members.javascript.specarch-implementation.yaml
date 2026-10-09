@@ -1,0 +1,23 @@
+specarchImplementation: "0.1"
+
+info:
+  title: The members site in JavaScript
+  version: 0.1.0
+
+implements:
+  file: ../specarch.yaml
+  version: 0.1.0
+
+stack:
+  language: { name: JavaScript, version: ES2022 }
+
+bindings:
+  http:
+    framework: Next.js
+    permissionChecks:
+      - package: src/auth
+        function: requirePermission
+        permissionArgument: 1
+      - package: src/auth
+        function: withPermission
+        permissionArgument: 1

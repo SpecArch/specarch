@@ -1,0 +1,40 @@
+{
+    "codeFacts": 1,
+    "language": "javascript",
+    "parser": {"name": "TypeScript", "version": "6.0.3"},
+    "path": "web",
+    "commit": "ca6b70e0078ed565818bb130017a6f3a9ce7a8da",
+    "files": [
+        {"file": "web/pages/api/members/[memberId].js", "syntaxErrors": 0},
+        {"file": "web/pages/api/members/index.js", "syntaxErrors": 0},
+        {"file": "web/pages/api/ping.js", "syntaxErrors": 0},
+        {"file": "web/pages/index.jsx", "syntaxErrors": 0},
+        {"file": "web/proxy.js", "syntaxErrors": 0},
+        {"file": "web/src/auth.js", "syntaxErrors": 0}
+    ],
+    "facts": [
+        {"kind":"import","file":"web/pages/api/members/[memberId].js","line":1,"column":1,"module":"../../../src/auth","names":[{"imported":"withPermission","local":"withPermission"}],"resolved":"web/src/auth.js"},
+        {"kind":"function","file":"web/pages/api/members/[memberId].js","line":3,"column":1,"name":"member","parameters":[{"name":"req"},{"name":"res"}]},
+        {"kind":"access","file":"web/pages/api/members/[memberId].js","line":4,"column":7,"chain":["req","method"],"parameter":{"index":0,"function":{"file":"web/pages/api/members/[memberId].js","line":3,"column":1}},"compared":{"string":"DELETE"},"within":{"file":"web/pages/api/members/[memberId].js","line":3,"column":1}},
+        {"kind":"access","file":"web/pages/api/members/[memberId].js","line":7,"column":25,"chain":["req","query","memberId"],"parameter":{"index":0,"function":{"file":"web/pages/api/members/[memberId].js","line":3,"column":1}},"within":{"file":"web/pages/api/members/[memberId].js","line":3,"column":1}},
+        {"kind":"export","file":"web/pages/api/members/[memberId].js","line":10,"column":1,"name":"default","value":{"call":{"callee":{"name":"withPermission","import":{"module":"../../../src/auth","imported":"withPermission"},"declaration":{"file":"web/src/auth.js","line":5,"column":1}},"arguments":[{"string":"members.admin"},{"name":"member","declaration":{"file":"web/pages/api/members/[memberId].js","line":3,"column":1}}]}}},
+        {"kind":"call","file":"web/pages/api/members/[memberId].js","line":10,"column":16,"callee":{"name":"withPermission","import":{"module":"../../../src/auth","imported":"withPermission"},"declaration":{"file":"web/src/auth.js","line":5,"column":1}},"arguments":[{"string":"members.admin"},{"name":"member","declaration":{"file":"web/pages/api/members/[memberId].js","line":3,"column":1}}]},
+        {"kind":"import","file":"web/pages/api/members/index.js","line":1,"column":1,"module":"../../../src/auth","names":[{"imported":"requirePermission","local":"requirePermission"}],"resolved":"web/src/auth.js"},
+        {"kind":"function","file":"web/pages/api/members/index.js","line":3,"column":1,"name":"handler","parameters":[{"name":"req"},{"name":"res"}],"exported":"default"},
+        {"kind":"access","file":"web/pages/api/members/index.js","line":4,"column":11,"chain":["req","method"],"parameter":{"index":0,"function":{"file":"web/pages/api/members/index.js","line":3,"column":1}},"cases":[{"string":"GET"},{"string":"POST"}],"hasDefault":true,"within":{"file":"web/pages/api/members/index.js","line":3,"column":1},"inCondition":true},
+        {"kind":"call","file":"web/pages/api/members/index.js","line":6,"column":13,"callee":{"name":"requirePermission","import":{"module":"../../../src/auth","imported":"requirePermission"},"declaration":{"file":"web/src/auth.js","line":1,"column":1}},"arguments":[{"string":"members.read"}],"branch":{"on":"req.method","value":{"string":"GET"}},"within":{"file":"web/pages/api/members/index.js","line":3,"column":1},"inCondition":true},
+        {"kind":"call","file":"web/pages/api/members/index.js","line":9,"column":13,"callee":{"name":"requirePermission","import":{"module":"../../../src/auth","imported":"requirePermission"},"declaration":{"file":"web/src/auth.js","line":1,"column":1}},"arguments":[{"string":"members.write"}],"branch":{"on":"req.method","value":{"string":"POST"}},"within":{"file":"web/pages/api/members/index.js","line":3,"column":1},"inCondition":true},
+        {"kind":"access","file":"web/pages/api/members/index.js","line":10,"column":35,"chain":["req","body"],"parameter":{"index":0,"function":{"file":"web/pages/api/members/index.js","line":3,"column":1}},"wrappedBy":"res.status(201).json","branch":{"on":"req.method","value":{"string":"POST"}},"within":{"file":"web/pages/api/members/index.js","line":3,"column":1},"inCondition":true},
+        {"kind":"function","file":"web/pages/api/ping.js","line":1,"column":1,"name":"ping","parameters":[{"name":"req"},{"name":"res"}],"exported":"default"},
+        {"kind":"access","file":"web/pages/api/ping.js","line":2,"column":12,"chain":["req","method"],"parameter":{"index":0,"function":{"file":"web/pages/api/ping.js","line":1,"column":1}},"wrappedBy":"res.send","within":{"file":"web/pages/api/ping.js","line":1,"column":1}},
+        {"kind":"function","file":"web/pages/index.jsx","line":1,"column":1,"name":"Home","parameters":[],"exported":"default"},
+        {"kind":"jsx","file":"web/pages/index.jsx","line":2,"column":10,"tag":{"intrinsic":"h1"},"attributes":[],"children":[{"text":"Members"}],"within":{"file":"web/pages/index.jsx","line":1,"column":1}},
+        {"kind":"import","file":"web/proxy.js","line":1,"column":1,"module":"next/server","names":[{"imported":"NextResponse","local":"NextResponse"}]},
+        {"kind":"variable","file":"web/proxy.js","line":3,"column":14,"name":"config","declaration":"const","value":{"object":[{"key":"matcher","line":3,"value":{"array":[{"string":"/((?!api|_next).*)"}]}}]},"exported":"named"},
+        {"kind":"function","file":"web/proxy.js","line":5,"column":1,"name":"proxy","parameters":[],"exported":"named"},
+        {"kind":"call","file":"web/proxy.js","line":6,"column":10,"callee":{"member":{"object":{"name":"NextResponse","import":{"module":"next/server","imported":"NextResponse"}},"name":"next"}},"arguments":[],"within":{"file":"web/proxy.js","line":5,"column":1}},
+        {"kind":"function","file":"web/src/auth.js","line":1,"column":1,"name":"requirePermission","parameters":[{"name":"permission"}],"exported":"named"},
+        {"kind":"function","file":"web/src/auth.js","line":5,"column":1,"name":"withPermission","parameters":[{"name":"permission"},{"name":"handler"}],"exported":"named"},
+        {"kind":"function","file":"web/src/auth.js","line":6,"column":10,"parameters":[{"name":"req"},{"name":"res"}],"within":{"file":"web/src/auth.js","line":5,"column":1}}
+    ]
+}

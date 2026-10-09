@@ -235,6 +235,48 @@ commands:
         them, are a must question, and so is the permission it checks, never written
         as public. Every permission a schema names is declared, its
         description and the role that grants it must questions.
+
+        With `--facts`, a code-facts dump that tools/code-facts/dump-javascript.sh
+        made of a committed folder that holds the router's folder, and
+        that is not stale (ADR-090), the App Router's and the Pages
+        Router's files are also read for what their code says, and
+        `--implementation` names the project's checks as for javascript.
+        A route file's operations are the methods its code serves: in
+        the App Router each function or const it exports by a method's
+        name, directly, as the handler a call wraps or by an export
+        specifier; in the Pages Router each method its default export
+        compares `req.method` with or switches on with a literal case,
+        where what follows a comparison and a default branch are a must
+        question asking for the other methods it serves; a route file
+        whose code names no method keeps its question, citing its
+        handler. Each cites its file and its export, and its permission
+        is the one literal permission a check names, wrapping the
+        handler, called in it in the branch of its method, or called in
+        a middleware whose matcher surely selects the route; none,
+        several and one that is not a literal are must questions. A body
+        the handler validates, `request.json()` or `req.body` given to a
+        zod, yup or joi schema of a module-level variable, is the
+        request body, written as a schema as javascript writes one. A
+        server action, a function with `'use server'` in its body or
+        exported by a file that starts with it, that a form of a page
+        file gives as its `action` is an operation at the page's route,
+        method POST, named after the function, with a must question on
+        its path, since Next.js posts an action to the page that shows
+        it; a second one on one page and a form outside a page file are
+        must questions. A middleware file's `config.matcher` of literal
+        patterns (`/loans/:path*`, `:name+`, `(.*)` at the end) says
+        which routes it covers; its function's call of a named check
+        with one literal permission is the permission of every page and
+        operation it surely covers that has none; anything else is the
+        must question on the pages and operations it may cover. A page
+        schema is read as the compiler reads it, its object exported by
+        default or by a const, a name a const of the files read gives,
+        imported or its own, read as that const's value; a value that is
+        no literal or const prints a line as before. A page's
+        `generateStaticParams` returning literal values prints a line,
+        since a page holds no values of its route's parameters, and a
+        route file's is named in the question on its parameters' values;
+        one built at run time is a should question.
       - `workflows`: one BPMN 2.0 XML file, read with the standard
         library, whose processes are written as `workflows` in the
         sequential subset of ADR-054, one workflow per process, named
@@ -881,7 +923,10 @@ commands:
         schema: { type: string }
         required: true
       implementation:
-        description: For go, swift and javascript, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through.
+        description: For go, swift and javascript, and for pages with --facts, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through.
+        schema: { type: string }
+      facts:
+        description: For pages, a code-facts dump of JavaScript and TypeScript, made by tools/code-facts/dump-javascript.sh of a folder that holds the router's folder, through which the Next.js files' code is read.
         schema: { type: string }
       source-key:
         description: The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given.
@@ -898,13 +943,16 @@ commands:
       the reader reads, or a document read as what the running system
       printed; one line per file that imports a library the reader knows
       and gives nothing it reads; one line per gate on a setting, naming
-      the check and the setting; for go, swift and javascript, one line
-      naming the checks the implementation file names; and one line per file that says it is
+      the check and the setting; for go, swift, javascript and pages
+      with --facts, one line naming the checks the implementation file
+      names; for pages with --facts, one line naming the dump, one per
+      middleware file saying what it covers and checks, and one counting
+      the server actions; and one line per file that says it is
       generated from another source.
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written
-      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a code-facts dump another parser version made or whose files are not the tracked files of its folder the reader reads, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML"
-      "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift or javascript, or a path that could not be read or written
+      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML"
+      "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript or pages, or to pages without --facts, --facts given to a source other than pages, or a path that could not be read or written
     satisfies: [SA-11, SA-44]
     why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

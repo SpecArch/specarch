@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 379 design tests, 161 golden and 218 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 381 design tests, 163 golden and 218 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.6.0-dev of the specification: 379 design tests, 161 golden and 218 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 375 |
+| system | 377 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -841,6 +841,22 @@ Scenario: golden; level: system; verifies SA-44.
 - Given: a repository holding a folder of workflow definitions in a format no reader reads, one of them a TypeScript file that says it is generated from the others
 - When: extract outline is run on the folder with a source key
 - Then: it writes a root that lists every tracked file as a clause of that source at the commit, and no element; it names the commit, counts the files, reports the generated file, and exits 0
+
+#### extract-pages-next-api-facts
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a Next.js Pages Router folder in plain JavaScript read with the code-facts dump of the folder that holds it and an implementation file naming two checks: an API route whose default export switches on req.method with a literal case for GET and POST, each calling the check with its own permission, and a default branch; one whose default export is the handler a check wraps, comparing req.method with DELETE; one that does not tell methods apart; and proxy.js whose matcher is a regular expression and whose function calls no check
+- When: extract pages is run on the pages folder with --facts and --implementation
+- Then: it writes one operation per method an API route's handler compares req.method with, two citations each, with the permission the check its branch calls or the wrapping check names; asks a must question on the other methods each handler that tells methods apart may serve, through its switch's default branch or what follows its comparison; asks, as for any route file, the methods of the route that does not tell them apart, citing its handler; asks a must question on every page and operation proxy.js may cover, since its matcher is a regular expression the reader does not read; and exits 0
+
+#### extract-pages-next-app-facts
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: an App Router folder read with the code-facts dump of the folder that holds it and an implementation file naming two checks: route files that export GET as a function, POST as the handler a check wraps whose body a zod schema validates, DELETE by an export specifier and HEAD; one whose GET calls the check with a literal permission, whose PATCH calls it with a permission that is not a literal and whose generateStaticParams lists literal values; one that exports no method; a page whose schema names a const of its own and one imported from another file; a page whose form submits to a server action of a 'use server' file and another to a function with 'use server' in its body; a page whose generateStaticParams lists its values; and middleware.ts whose literal matcher selects /loans and below and whose function calls the check
+- When: extract pages is run on the app folder with --facts and --implementation
+- Then: it writes one operation per method a route file exports, named by method and path, citing the file and the export, with the permission the wrapping or the called check names, the request body the validated schema gives as a schema, and an operation for each server action under the page that shows its form, named after the action; gives the pages under /loans the permission the middleware's check names; reads the schema's consts; asks a must question on each operation's summary and responses, each server action's path, the permission that is not a literal and the methods of the file that exports none, naming the values generateStaticParams gives in the question on the parameters; prints a line for HEAD and for the page's static params; and exits 0
 
 #### extract-pages-next-pages-router
 

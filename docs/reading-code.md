@@ -347,16 +347,21 @@ question in both languages, as it is for an OpenAPI number with no format.
 ### Next.js, read with the JavaScript reader
 
 Once the folders of the earlier step are read, the JavaScript reader reads
-their content:
+their content: `extract pages` is given the dump of the folder that holds
+the router with `--facts` (ADR-090), so one tree holds the routes the
+folders give and what the code says of them:
 
 - route handlers' and API routes' exported methods, each an operation;
 - server actions (`'use server'` functions and files) called from a form,
-  each an operation by the function's name, with a `must` question on the
-  path, since a server action has none of its own;
+  each an operation by the function's name at the route of the page that
+  shows the form, method POST, with a `must` question on the path, since
+  a server action has none of its own and Next.js posts it to that page;
 - `middleware.ts`'s `matcher` with literal patterns, and the checks in it
   through a function the implementation file names; anything else is a
   `must` question on every route it may cover;
-- `generateStaticParams` with literal values, as a parameter's examples;
+- `generateStaticParams` with literal values, named in the question on a
+  route file's parameters and printed as a line on a page, which holds no
+  parameter's values;
 - `page.schema.ts` beyond the JSON5 subset the pages reader holds now, its
   imported constants resolved where they are in the files read.
 

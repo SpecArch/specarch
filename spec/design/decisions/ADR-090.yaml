@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-090:
+    title: extract pages reads the Next.js files' code through the JavaScript reader's code-facts dump, given with --facts, so the router's folders stay the routes and the code answers what the folders cannot
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Step 19 of docs/extraction.md reads the content of the Next.js
+      files the pages reader (ADR-084) reads by their place: a route
+      file's methods, server actions, middleware's matcher and checks,
+      generateStaticParams, and page.schema.ts beyond its JSON5 subset.
+      The pages reader asks a must question for each of these "until the
+      JavaScript reader reads it". The JavaScript reader (ADR-089) reads
+      a code-facts dump, and Express routes, not file-system routes. Two
+      shapes were open: extract javascript learning the folders as
+      routes, writing a second tree that merge would join with the pages
+      tree, or extract pages reading the dump for its files' content and
+      writing one tree. merge joins operations by method and path, but
+      it does not know that an operation in one tree answers the pages
+      tree's question on a route file's methods, which blocks the whole
+      paths section. Next.js gives a server action no route of its own:
+      it posts the action to the page that shows the form, naming the
+      action in a header.
+    decision: |
+      extract pages takes --facts, a dump of a committed folder that
+      holds the router's folder, and with it --implementation. The
+      folders still give the pages and the route files, as before; the
+      dump gives the methods a route file's code serves (exports by a
+      method's name, or the req.method an API route compares or switches
+      on), the permission a named check gives a handler, the branch of
+      its method or a middleware whose literal matcher surely selects
+      the route, the body a validation schema checks, an operation per
+      server action a page's form gives as its action at the page's
+      route with a must question on that path, and the page schema as
+      the compiler reads it with its consts resolved. Without --facts the
+      reader is what it was. The dump's reader and the pages reader ask
+      their questions in one list under one numbering.
+    why: |
+      One tree keeps each question where its answer is: the route file's
+      question on its methods is answered by the same reader that asked
+      it, so it is left out when the code says the methods and kept,
+      citing the handler, when it does not. A second tree would leave the
+      question open beside the operations that answer it until merge
+      learned the rule, and would need the folder rules twice, in two
+      readers that could drift. The folders stay the source of the routes
+      because the router reads them; the code is read only for what a
+      folder cannot say, which keeps the dump's role the same as for
+      javascript: facts of syntax, rules in Go.
+
+      A server action has no route, and writing it with none is not
+      possible in an operation; posting to the page that shows the form
+      is what Next.js does, so that path is written with a must question,
+      never as a silent fact. A middleware check is applied only to the
+      routes its matcher surely selects, since a page's parameter may or
+      may not take a matcher's literal segment; those it may select are
+      asked. What follows an if on req.method, and a switch's default
+      branch, run for every other method, so those methods are asked
+      rather than read as absent. A page holds no values of its route's
+      parameters, so generateStaticParams' values print a line on a page
+      and go into the question on a route file's parameters.
+
+      The dump is read fast, with no build, so the operations, checks and
+      bodies show early, and every guess is a question at its line.
+    consequences: |
+      A Next.js site is read by extract pages by its folders alone, as
+      before, or with its dump for the content. Nuxt's
+      server routes and Vue files are read with the Vue reader (step
+      20). A server action's body, given as FormData, is not read; a
+      form's fields on a page are read by javascript's React reader, not
+      here.
+    satisfies: [SA-44]

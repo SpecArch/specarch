@@ -1,0 +1,36 @@
+paths:
+  /api/members:
+    # specarch-problem: warning: test_case_missing: operation getApiMembers has no red scenario for "denied without members.read"; add under tests get-api-members-denied-without-members-read: { operation: getApiMembers, scenario: red, covers: [denied without members.read], given: "a caller without members.read", when: "getApiMembers is called", then: "it is refused as not allowed" } [test_case_missing@design/paths.yaml#/paths/~1api~1members/get]
+    # specarch-problem: warning: test_golden_missing: operation getApiMembers has no golden scenario; add one under tests, for example get-api-members-succeeds: { operation: getApiMembers, scenario: golden, given: "a caller with members.read", when: "getApiMembers is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1members/get]
+    get:
+      operationId: getApiMembers
+      permission: members.read
+      origin: stated
+      cites:
+        - {source: code, clause: web/pages/api/members/index.js, says: 'The file api/members/index.js is under web/pages/api, so the router serves the API route /api/members from it.'}
+        - {source: code, clause: 'web/pages/api/members/index.js:3', says: Exports the handler of GET /api/members.}
+        - {source: code, clause: 'web/pages/api/members/index.js:3', says: Its check names members.read.}
+    # specarch-problem: warning: test_case_missing: operation postApiMembers has no red scenario for "denied without members.write"; add under tests post-api-members-denied-without-members-write: { operation: postApiMembers, scenario: red, covers: [denied without members.write], given: "a caller without members.write", when: "postApiMembers is called", then: "it is refused as not allowed" } [test_case_missing@design/paths.yaml#/paths/~1api~1members/post]
+    # specarch-problem: warning: test_golden_missing: operation postApiMembers has no golden scenario; add one under tests, for example post-api-members-succeeds: { operation: postApiMembers, scenario: golden, given: "a caller with members.write", when: "postApiMembers is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1members/post]
+    post:
+      operationId: postApiMembers
+      permission: members.write
+      origin: stated
+      cites:
+        - {source: code, clause: web/pages/api/members/index.js, says: 'The file api/members/index.js is under web/pages/api, so the router serves the API route /api/members from it.'}
+        - {source: code, clause: 'web/pages/api/members/index.js:3', says: Exports the handler of POST /api/members.}
+        - {source: code, clause: 'web/pages/api/members/index.js:3', says: Its check names members.write.}
+  /api/members/{memberId}:
+    parameters:
+      - {name: memberId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation deleteApiMembersByMemberId has no red scenario for "not found memberId"; add under tests delete-api-members-by-member-id-not-found-member-id: { operation: deleteApiMembersByMemberId, scenario: red, covers: [not found memberId], given: "no record has that memberId", when: "deleteApiMembersByMemberId is called with that memberId", then: "it is refused as not found" } [test_case_missing.00199a8c@design/paths.yaml#/paths/~1api~1members~1{memberId}/delete]
+    # specarch-problem: warning: test_case_missing: operation deleteApiMembersByMemberId has no red scenario for "denied without members.admin"; add under tests delete-api-members-by-member-id-denied-without-members-admin: { operation: deleteApiMembersByMemberId, scenario: red, covers: [denied without members.admin], given: "a caller without members.admin", when: "deleteApiMembersByMemberId is called", then: "it is refused as not allowed" } [test_case_missing.a5d40dcb@design/paths.yaml#/paths/~1api~1members~1{memberId}/delete]
+    # specarch-problem: warning: test_golden_missing: operation deleteApiMembersByMemberId has no golden scenario; add one under tests, for example delete-api-members-by-member-id-succeeds: { operation: deleteApiMembersByMemberId, scenario: golden, given: "a caller with members.admin", when: "deleteApiMembersByMemberId is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1members~1{memberId}/delete]
+    delete:
+      operationId: deleteApiMembersByMemberId
+      permission: members.admin
+      origin: stated
+      cites:
+        - {source: code, clause: 'web/pages/api/members/[memberId].js', says: 'The file api/members/[memberId].js is under web/pages/api, so the router serves the API route /api/members/{memberId} from it.'}
+        - {source: code, clause: 'web/pages/api/members/[memberId].js:10', says: 'Exports the handler of DELETE /api/members/{memberId}.'}
+        - {source: code, clause: 'web/pages/api/members/[memberId].js:10', says: Its check names members.admin.}

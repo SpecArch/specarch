@@ -62,7 +62,7 @@ const callNames = new Set([
 const intrinsicElements = new Set(['h1', 'form', 'input', 'select', 'textarea', 'a']);
 
 // The members of a request that the program writes reads of.
-const requestMembers = new Set(['body', 'params', 'query', 'headers']);
+const requestMembers = new Set(['body', 'params', 'query', 'headers', 'method']);
 
 // The calls of an array that run a function once per item: a function
 // given to one runs in a loop.
@@ -626,13 +626,22 @@ function context(node) {
         break;
       case ts.SyntaxKind.IfStatement:
         if (prev !== n.expression) condition = true;
+        // if (req.method === 'POST') { ... }: the branch of one value.
+        if (!out.branch && prev === n.thenStatement && ts.isBinaryExpression(n.expression) &&
+          (n.expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken || n.expression.operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken)) {
+          out.branch = { on: text(n.expression.left), value: value(n.expression.right) };
+        }
         break;
       case ts.SyntaxKind.ConditionalExpression:
         if (prev !== n.condition) condition = true;
         break;
       case ts.SyntaxKind.SwitchStatement:
+        condition = true;
+        break;
       case ts.SyntaxKind.CaseClause:
         condition = true;
+        // case 'GET': the branch of one value of the switch.
+        if (!out.branch) out.branch = { on: text(n.parent.parent.expression), value: value(n.expression) };
         break;
       case ts.SyntaxKind.BinaryExpression:
         if (prev === n.right && (n.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken || n.operatorToken.kind === ts.SyntaxKind.BarBarToken || n.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken)) {
@@ -740,6 +749,31 @@ function readAccess(node) {
   return fact;
 }
 
+// directives is the prologue of a file or a function body: 'use server'.
+function directives(statements) {
+  const out = [];
+  for (const st of statements) {
+    if (ts.isExpressionStatement(st) && ts.isStringLiteral(st.expression)) out.push(st.expression.text);
+    else break;
+  }
+  return out;
+}
+
+// returnValues is what a function returns: its expression body, or the
+// expression of each return statement in it, not in a function inside it.
+function returnValues(fn) {
+  if (!fn.body) return [];
+  if (!ts.isBlock(fn.body)) return [fn.body];
+  const out = [];
+  const walk = (n) => {
+    if (n !== fn && isFunctionLike(n)) return;
+    if (ts.isReturnStatement(n) && n.expression) out.push(n.expression);
+    ts.forEachChild(n, walk);
+  };
+  ts.forEachChild(fn.body, walk);
+  return out;
+}
+
 function accessDetails(node, fact) {
   let n = node;
   while (n.parent && (ts.isParenthesizedExpression(n.parent) || ts.isAsExpression(n.parent) || ts.isNonNullExpression(n.parent))) n = n.parent;
@@ -751,6 +785,10 @@ function accessDetails(node, fact) {
     } else if (op === ts.SyntaxKind.EqualsEqualsEqualsToken || op === ts.SyntaxKind.ExclamationEqualsEqualsToken || op === ts.SyntaxKind.EqualsEqualsToken || op === ts.SyntaxKind.ExclamationEqualsToken) {
       fact.compared = value(p.right);
     }
+  }
+  if (p && ts.isSwitchStatement(p) && p.expression === n) {
+    fact.cases = p.caseBlock.clauses.filter((c) => ts.isCaseClause(c)).map((c) => value(c.expression));
+    if (p.caseBlock.clauses.some((c) => ts.isDefaultClause(c))) fact.hasDefault = true;
   }
   // The call it is given to, through a default: Number(process.env.PORT ?? '8080').
   let w = n;
@@ -883,6 +921,10 @@ function visit(node) {
     if (ex) f.exported = ex;
     const doc = jsDocText(ts.isVariableDeclaration(node.parent) ? node.parent.parent.parent : node);
     if (doc && sf.fileName.match(/\.[cm]?jsx?$/)) f.jsdoc = doc;
+    const dirs = directives(node.body && ts.isBlock(node.body) ? node.body.statements : []);
+    if (dirs.length > 0) f.directives = dirs;
+    // What generateStaticParams returns gives a route's parameters' values.
+    if (name === 'generateStaticParams') f.returnValues = returnValues(node).map((r) => value(r));
     Object.assign(f, context(node));
     emit('function', node, f);
   }
@@ -930,6 +972,16 @@ function visit(node) {
           emit('access', e, f);
         }
       }
+    }
+  }
+  if (ts.isSourceFile(node)) {
+    for (const d of directives(node.statements)) emit('directive', node.statements[0], { name: d });
+  }
+  // export { handler as GET }, from this module only.
+  if (ts.isExportDeclaration(node) && !node.moduleSpecifier && node.exportClause && ts.isNamedExports(node.exportClause)) {
+    for (const e of node.exportClause.elements) {
+      const local = e.propertyName || e.name;
+      if (ts.isIdentifier(local)) emit('export', e, { name: e.name.text, value: { name: local.text, ...resolveName(local) } });
     }
   }
   if (ts.isExportAssignment(node)) {

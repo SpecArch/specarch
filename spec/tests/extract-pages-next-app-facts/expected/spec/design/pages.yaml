@@ -1,0 +1,53 @@
+entities:
+  Loan:
+    type: object
+    properties:
+      book: {}
+      due: {}
+      member: {}
+    origin: stated
+    cites:
+      - {source: code, clause: site/app/loans/page.schema.ts, says: The page at /loans shows Loan.}
+permissions:
+  loans.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'site/middleware.ts:7', says: 'The page at /loans, /loans/{loanId} and /loans/new check loans.read.'}
+  loans.write:
+    origin: stated
+    cites:
+      - {source: code, clause: 'site/app/api/loans/route.ts:8', says: POST /api/loans checks loans.write.}
+pages:
+  # specarch-problem: warning: test_case_missing: page loans has no red scenario for "denied without loans.read"; add under tests loans-denied-without-loans-read: { page: loans, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "the page loans is opened", then: "it is refused as not allowed" } [test_case_missing@design/pages.yaml#/pages/loans]
+  # specarch-problem: warning: test_golden_missing: page loans has no golden scenario; add one under tests, for example loans-succeeds: { page: loans, scenario: golden, given: "a caller with loans.read", when: "the page loans is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/loans]
+  loans:
+    kind: list
+    title: Loans
+    route: /loans
+    entity: Loan
+    permission: loans.read
+    columns: [book, member, due]
+    origin: stated
+    cites:
+      - {source: code, clause: site/app/loans/page.tsx, says: 'The folder loans holds page.tsx, so the router serves a page at /loans.'}
+      - {source: code, clause: site/app/loans/page.schema.ts, says: 'The page''s schema gives its kind, title, entity, columns and source.'}
+      - {source: code, clause: 'site/middleware.ts:7', says: The middleware site/middleware.ts checks loans.read before the page at /loans.}
+  # specarch-problem: warning: test_case_missing: page loans-by-loan-id has no red scenario for "not found loanId"; add under tests loans-by-loan-id-not-found-loan-id: { page: loans-by-loan-id, scenario: red, covers: [not found loanId], given: "no record has that loanId", when: "the page loans-by-loan-id is opened for that loanId", then: "it says the record was not found" } [test_case_missing.29c0e491@design/pages.yaml#/pages/loans-by-loan-id]
+  # specarch-problem: warning: test_case_missing: page loans-by-loan-id has no red scenario for "denied without loans.read"; add under tests loans-by-loan-id-denied-without-loans-read: { page: loans-by-loan-id, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "the page loans-by-loan-id is opened", then: "it is refused as not allowed" } [test_case_missing.331c4492@design/pages.yaml#/pages/loans-by-loan-id]
+  # specarch-problem: warning: test_golden_missing: page loans-by-loan-id has no golden scenario; add one under tests, for example loans-by-loan-id-succeeds: { page: loans-by-loan-id, scenario: golden, given: "a caller with loans.read", when: "the page loans-by-loan-id is opened for a record that exists", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/loans-by-loan-id]
+  loans-by-loan-id:
+    route: /loans/{loanId}
+    permission: loans.read
+    origin: stated
+    cites:
+      - {source: code, clause: 'site/app/loans/[loanId]/page.tsx', says: 'The folder loans/[loanId] holds page.tsx, so the router serves a page at /loans/{loanId}.'}
+      - {source: code, clause: 'site/middleware.ts:7', says: 'The middleware site/middleware.ts checks loans.read before the page at /loans/{loanId}.'}
+  # specarch-problem: warning: test_case_missing: page loans-new has no red scenario for "denied without loans.read"; add under tests loans-new-denied-without-loans-read: { page: loans-new, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "the page loans-new is opened", then: "it is refused as not allowed" } [test_case_missing@design/pages.yaml#/pages/loans-new]
+  # specarch-problem: warning: test_golden_missing: page loans-new has no golden scenario; add one under tests, for example loans-new-succeeds: { page: loans-new, scenario: golden, given: "a caller with loans.read", when: "the page loans-new is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/loans-new]
+  loans-new:
+    route: /loans/new
+    permission: loans.read
+    origin: stated
+    cites:
+      - {source: code, clause: site/app/loans/new/page.tsx, says: 'The folder loans/new holds page.tsx, so the router serves a page at /loans/new.'}
+      - {source: code, clause: 'site/middleware.ts:7', says: The middleware site/middleware.ts checks loans.read before the page at /loans/new.}

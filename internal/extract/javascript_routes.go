@@ -34,6 +34,7 @@ type jsRoute struct {
 	permission string
 	checks     []string
 	mounts     []string // where the router it is registered on is mounted, outermost first
+	branch     string   // the method a handler that tells methods apart serves here, or ""
 	id, at     string
 }
 
@@ -443,6 +444,11 @@ func (js *jsReader) routePermission(rt *jsRoute, chain []jsValue, at []string) {
 	if rt.handler != nil {
 		key := (&jsPos{File: rt.handler.File, Line: rt.handler.Line, Column: rt.handler.Column}).key()
 		for _, f := range js.byWithin[key] {
+			if f.Kind == "call" && rt.branch != "" && f.Branch != nil && strings.HasSuffix(f.Branch.On, ".method") {
+				if v, ok := f.Branch.Value.stringLiteral(); ok && !strings.EqualFold(v, rt.branch) {
+					continue
+				}
+			}
 			if f.Kind == "call" {
 				if c := js.checkOf(f.Callee); c != nil {
 					use(c, f.Arguments, js.clause(f))

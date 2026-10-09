@@ -1,0 +1,105 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) The handler of /api/members at web/pages/api/members/index.js:3 serves GET and POST, and its switch on req.method at web/pages/api/members/index.js:4 has a default branch, which runs for every other method. Which other methods does it serve, and what does each do? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: The handler of /api/members at web/pages/api/members/index.js:3 serves GET and POST, and its switch on req.method at web/pages/api/members/index.js:4 has a default branch, which runs for every other method. Which other methods does it serve, and what does each do?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: An API route's handler serves every method the request comes with; the reader reads the methods it names by a literal, and not what the rest of its code does with the others.
+    cites:
+      - {source: code, clause: 'web/pages/api/members/index.js:3', says: The handler of /api/members.}
+  # specarch-problem: question: open_question: (must, decision) The handler of /api/members/{memberId} at web/pages/api/members/[memberId].js:10 serves DELETE, and it compares req.method with a value at web/pages/api/members/[memberId].js:4, and what follows the comparison runs for every other method. Which other methods does it serve, and what does each do? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: The handler of /api/members/{memberId} at web/pages/api/members/[memberId].js:10 serves DELETE, and it compares req.method with a value at web/pages/api/members/[memberId].js:4, and what follows the comparison runs for every other method. Which other methods does it serve, and what does each do?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: An API route's handler serves every method the request comes with; the reader reads the methods it names by a literal, and not what the rest of its code does with the others.
+    cites:
+      - {source: code, clause: 'web/pages/api/members/[memberId].js:10', says: 'The handler of /api/members/{memberId}.'}
+  # specarch-problem: question: open_question: (must, decision) For the page at /, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: For the page at /, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/root/kind', '#/pages/root/title', '#/pages/root/entity', '#/pages/root/source', '#/pages/root/submit', '#/pages/root/columns']
+    decidedBy: system-owner
+    why: The folders name a page's route and not what it shows.
+  # specarch-problem: question: open_question: (must, decision) Which permission does the page at / check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: Which permission does the page at / check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/root/permission']
+    decidedBy: system-owner
+    why: The folders name a page's route and not who may open it, and a page open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) What does GET /api/members do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: What does GET /api/members do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1members/get/summary', '#/paths/~1api~1members/get/responses']
+    decidedBy: system-owner
+    why: A route file's place names the method and the path, and not what the handler does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What does POST /api/members do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: What does POST /api/members do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1members/post/summary', '#/paths/~1api~1members/post/responses']
+    decidedBy: system-owner
+    why: A route file's place names the method and the path, and not what the handler does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /api/members/{memberId} take: memberId? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: 'What values does each path parameter of /api/members/{memberId} take: memberId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1members~1{memberId}/parameters/0/schema']
+    decidedBy: system-owner
+    why: A route file's place names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does DELETE /api/members/{memberId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: What does DELETE /api/members/{memberId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1members~1{memberId}/delete/summary', '#/paths/~1api~1members~1{memberId}/delete/responses']
+    decidedBy: system-owner
+    why: A route file's place names the method and the path, and not what the handler does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Which methods does web/pages/api/ping.js serve at /api/ping, and for each, what does it do, what does it answer and which permission does it check? Its handler is at web/pages/api/ping.js:1. It blocks paths. Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: Which methods does web/pages/api/ping.js serve at /api/ping, and for each, what does it do, what does it answer and which permission does it check? Its handler is at web/pages/api/ping.js:1.
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: A route file's place gives its path and not its methods; its code exports no handler named after a method, or its handler compares req.method with no literal, so the methods are not known by syntax.
+    cites:
+      - {source: code, clause: web/pages/api/ping.js, says: 'The file api/ping.js is under web/pages/api, so the router serves the API route /api/ping from it.'}
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: members.admin, members.read, members.write? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: 'What does each permission allow: members.admin, members.read, members.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/members.admin/description', '#/permissions/members.read/description', '#/permissions/members.write/description']
+    decidedBy: system-owner
+    why: The code names the permission an operation checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: members.admin, members.read, members.write? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: 'Which role grants each permission: members.admin, members.read, members.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/members.admin', '#/permissions/members.read', '#/permissions/members.write']
+    decidedBy: system-owner
+    why: The code names the permission an operation checks and not who holds it.
+  # specarch-problem: question: open_question: (must, decision) web/proxy.js runs before / and /api/ping and may check who is signed in, send them elsewhere or answer by itself. What does it check on each of them? The reader cannot tell which routes web/proxy.js covers, since its matcher holds the pattern "/((?!api|_next).*)", a regular expression the reader does not read. It blocks paths. Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: web/proxy.js runs before / and /api/ping and may check who is signed in, send them elsewhere or answer by itself. What does it check on each of them? The reader cannot tell which routes web/proxy.js covers, since its matcher holds the pattern "/((?!api|_next).*)", a regular expression the reader does not read.
+    kind: decision
+    priority: must
+    blocks: ['#/pages/root/permission', paths]
+    decidedBy: system-owner
+    why: A check that runs before every route it covers is how a permission is usually given, so what the code does not say is asked, never assumed.
+    cites:
+      - {source: code, clause: web/proxy.js, says: The router runs it before the routes its matcher selects.}

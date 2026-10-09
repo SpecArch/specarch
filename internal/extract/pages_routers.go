@@ -45,6 +45,9 @@ type routeFile struct {
 	method           string // in capitals, or "" when the name does not give it
 	key              string // the path item's method key, or ""
 	params           []string
+	handler          *nextHandler // what the code exports for the method, when a dump is read
+	action           *jsFact      // the server action a page's form submits to, or nil
+	actionAt         string       // where the form is
 }
 
 func (rd *pageReader) routerName() string {
@@ -445,6 +448,10 @@ func (rd *pageReader) writeRoutes() {
 	if len(paths) > 0 {
 		rd.paths = &yaml.Node{Kind: yaml.MappingNode}
 	}
+	rd.opPermissions = map[string]string{}
+	used := map[string][]string{}
+	permCites := map[string]*yaml.Node{}
+	defer func() { rd.writeNextPermissions(used, permCites) }()
 	for _, p := range paths {
 		item := mapping()
 		at := "#/paths/" + escapeToken(p)
@@ -457,29 +464,78 @@ func (rd *pageReader) writeRoutes() {
 				blocks = append(blocks, fmt.Sprintf("%s/parameters/%d/schema", at, i))
 			}
 			set(item, "parameters", list)
-			rd.question(
-				fmt.Sprintf("What values does each path parameter of %s take: %s?", p, strings.Join(params, ", ")),
-				blocks,
-				"A route file's place names a path's parameters and not the values they take.",
-			)
+			text := fmt.Sprintf("What values does each path parameter of %s take: %s?", p, strings.Join(params, ", "))
+			if values, sat, why := rd.staticParams(files[0].file); sat != "" && why == "" {
+				text += fmt.Sprintf(" generateStaticParams at %s gives %s, the values it is built for.", sat, describeParams(values))
+			}
+			rd.question(text, blocks, "A route file's place names a path's parameters and not the values they take.")
 		}
 		for _, rf := range files {
-			set(item, rf.key, mapping(
-				"operationId", methodPathName(rf.key, rf.path),
-				"origin", "stated",
-				"cites", []*yaml.Node{citation(rd.key, rf.file, rf.says)},
-			))
 			opAt := at + "/" + rf.key
+			label := rf.method + " " + rf.path
+			opID := methodPathName(rf.key, rf.path)
+			if rf.action != nil {
+				opID = strings.ToLower(rf.action.Name[:1]) + rf.action.Name[1:]
+			}
+			op := mapping("operationId", opID)
+			cites := []*yaml.Node{citation(rd.key, rf.file, rf.says)}
+			permission, unguarded := "", ""
+			if rd.js != nil && (rf.handler != nil || rf.action != nil) {
+				h := nextHandler{}
+				if rf.handler != nil {
+					h = *rf.handler
+					cites = append(cites, rd.js.at(h.at, "Exports the handler of "+label+"."))
+				} else {
+					h = nextHandler{fn: rf.action, at: rd.js.clause(rf.action)}
+					cites = append(cites, rd.js.at(h.at, "The server action "+rf.action.Name+"."), rd.js.at(rf.actionAt, "The form submits to "+rf.action.Name+"."))
+				}
+				permission, unguarded = rd.handlerPermission(h, label)
+				if permission != "" {
+					cites = append(cites, rd.js.at(h.at, fmt.Sprintf("Its check names %s.", permission)))
+				} else if mp, mw := rd.middlewarePermission(rf.path); mp != "" {
+					permission = mp
+					cites = append(cites, rd.js.at(mw.at, fmt.Sprintf("The middleware %s checks %s before %s.", mw.file, mp, label)))
+				}
+				if permission != "" {
+					set(op, "permission", permission)
+					rd.opPermissions[opAt] = permission
+					if used[permission] == nil {
+						permCites[permission] = rd.js.at(h.at, fmt.Sprintf("%s checks %s.", label, permission))
+					}
+					used[permission] = append(used[permission], label)
+				}
+				if rf.key == "post" || rf.key == "put" || rf.key == "patch" {
+					if name := rd.handlerBody(h.fn); name != "" {
+						set(op, "requestBody", mapping("required", true, "content", mapping("application/json", flow(mapping("schema", flow(mapping("$ref", "#/schemas/"+name)))))))
+					}
+				}
+			}
+			set(op, "origin", "stated")
+			set(op, "cites", cites)
+			set(item, rf.key, op)
 			rd.question(
-				fmt.Sprintf("What does %s %s do, and what does it answer?", rf.method, rf.path),
+				fmt.Sprintf("What does %s do, and what does it answer?", label),
 				[]string{opAt + "/summary", opAt + "/responses"},
 				"A route file's place names the method and the path, and not what the handler does or the responses it gives.",
 			)
-			rd.question(
-				fmt.Sprintf("%s %s checks no permission that its file's place names. Is it meant to be open to everyone (public), or which permission should it check?", rf.method, rf.path),
-				[]string{opAt + "/permission"},
-				"An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.",
-			)
+			if rf.action != nil {
+				rd.question(
+					fmt.Sprintf("The server action %s has no path of its own: Next.js posts it to the page that shows its form, %s, naming the action in a header. Is %s the path it is called at, and is it called from anywhere else?", rf.action.Name, rf.path, label),
+					[]string{opAt},
+					"A server action is a function, and the router gives it no route; the path is where the page that calls it is served, which is what a client sees.",
+				)
+			}
+			if permission == "" {
+				asked := fmt.Sprintf("%s checks no permission that its file's place names.", label)
+				if unguarded != "" {
+					asked = unguarded
+				}
+				rd.question(
+					asked+" Is it meant to be open to everyone (public), or which permission should it check?",
+					[]string{opAt + "/permission"},
+					"An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.",
+				)
+			}
 		}
 		set(rd.paths, p, item)
 	}
@@ -491,9 +547,15 @@ func (rd *pageReader) writeRoutes() {
 		if len(rf.params) > 0 {
 			text += fmt.Sprintf(" Its path parameters are %s.", joinAnd(rf.params))
 		}
-		rd.citedQuestion(text, []string{"paths"},
-			"A route file's place gives its path and not its methods, which the handlers it exports decide; an operation is a method and a path, so none is written until the JavaScript reader reads the handlers or the owner says.",
-			rf.file, rf.says)
+		why := "A route file's place gives its path and not its methods, which the handlers it exports decide; an operation is a method and a path, so none is written until the JavaScript reader reads the handlers or the owner says."
+		if rd.js != nil && rd.js.files[rf.file] != nil {
+			why = "A route file's place gives its path and not its methods; its code exports no handler named after a method, or its handler compares req.method with no literal, so the methods are not known by syntax."
+			if rf.handler != nil {
+				text += fmt.Sprintf(" Its handler is at %s.", rf.handler.at)
+				rd.js.cite(rf.handler.at)
+			}
+		}
+		rd.citedQuestion(text, []string{"paths"}, why, rf.file, rf.says)
 	}
 }
 
@@ -526,6 +588,10 @@ func (rd *pageReader) askMiddleware() {
 		return
 	}
 	for _, f := range rd.middleware {
+		if mw := rd.middlewareRead(f); mw != nil {
+			rd.askReadMiddleware(mw)
+			continue
+		}
 		var text string
 		switch rd.router {
 		case routerNuxtPages:
@@ -558,4 +624,138 @@ func (rd *pageReader) askRouter() {
 		return
 	}
 	rd.question(text, blocks, why)
+}
+
+// expandRouteFiles turns each Next.js route file whose code the dump
+// holds into one route file per method its handlers serve, and adds the
+// server actions pages' forms submit to.
+func (rd *pageReader) expandRouteFiles(pages map[string]*page) {
+	if rd.router != routerApp && rd.router != routerNextPages {
+		return
+	}
+	var out []*routeFile
+	for _, rf := range rd.routeFiles {
+		if rf.key != "" {
+			out = append(out, rf)
+			continue
+		}
+		hs := rd.nextHandlers(rf)
+		switch {
+		case len(hs) == 0:
+			out = append(out, rf)
+			continue
+		case len(hs) == 1 && hs[0].method == "":
+			c := *rf
+			c.handler = &hs[0]
+			out = append(out, &c)
+			continue
+		}
+		if hs[0].others != "" {
+			var ms []string
+			for _, h := range hs {
+				ms = append(ms, h.method)
+			}
+			rd.js.question("must", fmt.Sprintf("The handler of %s at %s serves %s, and %s. Which other methods does it serve, and what does each do?", rf.path, hs[0].at, joinAnd(ms), hs[0].others),
+				[]string{"paths"}, "An API route's handler serves every method the request comes with; the reader reads the methods it names by a literal, and not what the rest of its code does with the others.", rd.js.at(hs[0].at, "The handler of "+rf.path+"."))
+		}
+		for i := range hs {
+			h := hs[i]
+			if !heldMethods[h.method] {
+				rd.gap("paths", h.at, "%s: %s serves %s %s, a method the meta-model holds no operation for, which holds GET, POST, PUT, PATCH and DELETE; left out", h.at, rf.file, h.method, rf.path)
+				rd.js.cite(h.at)
+				continue
+			}
+			c := *rf
+			c.method, c.key, c.handler = h.method, strings.ToLower(h.method), &h
+			out = append(out, &c)
+		}
+	}
+	seen := map[string]*routeFile{}
+	for _, rf := range out {
+		if rf.key != "" {
+			seen[rf.method+" "+rf.path] = rf
+		}
+	}
+	for _, a := range rd.serverActions(pages) {
+		pair := a.method + " " + a.path
+		if prev := seen[pair]; prev != nil {
+			what := prev.file
+			if prev.action != nil {
+				what = "the server action " + prev.action.Name
+			}
+			rd.js.question("must", fmt.Sprintf("The server action %s, which the form at %s submits to, would be %s, which %s already serves. Which path is it called at?", a.action.Name, a.actionAt, pair, what),
+				[]string{"paths"}, "A server action has no path of its own, and two operations cannot share a method and a path.", rd.js.at(a.actionAt, "Submits to "+a.action.Name+"."))
+			continue
+		}
+		seen[pair] = a
+		out = append(out, a)
+	}
+	sort.SliceStable(out, func(i, j int) bool {
+		if out[i].path != out[j].path {
+			return out[i].path < out[j].path
+		}
+		return routeRank(out[i]) < routeRank(out[j])
+	})
+	rd.routeFiles = out
+}
+
+// middlewareRead is what the dump says of a middleware file, or nil.
+func (rd *pageReader) middlewareRead(file string) *nextMiddleware {
+	for _, mw := range rd.mw {
+		if mw.file == file {
+			return mw
+		}
+	}
+	return nil
+}
+
+// askReadMiddleware asks about the pages and operations a middleware's
+// code may cover and gives no permission: those its matcher may select,
+// where its check names none, or one that is not a literal.
+func (rd *pageReader) askReadMiddleware(mw *nextMiddleware) {
+	var blocks, routes []string
+	consider := func(route, at string, has bool) {
+		sure, may := mw.covers(route)
+		if !may || has || (sure && mw.permission != "") {
+			return
+		}
+		if !contains(blocks, at) {
+			blocks = append(blocks, at)
+		}
+		if !contains(routes, route) {
+			routes = append(routes, route)
+		}
+	}
+	if rd.router != routerNuxtServer {
+		for _, pg := range rd.pages {
+			consider(pg.route, "#/pages/"+pg.name+"/permission", pg.permission != "")
+		}
+	}
+	for _, rf := range rd.routeFiles {
+		if rf.key == "" {
+			consider(rf.path, "paths", false)
+			continue
+		}
+		at := "#/paths/" + escapeToken(rf.path) + "/" + rf.key + "/permission"
+		consider(rf.path, at, rd.opPermissions[at[:len(at)-len("/permission")]] != "")
+	}
+	if len(blocks) == 0 {
+		return
+	}
+	var why string
+	switch {
+	case mw.unknown != "":
+		why = fmt.Sprintf("The reader cannot tell which routes %s covers, since %s.", mw.file, mw.unknown)
+	case mw.permission == "" && mw.checks > 0:
+		why = fmt.Sprintf("%s calls a check the implementation file names with no one literal permission.", mw.file)
+	case mw.permission == "" && rd.js.checkFile == "":
+		why = fmt.Sprintf("No implementation file names the project's checks, so the reader knows none that %s calls.", mw.file)
+	case mw.permission == "":
+		why = fmt.Sprintf("%s calls no check the implementation file names.", mw.file)
+	default:
+		why = fmt.Sprintf("%s checks %s, and its matcher may or may not select these routes, since a route's parameter can take a matcher's literal segment.", mw.file, mw.permission)
+	}
+	rd.citedQuestion(fmt.Sprintf("%s runs before %s and may check who is signed in, send them elsewhere or answer by itself. What does it check on each of them? %s", mw.file, joinAnd(routes), why), blocks,
+		"A check that runs before every route it covers is how a permission is usually given, so what the code does not say is asked, never assumed.",
+		mw.file, "The router runs it before the routes its matcher selects.")
 }

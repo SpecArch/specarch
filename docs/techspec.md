@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 60 requirements, 5 entities, 12 commands, 7 algorithms, 379 tests, 88 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 60 requirements, 5 entities, 12 commands, 7 algorithms, 381 tests, 89 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -63,7 +63,7 @@ The interfaces the system offers, as its clients see them.
 | derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors, or a draft's name is taken by another draft or by a test of another subject; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, there is no release record for the new version, or a specification has errors; 2: usage error, or a path that could not be read |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written |
-| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a code-facts dump another parser version made or whose files are not the tracked files of its folder the reader reads, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go, swift or javascript, or a path that could not be read or written |
+| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript or pages, or to pages without --facts, --facts given to a source other than pages, or a path that could not be read or written |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open and no specification has an error; 1: at least one must or should question is open, or a specification has an error; 2: usage error, or a path that could not be read |
 | generate | Write code or data from a specification | public | 0: written, a draft included, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads or the specification is not approved and `--unapproved` was not given, the plug-in reported an error (what it answered is written or checked), or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder in any specification given, or a file that could not be read or written |
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
@@ -955,6 +955,48 @@ The sources this build reads:
   them, are a must question, and so is the permission it checks, never written
   as public. Every permission a schema names is declared, its
   description and the role that grants it must questions.
+
+  With `--facts`, a code-facts dump that tools/code-facts/dump-javascript.sh
+  made of a committed folder that holds the router's folder, and
+  that is not stale (ADR-090), the App Router's and the Pages
+  Router's files are also read for what their code says, and
+  `--implementation` names the project's checks as for javascript.
+  A route file's operations are the methods its code serves: in
+  the App Router each function or const it exports by a method's
+  name, directly, as the handler a call wraps or by an export
+  specifier; in the Pages Router each method its default export
+  compares `req.method` with or switches on with a literal case,
+  where what follows a comparison and a default branch are a must
+  question asking for the other methods it serves; a route file
+  whose code names no method keeps its question, citing its
+  handler. Each cites its file and its export, and its permission
+  is the one literal permission a check names, wrapping the
+  handler, called in it in the branch of its method, or called in
+  a middleware whose matcher surely selects the route; none,
+  several and one that is not a literal are must questions. A body
+  the handler validates, `request.json()` or `req.body` given to a
+  zod, yup or joi schema of a module-level variable, is the
+  request body, written as a schema as javascript writes one. A
+  server action, a function with `'use server'` in its body or
+  exported by a file that starts with it, that a form of a page
+  file gives as its `action` is an operation at the page's route,
+  method POST, named after the function, with a must question on
+  its path, since Next.js posts an action to the page that shows
+  it; a second one on one page and a form outside a page file are
+  must questions. A middleware file's `config.matcher` of literal
+  patterns (`/loans/:path*`, `:name+`, `(.*)` at the end) says
+  which routes it covers; its function's call of a named check
+  with one literal permission is the permission of every page and
+  operation it surely covers that has none; anything else is the
+  must question on the pages and operations it may cover. A page
+  schema is read as the compiler reads it, its object exported by
+  default or by a const, a name a const of the files read gives,
+  imported or its own, read as that const's value; a value that is
+  no literal or const prints a line as before. A page's
+  `generateStaticParams` returning literal values prints a line,
+  since a page holds no values of its route's parameters, and a
+  route file's is named in the question on its parameters' values;
+  one built at run time is a should question.
 - `workflows`: one BPMN 2.0 XML file, read with the standard
   library, whose processes are written as `workflows` in the
   sequential subset of ADR-054, one workflow per process, named
@@ -1592,7 +1634,8 @@ Every reader follows these rules:
 | `<source>` | string | yes | The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `go`, `swift` or `javascript`. |
 | `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository; for swift and javascript, one code-facts dump. |
 | `--out` | string | yes | The folder the specification is written into; it becomes the specification's root folder. |
-| `--implementation` | string |   | For go, swift and javascript, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through. |
+| `--implementation` | string |   | For go, swift and javascript, and for pages with --facts, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through. |
+| `--facts` | string |   | For pages, a code-facts dump of JavaScript and TypeScript, made by tools/code-facts/dump-javascript.sh of a folder that holds the router's folder, through which the Next.js files' code is read. |
 | `--source-key` | string |   | The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given. |
 
 Reads `{paths}`: The surface being read.
@@ -1606,8 +1649,11 @@ naming the question that asks about it; one line naming a dialect
 the reader reads, or a document read as what the running system
 printed; one line per file that imports a library the reader knows
 and gives nothing it reads; one line per gate on a setting, naming
-the check and the setting; for go, swift and javascript, one line
-naming the checks the implementation file names; and one line per file that says it is
+the check and the setting; for go, swift, javascript and pages
+with --facts, one line naming the checks the implementation file
+names; for pages with --facts, one line naming the dump, one per
+middleware file saying what it covers and checks, and one counting
+the server actions; and one line per file that says it is
 generated from another source.
 
 Standard error: A usage message on a usage error, and the reason a source could not be read.
@@ -6596,6 +6642,50 @@ pages a file name gives wait for a key of their own. ORM models
 
 **Insight:** Pinning 6.0.3 keeps the reader on an API that is documented and stable, and on a package with no dependency, so the SBOM is one package and nothing is fetched per platform; 7.x would tie the dump to an interface its authors mark unstable. A newer compiler may parse the same code into other nodes, so the version is held to the release as SwiftSyntax's is. Reading the tracked files alone is ADR-075's rule, and a host that refuses other reads enforces it instead of trusting the folder to hold no node_modules. It costs every type a package declares, so the idiom table keys on an import's module and name, which syntax gives, and not on the checker's types, which would be any. Fixed options keep the facts from depending on a configuration a package holds; checkJs is still read from each configuration file, since it decides how a JSDoc type is taken. The order of a body's sources follows what is checked at run time: a validation schema is applied to every request in both languages, so it is stated in both, and a JavaScript service with zod reads the same as its TypeScript twin. A declared type is a promise the compiler holds the code to, so it comes next. Fields read by name are what is left in plain JavaScript; writing them with no type keeps the definition readable and the types are one question. A JSDoc comment under checkJs is held to the code just as a TypeScript annotation is; without checkJs nothing holds it, and a comment that no longer says what the code does would be a confident wrong value, which the compiler principle forbids, so it is quoted and asked. A JavaScript number has no width, as an OpenAPI number with no format has none, so its width is asked, once for every number of the design and once for each setting, never guessed as a double. zod's properties are required unless optional and yup's and joi's only when required, because that is what each library checks. The router of React Router is what makes a component a screen, and a route is a page's route as the pages reader writes one; a link's text in the default locale is the label a person reads. Every surface is read from one dump with no build, no install and no browser, so a result shows early, and each guess is a question at its line, so a change someone asks for on seeing a screen or an operation is an answer to that question.
 
+### ADR-090: extract pages reads the Next.js files' code through the JavaScript reader's code-facts dump, given with --facts, so the router's folders stay the routes and the code answers what the folders cannot
+
+Status: accepted, 2026-10-09.
+
+Context: Step 19 of docs/extraction.md reads the content of the Next.js
+files the pages reader (ADR-084) reads by their place: a route
+file's methods, server actions, middleware's matcher and checks,
+generateStaticParams, and page.schema.ts beyond its JSON5 subset.
+The pages reader asks a must question for each of these "until the
+JavaScript reader reads it". The JavaScript reader (ADR-089) reads
+a code-facts dump, and Express routes, not file-system routes. Two
+shapes were open: extract javascript learning the folders as
+routes, writing a second tree that merge would join with the pages
+tree, or extract pages reading the dump for its files' content and
+writing one tree. merge joins operations by method and path, but
+it does not know that an operation in one tree answers the pages
+tree's question on a route file's methods, which blocks the whole
+paths section. Next.js gives a server action no route of its own:
+it posts the action to the page that shows the form, naming the
+action in a header.
+
+Decision: extract pages takes --facts, a dump of a committed folder that
+holds the router's folder, and with it --implementation. The
+folders still give the pages and the route files, as before; the
+dump gives the methods a route file's code serves (exports by a
+method's name, or the req.method an API route compares or switches
+on), the permission a named check gives a handler, the branch of
+its method or a middleware whose literal matcher surely selects
+the route, the body a validation schema checks, an operation per
+server action a page's form gives as its action at the page's
+route with a must question on that path, and the page schema as
+the compiler reads it with its consts resolved. Without --facts the
+reader is what it was. The dump's reader and the pages reader ask
+their questions in one list under one numbering.
+
+Consequences: A Next.js site is read by extract pages by its folders alone, as
+before, or with its dump for the content. Nuxt's
+server routes and Vue files are read with the Vue reader (step
+20). A server action's body, given as FormData, is not read; a
+form's fields on a page are read by javascript's React reader, not
+here.
+
+**Insight:** One tree keeps each question where its answer is: the route file's question on its methods is answered by the same reader that asked it, so it is left out when the code says the methods and kept, citing the handler, when it does not. A second tree would leave the question open beside the operations that answer it until merge learned the rule, and would need the folder rules twice, in two readers that could drift. The folders stay the source of the routes because the router reads them; the code is read only for what a folder cannot say, which keeps the dump's role the same as for javascript: facts of syntax, rules in Go. A server action has no route, and writing it with none is not possible in an operation; posting to the page that shows the form is what Next.js does, so that path is written with a must question, never as a silent fact. A middleware check is applied only to the routes its matcher surely selects, since a page's parameter may or may not take a matcher's literal segment; those it may select are asked. What follows an if on req.method, and a switch's default branch, run for every other method, so those methods are asked rather than read as absent. A page holds no values of its route's parameters, so generateStaticParams' values print a line on a page and go into the question on a route file's parameters. The dump is read fast, with no build, so the operations, checks and bodies show early, and every guess is a question at its line.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -6700,6 +6790,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-outline-shallow-clone | command extract | system | red | a clone of depth 1 of a repository with two commits | extract outline is run on a folder of it | it refuses the shallow clone, whose history cannot name the last change to a path, writes nothing and exits 1 |
 | extract-outline-uncommitted | command extract | system | red | a folder whose files are committed, one of them changed since and not committed | extract outline is run on the folder | it refuses, naming the changed file, since no commit names what would be read; it writes nothing and exits 1 |
 | extract-outline-writes-clauses | command extract | system | golden | a repository holding a folder of workflow definitions in a format no reader reads, one of them a TypeScript file that says it is generated from the others | extract outline is run on the folder with a source key | it writes a root that lists every tracked file as a clause of that source at the commit, and no element; it names the commit, counts the files, reports the generated file, and exits 0 |
+| extract-pages-next-api-facts | command extract | system | golden | a Next.js Pages Router folder in plain JavaScript read with the code-facts dump of the folder that holds it and an implementation file naming two checks: an API route whose default export switches on req.method with a literal case for GET and POST, each calling the check with its own permission, and a default branch; one whose default export is the handler a check wraps, comparing req.method with DELETE; one that does not tell methods apart; and proxy.js whose matcher is a regular expression and whose function calls no check | extract pages is run on the pages folder with --facts and --implementation | it writes one operation per method an API route's handler compares req.method with, two citations each, with the permission the check its branch calls or the wrapping check names; asks a must question on the other methods each handler that tells methods apart may serve, through its switch's default branch or what follows its comparison; asks, as for any route file, the methods of the route that does not tell them apart, citing its handler; asks a must question on every page and operation proxy.js may cover, since its matcher is a regular expression the reader does not read; and exits 0 |
+| extract-pages-next-app-facts | command extract | system | golden | an App Router folder read with the code-facts dump of the folder that holds it and an implementation file naming two checks: route files that export GET as a function, POST as the handler a check wraps whose body a zod schema validates, DELETE by an export specifier and HEAD; one whose GET calls the check with a literal permission, whose PATCH calls it with a permission that is not a literal and whose generateStaticParams lists literal values; one that exports no method; a page whose schema names a const of its own and one imported from another file; a page whose form submits to a server action of a 'use server' file and another to a function with 'use server' in its body; a page whose generateStaticParams lists its values; and middleware.ts whose literal matcher selects /loans and below and whose function calls the check | extract pages is run on the app folder with --facts and --implementation | it writes one operation per method a route file exports, named by method and path, citing the file and the export, with the permission the wrapping or the called check names, the request body the validated schema gives as a schema, and an operation for each server action under the page that shows its form, named after the action; gives the pages under /loans the permission the middleware's check names; reads the schema's consts; asks a must question on each operation's summary and responses, each server action's path, the permission that is not a literal and the methods of the file that exports none, naming the values generateStaticParams gives in the question on the parameters; prints a line for HEAD and for the page's static params; and exits 0 |
 | extract-pages-next-pages-router | command extract | system | golden | a repository whose package.json names next, with proxy.ts beside a pages folder holding an index page, a page by its file and a page by its folder's index on one route, a page with a parameter, _app, _document, a 404 page, a catch-all page, a page.mdx-like file, and API routes under api, one with a parameter and one catch-all | extract pages is run on the pages folder | it reads it as the Pages Router of Next.js because package.json names next, writes one page per file whose route the meta-model holds, a must question citing each API route file that asks for its methods, a must question citing proxy.ts on every page's permission and the paths, names the commit, counts the page and API route files, prints a line and a could question for _app, _document, the 404 page, each catch-all, the .mdx file and the second file on one route, and exits 0 |
 | extract-pages-nuxt-pages | command extract | system | golden | a repository whose package.json names nuxt, with global route middleware and named route middleware beside a pages folder holding an index page, a parent page beside its folder's index, a page with a parameter, a page in a route group, a catch-all page, a page with an optional parameter, two files for one route and a Markdown file | extract pages is run on the pages folder | it reads it as the pages of Nuxt because package.json names nuxt, writes one page per file whose route the meta-model holds with the group left out of the route, a must question citing the global middleware on every page's permission and nothing for the named middleware, names the commit, counts the page files, prints a line and a could question for the parent page, the catch-all, the optional parameter, the second file on one route and the Markdown file, and exits 0 |
 | extract-pages-nuxt-server | command extract | system | golden | a repository whose server folder holds route files under api and routes whose names end in get, post or delete, one ending in head, one with no method, a catch-all route, a Markdown file, server middleware and a utility file | extract pages is run on the server folder | it writes one operation per route file whose name ends in a method the meta-model holds, under /api for api and at the root for routes, named by its method and path, with its path parameters and a must question for the parameters' values, what each operation does and answers and its permission, a must question citing the file with no method that asks for its methods, a must question citing the middleware on every operation's permission and the paths, names the commit, counts the route and middleware files, prints a line and a could question for the HEAD route, the catch-all and the Markdown file, and exits 0 |
@@ -7254,7 +7346,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-41 | enums Rule; decisions ADR-033; decisions ADR-070 | tests validate-views; tests validate-views-valid |
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064; decisions ADR-082 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-action-with; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
-| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081; decisions ADR-084; decisions ADR-087; decisions ADR-089 | tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-tables-seeds; tests extract-go-http-handlers; tests extract-go-routers; tests extract-javascript-express-routes; tests extract-javascript-fastify-validators; tests extract-javascript-parser-version; tests extract-javascript-plain-checkjs; tests extract-javascript-react-screens; tests extract-javascript-stale-dump; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-next-pages-router; tests extract-pages-nuxt-pages; tests extract-pages-nuxt-server; tests extract-pages-route-twice; tests extract-pages-router-guess; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-swift-clients-settings; tests extract-swift-models; tests extract-swift-parser-version; tests extract-swift-screens; tests extract-swift-stale-dump; tests extract-swift-vapor-routes; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read; tests validate-source-reading |
+| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081; decisions ADR-084; decisions ADR-087; decisions ADR-089; decisions ADR-090 | tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-tables-seeds; tests extract-go-http-handlers; tests extract-go-routers; tests extract-javascript-express-routes; tests extract-javascript-fastify-validators; tests extract-javascript-parser-version; tests extract-javascript-plain-checkjs; tests extract-javascript-react-screens; tests extract-javascript-stale-dump; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-next-api-facts; tests extract-pages-next-app-facts; tests extract-pages-next-pages-router; tests extract-pages-nuxt-pages; tests extract-pages-nuxt-server; tests extract-pages-route-twice; tests extract-pages-router-guess; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-swift-clients-settings; tests extract-swift-models; tests extract-swift-parser-version; tests extract-swift-screens; tests extract-swift-stale-dump; tests extract-swift-vapor-routes; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read; tests validate-source-reading |
 | SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-077 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-printed-parsed; tests merge-printed-parsed-grants; tests merge-source-differs; tests merge-tree-invalid; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests merge-workflows-joins-trigger; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046; decisions ADR-068 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-mapping-menu-entry; tests validate-owned-by-unknown |
 | SA-47 | enums Rule; decisions ADR-054 | tests document-techspec-open-workflow; tests validate-maker-checker; tests validate-workflow; tests validate-workflow-valid |

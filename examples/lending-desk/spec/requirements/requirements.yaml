@@ -30,7 +30,7 @@ requirements:
     cites:
       - { source: desk-manual, clause: "2.1", says: "A member is known by the card number printed on the card, and the desk records the member's full name." }
       - { source: desk-manual, clause: "2.2", says: "Desk staff register new members." }
-      - { source: desk-code, clause: "lending/routes.go:16", says: "POST /members, checked against members.write." }
+      - { source: desk-code, clause: "lending/routes.go:37", says: "POST /members, checked against members.write." }
   LEND-2:
     statement: Desk staff shall lend a book to a member by the member's card number and the book's barcode.
     kind: functional
@@ -39,7 +39,7 @@ requirements:
     origin: stated
     cites:
       - { source: desk-manual, clause: "3.1", says: "Desk staff lend a book by scanning the member's card and the book's barcode." }
-      - { source: desk-code, clause: "lending/routes.go:17", says: "POST /loans, checked against loans.write." }
+      - { source: desk-code, clause: "lending/routes.go:38", says: "POST /loans, checked against loans.write." }
   LEND-3:
     statement: A member shall have at most five books on loan at a time.
     kind: functional
@@ -75,7 +75,7 @@ requirements:
     origin: stated
     cites:
       - { source: desk-manual, clause: "5.1", says: "Desk staff check a returned book in by scanning its barcode, which closes the loan." }
-      - { source: desk-code, clause: "lending/routes.go:18", says: "POST /loans/{loanId}/return, checked against loans.write." }
+      - { source: desk-code, clause: "lending/routes.go:39", says: "POST /loans/{loanId}/return, checked against loans.write." }
   LEND-7:
     statement: Desk staff shall list the loans of one member.
     kind: functional
@@ -84,7 +84,7 @@ requirements:
     origin: inferred
     why: Undocumented, from code. The service serves GET /members/{cardNumber}/loans; the manual never mentions it. Q-2 asks the desk manager to confirm it.
     cites:
-      - { source: desk-code, clause: "lending/routes.go:21", says: "GET /members/{cardNumber}/loans, checked against loans.read." }
+      - { source: desk-code, clause: "lending/routes.go:42", says: "GET /members/{cardNumber}/loans, checked against loans.read." }
 
 questions:
   Q-1:

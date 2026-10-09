@@ -115,6 +115,10 @@ func (g *goReader) literalValue(f *goFile, e ast.Expr, kind string) *yaml.Node {
 		if id, ok := e.(*ast.Ident); ok && (id.Name == "true" || id.Name == "false") {
 			return value(id.Name == "true")
 		}
+	case "number":
+		if b, ok := e.(*ast.BasicLit); ok && (b.Kind == gotoken.FLOAT || b.Kind == gotoken.INT) {
+			return literal("!!float", b.Value)
+		}
 	}
 	return nil
 }
@@ -463,8 +467,24 @@ func (g *goReader) funcOf(f *goFile, e ast.Expr) (*ast.FuncDecl, *goFile) {
 	return nil, nil
 }
 
-// gatesIn finds the gates of one middleware.
+// gatesIn finds the gates of one middleware: an if statement among its own
+// statements that returns nil.
 func (g *goReader) gatesIn(f *goFile, fd *ast.FuncDecl) {
+	g.gatesInList(f, fd, fd.Body.List, func(body *ast.BlockStmt) bool {
+		if len(body.List) != 1 {
+			return false
+		}
+		ret, ok := body.List[0].(*ast.ReturnStmt)
+		return ok && len(ret.Results) == 1 && exprText(ret.Results[0]) == "nil"
+	})
+}
+
+// gatesInList finds, among one list of a check's statements, an if
+// statement with no init whose body lets the request through, as through
+// says, while a setting read from the environment by a literal name,
+// directly or through a name the function assigns once, is empty, or a
+// boolean one is false.
+func (g *goReader) gatesInList(f *goFile, fd *ast.FuncDecl, list []ast.Stmt, through func(*ast.BlockStmt) bool) {
 	locals := map[string]ast.Expr{} // a name -> the one value assigned to it
 	counts := map[string]int{}
 	ast.Inspect(fd.Body, func(n ast.Node) bool {
@@ -501,13 +521,9 @@ func (g *goReader) gatesIn(f *goFile, fd *ast.FuncDecl) {
 		}
 		return key, kind
 	}
-	for _, st := range fd.Body.List {
+	for _, st := range list {
 		is, ok := st.(*ast.IfStmt)
-		if !ok || is.Init != nil || len(is.Body.List) != 1 {
-			continue
-		}
-		ret, ok := is.Body.List[0].(*ast.ReturnStmt)
-		if !ok || len(ret.Results) != 1 || exprText(ret.Results[0]) != "nil" {
+		if !ok || is.Init != nil || !through(is.Body) {
 			continue
 		}
 		setting, boolean := "", false

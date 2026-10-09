@@ -487,6 +487,7 @@ redefined.
 | `testing`, `suites`, `designTests`, `designTestsOf`, `implementationOnly` | SpecArch | in implementation files: how one stack runs the design tests |
 | `stack`, `targets`, `deployments`, `environment` (of a deployment) | SpecArch | in implementation files: the stack, the output folders per target, and where the system really runs |
 | `ownedBy` | SpecArch | in implementation files: on a mapping, the stakeholder that owns an element the project describes but does not generate |
+| `permissionChecks`, `package`, `function`, `permissionArgument` | SpecArch | in implementation files: on a binding, the project's own permission checks, which `specarch extract` reads routes' permissions through (ADR-081) |
 
 ### Traceability links
 

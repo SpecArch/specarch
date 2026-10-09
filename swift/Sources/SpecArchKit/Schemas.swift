@@ -5735,6 +5735,33 @@ let implementationSchemaJSON = #"""
         "settings": {
           "type": "object"
         },
+        "permissionChecks": {
+          "description": "SpecArch keyword. The project's own permission checks, which specarch extract reads in source: a call of one with a literal permission is the permission of the route it wraps, guards as middleware or is made in (docs/reading-code.md). Read for the http binding.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "package": {
+                "description": "Where the check is declared, as the language names it: a Go import path (the folder from the repository's root where no go.mod is read), a module path of JavaScript or TypeScript, a Swift module.",
+                "type": "string",
+                "minLength": 1
+              },
+              "function": {
+                "description": "The check's name in that package: a function, or a type and its method joined by a dot, such as Server.Require.",
+                "type": "string",
+                "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)?$"
+              },
+              "permissionArgument": {
+                "description": "The argument that carries the permission, counted from 1.",
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": ["package", "function", "permissionArgument"],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
         "why": {
           "$ref": "#/$defs/why"
         },

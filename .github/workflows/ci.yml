@@ -157,7 +157,10 @@ jobs:
       - name: The lending desk extracts end to end the same twice, and gaps lists the phone number and the open member route as must questions
         # The manual has a personal phone number the members table does not;
         # the router serves GET /members/{cardNumber} with no permission,
-        # and no document mentions it.
+        # and no document mentions it. The Go source is read with the
+        # check the implementation file names, and the route table answers
+        # its question whether the running system registers each of the
+        # seven routes.
         run: |
           mkdir -p "$RUNNER_TEMP/bin"
           go build -o "$RUNNER_TEMP/bin/specarch" ./cmd/specarch
@@ -170,6 +173,9 @@ jobs:
           grep -F -B2 'Not built yet. The documents have field phoneNumber of entity Members' "$RUNNER_TEMP/desk-one/gaps.txt" | grep -q '(must, decision)'
           grep -F -B2 'Undocumented, from code: is operation showMember (GET /members/{cardNumber})' "$RUNNER_TEMP/desk-one/gaps.txt" | grep -q '(must, decision)'
           grep -F -B2 'GET /members/{cardNumber} checks no permission' "$RUNNER_TEMP/desk-one/gaps.txt" | grep -q '(must, decision)'
+          test "$(grep -c 'prints it as the running system registers it' "$RUNNER_TEMP/desk-one/merge.txt")" -eq 7
+          grep -q '^merged .* and 0 keys the trees disagree on$' "$RUNNER_TEMP/desk-one/merge.txt"
+          grep -rhF 'lending/routes.go:38' "$RUNNER_TEMP/desk-one/spec/design" | grep -q 's.Require("loans.write")'
       - name: The notice board extracts from dxlib's document and its Go source the same twice, and every operation cites both
         # The document dxlib emitted is printed and answers the Go tree's
         # question whether the running system registers each operation;

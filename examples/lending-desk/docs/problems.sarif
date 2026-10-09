@@ -77,12 +77,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 32,
+                  "startLine": 47,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:32: RegisterMember answers 201."
+                "text": "source desk-code, clause lending/routes.go:47: RegisterMember answers 201."
               }
             }
           ]
@@ -142,12 +142,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 32,
+                  "startLine": 47,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:32: RegisterMember answers 201."
+                "text": "source desk-code, clause lending/routes.go:47: RegisterMember answers 201."
               }
             }
           ]
@@ -207,12 +207,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 32,
+                  "startLine": 47,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:32: RegisterMember answers 201."
+                "text": "source desk-code, clause lending/routes.go:47: RegisterMember answers 201."
               }
             }
           ]
@@ -272,12 +272,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 32,
+                  "startLine": 47,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:32: RegisterMember answers 201."
+                "text": "source desk-code, clause lending/routes.go:47: RegisterMember answers 201."
               }
             }
           ]
@@ -337,12 +337,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 32,
+                  "startLine": 47,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:32: RegisterMember answers 201."
+                "text": "source desk-code, clause lending/routes.go:47: RegisterMember answers 201."
               }
             }
           ]
@@ -402,12 +402,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 32,
+                  "startLine": 47,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:32: RegisterMember answers 201."
+                "text": "source desk-code, clause lending/routes.go:47: RegisterMember answers 201."
               }
             }
           ]
@@ -467,12 +467,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 32,
+                  "startLine": 47,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:32: RegisterMember answers 201."
+                "text": "source desk-code, clause lending/routes.go:47: RegisterMember answers 201."
               }
             }
           ]
@@ -532,12 +532,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 38,
+                  "startLine": 59,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:38: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
+                "text": "source desk-code, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
               }
             }
           ]
@@ -597,12 +597,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 38,
+                  "startLine": 59,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:38: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
+                "text": "source desk-code, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
               }
             }
           ]
@@ -662,12 +662,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 38,
+                  "startLine": 59,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:38: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
+                "text": "source desk-code, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
               }
             }
           ]
@@ -727,12 +727,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 38,
+                  "startLine": 59,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:38: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
+                "text": "source desk-code, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
               }
             }
           ]
@@ -792,12 +792,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 38,
+                  "startLine": 59,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:38: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
+                "text": "source desk-code, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
               }
             }
           ]
@@ -857,12 +857,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 38,
+                  "startLine": 59,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:38: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
+                "text": "source desk-code, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
               }
             }
           ]
@@ -922,12 +922,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 38,
+                  "startLine": 59,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:38: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
+                "text": "source desk-code, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
               }
             }
           ]
@@ -987,12 +987,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 47,
+                  "startLine": 73,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:47: ReturnBook closes the loan and answers 200."
+                "text": "source desk-code, clause lending/routes.go:73: ReturnBook closes the loan and answers 200."
               }
             }
           ]
@@ -1052,12 +1052,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 47,
+                  "startLine": 73,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:47: ReturnBook closes the loan and answers 200."
+                "text": "source desk-code, clause lending/routes.go:73: ReturnBook closes the loan and answers 200."
               }
             }
           ]
@@ -1117,12 +1117,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 47,
+                  "startLine": 73,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:47: ReturnBook closes the loan and answers 200."
+                "text": "source desk-code, clause lending/routes.go:73: ReturnBook closes the loan and answers 200."
               }
             }
           ]
@@ -1313,12 +1313,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 64,
+                  "startLine": 91,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:64: ListMemberLoans answers 200 with the member's loans."
+                "text": "source desk-code, clause lending/routes.go:91: ListMemberLoans answers 200 with the member's loans."
               }
             }
           ]
@@ -1362,12 +1362,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 64,
+                  "startLine": 91,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:64: ListMemberLoans answers 200 with the member's loans."
+                "text": "source desk-code, clause lending/routes.go:91: ListMemberLoans answers 200 with the member's loans."
               }
             }
           ]
@@ -1411,12 +1411,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 64,
+                  "startLine": 91,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:64: ListMemberLoans answers 200 with the member's loans."
+                "text": "source desk-code, clause lending/routes.go:91: ListMemberLoans answers 200 with the member's loans."
               }
             }
           ]
@@ -1460,12 +1460,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 64,
+                  "startLine": 91,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:64: ListMemberLoans answers 200 with the member's loans."
+                "text": "source desk-code, clause lending/routes.go:91: ListMemberLoans answers 200 with the member's loans."
               }
             }
           ]
@@ -1525,12 +1525,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 14,
+                  "startLine": 36,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:14: Routes serves no renew route."
+                "text": "source desk-code, clause lending/routes.go:36: Register registers no renew route."
               }
             }
           ],
@@ -1663,12 +1663,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 22,
+                  "startLine": 43,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:22: GET /members/{cardNumber} checks no permission."
+                "text": "source desk-code, clause lending/routes.go:43: GET /members/{cardNumber} checks no permission."
               }
             },
             {
@@ -1679,12 +1679,12 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 69,
+                  "startLine": 97,
                   "startColumn": 1
                 }
               },
               "message": {
-                "text": "source desk-code, clause lending/routes.go:69: ShowMember answers one member's card number and full name."
+                "text": "source desk-code, clause lending/routes.go:97: ShowMember answers one member's card number and full name."
               }
             }
           ],

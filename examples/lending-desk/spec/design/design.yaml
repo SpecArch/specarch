@@ -73,20 +73,20 @@ permissions:
     satisfies: [LEND-1]
     origin: stated
     cites:
-      - { source: desk-code, clause: "lending/routes.go:16", says: "POST /members checks members.write." }
+      - { source: desk-code, clause: "lending/routes.go:37", says: "POST /members checks members.write." }
   loans.write:
     description: Lend, renew and check in books.
     satisfies: [LEND-2, LEND-5, LEND-6]
     origin: stated
     cites:
-      - { source: desk-code, clause: "lending/routes.go:17", says: "POST /loans and POST /loans/{loanId}/return check loans.write." }
+      - { source: desk-code, clause: "lending/routes.go:38", says: "POST /loans and POST /loans/{loanId}/return check loans.write." }
   loans.read:
     description: See the loans of a member.
     satisfies: [LEND-7]
     origin: inferred
     why: Undocumented, from code; it stands or falls with LEND-7 and Q-2.
     cites:
-      - { source: desk-code, clause: "lending/routes.go:21", says: "GET /members/{cardNumber}/loans checks loans.read." }
+      - { source: desk-code, clause: "lending/routes.go:42", says: "GET /members/{cardNumber}/loans checks loans.read." }
 
 roles:
   desk-staff:
@@ -114,7 +114,7 @@ paths:
       origin: stated
       cites:
         - { source: desk-manual, clause: "2.2", says: "Desk staff register new members." }
-        - { source: desk-code, clause: "lending/routes.go:32", says: "RegisterMember answers 201." }
+        - { source: desk-code, clause: "lending/routes.go:47", says: "RegisterMember answers 201." }
   /loans:
     post:
       operationId: lendBook
@@ -141,7 +141,7 @@ paths:
       origin: stated
       cites:
         - { source: desk-manual, clause: "3.1", says: "Desk staff lend a book by scanning the member's card and the book's barcode." }
-        - { source: desk-code, clause: "lending/routes.go:38", says: "LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise." }
+        - { source: desk-code, clause: "lending/routes.go:59", says: "LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise." }
   /loans/{loanId}/return:
     parameters:
       - { name: loanId, in: path, required: true, schema: { type: integer, format: int64, minimum: 1, maximum: 9007199254740991 } }
@@ -155,7 +155,7 @@ paths:
       origin: stated
       cites:
         - { source: desk-manual, clause: "5.1", says: "Checking a book in closes the loan." }
-        - { source: desk-code, clause: "lending/routes.go:47", says: "ReturnBook closes the loan and answers 200." }
+        - { source: desk-code, clause: "lending/routes.go:73", says: "ReturnBook closes the loan and answers 200." }
   /loans/{loanId}/renew:
     parameters:
       - { name: loanId, in: path, required: true, schema: { type: integer, format: int64, minimum: 1, maximum: 9007199254740991 } }
@@ -187,4 +187,4 @@ paths:
       origin: inferred
       why: Undocumented, from code; Q-2 asks whether it is wanted.
       cites:
-        - { source: desk-code, clause: "lending/routes.go:64", says: "ListMemberLoans answers 200 with the member's loans." }
+        - { source: desk-code, clause: "lending/routes.go:91", says: "ListMemberLoans answers 200 with the member's loans." }

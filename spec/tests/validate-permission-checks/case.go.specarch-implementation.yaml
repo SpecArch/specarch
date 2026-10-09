@@ -1,0 +1,10 @@
+specarchImplementation: "0.1"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+bindings:
+  http:
+    framework: standard library
+    permissionChecks:
+      - { package: example.com/desk/lending, function: Server.Require, permissionArgument: 1 }
+      - { package: example.com/desk/lending, function: Allow, permissionArgument: 0 }

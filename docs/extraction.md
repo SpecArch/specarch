@@ -404,12 +404,29 @@ changes `extract.yaml` first.
     a gate both readings ask by the check's name. `examples/notice-board`
     gains its notice table, its seeds, a configuration file and a session
     check a setting switches off.
-15. Go on `net/http` and the common routers: `http.ServeMux` patterns,
-    chi, gin, echo and gorilla/mux; path parameters, request bodies from
-    the module's own structs, validator tags, the project's named
-    permission check, API clients and settings. The implementation file
-    gains the key that names a project's check. The lending desk's
-    server is read and merged with its route table.
+15. Built. Go on `net/http` and the common routers (ADR-081). `extract
+    go` follows the routers a module makes, is given or keeps in a
+    field, from each function no call names, through the calls that pass
+    them, joining the literal prefixes of groups, routes, mounts,
+    subrouters and `ServeMux` subtrees: `http.ServeMux` patterns, chi,
+    gin, echo and gorilla/mux. A type of the module with `ServeMux`'s
+    `Handle` method is read as a `ServeMux`, so a route printer's
+    recorder is one. Each route registered with literal values outside
+    a loop or a condition is an operation named as extract router names
+    one; handlers give the path parameters they read, the JSON body they
+    decode into a struct of the module, by encoding/json's rules, with
+    go-playground/validator's and gin's tag rules that have a keyword,
+    and the dependencies their client calls name by host; flags are
+    settings. The implementation file names the project's checks under
+    `bindings.http.permissionChecks`, given to extract go with
+    `--implementation`; a check's literal permission, wrapping a
+    handler, as middleware or called in it, is the operation's, and a
+    gate on a setting is found in it. The lending desk's server
+    registers literal `ServeMux` patterns through `Server.Require`, its
+    printer hands the same function a recorder, and `extract.sh` merges
+    the Go reading with the route table: each of the seven operations
+    has both citations and no key differs. Responses a handler writes
+    and models with a table name are left for a later step.
 16. The file-system routers that need no parser: Next.js `pages/` and
     `pages/api/`, `app/` route files and `middleware.ts` by their place,
     Nuxt `pages/` and `server/`, in the pages reader, each method and

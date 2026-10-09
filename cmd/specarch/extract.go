@@ -26,7 +26,7 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	source := args[0]
-	out, key := "", ""
+	out, key, implementation := "", "", ""
 	var paths []string
 	rest := args[1:]
 	for i := 0; i < len(rest); i++ {
@@ -35,15 +35,18 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		case a == "--":
 			paths = append(paths, rest[i+1:]...)
 			i = len(rest)
-		case a == "--out" || a == "--source-key":
+		case a == "--out" || a == "--source-key" || a == "--implementation":
 			if i+1 >= len(rest) {
 				fmt.Fprintf(stderr, "specarch extract: %s needs a value\n\n%s", a, usage)
 				return 2
 			}
-			if a == "--out" {
+			switch a {
+			case "--out":
 				out = rest[i+1]
-			} else {
+			case "--source-key":
 				key = rest[i+1]
+			default:
+				implementation = rest[i+1]
 			}
 			i++
 		case len(a) > 1 && a[0] == '-':
@@ -86,6 +89,9 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case source == "workflows" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract workflows reads one BPMN 2.0 XML file, and was given %d paths\n", len(paths))
 		return 2
+	case implementation != "" && source != "go":
+		fmt.Fprintf(stderr, "specarch extract %s takes no --implementation; only go reads the permission checks an implementation file names\n", source)
+		return 2
 	case source == "openapi" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract openapi reads one OpenAPI document, and was given %d paths; one source is written per document file\n", len(paths))
 		return 2
@@ -113,7 +119,7 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case "workflows":
 		res, err = extract.Workflows(paths[0], out, key)
 	case "go":
-		res, err = extract.Go(paths, out, key)
+		res, err = extract.Go(paths, out, key, implementation)
 	}
 	if err != nil {
 		var refusal *extract.Refusal

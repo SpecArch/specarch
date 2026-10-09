@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: an implementation file whose http binding names two permission checks, one with its permission in the first argument and one with a permission argument of 0
+when: validate is run on its folder
+then: it takes the first check and reports the argument of 0 as a schema error at that entry, and exits 1
+verifies: [SA-10]

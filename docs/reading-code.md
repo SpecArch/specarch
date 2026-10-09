@@ -227,11 +227,11 @@ Changes in dxlib and dxlib_module that would help, for their own queues:
 | Surface | Source | Why |
 |---|---|---|
 | routes | the route table (ADR-044) first; source for `path:line` and the handler | the printer sees every registration |
-| routes from source | `http.ServeMux` patterns (`"GET /loans/{id}"`), chi (`r.Get`, `r.Route`, `r.Mount`), gin and echo (`GET`, `Group`), gorilla/mux (`HandleFunc(...).Methods(...)`) with literal paths | each library's registration idiom; a group or mount with a literal prefix is joined, any other prefix is a `must` question |
+| routes from source | `http.ServeMux` patterns (`"GET /loans/{id}"`), chi (`r.Get`, `r.Route`, `r.Mount`), gin and echo (`GET`, `Group`), gorilla/mux (`HandleFunc(...).Methods(...)`) with literal paths, on a router the module makes, is given or keeps in a field, or a value of a type of the module with `ServeMux`'s `Handle` method | each library's registration idiom; a group or mount with a literal prefix is joined, any other prefix is a `must` question |
 | path parameters | `r.PathValue`, `chi.URLParam`, `c.Param` with a literal name | compared with the path's own parameters; a name the path lacks is a `must` question |
 | request bodies | `json.NewDecoder(...).Decode(&v)` and `Bind`, into a struct declared in the module | the struct's fields and `json` tags give the schema; a struct outside the module is a question |
 | validation | struct tags of a validator the reader knows (`validate:"required,max=50"`) | each rule with a meta-model keyword is written; any other a `could` question |
-| permission checks | a call to a function the implementation file names as the project's check, with a literal permission | a check behind a helper is not found by syntax; the project names its helper once |
+| permission checks | a call to a function the implementation file names as the project's check (`bindings.http.permissionChecks`: its package, its name and the argument that carries the permission), with a literal permission, wrapping a handler, as a route's or a group's middleware, or in the handler | a check behind a helper is not found by syntax; the project names its helper once (ADR-081) |
 | gates on a setting | inside that named check: an early return that lets the request through, guarded by a test that a configuration value is empty or false | a candidate, compared with the printer's declaration |
 | models | the catalogue; structs with a table name (GORM's `TableName`, sqlc's generated structs) add wire names | the database holds the data model |
 | API clients | `http.NewRequest` and `http.Get` with a literal method and URL | an operation of another system; a computed URL is a `should` question |

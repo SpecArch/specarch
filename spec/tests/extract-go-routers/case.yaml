@@ -1,0 +1,32 @@
+arguments: [extract, go, --out, spec, testdata/service]
+repository:
+  folder: testdata/service
+  commits:
+    - [.]
+exitStatus: 0
+standardOutput: |
+  commit 5f2decaa451a794649e40eb4f9dc96bfb560a1be: the last change to .
+  counted 7 Go files, 0 of them importing dxlib's api package and 0 that do not parse, and left out 0: every tracked Go file under . but test files and files in a folder below it named testdata or vendor, or that the go command ignores
+  settings: counted 2 reads of the environment and 0 configurations: every call of os or of dxlib's utils/os that reads the environment by a name, and every NewConfiguration of dxlib's configuration
+  routers: counted 36 registrations: every call that registers a route on a router of net/http, chi, gin, echo or gorilla/mux that the reader follows from where it is made, with its groups, mounts and subrouters
+  nothing read: unused/empty.go imports echo, and the reader found no route or handler in it
+  routes: wrote 22 operations: one operation per route a router of net/http, chi, gin, echo or gorilla/mux registers with a literal method and path, outside a loop or a condition, under a prefix the reader knows
+  wrote 0 permissions and 103 questions: one permission per name a route checks with a literal, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  wrote 0 entities, 0 roles and 2 settings: one entity per table NewModelDBTable declares with a literal schema and name, one role per role the seeds grant something, and one setting per name the source reads or a configuration file holds
+  not held: chirouter/router.go:22: the route /members/{cardNumber:[0-9]+}/address: the parameter cardNumber matches the pattern [0-9]+, which is not written as its schema, since the router's pattern syntax is not JSON Schema's; could question Q-87
+  not held: chirouter/router.go:29: the route /assets/*: it ends in the catch-all *, which matches the rest of the path, and a path parameter holds one segment; left out; could question Q-88
+  not held: ginrouter/router.go:14: the route /static/*filepath: it ends in the catch-all *filepath, which matches any number of segments, and a path parameter holds one; left out; could question Q-89
+  not held: gorillarouter/router.go:14: the route /holds/{holdId:[0-9]+}: the parameter holdId matches the pattern [0-9]+, which is not written as its schema, since the router's pattern syntax is not JSON Schema's; could question Q-90
+  not held: gorillarouter/router.go:18: the route /holds/search matches by Queries as well as by method and path, which the meta-model does not hold; left out; could question Q-91
+  not held: stdmux/mux.go:11: the pattern GET desk.example.com/status matches the host desk.example.com as well as the path, which the meta-model does not hold; left out; could question Q-92
+  not held: stdmux/mux.go:12: the route /files/{path...}: it ends in the wildcard {path...}, which matches the rest of the path, and a path parameter holds one segment; left out; could question Q-93
+  not held: stdmux/mux.go:14: the route HEAD /loans: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out; could question Q-94
+  not held: chirouter/router.go:17: the route GET /members/{cardNumber}: its handler showMember serves more than one route; the operation is named getMembersByCardNumber; could question Q-95
+  not held: chirouter/router.go:22: the route PUT /members/{cardNumber}/address: its handler showMember serves more than one route; the operation is named putMembersByCardNumberAddress; could question Q-96
+  not held: echorouter/router.go:14: the route POST /fines/{fineId}/waivers: its handler waive serves more than one route; the operation is named postFinesByFineIdWaivers; could question Q-97
+  not held: echorouter/router.go:15: the route PUT /fines/{fineId}: its handler waive serves more than one route; the operation is named putFinesByFineId; could question Q-98
+  not held: echorouter/router.go:15: the route PATCH /fines/{fineId}: its handler waive serves more than one route; the operation is named patchFinesByFineId; could question Q-99
+  not held: ginrouter/router.go:11: the route POST /v1/books: its handler addBook serves more than one route; the operation is named postV1Books; could question Q-100
+  not held: ginrouter/router.go:13: the route PATCH /v1/books/{isbn}: its handler addBook serves more than one route; the operation is named patchV1BooksByIsbn; could question Q-101
+  not held: gorillarouter/router.go:15: the route DELETE /api/holds/{holdId}: its handler cancelHold serves more than one route; the operation is named deleteApiHoldsByHoldId; could question Q-102
+  not held: gorillarouter/router.go:15: the route POST /api/holds/{holdId}: its handler cancelHold serves more than one route; the operation is named postApiHoldsByHoldId; could question Q-103

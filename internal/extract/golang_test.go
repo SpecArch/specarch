@@ -71,7 +71,7 @@ func Show(aepr *api.DXAPIEndPointRequest) (err error) {
 }
 `,
 	})
-	res, err := Go([]string{dir}, filepath.Join(t.TempDir(), "out"), "code")
+	res, err := Go([]string{dir}, filepath.Join(t.TempDir(), "out"), "code", "")
 	if err != nil {
 		t.Fatal(err)
 	}

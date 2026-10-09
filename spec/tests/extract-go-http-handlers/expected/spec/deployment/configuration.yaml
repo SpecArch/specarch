@@ -1,0 +1,36 @@
+configuration:
+  apiToken:
+    schema: {type: string}
+    origin: stated
+    cites:
+      - {source: code, clause: 'cmd/desk/main.go:15', says: Declares the flag api-token with String.}
+  deskChecks:
+    schema: {type: string}
+    origin: stated
+    cites:
+      - {source: code, clause: 'desk/access.go:11', says: Reads DESK_CHECKS from the environment with Getenv.}
+  deskScope:
+    schema: {type: string}
+    origin: stated
+    cites:
+      - {source: code, clause: 'desk/server.go:35', says: Reads DESK_SCOPE from the environment with Getenv.}
+  deskUpstream:
+    schema: {type: string}
+    origin: stated
+    cites:
+      - {source: code, clause: 'desk/server.go:93', says: Reads DESK_UPSTREAM from the environment with Getenv.}
+  listenAddr:
+    schema: {type: string, default: ':8080'}
+    origin: stated
+    cites:
+      - {source: code, clause: 'cmd/desk/main.go:11', says: Declares the flag listen-addr with String.}
+  maxBodyBytes:
+    schema: {type: integer, default: 1048576}
+    origin: stated
+    cites:
+      - {source: code, clause: 'cmd/desk/main.go:14', says: Declares the flag max-body-bytes with Int64.}
+  verbose:
+    schema: {type: boolean, default: false}
+    origin: stated
+    cites:
+      - {source: code, clause: 'cmd/desk/main.go:13', says: Declares the flag verbose with BoolVar.}

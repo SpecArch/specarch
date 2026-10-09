@@ -16,6 +16,7 @@ import (
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/spec"
+	"github.com/SpecArch/specarch/internal/wirename"
 )
 
 // The import path of dxlib's api package, whose calls the Go reader knows
@@ -64,8 +65,9 @@ var httpStatuses = map[string]int{
 }
 
 var (
-	goModule    = regexp.MustCompile(`(?m)^module\s+"?([^\s"]+)"?\s*$`)
-	problemWord = regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
+	goModule     = regexp.MustCompile(`(?m)^module\s+"?([^\s"]+)"?\s*$`)
+	problemWord  = regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
+	majorVersion = regexp.MustCompile(`^v[0-9]+$`)
 )
 
 // goFile is one Go file read: its path from the repository's root, its
@@ -116,7 +118,7 @@ type goProblem struct {
 // (ADR-076): each endpoint NewEndPoint registers with literal values is an
 // operation citing its file and line, with its handler's parameter reads
 // and the problems it answers.
-func Go(paths []string, out, key string) (*Result, error) {
+func Go(paths []string, out, key, implementation string) (*Result, error) {
 	r, err := Open(paths)
 	if err != nil {
 		return nil, err
@@ -124,8 +126,11 @@ func Go(paths []string, out, key string) (*Result, error) {
 	res := &Result{Tree: newTree()}
 	commitLine(res, r)
 	g := &goReader{r: r, key: key, res: res, questions: &yaml.Node{Kind: yaml.MappingNode}, fset: gotoken.NewFileSet(),
-		funcs: map[string]map[string]*ast.FuncDecl{}, funcFile: map[*ast.FuncDecl]*goFile{}}
+		funcs: map[string]map[string]*ast.FuncDecl{}, funcFile: map[*ast.FuncDecl]*goFile{}, rt: &routeState{}}
 	if err := g.parse(); err != nil {
+		return nil, err
+	}
+	if err := g.loadChecks(implementation); err != nil {
 		return nil, err
 	}
 	g.collectAssigns()
@@ -134,6 +139,7 @@ func Go(paths []string, out, key string) (*Result, error) {
 	g.readSeeds()
 	g.fileRead = map[string]bool{}
 	g.readSettings()
+	g.readFlags()
 	g.read()
 	var clauses []*yaml.Node
 	for _, f := range g.files {
@@ -165,6 +171,9 @@ func Go(paths []string, out, key string) (*Result, error) {
 	}
 	if g.problems != nil {
 		set(design, "errors", g.problems)
+	}
+	if g.deps != nil {
+		set(design, "dependencies", g.deps)
 	}
 	if len(design.Content) > 0 {
 		has["design"] = true
@@ -201,7 +210,11 @@ func Go(paths []string, out, key string) (*Result, error) {
 		}
 	}
 	description := fmt.Sprintf("The Go source under %s, read at commit %s by the standard library's parser, by its syntax alone. Every operation cites the line that registers it; what the source does not say as a literal, or through a call the reader knows, is a question, and so is what the meta-model cannot hold.\n", strings.Join(r.Paths, ", "), r.Commit)
-	res.Tree.put("specarch.yaml", rootFile("Go source of "+strings.Join(r.Paths, ", "), description, stages, mapping(key, src)))
+	root := rootFile("Go source of "+strings.Join(r.Paths, ", "), description, stages, mapping(key, src))
+	if g.wireSnake {
+		set(child(root, "info"), "wireNames", wirename.SnakeCase)
+	}
+	res.Tree.put("specarch.yaml", root)
 	return res, nil
 }
 
@@ -235,6 +248,11 @@ type goReader struct {
 	fileRead    map[string]bool // configuration files read as data
 	gates       []goGate
 	deployQs    *yaml.Node // the questions on configuration, which sit in the deployment stage
+
+	rt        *routeState // the routers of net/http, chi, gin, echo and gorilla/mux
+	deps      *yaml.Node
+	wireSnake bool // the bodies read name their fields in snake_case
+	dxlib     bool // a file imports dxlib's api package
 }
 
 func (g *goReader) question(priority, text string, blocks []string, why string, cites ...*yaml.Node) {
@@ -345,7 +363,7 @@ func (g *goReader) parse() error {
 		gf := &goFile{path: f, ast: file, imports: map[string]string{}}
 		for _, imp := range file.Imports {
 			p, _ := strconv.Unquote(imp.Path.Value)
-			name := path.Base(p)
+			name := importedName(p)
 			if imp.Name != nil {
 				name = imp.Name.Name
 			}
@@ -373,6 +391,20 @@ func (g *goReader) parse() error {
 	return nil
 }
 
+// importedName is the name an import with no name of its own gives: the
+// path's last element, or the one before it when the last is a major
+// version (v5), and without a gopkg.in version (yaml.v3).
+func importedName(p string) string {
+	name := path.Base(p)
+	if majorVersion.MatchString(name) && path.Dir(p) != "." {
+		name = path.Base(path.Dir(p))
+	}
+	if i := strings.Index(name, ".v"); i > 0 && majorVersion.MatchString(name[i+1:]) {
+		name = name[:i]
+	}
+	return name
+}
+
 // importName is the name a file gives an import path, or "".
 func (f *goFile) importName(p string) string {
 	for name, ip := range f.imports {
@@ -387,6 +419,7 @@ func (f *goFile) importName(p string) string {
 // api package, then writes the operations in the order of their paths and
 // methods.
 func (g *goReader) read() {
+	g.readRouters()
 	calls := map[string]int{}
 	for _, f := range g.files {
 		if f.importName(dxlibAPI) == "" {
@@ -411,7 +444,14 @@ func (g *goReader) read() {
 			return true
 		})
 	}
-	g.res.say("dxlib: counted %s, %s and %s: every call by that name in a file that imports dxlib's api package", plural(calls["NewEndPoint"], "NewEndPoint call"), plural(calls["NewWSEndPoint"], "NewWSEndPoint call"), plural(calls["RegisterHandler"], "RegisterHandler call"))
+	dxlib := false
+	for _, f := range g.files {
+		dxlib = dxlib || f.importName(dxlibAPI) != ""
+	}
+	g.dxlib = dxlib
+	if dxlib {
+		g.res.say("dxlib: counted %s, %s and %s: every call by that name in a file that imports dxlib's api package", plural(calls["NewEndPoint"], "NewEndPoint call"), plural(calls["NewWSEndPoint"], "NewWSEndPoint call"), plural(calls["RegisterHandler"], "RegisterHandler call"))
+	}
 	g.readGates()
 	g.writeGates()
 	g.writeSettings()
@@ -692,6 +732,7 @@ func (g *goReader) problemCall(ep *goEndpoint, file *goFile, call *ast.CallExpr,
 // answer, and the questions on what the source does not say.
 func (g *goReader) write() {
 	g.paths = &yaml.Node{Kind: yaml.MappingNode}
+	items := map[string]*yaml.Node{}
 	byURI := map[string][]*goEndpoint{}
 	var uris []string
 	var lone []string
@@ -731,6 +772,7 @@ func (g *goReader) write() {
 	conflicts := map[string][]string{} // a problem answered at two statuses -> the responses that would name it
 	checkedBy := map[string][]string{}
 	firstAt := map[string]string{}
+	firstVia := map[string]string{} // a permission a route checks first -> the check that reads it
 	mappedFrom := map[string]string{}
 	for _, uri := range uris {
 		eps := byURI[uri]
@@ -869,7 +911,13 @@ func (g *goReader) write() {
 			g.question("must", fmt.Sprintf("Does the running system register %s? It is declared at %s, and no list the running system printed was read with it.", label, regAt),
 				[]string{ep.at}, "Syntax shows a declaration and not what runs; the document dxlib emits, or a route table, says what the running system registers, and merging it answers this.", g.at(regAt, "Registers "+label+" with NewEndPoint."))
 		}
-		set(g.paths, uri, item)
+		items[uri] = item
+	}
+	endpointPaths := len(uris)
+	g.writeRoutes(items, &uris, checkedBy, firstAt, firstVia)
+	sort.Strings(uris)
+	for _, uri := range uris {
+		set(g.paths, uri, items[uri])
 	}
 	seeded := map[string]*seedPermission{}
 	g.writeSeeds(privileges, func(p, privilege, description, clause, says string) {
@@ -889,11 +937,16 @@ func (g *goReader) write() {
 		}
 		s.cites = append(s.cites, g.at(clause, says))
 	})
-	g.declarePermissions(checkedBy, firstAt, mappedFrom, seeded)
+	g.declarePermissions(checkedBy, firstAt, firstVia, mappedFrom, seeded)
 	g.declareProblems(problemOrder, problemAt, problemStatus, conflicts)
 	permissions := len(checkedBy)
-	g.res.say("wrote %s on %s, %s, %s and %s: one operation per endpoint NewEndPoint registers with a literal method and URI, outside a loop or a condition, one permission per privilege an endpoint names alone, one problem per literal reason a handler answers, one question per thing the source does not say, and one per thing the meta-model cannot hold",
-		plural(len(g.endpoints), "operation"), plural(len(uris), "path"), plural(permissions, "permission"), plural(len(problemOrder), "problem"), plural(g.nextID+couldCount(g.questionsFor, g.notHeld), "question"))
+	if !g.dxlib {
+		g.res.say("wrote %s and %s: one permission per name a route checks with a literal, one question per thing the source does not say, and one per thing the meta-model cannot hold",
+			plural(permissions, "permission"), plural(g.nextID+couldCount(g.questionsFor, g.notHeld), "question"))
+	} else {
+		g.res.say("wrote %s on %s, %s, %s and %s: one operation per endpoint NewEndPoint registers with a literal method and URI, outside a loop or a condition, one permission per privilege an endpoint names alone, one problem per literal reason a handler answers, one question per thing the source does not say, and one per thing the meta-model cannot hold",
+			plural(len(g.endpoints), "operation"), plural(endpointPaths, "path"), plural(permissions, "permission"), plural(len(problemOrder), "problem"), plural(g.nextID+couldCount(g.questionsFor, g.notHeld), "question"))
+	}
 	roles, settings := 0, 0
 	if g.roles != nil {
 		roles = len(g.roles.Content) / 2
@@ -963,7 +1016,7 @@ type seedPermission struct {
 // declarePermissions declares every permission an endpoint's privilege
 // names, as extract openapi does, citing the first registration that
 // checks it, and every permission the seeds insert or grant, citing them.
-func (g *goReader) declarePermissions(checkedBy map[string][]string, firstAt, mappedFrom map[string]string, seeded map[string]*seedPermission) {
+func (g *goReader) declarePermissions(checkedBy map[string][]string, firstAt, firstVia, mappedFrom map[string]string, seeded map[string]*seedPermission) {
 	var names []string
 	for n := range checkedBy {
 		names = append(names, n)
@@ -985,7 +1038,9 @@ func (g *goReader) declarePermissions(checkedBy map[string][]string, firstAt, ma
 			named = mappedFrom[n]
 		}
 		var cites []*yaml.Node
-		if by := checkedBy[n]; by != nil {
+		if by := checkedBy[n]; by != nil && firstVia[n] != "" {
+			cites = append(cites, g.at(firstAt[n], fmt.Sprintf("%s %s %s with %s.", joinAnd(by), checkOrChecks(len(by)), named, firstVia[n])))
+		} else if by != nil {
 			cites = append(cites, g.at(firstAt[n], fmt.Sprintf("%s %s %s in its privileges.", joinAnd(by), checkOrChecks(len(by)), named)))
 		}
 		s := seeded[n]

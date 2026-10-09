@@ -1,0 +1,96 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-081:
+    title: Go on net/http and the common routers is read by following the routers a module makes, and a permission through the checks its implementation file names
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Step 15 of docs/extraction.md reads Go services that are not on
+      dxlib: net/http's ServeMux and the routers most Go services use,
+      chi, gin, echo and gorilla/mux. Unlike dxlib's NewEndPoint, none of
+      them names a route's permission at the registration: each project
+      writes its own check, as a wrapper around a handler, as middleware
+      on a route or a group, or as a call in the handler, and syntax
+      cannot tell a check from any other call. A router is also rarely
+      used where it is made: it is passed to functions that register on
+      it, grouped under prefixes, mounted on another, or kept in a field.
+      ServeMux, unlike the other four, cannot list its routes, so a
+      project that wants a route table hands its registration function a
+      recorder of its own. The ADR-075 rules hold: a fact only from a
+      literal or a known idiom, every guess a question at its line.
+    decision: |
+      The reader follows router values by syntax. A router is what a
+      library's constructor makes, a parameter or a struct field of a
+      router type, net/http's default mux, or a value of a type of the
+      module that has ServeMux's Handle or HandleFunc method, which is
+      read as a ServeMux, so a project's registration function may take
+      an interface its printer's recorder implements. The walk starts at
+      each function no call in the module names, follows calls of the
+      module's functions with the routers they pass, and walks every
+      function not reached with the routers it is given as routers whose
+      place is not known. A group, a Route, a Mount, a subrouter and a
+      ServeMux subtree handed to a router join their literal prefix; any
+      other prefix is a must question on the routes under it.
+
+      The project's permission check is named once, in the
+      implementation file, under bindings.http.permissionChecks: the
+      package it is declared in, its name (a function, or a type and a
+      method), and the argument, from 1, that carries the permission.
+      The key belongs to the binding, since a check is how the project
+      binds its HTTP interface, and it names the check in the words of
+      the source's own language, so the readers of JavaScript and Swift
+      take the same key. extract go reads the file given with
+      --implementation. A call of a named check with a literal
+      permission on a route's way, wrapping its handler, among its or
+      its group's middleware, applied with Use or With, or made in its
+      handler, gives the operation that permission; a gate on a setting
+      is looked for in the named check's own statements and in the
+      function it returns.
+
+      A handler is read for the path parameters it reads, the JSON body
+      it decodes into a struct of the module, by encoding/json's rules,
+      and the go-playground/validator rules on that struct's tags that
+      the meta-model has keywords for. A call of net/http's client with
+      a literal method and absolute URL declares a dependency named
+      after the host. A flag declared by a literal name is a setting.
+    why: |
+      Following router values, rather than matching a method name on any
+      receiver, keeps a call such as a cache's Get from being read as a
+      route: only a value the reader saw made, given or declared as a
+      router registers one. Reading a type of the module with
+      ServeMux's Handle method as a ServeMux is what lets a ServeMux
+      service keep a route table at all, since ServeMux lists nothing,
+      and the recorder pattern is how such a service prints one; it is
+      the method set ServeMux itself has, so it is no guess. A function
+      no call names is where a program's routing starts, as main or a
+      handler factory; walking the rest last, with routers of unknown
+      place, means a registration is never dropped, only asked about.
+
+      A check named by the project, because syntax cannot tell a
+      permission check from any call that takes a string, and guessing
+      by a name such as Require would write a permission the code does
+      not check; ADR-076 noted that a router without dxlib's chain names
+      its check this way. Naming the argument, because checks differ in
+      where the permission goes (Require(permission, handler),
+      Allowed(request, permission)), and a rule of the reader's own about
+      it would be ambiguity.
+
+      encoding/json's rules for the body, since they are what the
+      handler accepts: a field with no tag goes on the wire by its Go
+      name, which is neither camelCase nor snake_case, so it is left out
+      with a line rather than renamed. A 64-bit integer is a must
+      question, as the validator's unsafe_integer rule and extract
+      openapi ask it, since encoding/json writes it as a number. Only
+      validator rules whose meaning a keyword holds exactly are written:
+      min and max count characters as minLength and maxLength do; dive,
+      cross-field rules and the like have no keyword and print a line.
+    consequences: |
+      A ServeMux service that wants its routes merged keeps a recorder
+      in its route printer, as the lending desk does; a chi, gin or echo
+      service prints its routes with the router's own walk. A project's
+      implementation file names its check before extract reads
+      permissions, and without it every operation's permission is a
+      must question. Responses a handler writes, and models with a table
+      name (GORM, sqlc), are not read in this step; the catalogue stays
+      the source of the data model.
+    satisfies: [SA-44]

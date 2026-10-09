@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  case.go.specarch-implementation.yaml:10:83: error: /bindings/http/permissionChecks/1/permissionArgument: schema: 0 is below the minimum of 1 [schema@case.go.specarch-implementation.yaml#/bindings/http/permissionChecks/1/permissionArgument]

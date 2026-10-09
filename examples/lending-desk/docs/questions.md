@@ -22,9 +22,9 @@ Is the loan period 21 days, as the manual says, or 14 days, as the service does?
 
 **Note:** From Lending desk manual, 2025, clause 3.3: The loan period is 21 days. <../sources/manual.md>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/model.go:8: LoanPeriod is 14 days. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/model.go:8: LoanPeriod is 14 days. <../sources/code>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14. <../sources/code>
 
 ### Q-3 (must, decision)
 
@@ -63,7 +63,7 @@ The manual has a phone number for each member, which is personal, and the databa
 
 **Note:** From Lending desk manual, 2025, clause 2: The desk keeps a member's phone number, which is personal. <../sources/manual.md>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause migrations/001_init.sql:1: members has card_number and full_name only. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause migrations/001_init.sql:1: members has card_number and full_name only. <../sources/code>
 
 ### Q-7 (must, decision)
 
@@ -78,9 +78,9 @@ The service serves GET /members/{cardNumber}, which answers a member's card numb
 
 **Insight:** Undocumented, from code, and it answers a personal field to a caller who shows no permission, which is how an open endpoint is usually found. An operation's permission cannot be left out of the design, so the route waits here rather than as a guess.
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/routes.go:22: GET /members/{cardNumber} checks no permission. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:43: GET /members/{cardNumber} checks no permission. <../sources/code>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/routes.go:69: ShowMember answers one member's card number and full name. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:97: ShowMember answers one member's card number and full name. <../sources/code>
 
 ### Q-4 (should, decision)
 
@@ -92,11 +92,11 @@ Renewing a loan is in the manual but not in the service. Build it as the manual 
   1. Build it
   2. Take it out of the manual and the specification
 
-**Insight:** Not built yet. The manual describes renewal (clause 4.1); the service serves no renew route and has no handler for one (lending/routes.go:14).
+**Insight:** Not built yet. The manual describes renewal (clause 4.1); the service serves no renew route and has no handler for one (lending/routes.go:36).
 
 **Note:** From Lending desk manual, 2025, clause 4.1: A member may renew a loan once. <../sources/manual.md>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/routes.go:14: Routes serves no renew route. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:36: Register registers no renew route. <../sources/code>
 
 ## 3. Tests
 
@@ -133,13 +133,13 @@ What each source's sections produced: the elements that cite a clause, or the cl
 
 ### The lending desk service (desk-code)
 
-2 clauses of 7 produced nothing.
+1 clause of 7 produced nothing.
 
 | Clause | Title | Produced |
 |---|---|---|
 | lending/model.go | The records and the lending limits | #/entities/Loan, #/entities/Member, #/questions/Q-1, #/requirements/LEND-3, #/requirements/LEND-4, #/schemas/Address, mapping of #/entities/Book, mapping of #/entities/Loan, mapping of #/entities/Member |
 | lending/routes.go | The served routes and their handlers | #/paths/~1loans/post, #/paths/~1loans~1{loanId}~1return/post, #/paths/~1members/post, #/paths/~1members~1{cardNumber}~1loans/get, #/permissions/loans.read, #/permissions/loans.write, #/permissions/members.write, #/questions/Q-4, #/questions/Q-7, #/requirements/LEND-1, #/requirements/LEND-2, #/requirements/LEND-6, #/requirements/LEND-7, mapping of #/paths/~1loans/post, mapping of #/paths/~1loans~1{loanId}~1return/post, mapping of #/paths/~1members/post, mapping of #/paths/~1members~1{cardNumber}~1loans/get |
-| lending/access.go | The permission check | nothing |
+| lending/access.go | The permission check | lending-desk.go.specarch-implementation.yaml #/bindings/http |
 | migrations/001_init.sql | The tables | #/entities/Book, #/entities/Loan, #/entities/Member, #/questions/Q-1, #/questions/Q-6, #/requirements/LEND-4, mapping of #/entities/Book, mapping of #/entities/Loan, mapping of #/entities/Member |
 | migrations/002_roles.sql | The roles tables | nothing |
 | migrations/003_member_address.sql | The member's address | #/schemas/Address |
@@ -166,6 +166,6 @@ Every source a Note in this document cites.
 
 | Source | Title | Edition | Author | Where to read it |
 |---|---|---|---|---|
-| desk-code | The lending desk service | 747ca5a74e35489f85e88bd758b342e9e98b7233 | The desk team | ../sources/code |
+| desk-code | The lending desk service | 925255a195f90e385f7bf9bbea8d4e8f7aa5031d | The desk team | ../sources/code |
 | desk-manual | Lending desk manual | 2025 | The desk team | ../sources/manual.md |
 

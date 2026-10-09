@@ -11,7 +11,9 @@
 #
 # - trees/<reader>: the tree each reader wrote, and <reader>.txt its
 #   standard output: manual (extract documents), openapi, database,
-#   router, permissions, pages and workflows.
+#   router, go, permissions, pages and workflows. The go reader reads the
+#   service's source, with the permission check its implementation file
+#   names, and merges with the route table its printer wrote.
 # - spec: the merged specification, and merge.txt the merge's standard
 #   output.
 # - validate.txt and gaps.txt: what specarch validate and specarch gaps
@@ -60,6 +62,8 @@ read_surface() {
 read_surface manual documents "$sources/manual.md"
 read_surface database database "$sources/catalogue/catalogue.json"
 read_surface router router "$sources/routes/routes.json"
+$specarch extract go --implementation "$here/spec/implementation/go/lending-desk.go.specarch-implementation.yaml" \
+	--out trees/go "$sources/code" >go.txt
 read_surface permissions permissions "$sources/permissions/permissions.json"
 read_surface openapi openapi "$sources/openapi/openapi.yaml"
 read_surface pages pages "$sources/web/app"
@@ -69,7 +73,7 @@ read_surface workflows workflows "$sources/workflows/write-off.bpmn"
 # the order an owner reads the sources.
 $specarch merge --out spec \
 	trees/manual trees/openapi \
-	trees/database trees/router trees/permissions trees/pages \
+	trees/database trees/router trees/go trees/permissions trees/pages \
 	trees/workflows >merge.txt
 
 $specarch validate spec >validate.txt 2>&1

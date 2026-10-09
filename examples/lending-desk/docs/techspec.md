@@ -94,11 +94,11 @@ A card holder.
 
 **Note:** From Lending desk manual, 2025, clause 2: The desk keeps a member's card number (internal), full name (personal) and phone number (personal). <../sources/manual.md>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/model.go:14: Member has CardNumber, 10 digits, and FullName. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/model.go:14: Member has CardNumber, 10 digits, and FullName. <../sources/code>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause migrations/001_init.sql:1: card_number CHAR(10) is the key; full_name VARCHAR(200) NOT NULL. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause migrations/001_init.sql:1: card_number CHAR(10) is the key; full_name VARCHAR(200) NOT NULL. <../sources/code>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/model.go:17: Member has an Address, nil when the member gave none. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/model.go:17: Member has an Address, nil when the member gave none. <../sources/code>
 
 | Field | Type | Required | Limits | Description |
 |---|---|---|---|---|
@@ -117,7 +117,7 @@ One copy on the shelves.
 
 **Note:** From Lending desk manual, 2025, clause 3.1: Desk staff scan the book's barcode. <../sources/manual.md>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause migrations/001_init.sql:6: barcode VARCHAR(20) is the key; title VARCHAR(300) NOT NULL. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause migrations/001_init.sql:6: barcode VARCHAR(20) is the key; title VARCHAR(300) NOT NULL. <../sources/code>
 
 | Field | Type | Required | Limits | Description |
 |---|---|---|---|---|
@@ -134,9 +134,9 @@ One book lent to one member.
 
 **Note:** From Lending desk manual, 2025, clause 3.3: The due date is printed on the slip. <../sources/manual.md>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/model.go:35: Loan has ID, CardNumber, Barcode, LoanedOn, DueOn and ReturnedOn, which is empty until the book is back. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/model.go:35: Loan has ID, CardNumber, Barcode, LoanedOn, DueOn and ReturnedOn, which is empty until the book is back. <../sources/code>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause migrations/001_init.sql:11: loans references members and books; returned_on may be null. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause migrations/001_init.sql:11: loans references members and books; returned_on may be null. <../sources/code>
 
 | Field | Type | Required | Limits | Description |
 |---|---|---|---|---|
@@ -164,9 +164,9 @@ Where a member lives. One that is given has its street and city.
 
 **Origin:** stated in The lending desk service, clause lending/model.go:22; The lending desk service, clause migrations/003_member_address.sql:1.
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/model.go:22: Address has Street, City and Postcode; one that is given has its street and city, and the postcode may be left out. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/model.go:22: Address has Street, City and Postcode; one that is given has its street and city, and the postcode may be left out. <../sources/code>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause migrations/003_member_address.sql:1: members gets address_street VARCHAR(200), address_city VARCHAR(100) and address_postcode VARCHAR(20), with a check that an address is wholly absent or has its street and city. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause migrations/003_member_address.sql:1: members gets address_street VARCHAR(200), address_city VARCHAR(100) and address_postcode VARCHAR(20), with a check that an address is wholly absent or has its street and city. <../sources/code>
 
 | Field | Type | Required | Limits | Description |
 |---|---|---|---|---|
@@ -178,7 +178,7 @@ Where a member lives. One that is given has its street and city.
 
 ### registerMember (POST /members)
 
-**Origin:** stated in Lending desk manual, clause 2.2; The lending desk service, clause lending/routes.go:32.
+**Origin:** stated in Lending desk manual, clause 2.2; The lending desk service, clause lending/routes.go:47.
 
 **Problem:** warning: test_case_missing: operation registerMember has no red scenario for "cardNumber not matching its pattern"; add under tests register-member-card-number-not-matching-its-pattern: { operation: registerMember, scenario: red, covers: [cardNumber not matching its pattern], given: "...", when: "registerMember is called with cardNumber in the wrong form", then: "it is refused" } [test_case_missing.8225af9c@design/design.yaml#/paths/~1members/post]
 
@@ -196,7 +196,7 @@ Where a member lives. One that is given has its street and city.
 
 **Note:** From Lending desk manual, 2025, clause 2.2: Desk staff register new members. <../sources/manual.md>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/routes.go:32: RegisterMember answers 201. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:47: RegisterMember answers 201. <../sources/code>
 
 ```mermaid
 sequenceDiagram
@@ -208,7 +208,7 @@ sequenceDiagram
 
 ### lendBook (POST /loans)
 
-**Origin:** stated in Lending desk manual, clause 3.1; The lending desk service, clause lending/routes.go:38.
+**Origin:** stated in Lending desk manual, clause 3.1; The lending desk service, clause lending/routes.go:59.
 
 **Problem:** warning: test_case_missing: operation lendBook has no red scenario for "cardNumber not matching its pattern"; add under tests lend-book-card-number-not-matching-its-pattern: { operation: lendBook, scenario: red, covers: [cardNumber not matching its pattern], given: "...", when: "lendBook is called with cardNumber in the wrong form", then: "it is refused" } [test_case_missing.6ccbe6b8@design/design.yaml#/paths/~1loans/post]
 
@@ -226,7 +226,7 @@ sequenceDiagram
 
 **Note:** From Lending desk manual, 2025, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode. <../sources/manual.md>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/routes.go:38: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise. <../sources/code>
 
 ```mermaid
 sequenceDiagram
@@ -238,7 +238,7 @@ sequenceDiagram
 
 ### returnBook (POST /loans/{loanId}/return)
 
-**Origin:** stated in Lending desk manual, clause 5.1; The lending desk service, clause lending/routes.go:47.
+**Origin:** stated in Lending desk manual, clause 5.1; The lending desk service, clause lending/routes.go:73.
 
 **Problem:** warning: test_case_missing: operation returnBook has no red scenario for "denied without loans.write"; add under tests return-book-denied-without-loans-write: { operation: returnBook, scenario: red, covers: [denied without loans.write], given: "a caller without loans.write", when: "returnBook is called", then: "it is refused as not allowed" } [test_case_missing.69b798fb@design/design.yaml#/paths/~1loans~1{loanId}~1return/post]
 
@@ -248,7 +248,7 @@ sequenceDiagram
 
 **Note:** From Lending desk manual, 2025, clause 5.1: Checking a book in closes the loan. <../sources/manual.md>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/routes.go:47: ReturnBook closes the loan and answers 200. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:73: ReturnBook closes the loan and answers 200. <../sources/code>
 
 ```mermaid
 sequenceDiagram
@@ -294,7 +294,7 @@ sequenceDiagram
 
 **Insight:** Undocumented, from code; Q-2 asks whether it is wanted.
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/routes.go:64: ListMemberLoans answers 200 with the member's loans. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:91: ListMemberLoans answers 200 with the member's loans. <../sources/code>
 
 ```mermaid
 sequenceDiagram
@@ -327,6 +327,14 @@ Stack: language Go 1.26.
 | #/paths/~1loans/post | lending.Server.LendBook |   |
 | #/paths/~1loans~1{loanId}~1return/post | lending.Server.ReturnBook |   |
 | #/paths/~1members~1{cardNumber}~1loans/get | lending.Server.ListMemberLoans |   |
+
+#### Bindings
+
+http: standard library.
+
+**Origin on http:** stated in The lending desk service, clause lending/access.go:37.
+
+**Note on http:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/access.go:37: Require, the service's permission check. <../sources/code>
 
 #### Targets
 
@@ -377,25 +385,25 @@ Access is fail-closed: every operation, command and page names the one permissio
 | loans.write | yes |
 | loans.read | yes |
 
-**Origin on members.write:** stated in The lending desk service, clause lending/routes.go:16.
+**Origin on members.write:** stated in The lending desk service, clause lending/routes.go:37.
 
-**Note on members.write:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/routes.go:16: POST /members checks members.write. <../sources/code>
+**Note on members.write:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:37: POST /members checks members.write. <../sources/code>
 
-**Origin on loans.write:** stated in The lending desk service, clause lending/routes.go:17.
+**Origin on loans.write:** stated in The lending desk service, clause lending/routes.go:38.
 
-**Note on loans.write:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/routes.go:17: POST /loans and POST /loans/{loanId}/return check loans.write. <../sources/code>
+**Note on loans.write:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:38: POST /loans and POST /loans/{loanId}/return check loans.write. <../sources/code>
 
 **Origin on loans.read:** inferred.
 
 **Insight on loans.read:** Undocumented, from code; it stands or falls with LEND-7 and Q-2.
 
-**Note on loans.read:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/routes.go:21: GET /members/{cardNumber}/loans checks loans.read. <../sources/code>
+**Note on loans.read:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:42: GET /members/{cardNumber}/loans checks loans.read. <../sources/code>
 
 **Origin on desk-staff:** stated in Lending desk manual, clause 2.2; The lending desk service, clause seeds/001_roles.sql:3.
 
 **Note on desk-staff:** From Lending desk manual, 2025, clause 2.2: Desk staff register new members. <../sources/manual.md>
 
-**Note on desk-staff:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause seeds/001_roles.sql:3: desk-staff grants members.write, loans.write and loans.read. <../sources/code>
+**Note on desk-staff:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause seeds/001_roles.sql:3: desk-staff grants members.write, loans.write and loans.read. <../sources/code>
 
 ## 13. Requirements
 
@@ -411,7 +419,7 @@ Access is fail-closed: every operation, command and page names the one permissio
 | LEND-6 | Desk staff shall check a returned book in by its barcode, which closes the loan. | functional | must | accepted |   |   |   |
 | LEND-7 | Desk staff shall list the loans of one member. | functional | should | accepted |   |   |   |
 
-**Origin on LEND-1:** stated in Lending desk manual, clause 2.1; Lending desk manual, clause 2.2; The lending desk service, clause lending/routes.go:16.
+**Origin on LEND-1:** stated in Lending desk manual, clause 2.1; Lending desk manual, clause 2.2; The lending desk service, clause lending/routes.go:37.
 
 **Open question Q-3 (must, decision) on LEND-1:** How is each requirement shown to be met? Decided by desk-manager.
 
@@ -419,15 +427,15 @@ Access is fail-closed: every operation, command and page names the one permissio
 
 **Note on LEND-1:** From Lending desk manual, 2025, clause 2.2: Desk staff register new members. <../sources/manual.md>
 
-**Note on LEND-1:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/routes.go:16: POST /members, checked against members.write. <../sources/code>
+**Note on LEND-1:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:37: POST /members, checked against members.write. <../sources/code>
 
-**Origin on LEND-2:** stated in Lending desk manual, clause 3.1; The lending desk service, clause lending/routes.go:17.
+**Origin on LEND-2:** stated in Lending desk manual, clause 3.1; The lending desk service, clause lending/routes.go:38.
 
 **Open question Q-3 (must, decision) on LEND-2:** How is each requirement shown to be met? Decided by desk-manager.
 
 **Note on LEND-2:** From Lending desk manual, 2025, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode. <../sources/manual.md>
 
-**Note on LEND-2:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/routes.go:17: POST /loans, checked against loans.write. <../sources/code>
+**Note on LEND-2:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:38: POST /loans, checked against loans.write. <../sources/code>
 
 **Origin on LEND-3:** stated in Lending desk manual, clause 3.2; The lending desk service, clause lending/model.go:11.
 
@@ -435,7 +443,7 @@ Access is fail-closed: every operation, command and page names the one permissio
 
 **Note on LEND-3:** From Lending desk manual, 2025, clause 3.2: A member may have at most five books on loan at a time. <../sources/manual.md>
 
-**Note on LEND-3:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/model.go:11: MaxOpenLoans is 5; LendBook answers 409 at the limit. <../sources/code>
+**Note on LEND-3:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/model.go:11: MaxOpenLoans is 5; LendBook answers 409 at the limit. <../sources/code>
 
 **Origin on LEND-4:** stated in Lending desk manual, clause 3.3; The lending desk service, clause lending/model.go:8; The lending desk service, clause migrations/001_init.sql:18.
 
@@ -447,9 +455,9 @@ Access is fail-closed: every operation, command and page names the one permissio
 
 **Note on LEND-4:** From Lending desk manual, 2025, clause 3.3: The loan period is 21 days. <../sources/manual.md>
 
-**Note on LEND-4:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/model.go:8: LoanPeriod is 14 days. <../sources/code>
+**Note on LEND-4:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/model.go:8: LoanPeriod is 14 days. <../sources/code>
 
-**Note on LEND-4:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14. <../sources/code>
+**Note on LEND-4:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14. <../sources/code>
 
 **Origin on LEND-5:** stated in Lending desk manual, clause 4.1.
 
@@ -457,13 +465,13 @@ Access is fail-closed: every operation, command and page names the one permissio
 
 **Note on LEND-5:** From Lending desk manual, 2025, clause 4.1: A member may renew a loan once, for one more loan period, by asking at the desk before the due date. <../sources/manual.md>
 
-**Origin on LEND-6:** stated in Lending desk manual, clause 5.1; The lending desk service, clause lending/routes.go:18.
+**Origin on LEND-6:** stated in Lending desk manual, clause 5.1; The lending desk service, clause lending/routes.go:39.
 
 **Open question Q-3 (must, decision) on LEND-6:** How is each requirement shown to be met? Decided by desk-manager.
 
 **Note on LEND-6:** From Lending desk manual, 2025, clause 5.1: Desk staff check a returned book in by scanning its barcode, which closes the loan. <../sources/manual.md>
 
-**Note on LEND-6:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/routes.go:18: POST /loans/{loanId}/return, checked against loans.write. <../sources/code>
+**Note on LEND-6:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:39: POST /loans/{loanId}/return, checked against loans.write. <../sources/code>
 
 **Origin on LEND-7:** inferred.
 
@@ -473,7 +481,7 @@ Access is fail-closed: every operation, command and page names the one permissio
 
 **Insight on LEND-7:** Undocumented, from code. The service serves GET /members/{cardNumber}/loans; the manual never mentions it. Q-2 asks the desk manager to confirm it.
 
-**Note on LEND-7:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/routes.go:21: GET /members/{cardNumber}/loans, checked against loans.read. <../sources/code>
+**Note on LEND-7:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:42: GET /members/{cardNumber}/loans, checked against loans.read. <../sources/code>
 
 ### Traceability
 
@@ -495,6 +503,6 @@ Every source a Note in this document cites.
 
 | Source | Title | Edition | Author | Where to read it |
 |---|---|---|---|---|
-| desk-code | The lending desk service | 747ca5a74e35489f85e88bd758b342e9e98b7233 | The desk team | ../sources/code |
+| desk-code | The lending desk service | 925255a195f90e385f7bf9bbea8d4e8f7aa5031d | The desk team | ../sources/code |
 | desk-manual | Lending desk manual | 2025 | The desk team | ../sources/manual.md |
 

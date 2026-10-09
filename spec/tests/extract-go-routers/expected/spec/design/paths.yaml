@@ -1,0 +1,164 @@
+paths:
+  /:
+    get:
+      operationId: health
+      origin: stated
+      cites:
+        - {source: code, clause: 'stdmux/mux.go:13', says: Registers GET / on a net/http ServeMux; its handler is health.}
+        - {source: code, clause: 'stdmux/mux.go:27', says: The handler of GET / reads no path parameter by name.}
+  /api/holds:
+    post:
+      operationId: placeHold
+      origin: stated
+      cites:
+        - {source: code, clause: 'gorillarouter/router.go:16', says: Registers POST /api/holds on a gorilla/mux router; its handler is placeHold.}
+        - {source: code, clause: 'gorillarouter/router.go:25', says: The handler of POST /api/holds reads no path parameter by name.}
+  /api/holds/{holdId}:
+    parameters:
+      - {name: holdId, in: path, required: true}
+    get:
+      operationId: showHold
+      origin: stated
+      cites:
+        - {source: code, clause: 'gorillarouter/router.go:14', says: 'Registers GET /api/holds/{holdId} on a gorilla/mux router; its handler is showHold.'}
+        - {source: code, clause: 'gorillarouter/router.go:23', says: 'The handler of GET /api/holds/{holdId} reads no path parameter by name.'}
+    post:
+      operationId: postApiHoldsByHoldId
+      origin: stated
+      cites:
+        - {source: code, clause: 'gorillarouter/router.go:15', says: 'Registers POST /api/holds/{holdId} on a gorilla/mux router; its handler is cancelHold.'}
+        - {source: code, clause: 'gorillarouter/router.go:24', says: 'The handler of POST /api/holds/{holdId} reads the path parameter holdId.'}
+    delete:
+      operationId: deleteApiHoldsByHoldId
+      origin: stated
+      cites:
+        - {source: code, clause: 'gorillarouter/router.go:15', says: 'Registers DELETE /api/holds/{holdId} on a gorilla/mux router; its handler is cancelHold.'}
+        - {source: code, clause: 'gorillarouter/router.go:24', says: 'The handler of DELETE /api/holds/{holdId} reads the path parameter holdId.'}
+  /branches/{branchId}:
+    parameters:
+      - {name: branchId, in: path, required: true}
+    get:
+      operationId: showBranch
+      origin: stated
+      cites:
+        - {source: code, clause: 'chirouter/router.go:39', says: 'Registers GET /branches/{branchId} on a chi router; its handler is showBranch.'}
+        - {source: code, clause: 'chirouter/router.go:49', says: 'The handler of GET /branches/{branchId} reads the path parameter id.'}
+  /fines/{fineId}:
+    parameters:
+      - {name: fineId, in: path, required: true}
+    get:
+      operationId: showFine
+      origin: stated
+      cites:
+        - {source: code, clause: 'echorouter/router.go:13', says: 'Registers GET /fines/{fineId} on an echo router; its handler is showFine.'}
+        - {source: code, clause: 'echorouter/router.go:19', says: 'The handler of GET /fines/{fineId} reads the path parameter fine.'}
+    put:
+      operationId: putFinesByFineId
+      origin: stated
+      cites:
+        - {source: code, clause: 'echorouter/router.go:15', says: 'Registers PUT /fines/{fineId} on an echo router; its handler is waive.'}
+        - {source: code, clause: 'echorouter/router.go:20', says: 'The handler of PUT /fines/{fineId} reads no path parameter by name.'}
+    patch:
+      operationId: patchFinesByFineId
+      origin: stated
+      cites:
+        - {source: code, clause: 'echorouter/router.go:15', says: 'Registers PATCH /fines/{fineId} on an echo router; its handler is waive.'}
+        - {source: code, clause: 'echorouter/router.go:20', says: 'The handler of PATCH /fines/{fineId} reads no path parameter by name.'}
+  /fines/{fineId}/waivers:
+    parameters:
+      - {name: fineId, in: path, required: true}
+    post:
+      operationId: postFinesByFineIdWaivers
+      origin: stated
+      cites:
+        - {source: code, clause: 'echorouter/router.go:14', says: 'Registers POST /fines/{fineId}/waivers on an echo router; its handler is waive.'}
+        - {source: code, clause: 'echorouter/router.go:20', says: 'The handler of POST /fines/{fineId}/waivers reads no path parameter by name.'}
+  /holds:
+    get:
+      operationId: listHolds
+      origin: stated
+      cites:
+        - {source: code, clause: 'gorillarouter/router.go:12', says: Registers GET /holds on a gorilla/mux router; its handler is listHolds.}
+        - {source: code, clause: 'gorillarouter/router.go:22', says: The handler of GET /holds reads no path parameter by name.}
+  /loans:
+    post:
+      operationId: lendBook
+      origin: stated
+      cites:
+        - {source: code, clause: 'stdmux/mux.go:9', says: Registers POST /loans on a net/http ServeMux; its handler is lendBook.}
+        - {source: code, clause: 'stdmux/mux.go:26', says: The handler of POST /loans reads no path parameter by name.}
+  /loans/{loanId}:
+    parameters:
+      - {name: loanId, in: path, required: true}
+    get:
+      operationId: showLoan
+      origin: stated
+      cites:
+        - {source: code, clause: 'stdmux/mux.go:8', says: 'Registers GET /loans/{loanId} on a net/http ServeMux; its handler is showLoan.'}
+        - {source: code, clause: 'stdmux/mux.go:25', says: 'The handler of GET /loans/{loanId} reads the path parameter loanId.'}
+  /members:
+    get:
+      operationId: listMembers
+      origin: stated
+      cites:
+        - {source: code, clause: 'chirouter/router.go:14', says: Registers GET /members on a chi router; its handler is listMembers.}
+        - {source: code, clause: 'chirouter/router.go:45', says: The handler of GET /members reads no path parameter by name.}
+    post:
+      operationId: addMember
+      origin: stated
+      cites:
+        - {source: code, clause: 'chirouter/router.go:15', says: Registers POST /members on a chi router; its handler is addMember.}
+        - {source: code, clause: 'chirouter/router.go:46', says: The handler of POST /members reads no path parameter by name.}
+  /members/{cardNumber}:
+    parameters:
+      - {name: cardNumber, in: path, required: true}
+    get:
+      operationId: getMembersByCardNumber
+      origin: stated
+      cites:
+        - {source: code, clause: 'chirouter/router.go:17', says: 'Registers GET /members/{cardNumber} on a chi router; its handler is showMember.'}
+        - {source: code, clause: 'chirouter/router.go:47', says: 'The handler of GET /members/{cardNumber} reads the path parameter cardNumber.'}
+    delete:
+      operationId: removeMember
+      origin: stated
+      cites:
+        - {source: code, clause: 'chirouter/router.go:18', says: 'Registers DELETE /members/{cardNumber} on a chi router; its handler is removeMember.'}
+        - {source: code, clause: 'chirouter/router.go:48', says: 'The handler of DELETE /members/{cardNumber} reads no path parameter by name.'}
+  /members/{cardNumber}/address:
+    parameters:
+      - {name: cardNumber, in: path, required: true}
+    put:
+      operationId: putMembersByCardNumberAddress
+      origin: stated
+      cites:
+        - {source: code, clause: 'chirouter/router.go:22', says: 'Registers PUT /members/{cardNumber}/address on a chi router; its handler is showMember.'}
+        - {source: code, clause: 'chirouter/router.go:47', says: 'The handler of PUT /members/{cardNumber}/address reads the path parameter cardNumber.'}
+  /reports/daily:
+    get:
+      operationId: daily
+      origin: stated
+      cites:
+        - {source: code, clause: 'stdmux/mux.go:16', says: Registers GET /reports/daily on a net/http ServeMux; its handler is daily.}
+        - {source: code, clause: 'stdmux/mux.go:28', says: The handler of GET /reports/daily reads no path parameter by name.}
+  /v1/books:
+    post:
+      operationId: postV1Books
+      origin: stated
+      cites:
+        - {source: code, clause: 'ginrouter/router.go:11', says: Registers POST /v1/books on a gin router; its handler is addBook.}
+        - {source: code, clause: 'ginrouter/router.go:19', says: The handler of POST /v1/books reads no path parameter by name.}
+  /v1/books/{isbn}:
+    parameters:
+      - {name: isbn, in: path, required: true}
+    get:
+      operationId: showBook
+      origin: stated
+      cites:
+        - {source: code, clause: 'ginrouter/router.go:10', says: 'Registers GET /v1/books/{isbn} on a gin router; its handler is showBook.'}
+        - {source: code, clause: 'ginrouter/router.go:18', says: 'The handler of GET /v1/books/{isbn} reads the path parameter isbn.'}
+    patch:
+      operationId: patchV1BooksByIsbn
+      origin: stated
+      cites:
+        - {source: code, clause: 'ginrouter/router.go:13', says: 'Registers PATCH /v1/books/{isbn} on a gin router; its handler is addBook.'}
+        - {source: code, clause: 'ginrouter/router.go:19', says: 'The handler of PATCH /v1/books/{isbn} reads no path parameter by name.'}

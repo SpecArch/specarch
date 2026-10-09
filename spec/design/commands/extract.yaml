@@ -365,6 +365,99 @@ commands:
         the line, with the check named by the function's name; dxlib's middlewares
         are named in the endpoint, so no implementation file names them.
 
+        Routes are read on net/http's `ServeMux`, chi, gin, echo and
+        gorilla/mux (ADR-081). A router is a value one of their calls
+        makes (`http.NewServeMux`, `chi.NewRouter`, `gin.New`,
+        `echo.New`, `mux.NewRouter`), a parameter or struct field of one
+        of their router types, net/http's default mux, or a value of a
+        type of the module that has `ServeMux`'s `Handle` or `HandleFunc`
+        method, which is read as a `ServeMux`. The walk starts at each
+        function no call in the module names, follows every call of the
+        module's functions found by syntax, binding the routers it
+        passes, and then walks each function not reached with the
+        routers it is given as ones whose place is not known. A group, a
+        `Route`, a `Mount`, a subrouter under `PathPrefix` and a
+        `ServeMux` pattern ending in a slash that hands a router its
+        subtree, through `StripPrefix` or not, join their literal prefix
+        to the routes under them, with no slash at the end of a joined
+        path; one registration reached through two callers gives one
+        route. Each route a call registers with a literal method and
+        path, outside a loop and a condition of its function, under a
+        prefix the reader knows, is an operation: a `ServeMux` pattern
+        `METHOD /path`, chi's `Get` and the other method calls and
+        `Method`, gin's and echo's `GET` and the others, `Handle`, `Add`
+        and `Match` with a literal list, and gorilla/mux's `HandleFunc`,
+        `Handle`, `Path` and `HandlerFunc` with `Methods`. Its parameters,
+        written `{name}`, `:name` or `{name:pattern}`, are written
+        `{name}`, a pattern with a line. It is named as extract router
+        names a route, after its handler, and cites its registration and
+        its handler's first line. A route for every method, a path,
+        method or prefix that is not a literal, a router given from code
+        not followed, a handler handed a subtree that is not a router, a
+        registration in a loop or behind a condition and the same method
+        and path twice are must questions; a host in a pattern, a rest
+        wildcard or catch-all, a route matched by more than its method and
+        path, and a method the meta-model does not hold print a line. A
+        file that imports chi, gin, echo or gorilla/mux and gives nothing
+        read prints a line. Each operation carries a must question on
+        whether the running system registers it, which a route table
+        answers in the merge, and one on what it does and answers.
+
+        A handler found by syntax, a function, a method of a value whose
+        type the reader knows or a function literal, is read for the path
+        parameters it reads with a literal name (`PathValue`,
+        `chi.URLParam`, gin's and echo's `Param`, gorilla/mux's `Vars`),
+        each one its path does not have a must question and a computed
+        name a should question; and for the body it decodes
+        (`json.NewDecoder(request.Body).Decode`, gin's `ShouldBindJSON`,
+        `BindJSON`, `ShouldBind` and `Bind`, echo's `Bind`) into a
+        variable of a struct the module declares, written as the request
+        body's object by encoding/json's rules: the `json` tag's name,
+        `-` left out, a pointer nullable, a slice an array, `time.Time` a
+        date-time, a struct of the module in place, with
+        `info.wireNames: snake_case` when the tagged names are
+        snake_case. A field with no json tag goes on the wire by its Go
+        name, which is neither camelCase nor snake_case, and prints a
+        line; a map, an interface, an embedded struct and a type outside
+        the module are should questions, and the width of an `int` or a
+        64-bit integer a must question. The tags of
+        go-playground/validator (`validate`, read when the module imports
+        it) and of gin (`binding`) give `required`, lengths, items,
+        bounds, `oneof` as an enum, the formats `email`, `uuid`, `uri`,
+        `hostname`, `ipv4` and `ipv6`, and validator's own patterns for
+        `alpha`, `alphanum` and `numeric`; any other rule prints a line.
+
+        A permission is read through the checks the implementation file
+        given with `--implementation` names under
+        `bindings.http.permissionChecks`, a Go package named by its
+        import path, or by its folder from the repository's root where
+        no `go.mod` is read: a call of one with a literal
+        permission in the argument named wraps a handler (its last
+        argument the handler it runs), is among a route's or a group's
+        middleware, is applied with `Use` or `With`, or is made in the
+        handler. One permission is the operation's, declared citing the
+        check that reads it first; none, several, one that is not a
+        literal and a check named in part are must questions, and with no
+        implementation file each operation's permission is a must
+        question. A gate on a setting is found in each named check, in
+        its own statements or those of the function it returns: an `if`
+        that runs the handler it is given, calls `ServeHTTP` or `Next`,
+        or returns `nil`, `true` or that handler, while a setting is
+        empty or false, asked as above.
+
+        A call of net/http's `Get`, `Head`, `Post`, `PostForm`,
+        `NewRequest` or `NewRequestWithContext` with a literal method and
+        an absolute URL declares a dependency named after the URL's host
+        in camelCase, citing the call, its description and time limit a
+        must question; one made in a handler's own body is under the
+        operation's `calls`, and one made elsewhere a should question on
+        the operations that call it. A URL or a method that is not a
+        literal, and a URL with no host, are should questions. A flag the
+        flag package declares by a literal name (`String`, `Bool`, `Int`,
+        `Int64`, `Uint`, `Uint64`, `Float64` and their `Var` forms) is a
+        setting as an environment variable read is, its default the
+        flag's.
+
       Every reader follows these rules:
 
       - The tree's root tracks origin. The code readers declare one code
@@ -431,6 +524,9 @@ commands:
         description: The folder the specification is written into; it becomes the specification's root folder.
         schema: { type: string }
         required: true
+      implementation:
+        description: For go, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through.
+        schema: { type: string }
       source-key:
         description: The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given.
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
@@ -446,12 +542,13 @@ commands:
       the reader reads, or a document read as what the running system
       printed; one line per file that imports a library the reader knows
       and gives nothing it reads; one line per gate on a setting, naming
-      the check and the setting; and one line per file that says it is
+      the check and the setting; for go, one line naming the checks the
+      implementation file names; and one line per file that says it is
       generated from another source.
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written
-      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, or a file that is not BPMN 2.0 XML or holds no process"
-      "2": usage error, a source this build does not offer, or a path that could not be read or written
+      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML"
+      "2": usage error, a source this build does not offer, --implementation given to a source other than go, or a path that could not be read or written
     satisfies: [SA-11, SA-44]
     why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

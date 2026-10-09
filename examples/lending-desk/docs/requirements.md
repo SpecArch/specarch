@@ -60,7 +60,7 @@ Kind: functional; priority: must; status: accepted.
 
 No acceptance criteria yet.
 
-**Origin:** stated in Lending desk manual, clause 2.1; Lending desk manual, clause 2.2; The lending desk service, clause lending/routes.go:16.
+**Origin:** stated in Lending desk manual, clause 2.1; Lending desk manual, clause 2.2; The lending desk service, clause lending/routes.go:37.
 
 **Open question Q-3 (must, decision):** How is each requirement shown to be met? Decided by desk-manager.
 
@@ -68,7 +68,7 @@ No acceptance criteria yet.
 
 **Note:** From Lending desk manual, 2025, clause 2.2: Desk staff register new members. <../sources/manual.md>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/routes.go:16: POST /members, checked against members.write. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:37: POST /members, checked against members.write. <../sources/code>
 
 ### LEND-2
 
@@ -78,13 +78,13 @@ Kind: functional; priority: must; status: accepted.
 
 No acceptance criteria yet.
 
-**Origin:** stated in Lending desk manual, clause 3.1; The lending desk service, clause lending/routes.go:17.
+**Origin:** stated in Lending desk manual, clause 3.1; The lending desk service, clause lending/routes.go:38.
 
 **Open question Q-3 (must, decision):** How is each requirement shown to be met? Decided by desk-manager.
 
 **Note:** From Lending desk manual, 2025, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode. <../sources/manual.md>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/routes.go:17: POST /loans, checked against loans.write. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:38: POST /loans, checked against loans.write. <../sources/code>
 
 ### LEND-3
 
@@ -100,7 +100,7 @@ No acceptance criteria yet.
 
 **Note:** From Lending desk manual, 2025, clause 3.2: A member may have at most five books on loan at a time. <../sources/manual.md>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/model.go:11: MaxOpenLoans is 5; LendBook answers 409 at the limit. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/model.go:11: MaxOpenLoans is 5; LendBook answers 409 at the limit. <../sources/code>
 
 ### LEND-4
 
@@ -118,9 +118,9 @@ No acceptance criteria yet.
 
 **Note:** From Lending desk manual, 2025, clause 3.3: The loan period is 21 days. <../sources/manual.md>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/model.go:8: LoanPeriod is 14 days. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/model.go:8: LoanPeriod is 14 days. <../sources/code>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14. <../sources/code>
 
 ### LEND-5
 
@@ -144,13 +144,13 @@ Kind: functional; priority: must; status: accepted.
 
 No acceptance criteria yet.
 
-**Origin:** stated in Lending desk manual, clause 5.1; The lending desk service, clause lending/routes.go:18.
+**Origin:** stated in Lending desk manual, clause 5.1; The lending desk service, clause lending/routes.go:39.
 
 **Open question Q-3 (must, decision):** How is each requirement shown to be met? Decided by desk-manager.
 
 **Note:** From Lending desk manual, 2025, clause 5.1: Desk staff check a returned book in by scanning its barcode, which closes the loan. <../sources/manual.md>
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/routes.go:18: POST /loans/{loanId}/return, checked against loans.write. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:39: POST /loans/{loanId}/return, checked against loans.write. <../sources/code>
 
 ### LEND-7
 
@@ -168,7 +168,7 @@ No acceptance criteria yet.
 
 **Insight:** Undocumented, from code. The service serves GET /members/{cardNumber}/loans; the manual never mentions it. Q-2 asks the desk manager to confirm it.
 
-**Note:** From The lending desk service, 747ca5a74e35489f85e88bd758b342e9e98b7233, clause lending/routes.go:21: GET /members/{cardNumber}/loans, checked against loans.read. <../sources/code>
+**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:42: GET /members/{cardNumber}/loans, checked against loans.read. <../sources/code>
 
 ## Sources
 
@@ -176,6 +176,6 @@ Every source a Note in this document cites.
 
 | Source | Title | Edition | Author | Where to read it |
 |---|---|---|---|---|
-| desk-code | The lending desk service | 747ca5a74e35489f85e88bd758b342e9e98b7233 | The desk team | ../sources/code |
+| desk-code | The lending desk service | 925255a195f90e385f7bf9bbea8d4e8f7aa5031d | The desk team | ../sources/code |
 | desk-manual | Lending desk manual | 2025 | The desk team | ../sources/manual.md |
 

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 56 requirements, 5 entities, 12 commands, 7 algorithms, 346 tests, 79 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 56 requirements, 5 entities, 12 commands, 7 algorithms, 349 tests, 80 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -61,7 +61,7 @@ The interfaces the system offers, as its clients see them.
 | derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors, or a draft's name is taken by another draft or by a test of another subject; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, there is no release record for the new version, or a specification has errors; 2: usage error, or a path that could not be read |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written |
-| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, or a file that is not BPMN 2.0 XML or holds no process; 2: usage error, a source this build does not offer, or a path that could not be read or written |
+| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go, or a path that could not be read or written |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open and no specification has an error; 1: at least one must or should question is open, or a specification has an error; 2: usage error, or a path that could not be read |
 | generate | Write code or data from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads, the specification is not approved, the plug-in reported an error, or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written |
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
@@ -1028,6 +1028,99 @@ The sources this build reads:
   the line, with the check named by the function's name; dxlib's middlewares
   are named in the endpoint, so no implementation file names them.
 
+  Routes are read on net/http's `ServeMux`, chi, gin, echo and
+  gorilla/mux (ADR-081). A router is a value one of their calls
+  makes (`http.NewServeMux`, `chi.NewRouter`, `gin.New`,
+  `echo.New`, `mux.NewRouter`), a parameter or struct field of one
+  of their router types, net/http's default mux, or a value of a
+  type of the module that has `ServeMux`'s `Handle` or `HandleFunc`
+  method, which is read as a `ServeMux`. The walk starts at each
+  function no call in the module names, follows every call of the
+  module's functions found by syntax, binding the routers it
+  passes, and then walks each function not reached with the
+  routers it is given as ones whose place is not known. A group, a
+  `Route`, a `Mount`, a subrouter under `PathPrefix` and a
+  `ServeMux` pattern ending in a slash that hands a router its
+  subtree, through `StripPrefix` or not, join their literal prefix
+  to the routes under them, with no slash at the end of a joined
+  path; one registration reached through two callers gives one
+  route. Each route a call registers with a literal method and
+  path, outside a loop and a condition of its function, under a
+  prefix the reader knows, is an operation: a `ServeMux` pattern
+  `METHOD /path`, chi's `Get` and the other method calls and
+  `Method`, gin's and echo's `GET` and the others, `Handle`, `Add`
+  and `Match` with a literal list, and gorilla/mux's `HandleFunc`,
+  `Handle`, `Path` and `HandlerFunc` with `Methods`. Its parameters,
+  written `{name}`, `:name` or `{name:pattern}`, are written
+  `{name}`, a pattern with a line. It is named as extract router
+  names a route, after its handler, and cites its registration and
+  its handler's first line. A route for every method, a path,
+  method or prefix that is not a literal, a router given from code
+  not followed, a handler handed a subtree that is not a router, a
+  registration in a loop or behind a condition and the same method
+  and path twice are must questions; a host in a pattern, a rest
+  wildcard or catch-all, a route matched by more than its method and
+  path, and a method the meta-model does not hold print a line. A
+  file that imports chi, gin, echo or gorilla/mux and gives nothing
+  read prints a line. Each operation carries a must question on
+  whether the running system registers it, which a route table
+  answers in the merge, and one on what it does and answers.
+
+  A handler found by syntax, a function, a method of a value whose
+  type the reader knows or a function literal, is read for the path
+  parameters it reads with a literal name (`PathValue`,
+  `chi.URLParam`, gin's and echo's `Param`, gorilla/mux's `Vars`),
+  each one its path does not have a must question and a computed
+  name a should question; and for the body it decodes
+  (`json.NewDecoder(request.Body).Decode`, gin's `ShouldBindJSON`,
+  `BindJSON`, `ShouldBind` and `Bind`, echo's `Bind`) into a
+  variable of a struct the module declares, written as the request
+  body's object by encoding/json's rules: the `json` tag's name,
+  `-` left out, a pointer nullable, a slice an array, `time.Time` a
+  date-time, a struct of the module in place, with
+  `info.wireNames: snake_case` when the tagged names are
+  snake_case. A field with no json tag goes on the wire by its Go
+  name, which is neither camelCase nor snake_case, and prints a
+  line; a map, an interface, an embedded struct and a type outside
+  the module are should questions, and the width of an `int` or a
+  64-bit integer a must question. The tags of
+  go-playground/validator (`validate`, read when the module imports
+  it) and of gin (`binding`) give `required`, lengths, items,
+  bounds, `oneof` as an enum, the formats `email`, `uuid`, `uri`,
+  `hostname`, `ipv4` and `ipv6`, and validator's own patterns for
+  `alpha`, `alphanum` and `numeric`; any other rule prints a line.
+
+  A permission is read through the checks the implementation file
+  given with `--implementation` names under
+  `bindings.http.permissionChecks`, a Go package named by its
+  import path, or by its folder from the repository's root where
+  no `go.mod` is read: a call of one with a literal
+  permission in the argument named wraps a handler (its last
+  argument the handler it runs), is among a route's or a group's
+  middleware, is applied with `Use` or `With`, or is made in the
+  handler. One permission is the operation's, declared citing the
+  check that reads it first; none, several, one that is not a
+  literal and a check named in part are must questions, and with no
+  implementation file each operation's permission is a must
+  question. A gate on a setting is found in each named check, in
+  its own statements or those of the function it returns: an `if`
+  that runs the handler it is given, calls `ServeHTTP` or `Next`,
+  or returns `nil`, `true` or that handler, while a setting is
+  empty or false, asked as above.
+
+  A call of net/http's `Get`, `Head`, `Post`, `PostForm`,
+  `NewRequest` or `NewRequestWithContext` with a literal method and
+  an absolute URL declares a dependency named after the URL's host
+  in camelCase, citing the call, its description and time limit a
+  must question; one made in a handler's own body is under the
+  operation's `calls`, and one made elsewhere a should question on
+  the operations that call it. A URL or a method that is not a
+  literal, and a URL with no host, are should questions. A flag the
+  flag package declares by a literal name (`String`, `Bool`, `Int`,
+  `Int64`, `Uint`, `Uint64`, `Float64` and their `Var` forms) is a
+  setting as an environment variable read is, its default the
+  flag's.
+
 Every reader follows these rules:
 
 - The tree's root tracks origin. The code readers declare one code
@@ -1086,6 +1179,7 @@ Every reader follows these rules:
 | `<source>` | string | yes | The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows` or `go`. |
 | `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository. |
 | `--out` | string | yes | The folder the specification is written into; it becomes the specification's root folder. |
+| `--implementation` | string |   | For go, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through. |
 | `--source-key` | string |   | The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given. |
 
 Reads `{paths}`: The surface being read.
@@ -1099,7 +1193,8 @@ naming the question that asks about it; one line naming a dialect
 the reader reads, or a document read as what the running system
 printed; one line per file that imports a library the reader knows
 and gives nothing it reads; one line per gate on a setting, naming
-the check and the setting; and one line per file that says it is
+the check and the setting; for go, one line naming the checks the
+implementation file names; and one line per file that says it is
 generated from another source.
 
 Standard error: A usage message on a usage error, and the reason a source could not be read.
@@ -5497,6 +5592,70 @@ lines with less indentation than its key is held or left out whole.
 
 **Note:** From YAML Ain't Markup Language (YAML) version 1.2, 1.2.2, clause 3.3.1 Well-Formed Streams and Identified Aliases: A YAML processor should reject ill-formed streams; it may recover from syntax errors, possibly by ignoring certain parts of the input, but it must provide a mechanism for reporting such errors. <https://yaml.org/spec/1.2.2/>
 
+### ADR-081: Go on net/http and the common routers is read by following the routers a module makes, and a permission through the checks its implementation file names
+
+Status: accepted, 2026-10-09.
+
+Context: Step 15 of docs/extraction.md reads Go services that are not on
+dxlib: net/http's ServeMux and the routers most Go services use,
+chi, gin, echo and gorilla/mux. Unlike dxlib's NewEndPoint, none of
+them names a route's permission at the registration: each project
+writes its own check, as a wrapper around a handler, as middleware
+on a route or a group, or as a call in the handler, and syntax
+cannot tell a check from any other call. A router is also rarely
+used where it is made: it is passed to functions that register on
+it, grouped under prefixes, mounted on another, or kept in a field.
+ServeMux, unlike the other four, cannot list its routes, so a
+project that wants a route table hands its registration function a
+recorder of its own. The ADR-075 rules hold: a fact only from a
+literal or a known idiom, every guess a question at its line.
+
+Decision: The reader follows router values by syntax. A router is what a
+library's constructor makes, a parameter or a struct field of a
+router type, net/http's default mux, or a value of a type of the
+module that has ServeMux's Handle or HandleFunc method, which is
+read as a ServeMux, so a project's registration function may take
+an interface its printer's recorder implements. The walk starts at
+each function no call in the module names, follows calls of the
+module's functions with the routers they pass, and walks every
+function not reached with the routers it is given as routers whose
+place is not known. A group, a Route, a Mount, a subrouter and a
+ServeMux subtree handed to a router join their literal prefix; any
+other prefix is a must question on the routes under it.
+
+The project's permission check is named once, in the
+implementation file, under bindings.http.permissionChecks: the
+package it is declared in, its name (a function, or a type and a
+method), and the argument, from 1, that carries the permission.
+The key belongs to the binding, since a check is how the project
+binds its HTTP interface, and it names the check in the words of
+the source's own language, so the readers of JavaScript and Swift
+take the same key. extract go reads the file given with
+--implementation. A call of a named check with a literal
+permission on a route's way, wrapping its handler, among its or
+its group's middleware, applied with Use or With, or made in its
+handler, gives the operation that permission; a gate on a setting
+is looked for in the named check's own statements and in the
+function it returns.
+
+A handler is read for the path parameters it reads, the JSON body
+it decodes into a struct of the module, by encoding/json's rules,
+and the go-playground/validator rules on that struct's tags that
+the meta-model has keywords for. A call of net/http's client with
+a literal method and absolute URL declares a dependency named
+after the host. A flag declared by a literal name is a setting.
+
+Consequences: A ServeMux service that wants its routes merged keeps a recorder
+in its route printer, as the lending desk does; a chi, gin or echo
+service prints its routes with the router's own walk. A project's
+implementation file names its check before extract reads
+permissions, and without it every operation's permission is a
+must question. Responses a handler writes, and models with a table
+name (GORM, sqlc), are not read in this step; the catalogue stays
+the source of the data model.
+
+**Insight:** Following router values, rather than matching a method name on any receiver, keeps a call such as a cache's Get from being read as a route: only a value the reader saw made, given or declared as a router registers one. Reading a type of the module with ServeMux's Handle method as a ServeMux is what lets a ServeMux service keep a route table at all, since ServeMux lists nothing, and the recorder pattern is how such a service prints one; it is the method set ServeMux itself has, so it is no guess. A function no call names is where a program's routing starts, as main or a handler factory; walking the rest last, with routers of unknown place, means a registration is never dropped, only asked about. A check named by the project, because syntax cannot tell a permission check from any call that takes a string, and guessing by a name such as Require would write a permission the code does not check; ADR-076 noted that a router without dxlib's chain names its check this way. Naming the argument, because checks differ in where the permission goes (Require(permission, handler), Allowed(request, permission)), and a rule of the reader's own about it would be ambiguity. encoding/json's rules for the body, since they are what the handler accepts: a field with no tag goes on the wire by its Go name, which is neither camelCase nor snake_case, so it is left out with a line rather than renamed. A 64-bit integer is a must question, as the validator's unsafe_integer rule and extract openapi ask it, since encoding/json writes it as a number. Only validator rules whose meaning a keyword holds exactly are written: min and max count characters as minLength and maxLength do; dive, cross-field rules and the like have no keyword and print a line.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -5579,6 +5738,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-exit-1 | command extract | system | red | a file that is not a catalogue dump | extract database is run on it | it says the file is not a catalogue dump, writes nothing and exits 1 |
 | extract-go-dxlib-endpoints | command extract | system | golden | a repository holding a Go module on dxlib whose files register endpoints with NewEndPoint: one with a URI joined from literals, a net/http method constant and a privilege in dxlib_module's capitals, whose handler reads a declared parameter and answers two refusals; one with a path parameter whose handler is in another package, which the reader cannot find with no go.mod read, and that checks no privilege; one in a loop, one behind a condition and one with a computed URI; one whose handler is a function literal that reads a declared parameter, one whose name is computed and one the endpoint does not declare, and answers two reasons at one status, an empty reason, a status alone and a computed status; the same method and URI a second time; a HEAD endpoint; a call with too few arguments; a WebSocket endpoint and a RegisterHandler call; a reason answered at two statuses; a file that does not parse, a test file, a file under testdata and a file that imports dxlib and registers nothing | extract go is run on the module | it writes each endpoint registered with literal values outside a loop or a condition as an operation citing its registration line and its handler's first line, with its summary, description, path parameters, permission (mapped from capitals by the rule of ADR-076 and declared inferred) and the refusal statuses its handler answers, each naming the problem its literal reason gives; it declares each problem answered at one status, and asks a must question for the loop, the condition, the computed URI, the undeclared parameter, the empty reason, the status alone, two reasons at one status, a reason at two statuses, the second registration, the short call, the file that does not parse, the open endpoint, each operation's success response and whether the running system registers it; a should question for the computed parameter name and status and for the handler it cannot find; prints a line and asks a could question for the HEAD endpoint, the WebSocket endpoint, the RegisterHandler call and each operationId dxlib derives that is not camelCase; leaves out the test file and the testdata file; names the file that registers nothing; declares its code source reading: parsed; and exits 0 |
 | extract-go-dxlib-tables-seeds | command extract | system | golden | a repository holding a Go module on dxlib and dxlib_module: tables declared with NewModelDBTable in a schema NewModelDBSchema names, one with a serial key, a reference, a unique column, a nullable date, money, JSON, a 32-bit float, a geometry and a type named through a variable, one whose key column a function builds, one with a computed name, one with no schema, one whose fields are a variable and one in a loop; two tables NewDXTableSimple makes, one with literal whitelists and one with a whitelist in a variable, each the handler of a paging list endpoint whose middlewares let every request through while an environment setting is empty or a boolean setting is false; a seed that inserts privileges and roles and grants privileges in capitals, EVERYTHING, two names that give one permission, a role whose name is not kebab-case, a grant in a loop, one to a role it cannot trace and one of a computed privilege; and settings read from the environment by literal and computed names and from a dxlib configuration whose JSON file is tracked, with defaults in code and a sensitive key | extract go is run on the module | it writes one entity per table with a literal schema and name, named as extract database names it, with the types of dxlib's data types as the catalogue writes them, nullability and the primary key, and a must question whether the database holds each; it cites each paging list endpoint at its table's constructor with the whitelists and prints a line that the meta-model holds no whitelist, and asks a should question where the whitelists are not literal; it writes the seeded roles with their descriptions and the permissions they grant, mapped by the rule of ADR-076 and declared with a privilege's description, a must question for EVERYTHING, for the two names that give one permission, the loop, the untraced role and the computed privilege, and one whether the running system grants each role; it writes each setting under configuration in the deployment stage by its camelCase name with its type and default, the file's value over the code's, secret where the configuration marks it, a must question on what each is for and whether names that look like a credential are secrets, a must question on the width of a whole number and a should question on the computed name; it asks the gate question for each middleware that lets every request through; it prints a line and asks a could question for the geometry, the type it does not know, the 32-bit float and the role that is not kebab-case; and exits 0 |
+| extract-go-http-handlers | command extract | system | golden | a repository holding a Go module on chi whose server registers routes through a field of its struct, an implementation file whose bindings.http.permissionChecks name a check that wraps a handler, one used as middleware, one called in a handler and one named without its permission argument; routes checked by each, one by three permissions, one by a permission that is not a literal and one by none; a check that lets every request through while a setting is empty; handlers that decode a JSON body into a struct of the module with snake_case json tags and go-playground/validator tags (required, len, max, min, oneof, email, numeric, alphanum, dive and a rule with no keyword), a pointer, a list of structs, a time, an int, an int64, a map, an unexported field, a field left out with -, a struct that embeds another and a field with no json tag; a client call with a literal URL in a handler, one outside any handler, one with a computed URL and one with a relative URL; a path parameter read by a computed name; and flags declared with literal names | extract go is run on the module with the implementation file | it writes each operation with the one permission the named checks give it, declared with the check that reads it first; asks a must question for the three permissions, the computed one, the operation with none, the check named in part, the gate on the setting in the words extract permissions uses, the width of the int and of the int64, and each dependency's description and time limit; writes each body as an object of the struct's fields in camelCase, with info.wireNames snake_case, nullable for the pointer, the validator's rules as required, lengths, items, bounds, an enum, a format and patterns, and asks a should question for the map, the embedded struct, the computed parameter name, the computed and relative URLs and the dependency called outside a handler; prints a line and asks a could question for dive, the rule with no keyword and the field with no json tag; declares each system called with a literal URL as a dependency named after its host, listed under calls of the operation whose handler calls it; writes each flag and each environment variable read as a setting; and exits 0 |
+| extract-go-routers | command extract | system | golden | a repository holding a Go module whose files register routes on net/http's ServeMux (method patterns, a pattern with no method, one with a host, a rest wildcard, the exact root, a HEAD route, a mux handed a subtree through StripPrefix, a subtree handed to a handler that is not a router, and a pattern built in a loop), on chi (Route, Group, With, Method, Mount of a router a function returns, Handle for every method, a route behind a condition, a parameter with a pattern, a catch-all and a Route with a computed prefix), on gin (nested groups, Handle, Any and a catch-all), on echo (Group, Add and Match) and on gorilla/mux (HandleFunc with Methods, a subrouter under PathPrefix, Path with HandlerFunc, a route with no Methods and one with Queries); handlers that read a path parameter their path does not have; a function given a router that nothing in the module calls; and a file that imports echo and registers nothing; with no implementation file | extract go is run on the module | it writes one operation per route whose method and path it reads as literals, outside a loop or a condition, with the prefixes of groups, routes, mounts, subrouters and StripPrefix joined and each library's parameters written {name}, named after its handler as extract router names one, citing its registration and its handler; asks a must question for the route in a loop, the one behind a condition, the routes for every method, the subtree handed to a handler that is not a router, the computed prefix, the router given to a function nothing calls, each parameter read that the path does not have, each operation's permission, since no implementation file names the check, its summary and responses, and whether the running system registers it; prints a line and asks a could question for the host, the wildcards and catch-alls, the HEAD route, the Queries route, the parameters' patterns and each handler that serves more than one route; names the file that registers nothing; and exits 0 |
 | extract-not-offered | command extract | system | red | a source this build does not read yet | extract events is run on a topic registry | it names the sources it reads, writes nothing and exits 2 |
 | extract-openapi-dxlib-privileges | command extract | system | golden | a repository holding an OpenAPI document in dxlib's dialect whose operations carry x-dxlib-endpoint-type: two that check one privilege, one that checks another, one that checks two, one that checks none, three whose privileges EXPORT_ALL, GLOBAL.SET_MAINTENANCE_MODE and EVERYTHING are in dxlib_module's capitals, one whose privilege is in mixed case, two whose privileges REPORT_RUN and REPORT.RUN give one permission name, one whose privilege is public, one that lists one privilege twice and one whose list holds a mapping, all under the document's mutualTLS security, and one operation without x-dxlib-endpoint-type that names a privilege | extract openapi is run on the document | it writes the one privilege of a dxlib operation as its permission and declares each such permission citing the operations that check it, with a must question on what each allows and which role grants each; it maps each privilege in capitals by the rule of ADR-076 and declares that permission inferred, with the rule as its why; it reads a privilege listed twice as one, asks a must question for the operation that checks two privileges, the one that checks none (naming its middlewares), the one whose privilege the rule of ADR-076 cannot map, both whose privileges give one permission, the one whose privilege is public and the one whose list is not of names, and prints the security of each dxlib operation as a line of its own, since it is not the permission; it reads x-dxlib-privileges only beside x-dxlib-endpoint-type, so the other operation's permission is asked as before and its extension printed as a line; and exits 0 |
 | extract-openapi-not-openapi | command extract | system | red | a committed Swagger 2.0 document, which names no openapi version | extract openapi is run on it | it says the file is not an OpenAPI 3.0 or 3.1 document, writes nothing and exits 1 |
@@ -5760,6 +5921,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-page-events | command validate | system | red | pages whose events lead to a page that does not exist, to a page without its route parameter and with one it does not have, from a field the entity lacks, an onSubmitted on a view, a then on an action that navigates, and a message that is not a sentence; besides a list's onSelect and an operation's then with only a message, which are right | validate is run | it reports flow seven times, and exits 1 |
 | validate-page-states | command validate | system | red | pages with complete states, and pages whose states leave out a list's empty state, name a filtered empty state on a list without filters and an empty state on a form, give a message that is not a sentence, name a problem type the page cannot meet, leave one it can meet without a message or a default, and put a field on a view or one the form does not show | validate is run | it reports state ten times, and exits 1 |
 | validate-path-parameter | command validate | system | red | a path with {itemId} and no path parameter for it | validate is run | it reports path_parameter and exits 1 |
+| validate-permission-checks | command validate | system | red | an implementation file whose http binding names two permission checks, one with its permission in the first argument and one with a permission argument of 0 | validate is run on its folder | it takes the first check and reports the argument of 0 as a schema error at that entry, and exits 1 |
 | validate-permission-undeclared | command validate | system | red | an operation whose permission is not declared | validate is run | it reports permission_undeclared and exits 1 |
 | validate-permission-ungranted | command validate | system | red | a declared permission that no role grants | validate is run | it reports permission_ungranted and exits 1 |
 | validate-permission-ungranted-without-description | command validate | system | red | a declared permission that no role grants and that has no description, with a must question that blocks its description, as an extracted tree writes it | validate is run | the missing description is covered by the question, and it still reports permission_ungranted and exits 1 |
@@ -6073,7 +6235,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-7 | enums DocumentTarget; enums GeneratorTarget; entities GeneratedFile; commands document; commands generate; algorithms checkStatus; decisions ADR-013; decisions ADR-073 | tests document-check-differs; tests document-check-invalid; tests document-two-implementations; tests document-writes-techspec; tests generate-plugin-path-outside; tests generate-with-plugin; checks checks-the-examples; monitors main-stays-green |
 | SA-8 | entities GeneratedFile; commands document; commands generate; algorithms markersWellFormed | tests document-entity-diagram; tests document-two-implementations; tests document-writes-techspec |
 | SA-9 | enums DocumentKind; enums Rule; commands validate; decisions ADR-001; decisions ADR-002; decisions ADR-007 | tests validate-design-key; tests validate-stack-key |
-| SA-10 | enums Rule; commands validate | tests validate-deployment-environment-missing; tests validate-design-ref; tests validate-implements; tests validate-setting; tests validate-tree-valid |
+| SA-10 | enums Rule; commands validate | tests validate-deployment-environment-missing; tests validate-design-ref; tests validate-implements; tests validate-permission-checks; tests validate-setting; tests validate-tree-valid |
 | SA-11 | enums Rule; entities SpecFile; commands extract; commands validate; decisions ADR-010; decisions ADR-042; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057 | tests merge-documents-days; tests merge-openapi-placeholder; tests merge-openapi-unserved; tests validate-duplicate-name-across-files; tests validate-layout-folder-missing; tests validate-layout-not-a-stage; tests validate-layout-section-folder-in-root; tests validate-layout-section-in-root; tests validate-layout-section-in-wrong-stage; tests validate-layout-stack-mismatch; tests validate-layout-stage-not-listed; tests validate-layout-subfolder-section; tests validate-layout-test-without-file; tests validate-tree-valid; checks checks-the-examples |
 | SA-12 | enums Rule; commands validate; decisions ADR-011; decisions ADR-014; decisions ADR-052 | tests validate-deployment-valid; tests validate-monitor-environment; tests validate-monitor-not-declared; tests validate-monitor-valid; tests validate-need-rejected; tests validate-requirements-only; tests validate-secret-in-deployment; tests validate-secret-value; tests validate-traceability-warnings |
 | SA-13 | enums Rule; commands validate; decisions ADR-012 | tests document-citation-unknown-source; tests validate-cites; tests validate-source |
@@ -6107,7 +6269,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-41 | enums Rule; decisions ADR-033; decisions ADR-070 | tests validate-views; tests validate-views-valid |
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
-| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076 | tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-tables-seeds; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-route-twice; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read; tests validate-source-reading |
+| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081 | tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-tables-seeds; tests extract-go-http-handlers; tests extract-go-routers; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-route-twice; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read; tests validate-source-reading |
 | SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-077 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-printed-parsed; tests merge-printed-parsed-grants; tests merge-source-differs; tests merge-tree-invalid; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests merge-workflows-joins-trigger; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046; decisions ADR-068 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-mapping-menu-entry; tests validate-owned-by-unknown |
 | SA-47 | enums Rule; decisions ADR-054 | tests document-techspec-open-workflow; tests validate-maker-checker; tests validate-workflow; tests validate-workflow-valid |

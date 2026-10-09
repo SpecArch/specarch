@@ -15,6 +15,17 @@ implements:
 stack:
   language: { name: Go, version: "1.26" }
 
+bindings:
+  http:
+    framework: standard library
+    permissionChecks:
+      - package: example.com/lendingdesk/lending
+        function: Server.Require
+        permissionArgument: 1
+    origin: stated
+    cites:
+      - { source: desk-code, clause: "lending/access.go:37", says: "Require, the service's permission check." }
+
 mappings:
   "#/entities/Member":
     target: table members, type lending.Member
@@ -45,22 +56,22 @@ mappings:
     target: lending.Server.RegisterMember
     origin: stated
     cites:
-      - { source: desk-code, clause: "lending/routes.go:16", says: "The route." }
+      - { source: desk-code, clause: "lending/routes.go:37", says: "The route." }
   "#/paths/~1loans/post":
     target: lending.Server.LendBook
     origin: stated
     cites:
-      - { source: desk-code, clause: "lending/routes.go:17", says: "The route." }
+      - { source: desk-code, clause: "lending/routes.go:38", says: "The route." }
   "#/paths/~1loans~1{loanId}~1return/post":
     target: lending.Server.ReturnBook
     origin: stated
     cites:
-      - { source: desk-code, clause: "lending/routes.go:18", says: "The route." }
+      - { source: desk-code, clause: "lending/routes.go:39", says: "The route." }
   "#/paths/~1members~1{cardNumber}~1loans/get":
     target: lending.Server.ListMemberLoans
     origin: stated
     cites:
-      - { source: desk-code, clause: "lending/routes.go:21", says: "The route." }
+      - { source: desk-code, clause: "lending/routes.go:42", says: "The route." }
 
 targets:
   # The SQL and the OpenAPI document are generated only to check them, by

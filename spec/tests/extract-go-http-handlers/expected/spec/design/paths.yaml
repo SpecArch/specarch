@@ -1,0 +1,145 @@
+permissions:
+  fines.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'desk/server.go:32', says: 'GET /fines/{fineId} checks fines.read with s.Allow.'}
+  loans.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'desk/server.go:28', says: 'GET /loans/{loanId} checks loans.read with s.Require.'}
+  loans.write:
+    origin: stated
+    cites:
+      - {source: code, clause: 'desk/server.go:27', says: POST /loans checks loans.write with s.Require.}
+  members.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'desk/server.go:29', says: 'GET /members/{cardNumber} checks members.read with s.Allow.'}
+  members.write:
+    origin: stated
+    cites:
+      - {source: code, clause: 'desk/server.go:38', says: 'PUT /members/{cardNumber} checks members.write with s.Require.'}
+paths:
+  /fines/{fineId}:
+    parameters:
+      - {name: fineId, in: path, required: true}
+    get:
+      operationId: showFine
+      permission: fines.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'desk/server.go:32', says: 'Registers GET /fines/{fineId} on a chi router; its handler is s.showFine, and it is checked by s.Allow("fines.read").'}
+        - {source: code, clause: 'desk/server.go:82', says: 'The handler of GET /fines/{fineId} reads no path parameter by name.'}
+  /fines/{fineId}/waivers:
+    parameters:
+      - {name: fineId, in: path, required: true}
+    post:
+      operationId: waiveFine
+      origin: stated
+      cites:
+        - {source: code, clause: 'desk/server.go:33', says: 'Registers POST /fines/{fineId}/waivers on a chi router; its handler is s.waiveFine, and it is checked by s.Allow("fines.read"), s.Require("fines.waive") and s.Check("fines.override").'}
+        - {source: code, clause: 'desk/server.go:84', says: 'The handler of POST /fines/{fineId}/waivers reads no path parameter by name.'}
+  /loans:
+    post:
+      operationId: lendBook
+      permission: loans.write
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cardNumber:
+                  type: string
+                  minLength: 10
+                  maxLength: 10
+                  pattern: ^[-+]?[0-9]+(?:\.[0-9]+)?$
+                barcode:
+                  type: string
+                  maxLength: 20
+                  pattern: ^[a-zA-Z0-9]+$
+                copies:
+                  type: integer
+                  minimum: 1
+                  maximum: 3
+                dueOn:
+                  type: [string, "null"]
+                  format: date-time
+                notes:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      text:
+                        type: string
+                      staffId:
+                        type: integer
+                    required: [text]
+                  maxItems: 5
+                channel:
+                  type: string
+                  enum: [desk, kiosk, web]
+                contactEmail:
+                  type: string
+                  format: email
+              required: [cardNumber, barcode]
+      calls: [catalogueExampleCom]
+      origin: stated
+      cites:
+        - {source: code, clause: 'desk/server.go:27', says: 'Registers POST /loans on a chi router; its handler is s.lendBook, and it is checked by s.Require("loans.write").'}
+        - {source: code, clause: 'desk/server.go:60', says: 'The handler of POST /loans reads no path parameter by name, decodes its body into req and calls catalogueExampleCom.'}
+  /loans/{loanId}:
+    parameters:
+      - {name: loanId, in: path, required: true}
+    get:
+      operationId: showLoan
+      permission: loans.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'desk/server.go:28', says: 'Registers GET /loans/{loanId} on a chi router; its handler is s.showLoan, and it is checked by s.Require("loans.read").'}
+        - {source: code, clause: 'desk/server.go:72', says: 'The handler of GET /loans/{loanId} reads the path parameters loanId and loan.'}
+  /members/{cardNumber}:
+    parameters:
+      - {name: cardNumber, in: path, required: true}
+    get:
+      operationId: showMember
+      permission: members.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'desk/server.go:29', says: 'Registers GET /members/{cardNumber} on a chi router; its handler is s.showMember, and it is checked by s.Allow("members.read").'}
+        - {source: code, clause: 'desk/server.go:77', says: 'The handler of GET /members/{cardNumber} reads no path parameter by name.'}
+    put:
+      operationId: updateMember
+      permission: members.write
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      origin: stated
+      cites:
+        - {source: code, clause: 'desk/server.go:38', says: 'Registers PUT /members/{cardNumber} on a chi router; its handler is s.updateMember, and it is checked by s.Require("members.write").'}
+        - {source: code, clause: 'desk/server.go:97', says: 'The handler of PUT /members/{cardNumber} reads no path parameter by name and decodes its body into m.'}
+  /reports:
+    get:
+      operationId: reports
+      origin: stated
+      cites:
+        - {source: code, clause: 'desk/server.go:36', says: 'Registers GET /reports on a chi router; its handler is s.reports, and it is checked by s.Require(scope).'}
+        - {source: code, clause: 'desk/server.go:90', says: The handler of GET /reports reads no path parameter by name.}
+  /status:
+    get:
+      operationId: status
+      origin: stated
+      cites:
+        - {source: code, clause: 'desk/server.go:37', says: Registers GET /status on a chi router; its handler is s.status.}
+        - {source: code, clause: 'desk/server.go:92', says: The handler of GET /status reads no path parameter by name.}
+dependencies:
+  catalogueExampleCom:
+    origin: stated
+    cites:
+      - {source: code, clause: 'desk/server.go:66', says: 'Calls GET https://catalogue.example.com/v1/books with Get.'}
+  membersExampleCom:
+    origin: stated
+    cites:
+      - {source: code, clause: 'desk/access.go:41', says: 'Calls POST https://members.example.com/v1/notices with Post.'}

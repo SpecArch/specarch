@@ -1,0 +1,11 @@
+configuration:
+  deskDebug:
+    schema: {type: string}
+    origin: stated
+    cites:
+      - {source: code, clause: 'chirouter/router.go:26', says: Reads DESK_DEBUG from the environment with Getenv.}
+  deskPrefix:
+    schema: {type: string}
+    origin: stated
+    cites:
+      - {source: code, clause: 'chirouter/router.go:30', says: Reads DESK_PREFIX from the environment with Getenv.}

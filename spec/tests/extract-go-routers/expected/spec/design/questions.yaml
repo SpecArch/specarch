@@ -1,0 +1,815 @@
+questions:
+  Q-1:
+    question: chirouter/router.go:25 registers /metrics for every method. Which methods does the running system answer there, and what does each do?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: A route registered for every method answers any method, and an operation has one; writing one per method would write operations the code may refuse.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:25', says: Registers /metrics for every method.}
+  Q-2:
+    question: chirouter/router.go:27 registers a route behind a condition at chirouter/router.go:26, so the reader cannot tell how many routes it registers, or whether it registers one. Which routes does the running system register here?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: Syntax does not run the code; only the running system's own list of routes, such as a route table, says what a loop or a condition registers.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:27', says: Registers a route behind a condition.}
+  Q-3:
+    question: ginrouter/router.go:12 registers /search for every method. Which methods does the running system answer there, and what does each do?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: A route registered for every method answers any method, and an operation has one; writing one per method would write operations the code may refuse.
+    cites:
+      - {source: code, clause: 'ginrouter/router.go:12', says: Registers /search for every method.}
+  Q-4:
+    question: gorillarouter/router.go:17 registers /holds/export for every method. Which methods does the running system answer there, and what does each do?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: A route registered for every method answers any method, and an operation has one; writing one per method would write operations the code may refuse.
+    cites:
+      - {source: code, clause: 'gorillarouter/router.go:17', says: Registers /holds/export for every method.}
+  Q-5:
+    question: stdmux/mux.go:10 registers /health for every method. Which methods does the running system answer there, and what does each do?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: A route registered for every method answers any method, and an operation has one; writing one per method would write operations the code may refuse.
+    cites:
+      - {source: code, clause: 'stdmux/mux.go:10', says: Registers /health for every method.}
+  Q-6:
+    question: 'stdmux/mux.go:18: Handle hands every request under /admin/ to admin, which the reader does not read as a router. Which routes does it serve?'
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: Syntax follows a router the module makes; a handler of another kind may serve any path below the prefix.
+    cites:
+      - {source: code, clause: 'stdmux/mux.go:18', says: Handle hands requests to admin.}
+  Q-7:
+    question: stdmux/mux.go:20 registers a route in a loop at stdmux/mux.go:19, so the reader cannot tell how many routes it registers, or whether it registers one. Which routes does the running system register here?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: Syntax does not run the code; only the running system's own list of routes, such as a route table, says what a loop or a condition registers.
+    cites:
+      - {source: code, clause: 'stdmux/mux.go:20', says: Registers a route in a loop.}
+  Q-9:
+    question: 'chirouter/router.go:32 registers GET /ping on a router whose place the reader does not know (chirouter/router.go:31: Route is given the prefix prefix, which is not a literal). Under which path does the running system serve it?'
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: A prefix computed at run time, or a router passed in from code the reader does not follow, is a guess for syntax; an operation's path is never written from a guess.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:32', says: Registers GET /ping.}
+  Q-10:
+    question: unused/routes.go:12 registers GET /orphans on a router whose place the reader does not know (unused/routes.go:11 is given the router r, and the reader found no call that passes it one whose path it knows). Under which path does the running system serve it?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: A prefix computed at run time, or a router passed in from code the reader does not follow, is a guess for syntax; an operation's path is never written from a guess.
+    cites:
+      - {source: code, clause: 'unused/routes.go:12', says: Registers GET /orphans.}
+  Q-11:
+    question: 'stdmux/mux.go:13: no implementation file names the project''s permission check, so the reader does not know which permission GET / checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1/get/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-12:
+    question: What does GET / do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1/get/summary', '#/paths/~1/get/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-13:
+    question: Does the running system register GET /? It is declared at stdmux/mux.go:13, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'stdmux/mux.go:13', says: Registers GET /.}
+  Q-14:
+    question: 'gorillarouter/router.go:16: no implementation file names the project''s permission check, so the reader does not know which permission POST /api/holds checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1holds/post/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-15:
+    question: What does POST /api/holds do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1holds/post/summary', '#/paths/~1api~1holds/post/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-16:
+    question: Does the running system register POST /api/holds? It is declared at gorillarouter/router.go:16, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1holds/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'gorillarouter/router.go:16', says: Registers POST /api/holds.}
+  Q-17:
+    question: 'What values does each path parameter of /api/holds/{holdId} take: holdId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1holds~1{holdId}/parameters/0/schema']
+    decidedBy: system-owner
+    why: A path names its parameters and not the values they take.
+  Q-18:
+    question: 'gorillarouter/router.go:14: no implementation file names the project''s permission check, so the reader does not know which permission GET /api/holds/{holdId} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1holds~1{holdId}/get/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-19:
+    question: What does GET /api/holds/{holdId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1holds~1{holdId}/get/summary', '#/paths/~1api~1holds~1{holdId}/get/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-20:
+    question: Does the running system register GET /api/holds/{holdId}? It is declared at gorillarouter/router.go:14, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1holds~1{holdId}/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'gorillarouter/router.go:14', says: 'Registers GET /api/holds/{holdId}.'}
+  Q-21:
+    question: 'gorillarouter/router.go:15: no implementation file names the project''s permission check, so the reader does not know which permission POST /api/holds/{holdId} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1holds~1{holdId}/post/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-22:
+    question: What does POST /api/holds/{holdId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1holds~1{holdId}/post/summary', '#/paths/~1api~1holds~1{holdId}/post/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-23:
+    question: Does the running system register POST /api/holds/{holdId}? It is declared at gorillarouter/router.go:15, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1holds~1{holdId}/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'gorillarouter/router.go:15', says: 'Registers POST /api/holds/{holdId}.'}
+  Q-24:
+    question: 'gorillarouter/router.go:15: no implementation file names the project''s permission check, so the reader does not know which permission DELETE /api/holds/{holdId} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1holds~1{holdId}/delete/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-25:
+    question: What does DELETE /api/holds/{holdId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1holds~1{holdId}/delete/summary', '#/paths/~1api~1holds~1{holdId}/delete/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-26:
+    question: Does the running system register DELETE /api/holds/{holdId}? It is declared at gorillarouter/router.go:15, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1holds~1{holdId}/delete']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'gorillarouter/router.go:15', says: 'Registers DELETE /api/holds/{holdId}.'}
+  Q-27:
+    question: 'What values does each path parameter of /branches/{branchId} take: branchId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1branches~1{branchId}/parameters/0/schema']
+    decidedBy: system-owner
+    why: A path names its parameters and not the values they take.
+  Q-28:
+    question: 'chirouter/router.go:49: the handler of GET /branches/{branchId} reads the path parameter id, which its path does not have, so it reads an empty value. Is id a parameter of the operation, or is the read a mistake?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1branches~1{branchId}/get', '#/paths/~1branches~1{branchId}/get/parameters']
+    decidedBy: system-owner
+    why: A path parameter the route's path does not name is always empty, so the code cannot work as written.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:49', says: Reads the path parameter id.}
+  Q-29:
+    question: 'chirouter/router.go:39: no implementation file names the project''s permission check, so the reader does not know which permission GET /branches/{branchId} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1branches~1{branchId}/get/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-30:
+    question: What does GET /branches/{branchId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1branches~1{branchId}/get/summary', '#/paths/~1branches~1{branchId}/get/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-31:
+    question: Does the running system register GET /branches/{branchId}? It is declared at chirouter/router.go:39, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1branches~1{branchId}/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:39', says: 'Registers GET /branches/{branchId}.'}
+  Q-32:
+    question: 'What values does each path parameter of /fines/{fineId} take: fineId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1fines~1{fineId}/parameters/0/schema']
+    decidedBy: system-owner
+    why: A path names its parameters and not the values they take.
+  Q-33:
+    question: 'echorouter/router.go:19: the handler of GET /fines/{fineId} reads the path parameter fine, which its path does not have, so it reads an empty value. Is fine a parameter of the operation, or is the read a mistake?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1fines~1{fineId}/get', '#/paths/~1fines~1{fineId}/get/parameters']
+    decidedBy: system-owner
+    why: A path parameter the route's path does not name is always empty, so the code cannot work as written.
+    cites:
+      - {source: code, clause: 'echorouter/router.go:19', says: Reads the path parameter fine.}
+  Q-34:
+    question: 'echorouter/router.go:13: no implementation file names the project''s permission check, so the reader does not know which permission GET /fines/{fineId} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1fines~1{fineId}/get/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-35:
+    question: What does GET /fines/{fineId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1fines~1{fineId}/get/summary', '#/paths/~1fines~1{fineId}/get/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-36:
+    question: Does the running system register GET /fines/{fineId}? It is declared at echorouter/router.go:13, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1fines~1{fineId}/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'echorouter/router.go:13', says: 'Registers GET /fines/{fineId}.'}
+  Q-37:
+    question: 'echorouter/router.go:15: no implementation file names the project''s permission check, so the reader does not know which permission PUT /fines/{fineId} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1fines~1{fineId}/put/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-38:
+    question: What does PUT /fines/{fineId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1fines~1{fineId}/put/summary', '#/paths/~1fines~1{fineId}/put/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-39:
+    question: Does the running system register PUT /fines/{fineId}? It is declared at echorouter/router.go:15, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1fines~1{fineId}/put']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'echorouter/router.go:15', says: 'Registers PUT /fines/{fineId}.'}
+  Q-40:
+    question: 'echorouter/router.go:15: no implementation file names the project''s permission check, so the reader does not know which permission PATCH /fines/{fineId} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1fines~1{fineId}/patch/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-41:
+    question: What does PATCH /fines/{fineId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1fines~1{fineId}/patch/summary', '#/paths/~1fines~1{fineId}/patch/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-42:
+    question: Does the running system register PATCH /fines/{fineId}? It is declared at echorouter/router.go:15, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1fines~1{fineId}/patch']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'echorouter/router.go:15', says: 'Registers PATCH /fines/{fineId}.'}
+  Q-43:
+    question: 'What values does each path parameter of /fines/{fineId}/waivers take: fineId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1fines~1{fineId}~1waivers/parameters/0/schema']
+    decidedBy: system-owner
+    why: A path names its parameters and not the values they take.
+  Q-44:
+    question: 'echorouter/router.go:14: no implementation file names the project''s permission check, so the reader does not know which permission POST /fines/{fineId}/waivers checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1fines~1{fineId}~1waivers/post/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-45:
+    question: What does POST /fines/{fineId}/waivers do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1fines~1{fineId}~1waivers/post/summary', '#/paths/~1fines~1{fineId}~1waivers/post/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-46:
+    question: Does the running system register POST /fines/{fineId}/waivers? It is declared at echorouter/router.go:14, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1fines~1{fineId}~1waivers/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'echorouter/router.go:14', says: 'Registers POST /fines/{fineId}/waivers.'}
+  Q-47:
+    question: 'gorillarouter/router.go:12: no implementation file names the project''s permission check, so the reader does not know which permission GET /holds checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1holds/get/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-48:
+    question: What does GET /holds do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1holds/get/summary', '#/paths/~1holds/get/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-49:
+    question: Does the running system register GET /holds? It is declared at gorillarouter/router.go:12, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1holds/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'gorillarouter/router.go:12', says: Registers GET /holds.}
+  Q-50:
+    question: 'stdmux/mux.go:9: no implementation file names the project''s permission check, so the reader does not know which permission POST /loans checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans/post/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-51:
+    question: What does POST /loans do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans/post/summary', '#/paths/~1loans/post/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-52:
+    question: Does the running system register POST /loans? It is declared at stdmux/mux.go:9, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'stdmux/mux.go:9', says: Registers POST /loans.}
+  Q-53:
+    question: 'What values does each path parameter of /loans/{loanId} take: loanId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1{loanId}/parameters/0/schema']
+    decidedBy: system-owner
+    why: A path names its parameters and not the values they take.
+  Q-54:
+    question: 'stdmux/mux.go:8: no implementation file names the project''s permission check, so the reader does not know which permission GET /loans/{loanId} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1{loanId}/get/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-55:
+    question: What does GET /loans/{loanId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1{loanId}/get/summary', '#/paths/~1loans~1{loanId}/get/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-56:
+    question: Does the running system register GET /loans/{loanId}? It is declared at stdmux/mux.go:8, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1{loanId}/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'stdmux/mux.go:8', says: 'Registers GET /loans/{loanId}.'}
+  Q-57:
+    question: 'chirouter/router.go:14: no implementation file names the project''s permission check, so the reader does not know which permission GET /members checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members/get/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-58:
+    question: What does GET /members do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members/get/summary', '#/paths/~1members/get/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-59:
+    question: Does the running system register GET /members? It is declared at chirouter/router.go:14, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:14', says: Registers GET /members.}
+  Q-60:
+    question: 'chirouter/router.go:15: no implementation file names the project''s permission check, so the reader does not know which permission POST /members checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members/post/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-61:
+    question: What does POST /members do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members/post/summary', '#/paths/~1members/post/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-62:
+    question: Does the running system register POST /members? It is declared at chirouter/router.go:15, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:15', says: Registers POST /members.}
+  Q-63:
+    question: 'What values does each path parameter of /members/{cardNumber} take: cardNumber?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members~1{cardNumber}/parameters/0/schema']
+    decidedBy: system-owner
+    why: A path names its parameters and not the values they take.
+  Q-64:
+    question: 'chirouter/router.go:17: no implementation file names the project''s permission check, so the reader does not know which permission GET /members/{cardNumber} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members~1{cardNumber}/get/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-65:
+    question: What does GET /members/{cardNumber} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members~1{cardNumber}/get/summary', '#/paths/~1members~1{cardNumber}/get/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-66:
+    question: Does the running system register GET /members/{cardNumber}? It is declared at chirouter/router.go:17, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members~1{cardNumber}/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:17', says: 'Registers GET /members/{cardNumber}.'}
+  Q-67:
+    question: 'chirouter/router.go:18: no implementation file names the project''s permission check, so the reader does not know which permission DELETE /members/{cardNumber} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members~1{cardNumber}/delete/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-68:
+    question: What does DELETE /members/{cardNumber} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members~1{cardNumber}/delete/summary', '#/paths/~1members~1{cardNumber}/delete/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-69:
+    question: Does the running system register DELETE /members/{cardNumber}? It is declared at chirouter/router.go:18, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members~1{cardNumber}/delete']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:18', says: 'Registers DELETE /members/{cardNumber}.'}
+  Q-70:
+    question: 'What values does each path parameter of /members/{cardNumber}/address take: cardNumber?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members~1{cardNumber}~1address/parameters/0/schema']
+    decidedBy: system-owner
+    why: A path names its parameters and not the values they take.
+  Q-71:
+    question: 'chirouter/router.go:22: no implementation file names the project''s permission check, so the reader does not know which permission PUT /members/{cardNumber}/address checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members~1{cardNumber}~1address/put/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-72:
+    question: What does PUT /members/{cardNumber}/address do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members~1{cardNumber}~1address/put/summary', '#/paths/~1members~1{cardNumber}~1address/put/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-73:
+    question: Does the running system register PUT /members/{cardNumber}/address? It is declared at chirouter/router.go:22, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1members~1{cardNumber}~1address/put']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:22', says: 'Registers PUT /members/{cardNumber}/address.'}
+  Q-74:
+    question: 'stdmux/mux.go:16: no implementation file names the project''s permission check, so the reader does not know which permission GET /reports/daily checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1reports~1daily/get/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-75:
+    question: What does GET /reports/daily do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1reports~1daily/get/summary', '#/paths/~1reports~1daily/get/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-76:
+    question: Does the running system register GET /reports/daily? It is declared at stdmux/mux.go:16, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1reports~1daily/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'stdmux/mux.go:16', says: Registers GET /reports/daily.}
+  Q-77:
+    question: 'ginrouter/router.go:11: no implementation file names the project''s permission check, so the reader does not know which permission POST /v1/books checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1books/post/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-78:
+    question: What does POST /v1/books do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1books/post/summary', '#/paths/~1v1~1books/post/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-79:
+    question: Does the running system register POST /v1/books? It is declared at ginrouter/router.go:11, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1books/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'ginrouter/router.go:11', says: Registers POST /v1/books.}
+  Q-80:
+    question: 'What values does each path parameter of /v1/books/{isbn} take: isbn?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1books~1{isbn}/parameters/0/schema']
+    decidedBy: system-owner
+    why: A path names its parameters and not the values they take.
+  Q-81:
+    question: 'ginrouter/router.go:10: no implementation file names the project''s permission check, so the reader does not know which permission GET /v1/books/{isbn} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1books~1{isbn}/get/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-82:
+    question: What does GET /v1/books/{isbn} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1books~1{isbn}/get/summary', '#/paths/~1v1~1books~1{isbn}/get/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-83:
+    question: Does the running system register GET /v1/books/{isbn}? It is declared at ginrouter/router.go:10, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1books~1{isbn}/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'ginrouter/router.go:10', says: 'Registers GET /v1/books/{isbn}.'}
+  Q-84:
+    question: 'ginrouter/router.go:13: no implementation file names the project''s permission check, so the reader does not know which permission PATCH /v1/books/{isbn} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1books~1{isbn}/patch/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  Q-85:
+    question: What does PATCH /v1/books/{isbn} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1books~1{isbn}/patch/summary', '#/paths/~1v1~1books~1{isbn}/patch/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  Q-86:
+    question: Does the running system register PATCH /v1/books/{isbn}? It is declared at ginrouter/router.go:13, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1books~1{isbn}/patch']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'ginrouter/router.go:13', says: 'Registers PATCH /v1/books/{isbn}.'}
+  Q-87:
+    question: 'Not held: chirouter/router.go:22: the route /members/{cardNumber:[0-9]+}/address: the parameter cardNumber matches the pattern [0-9]+, which is not written as its schema, since the router''s pattern syntax is not JSON Schema''s. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:22', says: 'Not held: the route /members/{cardNumber:[0-9]+}/address: the parameter cardNumber matches the pattern [0-9]+, which is not written as its schema, since the router''s pattern syntax is not JSON Schema''s.'}
+  Q-88:
+    question: 'Not held: chirouter/router.go:29: the route /assets/*: it ends in the catch-all *, which matches the rest of the path, and a path parameter holds one segment; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:29', says: 'Not held: the route /assets/*: it ends in the catch-all *, which matches the rest of the path, and a path parameter holds one segment; left out.'}
+  Q-89:
+    question: 'Not held: ginrouter/router.go:14: the route /static/*filepath: it ends in the catch-all *filepath, which matches any number of segments, and a path parameter holds one; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'ginrouter/router.go:14', says: 'Not held: the route /static/*filepath: it ends in the catch-all *filepath, which matches any number of segments, and a path parameter holds one; left out.'}
+  Q-90:
+    question: 'Not held: gorillarouter/router.go:14: the route /holds/{holdId:[0-9]+}: the parameter holdId matches the pattern [0-9]+, which is not written as its schema, since the router''s pattern syntax is not JSON Schema''s. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'gorillarouter/router.go:14', says: 'Not held: the route /holds/{holdId:[0-9]+}: the parameter holdId matches the pattern [0-9]+, which is not written as its schema, since the router''s pattern syntax is not JSON Schema''s.'}
+  Q-91:
+    question: 'Not held: gorillarouter/router.go:18: the route /holds/search matches by Queries as well as by method and path, which the meta-model does not hold; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'gorillarouter/router.go:18', says: 'Not held: the route /holds/search matches by Queries as well as by method and path, which the meta-model does not hold; left out.'}
+  Q-92:
+    question: 'Not held: stdmux/mux.go:11: the pattern GET desk.example.com/status matches the host desk.example.com as well as the path, which the meta-model does not hold; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'stdmux/mux.go:11', says: 'Not held: the pattern GET desk.example.com/status matches the host desk.example.com as well as the path, which the meta-model does not hold; left out.'}
+  Q-93:
+    question: 'Not held: stdmux/mux.go:12: the route /files/{path...}: it ends in the wildcard {path...}, which matches the rest of the path, and a path parameter holds one segment; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'stdmux/mux.go:12', says: 'Not held: the route /files/{path...}: it ends in the wildcard {path...}, which matches the rest of the path, and a path parameter holds one segment; left out.'}
+  Q-94:
+    question: 'Not held: stdmux/mux.go:14: the route HEAD /loans: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'stdmux/mux.go:14', says: 'Not held: the route HEAD /loans: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out.'}
+  Q-95:
+    question: 'Not held: chirouter/router.go:17: the route GET /members/{cardNumber}: its handler showMember serves more than one route; the operation is named getMembersByCardNumber. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1members~1{cardNumber}/get']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:17', says: 'Not held: the route GET /members/{cardNumber}: its handler showMember serves more than one route; the operation is named getMembersByCardNumber.'}
+  Q-96:
+    question: 'Not held: chirouter/router.go:22: the route PUT /members/{cardNumber}/address: its handler showMember serves more than one route; the operation is named putMembersByCardNumberAddress. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1members~1{cardNumber}~1address/put']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'chirouter/router.go:22', says: 'Not held: the route PUT /members/{cardNumber}/address: its handler showMember serves more than one route; the operation is named putMembersByCardNumberAddress.'}
+  Q-97:
+    question: 'Not held: echorouter/router.go:14: the route POST /fines/{fineId}/waivers: its handler waive serves more than one route; the operation is named postFinesByFineIdWaivers. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1fines~1{fineId}~1waivers/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'echorouter/router.go:14', says: 'Not held: the route POST /fines/{fineId}/waivers: its handler waive serves more than one route; the operation is named postFinesByFineIdWaivers.'}
+  Q-98:
+    question: 'Not held: echorouter/router.go:15: the route PUT /fines/{fineId}: its handler waive serves more than one route; the operation is named putFinesByFineId. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1fines~1{fineId}/put']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'echorouter/router.go:15', says: 'Not held: the route PUT /fines/{fineId}: its handler waive serves more than one route; the operation is named putFinesByFineId.'}
+  Q-99:
+    question: 'Not held: echorouter/router.go:15: the route PATCH /fines/{fineId}: its handler waive serves more than one route; the operation is named patchFinesByFineId. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1fines~1{fineId}/patch']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'echorouter/router.go:15', says: 'Not held: the route PATCH /fines/{fineId}: its handler waive serves more than one route; the operation is named patchFinesByFineId.'}
+  Q-100:
+    question: 'Not held: ginrouter/router.go:11: the route POST /v1/books: its handler addBook serves more than one route; the operation is named postV1Books. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1v1~1books/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'ginrouter/router.go:11', says: 'Not held: the route POST /v1/books: its handler addBook serves more than one route; the operation is named postV1Books.'}
+  Q-101:
+    question: 'Not held: ginrouter/router.go:13: the route PATCH /v1/books/{isbn}: its handler addBook serves more than one route; the operation is named patchV1BooksByIsbn. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1v1~1books~1{isbn}/patch']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'ginrouter/router.go:13', says: 'Not held: the route PATCH /v1/books/{isbn}: its handler addBook serves more than one route; the operation is named patchV1BooksByIsbn.'}
+  Q-102:
+    question: 'Not held: gorillarouter/router.go:15: the route DELETE /api/holds/{holdId}: its handler cancelHold serves more than one route; the operation is named deleteApiHoldsByHoldId. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1api~1holds~1{holdId}/delete']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'gorillarouter/router.go:15', says: 'Not held: the route DELETE /api/holds/{holdId}: its handler cancelHold serves more than one route; the operation is named deleteApiHoldsByHoldId.'}
+  Q-103:
+    question: 'Not held: gorillarouter/router.go:15: the route POST /api/holds/{holdId}: its handler cancelHold serves more than one route; the operation is named postApiHoldsByHoldId. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1api~1holds~1{holdId}/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'gorillarouter/router.go:15', says: 'Not held: the route POST /api/holds/{holdId}: its handler cancelHold serves more than one route; the operation is named postApiHoldsByHoldId.'}

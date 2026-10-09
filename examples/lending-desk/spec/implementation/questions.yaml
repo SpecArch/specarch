@@ -7,10 +7,10 @@ questions:
     blocks: [implementation]
     decidedBy: desk-manager
     options: ["Build it", "Take it out of the manual and the specification"]
-    why: Not built yet. The manual describes renewal (clause 4.1); the service serves no renew route and has no handler for one (lending/routes.go:14).
+    why: Not built yet. The manual describes renewal (clause 4.1); the service serves no renew route and has no handler for one (lending/routes.go:36).
     cites:
       - { source: desk-manual, clause: "4.1", says: "A member may renew a loan once." }
-      - { source: desk-code, clause: "lending/routes.go:14", says: "Routes serves no renew route." }
+      - { source: desk-code, clause: "lending/routes.go:36", says: "Register registers no renew route." }
   Q-6:
     question: The manual has a phone number for each member, which is personal, and the database has no column for it. Build it as the manual describes, or take it out of the manual?
     kind: decision
@@ -31,5 +31,5 @@ questions:
     options: ["Keep it, behind a permission desk staff hold", "Take it out of the service", "Keep it open to everyone"]
     why: Undocumented, from code, and it answers a personal field to a caller who shows no permission, which is how an open endpoint is usually found. An operation's permission cannot be left out of the design, so the route waits here rather than as a guess.
     cites:
-      - { source: desk-code, clause: "lending/routes.go:22", says: "GET /members/{cardNumber} checks no permission." }
-      - { source: desk-code, clause: "lending/routes.go:69", says: "ShowMember answers one member's card number and full name." }
+      - { source: desk-code, clause: "lending/routes.go:43", says: "GET /members/{cardNumber} checks no permission." }
+      - { source: desk-code, clause: "lending/routes.go:97", says: "ShowMember answers one member's card number and full name." }

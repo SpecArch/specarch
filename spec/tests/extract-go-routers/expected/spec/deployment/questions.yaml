@@ -1,0 +1,8 @@
+questions:
+  Q-8:
+    question: 'What is each setting for, where does its value come from, and is it a secret: DESK_DEBUG, DESK_PREFIX?'
+    kind: decision
+    priority: must
+    blocks: ['#/configuration/deskDebug/description', '#/configuration/deskDebug/secret', '#/configuration/deskPrefix/description', '#/configuration/deskPrefix/secret']
+    decidedBy: system-owner
+    why: The source names the settings it reads and not what they are for; whether one is a secret is said only where the source marks it sensitive.

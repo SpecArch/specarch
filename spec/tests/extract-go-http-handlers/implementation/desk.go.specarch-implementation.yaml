@@ -1,0 +1,28 @@
+specarchImplementation: "0.1"
+
+info:
+  title: The desk in Go
+  version: 0.1.0
+
+implements:
+  file: ../specarch.yaml
+  version: 0.1.0
+
+stack:
+  language: { name: Go, version: "1.26" }
+
+bindings:
+  http:
+    framework: github.com/go-chi/chi/v5
+    permissionChecks:
+      - package: desk
+        function: Server.Require
+        permissionArgument: 1
+      - package: desk
+        function: Server.Allow
+        permissionArgument: 1
+      - package: desk
+        function: Server.Check
+        permissionArgument: 2
+      - package: desk
+        function: Server.Missing

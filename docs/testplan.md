@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 346 design tests, 140 golden and 206 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 349 design tests, 142 golden and 207 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 342 |
+| system | 345 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -661,6 +661,22 @@ Scenario: golden; level: system; verifies SA-44.
 - Given: a repository holding a Go module on dxlib and dxlib_module: tables declared with NewModelDBTable in a schema NewModelDBSchema names, one with a serial key, a reference, a unique column, a nullable date, money, JSON, a 32-bit float, a geometry and a type named through a variable, one whose key column a function builds, one with a computed name, one with no schema, one whose fields are a variable and one in a loop; two tables NewDXTableSimple makes, one with literal whitelists and one with a whitelist in a variable, each the handler of a paging list endpoint whose middlewares let every request through while an environment setting is empty or a boolean setting is false; a seed that inserts privileges and roles and grants privileges in capitals, EVERYTHING, two names that give one permission, a role whose name is not kebab-case, a grant in a loop, one to a role it cannot trace and one of a computed privilege; and settings read from the environment by literal and computed names and from a dxlib configuration whose JSON file is tracked, with defaults in code and a sensitive key
 - When: extract go is run on the module
 - Then: it writes one entity per table with a literal schema and name, named as extract database names it, with the types of dxlib's data types as the catalogue writes them, nullability and the primary key, and a must question whether the database holds each; it cites each paging list endpoint at its table's constructor with the whitelists and prints a line that the meta-model holds no whitelist, and asks a should question where the whitelists are not literal; it writes the seeded roles with their descriptions and the permissions they grant, mapped by the rule of ADR-076 and declared with a privilege's description, a must question for EVERYTHING, for the two names that give one permission, the loop, the untraced role and the computed privilege, and one whether the running system grants each role; it writes each setting under configuration in the deployment stage by its camelCase name with its type and default, the file's value over the code's, secret where the configuration marks it, a must question on what each is for and whether names that look like a credential are secrets, a must question on the width of a whole number and a should question on the computed name; it asks the gate question for each middleware that lets every request through; it prints a line and asks a could question for the geometry, the type it does not know, the 32-bit float and the role that is not kebab-case; and exits 0
+
+#### extract-go-http-handlers
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository holding a Go module on chi whose server registers routes through a field of its struct, an implementation file whose bindings.http.permissionChecks name a check that wraps a handler, one used as middleware, one called in a handler and one named without its permission argument; routes checked by each, one by three permissions, one by a permission that is not a literal and one by none; a check that lets every request through while a setting is empty; handlers that decode a JSON body into a struct of the module with snake_case json tags and go-playground/validator tags (required, len, max, min, oneof, email, numeric, alphanum, dive and a rule with no keyword), a pointer, a list of structs, a time, an int, an int64, a map, an unexported field, a field left out with -, a struct that embeds another and a field with no json tag; a client call with a literal URL in a handler, one outside any handler, one with a computed URL and one with a relative URL; a path parameter read by a computed name; and flags declared with literal names
+- When: extract go is run on the module with the implementation file
+- Then: it writes each operation with the one permission the named checks give it, declared with the check that reads it first; asks a must question for the three permissions, the computed one, the operation with none, the check named in part, the gate on the setting in the words extract permissions uses, the width of the int and of the int64, and each dependency's description and time limit; writes each body as an object of the struct's fields in camelCase, with info.wireNames snake_case, nullable for the pointer, the validator's rules as required, lengths, items, bounds, an enum, a format and patterns, and asks a should question for the map, the embedded struct, the computed parameter name, the computed and relative URLs and the dependency called outside a handler; prints a line and asks a could question for dive, the rule with no keyword and the field with no json tag; declares each system called with a literal URL as a dependency named after its host, listed under calls of the operation whose handler calls it; writes each flag and each environment variable read as a setting; and exits 0
+
+#### extract-go-routers
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository holding a Go module whose files register routes on net/http's ServeMux (method patterns, a pattern with no method, one with a host, a rest wildcard, the exact root, a HEAD route, a mux handed a subtree through StripPrefix, a subtree handed to a handler that is not a router, and a pattern built in a loop), on chi (Route, Group, With, Method, Mount of a router a function returns, Handle for every method, a route behind a condition, a parameter with a pattern, a catch-all and a Route with a computed prefix), on gin (nested groups, Handle, Any and a catch-all), on echo (Group, Add and Match) and on gorilla/mux (HandleFunc with Methods, a subrouter under PathPrefix, Path with HandlerFunc, a route with no Methods and one with Queries); handlers that read a path parameter their path does not have; a function given a router that nothing in the module calls; and a file that imports echo and registers nothing; with no implementation file
+- When: extract go is run on the module
+- Then: it writes one operation per route whose method and path it reads as literals, outside a loop or a condition, with the prefixes of groups, routes, mounts, subrouters and StripPrefix joined and each library's parameters written {name}, named after its handler as extract router names one, citing its registration and its handler; asks a must question for the route in a loop, the one behind a condition, the routes for every method, the subtree handed to a handler that is not a router, the computed prefix, the router given to a function nothing calls, each parameter read that the path does not have, each operation's permission, since no implementation file names the check, its summary and responses, and whether the running system registers it; prints a line and asks a could question for the host, the wildcards and catch-alls, the HEAD route, the Queries route, the parameters' patterns and each handler that serves more than one route; names the file that registers nothing; and exits 0
 
 #### extract-not-offered
 
@@ -2121,6 +2137,14 @@ Scenario: red; level: system; covers exit 1.
 - Given: a path with {itemId} and no path parameter for it
 - When: validate is run
 - Then: it reports path_parameter and exits 1
+
+#### validate-permission-checks
+
+Scenario: red; level: system; covers exit 1; verifies SA-10.
+
+- Given: an implementation file whose http binding names two permission checks, one with its permission in the first argument and one with a permission argument of 0
+- When: validate is run on its folder
+- Then: it takes the first check and reports the argument of 0 as a schema error at that entry, and exits 1
 
 #### validate-permission-undeclared
 

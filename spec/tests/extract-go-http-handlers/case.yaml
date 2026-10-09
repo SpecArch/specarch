@@ -1,0 +1,21 @@
+arguments: [extract, go, --implementation, implementation/desk.go.specarch-implementation.yaml, --out, spec, testdata/service]
+repository:
+  folder: testdata/service
+  commits:
+    - [.]
+exitStatus: 0
+standardOutput: |
+  commit 4cc719f35f715bfb5bd870a1f7aed1ee97172e72: the last change to .
+  counted 3 Go files, 0 of them importing dxlib's api package and 0 that do not parse, and left out 0: every tracked Go file under . but test files and files in a folder below it named testdata or vendor, or that the go command ignores
+  checks: implementation/desk.go.specarch-implementation.yaml names the permission checks desk.Server.Require, desk.Server.Allow and desk.Server.Check
+  settings: counted 3 reads of the environment and 0 configurations: every call of os or of dxlib's utils/os that reads the environment by a name, and every NewConfiguration of dxlib's configuration
+  settings: counted 4 flags: every call of the flag package that declares a flag of a string, a boolean or a number
+  clients: counted 4 calls: every call of net/http's Get, Head, Post, PostForm, NewRequest and NewRequestWithContext
+  routers: counted 8 registrations: every call that registers a route on a router of net/http, chi, gin, echo or gorilla/mux that the reader follows from where it is made, with its groups, mounts and subrouters
+  gate: desk/access.go:11: the check Require runs only when the setting DESK_CHECKS is present, and lets every request through while it is empty
+  routes: wrote 8 operations: one operation per route a router of net/http, chi, gin, echo or gorilla/mux registers with a literal method and path, outside a loop or a condition, under a prefix the reader knows
+  wrote 5 permissions and 44 questions: one permission per name a route checks with a literal, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  wrote 0 entities, 0 roles and 7 settings: one entity per table NewModelDBTable declares with a literal schema and name, one role per role the seeds grant something, and one setting per name the source reads or a configuration file holds
+  not held: desk/server.go:56: POST /loans, request body, property notes, property text: the validate rule excludesall=<> has no keyword of the meta-model the reader writes it as; not written; could question Q-42
+  not held: desk/server.go:47: POST /loans, request body, property notes: the validate rule dive has no keyword of the meta-model the reader writes it as; not written; could question Q-43
+  not held: desk/server.go:104: Member.FullName has no json tag, so encoding/json writes it as FullName, which is neither camelCase nor snake_case; left out; could question Q-44

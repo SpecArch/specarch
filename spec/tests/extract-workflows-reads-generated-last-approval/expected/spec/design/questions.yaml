@@ -1,0 +1,52 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which entity holds the request of workflow reinstate while it waits? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: Which entity holds the request of workflow reinstate while it waits?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/reinstate/subject']
+    decidedBy: system-owner
+    why: BPMN has no element for the record the request is kept in; the subject is where a page reads where the request is.
+  # specarch-problem: question: open_question: (must, decision) Workflow reinstate is started by operation requestReinstatement, which the BPMN file names on its start event; the file does not declare it, so it waits for the tree that does. Is it that operation? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: Workflow reinstate is started by operation requestReinstatement, which the BPMN file names on its start event; the file does not declare it, so it waits for the tree that does. Is it that operation?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/reinstate/trigger']
+    decidedBy: system-owner
+    names: requestReinstatement
+    why: The file names the operation and not its method or path, so the workflow's trigger waits for the tree that declares it; specarch merge writes it once one does.
+  # specarch-problem: question: open_question: (must, decision) Which permission does step confirmFound of workflow reinstate check? It cannot be the permission of the operation that starts the workflow. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: Which permission does step confirmFound of workflow reinstate check? It cannot be the permission of the operation that starts the workflow.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/reinstate/steps/0/permission']
+    decidedBy: system-owner
+    why: BPMN names who may approve and not the permission the approval checks.
+  # specarch-problem: question: open_question: (must, decision) Which permissions does role desk-supervisor grant? The BPMN file names it as a potential owner and says nothing of what it may do. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: Which permissions does role desk-supervisor grant? The BPMN file names it as a potential owner and says nothing of what it may do.
+    kind: decision
+    priority: must
+    blocks: ['#/roles/desk-supervisor/permissions']
+    decidedBy: system-owner
+    why: A potential owner in BPMN is a name; the grants are where the running permission check reads them.
+  # specarch-problem: question: open_question: (must, decision) What is role desk-supervisor, in a sentence a reviewer can check? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: What is role desk-supervisor, in a sentence a reviewer can check?
+    kind: decision
+    priority: must
+    blocks: ['#/roles/desk-supervisor/description']
+    decidedBy: system-owner
+    why: The BPMN file names the role and does not describe it.
+  # specarch-problem: question: open_question: (could, decision) Not held: workflows/reinstate.bpmn:49: BPMNDiagram is not in BPMN's semantic model (its namespace is http://www.omg.org/spec/BPMN/20100524/DI), such as diagram layout or a tool's extension; left out. Does the specification need it, written another way or described by hand? It blocks workflows. Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: 'Not held: workflows/reinstate.bpmn:49: BPMNDiagram is not in BPMN''s semantic model (its namespace is http://www.omg.org/spec/BPMN/20100524/DI), such as diagram layout or a tool''s extension; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [workflows]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'workflows/reinstate.bpmn:49', says: 'Not held: BPMNDiagram is not in BPMN''s semantic model (its namespace is http://www.omg.org/spec/BPMN/20100524/DI), such as diagram layout or a tool''s extension; left out.'}

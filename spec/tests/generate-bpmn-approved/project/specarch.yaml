@@ -1,0 +1,96 @@
+specarch: "0.1"
+info: { title: Desk, version: 1.0.0 }
+stakeholders:
+  owner: { description: The owner of the desk's system. }
+requirements:
+  DESK-1: { statement: A lost book's loan is written off only after a supervisor approves., kind: functional, priority: must, status: accepted, acceptance: [A write-off waits for a supervisor.] }
+entities:
+  WriteOff:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+    primaryKey: [id]
+    satisfies: [DESK-1]
+workflows:
+  write-off:
+    description: A lost book's loan is written off only after a desk supervisor approves, within two days.
+    trigger: requestWriteOff
+    subject: WriteOff
+    steps:
+      - name: approve
+        kind: approval
+        approvers: [desk-supervisor]
+        permission: writeoffs.approve
+        deadline: P2D
+        onDeadline: refuse
+      - name: writeOff
+        kind: operation
+        operation: writeOffLoan
+    satisfies: [DESK-1]
+  reinstate:
+    description: A written-off loan is reinstated when a desk supervisor confirms the book was found, within a day.
+    trigger: requestReinstatement
+    subject: WriteOff
+    steps:
+      - name: confirmFound
+        kind: approval
+        approvers: [desk-supervisor]
+        permission: writeoffs.approve
+        deadline: PT8H
+        onDeadline: refuse
+    satisfies: [DESK-1]
+  file-note:
+    description: "A note on a write-off is filed & sent to the <desk> log, with no approval."
+    trigger: requestNote
+    subject: WriteOff
+    steps:
+      - name: file
+        kind: operation
+        operation: writeOffLoan
+    satisfies: [DESK-1]
+paths:
+  /write-offs/{writeOffId}/notes:
+    parameters:
+      - { name: writeOffId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: requestNote
+      summary: File a note on a write-off
+      permission: writeoffs.request
+      responses:
+        "202": { description: The note waits to be filed. }
+      satisfies: [DESK-1]
+  /write-offs:
+    post:
+      operationId: requestWriteOff
+      summary: Ask for a write-off
+      permission: writeoffs.request
+      responses:
+        "202": { description: The request waits for approval. }
+      satisfies: [DESK-1]
+  /write-offs/{writeOffId}/reinstatement:
+    parameters:
+      - { name: writeOffId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: requestReinstatement
+      summary: Ask for a loan to be reinstated
+      permission: writeoffs.request
+      responses:
+        "202": { description: The request waits for approval. }
+      satisfies: [DESK-1]
+  /write-offs/{writeOffId}/loan:
+    parameters:
+      - { name: writeOffId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: writeOffLoan
+      summary: Write the loan off
+      permission: writeoffs.apply
+      responses:
+        "200": { description: The loan is written off. }
+      satisfies: [DESK-1]
+permissions:
+  writeoffs.request: { description: Ask for a write-off. }
+  writeoffs.approve: { description: Approve a write-off. }
+  writeoffs.apply: { description: Write a loan off. }
+roles:
+  desk-staff: { description: The staff at the desk., permissions: [writeoffs.request] }
+  desk-supervisor: { description: The supervisor at the desk., permissions: [writeoffs.approve, writeoffs.apply] }

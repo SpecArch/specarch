@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: Workflows of workflows/reinstate.bpmn
+  version: 0.1.0
+  description: |
+    The workflows the BPMN 2.0 file workflows/reinstate.bpmn defines at commit 5bbfed93c43ee05eb48a9a07a79c90249af3a669, in the sequential subset the meta-model holds: approvals, operation steps and deadlines. Every workflow cites the file; what it does not say, or says outside the subset, is a question.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 5bbfed93c43ee05eb48a9a07a79c90249af3a669
+    url: ../repo
+    clauses:
+      - {clause: workflows/reinstate.bpmn, title: The BPMN 2.0 process definitions}

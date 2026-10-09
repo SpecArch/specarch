@@ -293,9 +293,17 @@ of the paragraph and the id already give:
 - The command prints the errors, writes every document, and exits 1;
   with `--check` it compares and exits 1 as well.
 
-No SpecArch command writes BPMN today: `extract workflows` reads it. The
-BPMN mark is for the first command that writes one. A source SpecArch reads
-is never marked: a problem cites it in a note instead.
+`generate bpmn` writes the BPMN mark, in the BPMN file and in its SVG,
+from the problems the plug-in request carries (`docs/generators.md`,
+Plug-ins): a warning before the element its pointer leads to, an open
+question before each element it blocks. A problem of one workflow is
+marked only in that workflow's files; one of the whole `workflows`
+section, or of an operation or a role, in every file that shows it; one
+at an element no file shows, such as another path, only in the problems
+file. In the SVG, which draws no shape for an operation or a role, their
+marks stand before the start event or the task that names them. A source SpecArch reads, such as a BPMN file given
+to `extract workflows`, is never marked: a problem cites it in a note
+instead.
 
 ## 6. Steps
 

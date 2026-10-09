@@ -16,6 +16,7 @@ What can be made from the specification now. A document is a draft while a must 
 | traceability document | ready | |
 | deployment document | ready | |
 | commissioning document | ready | |
+| code target bpmn | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 | code target openapi | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 | code target sql | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 | code target tests | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |

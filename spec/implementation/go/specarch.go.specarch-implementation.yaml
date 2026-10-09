@@ -90,6 +90,11 @@ layout:
   cmd/specarch-gen-go-dxlib:
     description: The plug-in behind generate go-dxlib. Reads the request on standard input, answers the Go file on standard output, and never touches the disk.
     implements: ["#/commands/generate"]
+  cmd/specarch-gen-bpmn:
+    description: The plug-in behind generate bpmn. Reads the request on standard input, answers each workflow's BPMN file and SVG on standard output, and never touches the disk.
+    implements: ["#/commands/generate"]
+  internal/genbpmn:
+    description: Each workflow as a BPMN 2.0 process in the subset extract workflows reads, with BPMN DI laid out by a fixed rule, the same diagram as SVG, and the problems marked as XML comments before their elements.
   cmd/specarch-gen-ui:
     description: The plug-in behind generate ui. Reads the request on standard input, answers the screens on standard output, and never touches the disk.
     implements: ["#/commands/generate"]

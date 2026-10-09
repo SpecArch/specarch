@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-085:
+    title: generate bpmn writes each workflow as a BPMN 2.0 process with its diagram and an SVG of it, in the subset extract workflows reads back, and every plug-in is told whether its output is a draft and where each problem is
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      extract workflows reads BPMN 2.0 into workflows (ADR-054), but no
+      command wrote a workflow back out, so a workflow could be drawn only
+      as the technical specification's Mermaid chart, which no BPMN
+      modeller or engine opens. docs/diagnostics.md defined the mark a
+      BPMN file carries, for the first command that writes one. A plug-in
+      was told nothing of the specification's problems or of a missing
+      approval, so no generated file could mark a problem at its entry or
+      say it is a draft.
+    decision: |
+      specarch-gen-bpmn writes, for each workflow, <workflow>.bpmn and
+      <workflow>.svg in the target's folder. The process is the workflow
+      in the subset extract reads: a start event whose message event names
+      the trigger's operation, a user task per approval with a potential
+      owner per role, an interrupting timer with the deadline whose flow
+      ends the request or reaches the approval it escalates to, an
+      exclusive gateway after each approval whose default flow is the
+      refusal, a service task per operation step naming its operation, and
+      one end event for the approved request and one for every refusal.
+      The operations are on the file's interface, the roles are its
+      resources. BPMN DI lays the steps out on one row, left to right, with
+      fixed sizes, the timers on their tasks' bottom edges and the
+      refusals on a line below; the SVG draws the same coordinates. A
+      header comment names the root file and versions, and a second says
+      what the file holds and that the subject, the permissions, the
+      events and the requirements stay in the specification. The plug-in
+      request carries draft and problems for every plug-in; the BPMN file
+      and the SVG mark each warning and open question before the element
+      it concerns, and say they are a draft when draft is true. extract
+      reads the schema's element form of operationRef and resourceRef
+      beside the attribute form, and a gateway whose two flows both end
+      the request by its default flow.
+    consequences: |
+      A workflow opens in a BPMN modeller and an engine, and a change made
+      there can be read back with extract workflows and merged. The
+      subject, each approval's permission, emits, satisfies and why are
+      not in the file: BPMN has no element for them, so a round trip
+      brings them back as the questions extract already asks, and merge
+      with the specification's own tree fills them. The draft and
+      problems fields are there for every plug-in; the others do not
+      read them yet. An owned workflow is left out, as every plug-in that
+      builds data leaves out what another stakeholder owns.
+    why: |
+      BPMN 2.0 is the standard the meta-model takes the workflow's
+      meaning from, so the file is that meaning written in its own
+      notation, with nothing invented beside it. The references are
+      written as the schema writes them, child elements, because a file
+      a modeller validates against the schema must pass; extract keeps
+      reading the attribute form because files in the wild carry it. The
+      refusal is the gateway's default flow because an exclusive gateway
+      whose other flow has a condition needs a default to be complete, and
+      the default is the one way left to tell the two ends apart when the
+      last step is an approval. BPMN DI is included because without it a
+      modeller shows an empty canvas; the layout is fixed so the output is
+      byte-identical and a change to the workflow is a readable change to
+      the file. The SVG is drawn by SpecArch rather than by a modeller so
+      documents get it without a browser or a dependency. No extension
+      namespace carries the subject or the permissions, so the file stays
+      plain BPMN and a tool needs nothing of SpecArch's to read it; that
+      is an open choice for the owner.
+    cites:
+      - source: bpmn-2-0
+        clause: Semantic.xsd, tResourceRole and tMessageEventDefinition
+        says: "resourceRef in a resource role, and operationRef in a message event definition, are child elements of type QName, not attributes."
+      - source: bpmn-2-0
+        clause: Semantic.xsd, tExclusiveGateway
+        says: "An exclusive gateway names its default sequence flow in its default attribute."
+      - source: bpmn-2-0
+        clause: "12"
+        says: "BPMN Diagram Interchange gives each element its shape's bounds and each sequence flow its waypoints."
+    satisfies: [SA-58]

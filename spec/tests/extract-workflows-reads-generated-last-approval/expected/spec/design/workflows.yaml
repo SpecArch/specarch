@@ -1,0 +1,22 @@
+roles:
+  desk-supervisor:
+    origin: stated
+    cites:
+      - {source: code, clause: workflows/reinstate.bpmn, says: 'Line 29: Role desk-supervisor is a potential owner of user task step-confirmFound.'}
+workflows:
+  # specarch-problem: warning: test_case_missing: workflow reinstate has no red scenario for "approval without the permission of confirmFound"; add under tests reinstate-approval-without-the-permission-of-confirm-found: { workflow: reinstate, scenario: red, covers: [approval without the permission of confirmFound], given: "a caller without the permission of confirmFound", when: "they approve a request waiting at confirmFound", then: "it is refused as not allowed, and the request still waits" } [test_case_missing.0c88678f@design/workflows.yaml#/workflows/reinstate]
+  # specarch-problem: warning: test_case_missing: workflow reinstate has no red scenario for "deadline passes at confirmFound"; add under tests reinstate-deadline-passes-at-confirm-found: { workflow: reinstate, scenario: red, covers: [deadline passes at confirmFound], given: "a request waiting at confirmFound", when: "PT8H passes with no answer", then: "the request ends refused" } [test_case_missing.190ce40e@design/workflows.yaml#/workflows/reinstate]
+  # specarch-problem: warning: test_case_missing: workflow reinstate has no red scenario for "refused at confirmFound"; add under tests reinstate-refused-at-confirm-found: { workflow: reinstate, scenario: red, covers: [refused at confirmFound], given: "a request waiting at confirmFound", when: "a caller with the permission of confirmFound refuses it", then: "the request ends refused" } [test_case_missing.a30b8d43@design/workflows.yaml#/workflows/reinstate]
+  # specarch-problem: warning: test_case_missing: workflow reinstate has no red scenario for "requester approves own request"; add under tests reinstate-requester-approves-own-request: { workflow: reinstate, scenario: red, covers: [requester approves own request], given: "a request made by a caller who also holds the permission of confirmFound", when: "the requester approves it", then: "it is refused, because the person who made a request never approves it, and the request still waits" } [test_case_missing.c1dfa514@design/workflows.yaml#/workflows/reinstate]
+  # specarch-problem: warning: test_golden_missing: workflow reinstate has no golden scenario; add one under tests, for example reinstate-succeeds: { workflow: reinstate, scenario: golden, given: "any caller", when: "a request is made through its trigger and is approved at confirmFound", then: "it answers 202, and the request ends approved" } [test_golden_missing@design/workflows.yaml#/workflows/reinstate]
+  reinstate:
+    description: A written-off loan is reinstated when a desk supervisor confirms the book was found, within a day.
+    steps:
+      - name: confirmFound
+        kind: approval
+        approvers: [desk-supervisor]
+        deadline: PT8H
+        onDeadline: refuse
+    origin: stated
+    cites:
+      - {source: code, clause: workflows/reinstate.bpmn, says: 'Line 21: Process reinstate defines the workflow, with the task step-confirmFound.'}

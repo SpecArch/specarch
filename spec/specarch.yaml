@@ -42,6 +42,12 @@ sources:
     title: ISO/IEC/IEEE 29119-4, Software and systems engineering, Software testing, Part 4, Test techniques
     edition: "2021"
     author: ISO, IEC and IEEE
+  bpmn-2-0:
+    kind: standard
+    title: Business Process Model and Notation (BPMN), Version 2.0, with its XML schemas
+    edition: "2011"
+    author: Object Management Group
+    url: https://www.omg.org/spec/BPMN/2.0/
   rfc-9110:
     kind: standard
     title: RFC 9110, HTTP Semantics

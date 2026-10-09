@@ -1,0 +1,4 @@
+arguments: [generate, bpmn, --out, out, project]
+exitStatus: 0
+standardOutput: ""
+plugins: [bpmn]

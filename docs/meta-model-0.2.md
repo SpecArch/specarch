@@ -115,7 +115,8 @@ are the approved path (golden), a refusal at each approval, each deadline
 passing, the requester approving their own request, and someone without
 the approval's permission approving. The technical specification draws
 each workflow as a Mermaid flowchart of its steps, with the deadline on
-the edge it takes.
+the edge it takes, and `specarch generate bpmn` writes it as a BPMN 2.0
+file with its diagram, which `extract workflows` reads back.
 
 Parallel approvals, a number of approvals out of a pool, and loops are
 left out of the subset until a real workflow asks for one, and a workflow

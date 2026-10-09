@@ -17,6 +17,7 @@ import (
 
 	"github.com/SpecArch/specarch/internal/approval"
 	"github.com/SpecArch/specarch/internal/generate"
+	"github.com/SpecArch/specarch/internal/problems"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
 	"github.com/SpecArch/specarch/internal/validate"
@@ -44,6 +45,26 @@ type pluginRequest struct {
 	// plug-in that adds files (a migration, a snapshot) knows what is
 	// there without reading the disk.
 	Existing []pluginFile `json:"existing"`
+	// Draft is true when no approval record covers the specification's
+	// files as they are and --unapproved let the run go on: the output is
+	// a draft and says so.
+	Draft bool `json:"draft"`
+	// Problems are the specification's warnings and open questions, in
+	// the order of the problems file, so the output marks each one at its
+	// entry (docs/diagnostics.md).
+	Problems []pluginProblem `json:"problems"`
+}
+
+// pluginProblem is one problem of the specification as a plug-in marks it:
+// its pointer into the merged specification ("" for a problem outside it,
+// such as in an implementation file), and for a question what it blocks.
+type pluginProblem struct {
+	ID       string   `json:"id"`
+	Severity string   `json:"severity"`
+	Rule     string   `json:"rule"`
+	Message  string   `json:"message"`
+	Pointer  string   `json:"pointer"`
+	Blocks   []string `json:"blocks,omitempty"`
 }
 
 type pluginImplementation struct {
@@ -135,6 +156,7 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 				return status
 			}
 			req := newPluginRequest(l, target, folder, g.impls)
+			req.Draft = set["unapproved"] && !approvedNow(l)
 			resp, status := runPlugin(g.exe, g.name, req, stderr)
 			if status != 0 {
 				return status
@@ -254,6 +276,24 @@ func pluginGroups(l loaded, target string, stderr io.Writer) ([]pluginGroup, int
 	return groups, 0
 }
 
+// pluginProblems are the warnings and open questions of a specification in
+// the order of its problems file, each with the pointer a mark is placed by.
+func pluginProblems(l loaded, folder string) []pluginProblem {
+	pointers := map[string]string{}
+	for _, m := range l.marks(folder) {
+		pointers[m.ID] = m.Pointer
+	}
+	out := []pluginProblem{}
+	for _, p := range problems.Collect(l.spec, l.diags, l.covered, folder) {
+		pp := pluginProblem{ID: p.ID, Severity: string(p.Severity), Rule: p.Rule, Message: p.Message, Pointer: pointers[p.ID]}
+		if p.Severity == problems.Question {
+			pp.Pointer, pp.Blocks = p.Path, p.Blocks
+		}
+		out = append(out, pp)
+	}
+	return out
+}
+
 // stackName is an implementation file's language as a plug-in name ends
 // with it: lower case, a space as a dash, so Go is go and Objective C is
 // objective-c.
@@ -265,7 +305,7 @@ func stackName(impl *yaml.Node) string {
 // newPluginRequest is the request a plug-in gets for one specification and
 // the implementation files that reach it.
 func newPluginRequest(l loaded, target, folder string, impls []generate.Implementation) pluginRequest {
-	req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: l.spec.Value, Output: filepath.ToSlash(folder), Implementations: []pluginImplementation{}, Existing: existingFiles(folder)}
+	req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: l.spec.Value, Output: filepath.ToSlash(folder), Implementations: []pluginImplementation{}, Existing: existingFiles(folder), Problems: pluginProblems(l, folder)}
 	for _, i := range impls {
 		settings := source.Child(source.Child(source.Child(i.Node, "targets"), target), "settings")
 		pi := pluginImplementation{File: filepath.ToSlash(i.Path), Content: source.ValueOf(i.Node), Idioms: []pluginIdiom{}}
@@ -344,12 +384,18 @@ func gate(l loaded, target string, unapproved bool, stderr io.Writer) int {
 		return 0
 	}
 	version := source.Str(source.Child(source.Child(l.spec.Root, "info"), "version"))
-	approved, text := approval.State(l.spec.Dir, version)
-	if !approved {
+	if approved, text := approval.State(l.spec.Dir, version); !approved {
 		fmt.Fprintf(stderr, "specarch generate: %s is %s; read the documents and run specarch approve --by <stakeholder> %s, or pass --unapproved\n", l.spec.Dir, text, l.spec.Dir)
 		return 1
 	}
 	return 0
+}
+
+// approvedNow reports whether an approval record covers the
+// specification's files as they are.
+func approvedNow(l loaded) bool {
+	approved, _ := approval.State(l.spec.Dir, source.Str(source.Child(source.Child(l.spec.Root, "info"), "version")))
+	return approved
 }
 
 func validTarget(t string) bool {

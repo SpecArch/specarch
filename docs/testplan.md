@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 357 design tests, 146 golden and 211 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 361 design tests, 150 golden and 211 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.6.0-dev of the specification: 357 design tests, 146 golden and 211 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 353 |
+| system | 357 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -890,6 +890,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 - When: extract workflows is run on it
 - Then: it says the file is not a BPMN 2.0 XML file, writes nothing and exits 1
 
+#### extract-workflows-reads-generated-bpmn
+
+Scenario: golden; level: system; verifies SA-58.
+
+- Given: a repository holding waiver.bpmn exactly as generate bpmn writes it in the case generate-bpmn: two approvals, the first escalating to the second after a day, and an operation step, with its diagram
+- When: extract workflows is run on the file
+- Then: it writes workflow waiver with the description, the step names and kinds, the approvers, the deadlines and the escalation of the specification it was generated from, a question naming askWaiver for the trigger and grantWaiver for the operation step, reports that the file says it is generated and that the diagram is left out, and exits 0
+
+#### extract-workflows-reads-generated-last-approval
+
+Scenario: golden; level: system; verifies SA-58.
+
+- Given: a repository holding reinstate.bpmn exactly as generate bpmn writes it in the case generate-bpmn-approved: one approval and no other step, so both flows of its gateway end the request, the refusal as the gateway's default flow
+- When: extract workflows is run on the file
+- Then: it writes workflow reinstate with its one approval, its approver and its deadline, reads the default flow as the refusal and the other as the end of the approved request, and exits 0
+
 #### extract-workflows-writes-tree
 
 Scenario: golden; level: system; verifies SA-44.
@@ -957,6 +973,22 @@ Scenario: red; level: system; covers usage error, exit 2.
 - Then: it prints how to use it and exits 2
 
 ### Command generate
+
+#### generate-bpmn
+
+Scenario: golden; level: system; verifies SA-58.
+
+- Given: a specification with no approval record, a workflow of two approvals, the first escalating to the second after a day, and an operation step, warnings at the workflow and its operations, and a could question on the second approval's deadline; specarch-gen-bpmn built from this repository on PATH
+- When: generate bpmn is run with --unapproved
+- Then: it writes waiver.bpmn, BPMN 2.0 with its diagram, and waiver.svg, both labelled as a draft, with each warning marked before the element it concerns and the question before the deadline's timer, and exits 0
+
+#### generate-bpmn-approved
+
+Scenario: golden; level: system; verifies SA-58.
+
+- Given: an approved specification with a write-off workflow, an approval then an operation step, a reinstatement workflow whose one step is an approval, and a workflow of one operation step whose description holds & and angle brackets; specarch-gen-bpmn built from this repository on PATH
+- When: generate bpmn is run
+- Then: it writes one BPMN file and one SVG per workflow, with no draft label, each marking only its own workflow's warnings, the last approval's gateway ending the request approved or, by its default flow, refused, the operation-only workflow with no refused end and its description escaped, and exits 0
 
 #### generate-go-dxlib
 
@@ -2930,7 +2962,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-219 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+223 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -3076,6 +3108,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-46 | acceptance 3 | golden | SA-46 names no harm |
 | requirement SA-46 | acceptance 4 | golden | SA-46 names no harm |
 | requirement SA-46 | acceptance 5 | golden | SA-46 names no harm |
+| requirement SA-58 | acceptance 1 | golden | SA-58 names no harm |
+| requirement SA-58 | acceptance 2 | golden | SA-58 names no harm |
+| requirement SA-58 | acceptance 3 | golden | SA-58 names no harm |
+| requirement SA-58 | acceptance 4 | golden | SA-58 names no harm |
 | requirement SA-32 | acceptance 1 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 2 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 3 | golden | SA-32 names no harm |

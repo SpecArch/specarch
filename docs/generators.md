@@ -64,6 +64,8 @@ input one JSON object:
 | `implementations` | one object per implementation file: `file`, `content` (the file as plain values), `settings` (the target's settings from it, when any), and `idioms`: each idiom the file uses, with its `name`, `version`, how it applies (`as`: shipped, overridden, project or excluded), the `content` of the idiom that applies and the project's `override`, so a plug-in renders through an override without reading the disk |
 | `existing` | the text files already in the output folder, each a `path` in it and its `content`, so a plug-in that adds files knows what is there |
 | `output` | the folder the files are for |
+| `draft` | true when no approval record covers the specification's files as they are and `--unapproved` let the run go on, so the output says it is a draft |
+| `problems` | the specification's warnings and open questions in the order of its problems file, each with its `id`, `severity`, `rule`, `message`, the `pointer` into the merged specification it is marked at (empty for one outside it) and, for a question, what it `blocks`, so the output marks each one at its entry (`docs/diagnostics.md`, section 5) |
 
 The plug-in answers on its standard output with one JSON object: `files`,
 each a `path` relative to the output folder and its `content`, and
@@ -623,6 +625,41 @@ must be a number, and both are brought to one form, digits and a power of
 ten, so the generated tests bring the project no dependency. When the
 implementation files reached by one plug-in name frameworks, each must be
 one it writes for. ADR-041 has the reasons.
+
+## BPMN 2.0 workflows
+
+`specarch generate bpmn` writes each workflow as `<workflow>.bpmn`, a BPMN
+2.0 XML file a modeller or an engine opens, and `<workflow>.svg`, the same
+diagram as a picture for documents (ADR-085). The process is the workflow
+in the sequential subset the meta-model takes from BPMN (ADR-054), in the
+form `specarch extract workflows` reads:
+
+| Workflow | BPMN |
+|---|---|
+| the workflow, its description | a process named after it, its documentation |
+| `trigger` | the start event, whose message event names the operation on the file's interface |
+| an approval step | a user task with a potential owner per role, an interrupting timer with the deadline on it, and an exclusive gateway after it whose default flow ends the request refused |
+| `onDeadline: refuse`, `escalate` | the timer's flow to the refused end, or to the approval it escalates to |
+| an operation step | a service task naming the operation on the interface |
+| the end | one end event for the approved request and one for every refusal |
+
+The references are written as the BPMN schema writes them, child elements
+(`operationRef` in a message event definition, `resourceRef` in a
+potential owner). BPMN DI lays the steps out left to right on one row with
+fixed sizes, each timer on its task's bottom edge and every refusal on a
+line below, so the same workflow is always the same bytes; the SVG draws
+the same coordinates and follows the reader's light or dark scheme.
+
+A header comment says what the file holds: the subject, the permission
+each approval checks, the events and the requirements have no BPMN element
+and stay in the specification. Read back with `extract workflows`, the
+file gives the same description, steps, approvers, deadlines and
+escalations, and the trigger's and steps' operations by name in the
+questions that `specarch merge` fills from the specification's tree; the
+cases `generate-bpmn` and `extract-workflows-reads-generated-bpmn` show
+the round trip. Each warning and open question is marked before the
+element it concerns (`docs/diagnostics.md`, section 5), and a draft says so in a comment and visibly in the
+SVG. A workflow another stakeholder owns is left out.
 
 ## Guarded operational scripts
 

@@ -1,0 +1,81 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+entities:
+  Waiver:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+    primaryKey: [id]
+    satisfies: [CASE-1]
+workflows:
+  waiver:
+    description: A waiver is approved by the desk lead, or by the manager once a day has passed, before it is granted.
+    trigger: askWaiver
+    subject: Waiver
+    steps:
+      - name: lead
+        kind: approval
+        approvers: [lead]
+        permission: waivers.approve
+        deadline: P1D
+        onDeadline: escalate
+        escalateTo: manager
+      - name: manager
+        kind: approval
+        approvers: [manager]
+        permission: waivers.decide
+        deadline: P3D
+        onDeadline: refuse
+      - name: grant
+        kind: operation
+        operation: grantWaiver
+    satisfies: [CASE-1]
+paths:
+  /waivers:
+    post:
+      operationId: askWaiver
+      summary: Ask for a waiver
+      permission: waivers.ask
+      responses:
+        "202": { description: The request waits for approval. }
+      satisfies: [CASE-1]
+  /waivers/{waiverId}/grant:
+    parameters:
+      - { name: waiverId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: grantWaiver
+      summary: Grant a waiver
+      permission: waivers.decide
+      responses:
+        "200": { description: The waiver is granted. }
+      satisfies: [CASE-1]
+permissions:
+  waivers.ask: { description: Ask for a waiver. }
+  waivers.approve: { description: Approve a waiver at the desk. }
+  waivers.decide: { description: Decide a waiver above the desk. }
+roles:
+  desk: { description: The desk., permissions: [waivers.ask] }
+  lead: { description: The desk lead., permissions: [waivers.approve] }
+  manager: { description: The manager., permissions: [waivers.approve, waivers.decide] }
+tests:
+  waiver-requester-approves-own-request:
+    workflow: waiver
+    level: system
+    scenario: red
+    covers: [requester approves own request]
+    given: "a request made by a caller who also holds waivers.approve"
+    when: "the requester approves it at lead"
+    then: "it is refused, and the request still waits at lead"
+    verifies: [CASE-1]
+questions:
+  Q-1:
+    question: Is three days the manager's deadline once the lead has passed the request on?
+    kind: decision
+    priority: could
+    blocks: ["#/workflows/waiver/steps/1/deadline"]
+    decidedBy: manager
+    why: The lead's day counts against the week a member waits.
+stakeholders:
+  manager: { description: The manager who decides waivers above the desk. }

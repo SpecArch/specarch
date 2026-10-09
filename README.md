@@ -177,7 +177,7 @@ or, from a clone of this repository:
 
     go install ./cmd/specarch
 
-Code targets are plug-ins on PATH. This repository has seven:
+Code targets are plug-ins on PATH. This repository has nine:
 `specarch-gen-openapi`, which `specarch generate openapi` runs to write the
 OpenAPI 3.1 document of a specification, `specarch-gen-sql`, which
 `specarch generate sql` runs to write its migrations in PostgreSQL, SQL
@@ -191,7 +191,10 @@ the tables, handlers, seeds and tasks of a Go service on dxlib, and
 `specarch-gen-ui`, which `specarch generate ui` runs to write list pages
 for the web in plain JavaScript, and `specarch-gen-ui-typescript`, which
 it runs instead for an implementation file in TypeScript to write task
-pages on Next.js and Carbon. Install them at the same tag as `specarch`:
+pages on Next.js and Carbon, and `specarch-gen-bpmn`, which `specarch
+generate bpmn` runs to write each workflow as a BPMN 2.0 file with its
+diagram, and the diagram as SVG. Install them at the same tag as
+`specarch`:
 
     go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v0.5.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v0.5.0
@@ -201,6 +204,7 @@ pages on Next.js and Carbon. Install them at the same tag as `specarch`:
     go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v0.5.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v0.5.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-typescript@v0.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v0.5.0
 
 The Swift build, for macOS, has the validate and version verbs and gives
 the same output. With Swift 6:

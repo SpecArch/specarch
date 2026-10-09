@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 57 requirements, 5 entities, 12 commands, 7 algorithms, 357 tests, 82 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 58 requirements, 5 entities, 12 commands, 7 algorithms, 361 tests, 83 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -931,8 +931,13 @@ The sources this build reads:
   its potential owners in kebab-case, and an interrupting timer
   with a duration on it the deadline: `refuse` when the timer's
   flow ends the request, `escalate` when it reaches a later user
-  task. An exclusive gateway right after a user task, with one flow
-  to an end event, is that approval's refusal. A service task is an
+  task. A reference is read as the child element the BPMN 2.0
+  schema writes (`operationRef` in a message event definition,
+  `resourceRef` in a potential owner) or as the attribute of that
+  name some tools write. An exclusive gateway right after a user
+  task, with one flow to an end event, is that approval's refusal;
+  when both its flows end the request, the approval is the last
+  step and the gateway's default flow is the refusal. A service task is an
   operation step, its operation the one its `operationRef` names.
   Each step is named after its task in camelCase. An operation the
   file names is not declared by it, so the trigger and a step's
@@ -1357,7 +1362,15 @@ that applies and the project's `override`) and `output` (the folder
 the files are for), and `existing`, the text files already in that
 folder by their path in it, so a plug-in that adds files, such as a
 migration beside a snapshot, knows what is there without reading the
-disk. The plug-in answers on its standard output,
+disk; `draft`, true when no approval record covers the
+specification's files as they are and `--unapproved` let the run go
+on, so the output says it is a draft; and `problems`, the
+specification's warnings and open questions in the order of its
+problems file, each with its `id`, `severity`, `rule`, `message`,
+the `pointer` into the merged specification it is marked at (empty
+for a problem outside it, such as in an implementation file) and,
+for a question, what it `blocks`, so the output marks each one at
+the entry it shows for it (docs/diagnostics.md). The plug-in answers on its standard output,
 as JSON, with `files` (each a `path` relative to the output folder and
 its `content`) and `diagnostics` (each with the validator's fields:
 file, line, severity, path, rule, message, and a column when it
@@ -1862,6 +1875,8 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | cmd/specarch-gen-openapi | The plug-in behind generate openapi. Reads the request on standard input, answers the OpenAPI document on standard output, and never touches the disk. | #/commands/generate |
 | internal/genopenapi | The OpenAPI 3.1 document in the standard dialect, the design field for field, with the problem catalogue and lists paged through the paginated-list idiom; and in the dxlib dialect, what dxlib's reader binds. |   |
 | cmd/specarch-gen-go-dxlib | The plug-in behind generate go-dxlib. Reads the request on standard input, answers the Go file on standard output, and never touches the disk. | #/commands/generate |
+| cmd/specarch-gen-bpmn | The plug-in behind generate bpmn. Reads the request on standard input, answers each workflow's BPMN file and SVG on standard output, and never touches the disk. | #/commands/generate |
+| internal/genbpmn | Each workflow as a BPMN 2.0 process in the subset extract workflows reads, with BPMN DI laid out by a fixed rule, the same diagram as SVG, and the problems marked as XML comments before their elements. |   |
 | cmd/specarch-gen-ui | The plug-in behind generate ui. Reads the request on standard input, answers the screens on standard output, and never touches the disk. | #/commands/generate |
 | internal/genui | The list pages for the web in plain JavaScript, the events they raise, and the theme as CSS custom properties. |   |
 | cmd/specarch-gen-ui-typescript | The plug-in behind generate ui for an implementation file in TypeScript. Reads the request on standard input, answers the screens on standard output, and never touches the disk. | #/commands/generate |
@@ -5840,6 +5855,60 @@ a server folder writes no pages.
 
 **Insight:** The compiler principle decides the shape. A route file whose methods are unknown cannot be a path item, which needs a method, and writing GET for it would be a guess; so it is a must question at the file, in the paths section, which keeps the file in the specification and its problem in the problems file until the JavaScript reader or the owner answers. The schema was not widened to hold a path with no operation: an operation is what every generator, test and merge row is keyed on, and a path with none would be a placeholder. A middleware file runs before every route it covers and may check who is signed in, which is how a page's permission is often given, so its presence blocks every permission it may give rather than being left as a note; never assuming public is ADR-057's rule. It also serves a specification that is never complete: a front end's pages and paths show from git alone, before any parser, so a result is there to look at early, and since every guess is a question at its file, a change someone asks for on seeing it is an answer to that question, not a rewrite of the tree. The folder's name tells the router because the frameworks fix those names: Next.js serves only from app and pages, and Nuxt's server only from server. A folder named pages is ambiguous, and the package's own dependency list is the one place a project says which framework it runs; ambiguity is an error, so a guess is asked, never silent. Where several files of a project matter, the reader reads them at one commit, so the citations name one state. Each router's rules are its own documentation's. Next.js serves a page from .tsx, .ts, .jsx and .js by default (pageExtensions) and refuses a page and a route handler on one segment, so a route file there is left out with a line; it runs middleware.ts from the folder that holds app or pages, and from version 16 names the same file proxy.ts, so both names are read. Nuxt nests a page under a file of its folder's name, which wraps the folder's pages and is no page of its own; its server routes take the method from the file name's last part. The registration question of ADR-075 is not asked: the folders are the router, as ADR-057 found, so no printer exists to compare with and the tree sets no reading.
 
+### ADR-085: generate bpmn writes each workflow as a BPMN 2.0 process with its diagram and an SVG of it, in the subset extract workflows reads back, and every plug-in is told whether its output is a draft and where each problem is
+
+Status: accepted, 2026-10-09.
+
+Context: extract workflows reads BPMN 2.0 into workflows (ADR-054), but no
+command wrote a workflow back out, so a workflow could be drawn only
+as the technical specification's Mermaid chart, which no BPMN
+modeller or engine opens. docs/diagnostics.md defined the mark a
+BPMN file carries, for the first command that writes one. A plug-in
+was told nothing of the specification's problems or of a missing
+approval, so no generated file could mark a problem at its entry or
+say it is a draft.
+
+Decision: specarch-gen-bpmn writes, for each workflow, <workflow>.bpmn and
+<workflow>.svg in the target's folder. The process is the workflow
+in the subset extract reads: a start event whose message event names
+the trigger's operation, a user task per approval with a potential
+owner per role, an interrupting timer with the deadline whose flow
+ends the request or reaches the approval it escalates to, an
+exclusive gateway after each approval whose default flow is the
+refusal, a service task per operation step naming its operation, and
+one end event for the approved request and one for every refusal.
+The operations are on the file's interface, the roles are its
+resources. BPMN DI lays the steps out on one row, left to right, with
+fixed sizes, the timers on their tasks' bottom edges and the
+refusals on a line below; the SVG draws the same coordinates. A
+header comment names the root file and versions, and a second says
+what the file holds and that the subject, the permissions, the
+events and the requirements stay in the specification. The plug-in
+request carries draft and problems for every plug-in; the BPMN file
+and the SVG mark each warning and open question before the element
+it concerns, and say they are a draft when draft is true. extract
+reads the schema's element form of operationRef and resourceRef
+beside the attribute form, and a gateway whose two flows both end
+the request by its default flow.
+
+Consequences: A workflow opens in a BPMN modeller and an engine, and a change made
+there can be read back with extract workflows and merged. The
+subject, each approval's permission, emits, satisfies and why are
+not in the file: BPMN has no element for them, so a round trip
+brings them back as the questions extract already asks, and merge
+with the specification's own tree fills them. The draft and
+problems fields are there for every plug-in; the others do not
+read them yet. An owned workflow is left out, as every plug-in that
+builds data leaves out what another stakeholder owns.
+
+**Insight:** BPMN 2.0 is the standard the meta-model takes the workflow's meaning from, so the file is that meaning written in its own notation, with nothing invented beside it. The references are written as the schema writes them, child elements, because a file a modeller validates against the schema must pass; extract keeps reading the attribute form because files in the wild carry it. The refusal is the gateway's default flow because an exclusive gateway whose other flow has a condition needs a default to be complete, and the default is the one way left to tell the two ends apart when the last step is an approval. BPMN DI is included because without it a modeller shows an empty canvas; the layout is fixed so the output is byte-identical and a change to the workflow is a readable change to the file. The SVG is drawn by SpecArch rather than by a modeller so documents get it without a browser or a dependency. No extension namespace carries the subject or the permissions, so the file stays plain BPMN and a tool needs nothing of SpecArch's to read it; that is an open choice for the owner.
+
+**Note:** From Business Process Model and Notation (BPMN), Version 2.0, with its XML schemas, 2011, clause Semantic.xsd, tResourceRole and tMessageEventDefinition: resourceRef in a resource role, and operationRef in a message event definition, are child elements of type QName, not attributes. <https://www.omg.org/spec/BPMN/2.0/>
+
+**Note:** From Business Process Model and Notation (BPMN), Version 2.0, with its XML schemas, 2011, clause Semantic.xsd, tExclusiveGateway: An exclusive gateway names its default sequence flow in its default attribute. <https://www.omg.org/spec/BPMN/2.0/>
+
+**Note:** From Business Process Model and Notation (BPMN), Version 2.0, with its XML schemas, 2011, clause 12: BPMN Diagram Interchange gives each element its shape's bounds and each sequence flow its waypoints. <https://www.omg.org/spec/BPMN/2.0/>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -5950,6 +6019,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-router-writes-tree | command extract | system | golden | a repository whose first commit holds a router's folder and whose second holds the route table printed from it, naming the first; the table has two methods on one path, a path with a parameter, a route with no permission, a HEAD route, a path with a wildcard, a handler serving two routes and a permission that is not a permission name | extract router is run on the route table | it writes one operation per held method and path pair with its path parameters and permission, one permission per name a route checks, a question for each operation's summary and responses, each path's parameter values, the permissions' descriptions and the roles that grant them, every route without a usable permission, names the commit, counts the routes, prints a line for the HEAD route, the wildcard, the permission name and the shared handler, a could question citing the route for each but the permission name, which a must question asks for, and exits 0 |
 | extract-usage-error | command extract | system | red | no source | extract is run without arguments | it prints how to use it and exits 2 |
 | extract-workflows-not-bpmn | command extract | system | red | a committed XML file that is a state chart, not BPMN 2.0 | extract workflows is run on it | it says the file is not a BPMN 2.0 XML file, writes nothing and exits 1 |
+| extract-workflows-reads-generated-bpmn | command extract | system | golden | a repository holding waiver.bpmn exactly as generate bpmn writes it in the case generate-bpmn: two approvals, the first escalating to the second after a day, and an operation step, with its diagram | extract workflows is run on the file | it writes workflow waiver with the description, the step names and kinds, the approvers, the deadlines and the escalation of the specification it was generated from, a question naming askWaiver for the trigger and grantWaiver for the operation step, reports that the file says it is generated and that the diagram is left out, and exits 0 |
+| extract-workflows-reads-generated-last-approval | command extract | system | golden | a repository holding reinstate.bpmn exactly as generate bpmn writes it in the case generate-bpmn-approved: one approval and no other step, so both flows of its gateway end the request, the refusal as the gateway's default flow | extract workflows is run on the file | it writes workflow reinstate with its one approval, its approver and its deadline, reads the default flow as the refusal and the other as the end of the approved request, and exits 0 |
 | extract-workflows-writes-tree | command extract | system | golden | a repository with a BPMN 2.0 file of two processes: one whose start event names its operation, with two user tasks whose potential owners are a resource and an expression, a timer that escalates to the second, a gateway that refuses after the first, a timer of a week and a service task naming its operation; and one with no documentation, no operation on its start event, lanes, a user task with no owner and a repeating timer, and a parallel gateway; beside them a signal and a diagram | extract workflows is run on the file | it writes one workflow per process in the order of their names, the approvals with their roles, deadlines and escalation, a question naming the operation for the trigger and the service task, a question for each permission, subject and anything the file leaves out or the subset does not hold, a role per potential owner, a line per element left out in the order of the file, and a could question citing the file's line for each that no must question asks for already, and exits 0 |
 | gaps-coverage | command gaps | system | golden | a specification that tracks origin, built from a manual and from code that both list their clauses; one clause of each is cited by nothing, one citation names a clause outside the outline, and the implementation file's mapping cites the code | gaps is run | it shows, per source, the elements each clause produced, counts the clauses that produced nothing, names the citation outside the outline, and exits 0 |
 | gaps-invalid-spec | command gaps | system | red | a specification with an error | gaps is run | it prints the open questions document with the error listed after the summary, every output waiting on it, and exits 1 |
@@ -5958,6 +6029,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | gaps-none | command gaps | system | golden | a specification without open questions and without an approval | gaps is run | it prints that there is no open question, that every document is ready and that code generation waits on the approval, and exits 0 |
 | gaps-outline-not-read | command gaps | system | golden | the tree extract outline wrote for a folder of workflow definitions: one source whose clauses are the folder's files, and no element | gaps is run | it lists every file of the source as producing nothing, so the files show as not read, and exits 0 |
 | gaps-usage-error | command gaps | system | red | no folder | gaps is run without arguments | it prints how to use it and exits 2 |
+| generate-bpmn | command generate | system | golden | a specification with no approval record, a workflow of two approvals, the first escalating to the second after a day, and an operation step, warnings at the workflow and its operations, and a could question on the second approval's deadline; specarch-gen-bpmn built from this repository on PATH | generate bpmn is run with --unapproved | it writes waiver.bpmn, BPMN 2.0 with its diagram, and waiver.svg, both labelled as a draft, with each warning marked before the element it concerns and the question before the deadline's timer, and exits 0 |
+| generate-bpmn-approved | command generate | system | golden | an approved specification with a write-off workflow, an approval then an operation step, a reinstatement workflow whose one step is an approval, and a workflow of one operation step whose description holds & and angle brackets; specarch-gen-bpmn built from this repository on PATH | generate bpmn is run | it writes one BPMN file and one SVG per workflow, with no draft label, each marking only its own workflow's warnings, the last approval's gateway ending the request approved or, by its default flow, refused, the operation-only workflow with no refused end and its description escaped, and exits 0 |
 | generate-go-dxlib | command generate | system | golden | the specification of generate-openapi-dxlib plus a job run every hour, and an implementation file with a go-dxlib target naming the package and the database; specarch-gen-go-dxlib built from this repository on PATH | generate go-dxlib is run with --unapproved | it writes one Go file for dxlib: the tables, the handlers registered by operationId that read every parameter with dxlib's getters, check the constraints dxlib does not enforce, and run the standard list, create and read operations, the privilege, role and menu seeds, and the job registered as a task, and exits 0 |
 | generate-go-dxlib-value-objects | command generate | system | golden | a member whose address is kept in columns with a location inside it, whose preferences are kept as JSON and whose phones are a list, listed, created and read by standard operations, and an implementation file with a go-dxlib target; specarch-gen-go-dxlib built from this repository on PATH | generate go-dxlib is run with --unapproved | it writes a Go struct for each schema with a pointer per part, reads the address into one and the phones into a slice, refuses a value without a required part, writes the address into the column of each part and the preferences and phones as JSON, answers a created or read member with its columns folded back into the address and its JSON read, warns that the paging list answers the row as stored, and exits 0 |
 | generate-no-plugin | command generate | system | red | a target this build does not have and no specarch-gen-openapi on PATH | generate openapi is run | it says there is no generator for the target and exits 2 |
@@ -6273,6 +6346,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-15 | Every document specarch writes shall show an element's why as an Insight and each of its citations as a Note, next to the element, and shall end with the sources its Notes cite. | functional | must | accepted | test | An element with a why gets one paragraph labelled Insight, and each citation one paragraph labelled Note that names the source's title, edition, the clause and what it says. An element shown as a row of a table gets its Insight and Notes after the table, labelled with the row's name. A document whose Notes cite sources ends with a table of exactly those sources. | NEED-6 |
 | SA-16 | specarch document shall write, besides the technical specification, the requirements specification, the test plan, the traceability matrix, the deployment guide and the commissioning procedure with its sign-off sheet. | functional | must | accepted | test | Each of the five targets writes <target>.md into the folder it owns, with the generated-from header. The commissioning procedure has a Result column for every step and a sign-off sheet with a row for every signer. | NEED-3, NEED-5 |
 | SA-46 | An implementation file shall mark an element another stakeholder owns, one mapping at a time, naming that stakeholder; no generator shall write a marked element, and validate, diff, gaps and the gates shall still read it. | functional | must | accepted | test | An entity whose mapping names a stakeholder under ownedBy gets no table from generate sql and no schema from generate openapi, while a foreign key or a reference to it is still written. An operation whose mapping names a stakeholder under ownedBy gets no operation from generate openapi. A page, or a menu or a menu entry, whose mapping names a stakeholder under ownedBy gets no page and no menu entry from generate ui; a mapping may name a menu or an entry of one, '#/menus/<menu>/items/<entry>', as it names any other element, and one that points at nothing is refused, the same in both builds. validate and gaps read the marked element as before, and a question that blocks it still holds generation up. ownedBy naming no stakeholder of the specification is reported, the same in both builds. | NEED-2, NEED-8 |
+| SA-58 | specarch generate bpmn shall write, through a plug-in, each workflow of a specification as a BPMN 2.0 XML file with its diagram, and the diagram as SVG, that specarch extract workflows reads back to the same workflow, each problem marked at the element it concerns and a draft labelled as one. | functional | must | accepted | test | Each workflow is one process in a file of its own, in the sequential subset of ADR-054, with BPMN DI shapes and edges laid out by a fixed rule, so two runs write the same bytes. extract workflows reads a generated file back to the workflow's description, step names and kinds, approvers, deadlines, and refusal or escalation, and names its trigger and operations in the questions that merge fills; an approval that is the last step comes back as one. Each warning and open question at an element a file shows is marked as an XML comment before that element, in the BPMN file and in the SVG; a problem of one workflow is marked only in that workflow's files. Output generated with --unapproved from a specification no approval record covers says it is a draft, in the BPMN file and visibly in the SVG. | NEED-3, NEED-10 |
 | SA-32 | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. | functional | must | accepted | test | An idiom key naming no idiom, an exclusion or override without why, an override naming an unknown part or defining one it does not list, rendering a stack that is not the file's, or changing a shipped contract statement is each reported under its rule in both builds; an override copied from an older version is warned about. A field that no row of the type rendering matches for a stack of the implementation file, such as a decimal wider than Oracle holds, is reported as idiom_contract. An override that replaces the Oracle text rows for MAX_STRING_SIZE = EXTENDED validates without a diagnostic. The shipped set holds the fifteen idioms of the first set and ui-components, each statement marked with what checks it, and every one passes the idiom schema and cites only the sources it declares. A ui target's framework, given or by its platform's default, is a stack of its implementation file, so specarch idioms lists ui-components for a TypeScript file whose ui target is nextjs-carbon and not for one on plain-javascript, and an override rendering nextjs-carbon in a file on plain-javascript is reported as idiom_stack in both builds. | NEED-2 |
 | SA-11 | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. | functional | must | accepted | test | A tree whose root lists its stages and holds each stage's files under that folder validates. A file in the wrong folder, a section in the wrong file, a listed stage without a folder, and a folder that is not a stage are each reported as layout. | NEED-4 |
 | SA-12 | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. | functional | must | accepted | test | A specification with only a requirements stage validates with no error. A requirement no design element satisfies, a requirement no test, check or monitor verifies, and a need no requirement refines are reported as warnings once the later stage exists. | NEED-5 |
@@ -6371,6 +6445,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Note on SA-16:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 7.2 and 8.3: A test plan and test case specifications are the test documentation items of a project. <https://www.iso.org/standard/79429.html>
 
 **Insight on SA-46:** A system read from its sources often holds parts another team builds and changes, such as a shared table or a service behind the same gateway; the specification must describe them, since the project's code depends on them and its sources cite them, but a project that generated them would overwrite the other team's work or fight it on every change.
+
+**Insight on SA-58:** A workflow is reviewed by people who read BPMN diagrams and run BPMN engines, so the design must reach them in that format; written by hand, the diagram drifts from the workflow on the first change, and one that cannot be read back cannot take a change made in a modeller back into the specification.
 
 **Insight on SA-32:** How a decimal, a text column or a missing value is held on a stack is decided once and read by every generator and every agent; without the table each implementation file restates it in prose, each a little differently.
 
@@ -6481,6 +6557,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-55 | decisions ADR-071 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-56 | decisions ADR-074 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-57 | decisions ADR-083 |   |
+| SA-58 | commands generate; decisions ADR-085 | tests extract-workflows-reads-generated-bpmn; tests extract-workflows-reads-generated-last-approval; tests generate-bpmn; tests generate-bpmn-approved |
 
 ## Sources
 
@@ -6490,6 +6567,7 @@ Every source a Note in this document cites.
 |---|---|---|---|---|
 | adr-nygard | Documenting architecture decisions | 2011 | Michael Nygard | https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions |
 | arc42 | arc42, the template for architecture documentation | 8.2 | Gernot Starke and Peter Hruschka | https://arc42.org/overview |
+| bpmn-2-0 | Business Process Model and Notation (BPMN), Version 2.0, with its XML schemas | 2011 | Object Management Group | https://www.omg.org/spec/BPMN/2.0/ |
 | cel | Common Expression Language, language definition | 2024 | The CEL project | https://github.com/google/cel-spec/blob/master/doc/langdef.md |
 | ecma-262 | ECMA-262, ECMAScript language specification, the Number type | 2025 | Ecma International | https://tc39.es/ecma262/#sec-ecmascript-language-types-number-type |
 | gnu-coding-standards | GNU Coding Standards |   | The GNU Project | https://www.gnu.org/prep/standards/ |

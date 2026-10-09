@@ -106,6 +106,9 @@ targets:
       tokens: { text: color.text, background: color.background, accent: color.accent, danger: color.danger, border: color.border, space: space.small, font: font.body }
   tests:
     output: internal/lending
+  bpmn:
+    output: ../../../workflows
+    description: Each workflow as a BPMN 2.0 file with its diagram, for a BPMN modeller or engine, and the diagram as SVG for the documents.
 
 tasks:
   generate: { run: go generate ./... }

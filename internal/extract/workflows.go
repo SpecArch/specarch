@@ -347,7 +347,7 @@ func (wr *workflowReader) process(p *xmlElement) {
 		med := start.first("messageEventDefinition")
 		opName := ""
 		if med != nil {
-			opName = wr.operations[med.attr("operationRef")]
+			opName = wr.operations[refOf(med, "operationRef")]
 		}
 		switch {
 		case opName != "" && stepWord.MatchString(opName):
@@ -574,8 +574,28 @@ func (wr *workflowReader) refusal(g *xmlElement, outgoing map[string][]*xmlEleme
 		return a
 	case a.name == "endEvent" && b.name != "endEvent":
 		return b
+	case a.name == "endEvent" && b.name == "endEvent":
+		// An approval that is the last step: the gateway's default flow is
+		// the refusal, and the other ends the request approved.
+		switch g.attr("default") {
+		case flows[1].attr("id"):
+			return a
+		case flows[0].attr("id"):
+			return b
+		}
 	}
 	return nil
+}
+
+// refOf is a reference an element makes by name: the child element the
+// BPMN 2.0 schema writes it as (resourceRef in a potential owner,
+// operationRef in a message event definition), or the attribute some tools
+// write instead.
+func refOf(e *xmlElement, name string) string {
+	if c := e.first(name); c != nil {
+		return strings.TrimSpace(c.text)
+	}
+	return e.attr(name)
 }
 
 // owners are the roles a user task's potential owners name.
@@ -583,7 +603,7 @@ func (wr *workflowReader) owners(task *xmlElement) []string {
 	var out []string
 	for _, po := range task.all("potentialOwner") {
 		names := []string{}
-		if ref := po.attr("resourceRef"); ref != "" {
+		if ref := refOf(po, "resourceRef"); ref != "" {
 			if n, ok := wr.resources[ref]; ok {
 				names = append(names, n)
 			} else {

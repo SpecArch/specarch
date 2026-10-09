@@ -35,7 +35,15 @@ commands:
       the files are for), and `existing`, the text files already in that
       folder by their path in it, so a plug-in that adds files, such as a
       migration beside a snapshot, knows what is there without reading the
-      disk. The plug-in answers on its standard output,
+      disk; `draft`, true when no approval record covers the
+      specification's files as they are and `--unapproved` let the run go
+      on, so the output says it is a draft; and `problems`, the
+      specification's warnings and open questions in the order of its
+      problems file, each with its `id`, `severity`, `rule`, `message`,
+      the `pointer` into the merged specification it is marked at (empty
+      for a problem outside it, such as in an implementation file) and,
+      for a question, what it `blocks`, so the output marks each one at
+      the entry it shows for it (docs/diagnostics.md). The plug-in answers on its standard output,
       as JSON, with `files` (each a `path` relative to the output folder and
       its `content`) and `diagnostics` (each with the validator's fields:
       file, line, severity, path, rule, message, and a column when it
@@ -94,7 +102,7 @@ commands:
       "1": a specification has an error, an open question blocks what the target reads, the specification is not approved, the plug-in reported an error, or with `--check` the output differs
       "2": usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-14, SA-20, SA-31, SA-46]
+    satisfies: [SA-7, SA-8, SA-14, SA-20, SA-31, SA-46, SA-58]
     why: |
       One program with verbs, and generators as plug-ins found on PATH, is
       the pattern of protoc, git and kubectl: one name to learn and install,

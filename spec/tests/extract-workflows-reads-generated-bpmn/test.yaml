@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding waiver.bpmn exactly as generate bpmn writes it in the case generate-bpmn: two approvals, the first escalating to the second after a day, and an operation step, with its diagram"
+when: "extract workflows is run on the file"
+then: "it writes workflow waiver with the description, the step names and kinds, the approvers, the deadlines and the escalation of the specification it was generated from, a question naming askWaiver for the trigger and grantWaiver for the operation step, reports that the file says it is generated and that the diagram is left out, and exits 0"
+verifies: [SA-58]

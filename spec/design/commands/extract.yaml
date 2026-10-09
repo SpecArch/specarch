@@ -246,8 +246,13 @@ commands:
         its potential owners in kebab-case, and an interrupting timer
         with a duration on it the deadline: `refuse` when the timer's
         flow ends the request, `escalate` when it reaches a later user
-        task. An exclusive gateway right after a user task, with one flow
-        to an end event, is that approval's refusal. A service task is an
+        task. A reference is read as the child element the BPMN 2.0
+        schema writes (`operationRef` in a message event definition,
+        `resourceRef` in a potential owner) or as the attribute of that
+        name some tools write. An exclusive gateway right after a user
+        task, with one flow to an end event, is that approval's refusal;
+        when both its flows end the request, the approval is the last
+        step and the gateway's default flow is the refusal. A service task is an
         operation step, its operation the one its `operationRef` names.
         Each step is named after its task in camelCase. An operation the
         file names is not declared by it, so the trigger and a step's

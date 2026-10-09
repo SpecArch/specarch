@@ -820,6 +820,7 @@ storage: github.com/jackc/pgx/v5. Money columns are `numeric(10,2)`.
 | sql | ../../../migrations | dialect postgresql |
 | ui | ../../../web | platform web, framework plain-javascript |
 | tests | internal/lending |   |
+| bpmn | ../../../workflows |   |
 
 #### Tasks
 

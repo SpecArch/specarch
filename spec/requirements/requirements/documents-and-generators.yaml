@@ -84,3 +84,16 @@ requirements:
     verification: test
     needs: [NEED-2, NEED-8]
     why: A system read from its sources often holds parts another team builds and changes, such as a shared table or a service behind the same gateway; the specification must describe them, since the project's code depends on them and its sources cite them, but a project that generated them would overwrite the other team's work or fight it on every change.
+  SA-58:
+    statement: specarch generate bpmn shall write, through a plug-in, each workflow of a specification as a BPMN 2.0 XML file with its diagram, and the diagram as SVG, that specarch extract workflows reads back to the same workflow, each problem marked at the element it concerns and a draft labelled as one.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - Each workflow is one process in a file of its own, in the sequential subset of ADR-054, with BPMN DI shapes and edges laid out by a fixed rule, so two runs write the same bytes.
+      - extract workflows reads a generated file back to the workflow's description, step names and kinds, approvers, deadlines, and refusal or escalation, and names its trigger and operations in the questions that merge fills; an approval that is the last step comes back as one.
+      - Each warning and open question at an element a file shows is marked as an XML comment before that element, in the BPMN file and in the SVG; a problem of one workflow is marked only in that workflow's files.
+      - Output generated with --unapproved from a specification no approval record covers says it is a draft, in the BPMN file and visibly in the SVG.
+    verification: test
+    needs: [NEED-3, NEED-10]
+    why: A workflow is reviewed by people who read BPMN diagrams and run BPMN engines, so the design must reach them in that format; written by hand, the diagram drifts from the workflow on the first change, and one that cannot be read back cannot take a change made in a modeller back into the specification.

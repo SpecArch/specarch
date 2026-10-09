@@ -1,0 +1,37 @@
+roles:
+  lead:
+    origin: stated
+    cites:
+      - {source: code, clause: workflows/waiver.bpmn, says: 'Line 39: Role lead is a potential owner of user task step-lead.'}
+  manager:
+    origin: stated
+    cites:
+      - {source: code, clause: workflows/waiver.bpmn, says: 'Line 50: Role manager is a potential owner of user task step-manager.'}
+workflows:
+  # specarch-problem: warning: test_case_missing: workflow waiver has no red scenario for "requester approves own request"; add under tests waiver-requester-approves-own-request: { workflow: waiver, scenario: red, covers: [requester approves own request], given: "a request made by a caller who also holds the permission of lead and the permission of manager", when: "the requester approves it", then: "it is refused, because the person who made a request never approves it, and the request still waits" } [test_case_missing.05074230@design/workflows.yaml#/workflows/waiver]
+  # specarch-problem: warning: test_case_missing: workflow waiver has no red scenario for "refused at lead"; add under tests waiver-refused-at-lead: { workflow: waiver, scenario: red, covers: [refused at lead], given: "a request waiting at lead", when: "a caller with the permission of lead refuses it", then: "the request ends refused and the operation of grant is not called" } [test_case_missing.20d623ad@design/workflows.yaml#/workflows/waiver]
+  # specarch-problem: warning: test_case_missing: workflow waiver has no red scenario for "approval without the permission of lead"; add under tests waiver-approval-without-the-permission-of-lead: { workflow: waiver, scenario: red, covers: [approval without the permission of lead], given: "a caller without the permission of lead", when: "they approve a request waiting at lead", then: "it is refused as not allowed, and the request still waits" } [test_case_missing.5a089703@design/workflows.yaml#/workflows/waiver]
+  # specarch-problem: warning: test_case_missing: workflow waiver has no red scenario for "refused at manager"; add under tests waiver-refused-at-manager: { workflow: waiver, scenario: red, covers: [refused at manager], given: "a request waiting at manager", when: "a caller with the permission of manager refuses it", then: "the request ends refused and the operation of grant is not called" } [test_case_missing.75a9feac@design/workflows.yaml#/workflows/waiver]
+  # specarch-problem: warning: test_case_missing: workflow waiver has no red scenario for "deadline passes at lead"; add under tests waiver-deadline-passes-at-lead: { workflow: waiver, scenario: red, covers: [deadline passes at lead], given: "a request waiting at lead", when: "P1D passes with no answer", then: "the request moves on to manager" } [test_case_missing.8e10b1fc@design/workflows.yaml#/workflows/waiver]
+  # specarch-problem: warning: test_case_missing: workflow waiver has no red scenario for "deadline passes at manager"; add under tests waiver-deadline-passes-at-manager: { workflow: waiver, scenario: red, covers: [deadline passes at manager], given: "a request waiting at manager", when: "P3D passes with no answer", then: "the request ends refused and the operation of grant is not called" } [test_case_missing.abb72b85@design/workflows.yaml#/workflows/waiver]
+  # specarch-problem: warning: test_case_missing: workflow waiver has no red scenario for "approval without the permission of manager"; add under tests waiver-approval-without-the-permission-of-manager: { workflow: waiver, scenario: red, covers: [approval without the permission of manager], given: "a caller without the permission of manager", when: "they approve a request waiting at manager", then: "it is refused as not allowed, and the request still waits" } [test_case_missing.b3046bac@design/workflows.yaml#/workflows/waiver]
+  # specarch-problem: warning: test_golden_missing: workflow waiver has no golden scenario; add one under tests, for example waiver-succeeds: { workflow: waiver, scenario: golden, given: "any caller", when: "a request is made through its trigger and is approved at lead and manager", then: "it answers 202, then the operation of grant is called, and the request ends approved" } [test_golden_missing@design/workflows.yaml#/workflows/waiver]
+  waiver:
+    description: A waiver is approved by the desk lead, or by the manager once a day has passed, before it is granted.
+    steps:
+      - name: lead
+        kind: approval
+        approvers: [lead]
+        deadline: P1D
+        onDeadline: escalate
+        escalateTo: manager
+      - name: manager
+        kind: approval
+        approvers: [manager]
+        deadline: P3D
+        onDeadline: refuse
+      - name: grant
+        kind: operation
+    origin: stated
+    cites:
+      - {source: code, clause: workflows/waiver.bpmn, says: 'Line 31: Process waiver defines the workflow, with the tasks step-lead, step-manager and step-grant in that order.'}

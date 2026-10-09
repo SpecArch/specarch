@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding reinstate.bpmn exactly as generate bpmn writes it in the case generate-bpmn-approved: one approval and no other step, so both flows of its gateway end the request, the refusal as the gateway's default flow"
+when: "extract workflows is run on the file"
+then: "it writes workflow reinstate with its one approval, its approver and its deadline, reads the default flow as the refusal and the other as the end of the approved request, and exits 0"
+verifies: [SA-58]

@@ -1,0 +1,7 @@
+specarchRecord: "0.1"
+kind: approval
+version: 1.0.0
+approvedBy: owner
+date: "2026-10-09"
+documents: [techspec]
+digest: sha256:ac7f3df5e7136a232d41037bccd9959ac03e1d80c11d8b18ac3b4fc49cb1a72f

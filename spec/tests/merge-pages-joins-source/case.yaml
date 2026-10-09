@@ -1,0 +1,10 @@
+arguments: [merge, --out, spec, trees/router, trees/pages]
+exitStatus: 0
+standardOutput: |
+  tree trees/router: Routes of examples/lending-desk/sources/code, on the code side: 3 elements and 4 questions
+  tree trees/pages: Pages of examples/lending-desk/sources/web/app, on the code side: 6 elements and 8 questions
+  joined: Q-3 of trees/pages, on #/pages/members-by-card-number-loans/source, is left out; Pages of examples/lending-desk/sources/web/app names operation listMemberLoans, which Routes of examples/lending-desk/sources/code declares
+  asked twice: Q-7 of trees/pages, on #/permissions/loans.read/description, is left out; Q-3 of trees/router asks it
+  asked twice: Q-8 of trees/pages, on #/permissions/loans.read, is left out; Q-4 of trees/router asks it
+  merged 7 elements, each an entry of a section or an operation: 2 in more than one tree, and 0 keys the trees disagree on
+  wrote 9 questions: 9 from the trees, numbered again in the order the trees are given, and 0 the merge asked

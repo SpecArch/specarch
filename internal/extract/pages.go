@@ -125,15 +125,25 @@ func (rd *pageReader) gap(format string, args ...any) {
 }
 
 func (rd *pageReader) question(text string, blocks []string, why string) {
+	rd.namedQuestion(text, blocks, "", why)
+}
+
+// namedQuestion asks a must question; names is the name the schema gives
+// for the one key the question blocks, or "".
+func (rd *pageReader) namedQuestion(text string, blocks []string, names, why string) {
 	rd.nextID++
-	set(rd.questions, fmt.Sprintf("Q-%d", rd.nextID), mapping(
+	q := mapping(
 		"question", text,
 		"kind", "decision",
 		"priority", "must",
 		"blocks", blocks,
 		"decidedBy", owner,
-		"why", why,
-	))
+	)
+	if names != "" {
+		set(q, "names", names)
+	}
+	set(q, "why", why)
+	set(rd.questions, fmt.Sprintf("Q-%d", rd.nextID), q)
 }
 
 // within is a file's path below the root folder.
@@ -591,33 +601,40 @@ func (rd *pageReader) askContent(pg *page) {
 	if pg.entity == "" && pg.kind != "task" {
 		add("entity", "the entity it shows")
 	}
-	if pg.kind == "" || pg.kind == "list" || pg.kind == "view" {
+	if (pg.kind == "" || pg.kind == "list" || pg.kind == "view") && pg.named["source"] == "" {
 		add("source", "the operation it reads")
 	}
-	if pg.kind == "" || pg.kind == "form" || pg.kind == "task" {
+	if (pg.kind == "" || pg.kind == "form" || pg.kind == "task") && pg.named["submit"] == "" {
 		add("submit", "the operation it submits to")
 	}
 	if (pg.kind == "" || pg.kind == "list") && pg.lists["columns"] == nil {
 		add("columns", "the columns it lists")
 	}
-	if len(keys) == 0 {
-		return
-	}
-	text := fmt.Sprintf("For the page at %s, what %s %s?", pg.route, isOrAre(len(what)), joinAnd(what))
-	for _, k := range namedKeys {
-		if op := pg.named[k]; op != "" {
-			role := "the operation it reads"
-			if k == "submit" {
-				role = "the operation it submits to"
-			}
-			text += fmt.Sprintf(" Its schema names %s as %s, which only the router's tree holds.", op, role)
+	if len(keys) > 0 {
+		why := "The folders name a page's route and not what it shows."
+		if pg.schema != "" {
+			why = "The folders name a page's route, and its schema does not give these."
 		}
+		rd.question(fmt.Sprintf("For the page at %s, what %s %s?", pg.route, isOrAre(len(what)), joinAnd(what)), keys, why)
 	}
-	why := "The folders name a page's route and not what it shows."
-	if pg.schema != "" {
-		why = "The folders name a page's route, and its schema does not give these, or names operations this tree does not hold."
+	// An operation the schema names is declared by the tree of the router
+	// or the interface document, not this one, so the key is left out and
+	// its question carries the name for specarch merge to write.
+	for _, k := range namedKeys {
+		op := pg.named[k]
+		if op == "" {
+			continue
+		}
+		role := "reads"
+		if k == "submit" {
+			role = "submits to"
+		}
+		rd.namedQuestion(
+			fmt.Sprintf("The page at %s %s operation %s, which its schema names; this tree does not declare it, so it waits for the tree that does. Is it that operation?", pg.route, role, op),
+			[]string{at + k}, op,
+			fmt.Sprintf("The schema names the operation and not its method or path, so the page's %s waits for the tree that declares it; specarch merge writes it once one does.", k),
+		)
 	}
-	rd.question(text, keys, why)
 }
 
 // writeEntities writes each entity a schema names, known by name with the

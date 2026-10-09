@@ -921,9 +921,13 @@ func namedKind(tokens []string) string {
 var keysAfter = map[string][]string{
 	"trigger":   {"subject", "steps", "emits", "satisfies", "why", "cites", "origin", "decidedIn"},
 	"operation": {"satisfies", "why", "cites", "origin", "decidedIn"},
-	"source":    {"submit", "onSubmitted", "satisfies", "why", "cites", "origin", "decidedIn"},
-	"submit":    {"onSubmitted", "satisfies", "why", "cites", "origin", "decidedIn"},
+	"source":    append([]string{"submit"}, pageKeysAfterSubmit...),
+	"submit":    pageKeysAfterSubmit,
 }
+
+// pageKeysAfterSubmit are a page's keys after submit, in the design
+// schema's order.
+var pageKeysAfterSubmit = []string{"columns", "compactColumns", "fields", "sections", "childRows", "filters", "actions", "onSubmitted", "onSelect", "inbox", "pickers", "fieldConditions", "checks", "enteredTwice", "states", "enabledBy", "satisfies", "why", "cites", "origin", "decidedIn"}
 
 func declareOrDeclares(n int) string {
 	if n == 1 {

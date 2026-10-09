@@ -1,0 +1,15 @@
+permissions:
+  loans.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'examples/lending-desk/sources/code GET /members/{cardNumber}/loans', says: 'GET /members/{cardNumber}/loans checks loans.read.'}
+paths:
+  /members/{cardNumber}/loans:
+    parameters:
+      - {name: cardNumber, in: path, required: true}
+    get:
+      operationId: listMemberLoans
+      permission: loans.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'examples/lending-desk/sources/code GET /members/{cardNumber}/loans', says: 'GET /members/{cardNumber}/loans checks loans.read; its handler is ListMemberLoans.'}

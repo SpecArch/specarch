@@ -138,17 +138,19 @@ commands:
         false, null, arrays and objects, trailing commas). Of its keys,
         `kind`, `title`, `entity`, `permission`, `columns`,
         `compactColumns`, `fields`, `sections` and `filters` are read as
-        the page keywords of the same name; `source` and `submit` are
-        named in the question that asks for them, since the operations
-        they name are the router's; every other key, a value that is not
+        the page keywords of the same name. `source` and `submit` name an
+        operation the router's tree or the interface document's declares,
+        not this one, so the key is left out and a must question carries
+        the name under `names`; `specarch merge` writes it once a tree
+        declares that operation. Every other key, a value that is not
         a literal, and a file outside the subset print a line, and what
         they would have given is asked for. An entity a schema names is
         written by name, of type object, with every field a page shows
         as a field known only by name, citing the schemas; its primary key
         and each field's type are a must question. Each page cites its
         page file and its schema; its kind, title, entity and the
-        operations it reads or submits, where no schema gives them, are a
-        must question, and so is the permission it checks, never written
+        operations it reads or submits, where no schema gives or names
+        them, are a must question, and so is the permission it checks, never written
         as public. Every permission a schema names is declared, its
         description and the role that grants it must questions.
       - `workflows`: one BPMN 2.0 XML file, read with the standard

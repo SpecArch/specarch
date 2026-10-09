@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 51 requirements, 5 entities, 12 commands, 7 algorithms, 307 tests, 65 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 51 requirements, 5 entities, 12 commands, 7 algorithms, 308 tests, 65 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -775,17 +775,19 @@ The sources this build reads:
   false, null, arrays and objects, trailing commas). Of its keys,
   `kind`, `title`, `entity`, `permission`, `columns`,
   `compactColumns`, `fields`, `sections` and `filters` are read as
-  the page keywords of the same name; `source` and `submit` are
-  named in the question that asks for them, since the operations
-  they name are the router's; every other key, a value that is not
+  the page keywords of the same name. `source` and `submit` name an
+  operation the router's tree or the interface document's declares,
+  not this one, so the key is left out and a must question carries
+  the name under `names`; `specarch merge` writes it once a tree
+  declares that operation. Every other key, a value that is not
   a literal, and a file outside the subset print a line, and what
   they would have given is asked for. An entity a schema names is
   written by name, of type object, with every field a page shows
   as a field known only by name, citing the schemas; its primary key
   and each field's type are a must question. Each page cites its
   page file and its schema; its kind, title, entity and the
-  operations it reads or submits, where no schema gives them, are a
-  must question, and so is the permission it checks, never written
+  operations it reads or submits, where no schema gives or names
+  them, are a must question, and so is the permission it checks, never written
   as public. Every permission a schema names is declared, its
   description and the role that grants it must questions.
 - `workflows`: one BPMN 2.0 XML file, read with the standard
@@ -4485,6 +4487,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | merge-openapi-placeholder | command merge | system | golden | the tree the router's route table gives, and the tree of a sample OpenAPI document a service template ships, none of whose paths the router serves | merge is run on the two trees | it reports the sample as a placeholder with the number of its paths, still asks whether each of its operations is to be built and whether each route is meant to exist, and exits 0 |
 | merge-openapi-unserved | command merge | system | golden | the tree an OpenAPI document gives, with the four operations the router serves and one more, and the tree the router's route table gives | merge is run on the two trees | the router's questions about summaries, responses and path parameters, and the document's questions about the permissions the router names, are left out as answered, the operation the router does not serve is one must question that names its path, and it exits 0 |
 | merge-pages-field-by-name | command merge | system | golden | the tree a catalogue dump gives, and the tree of an app folder whose one schema names the loans entity and the fields its page shows, each field known only by name, with a must question on the entity's primary key and those fields | merge is run on the two trees | the database tree gives the primary key and every field the pages tree knows only by name, so the pages tree's question is left out as answered; the entity cites both trees, and it exits 0 |
+| merge-pages-joins-source | command merge | system | golden | the tree of a route table that declares listMemberLoans, and the tree of an app folder whose one schema names listMemberLoans as the operation its list page reads, with the page's source left out and a must question naming the operation | merge is run on the two trees | the page's source is written as listMemberLoans, where the design schema puts it, and its question is left out as joined, naming the tree that declares it; the questions on the permission both trees ask are asked once; it exits 0 |
 | merge-path-changed | command merge | system | red | a repository whose first commit adds a migration, whose second adds another and whose third the router, a database tree read at the first and a router tree read at the third | merge is run on the two trees | it refuses them, saying the migrations changed at the second commit, after the first the database tree read them at, writes nothing and exits 1 |
 | merge-permissions-asked-twice | command merge | system | golden | the tree the router's route table gives and the tree of a permission table, each asking with must what the same three permissions allow | merge is run on the two trees | it keeps the router's question, leaves out the permission table's as asked twice, naming the question that asks it, and exits 0 |
 | merge-permissions-unchecked | command merge | system | golden | the tree the router's route table gives, and the tree of a permission table whose one role grants the three permissions the routes check and a fourth that no route checks | merge is run on the two trees | it reports the permission no operation, command or page checks with the role that grants it, keeps it in the merged specification, and exits 0 |
@@ -4908,7 +4911,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
 | SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-route-twice; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read |
-| SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-pages-field-by-name; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-source-differs; tests merge-tree-invalid; tests merge-workflows-joins-trigger; tests validate-source-given-outside |
+| SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-source-differs; tests merge-tree-invalid; tests merge-workflows-joins-trigger; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-owned-by-unknown |
 | SA-47 | enums Rule; decisions ADR-054 | tests document-techspec-open-workflow; tests validate-maker-checker; tests validate-workflow; tests validate-workflow-valid |
 | SA-48 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |

@@ -1,18 +1,19 @@
 questions:
   Q-1:
-    question: For the page at /orders, what is the operation it reads? Its schema names listOrders as the operation it reads, which only the router's tree holds.
+    question: The page at /orders reads operation listOrders, which its schema names; this tree does not declare it, so it waits for the tree that does. Is it that operation?
     kind: decision
     priority: must
     blocks: ['#/pages/orders/source']
     decidedBy: system-owner
-    why: The folders name a page's route, and its schema does not give these, or names operations this tree does not hold.
+    names: listOrders
+    why: The schema names the operation and not its method or path, so the page's source waits for the tree that declares it; specarch merge writes it once one does.
   Q-2:
     question: For the page at /orders/{orderId}, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
     kind: decision
     priority: must
     blocks: ['#/pages/orders-by-order-id/kind', '#/pages/orders-by-order-id/title', '#/pages/orders-by-order-id/entity', '#/pages/orders-by-order-id/source', '#/pages/orders-by-order-id/submit', '#/pages/orders-by-order-id/columns']
     decidedBy: system-owner
-    why: The folders name a page's route, and its schema does not give these, or names operations this tree does not hold.
+    why: The folders name a page's route, and its schema does not give these.
   Q-3:
     question: Which permission does the page at /orders/{orderId} check, or is it open to everyone (public)?
     kind: decision

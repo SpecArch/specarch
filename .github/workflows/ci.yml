@@ -164,6 +164,7 @@ jobs:
           grep -q ': 0 errors,' "$RUNNER_TEMP/desk-one/validate.txt"
           grep -q '^  wireNames: snake_case$' "$RUNNER_TEMP/desk-one/spec/specarch.yaml"
           grep -q '^joined: .* on #/workflows/write-off/trigger, ' "$RUNNER_TEMP/desk-one/merge.txt"
+          grep -q '^joined: .* on #/pages/members-by-card-number-loans/source, ' "$RUNNER_TEMP/desk-one/merge.txt"
           grep -F -B2 'Not built yet. The documents have field phoneNumber of entity Members' "$RUNNER_TEMP/desk-one/gaps.txt" | grep -q '(must, decision)'
           grep -F -B2 'Undocumented, from code: is operation showMember (GET /members/{cardNumber})' "$RUNNER_TEMP/desk-one/gaps.txt" | grep -q '(must, decision)'
           grep -F -B2 'GET /members/{cardNumber} checks no permission' "$RUNNER_TEMP/desk-one/gaps.txt" | grep -q '(must, decision)'

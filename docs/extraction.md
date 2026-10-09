@@ -274,8 +274,10 @@ Steps, in order:
    TypeScript that is also JSON5, the form the TypeScript generator of
    ADR-051 writes, and its keys named as the design's page keywords give
    the kind, title, entity, permission, columns, fields, sections and
-   filters; the operations it names are asked for, since they are the
-   router's. The entity is written by name with the fields the page
+   filters. The operations it names are the router's, so the page's
+   source and submit are left out with a must question that carries the
+   name under `names`, and `specarch merge` writes the name at the key
+   once another tree declares that operation. The entity is written by name with the fields the page
    shows, each known only by name, and a must question asks its primary
    key and their types; `specarch merge` takes an element known only by
    name as not given, so the database tree answers that question, and
@@ -285,7 +287,9 @@ Steps, in order:
    dumps stay current, has a route group, a dynamic segment and one list
    page with a schema file: its three pages come out with the parameter
    and that page's fields, validated and byte-identical, and merged with
-   the database tree the entity's question is answered; CI repeats it.
+   the database tree the entity's question is answered; CI repeats it. In
+   the whole example (step 10) the list page's source is joined to
+   `listMemberLoans`, which the router and the OpenAPI document declare.
 10. Built. The whole example: `examples/lending-desk/extract.sh <out folder>`
     runs every reader on the example's sources, each into a tree of its
     own: the manual, the OpenAPI document, the catalogue, the route table,

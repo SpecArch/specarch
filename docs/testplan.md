@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 307 design tests, 120 golden and 187 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 308 design tests, 121 golden and 187 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 303 |
+| system | 304 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1084,6 +1084,14 @@ Scenario: golden; level: system; verifies SA-45.
 - Given: the tree a catalogue dump gives, and the tree of an app folder whose one schema names the loans entity and the fields its page shows, each field known only by name, with a must question on the entity's primary key and those fields
 - When: merge is run on the two trees
 - Then: the database tree gives the primary key and every field the pages tree knows only by name, so the pages tree's question is left out as answered; the entity cites both trees, and it exits 0
+
+#### merge-pages-joins-source
+
+Scenario: golden; level: system; verifies SA-45.
+
+- Given: the tree of a route table that declares listMemberLoans, and the tree of an app folder whose one schema names listMemberLoans as the operation its list page reads, with the page's source left out and a must question naming the operation
+- When: merge is run on the two trees
+- Then: the page's source is written as listMemberLoans, where the design schema puts it, and its question is left out as joined, naming the tree that declares it; the questions on the permission both trees ask are asked once; it exits 0
 
 #### merge-path-changed
 

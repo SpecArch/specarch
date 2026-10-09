@@ -14,9 +14,10 @@ questions:
     decidedBy: system-owner
     why: The folders name a page's route and not who may open it, and a page open to everyone is how an open screen is usually found, so it is asked, never assumed.
   Q-3:
-    question: For the page at /sign-in, what is the operation it submits to? Its schema names signIn as the operation it submits to, which only the router's tree holds.
+    question: The page at /sign-in submits to operation signIn, which its schema names; this tree does not declare it, so it waits for the tree that does. Is it that operation?
     kind: decision
     priority: must
     blocks: ['#/pages/sign-in/submit']
     decidedBy: system-owner
-    why: The folders name a page's route, and its schema does not give these, or names operations this tree does not hold.
+    names: signIn
+    why: The schema names the operation and not its method or path, so the page's submit waits for the tree that declares it; specarch merge writes it once one does.

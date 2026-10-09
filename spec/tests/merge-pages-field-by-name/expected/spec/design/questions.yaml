@@ -7,7 +7,7 @@ questions:
     decidedBy: system-owner
     why: A constraint carries the message a user reads, and a database catalogue holds none.
   Q-2:
-    question: For the page at /loans/new, what are its kind (list, form or view), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    question: For the page at /loans/new, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
     kind: decision
     priority: must
     blocks: ['#/pages/loans-new/kind', '#/pages/loans-new/title', '#/pages/loans-new/entity', '#/pages/loans-new/source', '#/pages/loans-new/submit', '#/pages/loans-new/columns']
@@ -21,14 +21,15 @@ questions:
     decidedBy: system-owner
     why: The folders name a page's route and not who may open it, and a page open to everyone is how an open screen is usually found, so it is asked, never assumed.
   Q-4:
-    question: For the page at /members/{cardNumber}/loans, what is the operation it reads? Its schema names listMemberLoans as the operation it reads, which only the router's tree holds.
+    question: The page at /members/{cardNumber}/loans reads operation listMemberLoans, which its schema names; this tree does not declare it, so it waits for the tree that does. Is it that operation?
     kind: decision
     priority: must
     blocks: ['#/pages/members-by-card-number-loans/source']
     decidedBy: system-owner
-    why: The folders name a page's route, and its schema does not give these, or names operations this tree does not hold.
+    names: listMemberLoans
+    why: The schema names the operation and not its method or path, so the page's source waits for the tree that declares it; specarch merge writes it once one does.
   Q-5:
-    question: For the page at /, what are its kind (list, form or view), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    question: For the page at /, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
     kind: decision
     priority: must
     blocks: ['#/pages/root/kind', '#/pages/root/title', '#/pages/root/entity', '#/pages/root/source', '#/pages/root/submit', '#/pages/root/columns']

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: merge
+level: system
+scenario: golden
+given: "the tree of a route table that declares listMemberLoans, and the tree of an app folder whose one schema names listMemberLoans as the operation its list page reads, with the page's source left out and a must question naming the operation"
+when: "merge is run on the two trees"
+then: "the page's source is written as listMemberLoans, where the design schema puts it, and its question is left out as joined, naming the tree that declares it; the questions on the permission both trees ask are asked once; it exits 0"
+verifies: [SA-45]

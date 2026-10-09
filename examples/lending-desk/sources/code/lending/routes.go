@@ -16,6 +16,8 @@ func (s *Server) Routes() []Route {
 		{"POST", "/members", "members.write", s.RegisterMember},
 		{"POST", "/loans", "loans.write", s.LendBook},
 		{"POST", "/loans/{loanId}/return", "loans.write", s.ReturnBook},
+		{"POST", "/loans/{loanId}/write-off-requests", "loans.write", s.RequestWriteOff},
+		{"POST", "/loans/{loanId}/write-off", "loans.writeoff", s.WriteOffLoan},
 		{"GET", "/members/{cardNumber}/loans", "loans.read", s.ListMemberLoans},
 		{"GET", "/members/{cardNumber}", "", s.ShowMember},
 	}
@@ -43,6 +45,18 @@ func (s *Server) LendBook(w http.ResponseWriter, r *http.Request) {
 
 // ReturnBook closes a loan and answers 200.
 func (s *Server) ReturnBook(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
+// RequestWriteOff asks for a lost book's loan to be written off and answers
+// 202: the write-off workflow waits for a desk supervisor to approve it.
+func (s *Server) RequestWriteOff(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusAccepted)
+}
+
+// WriteOffLoan writes a loan off once its request is approved, and answers
+// 200.
+func (s *Server) WriteOffLoan(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 

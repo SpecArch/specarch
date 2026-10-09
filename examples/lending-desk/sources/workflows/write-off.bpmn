@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             id="lending-desk-workflows"
+             targetNamespace="http://example.com/lending-desk/workflows">
+  <interface id="loans" name="Loans">
+    <operation id="requestWriteOffOperation" name="requestWriteOff">
+      <inMessageRef>writeOffRequest</inMessageRef>
+    </operation>
+    <operation id="writeOffLoanOperation" name="writeOffLoan">
+      <inMessageRef>writeOffRequest</inMessageRef>
+    </operation>
+  </interface>
+  <message id="writeOffRequest" name="Write-off request"/>
+  <resource id="deskSupervisor" name="desk-supervisor"/>
+
+  <process id="writeOff" name="write-off" isExecutable="true">
+    <documentation>A lost book's loan is written off only after a desk supervisor approves, within two days.</documentation>
+    <startEvent id="requested" name="Write-off requested">
+      <messageEventDefinition messageRef="writeOffRequest" operationRef="requestWriteOffOperation"/>
+    </startEvent>
+    <sequenceFlow id="toApprove" sourceRef="requested" targetRef="approve"/>
+    <userTask id="approve" name="Approve">
+      <potentialOwner resourceRef="deskSupervisor"/>
+    </userTask>
+    <boundaryEvent id="approveDeadline" attachedToRef="approve" cancelActivity="true">
+      <timerEventDefinition>
+        <timeDuration>P2D</timeDuration>
+      </timerEventDefinition>
+    </boundaryEvent>
+    <sequenceFlow id="deadlinePassed" sourceRef="approveDeadline" targetRef="refused"/>
+    <sequenceFlow id="toDecision" sourceRef="approve" targetRef="decision"/>
+    <exclusiveGateway id="decision" name="Approved?"/>
+    <sequenceFlow id="approved" sourceRef="decision" targetRef="writeOffStep">
+      <conditionExpression>approved</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="notApproved" sourceRef="decision" targetRef="refused"/>
+    <serviceTask id="writeOffStep" name="Write off" operationRef="writeOffLoanOperation"/>
+    <sequenceFlow id="toDone" sourceRef="writeOffStep" targetRef="done"/>
+    <endEvent id="refused" name="Refused"/>
+    <endEvent id="done" name="Written off"/>
+  </process>
+</definitions>

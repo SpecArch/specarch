@@ -96,6 +96,18 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/RenewalRefusal" }
+  /loans/{loanId}/write-off-requests:
+    parameters:
+      - name: loanId
+        in: path
+        required: true
+        schema: { type: integer, format: int64, minimum: 1, maximum: 9007199254740991 }
+    post:
+      operationId: requestWriteOff
+      summary: Ask for a lost book's loan to be written off, which a desk supervisor approves
+      responses:
+        "202":
+          description: The request is accepted and waits for a desk supervisor.
 components:
   securitySchemes:
     deskStaff:

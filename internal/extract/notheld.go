@@ -71,7 +71,9 @@ func notHeldSays(text string) string {
 	return "Not held: " + text + "."
 }
 
-// askedBy is the question that blocks the pointer, and its priority.
+// askedBy is the question the reader asked that blocks the pointer, and its
+// priority. A could question is never one: it is what this file writes, and
+// one thing not held must not stand in for another.
 func askedBy(questions *yaml.Node, ptr string) (string, string) {
 	if ptr == "" {
 		return "", ""
@@ -91,7 +93,7 @@ func askedBy(questions *yaml.Node, ptr string) (string, string) {
 			}
 		}
 		for _, b := range blocks {
-			if b == ptr {
+			if b == ptr && priority != "could" {
 				return questions.Content[i].Value, priority
 			}
 		}

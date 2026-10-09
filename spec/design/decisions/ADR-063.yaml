@@ -1,0 +1,89 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-063:
+    title: An entity's field may hold a schema, kept in columns of the entity's row named after the field and the part, or as one JSON value with storage json, and a list of schemas only as JSON
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      A value object is a schema (ADR-060). A member's address, a loan's fee as an amount and a
+      currency, and a list of a member's phone numbers are values with no
+      identity that a record holds. Written as loose fields of the entity
+      their parts lose that they belong together, and written as an entity
+      each needs a made-up key, which ADR-060 removes. A field that holds
+      one needs a rule for how it is stored. The ways to store one are known: flattened into
+      columns of the owner's table, one JSON column, or a table of its own
+      keyed by the owner.
+    decision: |
+      An entity's field may refer to a schema, '#/schemas/Address', or
+      hold a list of them, an array whose items refer to one. Its storage
+      keyword says how the value is kept in the entity's row: columns, the
+      default for one value, gives each part a column named after the path
+      to it (address_street, address_location_latitude); json gives the
+      whole value one column of the dialect's JSON type, the type-rendering
+      idiom's object row, and is the only storage for a list. In columns a
+      required part's column is NOT NULL only where every value above it
+      is required, and an optional value gets a check that it is either
+      wholly absent, every column null, or has every required part. A
+      schema kept in columns may not hold a list of schemas, itself
+      through any depth, or a reference to an entity, and an optional one
+      must have a required part that is never null, directly or through a
+      required schema part; each is refused as value_object at
+      the entity's field, and so is storage anywhere but on an entity's
+      own field holding a schema, and columns on a list. Inside a value
+      kept in columns, a schema part is flattened in its turn; there is no
+      depth limit other than a cycle. A key or a unique constraint over a
+      field kept in columns is refused by specarch generate sql, and so is
+      a part whose column another field of the entity or another value's
+      part has, and a view's field whose path ends in a value kept in
+      columns. In the interface
+      the field is a reference to the schema's component whatever its
+      storage, since storage is not interface.
+    why: |
+      This is how the two ORMs that model a value object say it. Jakarta
+      Persistence's @Embeddable class is stored in the columns of the
+      owning entity's table (Jakarta Persistence 3.1, section 2.5),
+      and a collection of them in a collection table keyed by the owner
+      (@ElementCollection and @CollectionTable). EF Core's complex types, which it
+      recommends over owned types for a value object because they have no
+      hidden key, are stored in the container's table with columns named
+      Navigation_Property, prefixed by the full path when nested, or with
+      ToJson in one JSON column; an optional one must have a required
+      property, because EF needs a column that is never null to tell a
+      null value from one whose parts are all null; and a collection of
+      them is JSON only, never a table of its own. The reason both default
+      to the owner's row is that a value object has no life apart from
+      its owner: it is read and written with the row, needs no join, and
+      in columns each part keeps its own type, width, NOT NULL and check,
+      which the engine enforces and can index. JSON is for a shape that
+      holds a list or is read whole, at the cost of the engine checking
+      only that the text is JSON; the generated service checks the parts
+      against the schema, as it does a request body. A list in a table of
+      its own needs a key for each row, the owner's key and a position,
+      which is an identity, and a value with an identity is what an entity
+      says; so a list that must be queried or constrained row by row is an
+      entity related to its owner, and a list of values is JSON, as EF Core
+      decided. The default is columns, chosen per field with one keyword,
+      rather than only one way, because both ways are in use and the
+      choice is the design's: it decides what the engine can check. The
+      absence rule is EF Core's for the same reason, and the check makes
+      the engine hold it, since a row with an address's city and no street
+      would otherwise be stored. A cycle has no fixed set of columns, and a
+      reference to an entity inside a value is a relation, which a value
+      cannot hold in columns (EF Core's complex types have no
+      navigations); both stay possible as JSON or as a relation of the
+      entity. A column name is the path in snake case, after EF Core's
+      convention and the same function that names every other column, so
+      a reader of the table sees which value a column belongs to.
+    consequences: |
+      A schema part added later is a column added by the next migration,
+      since specarch generate sql writes the parts out before it renders
+      or compares a table. For the same reason a part removed from a
+      schema, or a field moved from columns to json, is a dropped column,
+      which the differ writes only as a destructive contract step; moving
+      the data over is a migration written by hand. The database reader cannot tell a value object
+      from columns that share a prefix or from a JSON column; reading them
+      back is merge's, with the tree that names the schema. A derived case
+      for a missing required part, the Go model's type for the field, and
+      a form's nested section are later steps; the design says what each
+      reads.
+    satisfies: [SA-1, SA-48, SA-50]

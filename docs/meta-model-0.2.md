@@ -195,9 +195,10 @@ today as an entity with a made-up key. `schemas` holds a named object
 schema with no key and no table, taken with its name from OpenAPI's
 `components.schemas`; a request body, a response, a message or another
 schema may refer to it, an entity may not relate to it, and the SQL
-generator writes nothing for it. `extract openapi` then writes a component
-schema with no key as one, instead of an entity with a question about its
-key.
+generator writes no table for it. An entity's field may hold one, in
+columns of the entity's row or as one JSON value (ADR-063). `extract
+openapi` then writes a component schema with no key as one, instead of an
+entity with a question about its key.
 
 ### Smaller keywords
 

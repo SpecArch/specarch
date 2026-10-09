@@ -32,14 +32,14 @@ struct FieldShape {
     var itemsType = "", itemsFormat = ""
 
     /// Reads a field's shape: its JSON type with null dropped, a $ref to an
-    /// enum as an enum string and to an entity as an object.
+    /// enum as an enum string and to an entity or a schema as an object.
     init(_ f: YNode) {
         let ref = str(f.child("$ref"))
         if ref.hasPrefix("#/enums/") {
             type = "string"; isEnum = true
             return
         }
-        if ref.hasPrefix("#/entities/") {
+        if ref.hasPrefix("#/entities/") || ref.hasPrefix("#/schemas/") {
             type = "object"
             return
         }

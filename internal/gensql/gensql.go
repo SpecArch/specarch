@@ -104,7 +104,8 @@ type gen struct {
 	root     string
 	rows     []typerows.Row
 	defaults map[string]string
-	version  string // of type-rendering
+	version  string         // of type-rendering
+	original map[string]any // the entities as the design writes them, before their value objects are written out
 }
 
 // Generate writes the migrations of a request.
@@ -137,6 +138,7 @@ func Generate(r *Request) Response {
 		return g.fail("/", "type-rendering %s has no %s rows; add them in an override of its types part", g.version, g.dialect)
 	}
 	g.defaults = names(g.rendering("type-rendering", "defaults", g.dialect))
+	g.flattenValueObjects()
 
 	tables := g.tables()
 	if len(g.diags) > 0 {
@@ -312,7 +314,7 @@ func (g *gen) snapshot() string {
 // fieldKeys are the keys of a field the schema is made from; true keeps a
 // key's value whole, a map keeps the listed keys of each entry.
 var fieldKeys = map[string]any{"$ref": true, "type": true, "format": true, "enum": true, "maxLength": true,
-	"precision": true, "scale": true, "default": true, "atRest": true, "lookup": true, "items": true}
+	"precision": true, "scale": true, "default": true, "atRest": true, "lookup": true, "items": true, "storage": true}
 
 var entityKeys = map[string]any{
 	"required": true, "primaryKey": true, "audited": true, "deletion": true,

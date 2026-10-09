@@ -3,7 +3,7 @@ command: validate
 level: system
 scenario: red
 covers: [exit 1]
-given: "an entity that relates to a schema and holds one in a field, a schema named like the entity, a schema whose required list names a property it lacks, and a reference to a schema the specification lacks"
+given: "an entity that relates to a schema, and holds one in a field, which is allowed; a schema named like the entity, a schema whose required list names a property it lacks, and a reference to a schema the specification lacks"
 when: "validate is run"
-then: "it reports value_object three times, field and ref_type once each, and exits 1"
+then: "it reports value_object twice, field and ref_type once each, and nothing for the field, and exits 1"
 verifies: [SA-48]

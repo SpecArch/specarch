@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: golden
+given: "an entity whose fields hold schemas in columns, with a location inside each address, as json, as a list and as a nullable list, a schema with a part named storage, and an implementation file whose idioms render each field"
+when: "validate is run"
+then: "it reports nothing and exits 0"
+verifies: [SA-50]

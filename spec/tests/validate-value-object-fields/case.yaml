@@ -1,0 +1,12 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:16: error: /entities/Member/properties/name/storage: value_object: name holds no schema, and storage says how a field holding one is kept; leave storage out
+  specarch.yaml:17: error: /entities/Member/properties/address: value_object: address is optional and Address has no required part that is never null, so a row without it and one where every part of it is empty are the same; make a part of Address required and not nullable, make address required, or store it as json
+  specarch.yaml:17: error: /entities/Member/properties/address: value_object: address.lines is a list of Contact, and a list has no columns of its own; store address as json
+  specarch.yaml:18: error: /entities/Member/properties/contacts/storage: value_object: contacts is a list of Contact, and a list has no columns in Member's row; store it as json, or make Contact an entity related to Member
+  specarch.yaml:19: error: /entities/Member/properties/card: value_object: card.issuedAt refers to Branch, a record of its own, and a value kept in columns holds no relation; relate Member to Branch, or store card as json
+  specarch.yaml:19: error: /entities/Member/properties/card: value_object: card.previous is Card again, inside Card, so its columns never end; store card as json
+  specarch.yaml:20: error: /entities/Member/properties/badge: value_object: badge is optional and Badge has no required part that is never null, so a row without it and one where every part of it is empty are the same; make a part of Badge required and not nullable, make badge required, or store it as json
+  specarch.yaml:21: error: /entities/Member/properties/note/properties/text/storage: value_object: storage says how an entity's field holding a schema is kept, and this value is stored with what holds it; leave storage out here
+  specarch.yaml:35: error: /schemas/Contact/properties/phone/storage: value_object: storage says how an entity's field holding a schema is kept, and this value is stored with what holds it; leave storage out here

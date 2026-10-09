@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an entity whose fields hold schemas in ways that cannot be stored: storage on a field holding no schema and inside a value, a list of schemas in columns, an optional schema with no required property and one whose only required part is nullable, a list of schemas and a schema of its own kind inside a value kept in columns, and a reference to an entity inside one"
+when: "validate is run"
+then: "it reports value_object at each, and exits 1"
+verifies: [SA-50]

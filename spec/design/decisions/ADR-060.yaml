@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
 decisions:
   ADR-060:
-    title: Data passed around but not stored is a schema under schemas, after OpenAPI's components.schemas, with no key and no table, and an entity may not relate to one or hold one
+    title: Data passed around but not stored is a schema under schemas, after OpenAPI's components.schemas, with no key and no table, and an entity may not relate to one
     status: accepted
     date: "2026-10-09"
     context: |
@@ -19,10 +19,10 @@ decisions:
       every element has; it has no primaryKey, relations, constraints,
       states, validity, audit or deletion. A request body, a response, a
       message's payload and another schema's property may refer to one
-      as '#/schemas/Name'. A relation whose target is a schema and an
-      entity's field that refers to one are refused (value_object); so is
-      a schema named like an entity or a view, since all three become
-      schemas of one interface. A derived case reads a request body's
+      as '#/schemas/Name'. A relation whose target is a schema is
+      refused (value_object), and so is a schema named like an entity or a
+      view, since all three become schemas of one interface. An entity's
+      field may hold a schema, stored as ADR-063 says. A derived case reads a request body's
       required properties through a schema as it does through an entity.
       specarch generate sql writes nothing for a schema; specarch generate
       openapi writes it under components.schemas. specarch extract openapi
@@ -44,10 +44,8 @@ decisions:
       entity is what lets generate sql leave it out and a reader see that
       it has no identity. An entity may not relate to a schema because a
       relation is a foreign key to a record, and a schema has no record
-      to point at; an entity may not hold one in a field either, because
-      the field would need a column whose shape no generator can read
-      from the design, and a stored copy of passed-around data is a
-      record, which is what an entity says. Keeping the rule narrow costs
+      to point at; a field may hold one, since the value is then a part of
+      the entity's record and stored with it. Keeping the rule narrow costs
       nothing: a schema may still refer to an entity, as a response
       carrying a record does. OpenAPI never says which fields identify a
       record, so the reader takes what the document does say: 201
@@ -63,6 +61,6 @@ decisions:
     consequences: |
       Data with a made-up key can be rewritten as a schema without a
       version change, since schemas is an addition to the 0.1 design
-      schema. A value held in a stored record is written as fields of the
-      entity, or as an entity of its own with a key.
+      schema. A value held in a stored record is a field of the entity
+      that holds the schema (ADR-063).
     satisfies: [SA-1, SA-48]

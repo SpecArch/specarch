@@ -1,0 +1,43 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      name: { type: string, maxLength: 200 }
+      address: { $ref: "#/schemas/Address" }
+      mailingAddress: { $ref: "#/schemas/Address" }
+      preferences: { $ref: "#/schemas/Preferences", storage: json }
+      phones: { type: array, items: { $ref: "#/schemas/Phone" } }
+    required: [id, name, address]
+    primaryKey: [id]
+schemas:
+  Address:
+    description: Where a member lives or takes post.
+    type: object
+    properties:
+      street: { type: string, maxLength: 200 }
+      city: { type: string, maxLength: 100 }
+      postcode: { type: string, maxLength: 20 }
+      location: { $ref: "#/schemas/Location" }
+    required: [street, city]
+  Location:
+    type: object
+    properties:
+      latitude: { type: number, format: double }
+      longitude: { type: number, format: double }
+    required: [latitude, longitude]
+  Preferences:
+    type: object
+    properties:
+      language: { type: string, maxLength: 10 }
+  Phone:
+    type: object
+    properties:
+      kind: { type: string, enum: [home, mobile] }
+      number: { type: string, maxLength: 30 }
+    required: [kind, number]

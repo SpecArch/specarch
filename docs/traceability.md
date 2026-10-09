@@ -2,13 +2,13 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.6.0-dev of the specification: 9 needs, 49 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.6.0-dev of the specification: 9 needs, 50 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 ## 1. Needs to requirements
 
 | Need | Status | Refined by |
 |---|---|---|
-| NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6 |
+| NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6 |
 | NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-49, SA-46, SA-32, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-19 |
 | NEED-4 | accepted | SA-11, SA-2 |
@@ -22,7 +22,7 @@ Version 0.6.0-dev of the specification: 9 needs, 49 requirements, and 0 gaps. Ea
 
 | Requirement | Needs | Satisfied by | Verified by |
 |---|---|---|---|
-| SA-1 | NEED-1 | enums DocumentKind; entities SpecFile; commands validate; decisions ADR-003; decisions ADR-006; decisions ADR-007; decisions ADR-009; decisions ADR-052; decisions ADR-055; decisions ADR-060 | tests validate-schema-name-form; tests validate-schema-untyped-integer; tests validate-valid-design; checks checks-the-examples; monitors main-stays-green |
+| SA-1 | NEED-1 | enums DocumentKind; entities SpecFile; commands validate; decisions ADR-003; decisions ADR-006; decisions ADR-007; decisions ADR-009; decisions ADR-052; decisions ADR-055; decisions ADR-060; decisions ADR-063 | tests validate-schema-name-form; tests validate-schema-untyped-integer; tests validate-valid-design; checks checks-the-examples; monitors main-stays-green |
 | SA-2 | NEED-1, NEED-4 | enums Rule; commands validate; algorithms referenceResolves; decisions ADR-061 | tests validate-duplicate-name-across-files; tests validate-enabled-by; tests validate-environment; tests validate-need; tests validate-ref-type; tests validate-relation-target; tests validate-requirement-set; tests validate-stakeholder |
 | SA-3 | NEED-1 | enums Rule; commands validate; decisions ADR-004; decisions ADR-047; decisions ADR-061 | tests validate-expression-date-days; tests validate-expression-date-number; tests validate-expression-in-stage-file; tests validate-expression-syntax; tests validate-expression-type; tests validate-unique-where |
 | SA-4 | NEED-1 | enums Rule; commands validate; algorithms workedExampleHolds; decisions ADR-004 | tests validate-example-mismatch |
@@ -69,8 +69,9 @@ Version 0.6.0-dev of the specification: 9 needs, 49 requirements, and 0 gaps. Ea
 | SA-45 | NEED-8 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-pages-field-by-name; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-source-differs; tests merge-tree-invalid; tests merge-workflows-joins-trigger; tests validate-source-given-outside |
 | SA-46 | NEED-2, NEED-8 | commands generate; decisions ADR-046 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-owned-by-unknown |
 | SA-47 | NEED-1, NEED-5 | enums Rule; decisions ADR-054 | tests document-techspec-open-workflow; tests validate-maker-checker; tests validate-workflow; tests validate-workflow-valid |
-| SA-48 | NEED-1 | enums Rule; decisions ADR-060 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |
+| SA-48 | NEED-1 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |
 | SA-49 | NEED-2 | enums Rule; decisions ADR-062 | tests extract-openapi-snake-case; tests generate-openapi-wire-names; tests validate-wire-names |
+| SA-50 | NEED-1 | enums Rule; decisions ADR-063 | tests generate-sql-value-object-fields; tests validate-value-object-fields; tests validate-value-object-fields-valid |
 
 ## 3. Gaps
 

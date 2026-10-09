@@ -108,6 +108,10 @@ func (g *gen) createView(name string) string {
 				cur, prefix = target, next
 			}
 			last := hops[len(hops)-1]
+			if name, many := valueObjectOf(obj0(obj0(obj0(g.original[cur])["properties"])[last])); name != "" && !many && text(obj0(obj0(obj0(g.original[cur])["properties"])[last])["storage"]) != "json" {
+				g.problem(pat+"/path", "%s ends in %s.%s, a value kept in the columns of its parts, which a view does not read; store it as json, or leave it out of the view", path, cur, last)
+				return ""
+			}
 			if obj0(obj0(obj0(entities[cur])["properties"])[last])["writeOnly"] == true {
 				g.problem(pat+"/path", "%s ends in %s.%s, which is written and never read, and a view is only read; leave it out of the view", path, cur, last)
 				return ""

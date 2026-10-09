@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 299 design tests, 115 golden and 184 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 302 design tests, 117 golden and 185 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 295 |
+| system | 298 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -870,6 +870,14 @@ Scenario: golden; level: system; verifies SA-48.
 - Given: a specification with an entity and a schema that a response refers to, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved
 - Then: it writes 0001_expand.sql with the entity's table and nothing for the schema, and snapshot.yaml beside it, and exits 0
+
+#### generate-sql-value-object-fields
+
+Scenario: golden; level: system; verifies SA-50.
+
+- Given: an entity whose fields hold schemas: a required and an optional address in columns, with an optional location inside each, preferences stored as json and a list of phones, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved
+- Then: it writes each address as columns named after the field and the part, NOT NULL only where every level is required, a check that an optional value is wholly absent or has its required parts, and preferences and phones as one JSONB column each, and exits 0
 
 #### generate-stack-fallback
 
@@ -2375,13 +2383,29 @@ Scenario: red; level: system; covers exit 1; verifies SA-29.
 - When: validate is run
 - Then: it reports validity for each, and exits 1
 
+#### validate-value-object-fields
+
+Scenario: red; level: system; covers exit 1; verifies SA-50.
+
+- Given: an entity whose fields hold schemas in ways that cannot be stored: storage on a field holding no schema and inside a value, a list of schemas in columns, an optional schema with no required property and one whose only required part is nullable, a list of schemas and a schema of its own kind inside a value kept in columns, and a reference to an entity inside one
+- When: validate is run
+- Then: it reports value_object at each, and exits 1
+
+#### validate-value-object-fields-valid
+
+Scenario: golden; level: system; verifies SA-50.
+
+- Given: an entity whose fields hold schemas in columns, with a location inside each address, as json, as a list and as a nullable list, a schema with a part named storage, and an implementation file whose idioms render each field
+- When: validate is run
+- Then: it reports nothing and exits 0
+
 #### validate-value-objects
 
 Scenario: red; level: system; covers exit 1; verifies SA-48.
 
-- Given: an entity that relates to a schema and holds one in a field, a schema named like the entity, a schema whose required list names a property it lacks, and a reference to a schema the specification lacks
+- Given: an entity that relates to a schema, and holds one in a field, which is allowed; a schema named like the entity, a schema whose required list names a property it lacks, and a reference to a schema the specification lacks
 - When: validate is run
-- Then: it reports value_object three times, field and ref_type once each, and exits 1
+- Then: it reports value_object twice, field and ref_type once each, and nothing for the field, and exits 1
 
 #### validate-value-objects-valid
 
@@ -2459,7 +2483,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-163 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+166 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2546,6 +2570,9 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-49 | acceptance 2 | golden | SA-49 names no harm |
 | requirement SA-49 | acceptance 3 | golden | SA-49 names no harm |
 | requirement SA-49 | acceptance 4 | golden | SA-49 names no harm |
+| requirement SA-50 | acceptance 1 | golden | SA-50 names no harm |
+| requirement SA-50 | acceptance 2 | golden | SA-50 names no harm |
+| requirement SA-50 | acceptance 3 | golden | SA-50 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

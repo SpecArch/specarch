@@ -1,0 +1,50 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+entities:
+  Branch:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+    primaryKey: [id]
+    satisfies: [CASE-1]
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      name: { type: string, maxLength: 200, storage: json }
+      address: { $ref: "#/schemas/Address" }
+      contacts: { type: array, items: { $ref: "#/schemas/Contact" }, storage: columns }
+      card: { $ref: "#/schemas/Card" }
+      badge: { $ref: "#/schemas/Badge" }
+      note: { type: object, properties: { text: { type: string, maxLength: 200, storage: columns } } }
+    required: [id, name, card]
+    primaryKey: [id]
+    satisfies: [CASE-1]
+schemas:
+  Address:
+    type: object
+    properties:
+      street: { type: string, maxLength: 200 }
+      lines: { type: array, items: { $ref: "#/schemas/Contact" } }
+    satisfies: [CASE-1]
+  Contact:
+    type: object
+    properties:
+      phone: { type: string, maxLength: 30, storage: json }
+    required: [phone]
+    satisfies: [CASE-1]
+  Badge:
+    type: object
+    properties:
+      label: { type: [string, "null"], maxLength: 20 }
+    required: [label]
+    satisfies: [CASE-1]
+  Card:
+    type: object
+    properties:
+      issuedAt: { $ref: "#/entities/Branch" }
+      previous: { $ref: "#/schemas/Card" }
+    required: [issuedAt]
+    satisfies: [CASE-1]

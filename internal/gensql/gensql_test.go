@@ -585,3 +585,81 @@ func TestDifferPartialUnique(t *testing.T) {
 		}
 	}
 }
+
+// TestValueObjects renders a member's address in columns of its parts and a
+// list of phones as one JSON column, on each dialect, and refuses a unique
+// constraint over the address.
+func TestValueObjects(t *testing.T) {
+	want := map[string][]string{
+		"postgresql": {"address_street VARCHAR(200),", "address_city VARCHAR(100),", "phones JSONB,"},
+		"sqlserver":  {"address_street NVARCHAR(200),", "phones NVARCHAR(MAX),", "CHECK (ISJSON(phones) = 1)"},
+		"oracle":     {"address_street VARCHAR2(200 CHAR),", "phones CLOB,", "CHECK (phones IS JSON)"},
+		"mariadb":    {"address_street VARCHAR(200),", "phones JSON,"},
+	}
+	add := func(r *Request) map[string]any {
+		r.Specification["schemas"] = map[string]any{
+			"Address": map[string]any{"type": "object", "required": []any{"street", "city"}, "properties": map[string]any{
+				"street": map[string]any{"type": "string", "maxLength": json.Number("200")},
+				"city":   map[string]any{"type": "string", "maxLength": json.Number("100")},
+			}},
+			"Phone": map[string]any{"type": "object", "required": []any{"number"}, "properties": map[string]any{
+				"number": map[string]any{"type": "string", "maxLength": json.Number("30")},
+			}},
+		}
+		member := r.Specification["entities"].(map[string]any)["Member"].(map[string]any)
+		props := member["properties"].(map[string]any)
+		props["address"] = map[string]any{"$ref": "#/schemas/Address"}
+		props["phones"] = map[string]any{"type": "array", "items": map[string]any{"$ref": "#/schemas/Phone"}}
+		return member
+	}
+	for dialect, lines := range want {
+		r := request(t, dialect)
+		add(r)
+		sql := migration(t, r)
+		for _, l := range append(lines, "CONSTRAINT ck_members_address CHECK ((((address_city IS NULL) AND (address_street IS NULL)) OR ((address_city IS NOT NULL) AND (address_street IS NOT NULL))))") {
+			if !strings.Contains(sql, l) {
+				t.Errorf("%s: the migration has no %q:\n%s", dialect, l, sql)
+			}
+		}
+	}
+	r := request(t, "postgresql")
+	member := add(r)
+	member["constraints"].(map[string]any)["member_address_unique"] = map[string]any{"kind": "unique", "fields": []any{"address"}}
+	resp := Generate(r)
+	if len(resp.Diagnostics) != 1 || !strings.Contains(resp.Diagnostics[0].Message, "a unique constraint over a value object is not written") {
+		t.Errorf("want one diagnostic about the unique address, got %v", resp.Diagnostics)
+	}
+}
+
+// TestValueObjectEdges refuses two values whose parts share a column,
+// renders a nullable list of schemas as one JSON column, and leaves the
+// snapshot as it was when a schema no entity holds is added.
+func TestValueObjectEdges(t *testing.T) {
+	before := firstSnapshot(t, "postgresql")
+	r := request(t, "postgresql")
+	r.Specification["schemas"] = map[string]any{
+		"Spot": map[string]any{"type": "object", "required": []any{"latitude"}, "properties": map[string]any{
+			"latitude": map[string]any{"type": "number", "format": "double"},
+		}},
+		"Home": map[string]any{"type": "object", "required": []any{"spot"}, "properties": map[string]any{
+			"spot": map[string]any{"$ref": "#/schemas/Spot"},
+		}},
+	}
+	resp := Generate(r)
+	for _, f := range resp.Files {
+		if f.Path == SnapshotName && f.Content != before.Content {
+			t.Errorf("a schema no entity holds changed the snapshot")
+		}
+	}
+	props := r.Specification["entities"].(map[string]any)["Member"].(map[string]any)["properties"].(map[string]any)
+	props["spots"] = map[string]any{"type": []any{"array", "null"}, "items": map[string]any{"$ref": "#/schemas/Spot"}}
+	if sql := migration(t, r); !strings.Contains(sql, "spots JSONB,") {
+		t.Errorf("a nullable list of schemas is not one JSONB column:\n%s", sql)
+	}
+	props["home"] = map[string]any{"$ref": "#/schemas/Home"}
+	props["homeSpot"] = map[string]any{"$ref": "#/schemas/Spot"}
+	resp = Generate(r)
+	if len(resp.Diagnostics) != 1 || !strings.Contains(resp.Diagnostics[0].Message, "is kept in the column home_spot_latitude, which") {
+		t.Errorf("want one diagnostic about home_spot_latitude, got %v", resp.Diagnostics)
+	}
+}

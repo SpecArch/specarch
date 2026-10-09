@@ -1331,6 +1331,14 @@ let designSchemaJSON = #"""
             "credential"
           ]
         },
+        "storage": {
+          "description": "SpecArch keyword. On an entity's field that holds a schema: how the value is kept in the entity's row. columns: one column per part, named after the field and the part (address_street), the default for one value; json: one JSON column, the only way for a list of schemas.",
+          "type": "string",
+          "enum": [
+            "columns",
+            "json"
+          ]
+        },
         "atRest": {
           "description": "SpecArch keyword. encrypted: the value is stored encrypted, so it cannot be searched, sorted or compared in storage unless lookup gives a way. The engine function and the key are the encrypted-column idiom.",
           "type": "string",

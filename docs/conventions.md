@@ -1157,11 +1157,35 @@ payload and another schema's property refer to it as
 `$ref: "#/schemas/Diagnostic"`, and a derived case reads a request body's
 required properties through it as it does through an entity. An entity
 may not relate to a schema, since a relation leads to a record and a
-schema has none, nor hold one in a field, since a stored copy is a record
-and so an entity of its own; a schema may not share the name of an entity
-or a view, since all three become schemas of one interface
-(`value_object`). `generate sql` writes nothing for a schema;
-`generate openapi` writes it under `components.schemas` as it is.
+schema has none; a schema may not share the name of an entity or a view,
+since all three become schemas of one interface (`value_object`).
+`generate sql` writes no table for a schema; `generate openapi` writes it
+under `components.schemas` as it is.
+
+An entity's field may hold a schema, or a list of them, as a part of the
+entity's record (ADR-063):
+
+    Member:
+      properties:
+        address: { $ref: "#/schemas/Address" }
+        preferences: { $ref: "#/schemas/Preferences", storage: json }
+        phones: { type: array, items: { $ref: "#/schemas/Phone" } }
+
+`storage` says how the value is kept in the entity's row. `columns`, the
+default for one value, gives each part a column named after the path to
+it: `address_street`, `address_location_latitude` for a schema inside the
+address. A part's column is NOT NULL only where the part and every value
+above it are required, and an optional value gets a check that it is
+either wholly absent or has every required part. `json` keeps the whole
+value in one column of the dialect's JSON type, and is the only storage
+for a list: a list that must be queried row by row has an identity, so it
+is an entity related to its owner. In columns a value may not hold a list
+of schemas, itself at any depth, or a reference to an entity, and an
+optional one needs a required part that is never null, or a row without
+it could not be told from one where every part is empty; `storage` goes only on an
+entity's own field that holds a schema. Each is refused as
+`value_object`. In the interface the field is a reference to the schema
+whatever its storage.
 
 ### Secrets
 

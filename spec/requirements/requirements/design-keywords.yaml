@@ -169,13 +169,13 @@ requirements:
     needs: [NEED-2]
     why: A screen written by hand drifts from the pages, states and messages the owner reviewed; written from them, it says what the design says, and a change to the design reaches the screen on the next run.
   SA-48:
-    statement: A specification shall declare a value object under schemas, data passed around but not stored and with no identity, which a request body, a response, a message or another schema may refer to and an entity may not, and specarch validate shall check every use of one.
+    statement: A specification shall declare a value object under schemas, data passed around but not stored and with no identity, which a request body, a response, a message, another schema and an entity's field may refer to and a relation may not, and specarch validate shall check every use of one.
     kind: functional
     priority: should
     status: accepted
     acceptance:
       - A schema is an object with properties and a required list, and nothing only a stored record has; a request body, a response, a message's payload and another schema's property may refer to it as '#/schemas/Name', and a derived case reads a body's required properties through it.
-      - A relation whose target is a schema, an entity's field that refers to one, a schema named like an entity or a view, and a required name that is not one of the schema's properties are refused (value_object, field); a reference to a schema the specification lacks is refused (ref_type).
+      - A relation whose target is a schema, a schema named like an entity or a view, and a required name that is not one of the schema's properties are refused (value_object, field); a reference to a schema the specification lacks is refused (ref_type).
       - specarch generate sql writes nothing for a schema, and specarch generate openapi writes it under components.schemas.
       - specarch extract openapi writes a component schema it finds no key for as a schema, with no question about its key.
     verification: test
@@ -194,3 +194,15 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: An API that names its properties in snake_case could not be specified without renaming its contract, and a document generated from the renamed specification would differ from the one every client already calls.
+  SA-50:
+    statement: An entity's field shall be able to hold a value object, one schema or a list of them, stored in columns of the entity's row or as one JSON value as the field's storage says, and specarch validate shall refuse a value object that cannot be stored that way.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - A field refers to a schema, or holds a list whose items refer to one; storage columns, the default for one value, keeps each part in a column named after the field and the part, and storage json, the only storage for a list, keeps the value in one JSON column.
+      - Storage on a field that holds no schema or inside a value, columns on a list, an optional value in columns whose schema has no required part that is never null, and a list of schemas, a cycle or a reference to an entity inside a value in columns are refused as value_object, the same in both builds.
+      - specarch generate sql writes a value in columns as one column per part, NOT NULL only where every value above the part is required, with a check that an optional value is wholly absent or has its required parts, and a value in json as the dialect's JSON column, on every dialect it writes; a part added to a schema is a column added by the next migration.
+    verification: test
+    needs: [NEED-1]
+    why: A member's address or a list of phone numbers is a value with no identity that a record holds, and a design could only write its parts as loose fields of the entity or make it an entity with a made-up key.

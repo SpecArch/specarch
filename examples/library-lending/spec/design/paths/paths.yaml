@@ -38,11 +38,36 @@ paths:
               type: object
               properties:
                 email: { type: string, format: email, title: Email address }
-                password: { type: string, minLength: 8, maxLength: 200, title: Password, writeOnly: true }
+                password: { type: string, format: password, minLength: 8, maxLength: 200, title: Password, writeOnly: true }
               required: [email, password]
       responses:
         "200": { description: Signed in; the session starts. }
+        "201": { description: "The password is right, and the account confirms each sign-in with a second factor: a sign-in challenge is opened for five minutes and kept with the browser, and the session starts once confirmSecondFactor accepts its code." }
         "401": { description: The email address or the password is wrong., problem: sign-in-refused }
+
+  /sessions/second-factor:
+    post:
+      operationId: confirmSecondFactor
+      summary: Confirm a sign-in with the code of a second factor
+      description: |
+        Confirms the sign-in challenge signIn opened, with the six-digit
+        code of the authenticator app the account set up. The session
+        starts when the code is right; a challenge that is wrong five
+        times, or older than five minutes, is closed, and sign-in starts
+        again.
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code: { type: string, pattern: "^[0-9]{6}$", maxLength: 6, title: Code from the authenticator app }
+              required: [code]
+      responses:
+        "200": { description: Signed in; the session starts. }
+        "401": { description: "The code is wrong, or the sign-in challenge is closed.", problem: second-factor-refused }
 
   /password-resets:
     post:
@@ -61,8 +86,8 @@ paths:
               type: object
               properties:
                 code: { type: string, minLength: 1, maxLength: 200, title: Reset code }
-                newPassword: { type: string, minLength: 8, maxLength: 200, title: New password, writeOnly: true }
-                confirmPassword: { type: string, minLength: 8, maxLength: 200, title: New password again, writeOnly: true }
+                newPassword: { type: string, format: password, minLength: 8, maxLength: 200, title: New password, writeOnly: true }
+                confirmPassword: { type: string, format: password, minLength: 8, maxLength: 200, title: New password again, writeOnly: true }
               required: [code, newPassword, confirmPassword]
       responses:
         "204": { description: The password is set; sign in with it. }

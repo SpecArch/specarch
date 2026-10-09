@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 8 requirements, 4 entities, 15 HTTP operations, 3 channels, 1 dependency, 10 pages, 1 flow, 1 workflow, 1 algorithm, 160 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 8 requirements, 4 entities, 16 HTTP operations, 3 channels, 1 dependency, 11 pages, 1 flow, 1 workflow, 1 algorithm, 167 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -52,6 +52,7 @@ The interfaces the system offers, as its clients see them.
 |---|---|---|---|
 | GET /books | listBooks | Browse the catalogue | public |
 | POST /sessions | signIn | Sign in with an email address and a password | public |
+| POST /sessions/second-factor | confirmSecondFactor | Confirm a sign-in with the code of a second factor | public |
 | POST /password-resets | resetPassword | Set a new password with a reset code | public |
 | GET /members | listMembers | List members | members.read |
 | POST /members | createMember | Register a new member | members.write |
@@ -274,6 +275,7 @@ Every refusal is an RFC 9457 problem document of one of these types; each operat
 | loan-closed | 409 | The loan is already closed | The loan was returned or reported lost before. |
 | fee-ledger-unavailable | 503 | The fee ledger is unavailable | The fee ledger failed or did not answer in time, and the loan stays as it was. |
 | sign-in-refused | 401 | Sign-in refused | No one has the email address, or the password does not match it. |
+| second-factor-refused | 401 | Second factor refused | The code is not the one the authenticator app shows now, or the sign-in challenge is closed after five wrong codes or five minutes. |
 | reset-code-refused | 409 | Reset code refused | No one was sent the reset code, or it was used or has expired. |
 
 ### listBooks (GET /books)
@@ -301,6 +303,24 @@ sequenceDiagram
   participant C as Client
   participant S as Library Lending
   C->>S: POST /sessions
+  S-->>C: 200 
+```
+
+### confirmSecondFactor (POST /sessions/second-factor)
+
+Confirms the sign-in challenge signIn opened, with the six-digit
+code of the authenticator app the account set up. The session
+starts when the code is right; a challenge that is wrong five
+times, or older than five minutes, is closed, and sign-in starts
+again.
+
+Refuses with 401 second-factor-refused.
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant S as Library Lending
+  C->>S: POST /sessions/second-factor
   S-->>C: 200 
 ```
 
@@ -825,6 +845,7 @@ flowchart LR
   member_view["Member (view)"]
   members_list["Members (list)"]
   reset_password["Set a new password (task)"]
+  second_factor["Confirm it is you (task)"]
   sign_in["Sign in (task)"]
   op_requestFeeWaiver(["requestFeeWaiver"])
   fee_waiver_form -.->|"submit"| op_requestFeeWaiver
@@ -850,9 +871,13 @@ flowchart LR
   op_resetPassword(["resetPassword"])
   reset_password -.->|"submit"| op_resetPassword
   op_resetPassword -->|"204"| sign_in
+  op_confirmSecondFactor(["confirmSecondFactor"])
+  second_factor -.->|"submit"| op_confirmSecondFactor
+  op_confirmSecondFactor -->|"200"| members_list
   op_signIn(["signIn"])
   sign_in -.->|"submit"| op_signIn
   op_signIn -->|"200"| members_list
+  op_signIn -->|"201"| second_factor
 ```
 
 The menu, each entry shown to who may open its page:
@@ -876,6 +901,7 @@ The menu, each entry shown to who may open its page:
 | member-view | view | /members/{memberId} | Member | members.read | Member: cardNumber, fullName, email, tier; Membership: joinedOn, membershipEndsOn, outstandingFees |
 | members-list | list | /members | Member | members.read | cardNumber, fullName, email, tier, status, outstandingFees |
 | reset-password | task | /reset-password | none; submits to resetPassword | public | code, newPassword, confirmPassword |
+| second-factor | task | /sign-in/second-factor | none; submits to confirmSecondFactor | public | code |
 | sign-in | task | /sign-in | none; submits to signIn | public | email, password |
 
 The elements of each page that pick, offer, hide or check something:
@@ -905,6 +931,7 @@ What each page shows when it is empty or fails; while it loads or submits, the s
 | members-list | filtered empty | No member is in this tier. |
 | members-list | failed: member-not-found | This member is no longer on record, so nothing changed. |
 | reset-password | failed: reset-code-refused, beside code | The reset code is wrong, used or expired. Ask for a new one. |
+| second-factor | failed: second-factor-refused, beside code | The code is wrong, or it came too late. Type the code the app shows now, or sign in again. |
 | sign-in | failed: sign-in-refused, beside password | The email address or the password is wrong. |
 
 ### Flow lend-a-copy
@@ -1040,6 +1067,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | book-isbn-twice | Book constraint book_isbn_unique | system | red | a book with ISBN 9780000000001 | another book with that ISBN is saved | it is refused |
 | browse-catalogue | operation listBooks | system | golden | three books by two authors, and a visitor without a card | listBooks is called with q set to one author's name, and again with a 200-character q | the first call answers that author's books, the second an empty list |
 | browse-catalogue-query-too-long | operation listBooks | system | red | a visitor | listBooks is called with a 201-character q | it is refused as invalid input |
+| confirm-second-factor-bad-code | operation confirmSecondFactor | system | red | a sign-in challenge signIn opened a minute ago | confirmSecondFactor is called without code and again with a code of five digits | both are refused as invalid input, and the challenge stays open |
+| confirm-second-factor-refused | operation confirmSecondFactor | system | red | a sign-in challenge signIn opened six minutes ago | confirmSecondFactor is called with the code the authenticator app shows now | it answers 401 with the problem second-factor-refused, and no session starts |
+| confirm-second-factor-succeeds | operation confirmSecondFactor | system | golden | a sign-in challenge signIn opened a minute ago | confirmSecondFactor is called with the code the authenticator app shows now | it answers 200 and the session starts |
 | create-loan-denied-with-expired-session | operation createLoan | system | red | a librarian whose session expired after half an hour without a request | createLoan is called for a member and a book that exist | it is refused as not signed in, and nothing changes |
 | create-loan-expired-member-id | operation createLoan | system | red | a member whose membershipEndsOn was yesterday, and a book with a copy available | createLoan is called for them | it is refused as expired and no loan is created |
 | create-loan-idempotency-key-not-a-valid-uuid | operation createLoan | system | red | a member and a book that exist | createLoan is called with an Idempotency-Key that is not a UUID | it is refused and no loan is created |
@@ -1181,14 +1211,18 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | return-loan-dependency-fails-fee-ledger | operation returnLoan | system | red | an open loan, and a fee ledger that answers every call with an error | returnLoan is called for it | it answers 503, the loan stays open, and no event is published |
 | return-loan-dependency-times-out-fee-ledger | operation returnLoan | system | red | an open loan, and a fee ledger that does not answer within 5 seconds | returnLoan is called for it | it gives up the call, answers 503, the loan stays open, and no event is published |
 | return-unknown-loan | operation returnLoan | system | red | a librarian | returnLoan is called with an id no loan has and again with abc | the first is refused as not found and the second as invalid input |
+| second-factor-page | page second-factor | system | golden | a librarian who signed in with their password a minute ago | the page second-factor is submitted with the code the authenticator app shows now | it leads to the page members-list, saying that they are signed in |
+| second-factor-page-refused | page second-factor | system | red | a librarian who types a code the authenticator app showed ten minutes ago | the page second-factor is submitted | it shows beside the code: The code is wrong, or it came too late. Type the code the app shows now, or sign in again. |
 | show-member | operation getMember | system | golden | a member and a librarian | getMember is called with the member's id | the member is answered |
 | show-member-bad-id | operation getMember | system | red | a librarian | getMember is called with memberId abc | it is refused as invalid input |
 | show-member-denied | operation getMember | system | red | a caller holding only the member role | getMember is called | it is refused as not allowed |
 | show-member-not-found | operation getMember | system | red | a librarian and no member with a given id | getMember is called with that id | it answers 404 |
+| sign-in-asks-second-factor | operation signIn | system | golden | a librarian whose account confirms each sign-in with a second factor | signIn is called with their email address and password | it answers 201, a sign-in challenge is opened, and no session starts yet |
 | sign-in-bad-email | operation signIn | system | red | any caller | signIn is called with an email that is not an email address | it is refused as invalid input |
 | sign-in-missing-field | operation signIn | system | red | any caller | signIn is called without email and again without password | both are refused as invalid input |
 | sign-in-page | page sign-in | system | golden | a librarian who is not signed in | the page sign-in is submitted with their email address and password | it leads to the page members-list, saying that they are signed in |
 | sign-in-page-refused | page sign-in | system | red | a librarian who types a wrong password | the page sign-in is submitted | it shows beside the password: The email address or the password is wrong. |
+| sign-in-page-second-factor | page sign-in | system | golden | a librarian whose account confirms each sign-in with a second factor | the page sign-in is submitted with their email address and password | it is answered 201 and leads to the page second-factor |
 | sign-in-succeeds | operation signIn | system | golden | a member whose password is the one they chose | signIn is called with their email address and that password | it answers 200 and their session starts |
 | waive-fee | operation waiveFee | system | golden | a fee-waiver request for 3.50 that a desk supervisor has approved | waiveFee is called for it | it answers 200, and the loan's late fee is 0.00 |
 | waive-fee-denied | operation waiveFee | system | red | a librarian, who does not hold fees.approve, and an approved request | waiveFee is called for it | it is refused as not allowed, and the fee still stands |

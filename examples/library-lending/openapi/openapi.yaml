@@ -659,12 +659,14 @@ paths:
                   maxLength: 200
                 confirmPassword:
                   type: string
+                  format: password
                   title: New password again
                   minLength: 8
                   maxLength: 200
                   writeOnly: true
                 newPassword:
                   type: string
+                  format: password
                   title: New password
                   minLength: 8
                   maxLength: 200
@@ -706,6 +708,7 @@ paths:
                   title: Email address
                 password:
                   type: string
+                  format: password
                   title: Password
                   minLength: 8
                   maxLength: 200
@@ -716,6 +719,8 @@ paths:
       responses:
         "200":
           description: Signed in; the session starts.
+        "201":
+          description: 'The password is right, and the account confirms each sign-in with a second factor: a sign-in challenge is opened for five minutes and kept with the browser, and the session starts once confirmSecondFactor accepts its code.'
         "401":
           description: The email address or the password is wrong.
           content:
@@ -723,6 +728,42 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           x-specarch-problem: sign-in-refused
+      security: []
+      x-specarch-permission: public
+  /sessions/second-factor:
+    post:
+      operationId: confirmSecondFactor
+      summary: Confirm a sign-in with the code of a second factor
+      description: |
+        Confirms the sign-in challenge signIn opened, with the six-digit
+        code of the authenticator app the account set up. The session
+        starts when the code is right; a challenge that is wrong five
+        times, or older than five minutes, is closed, and sign-in starts
+        again.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  title: Code from the authenticator app
+                  maxLength: 6
+                  pattern: ^[0-9]{6}$
+              required:
+                - code
+      responses:
+        "200":
+          description: Signed in; the session starts.
+        "401":
+          description: The code is wrong, or the sign-in challenge is closed.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: second-factor-refused
       security: []
       x-specarch-permission: public
 components:
@@ -1009,6 +1050,10 @@ components:
       status: 409
       title: Reset code refused
       condition: No one was sent the reset code, or it was used or has expired.
+    second-factor-refused:
+      status: 401
+      title: Second factor refused
+      condition: The code is not the one the authenticator app shows now, or the sign-in challenge is closed after five wrong codes or five minutes.
     sign-in-refused:
       status: 401
       title: Sign-in refused

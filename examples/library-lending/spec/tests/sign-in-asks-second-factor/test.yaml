@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: signIn
+level: system
+scenario: golden
+given: a librarian whose account confirms each sign-in with a second factor
+when: signIn is called with their email address and password
+then: it answers 201, a sign-in challenge is opened, and no session starts yet
+expect: { status: 201 }

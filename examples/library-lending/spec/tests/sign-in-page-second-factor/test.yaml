@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: sign-in
+level: system
+scenario: golden
+covers: [answered 201]
+given: a librarian whose account confirms each sign-in with a second factor
+when: the page sign-in is submitted with their email address and password
+then: it is answered 201 and leads to the page second-factor

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: confirmSecondFactor
+level: system
+scenario: red
+covers: [response 401]
+given: a sign-in challenge signIn opened six minutes ago
+when: confirmSecondFactor is called with the code the authenticator app shows now
+then: it answers 401 with the problem second-factor-refused, and no session starts
+expect: { status: 401 }

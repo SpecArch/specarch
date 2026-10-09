@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: confirmSecondFactor
+level: system
+scenario: golden
+given: a sign-in challenge signIn opened a minute ago
+when: confirmSecondFactor is called with the code the authenticator app shows now
+then: it answers 200 and the session starts
+expect: { status: 200 }

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: confirmSecondFactor
+level: system
+scenario: red
+covers: [missing code, code not matching its pattern]
+given: a sign-in challenge signIn opened a minute ago
+when: confirmSecondFactor is called without code and again with a code of five digits
+then: both are refused as invalid input, and the challenge stays open

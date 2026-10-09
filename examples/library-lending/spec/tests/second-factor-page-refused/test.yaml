@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: second-factor
+level: system
+scenario: red
+covers: [fails with second-factor-refused]
+given: a librarian who types a code the authenticator app showed ten minutes ago
+when: the page second-factor is submitted
+then: "it shows beside the code: The code is wrong, or it came too late. Type the code the app shows now, or sign in again."

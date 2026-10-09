@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 160 design tests, 46 golden and 113 red, about 41 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 167 design tests, 50 golden and 116 red, about 43 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.1.0 of the specification: 160 design tests, 46 golden and 113 red, abo
 | Level | Design tests |
 |---|---|
 | acceptance | 9 |
-| system | 151 |
+| system | 158 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -70,6 +70,32 @@ Scenario: red; level: system; covers q longer than 200 characters.
 - Given: a visitor
 - When: listBooks is called with a 201-character q
 - Then: it is refused as invalid input
+
+### Operation confirmSecondFactor
+
+#### confirm-second-factor-bad-code
+
+Scenario: red; level: system; covers missing code, code not matching its pattern.
+
+- Given: a sign-in challenge signIn opened a minute ago
+- When: confirmSecondFactor is called without code and again with a code of five digits
+- Then: both are refused as invalid input, and the challenge stays open
+
+#### confirm-second-factor-refused
+
+Scenario: red; level: system; covers response 401.
+
+- Given: a sign-in challenge signIn opened six minutes ago
+- When: confirmSecondFactor is called with the code the authenticator app shows now
+- Then: it answers 401 with the problem second-factor-refused, and no session starts
+
+#### confirm-second-factor-succeeds
+
+Scenario: golden; level: system.
+
+- Given: a sign-in challenge signIn opened a minute ago
+- When: confirmSecondFactor is called with the code the authenticator app shows now
+- Then: it answers 200 and the session starts
 
 ### Operation createLoan
 
@@ -1331,7 +1357,33 @@ Scenario: red; level: system; covers not found loanId, loanId not a valid uuid.
 - When: returnLoan is called with an id no loan has and again with abc
 - Then: the first is refused as not found and the second as invalid input
 
+### Page second-factor
+
+#### second-factor-page
+
+Scenario: golden; level: system.
+
+- Given: a librarian who signed in with their password a minute ago
+- When: the page second-factor is submitted with the code the authenticator app shows now
+- Then: it leads to the page members-list, saying that they are signed in
+
+#### second-factor-page-refused
+
+Scenario: red; level: system; covers fails with second-factor-refused.
+
+- Given: a librarian who types a code the authenticator app showed ten minutes ago
+- When: the page second-factor is submitted
+- Then: it shows beside the code: The code is wrong, or it came too late. Type the code the app shows now, or sign in again.
+
 ### Operation signIn
+
+#### sign-in-asks-second-factor
+
+Scenario: golden; level: system.
+
+- Given: a librarian whose account confirms each sign-in with a second factor
+- When: signIn is called with their email address and password
+- Then: it answers 201, a sign-in challenge is opened, and no session starts yet
 
 #### sign-in-bad-email
 
@@ -1374,6 +1426,14 @@ Scenario: red; level: system; covers fails with sign-in-refused.
 - Given: a librarian who types a wrong password
 - When: the page sign-in is submitted
 - Then: it shows beside the password: The email address or the password is wrong.
+
+#### sign-in-page-second-factor
+
+Scenario: golden; level: system; covers answered 201.
+
+- Given: a librarian whose account confirms each sign-in with a second factor
+- When: the page sign-in is submitted with their email address and password
+- Then: it is answered 201 and leads to the page second-factor
 
 ### Operation waiveFee
 
@@ -1436,7 +1496,7 @@ stateDiagram-v2
 
 ## 4. Derived cases left out
 
-66 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+68 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1447,6 +1507,8 @@ stateDiagram-v2
 | operation signIn | password longer than 200 characters | red | occasional case, and operation signIn satisfies no requirement with a harm |
 | operation signIn | password of 200 characters | golden | occasional case, and operation signIn satisfies no requirement with a harm |
 | operation signIn | response 401 | red | occasional case, and operation signIn satisfies no requirement with a harm |
+| operation confirmSecondFactor | code longer than 6 characters | red | occasional case, and operation confirmSecondFactor satisfies no requirement with a harm |
+| operation confirmSecondFactor | code of 6 characters | golden | occasional case, and operation confirmSecondFactor satisfies no requirement with a harm |
 | operation resetPassword | code shorter than 1 character | red | occasional case, and operation resetPassword satisfies no requirement with a harm |
 | operation resetPassword | code of 1 character | golden | occasional case, and operation resetPassword satisfies no requirement with a harm |
 | operation resetPassword | code longer than 200 characters | red | occasional case, and operation resetPassword satisfies no requirement with a harm |

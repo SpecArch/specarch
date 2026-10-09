@@ -295,22 +295,30 @@ models are read as data, in Go, at the dump's commit.
 
 One reader, `readers/javascript/`, running the TypeScript compiler (Apache-2.0,
 no dependencies of its own) on Node, which parses JavaScript, JSX,
-TypeScript and TSX, ES modules and CommonJS. A program is built over the
-project's tracked files only, with no `node_modules`, so the checker
-resolves the project's own types and the types that come with TypeScript,
-and a type from a package is a question. The TypeScript compiler API was
-chosen over tree-sitter for that type checker and because it is the parser
-every TypeScript tool uses.
+TypeScript and TSX, ES modules and CommonJS (ADR-089). A program is built
+over the project's tracked files only, with no `node_modules`, so the
+checker resolves the project's own types and the types that come with
+TypeScript, and a type from a package is a question. The TypeScript
+compiler API was chosen over tree-sitter for that type checker and
+because it is the parser every TypeScript tool uses. The reader pins
+6.0.3, the last release whose compiler API is stable; the 7.x releases
+are a native port with one binary per platform and only unstable entry
+points. `tools/code-facts/dump-javascript.sh` runs it on a committed
+folder, and its compiler host refuses to read any file it was not
+given, so a package's names are known only by the import that names
+them; the idiom table keys on that import. The facts are syntax with what
+the checker resolves: a name's import and declaration, and types as the
+source states them, from TypeScript or from JSDoc.
 
 | Surface | Source | Why |
 |---|---|---|
 | back-end routes | Express (`app.get`, `router.post`, `app.use('/prefix', router)`), Fastify (`fastify.get`, `route({method, url})`, `register` with a literal `prefix`), with literal paths | the registration idioms; `:id` becomes `{id}`, a regular expression path is a line |
 | request and response bodies | the declared types of a handler's request and reply (`Request<Params, Res, Body>`, Fastify's generic) and a validation schema the reader knows (zod, yup, joi, Fastify's JSON Schema) | a schema of a validator is stated in both languages |
 | permission checks | middleware the implementation file names, called with a literal permission | as for Go |
-| models | the catalogue; ORM declarations the reader knows (Prisma's `schema.prisma` read as data, TypeORM and Sequelize decorators and `define` calls) add names | the database holds the data model |
-| React screens | the file-system routers above; React Router's `createBrowserRouter` and `<Route path>` with literal paths; plain pages whose files the implementation file names | the router is what makes a component a screen |
-| a screen's fields | form controls bound to a model property by a known form library (react-hook-form `register('name')`, Formik `name`), and component library inputs the implementation file maps | fields by name; their types from the form's declared type or validation schema |
-| API clients | `fetch`, axios and the project's client wrapper the implementation file names, with a literal method and path, or a template literal whose only parts are literals and one value per segment | joined to operations by method and path in the merge |
+| models | the catalogue; zod, yup and joi object schemas a module-level variable holds, and the types a route declares; ORM declarations (Prisma's `schema.prisma` read as data, TypeORM and Sequelize decorators and `define` calls) add names in a later step | the database holds the data model; a validation schema is checked at run time, so it is stated in both languages |
+| React screens | the file-system routers above; React Router's `createBrowserRouter` and `<Route path>` with literal paths, the component a route shows a page with that route and its heading the title; plain pages whose files an implementation file names, once it has a key for them | the router is what makes a component a screen |
+| a screen's fields | form controls bound to a model property by a known form library (react-hook-form `register('name')`, Formik's `Field`, `getFieldProps` and `useField`); component library inputs an implementation file maps, once it has a key for them | fields by name, in the order of the source |
+| API clients | `fetch`, axios and the instances `axios.create` makes, with a literal method and URL, or a template literal whose parts are literals, consts and one value per segment; the project's client wrapper once the implementation file has a key for it | another host is a dependency; a path of the system's own is a should question until a question can carry a method and a path, which the merge then joins to the operation |
 | configuration | `process.env.NAME` and `import.meta.env.NAME` | as for Go |
 | strings | next-intl, i18next and the like: `t('loans.title')` with a literal key, the catalogue `messages/<locale>.json` read as data | a page's title from the default locale; a computed key is a `should` question; other locales a line, since the meta-model holds one language |
 

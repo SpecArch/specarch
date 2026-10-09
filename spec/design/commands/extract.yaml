@@ -667,6 +667,153 @@ commands:
         read prints a line, and so does each file with syntax SwiftSyntax
         could not read, which is also a should question.
 
+      - `javascript`: one code-facts dump of JavaScript and TypeScript
+        source (ADR-089), written by `tools/code-facts/dump-javascript.sh`,
+        which runs the JavaScript reader `readers/javascript` on the
+        tracked `.ts`, `.tsx`, `.mts`, `.cts`, `.js`, `.jsx`, `.mjs` and
+        `.cjs` files under a committed folder and its `tsconfig.json` and
+        `jsconfig.json` files. The reader builds one program of them with
+        the TypeScript compiler 6.0.3, the last release whose compiler API
+        is stable and has no dependency of its own, over those files and
+        the library TypeScript ships and nothing else, so no
+        `node_modules` and no package's types are read. It writes facts,
+        not elements: imports with the file each resolves to, each
+        configuration file's `checkJs`, interfaces, type aliases, classes,
+        enums and JSDoc `@typedef`s with their members' types as the source
+        states them, functions with their parameters' types and whether
+        each comes from TypeScript's syntax or a JSDoc comment, variables,
+        the calls whose name the idiom table lists or whose callee an
+        import names, JSX elements of the libraries it knows and of a
+        heading, a form, its controls and a link, and reads of
+        `process.env`, `import.meta.env` and a handler's request, each
+        with its file, line and column, a name with the declaration among
+        the files read that the compiler's checker resolves it to. The
+        dump is refused when another compiler version made it, when it
+        lists a file that is not tracked under the folder or leaves out
+        one that is, and when it is stale. The source is one code source
+        with `reading: parsed`; every element cites `path:line`.
+
+        Routes are read on Express and Fastify. An application is the
+        value `express()` or Fastify's factory gives, at the root; an
+        Express router (`Router()`, `express.Router()`) is under every
+        `use` of the files read given it, after the literal prefix that
+        `use` gives, with the middleware between; a function `register`
+        is given is a Fastify plugin, its first parameter an instance under
+        the literal `prefix` of its options; `route('/path')` adds its
+        path. A call of `get`, `post`, `put`, `patch`, `delete`, `options`,
+        `head` or `all` with a literal path and a handler on one of these,
+        outside a loop and a condition, and Fastify's `route` with a
+        literal method and url, is an operation; `:name` is the parameter
+        `{name}`, and a wildcard, an optional parameter, a pattern and
+        `all` print a line. It is named after its handler's name as extract
+        router names a route, or by its method and path, and cites its
+        registration, every mount above it and its handler, with the must
+        questions extract go asks of a parsed route. A router the reader
+        does not follow, such as one a function is given, a path that is
+        not a literal, a registration in a loop or behind a condition, and
+        one method and path registered twice are must questions, and so is
+        a parameter the handler reads that its path lacks. The permission
+        is read through the checks the implementation file given with
+        `--implementation` names, by the function's name and its module:
+        the `package` is a package's name as an import names it, or the
+        path of the file that declares the check from the folder read,
+        without its extension. A check's call with a literal permission,
+        as middleware of the route, of a mount above it, of an earlier
+        `use` on the same router or of Fastify's `onRequest`,
+        `preValidation` or `preHandler`, or called in the handler, is the
+        operation's; none, several and one that is not a literal are must
+        questions.
+
+        A request body is, in this order: the validation schema the
+        handler applies to its body (`parse`, `safeParse`, `validate`,
+        `validateSync` or `cast` of `req.body`); the JSON Schema of
+        Fastify's `schema.body`, a literal object or a variable holding
+        one; the type the handler declares, Express's `Request`'s third
+        type argument or Fastify's generic `Body`, when it is a type of the
+        files read or a validation schema's inferred type; or, with none of
+        these, the fields the handler reads of `req.body`, written as a
+        schema named after the operation whose fields are known by name
+        only, their types and which are required a must question. A body
+        used whole is a must question. The reply type a handler declares,
+        `Request`'s second type argument, `Response`'s or Fastify's `Reply`,
+        is written as a schema and named in the question on the
+        responses, whose status codes the type does not give. A module
+        level variable holding an object schema of zod, yup or joi is a
+        schema, and one holding an enum of strings an enum, named after the
+        variable without `Schema`; each property's chain gives its type,
+        format, bounds, enum, default and whether it is required, by each
+        library's own rule (zod's properties are required unless optional,
+        yup's and joi's only when required); a nested object, a union, a
+        record and the like print a line, and a refinement, a pattern, a
+        coercion and a call the reader does not know are should questions.
+        A declared type is a schema with each member a field by its type:
+        `string`, `boolean`, a `Date` as a date-time, a union of string
+        literals as an enum, `T[]` as an array, a type of the files read
+        as a reference, `null` in a union as nullable and an optional
+        member or `undefined` as not required; `number` is a number whose
+        width is one must question for every number the reader writes, a
+        type from a package and `any` are must questions, and a record or
+        a map prints a line. A JSDoc type in a JavaScript file is read as
+        stated only where the nearest `tsconfig.json` or `jsconfig.json`
+        turns `checkJs` on, since only then does the compiler check the
+        code against it; otherwise the handler's comment is quoted in a
+        should question and the body falls to the fields read.
+
+        Screens are React Router's: the routes `createBrowserRouter`,
+        `createHashRouter`, `createMemoryRouter` or `useRoutes` is given
+        as a literal list, and `<Route>` elements, a child's path joined to
+        its parent's. A route with a path that shows a component of the
+        files read, as `element` or `Component`, is a page named after the
+        component in kebab-case without `Page`, `Screen`, `View` or
+        `Route`, and by its route too when the component shows several,
+        with the route as its route; a layout route is no page. Its title
+        is its one heading, a literal or `t()` with a literal key the
+        default locale's catalogue holds; its fields are the names
+        react-hook-form's `register`, Formik's `Field`, `getFieldProps` and
+        `useField` bind, in the order of the source; each `Link` or
+        `NavLink` with a literal `to`, or a template whose values fill
+        whole segments, that a route read matches, and each `navigate()`
+        of `useNavigate`, is a navigate action, its label the link's text
+        in the default locale. Its kind, its title where none is known,
+        entity, source, submit and columns are one must question, its
+        permission another, and a label that is not known one more. A
+        component outside the files read, a route declared twice and one
+        in a loop or behind a condition are must questions; a lazy route,
+        a field named by a value that is not a literal and a link to a
+        path no route serves are should questions. Message catalogues are
+        `messages/<locale>.json`, `locales/<locale>.json` and
+        `locales/<locale>/<namespace>.json` under the folder, read as data,
+        nested keys joined by dots; the default locale is the one a
+        literal `lng`, `fallbackLng` or `defaultLocale` names, or the only
+        one, and several with none named are a should question. Each
+        catalogue of another locale prints a line, since the meta-model
+        holds one language.
+
+        Calls to another system are `fetch` with a literal method in its
+        options or GET, axios and its methods, and the methods of an
+        instance `axios.create` makes with its `baseURL`, given a URL that
+        is a literal, a const of the files read, or a template whose
+        values are such consts or fill one whole path segment each, as the
+        parameter `{name}` with a should question naming it. Each declares
+        a dependency named after the host in camelCase, as extract go
+        names one, its description and time limit a must question; a URL
+        that is not built from such parts, a method that is not a literal
+        and a URL with no host are should questions, since a path of this
+        system's own is joined to its operation only once a question can
+        carry a method and a path. A setting is read where the code reads
+        `process.env` or `import.meta.env` by a literal name, by a member
+        or by destructuring: its type is a number or an integer when
+        `Number`, `parseFloat` or `parseInt` is given it, a boolean when it
+        is compared with `'true'` or `'false'`, and else the type of a
+        literal default `??` or `||` gives it, which is its default; it is
+        written under `configuration` with the questions extract go asks
+        of a setting, and a number's width is a must question. A read by
+        a computed name, a `require` or dynamic `import()` of a computed
+        module, and an export under a computed name are should questions.
+        A file that imports a library the reader knows and gives nothing
+        read prints a line, and so does each file with syntax the compiler
+        could not read, which is also a should question.
+
       Every reader follows these rules:
 
       - The tree's root tracks origin. The code readers declare one code
@@ -676,8 +823,8 @@ commands:
         the repository's folder relative to `--out`. Clauses are paths from
         the repository's root. Its `reading` says how it was read:
         `printed` for router, database and permissions, which read a list
-        the running system printed, and `parsed` for go and swift, which
-        read the source itself (ADR-075).
+        the running system printed, and `parsed` for go, swift and javascript,
+        which read the source itself (ADR-075).
       - Every element is `origin: stated` and cites where it was read.
         What the surface does not say is a question, never a value: a
         constraint's message, which no catalogue holds, a check the
@@ -720,11 +867,11 @@ commands:
     permission: public
     arguments:
       - name: source
-        description: "The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `go` or `swift`."
+        description: "The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `go`, `swift` or `javascript`."
         required: true
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
       - name: paths
-        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository; for swift, one code-facts dump."
+        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository; for swift and javascript, one code-facts dump."
         required: true
         repeatable: true
         schema: { type: string }
@@ -734,7 +881,7 @@ commands:
         schema: { type: string }
         required: true
       implementation:
-        description: For go and swift, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through.
+        description: For go, swift and javascript, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through.
         schema: { type: string }
       source-key:
         description: The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given.
@@ -751,13 +898,13 @@ commands:
       the reader reads, or a document read as what the running system
       printed; one line per file that imports a library the reader knows
       and gives nothing it reads; one line per gate on a setting, naming
-      the check and the setting; for go and swift, one line naming the
-      checks the implementation file names; and one line per file that says it is
+      the check and the setting; for go, swift and javascript, one line
+      naming the checks the implementation file names; and one line per file that says it is
       generated from another source.
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written
-      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a code-facts dump another parser version made or whose files are not the tracked Swift files of its folder, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML"
-      "2": usage error, a source this build does not offer, --implementation given to a source other than go or swift, or a path that could not be read or written
+      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a code-facts dump another parser version made or whose files are not the tracked files of its folder the reader reads, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML"
+      "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift or javascript, or a path that could not be read or written
     satisfies: [SA-11, SA-44]
     why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

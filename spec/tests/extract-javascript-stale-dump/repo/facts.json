@@ -1,0 +1,17 @@
+{
+    "codeFacts": 1,
+    "language": "javascript",
+    "parser": {"name": "TypeScript", "version": "6.0.3"},
+    "path": "app",
+    "commit": "a3f2bdff9974d8d20f1f17e702ee3294fdeb2de4",
+    "files": [
+        {"file": "app/index.js", "syntaxErrors": 0}
+    ],
+    "facts": [
+        {"kind":"import","file":"app/index.js","line":1,"column":1,"module":"express","names":[{"imported":"default","local":"express"}]},
+        {"kind":"variable","file":"app/index.js","line":3,"column":14,"name":"app","declaration":"const","value":{"call":{"callee":{"name":"express","import":{"module":"express","imported":"default"}},"arguments":[]}},"exported":"named"},
+        {"kind":"call","file":"app/index.js","line":3,"column":20,"callee":{"name":"express","import":{"module":"express","imported":"default"}},"arguments":[],"assignedTo":"app"},
+        {"kind":"call","file":"app/index.js","line":4,"column":1,"callee":{"member":{"object":{"name":"app","declaration":{"file":"app/index.js","line":3,"column":14}},"name":"get"}},"arguments":[{"string":"/notes"},{"function":{"file":"app/index.js","line":4,"column":19}}]},
+        {"kind":"function","file":"app/index.js","line":4,"column":19,"parameters":[{"name":"_req"},{"name":"res"}]}
+    ]
+}

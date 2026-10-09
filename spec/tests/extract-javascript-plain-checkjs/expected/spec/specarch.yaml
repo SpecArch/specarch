@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: JavaScript and TypeScript source of service
+  version: 0.1.0
+  description: |
+    The JavaScript and TypeScript source under service, read at commit e89fdc1eace413efd3b2474f1df1d7d0e8605872 by the TypeScript compiler 6.0.3 through the code-facts dump, by its syntax and the types it declares, with the message catalogues there read as data. Every element cites the line that declares it; what the source does not say as a literal, or through an idiom the reader knows, is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design, deployment]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: e89fdc1eace413efd3b2474f1df1d7d0e8605872
+    url: ../repo
+    clauses:
+      - {clause: service/jsconfig.json, title: 'The compiler''s configuration, read by the TypeScript compiler'}
+      - {clause: service/src/app.js, title: 'JavaScript source, read by its syntax'}
+      - {clause: service/src/guard.js, title: 'JavaScript source, read by its syntax'}
+      - {clause: service/src/types.js, title: 'JavaScript source, read by its syntax'}
+    reading: parsed

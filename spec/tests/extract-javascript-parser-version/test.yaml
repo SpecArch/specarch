@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: red
+given: "a code-facts dump of JavaScript that another version of the TypeScript compiler than the one this release pins made"
+when: "extract javascript is run on the dump"
+then: "it refuses the dump, naming the version that made it and the one it reads, writes nothing and exits 1"
+verifies: [SA-44]

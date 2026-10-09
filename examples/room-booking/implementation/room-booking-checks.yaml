@@ -1,0 +1,30 @@
+# The bindings of the service's implementation file that specarch extract
+# javascript reads: the service's own permission check. The specification
+# it implements is the one extract.sh writes, so this file is not named
+# *.specarch-implementation.yaml, which specarch validate would check
+# against a specification that is not in the repository.
+specarchImplementation: "0.1"
+
+info:
+  title: The room booking service
+  version: 0.1.0
+  description: |
+    Names the service's own permission check for specarch extract
+    javascript, which reads the routes' permissions through it. The
+    specification it implements is the one examples/room-booking/extract.sh
+    writes.
+
+implements:
+  file: ../spec/specarch.yaml
+  version: 0.1.0
+
+stack:
+  language: { name: TypeScript, version: "6.0" }
+
+bindings:
+  http:
+    framework: Express
+    permissionChecks:
+      - package: src/auth
+        function: requirePermission
+        permissionArgument: 1

@@ -1,0 +1,51 @@
+permissions:
+  parts.write:
+    origin: stated
+    cites:
+      - {source: code, clause: 'service/src/app.js:18', says: 'POST /parts, POST /parts/import and POST /parts/{partId}/moves check parts.write.'}
+paths:
+  /parts:
+    # specarch-problem: warning: test_case_missing: operation addPart has no red scenario for "condition not one of its values"; add under tests add-part-condition-not-one-of-its-values: { operation: addPart, scenario: red, covers: [condition not one of its values], given: "...", when: "addPart is called with condition set to a value it does not allow", then: "it is refused" } [test_case_missing.53bb9f5c@design/paths.yaml#/paths/~1parts/post]
+    # specarch-problem: warning: test_case_missing: operation addPart has no red scenario for "denied without parts.write"; add under tests add-part-denied-without-parts-write: { operation: addPart, scenario: red, covers: [denied without parts.write], given: "a caller without parts.write", when: "addPart is called", then: "it is refused as not allowed" } [test_case_missing.5d0f75c5@design/paths.yaml#/paths/~1parts/post]
+    # specarch-problem: warning: test_case_missing: operation addPart has no red scenario for "missing name"; add under tests add-part-missing-name: { operation: addPart, scenario: red, covers: [missing name], given: "...", when: "addPart is called without name", then: "it is refused" } [test_case_missing.d41fb0a7@design/paths.yaml#/paths/~1parts/post]
+    # specarch-problem: warning: test_case_missing: operation addPart has no red scenario for "missing condition"; add under tests add-part-missing-condition: { operation: addPart, scenario: red, covers: [missing condition], given: "...", when: "addPart is called without condition", then: "it is refused" } [test_case_missing.d868df39@design/paths.yaml#/paths/~1parts/post]
+    # specarch-problem: warning: test_golden_missing: operation addPart has no golden scenario; add one under tests, for example add-part-succeeds: { operation: addPart, scenario: golden, given: "a caller with parts.write", when: "addPart is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1parts/post]
+    post:
+      operationId: addPart
+      permission: parts.write
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/schemas/NewPart'}}
+      origin: stated
+      cites:
+        - {source: code, clause: 'service/src/app.js:18', says: Registers POST /parts; its handler is addPart; its middleware checks parts.write.}
+        - {source: code, clause: 'service/src/app.js:29', says: Mounts the router that registers POST /parts.}
+        - {source: code, clause: 'service/src/app.js:13', says: The handler addPart.}
+  /parts/import:
+    # specarch-problem: warning: test_case_missing: operation postPartsImport has no red scenario for "denied without parts.write"; add under tests post-parts-import-denied-without-parts-write: { operation: postPartsImport, scenario: red, covers: [denied without parts.write], given: "a caller without parts.write", when: "postPartsImport is called", then: "it is refused as not allowed" } [test_case_missing@design/paths.yaml#/paths/~1parts~1import/post]
+    # specarch-problem: warning: test_golden_missing: operation postPartsImport has no golden scenario; add one under tests, for example post-parts-import-succeeds: { operation: postPartsImport, scenario: golden, given: "a caller with parts.write", when: "postPartsImport is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1parts~1import/post]
+    post:
+      operationId: postPartsImport
+      permission: parts.write
+      origin: stated
+      cites:
+        - {source: code, clause: 'service/src/app.js:23', says: Registers POST /parts/import; its middleware checks parts.write.}
+        - {source: code, clause: 'service/src/app.js:29', says: Mounts the router that registers POST /parts/import.}
+  /parts/{partId}/moves:
+    parameters:
+      - {name: partId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation postPartsByPartIdMoves has no red scenario for "denied without parts.write"; add under tests post-parts-by-part-id-moves-denied-without-parts-write: { operation: postPartsByPartIdMoves, scenario: red, covers: [denied without parts.write], given: "a caller without parts.write", when: "postPartsByPartIdMoves is called", then: "it is refused as not allowed" } [test_case_missing.4af870b3@design/paths.yaml#/paths/~1parts~1{partId}~1moves/post]
+    # specarch-problem: warning: test_case_missing: operation postPartsByPartIdMoves has no red scenario for "not found partId"; add under tests post-parts-by-part-id-moves-not-found-part-id: { operation: postPartsByPartIdMoves, scenario: red, covers: [not found partId], given: "no record has that partId", when: "postPartsByPartIdMoves is called with that partId", then: "it is refused as not found" } [test_case_missing.a01e3d7d@design/paths.yaml#/paths/~1parts~1{partId}~1moves/post]
+    # specarch-problem: warning: test_golden_missing: operation postPartsByPartIdMoves has no golden scenario; add one under tests, for example post-parts-by-part-id-moves-succeeds: { operation: postPartsByPartIdMoves, scenario: golden, given: "a caller with parts.write", when: "postPartsByPartIdMoves is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1parts~1{partId}~1moves/post]
+    post:
+      operationId: postPartsByPartIdMoves
+      permission: parts.write
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/schemas/PostPartsByPartIdMovesBody'}}
+      origin: stated
+      cites:
+        - {source: code, clause: 'service/src/app.js:19', says: 'Registers POST /parts/{partId}/moves; its middleware checks parts.write.'}
+        - {source: code, clause: 'service/src/app.js:29', says: 'Mounts the router that registers POST /parts/{partId}/moves.'}

@@ -1,0 +1,71 @@
+pages:
+  # specarch-problem: warning: test_golden_missing: page admin has no golden scenario; add one under tests, for example admin-succeeds: { page: admin, scenario: golden, given: "any caller", when: "the page admin is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/admin]
+  # specarch-problem: warning: test_red_missing: page admin has no red scenario; add one under tests, for example admin-refused: { page: admin, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/admin]
+  admin:
+    route: /admin/overview
+    title: Admin
+    origin: stated
+    cites:
+      - {source: code, clause: 'web/src/AdminRoutes.tsx:8', says: The route /admin/overview shows AdminPage.}
+      - {source: code, clause: 'web/src/pages/AdminPage.tsx:1', says: The component AdminPage.}
+      - {source: code, clause: 'web/src/pages/AdminPage.tsx:2', says: Its heading is "Admin".}
+  # specarch-problem: warning: test_golden_missing: page new-visit has no golden scenario; add one under tests, for example new-visit-succeeds: { page: new-visit, scenario: golden, given: "any caller", when: "the page new-visit is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/new-visit]
+  # specarch-problem: warning: test_red_missing: page new-visit has no red scenario; add one under tests, for example new-visit-refused: { page: new-visit, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/new-visit]
+  new-visit:
+    route: /visits/new
+    title: Register a visit
+    fields: [name, host, arrives]
+    origin: stated
+    cites:
+      - {source: code, clause: 'web/src/router.tsx:15', says: The route /visits/new shows NewVisitPage.}
+      - {source: code, clause: 'web/src/pages/NewVisitPage.tsx:10', says: The component NewVisitPage.}
+      - {source: code, clause: 'web/src/pages/NewVisitPage.tsx:16', says: Its heading is "Register a visit".}
+      - {source: code, clause: 'web/src/pages/NewVisitPage.tsx:17', says: register("name") binds the field name.}
+      - {source: code, clause: 'web/src/pages/NewVisitPage.tsx:18', says: register("host") binds the field host.}
+      - {source: code, clause: 'web/src/pages/NewVisitPage.tsx:19', says: register("arrives") binds the field arrives.}
+  # specarch-problem: warning: test_case_missing: page visitor has no red scenario for "not found visitorId"; add under tests visitor-not-found-visitor-id: { page: visitor, scenario: red, covers: [not found visitorId], given: "no record has that visitorId", when: "the page visitor is opened for that visitorId", then: "it says the record was not found" } [test_case_missing@design/pages.yaml#/pages/visitor]
+  # specarch-problem: warning: test_golden_missing: page visitor has no golden scenario; add one under tests, for example visitor-succeeds: { page: visitor, scenario: golden, given: "any caller", when: "the page visitor is opened for a record that exists", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/visitor]
+  visitor:
+    route: /visitors/{visitorId}
+    fields: [email, phone]
+    actions:
+      - {kind: navigate, target: visits-visits}
+      - {kind: navigate, target: new-visit}
+    origin: stated
+    cites:
+      - {source: code, clause: 'web/src/router.tsx:16', says: 'The route /visitors/:visitorId shows VisitorPage.'}
+      - {source: code, clause: 'web/src/pages/VisitorPage.tsx:5', says: The component VisitorPage.}
+      - {source: code, clause: 'web/src/pages/VisitorPage.tsx:12', says: <Field name="email"> binds the field email.}
+      - {source: code, clause: 'web/src/pages/VisitorPage.tsx:13', says: <Field name="phone"> binds the field phone.}
+      - {source: code, clause: 'web/src/pages/VisitorPage.tsx:14', says: <Link to="/visits"> opens /visits.}
+      - {source: code, clause: 'web/src/pages/VisitorPage.tsx:15', says: <Link to="/visits/new"> opens /visits/new.}
+  # specarch-problem: warning: test_golden_missing: page visits-root has no golden scenario; add one under tests, for example visits-root-succeeds: { page: visits-root, scenario: golden, given: "any caller", when: "the page visits-root is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/visits-root]
+  # specarch-problem: warning: test_red_missing: page visits-root has no red scenario; add one under tests, for example visits-root-refused: { page: visits-root, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/visits-root]
+  visits-root:
+    route: /
+    title: Visits
+    actions:
+      - {label: Register a visit, kind: navigate, target: new-visit}
+      - {label: Last visitor, kind: navigate, target: visitor}
+    origin: stated
+    cites:
+      - {source: code, clause: 'web/src/router.tsx:13', says: The route / shows VisitsPage.}
+      - {source: code, clause: 'web/src/pages/VisitsPage.tsx:4', says: The component VisitsPage.}
+      - {source: code, clause: 'web/src/pages/VisitsPage.tsx:8', says: Its heading is "Visits".}
+      - {source: code, clause: 'web/src/pages/VisitsPage.tsx:9', says: <Link to="/visits/new"> opens /visits/new.}
+      - {source: code, clause: 'web/src/pages/VisitsPage.tsx:10', says: <Link to="/visitors/v1"> opens /visitors/v1.}
+  # specarch-problem: warning: test_golden_missing: page visits-visits has no golden scenario; add one under tests, for example visits-visits-succeeds: { page: visits-visits, scenario: golden, given: "any caller", when: "the page visits-visits is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/visits-visits]
+  # specarch-problem: warning: test_red_missing: page visits-visits has no red scenario; add one under tests, for example visits-visits-refused: { page: visits-visits, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/visits-visits]
+  visits-visits:
+    route: /visits
+    title: Visits
+    actions:
+      - {label: Register a visit, kind: navigate, target: new-visit}
+      - {label: Last visitor, kind: navigate, target: visitor}
+    origin: stated
+    cites:
+      - {source: code, clause: 'web/src/router.tsx:14', says: The route /visits shows VisitsPage.}
+      - {source: code, clause: 'web/src/pages/VisitsPage.tsx:4', says: The component VisitsPage.}
+      - {source: code, clause: 'web/src/pages/VisitsPage.tsx:8', says: Its heading is "Visits".}
+      - {source: code, clause: 'web/src/pages/VisitsPage.tsx:9', says: <Link to="/visits/new"> opens /visits/new.}
+      - {source: code, clause: 'web/src/pages/VisitsPage.tsx:10', says: <Link to="/visitors/v1"> opens /visitors/v1.}

@@ -1,0 +1,223 @@
+questions:
+  # specarch-problem: question: open_question: (should, decision) noteSchema.due at api/src/schemas.ts:9: yup's date() takes a Date, which JSON carries as an ISO 8601 string by Date's toJSON. Is it a date-time string on the wire? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'noteSchema.due at api/src/schemas.ts:9: yup''s date() takes a Date, which JSON carries as an ISO 8601 string by Date''s toJSON. Is it a date-time string on the wire?'
+    kind: decision
+    priority: should
+    blocks: ['#/schemas/Note/properties/due']
+    decidedBy: system-owner
+    why: A JSON body holds no Date; how the value is sent is the sender's choice.
+    cites:
+      - {source: code, clause: 'api/src/schemas.ts:9', says: Declares due.}
+  # specarch-problem: question: open_question: (should, decision) searchSchema.slug at api/src/schemas.ts:25: it is checked with regex(), a rule the reader does not write. What does the rule allow? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: 'searchSchema.slug at api/src/schemas.ts:25: it is checked with regex(), a rule the reader does not write. What does the rule allow?'
+    kind: decision
+    priority: should
+    blocks: ['#/schemas/Search/properties/slug']
+    decidedBy: system-owner
+    why: A rule given as code or a pattern is not one the field subset says by syntax.
+    cites:
+      - {source: code, clause: 'api/src/schemas.ts:25', says: Declares slug.}
+  # specarch-problem: question: open_question: (should, decision) searchSchema.from at api/src/schemas.ts:26: zod's date() takes a Date, which JSON carries as an ISO 8601 string by Date's toJSON. Is it a date-time string on the wire? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'searchSchema.from at api/src/schemas.ts:26: zod''s date() takes a Date, which JSON carries as an ISO 8601 string by Date''s toJSON. Is it a date-time string on the wire?'
+    kind: decision
+    priority: should
+    blocks: ['#/schemas/Search/properties/from']
+    decidedBy: system-owner
+    why: A JSON body holds no Date; how the value is sent is the sender's choice.
+    cites:
+      - {source: code, clause: 'api/src/schemas.ts:26', says: Declares from.}
+  # specarch-problem: question: open_question: (should, decision) searchSchema.from at api/src/schemas.ts:26: zod's coerce turns whatever is sent into its type before the check, so the wire may carry another type. Which type does a sender send? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: 'searchSchema.from at api/src/schemas.ts:26: zod''s coerce turns whatever is sent into its type before the check, so the wire may carry another type. Which type does a sender send?'
+    kind: decision
+    priority: should
+    blocks: ['#/schemas/Search/properties/from']
+    decidedBy: system-owner
+    why: A coercion accepts more than the type it checks, and the specification says what is sent.
+    cites:
+      - {source: code, clause: 'api/src/schemas.ts:26', says: Declares from.}
+  # specarch-problem: question: open_question: (must, decision) What does GET /notes do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: What does GET /notes do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes/get/summary', '#/paths/~1notes/get/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /notes? It is declared at api/src/notes.ts:21, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: Does the running system register GET /notes? It is declared at api/src/notes.ts:21, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/src/notes.ts:21', says: Registers GET /notes.}
+  # specarch-problem: question: open_question: (must, decision) What does POST /notes do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: What does POST /notes do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes/post/summary', '#/paths/~1notes/post/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /notes? It is declared at api/src/notes.ts:22, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: Does the running system register POST /notes? It is declared at api/src/notes.ts:22, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/src/notes.ts:22', says: Registers POST /notes.}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /notes/{noteId} take: noteId? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: 'What values does each path parameter of /notes/{noteId} take: noteId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes~1{noteId}/parameters/0/schema']
+    decidedBy: system-owner
+    why: Fastify names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does PUT /notes/{noteId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: What does PUT /notes/{noteId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes~1{noteId}/put/summary', '#/paths/~1notes~1{noteId}/put/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register PUT /notes/{noteId}? It is declared at api/src/notes.ts:23, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: Does the running system register PUT /notes/{noteId}? It is declared at api/src/notes.ts:23, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes~1{noteId}/put']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/src/notes.ts:23', says: 'Registers PUT /notes/{noteId}.'}
+  # specarch-problem: question: open_question: (must, decision) What does PATCH /notes/{noteId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: What does PATCH /notes/{noteId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes~1{noteId}/patch/summary', '#/paths/~1notes~1{noteId}/patch/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) PATCH /notes/{noteId} checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: PATCH /notes/{noteId} checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes~1{noteId}/patch/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register PATCH /notes/{noteId}? It is declared at api/src/notes.ts:33, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: Does the running system register PATCH /notes/{noteId}? It is declared at api/src/notes.ts:33, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes~1{noteId}/patch']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/src/notes.ts:33', says: 'Registers PATCH /notes/{noteId}.'}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /notes/{noteId}/comments take: noteId? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: 'What values does each path parameter of /notes/{noteId}/comments take: noteId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes~1{noteId}~1comments/parameters/0/schema']
+    decidedBy: system-owner
+    why: Fastify names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does POST /notes/{noteId}/comments do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: What does POST /notes/{noteId}/comments do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes~1{noteId}~1comments/post/summary', '#/paths/~1notes~1{noteId}~1comments/post/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) POST /notes/{noteId}/comments checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
+    question: POST /notes/{noteId}/comments checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes~1{noteId}~1comments/post/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /notes/{noteId}/comments? It is declared at api/src/notes.ts:29, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
+    question: Does the running system register POST /notes/{noteId}/comments? It is declared at api/src/notes.ts:29, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1notes~1{noteId}~1comments/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/src/notes.ts:29', says: 'Registers POST /notes/{noteId}/comments.'}
+  # specarch-problem: question: open_question: (must, decision) What does GET /status do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
+    question: What does GET /status do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1status/get/summary', '#/paths/~1status/get/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) GET /status checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
+  Q-20:
+    question: GET /status checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1status/get/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /status? It is declared at api/src/server.ts:6, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  Q-21:
+    question: Does the running system register GET /status? It is declared at api/src/server.ts:6, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1status/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'api/src/server.ts:6', says: Registers GET /status.}
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: notes.read, notes.write? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
+  Q-22:
+    question: 'What does each permission allow: notes.read, notes.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/notes.read/description', '#/permissions/notes.write/description']
+    decidedBy: system-owner
+    why: The source names the permission a route checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: notes.read, notes.write? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
+  Q-23:
+    question: 'Which role grants each permission: notes.read, notes.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/notes.read', '#/permissions/notes.write']
+    decidedBy: system-owner
+    why: The source names the permission a route checks and not who holds it.
+  # specarch-problem: question: open_question: (must, decision) Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale? Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
+  Q-24:
+    question: 'Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale?'
+    kind: decision
+    priority: must
+    blocks: ['#/schemas/Search/properties/page/format']
+    decidedBy: system-owner
+    why: A JavaScript number has no width, and the meta-model needs one; choosing one would be a guess.
+  # specarch-problem: question: open_question: (could, decision) Not held: api/src/schemas.ts:24: searchSchema.filter: zod's union(), which a field does not hold; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
+  Q-25:
+    question: 'Not held: api/src/schemas.ts:24: searchSchema.filter: zod''s union(), which a field does not hold; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/schemas/Search']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'api/src/schemas.ts:24', says: 'Not held: searchSchema.filter: zod''s union(), which a field does not hold; left out.'}

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 60 requirements, 5 entities, 12 commands, 7 algorithms, 373 tests, 87 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 60 requirements, 5 entities, 12 commands, 7 algorithms, 379 tests, 88 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -63,7 +63,7 @@ The interfaces the system offers, as its clients see them.
 | derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors, or a draft's name is taken by another draft or by a test of another subject; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, there is no release record for the new version, or a specification has errors; 2: usage error, or a path that could not be read |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written |
-| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a code-facts dump another parser version made or whose files are not the tracked Swift files of its folder, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go or swift, or a path that could not be read or written |
+| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a code-facts dump another parser version made or whose files are not the tracked files of its folder the reader reads, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go, swift or javascript, or a path that could not be read or written |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open and no specification has an error; 1: at least one must or should question is open, or a specification has an error; 2: usage error, or a path that could not be read |
 | generate | Write code or data from a specification | public | 0: written, a draft included, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads or the specification is not approved and `--unapproved` was not given, the plug-in reported an error (what it answered is written or checked), or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder in any specification given, or a file that could not be read or written |
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
@@ -1387,6 +1387,153 @@ The sources this build reads:
   read prints a line, and so does each file with syntax SwiftSyntax
   could not read, which is also a should question.
 
+- `javascript`: one code-facts dump of JavaScript and TypeScript
+  source (ADR-089), written by `tools/code-facts/dump-javascript.sh`,
+  which runs the JavaScript reader `readers/javascript` on the
+  tracked `.ts`, `.tsx`, `.mts`, `.cts`, `.js`, `.jsx`, `.mjs` and
+  `.cjs` files under a committed folder and its `tsconfig.json` and
+  `jsconfig.json` files. The reader builds one program of them with
+  the TypeScript compiler 6.0.3, the last release whose compiler API
+  is stable and has no dependency of its own, over those files and
+  the library TypeScript ships and nothing else, so no
+  `node_modules` and no package's types are read. It writes facts,
+  not elements: imports with the file each resolves to, each
+  configuration file's `checkJs`, interfaces, type aliases, classes,
+  enums and JSDoc `@typedef`s with their members' types as the source
+  states them, functions with their parameters' types and whether
+  each comes from TypeScript's syntax or a JSDoc comment, variables,
+  the calls whose name the idiom table lists or whose callee an
+  import names, JSX elements of the libraries it knows and of a
+  heading, a form, its controls and a link, and reads of
+  `process.env`, `import.meta.env` and a handler's request, each
+  with its file, line and column, a name with the declaration among
+  the files read that the compiler's checker resolves it to. The
+  dump is refused when another compiler version made it, when it
+  lists a file that is not tracked under the folder or leaves out
+  one that is, and when it is stale. The source is one code source
+  with `reading: parsed`; every element cites `path:line`.
+
+  Routes are read on Express and Fastify. An application is the
+  value `express()` or Fastify's factory gives, at the root; an
+  Express router (`Router()`, `express.Router()`) is under every
+  `use` of the files read given it, after the literal prefix that
+  `use` gives, with the middleware between; a function `register`
+  is given is a Fastify plugin, its first parameter an instance under
+  the literal `prefix` of its options; `route('/path')` adds its
+  path. A call of `get`, `post`, `put`, `patch`, `delete`, `options`,
+  `head` or `all` with a literal path and a handler on one of these,
+  outside a loop and a condition, and Fastify's `route` with a
+  literal method and url, is an operation; `:name` is the parameter
+  `{name}`, and a wildcard, an optional parameter, a pattern and
+  `all` print a line. It is named after its handler's name as extract
+  router names a route, or by its method and path, and cites its
+  registration, every mount above it and its handler, with the must
+  questions extract go asks of a parsed route. A router the reader
+  does not follow, such as one a function is given, a path that is
+  not a literal, a registration in a loop or behind a condition, and
+  one method and path registered twice are must questions, and so is
+  a parameter the handler reads that its path lacks. The permission
+  is read through the checks the implementation file given with
+  `--implementation` names, by the function's name and its module:
+  the `package` is a package's name as an import names it, or the
+  path of the file that declares the check from the folder read,
+  without its extension. A check's call with a literal permission,
+  as middleware of the route, of a mount above it, of an earlier
+  `use` on the same router or of Fastify's `onRequest`,
+  `preValidation` or `preHandler`, or called in the handler, is the
+  operation's; none, several and one that is not a literal are must
+  questions.
+
+  A request body is, in this order: the validation schema the
+  handler applies to its body (`parse`, `safeParse`, `validate`,
+  `validateSync` or `cast` of `req.body`); the JSON Schema of
+  Fastify's `schema.body`, a literal object or a variable holding
+  one; the type the handler declares, Express's `Request`'s third
+  type argument or Fastify's generic `Body`, when it is a type of the
+  files read or a validation schema's inferred type; or, with none of
+  these, the fields the handler reads of `req.body`, written as a
+  schema named after the operation whose fields are known by name
+  only, their types and which are required a must question. A body
+  used whole is a must question. The reply type a handler declares,
+  `Request`'s second type argument, `Response`'s or Fastify's `Reply`,
+  is written as a schema and named in the question on the
+  responses, whose status codes the type does not give. A module
+  level variable holding an object schema of zod, yup or joi is a
+  schema, and one holding an enum of strings an enum, named after the
+  variable without `Schema`; each property's chain gives its type,
+  format, bounds, enum, default and whether it is required, by each
+  library's own rule (zod's properties are required unless optional,
+  yup's and joi's only when required); a nested object, a union, a
+  record and the like print a line, and a refinement, a pattern, a
+  coercion and a call the reader does not know are should questions.
+  A declared type is a schema with each member a field by its type:
+  `string`, `boolean`, a `Date` as a date-time, a union of string
+  literals as an enum, `T[]` as an array, a type of the files read
+  as a reference, `null` in a union as nullable and an optional
+  member or `undefined` as not required; `number` is a number whose
+  width is one must question for every number the reader writes, a
+  type from a package and `any` are must questions, and a record or
+  a map prints a line. A JSDoc type in a JavaScript file is read as
+  stated only where the nearest `tsconfig.json` or `jsconfig.json`
+  turns `checkJs` on, since only then does the compiler check the
+  code against it; otherwise the handler's comment is quoted in a
+  should question and the body falls to the fields read.
+
+  Screens are React Router's: the routes `createBrowserRouter`,
+  `createHashRouter`, `createMemoryRouter` or `useRoutes` is given
+  as a literal list, and `<Route>` elements, a child's path joined to
+  its parent's. A route with a path that shows a component of the
+  files read, as `element` or `Component`, is a page named after the
+  component in kebab-case without `Page`, `Screen`, `View` or
+  `Route`, and by its route too when the component shows several,
+  with the route as its route; a layout route is no page. Its title
+  is its one heading, a literal or `t()` with a literal key the
+  default locale's catalogue holds; its fields are the names
+  react-hook-form's `register`, Formik's `Field`, `getFieldProps` and
+  `useField` bind, in the order of the source; each `Link` or
+  `NavLink` with a literal `to`, or a template whose values fill
+  whole segments, that a route read matches, and each `navigate()`
+  of `useNavigate`, is a navigate action, its label the link's text
+  in the default locale. Its kind, its title where none is known,
+  entity, source, submit and columns are one must question, its
+  permission another, and a label that is not known one more. A
+  component outside the files read, a route declared twice and one
+  in a loop or behind a condition are must questions; a lazy route,
+  a field named by a value that is not a literal and a link to a
+  path no route serves are should questions. Message catalogues are
+  `messages/<locale>.json`, `locales/<locale>.json` and
+  `locales/<locale>/<namespace>.json` under the folder, read as data,
+  nested keys joined by dots; the default locale is the one a
+  literal `lng`, `fallbackLng` or `defaultLocale` names, or the only
+  one, and several with none named are a should question. Each
+  catalogue of another locale prints a line, since the meta-model
+  holds one language.
+
+  Calls to another system are `fetch` with a literal method in its
+  options or GET, axios and its methods, and the methods of an
+  instance `axios.create` makes with its `baseURL`, given a URL that
+  is a literal, a const of the files read, or a template whose
+  values are such consts or fill one whole path segment each, as the
+  parameter `{name}` with a should question naming it. Each declares
+  a dependency named after the host in camelCase, as extract go
+  names one, its description and time limit a must question; a URL
+  that is not built from such parts, a method that is not a literal
+  and a URL with no host are should questions, since a path of this
+  system's own is joined to its operation only once a question can
+  carry a method and a path. A setting is read where the code reads
+  `process.env` or `import.meta.env` by a literal name, by a member
+  or by destructuring: its type is a number or an integer when
+  `Number`, `parseFloat` or `parseInt` is given it, a boolean when it
+  is compared with `'true'` or `'false'`, and else the type of a
+  literal default `??` or `||` gives it, which is its default; it is
+  written under `configuration` with the questions extract go asks
+  of a setting, and a number's width is a must question. A read by
+  a computed name, a `require` or dynamic `import()` of a computed
+  module, and an export under a computed name are should questions.
+  A file that imports a library the reader knows and gives nothing
+  read prints a line, and so does each file with syntax the compiler
+  could not read, which is also a should question.
+
 Every reader follows these rules:
 
 - The tree's root tracks origin. The code readers declare one code
@@ -1396,8 +1543,8 @@ Every reader follows these rules:
   the repository's folder relative to `--out`. Clauses are paths from
   the repository's root. Its `reading` says how it was read:
   `printed` for router, database and permissions, which read a list
-  the running system printed, and `parsed` for go and swift, which
-  read the source itself (ADR-075).
+  the running system printed, and `parsed` for go, swift and javascript,
+  which read the source itself (ADR-075).
 - Every element is `origin: stated` and cites where it was read.
   What the surface does not say is a question, never a value: a
   constraint's message, which no catalogue holds, a check the
@@ -1442,10 +1589,10 @@ Every reader follows these rules:
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
-| `<source>` | string | yes | The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `go` or `swift`. |
-| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository; for swift, one code-facts dump. |
+| `<source>` | string | yes | The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `go`, `swift` or `javascript`. |
+| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository; for swift and javascript, one code-facts dump. |
 | `--out` | string | yes | The folder the specification is written into; it becomes the specification's root folder. |
-| `--implementation` | string |   | For go and swift, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through. |
+| `--implementation` | string |   | For go, swift and javascript, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through. |
 | `--source-key` | string |   | The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given. |
 
 Reads `{paths}`: The surface being read.
@@ -1459,8 +1606,8 @@ naming the question that asks about it; one line naming a dialect
 the reader reads, or a document read as what the running system
 printed; one line per file that imports a library the reader knows
 and gives nothing it reads; one line per gate on a setting, naming
-the check and the setting; for go and swift, one line naming the
-checks the implementation file names; and one line per file that says it is
+the check and the setting; for go, swift and javascript, one line
+naming the checks the implementation file names; and one line per file that says it is
 generated from another source.
 
 Standard error: A usage message on a usage error, and the reason a source could not be read.
@@ -2065,6 +2212,7 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | google.golang.org/genproto/googleapis/api | v0.0.0-20240826202546-f6391c0de4c7 | Apache-2.0 | Needed by the CEL parser's tree types. |
 | google.golang.org/genproto/googleapis/rpc | v0.0.0-20240826202546-f6391c0de4c7 | Apache-2.0 | Needed by the CEL parser's tree types. |
 | golang.org/x/exp | v0.0.0-20240823005443-9b4947da3948 | BSD-3-Clause | Needed by the CEL parser. |
+| typescript | 6.0.3 | Apache-2.0 | The TypeScript compiler, run on Node by the JavaScript reader of specarch extract, readers/javascript, which writes the code-facts dump the Go build reads (ADR-089); not linked into specarch. The last release whose compiler API is stable and whose package has no dependency. Pinned exactly in readers/javascript/package.json and package-lock.json, and the Go build refuses a dump another version made. SBOM scan on 2026-10-09: syft 1.54.0, grype 0.120.0 and osv-scanner 2.6.0 found no vulnerability. |
 
 #### Layout
 
@@ -2073,7 +2221,8 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
-| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about. |   |
+| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the JavaScript and TypeScript reader of a code-facts dump with the message catalogues it reads as data, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about. |   |
+| readers/javascript | The JavaScript and TypeScript reader of specarch extract, a Node program on the TypeScript compiler, code-facts-javascript.mjs: it builds one program over the files it is given and writes the facts specarch extract javascript reads as a code-facts dump (ADR-089). tools/code-facts/dump-javascript.sh runs it on the tracked files of a committed folder. |   |
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
 | cmd/specarch-gen-sql | The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk. | #/commands/generate |
@@ -6380,6 +6529,73 @@ current with --check; it is not published anywhere.
 
 **Note:** From Content Security Policy Level 3, clause 6.1.3, default-src: default-src serves as a fallback for the other fetch directives. <https://www.w3.org/TR/CSP3/>
 
+### ADR-089: extract javascript reads a code-facts dump that the TypeScript compiler 6.0.3 wrote over the tracked files alone, and turns its facts into routes, bodies, schemas, screens, clients and settings in Go, reading JSDoc types only under checkJs
+
+Status: accepted, 2026-10-09.
+
+Context: Step 18 of docs/extraction.md reads JavaScript and TypeScript,
+the second language read through a code-facts dump (ADR-075,
+ADR-087). docs/reading-code.md chose the TypeScript compiler for
+its type checker and because every TypeScript tool parses with it.
+Open were the release to pin, how a program is built when no
+package is installed, what the dump holds so that Vue (step 20)
+can join it, how the idioms of Express, Fastify, zod, yup, joi,
+React Router, react-hook-form, Formik, fetch, axios and the message
+catalogues fit meta-model 0.1, and what plain JavaScript loses.
+The 7.x releases of the compiler are a native port: the npm
+package ships one binary per platform and exposes only entry
+points named unstable. The 6.0 line is the last whose compiler API
+(createProgram, the checker) is the stable one and whose package
+has no dependency. In JavaScript files the compiler takes types
+from JSDoc comments whether or not checkJs is on; only with checkJs
+does it report where the code disagrees with them.
+
+Decision: readers/javascript is a Node program that pins typescript 6.0.3
+exactly with package-lock.json committed; specarch pins the same
+version and refuses a dump another one made. The dump keeps the
+format of ADR-087 (codeFacts 1) with the language javascript. The
+program is built over the files dump-javascript.sh lists, the
+tracked sources and configuration files of a committed folder,
+with a compiler host that reads those files and the library
+TypeScript ships and refuses every other read, so node_modules is
+never read and a package's names are known only by the import
+that names them. The options are fixed (allowJs, strict, bundler
+resolution, JSX preserved) with the module paths of the
+configuration nearest the folder's root, so the same files give
+the same facts on every machine. The facts are syntax with what
+the checker resolves: a name carries the import that binds it and
+the declaration among the files read, a parameter the function it
+belongs to; types are written as the source states them, from
+TypeScript's syntax or a JSDoc comment, with which one it was.
+
+In Go, Express applications and routers and Fastify instances and
+plugins are followed from where they are made, through use and
+register, with literal prefixes; the permission is read through the
+checks the implementation file names, matched by function and by
+module (a package's name, or the declaring file's path from the
+folder without its extension). A body comes from a validation
+schema the handler applies, Fastify's JSON Schema, the declared
+request type, or the fields the handler reads, in that order. zod,
+yup and joi object schemas of module-level variables are schemas
+named after the variable. React Router's routes are pages with
+their route; headings, form-library bindings and links give the
+title, fields and navigate actions, text from the default locale's
+catalogue. A JSDoc type is read as stated only under checkJs, and
+is otherwise a should question quoting the comment.
+
+Consequences: An Express, Fastify or React project is read from a committed dump;
+CI needs no Node. Running the reader needs Node and installs the
+compiler once with npm ci. A compiler upgrade is a release that
+makes every dump again. A client call to this system's own path is
+a should question until a question can name a method and a path;
+the implementation file names only permission checks, so a
+project's client wrapper, its component library's inputs and plain
+pages a file name gives wait for a key of their own. ORM models
+(Prisma, TypeORM, Sequelize), Next.js file content (step 19) and Vue
+(step 20) are read in later steps; Vue's script joins this program.
+
+**Insight:** Pinning 6.0.3 keeps the reader on an API that is documented and stable, and on a package with no dependency, so the SBOM is one package and nothing is fetched per platform; 7.x would tie the dump to an interface its authors mark unstable. A newer compiler may parse the same code into other nodes, so the version is held to the release as SwiftSyntax's is. Reading the tracked files alone is ADR-075's rule, and a host that refuses other reads enforces it instead of trusting the folder to hold no node_modules. It costs every type a package declares, so the idiom table keys on an import's module and name, which syntax gives, and not on the checker's types, which would be any. Fixed options keep the facts from depending on a configuration a package holds; checkJs is still read from each configuration file, since it decides how a JSDoc type is taken. The order of a body's sources follows what is checked at run time: a validation schema is applied to every request in both languages, so it is stated in both, and a JavaScript service with zod reads the same as its TypeScript twin. A declared type is a promise the compiler holds the code to, so it comes next. Fields read by name are what is left in plain JavaScript; writing them with no type keeps the definition readable and the types are one question. A JSDoc comment under checkJs is held to the code just as a TypeScript annotation is; without checkJs nothing holds it, and a comment that no longer says what the code does would be a confident wrong value, which the compiler principle forbids, so it is quoted and asked. A JavaScript number has no width, as an OpenAPI number with no format has none, so its width is asked, once for every number of the design and once for each setting, never guessed as a double. zod's properties are required unless optional and yup's and joi's only when required, because that is what each library checks. The router of React Router is what makes a component a screen, and a route is a page's route as the pages reader writes one; a link's text in the default locale is the label a person reads. Every surface is read from one dump with no build, no install and no browser, so a result shows early, and each guess is a question at its line, so a change someone asks for on seeing a screen or an operation is an answer to that question.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -6469,6 +6685,12 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-go-dxlib-tables-seeds | command extract | system | golden | a repository holding a Go module on dxlib and dxlib_module: tables declared with NewModelDBTable in a schema NewModelDBSchema names, one with a serial key, a reference, a unique column, a nullable date, money, JSON, a 32-bit float, a geometry and a type named through a variable, one whose key column a function builds, one with a computed name, one with no schema, one whose fields are a variable and one in a loop; two tables NewDXTableSimple makes, one with literal whitelists and one with a whitelist in a variable, each the handler of a paging list endpoint whose middlewares let every request through while an environment setting is empty or a boolean setting is false; a seed that inserts privileges and roles and grants privileges in capitals, EVERYTHING, two names that give one permission, a role whose name is not kebab-case, a grant in a loop, one to a role it cannot trace and one of a computed privilege; and settings read from the environment by literal and computed names and from a dxlib configuration whose JSON file is tracked, with defaults in code and a sensitive key | extract go is run on the module | it writes one entity per table with a literal schema and name, named as extract database names it, with the types of dxlib's data types as the catalogue writes them, nullability and the primary key, and a must question whether the database holds each; it cites each paging list endpoint at its table's constructor with the whitelists and prints a line that the meta-model holds no whitelist, and asks a should question where the whitelists are not literal; it writes the seeded roles with their descriptions and the permissions they grant, mapped by the rule of ADR-076 and declared with a privilege's description, a must question for EVERYTHING, for the two names that give one permission, the loop, the untraced role and the computed privilege, and one whether the running system grants each role; it writes each setting under configuration in the deployment stage by its camelCase name with its type and default, the file's value over the code's, secret where the configuration marks it, a must question on what each is for and whether names that look like a credential are secrets, a must question on the width of a whole number and a should question on the computed name; it asks the gate question for each middleware that lets every request through; it prints a line and asks a could question for the geometry, the type it does not know, the 32-bit float and the role that is not kebab-case; and exits 0 |
 | extract-go-http-handlers | command extract | system | golden | a repository holding a Go module on chi whose server registers routes through a field of its struct, an implementation file whose bindings.http.permissionChecks name a check that wraps a handler, one used as middleware, one called in a handler and one named without its permission argument; routes checked by each, one by three permissions, one by a permission that is not a literal and one by none; a check that lets every request through while a setting is empty; handlers that decode a JSON body into a struct of the module with snake_case json tags and go-playground/validator tags (required, len, max, min, oneof, email, numeric, alphanum, dive and a rule with no keyword), a pointer, a list of structs, a time, an int, an int64, a map, an unexported field, a field left out with -, a struct that embeds another and a field with no json tag; a client call with a literal URL in a handler, one outside any handler, one with a computed URL and one with a relative URL; a path parameter read by a computed name; and flags declared with literal names | extract go is run on the module with the implementation file | it writes each operation with the one permission the named checks give it, declared with the check that reads it first; asks a must question for the three permissions, the computed one, the operation with none, the check named in part, the gate on the setting in the words extract permissions uses, the width of the int and of the int64, and each dependency's description and time limit; writes each body as an object of the struct's fields in camelCase, with info.wireNames snake_case, nullable for the pointer, the validator's rules as required, lengths, items, bounds, an enum, a format and patterns, and asks a should question for the map, the embedded struct, the computed parameter name, the computed and relative URLs and the dependency called outside a handler; prints a line and asks a could question for dive, the rule with no keyword and the field with no json tag; declares each system called with a literal URL as a dependency named after its host, listed under calls of the operation whose handler calls it; writes each flag and each environment variable read as a setting; and exits 0 |
 | extract-go-routers | command extract | system | golden | a repository holding a Go module whose files register routes on net/http's ServeMux (method patterns, a pattern with no method, one with a host, a rest wildcard, the exact root, a HEAD route, a mux handed a subtree through StripPrefix, a subtree handed to a handler that is not a router, and a pattern built in a loop), on chi (Route, Group, With, Method, Mount of a router a function returns, Handle for every method, a route behind a condition, a parameter with a pattern, a catch-all and a Route with a computed prefix), on gin (nested groups, Handle, Any and a catch-all), on echo (Group, Add and Match) and on gorilla/mux (HandleFunc with Methods, a subrouter under PathPrefix, Path with HandlerFunc, a route with no Methods and one with Queries); handlers that read a path parameter their path does not have; a function given a router that nothing in the module calls; and a file that imports echo and registers nothing; with no implementation file | extract go is run on the module | it writes one operation per route whose method and path it reads as literals, outside a loop or a condition, with the prefixes of groups, routes, mounts, subrouters and StripPrefix joined and each library's parameters written {name}, named after its handler as extract router names one, citing its registration and its handler; asks a must question for the route in a loop, the one behind a condition, the routes for every method, the subtree handed to a handler that is not a router, the computed prefix, the router given to a function nothing calls, each parameter read that the path does not have, each operation's permission, since no implementation file names the check, its summary and responses, and whether the running system registers it; prints a line and asks a could question for the host, the wildcards and catch-alls, the HEAD route, the Queries route, the parameters' patterns and each handler that serves more than one route; names the file that registers nothing; and exits 0 |
+| extract-javascript-express-routes | command extract | system | golden | a code-facts dump of an Express service in TypeScript whose application mounts a router under /api, which mounts an imported router under /tickets; that router's use() adds the check the implementation file names, one route adds a second check, one route is made with route(), and one check is given a permission that is not a literal; its handlers declare their request and reply types with Express's Request and Response, one by a type of the files read and one by a type written in place, and one reads a path parameter its path lacks; the application registers a wildcard, an optional parameter, all, the same route twice, a route in a loop, one behind a condition and one whose path is not a literal, and hands itself to a function; and a router nothing mounts | extract javascript is run on the dump with the implementation file | it writes one operation per route with literal segments under a router it follows, named by method and path or after its handler, citing its registration, its mounts and its handler, with the permission of the one check that guards it and the request body its declared type names; writes the declared types the routes name as schemas and the union of strings as an enum, a Date as a date-time, a nullable field, an optional field and an array; asks a must question on each route's summary and responses, naming the declared reply, its parameters' values, whether the running system registers it, its permission where no one check gives it, the route twice, the loop, the condition, the computed path, the router handed to a function, the router nothing mounts, the parameter read that the path lacks, the record type and the width of each number; prints a line for the wildcard, the optional parameter and all, and for each file that imports Express and gives nothing; and exits 0 |
+| extract-javascript-fastify-validators | command extract | system | golden | a code-facts dump of a Fastify service in TypeScript that registers a plugin under a literal prefix; the plugin registers routes with a path and options, with route(), with the check the implementation file names as a preHandler, alone and in a list, with a JSON Schema of the body in a variable and in place, with a body a yup or a joi schema validates, and with a generic that declares the body in place; and module-level object schemas of yup, joi and zod, and an enum of zod, with formats, bounds, enums, defaults, nullable, optional and required fields, a union, a pattern and a coercion | extract javascript is run on the dump with the implementation file | it writes one operation per route under the plugin's prefix with the permission its preHandler's check names, the body the JSON Schema or the validation schema gives, each object schema as a schema named after its variable and the enum as an enum; asks a must question on each route's summary and responses, its parameters' values, whether the running system registers it and its permission where no check gives it, and on the width of each number without bounds; asks a should question on the pattern, the coercion and the body declared in place; prints a line for the union; and exits 0 |
+| extract-javascript-parser-version | command extract | system | red | a code-facts dump of JavaScript that another version of the TypeScript compiler than the one this release pins made | extract javascript is run on the dump | it refuses the dump, naming the version that made it and the one it reads, writes nothing and exits 1 |
+| extract-javascript-plain-checkjs | command extract | system | golden | a code-facts dump of an Express service in plain JavaScript, written as CommonJS, whose jsconfig.json turns checkJs on; one handler states its body in JSDoc as a @typedef of the files read, whose fields are a union of strings @typedef, an optional field, a nullable field and a number; one handler reads two fields of its body by destructuring, and one uses its body whole; and the code loads a module by a computed require, a computed dynamic import(), and exports under a computed name | extract javascript is run on the dump with the implementation file | it writes one operation per route under the router's mount, with the permission the check names; writes the body the JSDoc states as a schema, since checkJs is on, with the union as an enum, and the body whose fields the handler reads as a schema of those fields by name; asks a must question on the types of the fields read by name, on the body used whole and on the width of the number; asks a should question on the computed require, the computed import() and the computed export; and exits 0 |
+| extract-javascript-react-screens | command extract | system | golden | a code-facts dump of a React app in TypeScript whose router createBrowserRouter is given a layout route with an index route, literal child paths, a parameter, a component given as Component, a component imported from a package, a catch-all and a lazy route; and whose <Routes> nest a route under a parent path and declare one behind a condition; whose screens have a heading by a literal, by t() with a key the default locale's catalogue holds and by a variable, fields that react-hook-form's register and Formik's Field bind, one by a name that is not a literal, links whose text is t() with a key the catalogue holds, a literal, a key it lacks and a key that is not a literal, a link to a route with a parameter, one to a path no route serves, and a navigate() call; and message catalogues of English, the locale i18next's init names, and French | extract javascript is run on the dump | it writes one page per route that shows a component of the files read, named after the component, with its route, its title from its literal heading or the catalogue, its fields in the order of the source and a navigate action per link to a route read, its label the link's text in English; asks a must question on each page's kind, title where none is known, entity, source, submit and columns, on its permission, on each label that is not known, on the component from a package, on the route declared twice and on the route behind a condition; asks a should question on the lazy route, the field named by a variable, the message whose key is not a literal and the link to a path no route serves; prints a line for the catch-all and the French catalogue; and exits 0 |
+| extract-javascript-stale-dump | command extract | system | red | a code-facts dump of JavaScript committed after the folder it was made from, which a later commit changed again by adding a file | extract javascript is run on the dump | it refuses the dump as stale, writes nothing and exits 1 |
 | extract-not-offered | command extract | system | red | a source this build does not read yet | extract events is run on a topic registry | it names the sources it reads, writes nothing and exits 2 |
 | extract-openapi-dxlib-privileges | command extract | system | golden | a repository holding an OpenAPI document in dxlib's dialect whose operations carry x-dxlib-endpoint-type: two that check one privilege, one that checks another, one that checks two, one that checks none, three whose privileges EXPORT_ALL, GLOBAL.SET_MAINTENANCE_MODE and EVERYTHING are in dxlib_module's capitals, one whose privilege is in mixed case, two whose privileges REPORT_RUN and REPORT.RUN give one permission name, one whose privilege is public, one that lists one privilege twice and one whose list holds a mapping, all under the document's mutualTLS security, and one operation without x-dxlib-endpoint-type that names a privilege | extract openapi is run on the document | it writes the one privilege of a dxlib operation as its permission and declares each such permission citing the operations that check it, with a must question on what each allows and which role grants each; it maps each privilege in capitals by the rule of ADR-076 and declares that permission inferred, with the rule as its why; it reads a privilege listed twice as one, asks a must question for the operation that checks two privileges, the one that checks none (naming its middlewares), the one whose privilege the rule of ADR-076 cannot map, both whose privileges give one permission, the one whose privilege is public and the one whose list is not of names, and prints the security of each dxlib operation as a line of its own, since it is not the permission; it reads x-dxlib-privileges only beside x-dxlib-endpoint-type, so the other operation's permission is asked as before and its extension printed as a line; and exits 0 |
 | extract-openapi-not-openapi | command extract | system | red | a committed Swagger 2.0 document, which names no openapi version | extract openapi is run on it | it says the file is not an OpenAPI 3.0 or 3.1 document, writes nothing and exits 1 |
@@ -7032,7 +7254,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-41 | enums Rule; decisions ADR-033; decisions ADR-070 | tests validate-views; tests validate-views-valid |
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064; decisions ADR-082 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-action-with; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
-| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081; decisions ADR-084; decisions ADR-087 | tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-tables-seeds; tests extract-go-http-handlers; tests extract-go-routers; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-next-pages-router; tests extract-pages-nuxt-pages; tests extract-pages-nuxt-server; tests extract-pages-route-twice; tests extract-pages-router-guess; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-swift-clients-settings; tests extract-swift-models; tests extract-swift-parser-version; tests extract-swift-screens; tests extract-swift-stale-dump; tests extract-swift-vapor-routes; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read; tests validate-source-reading |
+| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081; decisions ADR-084; decisions ADR-087; decisions ADR-089 | tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-tables-seeds; tests extract-go-http-handlers; tests extract-go-routers; tests extract-javascript-express-routes; tests extract-javascript-fastify-validators; tests extract-javascript-parser-version; tests extract-javascript-plain-checkjs; tests extract-javascript-react-screens; tests extract-javascript-stale-dump; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-next-pages-router; tests extract-pages-nuxt-pages; tests extract-pages-nuxt-server; tests extract-pages-route-twice; tests extract-pages-router-guess; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-swift-clients-settings; tests extract-swift-models; tests extract-swift-parser-version; tests extract-swift-screens; tests extract-swift-stale-dump; tests extract-swift-vapor-routes; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read; tests validate-source-reading |
 | SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-077 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-printed-parsed; tests merge-printed-parsed-grants; tests merge-source-differs; tests merge-tree-invalid; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests merge-workflows-joins-trigger; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046; decisions ADR-068 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-mapping-menu-entry; tests validate-owned-by-unknown |
 | SA-47 | enums Rule; decisions ADR-054 | tests document-techspec-open-workflow; tests validate-maker-checker; tests validate-workflow; tests validate-workflow-valid |

@@ -1,0 +1,301 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) server/src/app.ts:18 registers a route in a loop, so the reader cannot tell how many routes it registers, or whether it registers one. Which routes does the running system register here? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: server/src/app.ts:18 registers a route in a loop, so the reader cannot tell how many routes it registers, or whether it registers one. Which routes does the running system register here?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: Syntax does not run the code; only the running system's own list of routes, such as a route table, says what a loop or a condition registers.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:18', says: Registers a route in a loop.}
+  # specarch-problem: question: open_question: (must, decision) server/src/app.ts:21 registers a route behind a condition, so the reader cannot tell how many routes it registers, or whether it registers one. Which routes does the running system register here? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: server/src/app.ts:21 registers a route behind a condition, so the reader cannot tell how many routes it registers, or whether it registers one. Which routes does the running system register here?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: Syntax does not run the code; only the running system's own list of routes, such as a route table, says what a loop or a condition registers.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:21', says: Registers a route behind a condition.}
+  # specarch-problem: question: open_question: (must, decision) server/src/app.ts:24 registers a route whose path is base + '/status', which is not a literal. Which path does the running system serve here? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: server/src/app.ts:24 registers a route whose path is base + '/status', which is not a literal. Which path does the running system serve here?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: A path computed at run time is not known by syntax.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:24', says: Registers a route with a path that is not a literal.}
+  # specarch-problem: question: open_question: (must, decision) server/src/orphan.ts:4 registers GET /never on the router unused, which no use() of the files read mounts. Under which path does the running system serve it, and does it? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: server/src/orphan.ts:4 registers GET /never on the router unused, which no use() of the files read mounts. Under which path does the running system serve it, and does it?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: Syntax follows a router from where it is made, and not one handed over in a way it does not read.
+    cites:
+      - {source: code, clause: 'server/src/orphan.ts:4', says: Registers a route.}
+  # specarch-problem: question: open_question: (must, decision) server/src/reports.ts:4 registers GET /reports/daily on app, the router the function reports is given by a caller the reader does not follow. Under which path does the running system serve it, and does it? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: server/src/reports.ts:4 registers GET /reports/daily on app, the router the function reports is given by a caller the reader does not follow. Under which path does the running system serve it, and does it?
+    kind: decision
+    priority: must
+    blocks: [paths]
+    decidedBy: system-owner
+    why: Syntax follows a router from where it is made, and not one handed over in a way it does not read.
+    cites:
+      - {source: code, clause: 'server/src/reports.ts:4', says: Registers a route.}
+  # specarch-problem: question: open_question: (must, decision) GET /api/health is registered at server/src/app.ts:11 and at server/src/app.ts:15. Which handler does the running system run? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: GET /api/health is registered at server/src/app.ts:11 and at server/src/app.ts:15. Which handler does the running system run?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1health/get']
+    decidedBy: system-owner
+    why: A router serves a method and path pair with its first handler.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:15', says: Registers GET /api/health again.}
+  # specarch-problem: question: open_question: (must, decision) What does GET /api/health do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: What does GET /api/health do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1health/get/summary', '#/paths/~1api~1health/get/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) GET /api/health checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: GET /api/health checks no permission through a check the implementation file names. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1health/get/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /api/health? It is declared at server/src/app.ts:11, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: Does the running system register GET /api/health? It is declared at server/src/app.ts:11, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1health/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:11', says: Registers GET /api/health.}
+  # specarch-problem: question: open_question: (must, decision) What does GET /api/tickets do, and what does it answer with each status code? Its handler declares that it answers a list of #/schemas/Ticket. Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: 'What does GET /api/tickets do, and what does it answer with each status code? Its handler declares that it answers a list of #/schemas/Ticket.'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1tickets/get/summary', '#/paths/~1api~1tickets/get/responses']
+    decidedBy: system-owner
+    why: A declared reply type names the body and not the status codes, nor when each is given.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /api/tickets? It is declared at server/src/routes/tickets.ts:12, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: Does the running system register GET /api/tickets? It is declared at server/src/routes/tickets.ts:12, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1tickets/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/src/routes/tickets.ts:12', says: Registers GET /api/tickets.}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /api/tickets/{ticketId} take: ticketId? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: 'What values does each path parameter of /api/tickets/{ticketId} take: ticketId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1tickets~1{ticketId}/parameters/0/schema']
+    decidedBy: system-owner
+    why: Express names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does GET /api/tickets/{ticketId} do, and what does it answer with each status code? Its handler declares that it answers #/schemas/Ticket. Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: 'What does GET /api/tickets/{ticketId} do, and what does it answer with each status code? Its handler declares that it answers #/schemas/Ticket.'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1tickets~1{ticketId}/get/summary', '#/paths/~1api~1tickets~1{ticketId}/get/responses']
+    decidedBy: system-owner
+    why: A declared reply type names the body and not the status codes, nor when each is given.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register GET /api/tickets/{ticketId}? It is declared at server/src/routes/tickets.ts:13, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: Does the running system register GET /api/tickets/{ticketId}? It is declared at server/src/routes/tickets.ts:13, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1tickets~1{ticketId}/get']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/src/routes/tickets.ts:13', says: 'Registers GET /api/tickets/{ticketId}.'}
+  # specarch-problem: question: open_question: (must, decision) What does DELETE /api/tickets/{ticketId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: What does DELETE /api/tickets/{ticketId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1tickets~1{ticketId}/delete/summary', '#/paths/~1api~1tickets~1{ticketId}/delete/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) DELETE /api/tickets/{ticketId} is guarded by 2 checks the implementation file names, and an operation checks one permission. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: DELETE /api/tickets/{ticketId} is guarded by 2 checks the implementation file names, and an operation checks one permission. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1tickets~1{ticketId}/delete/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register DELETE /api/tickets/{ticketId}? It is declared at server/src/routes/tickets.ts:22, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
+    question: Does the running system register DELETE /api/tickets/{ticketId}? It is declared at server/src/routes/tickets.ts:22, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1tickets~1{ticketId}/delete']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/src/routes/tickets.ts:22', says: 'Registers DELETE /api/tickets/{ticketId}.'}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /api/tickets/{ticketId}/replies take: ticketId? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
+    question: 'What values does each path parameter of /api/tickets/{ticketId}/replies take: ticketId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1tickets~1{ticketId}~1replies/parameters/0/schema']
+    decidedBy: system-owner
+    why: Express names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) The handler of POST /api/tickets/{ticketId}/replies reads the path parameter ticketNumber at server/src/routes/tickets.ts:17, which the path does not have, so it is always undefined. Which parameter is meant? Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
+    question: The handler of POST /api/tickets/{ticketId}/replies reads the path parameter ticketNumber at server/src/routes/tickets.ts:17, which the path does not have, so it is always undefined. Which parameter is meant?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1tickets~1{ticketId}~1replies/parameters']
+    decidedBy: system-owner
+    why: Express gives no value for a parameter the route's path does not name, and the handler reads one.
+    cites:
+      - {source: code, clause: 'server/src/routes/tickets.ts:17', says: Reads the path parameter ticketNumber.}
+  # specarch-problem: question: open_question: (must, decision) What does POST /api/tickets/{ticketId}/replies do, and what does it answer with each status code? Its handler declares that it answers #/schemas/Ticket. Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
+  Q-20:
+    question: 'What does POST /api/tickets/{ticketId}/replies do, and what does it answer with each status code? Its handler declares that it answers #/schemas/Ticket.'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1tickets~1{ticketId}~1replies/post/summary', '#/paths/~1api~1tickets~1{ticketId}~1replies/post/responses']
+    decidedBy: system-owner
+    why: A declared reply type names the body and not the status codes, nor when each is given.
+  # specarch-problem: question: open_question: (must, decision) POST /api/tickets/{ticketId}/replies is guarded by 2 checks the implementation file names, and an operation checks one permission. Is it meant to be open to everyone (public), or which permission should it check? Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  Q-21:
+    question: POST /api/tickets/{ticketId}/replies is guarded by 2 checks the implementation file names, and an operation checks one permission. Is it meant to be open to everyone (public), or which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1tickets~1{ticketId}~1replies/post/permission']
+    decidedBy: system-owner
+    why: An operation open to everyone is how an open endpoint is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /api/tickets/{ticketId}/replies? It is declared at server/src/routes/tickets.ts:16, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
+  Q-22:
+    question: Does the running system register POST /api/tickets/{ticketId}/replies? It is declared at server/src/routes/tickets.ts:16, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1tickets~1{ticketId}~1replies/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/src/routes/tickets.ts:16', says: 'Registers POST /api/tickets/{ticketId}/replies.'}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /api/tickets/{ticketId}/state take: ticketId? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
+  Q-23:
+    question: 'What values does each path parameter of /api/tickets/{ticketId}/state take: ticketId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1tickets~1{ticketId}~1state/parameters/0/schema']
+    decidedBy: system-owner
+    why: Express names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (should, decision) The handler of PUT /api/tickets/{ticketId}/state declares its body as an object type written in place. Which schema is it? Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
+  Q-24:
+    question: The handler of PUT /api/tickets/{ticketId}/state declares its body as an object type written in place. Which schema is it?
+    kind: decision
+    priority: should
+    blocks: ['#/paths/~1api~1tickets~1{ticketId}~1state/put/requestBody']
+    decidedBy: system-owner
+    why: A body is written by a named schema.
+    cites:
+      - {source: code, clause: 'server/src/routes/tickets.ts:19', says: Declares its body in place.}
+  # specarch-problem: question: open_question: (must, decision) What does PUT /api/tickets/{ticketId}/state do, and what does it answer with each status code? Its handler declares that it answers #/schemas/Ticket. Decided by system-owner. Answer with a decision record that names Q-25 under answers. [Q-25]
+  Q-25:
+    question: 'What does PUT /api/tickets/{ticketId}/state do, and what does it answer with each status code? Its handler declares that it answers #/schemas/Ticket.'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1tickets~1{ticketId}~1state/put/summary', '#/paths/~1api~1tickets~1{ticketId}~1state/put/responses']
+    decidedBy: system-owner
+    why: A declared reply type names the body and not the status codes, nor when each is given.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register PUT /api/tickets/{ticketId}/state? It is declared at server/src/routes/tickets.ts:19, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-26 under answers. [Q-26]
+  Q-26:
+    question: Does the running system register PUT /api/tickets/{ticketId}/state? It is declared at server/src/routes/tickets.ts:19, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1api~1tickets~1{ticketId}~1state/put']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'server/src/routes/tickets.ts:19', says: 'Registers PUT /api/tickets/{ticketId}/state.'}
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: tickets.read? Decided by system-owner. Answer with a decision record that names Q-27 under answers. [Q-27]
+  Q-27:
+    question: 'What does each permission allow: tickets.read?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/tickets.read/description']
+    decidedBy: system-owner
+    why: The source names the permission a route checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: tickets.read? Decided by system-owner. Answer with a decision record that names Q-28 under answers. [Q-28]
+  Q-28:
+    question: 'Which role grants each permission: tickets.read?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/tickets.read']
+    decidedBy: system-owner
+    why: The source names the permission a route checks and not who holds it.
+  # specarch-problem: question: open_question: (must, decision) Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale? Decided by system-owner. Answer with a decision record that names Q-31 under answers. [Q-31]
+  Q-31:
+    question: 'Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale?'
+    kind: decision
+    priority: must
+    blocks: ['#/schemas/Ticket/properties/priority/format']
+    decidedBy: system-owner
+    why: A JavaScript number has no width, and the meta-model needs one; choosing one would be a guess.
+  # specarch-problem: question: open_question: (could, decision) Not held: server/src/app.ts:12: the route GET /files/*: the segment * matches anything after it, and a path parameter holds one segment; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-32 under answers. [Q-32]
+  Q-32:
+    question: 'Not held: server/src/app.ts:12: the route GET /files/*: the segment * matches anything after it, and a path parameter holds one segment; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:12', says: 'Not held: the route GET /files/*: the segment * matches anything after it, and a path parameter holds one segment; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: server/src/app.ts:13: the route GET /users/:userId?: the parameter :userId? is optional, and a path parameter is always there; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-33 under answers. [Q-33]
+  Q-33:
+    question: 'Not held: server/src/app.ts:13: the route GET /users/:userId?: the parameter :userId? is optional, and a path parameter is always there; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:13', says: 'Not held: the route GET /users/:userId?: the parameter :userId? is optional, and a path parameter is always there; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: server/src/app.ts:14: the route ALL /ping: the method ALL has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out. Does the specification need it, written another way or described by hand? It blocks paths. Decided by system-owner. Answer with a decision record that names Q-34 under answers. [Q-34]
+  Q-34:
+    question: 'Not held: server/src/app.ts:14: the route ALL /ping: the method ALL has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'server/src/app.ts:14', says: 'Not held: the route ALL /ping: the method ALL has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: server/src/types.ts:11: Ticket.extra: the type Record, which a field does not hold; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-35 under answers. [Q-35]
+  Q-35:
+    question: 'Not held: server/src/types.ts:11: Ticket.extra: the type Record, which a field does not hold; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/schemas/Ticket']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'server/src/types.ts:11', says: 'Not held: Ticket.extra: the type Record, which a field does not hold; left out.'}

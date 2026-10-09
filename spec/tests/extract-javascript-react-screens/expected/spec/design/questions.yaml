@@ -1,0 +1,201 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) The route /settings at web/src/router.tsx:17 shows Settings, which is not a component of the files read. Which screen is it? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: The route /settings at web/src/router.tsx:17 shows Settings, which is not a component of the files read. Which screen is it?
+    kind: decision
+    priority: must
+    blocks: [pages]
+    decidedBy: system-owner
+    why: A screen is read from its component's own code, and only tracked files are read.
+    cites:
+      - {source: code, clause: 'web/src/router.tsx:17', says: Declares the route /settings.}
+  # specarch-problem: question: open_question: (should, decision) The route /reports at web/src/router.tsx:19 loads its component lazily. Which screen does it show? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: The route /reports at web/src/router.tsx:19 loads its component lazily. Which screen does it show?
+    kind: decision
+    priority: should
+    blocks: [pages]
+    decidedBy: system-owner
+    why: A component loaded by a function at run time is not followed.
+    cites:
+      - {source: code, clause: 'web/src/router.tsx:19', says: Declares a lazy route.}
+  # specarch-problem: question: open_question: (must, decision) web/src/AdminRoutes.tsx:11 declares a route behind a condition. Which routes does the running app declare here? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: web/src/AdminRoutes.tsx:11 declares a route behind a condition. Which routes does the running app declare here?
+    kind: decision
+    priority: must
+    blocks: [pages]
+    decidedBy: system-owner
+    why: Syntax does not run the code, so it cannot tell which routes a loop or a condition declares.
+    cites:
+      - {source: code, clause: 'web/src/AdminRoutes.tsx:11', says: Declares a route behind a condition.}
+  # specarch-problem: question: open_question: (must, decision) The route /admin/overview is declared at web/src/AdminRoutes.tsx:8 and at web/src/AdminRoutes.tsx:10. Which screen does the app show there? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: The route /admin/overview is declared at web/src/AdminRoutes.tsx:8 and at web/src/AdminRoutes.tsx:10. Which screen does the app show there?
+    kind: decision
+    priority: must
+    blocks: [pages]
+    decidedBy: system-owner
+    why: A router shows one screen for a path.
+    cites:
+      - {source: code, clause: 'web/src/AdminRoutes.tsx:10', says: Declares the route /admin/overview again.}
+  # specarch-problem: question: open_question: (must, decision) For the screen AdminPage at /admin/overview, what are its kind, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: For the screen AdminPage at /admin/overview, what are its kind, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/admin/kind', '#/pages/admin/entity', '#/pages/admin/source', '#/pages/admin/submit', '#/pages/admin/columns']
+    decidedBy: system-owner
+    why: A React component says what it draws, not which of the four kinds of page it is or the operations behind it.
+    cites:
+      - {source: code, clause: 'web/src/pages/AdminPage.tsx:1', says: The component AdminPage.}
+  # specarch-problem: question: open_question: (must, decision) Which permission does the screen AdminPage check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: Which permission does the screen AdminPage check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/admin/permission']
+    decidedBy: system-owner
+    why: A browser's screen checks nothing for the server, and a screen open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (should, decision) web/src/pages/NewVisitPage.tsx:20 registers a form field by a name that is not a literal: field. Which field is it? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: 'web/src/pages/NewVisitPage.tsx:20 registers a form field by a name that is not a literal: field. Which field is it?'
+    kind: decision
+    priority: should
+    blocks: ['#/pages/new-visit/fields']
+    decidedBy: system-owner
+    why: A name computed at run time is not known by syntax.
+    cites:
+      - {source: code, clause: 'web/src/pages/NewVisitPage.tsx:20', says: Registers a field.}
+  # specarch-problem: question: open_question: (must, decision) For the screen NewVisitPage at /visits/new, what are its kind, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: For the screen NewVisitPage at /visits/new, what are its kind, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/new-visit/kind', '#/pages/new-visit/entity', '#/pages/new-visit/source', '#/pages/new-visit/submit', '#/pages/new-visit/columns']
+    decidedBy: system-owner
+    why: A React component says what it draws, not which of the four kinds of page it is or the operations behind it.
+    cites:
+      - {source: code, clause: 'web/src/pages/NewVisitPage.tsx:10', says: The component NewVisitPage.}
+  # specarch-problem: question: open_question: (must, decision) Which permission does the screen NewVisitPage check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: Which permission does the screen NewVisitPage check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/new-visit/permission']
+    decidedBy: system-owner
+    why: A browser's screen checks nothing for the server, and a screen open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (should, decision) web/src/pages/VisitorPage.tsx:15 shows t(`visits.${"new"}`), a message whose key is not a literal. Which text does it show? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: web/src/pages/VisitorPage.tsx:15 shows t(`visits.${"new"}`), a message whose key is not a literal. Which text does it show?
+    kind: decision
+    priority: should
+    blocks: ['#/pages/visitor/actions']
+    decidedBy: system-owner
+    why: A key computed at run time is not known by syntax, so the catalogue cannot give its text.
+    cites:
+      - {source: code, clause: 'web/src/pages/VisitorPage.tsx:15', says: Shows a message by a computed key.}
+  # specarch-problem: question: open_question: (must, decision) For the screen VisitorPage at /visitors/{visitorId}, what are its kind, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: For the screen VisitorPage at /visitors/{visitorId}, what are its kind, title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/visitor/kind', '#/pages/visitor/title', '#/pages/visitor/entity', '#/pages/visitor/source', '#/pages/visitor/submit', '#/pages/visitor/columns']
+    decidedBy: system-owner
+    why: A React component says what it draws, not which of the four kinds of page it is or the operations behind it. Its heading is heading, which is not a literal.
+    cites:
+      - {source: code, clause: 'web/src/pages/VisitorPage.tsx:5', says: The component VisitorPage.}
+  # specarch-problem: question: open_question: (must, decision) What does a person click on the screen VisitorPage to follow each link that has no literal text? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: What does a person click on the screen VisitorPage to follow each link that has no literal text?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/visitor/actions/0/label', '#/pages/visitor/actions/1/label']
+    decidedBy: system-owner
+    why: A navigate action has a label, and the link's text is computed or not one literal.
+    cites:
+      - {source: code, clause: 'web/src/pages/VisitorPage.tsx:5', says: The component VisitorPage.}
+  # specarch-problem: question: open_question: (must, decision) Which permission does the screen VisitorPage check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: Which permission does the screen VisitorPage check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/visitor/permission']
+    decidedBy: system-owner
+    why: A browser's screen checks nothing for the server, and a screen open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (should, decision) web/src/pages/VisitsPage.tsx:11 opens /help, which is not a route of the screens read. Which screen does it open? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: web/src/pages/VisitsPage.tsx:11 opens /help, which is not a route of the screens read. Which screen does it open?
+    kind: decision
+    priority: should
+    blocks: ['#/pages/visits-root/actions']
+    decidedBy: system-owner
+    why: A navigate action's target is a page, and no route read matches the link.
+    cites:
+      - {source: code, clause: 'web/src/pages/VisitsPage.tsx:11', says: <Link to="/help"> opens /help.}
+  # specarch-problem: question: open_question: (must, decision) For the screen VisitsPage at /, what are its kind, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: For the screen VisitsPage at /, what are its kind, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/visits-root/kind', '#/pages/visits-root/entity', '#/pages/visits-root/source', '#/pages/visits-root/submit', '#/pages/visits-root/columns']
+    decidedBy: system-owner
+    why: A React component says what it draws, not which of the four kinds of page it is or the operations behind it.
+    cites:
+      - {source: code, clause: 'web/src/pages/VisitsPage.tsx:4', says: The component VisitsPage.}
+  # specarch-problem: question: open_question: (must, decision) Which permission does the screen VisitsPage check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: Which permission does the screen VisitsPage check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/visits-root/permission']
+    decidedBy: system-owner
+    why: A browser's screen checks nothing for the server, and a screen open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (should, decision) web/src/pages/VisitsPage.tsx:11 opens /help, which is not a route of the screens read. Which screen does it open? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
+    question: web/src/pages/VisitsPage.tsx:11 opens /help, which is not a route of the screens read. Which screen does it open?
+    kind: decision
+    priority: should
+    blocks: ['#/pages/visits-visits/actions']
+    decidedBy: system-owner
+    why: A navigate action's target is a page, and no route read matches the link.
+    cites:
+      - {source: code, clause: 'web/src/pages/VisitsPage.tsx:11', says: <Link to="/help"> opens /help.}
+  # specarch-problem: question: open_question: (must, decision) For the screen VisitsPage at /visits, what are its kind, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
+    question: For the screen VisitsPage at /visits, what are its kind, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/visits-visits/kind', '#/pages/visits-visits/entity', '#/pages/visits-visits/source', '#/pages/visits-visits/submit', '#/pages/visits-visits/columns']
+    decidedBy: system-owner
+    why: A React component says what it draws, not which of the four kinds of page it is or the operations behind it.
+    cites:
+      - {source: code, clause: 'web/src/pages/VisitsPage.tsx:4', says: The component VisitsPage.}
+  # specarch-problem: question: open_question: (must, decision) Which permission does the screen VisitsPage check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
+    question: Which permission does the screen VisitsPage check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/visits-visits/permission']
+    decidedBy: system-owner
+    why: A browser's screen checks nothing for the server, and a screen open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (could, decision) Not held: web/src/locales/fr.json: the message catalogue web/src/locales/fr.json is of the locale fr, and the meta-model holds one language, en; left out. Does the specification need it, written another way or described by hand? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
+  Q-20:
+    question: 'Not held: web/src/locales/fr.json: the message catalogue web/src/locales/fr.json is of the locale fr, and the meta-model holds one language, en; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [pages]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: web/src/locales/fr.json, says: 'Not held: the message catalogue web/src/locales/fr.json is of the locale fr, and the meta-model holds one language, en; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: web/src/router.tsx:18: the route /files/*: the segment * matches anything after it, and a path parameter holds one segment; left out. Does the specification need it, written another way or described by hand? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  Q-21:
+    question: 'Not held: web/src/router.tsx:18: the route /files/*: the segment * matches anything after it, and a path parameter holds one segment; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [pages]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'web/src/router.tsx:18', says: 'Not held: the route /files/*: the segment * matches anything after it, and a path parameter holds one segment; left out.'}

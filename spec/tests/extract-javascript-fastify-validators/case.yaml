@@ -1,0 +1,15 @@
+arguments: [extract, javascript, --implementation, implementation/notes.javascript.specarch-implementation.yaml, --out, spec, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [api]
+    - [facts.json]
+exitStatus: 0
+standardOutput: |
+  commit 594fb70913cfdc48bbb2f790d0b3770723e89c3b: the last change to api, as the code-facts dump facts.json names it
+  checks: implementation/notes.javascript.specarch-implementation.yaml names the permission check src/access.needs
+  counted 4 source files, 0 of them with syntax the TypeScript compiler could not read, 0 configuration files and 66 facts: every tracked JavaScript and TypeScript file under api, its tsconfig.json and jsconfig.json files, and every fact the dump holds
+  validators: counted 4 validation schemas: every module-level variable that holds an object schema or an enum of zod, yup or joi
+  routes: counted 6 registrations: every call of get, post, put, patch, delete, options, head, all or route with a path and a handler on an Express or Fastify router the reader follows, or on another value
+  wrote 0 pages, 5 schemas, 1 enum, 6 operations, 0 dependencies, 0 settings and 25 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  not held: api/src/schemas.ts:24: searchSchema.filter: zod's union(), which a field does not hold; left out; could question Q-25

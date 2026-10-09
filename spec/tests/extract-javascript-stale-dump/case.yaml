@@ -1,0 +1,9 @@
+arguments: [extract, javascript, --out, spec, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [app/index.js]
+    - [facts.json]
+    - [app/later.js]
+exitStatus: 1
+standardOutput: ""

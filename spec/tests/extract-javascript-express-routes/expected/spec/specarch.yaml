@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: JavaScript and TypeScript source of server
+  version: 0.1.0
+  description: |
+    The JavaScript and TypeScript source under server, read at commit a699d8adaf4b9a014190d41759390d4757acf35f by the TypeScript compiler 6.0.3 through the code-facts dump, by its syntax and the types it declares, with the message catalogues there read as data. Every element cites the line that declares it; what the source does not say as a literal, or through an idiom the reader knows, is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design, deployment]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: a699d8adaf4b9a014190d41759390d4757acf35f
+    url: ../repo
+    clauses:
+      - {clause: server/src/app.ts, title: 'TypeScript source, read by its syntax and its declared types'}
+      - {clause: server/src/guard.ts, title: 'TypeScript source, read by its syntax and its declared types'}
+      - {clause: server/src/orphan.ts, title: 'TypeScript source, read by its syntax and its declared types'}
+      - {clause: server/src/reports.ts, title: 'TypeScript source, read by its syntax and its declared types'}
+      - {clause: server/src/routes/tickets.ts, title: 'TypeScript source, read by its syntax and its declared types'}
+      - {clause: server/src/types.ts, title: 'TypeScript source, read by its syntax and its declared types'}
+      - {clause: server/tsconfig.json, title: 'The compiler''s configuration, read by the TypeScript compiler'}
+    reading: parsed

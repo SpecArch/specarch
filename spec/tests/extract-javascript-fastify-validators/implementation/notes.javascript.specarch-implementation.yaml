@@ -1,0 +1,20 @@
+specarchImplementation: "0.1"
+
+info:
+  title: The notes service in TypeScript
+  version: 0.1.0
+
+implements:
+  file: ../specarch.yaml
+  version: 0.1.0
+
+stack:
+  language: { name: TypeScript, version: "6.0" }
+
+bindings:
+  http:
+    framework: Fastify
+    permissionChecks:
+      - package: src/access
+        function: needs
+        permissionArgument: 1

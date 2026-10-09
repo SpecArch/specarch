@@ -58,6 +58,10 @@ libraries:
     version: v0.0.0-20240823005443-9b4947da3948
     licence: BSD-3-Clause
     purpose: Needed by the CEL parser.
+  typescript:
+    version: 6.0.3
+    licence: Apache-2.0
+    purpose: "The TypeScript compiler, run on Node by the JavaScript reader of specarch extract, readers/javascript, which writes the code-facts dump the Go build reads (ADR-089); not linked into specarch. The last release whose compiler API is stable and whose package has no dependency. Pinned exactly in readers/javascript/package.json and package-lock.json, and the Go build refuses a dump another version made. SBOM scan on 2026-10-09: syft 1.54.0, grype 0.120.0 and osv-scanner 2.6.0 found no vulnerability."
 
 layout:
   cmd/specarch:
@@ -68,7 +72,9 @@ layout:
   idioms:
     description: The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set.
   internal/extract:
-    description: "The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about."
+    description: "The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the JavaScript and TypeScript reader of a code-facts dump with the message catalogues it reads as data, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about."
+  readers/javascript:
+    description: "The JavaScript and TypeScript reader of specarch extract, a Node program on the TypeScript compiler, code-facts-javascript.mjs: it builds one program over the files it is given and writes the facts specarch extract javascript reads as a code-facts dump (ADR-089). tools/code-facts/dump-javascript.sh runs it on the tracked files of a committed folder."
   internal/source:
     description: Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys.
   internal/spec:

@@ -1,0 +1,81 @@
+permissions:
+  tickets.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'server/src/routes/tickets.ts:12', says: 'GET /api/tickets, GET /api/tickets/{ticketId} and PUT /api/tickets/{ticketId}/state check tickets.read.'}
+paths:
+  /api/health:
+    # specarch-problem: warning: test_golden_missing: operation getApiHealth has no golden scenario; add one under tests, for example get-api-health-succeeds: { operation: getApiHealth, scenario: golden, given: "any caller", when: "getApiHealth is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1health/get]
+    # specarch-problem: warning: test_red_missing: operation getApiHealth has no red scenario; add one under tests, for example get-api-health-refused: { operation: getApiHealth, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1api~1health/get]
+    get:
+      operationId: getApiHealth
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/src/app.ts:11', says: Registers GET /api/health.}
+        - {source: code, clause: 'server/src/app.ts:9', says: Mounts the router that registers GET /api/health.}
+  /api/tickets:
+    # specarch-problem: warning: test_case_missing: operation list has no red scenario for "denied without tickets.read"; add under tests list-denied-without-tickets-read: { operation: list, scenario: red, covers: [denied without tickets.read], given: "a caller without tickets.read", when: "list is called", then: "it is refused as not allowed" } [test_case_missing@design/paths.yaml#/paths/~1api~1tickets/get]
+    # specarch-problem: warning: test_golden_missing: operation list has no golden scenario; add one under tests, for example list-succeeds: { operation: list, scenario: golden, given: "a caller with tickets.read", when: "list is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1tickets/get]
+    get:
+      operationId: list
+      permission: tickets.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/src/routes/tickets.ts:12', says: Registers GET /api/tickets; its handler is list; its middleware checks tickets.read.}
+        - {source: code, clause: 'server/src/app.ts:9', says: Mounts the router that registers GET /api/tickets.}
+        - {source: code, clause: 'server/src/app.ts:10', says: Mounts the router that registers GET /api/tickets.}
+        - {source: code, clause: 'server/src/routes/tickets.ts:8', says: The handler list.}
+  /api/tickets/{ticketId}:
+    parameters:
+      - {name: ticketId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation getApiTicketsByTicketId has no red scenario for "not found ticketId"; add under tests get-api-tickets-by-ticket-id-not-found-ticket-id: { operation: getApiTicketsByTicketId, scenario: red, covers: [not found ticketId], given: "no record has that ticketId", when: "getApiTicketsByTicketId is called with that ticketId", then: "it is refused as not found" } [test_case_missing.33c330f4@design/paths.yaml#/paths/~1api~1tickets~1{ticketId}/get]
+    # specarch-problem: warning: test_case_missing: operation getApiTicketsByTicketId has no red scenario for "denied without tickets.read"; add under tests get-api-tickets-by-ticket-id-denied-without-tickets-read: { operation: getApiTicketsByTicketId, scenario: red, covers: [denied without tickets.read], given: "a caller without tickets.read", when: "getApiTicketsByTicketId is called", then: "it is refused as not allowed" } [test_case_missing.de056a31@design/paths.yaml#/paths/~1api~1tickets~1{ticketId}/get]
+    # specarch-problem: warning: test_golden_missing: operation getApiTicketsByTicketId has no golden scenario; add one under tests, for example get-api-tickets-by-ticket-id-succeeds: { operation: getApiTicketsByTicketId, scenario: golden, given: "a caller with tickets.read", when: "getApiTicketsByTicketId is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1tickets~1{ticketId}/get]
+    get:
+      operationId: getApiTicketsByTicketId
+      permission: tickets.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/src/routes/tickets.ts:13', says: 'Registers GET /api/tickets/{ticketId}; its middleware checks tickets.read.'}
+        - {source: code, clause: 'server/src/app.ts:9', says: 'Mounts the router that registers GET /api/tickets/{ticketId}.'}
+        - {source: code, clause: 'server/src/app.ts:10', says: 'Mounts the router that registers GET /api/tickets/{ticketId}.'}
+    # specarch-problem: warning: test_case_missing: operation deleteApiTicketsByTicketId has no red scenario for "not found ticketId"; add under tests delete-api-tickets-by-ticket-id-not-found-ticket-id: { operation: deleteApiTicketsByTicketId, scenario: red, covers: [not found ticketId], given: "no record has that ticketId", when: "deleteApiTicketsByTicketId is called with that ticketId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1api~1tickets~1{ticketId}/delete]
+    # specarch-problem: warning: test_golden_missing: operation deleteApiTicketsByTicketId has no golden scenario; add one under tests, for example delete-api-tickets-by-ticket-id-succeeds: { operation: deleteApiTicketsByTicketId, scenario: golden, given: "any caller", when: "deleteApiTicketsByTicketId is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1tickets~1{ticketId}/delete]
+    delete:
+      operationId: deleteApiTicketsByTicketId
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/src/routes/tickets.ts:22', says: 'Registers DELETE /api/tickets/{ticketId}.'}
+        - {source: code, clause: 'server/src/app.ts:9', says: 'Mounts the router that registers DELETE /api/tickets/{ticketId}.'}
+        - {source: code, clause: 'server/src/app.ts:10', says: 'Mounts the router that registers DELETE /api/tickets/{ticketId}.'}
+  /api/tickets/{ticketId}/replies:
+    parameters:
+      - {name: ticketId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation postApiTicketsByTicketIdReplies has no red scenario for "missing text"; add under tests post-api-tickets-by-ticket-id-replies-missing-text: { operation: postApiTicketsByTicketIdReplies, scenario: red, covers: [missing text], given: "...", when: "postApiTicketsByTicketIdReplies is called without text", then: "it is refused" } [test_case_missing.420028fc@design/paths.yaml#/paths/~1api~1tickets~1{ticketId}~1replies/post]
+    # specarch-problem: warning: test_case_missing: operation postApiTicketsByTicketIdReplies has no red scenario for "not found ticketId"; add under tests post-api-tickets-by-ticket-id-replies-not-found-ticket-id: { operation: postApiTicketsByTicketIdReplies, scenario: red, covers: [not found ticketId], given: "no record has that ticketId", when: "postApiTicketsByTicketIdReplies is called with that ticketId", then: "it is refused as not found" } [test_case_missing.7304e15b@design/paths.yaml#/paths/~1api~1tickets~1{ticketId}~1replies/post]
+    # specarch-problem: warning: test_golden_missing: operation postApiTicketsByTicketIdReplies has no golden scenario; add one under tests, for example post-api-tickets-by-ticket-id-replies-succeeds: { operation: postApiTicketsByTicketIdReplies, scenario: golden, given: "any caller", when: "postApiTicketsByTicketIdReplies is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1tickets~1{ticketId}~1replies/post]
+    post:
+      operationId: postApiTicketsByTicketIdReplies
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/schemas/NewReply'}}
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/src/routes/tickets.ts:16', says: 'Registers POST /api/tickets/{ticketId}/replies.'}
+        - {source: code, clause: 'server/src/app.ts:9', says: 'Mounts the router that registers POST /api/tickets/{ticketId}/replies.'}
+        - {source: code, clause: 'server/src/app.ts:10', says: 'Mounts the router that registers POST /api/tickets/{ticketId}/replies.'}
+  /api/tickets/{ticketId}/state:
+    parameters:
+      - {name: ticketId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation putApiTicketsByTicketIdState has no red scenario for "not found ticketId"; add under tests put-api-tickets-by-ticket-id-state-not-found-ticket-id: { operation: putApiTicketsByTicketIdState, scenario: red, covers: [not found ticketId], given: "no record has that ticketId", when: "putApiTicketsByTicketIdState is called with that ticketId", then: "it is refused as not found" } [test_case_missing.0166799f@design/paths.yaml#/paths/~1api~1tickets~1{ticketId}~1state/put]
+    # specarch-problem: warning: test_case_missing: operation putApiTicketsByTicketIdState has no red scenario for "denied without tickets.read"; add under tests put-api-tickets-by-ticket-id-state-denied-without-tickets-read: { operation: putApiTicketsByTicketIdState, scenario: red, covers: [denied without tickets.read], given: "a caller without tickets.read", when: "putApiTicketsByTicketIdState is called", then: "it is refused as not allowed" } [test_case_missing.7e5eff94@design/paths.yaml#/paths/~1api~1tickets~1{ticketId}~1state/put]
+    # specarch-problem: warning: test_golden_missing: operation putApiTicketsByTicketIdState has no golden scenario; add one under tests, for example put-api-tickets-by-ticket-id-state-succeeds: { operation: putApiTicketsByTicketIdState, scenario: golden, given: "a caller with tickets.read", when: "putApiTicketsByTicketIdState is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1tickets~1{ticketId}~1state/put]
+    put:
+      operationId: putApiTicketsByTicketIdState
+      permission: tickets.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/src/routes/tickets.ts:19', says: 'Registers PUT /api/tickets/{ticketId}/state; its middleware checks tickets.read.'}
+        - {source: code, clause: 'server/src/app.ts:9', says: 'Mounts the router that registers PUT /api/tickets/{ticketId}/state.'}
+        - {source: code, clause: 'server/src/app.ts:10', says: 'Mounts the router that registers PUT /api/tickets/{ticketId}/state.'}

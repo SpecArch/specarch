@@ -18,6 +18,7 @@ type swField struct {
 	model    string // the model type of the files read it refers to, through an array too
 	array    bool
 	held     string // why the meta-model cannot hold it, "" when it can
+	optional bool   // a TypeScript union with undefined: a field that may be left out
 	asks     []swAsk
 }
 

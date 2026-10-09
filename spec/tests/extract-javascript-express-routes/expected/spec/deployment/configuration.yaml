@@ -1,0 +1,16 @@
+configuration:
+  closePermission:
+    schema: {type: string, default: tickets.close}
+    origin: stated
+    cites:
+      - {source: code, clause: 'server/src/routes/tickets.ts:22', says: 'Reads process.env.CLOSE_PERMISSION, "tickets.close" when it is not set.'}
+  debugRoutes:
+    schema: {type: boolean}
+    origin: stated
+    cites:
+      - {source: code, clause: 'server/src/app.ts:20', says: Reads process.env.DEBUG_ROUTES.}
+  port:
+    schema: {type: number, default: 3000}
+    origin: stated
+    cites:
+      - {source: code, clause: 'server/src/app.ts:27', says: 'Reads process.env.PORT, "3000" when it is not set.'}

@@ -1,0 +1,137 @@
+questions:
+  # specarch-problem: question: open_question: (should, decision) service/src/app.js:32 loads a module with require of plugin, which is not a literal. Which module does it load, and what does that module register? It blocks design. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: service/src/app.js:32 loads a module with require of plugin, which is not a literal. Which module does it load, and what does that module register?
+    kind: decision
+    priority: should
+    blocks: [design]
+    decidedBy: system-owner
+    why: A module named at run time is not known by syntax, so what it declares is not read.
+    cites:
+      - {source: code, clause: 'service/src/app.js:32', says: Loads a module by a computed name.}
+  # specarch-problem: question: open_question: (should, decision) service/src/app.js:33 loads a module with a dynamic import() of `./locales/${process.env.LANG}.js`, which is not a literal. Which module does it load, and what does that module register? It blocks design. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: service/src/app.js:33 loads a module with a dynamic import() of `./locales/${process.env.LANG}.js`, which is not a literal. Which module does it load, and what does that module register?
+    kind: decision
+    priority: should
+    blocks: [design]
+    decidedBy: system-owner
+    why: A module named at run time is not known by syntax, so what it declares is not read.
+    cites:
+      - {source: code, clause: 'service/src/app.js:33', says: Loads a module by a computed name.}
+  # specarch-problem: question: open_question: (should, decision) service/src/app.js:35 exports a value under name, a name computed at run time. Which names does the module export there, and what are they? It blocks design. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: service/src/app.js:35 exports a value under name, a name computed at run time. Which names does the module export there, and what are they?
+    kind: decision
+    priority: should
+    blocks: [design]
+    decidedBy: system-owner
+    why: An export named at run time is not known by syntax, so what imports it is not followed.
+    cites:
+      - {source: code, clause: 'service/src/app.js:35', says: Exports under a computed name.}
+  # specarch-problem: question: open_question: (must, decision) What does POST /parts do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: What does POST /parts do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1parts/post/summary', '#/paths/~1parts/post/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /parts? It is declared at service/src/app.js:18, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: Does the running system register POST /parts? It is declared at service/src/app.js:18, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1parts/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'service/src/app.js:18', says: Registers POST /parts.}
+  # specarch-problem: question: open_question: (must, decision) The handler of POST /parts/import uses its body whole, with no validation schema or type the reader reads. What is the body? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: The handler of POST /parts/import uses its body whole, with no validation schema or type the reader reads. What is the body?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1parts~1import/post/requestBody']
+    decidedBy: system-owner
+    why: A body's fields are read from a schema, a declared type or the fields the handler reads, and none is there.
+    cites:
+      - {source: code, clause: 'service/src/app.js:23', says: Registers POST /parts/import.}
+  # specarch-problem: question: open_question: (must, decision) What does POST /parts/import do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: What does POST /parts/import do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1parts~1import/post/summary', '#/paths/~1parts~1import/post/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /parts/import? It is declared at service/src/app.js:23, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: Does the running system register POST /parts/import? It is declared at service/src/app.js:23, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1parts~1import/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'service/src/app.js:23', says: Registers POST /parts/import.}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /parts/{partId}/moves take: partId? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: 'What values does each path parameter of /parts/{partId}/moves take: partId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1parts~1{partId}~1moves/parameters/0/schema']
+    decidedBy: system-owner
+    why: Express names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) The handler of POST /parts/{partId}/moves reads quantity and location of its body, with no validation schema or declared type. Which type is each, and which are required? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: The handler of POST /parts/{partId}/moves reads quantity and location of its body, with no validation schema or declared type. Which type is each, and which are required?
+    kind: decision
+    priority: must
+    blocks: ['#/schemas/PostPartsByPartIdMovesBody/properties/quantity', '#/schemas/PostPartsByPartIdMovesBody/properties/location', '#/schemas/PostPartsByPartIdMovesBody/required']
+    decidedBy: system-owner
+    why: The code names the fields it reads and not their types, which plain JavaScript does not declare.
+    cites:
+      - {source: code, clause: 'service/src/app.js:20', says: Reads req.body.quantity.}
+  # specarch-problem: question: open_question: (must, decision) What does POST /parts/{partId}/moves do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: What does POST /parts/{partId}/moves do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1parts~1{partId}~1moves/post/summary', '#/paths/~1parts~1{partId}~1moves/post/responses']
+    decidedBy: system-owner
+    why: A registration names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /parts/{partId}/moves? It is declared at service/src/app.js:19, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: Does the running system register POST /parts/{partId}/moves? It is declared at service/src/app.js:19, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1parts~1{partId}~1moves/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'service/src/app.js:19', says: 'Registers POST /parts/{partId}/moves.'}
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: parts.write? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: 'What does each permission allow: parts.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/parts.write/description']
+    decidedBy: system-owner
+    why: The source names the permission a route checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: parts.write? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: 'Which role grants each permission: parts.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/parts.write']
+    decidedBy: system-owner
+    why: The source names the permission a route checks and not who holds it.
+  # specarch-problem: question: open_question: (must, decision) Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale? Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
+    question: 'Which width does each of these numbers take: int32, int64 within 2^53 or carried as text, or a double or a decimal with its precision and scale?'
+    kind: decision
+    priority: must
+    blocks: ['#/schemas/NewPart/properties/count/format']
+    decidedBy: system-owner
+    why: A JavaScript number has no width, and the meta-model needs one; choosing one would be a guess.

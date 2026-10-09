@@ -1,0 +1,16 @@
+configuration:
+  lang:
+    schema: {}
+    origin: stated
+    cites:
+      - {source: code, clause: 'service/src/app.js:33', says: Reads process.env.LANG.}
+  partsPlugin:
+    schema: {}
+    origin: stated
+    cites:
+      - {source: code, clause: 'service/src/app.js:31', says: Reads process.env.PARTS_PLUGIN.}
+  port:
+    schema: {type: number, default: 4000}
+    origin: stated
+    cites:
+      - {source: code, clause: 'service/src/app.js:38', says: 'Reads process.env.PORT, 4000 when it is not set.'}

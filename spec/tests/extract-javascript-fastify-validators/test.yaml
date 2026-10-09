@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a code-facts dump of a Fastify service in TypeScript that registers a plugin under a literal prefix; the plugin registers routes with a path and options, with route(), with the check the implementation file names as a preHandler, alone and in a list, with a JSON Schema of the body in a variable and in place, with a body a yup or a joi schema validates, and with a generic that declares the body in place; and module-level object schemas of yup, joi and zod, and an enum of zod, with formats, bounds, enums, defaults, nullable, optional and required fields, a union, a pattern and a coercion"
+when: "extract javascript is run on the dump with the implementation file"
+then: "it writes one operation per route under the plugin's prefix with the permission its preHandler's check names, the body the JSON Schema or the validation schema gives, each object schema as a schema named after its variable and the enum as an enum; asks a must question on each route's summary and responses, its parameters' values, whether the running system registers it and its permission where no check gives it, and on the width of each number without bounds; asks a should question on the pattern, the coercion and the body declared in place; prints a line for the union; and exits 0"
+verifies: [SA-44]

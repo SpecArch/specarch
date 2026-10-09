@@ -1,0 +1,28 @@
+enums:
+  Condition:
+    type: string
+    enum: [new, used]
+    origin: stated
+    cites:
+      - {source: code, clause: 'service/src/types.js:2', says: 'The JSDoc @typedef Condition is the strings new, used.'}
+schemas:
+  PostPartsByPartIdMovesBody:
+    type: object
+    properties:
+      quantity: {}
+      location: {}
+    origin: stated
+    cites:
+      - {source: code, clause: 'service/src/app.js:20', says: Reads req.body.quantity.}
+      - {source: code, clause: 'service/src/app.js:20', says: Reads req.body.location.}
+  NewPart:
+    type: object
+    properties:
+      name: {type: string}
+      condition: {$ref: '#/enums/Condition'}
+      count: {type: number}
+      note: {type: [string, "null"]}
+    required: [name, condition]
+    origin: stated
+    cites:
+      - {source: code, clause: 'service/src/types.js:7', says: The JSDoc @typedef NewPart.}

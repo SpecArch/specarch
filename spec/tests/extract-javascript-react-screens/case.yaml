@@ -1,0 +1,17 @@
+arguments: [extract, javascript, --out, spec, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [web]
+    - [facts.json]
+exitStatus: 0
+standardOutput: |
+  commit ddfbc6f9e488549d39033d3f804a3a7ba492e253: the last change to web, as the code-facts dump facts.json names it
+  counted 8 source files, 0 of them with syntax the TypeScript compiler could not read, 0 configuration files and 80 facts: every tracked JavaScript and TypeScript file under web, its tsconfig.json and jsconfig.json files, and every fact the dump holds
+  screens: counted 8 routes: every route with a path that a router of React Router declares, in a list or as a <Route>
+  catalogues: read the message catalogues of en and fr; a page's text is read in en, as web/src/i18n.ts:6 names it
+  nothing read: web/src/i18n.ts imports i18next and react-i18next, and the reader found nothing in it on a surface it reads
+  nothing read: web/src/pages/Layout.tsx imports react-router-dom, and the reader found nothing in it on a surface it reads
+  wrote 5 pages, 0 schemas, 0 enums, 0 operations, 0 dependencies, 0 settings and 21 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  not held: web/src/locales/fr.json: the message catalogue web/src/locales/fr.json is of the locale fr, and the meta-model holds one language, en; left out; could question Q-20
+  not held: web/src/router.tsx:18: the route /files/*: the segment * matches anything after it, and a path parameter holds one segment; left out; could question Q-21

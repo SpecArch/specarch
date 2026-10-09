@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: JavaScript and TypeScript source of api
+  version: 0.1.0
+  description: |
+    The JavaScript and TypeScript source under api, read at commit 594fb70913cfdc48bbb2f790d0b3770723e89c3b by the TypeScript compiler 6.0.3 through the code-facts dump, by its syntax and the types it declares, with the message catalogues there read as data. Every element cites the line that declares it; what the source does not say as a literal, or through an idiom the reader knows, is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 594fb70913cfdc48bbb2f790d0b3770723e89c3b
+    url: ../repo
+    clauses:
+      - {clause: api/src/access.ts, title: 'TypeScript source, read by its syntax and its declared types'}
+      - {clause: api/src/notes.ts, title: 'TypeScript source, read by its syntax and its declared types'}
+      - {clause: api/src/schemas.ts, title: 'TypeScript source, read by its syntax and its declared types'}
+      - {clause: api/src/server.ts, title: 'TypeScript source, read by its syntax and its declared types'}
+    reading: parsed

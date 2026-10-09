@@ -1,0 +1,62 @@
+enums:
+  Colour:
+    type: string
+    enum: [plain, yellow, blue]
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/src/schemas.ts:30', says: 'colourSchema is a zod enum of plain, yellow, blue.'}
+schemas:
+  Note:
+    type: object
+    properties:
+      title: {type: string, maxLength: 120}
+      pinned: {type: boolean}
+      colour: {type: string, enum: [plain, yellow, blue]}
+      due: {type: [string, "null"], format: date-time}
+      tags: {type: array, items: {type: string}}
+    required: [title]
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/src/schemas.ts:5', says: noteSchema is a yup object schema.}
+  Comment:
+    type: object
+    properties:
+      text: {type: string, minLength: 1, maxLength: 500}
+      author: {type: string, format: email}
+      rating: {type: integer, minimum: 1, maximum: 5, format: int32}
+      visibility: {type: string, enum: [public, team]}
+    required: [text]
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/src/schemas.ts:13', says: commentSchema is a joi object schema.}
+  Search:
+    type: object
+    properties:
+      q: {type: string, minLength: 2}
+      page: {type: integer, exclusiveMinimum: 0}
+      sort: {type: string, enum: [newest, oldest], default: newest}
+      slug: {type: string}
+      from: {type: string, format: date-time}
+      colour: {$ref: '#/enums/Colour'}
+    required: [q, slug, from, colour]
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/src/schemas.ts:20', says: searchSchema is a zod object schema.}
+  NewNoteBody:
+    type: object
+    properties:
+      title: {type: string, maxLength: 120}
+      pinned: {type: boolean, default: false}
+      colour: {type: string, enum: [plain, yellow, blue]}
+      weight: {type: integer, minimum: 0, maximum: 10, format: int32}
+    required: [title]
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/src/notes.ts:5', says: newNoteBody is a JSON Schema of an object.}
+  PatchNotesByNoteIdBody:
+    type: object
+    properties:
+      title: {type: string}
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/src/notes.ts:33', says: 'The route''s schema gives the body of PATCH /notes/{noteId}.'}

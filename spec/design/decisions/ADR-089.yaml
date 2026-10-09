@@ -1,0 +1,111 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-089:
+    title: extract javascript reads a code-facts dump that the TypeScript compiler 6.0.3 wrote over the tracked files alone, and turns its facts into routes, bodies, schemas, screens, clients and settings in Go, reading JSDoc types only under checkJs
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Step 18 of docs/extraction.md reads JavaScript and TypeScript,
+      the second language read through a code-facts dump (ADR-075,
+      ADR-087). docs/reading-code.md chose the TypeScript compiler for
+      its type checker and because every TypeScript tool parses with it.
+      Open were the release to pin, how a program is built when no
+      package is installed, what the dump holds so that Vue (step 20)
+      can join it, how the idioms of Express, Fastify, zod, yup, joi,
+      React Router, react-hook-form, Formik, fetch, axios and the message
+      catalogues fit meta-model 0.1, and what plain JavaScript loses.
+      The 7.x releases of the compiler are a native port: the npm
+      package ships one binary per platform and exposes only entry
+      points named unstable. The 6.0 line is the last whose compiler API
+      (createProgram, the checker) is the stable one and whose package
+      has no dependency. In JavaScript files the compiler takes types
+      from JSDoc comments whether or not checkJs is on; only with checkJs
+      does it report where the code disagrees with them.
+    decision: |
+      readers/javascript is a Node program that pins typescript 6.0.3
+      exactly with package-lock.json committed; specarch pins the same
+      version and refuses a dump another one made. The dump keeps the
+      format of ADR-087 (codeFacts 1) with the language javascript. The
+      program is built over the files dump-javascript.sh lists, the
+      tracked sources and configuration files of a committed folder,
+      with a compiler host that reads those files and the library
+      TypeScript ships and refuses every other read, so node_modules is
+      never read and a package's names are known only by the import
+      that names them. The options are fixed (allowJs, strict, bundler
+      resolution, JSX preserved) with the module paths of the
+      configuration nearest the folder's root, so the same files give
+      the same facts on every machine. The facts are syntax with what
+      the checker resolves: a name carries the import that binds it and
+      the declaration among the files read, a parameter the function it
+      belongs to; types are written as the source states them, from
+      TypeScript's syntax or a JSDoc comment, with which one it was.
+
+      In Go, Express applications and routers and Fastify instances and
+      plugins are followed from where they are made, through use and
+      register, with literal prefixes; the permission is read through the
+      checks the implementation file names, matched by function and by
+      module (a package's name, or the declaring file's path from the
+      folder without its extension). A body comes from a validation
+      schema the handler applies, Fastify's JSON Schema, the declared
+      request type, or the fields the handler reads, in that order. zod,
+      yup and joi object schemas of module-level variables are schemas
+      named after the variable. React Router's routes are pages with
+      their route; headings, form-library bindings and links give the
+      title, fields and navigate actions, text from the default locale's
+      catalogue. A JSDoc type is read as stated only under checkJs, and
+      is otherwise a should question quoting the comment.
+    why: |
+      Pinning 6.0.3 keeps the reader on an API that is documented and
+      stable, and on a package with no dependency, so the SBOM is one
+      package and nothing is fetched per platform; 7.x would tie the
+      dump to an interface its authors mark unstable. A newer compiler
+      may parse the same code into other nodes, so the version is held
+      to the release as SwiftSyntax's is.
+
+      Reading the tracked files alone is ADR-075's rule, and a host that
+      refuses other reads enforces it instead of trusting the folder to
+      hold no node_modules. It costs every type a package declares, so
+      the idiom table keys on an import's module and name, which syntax
+      gives, and not on the checker's types, which would be any. Fixed
+      options keep the facts from depending on a configuration a package
+      holds; checkJs is still read from each configuration file, since
+      it decides how a JSDoc type is taken.
+
+      The order of a body's sources follows what is checked at run time:
+      a validation schema is applied to every request in both languages,
+      so it is stated in both, and a JavaScript service with zod reads
+      the same as its TypeScript twin. A declared type is a promise the
+      compiler holds the code to, so it comes next. Fields read by name
+      are what is left in plain JavaScript; writing them with no type
+      keeps the definition readable and the types are one question. A
+      JSDoc comment under checkJs is held to the code just as a
+      TypeScript annotation is; without checkJs nothing holds it, and a
+      comment that no longer says what the code does would be a
+      confident wrong value, which the compiler principle forbids, so it
+      is quoted and asked.
+
+      A JavaScript number has no width, as an OpenAPI number with no
+      format has none, so its width is asked, once for every number of
+      the design and once for each setting, never guessed as a double.
+      zod's properties are required unless optional and yup's and joi's
+      only when required, because that is what each library checks. The
+      router of React Router is what makes a component a screen, and a
+      route is a page's route as the pages reader writes one; a link's
+      text in the default locale is the label a person reads.
+
+      Every surface is read from one dump with no build, no install and
+      no browser, so a result shows early, and each guess is a question
+      at its line, so a change someone asks for on seeing a screen or an
+      operation is an answer to that question.
+    consequences: |
+      An Express, Fastify or React project is read from a committed dump;
+      CI needs no Node. Running the reader needs Node and installs the
+      compiler once with npm ci. A compiler upgrade is a release that
+      makes every dump again. A client call to this system's own path is
+      a should question until a question can name a method and a path;
+      the implementation file names only permission checks, so a
+      project's client wrapper, its component library's inputs and plain
+      pages a file name gives wait for a key of their own. ORM models
+      (Prisma, TypeORM, Sequelize), Next.js file content (step 19) and Vue
+      (step 20) are read in later steps; Vue's script joins this program.
+    satisfies: [SA-44]

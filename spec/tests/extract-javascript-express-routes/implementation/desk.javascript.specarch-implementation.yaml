@@ -1,0 +1,20 @@
+specarchImplementation: "0.1"
+
+info:
+  title: The desk service in TypeScript
+  version: 0.1.0
+
+implements:
+  file: ../specarch.yaml
+  version: 0.1.0
+
+stack:
+  language: { name: TypeScript, version: "6.0" }
+
+bindings:
+  http:
+    framework: Express
+    permissionChecks:
+      - package: src/guard
+        function: allow
+        permissionArgument: 1

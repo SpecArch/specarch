@@ -1,0 +1,18 @@
+arguments: [extract, javascript, --implementation, implementation/desk.javascript.specarch-implementation.yaml, --out, spec, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [server]
+    - [facts.json]
+exitStatus: 0
+standardOutput: |
+  commit a699d8adaf4b9a014190d41759390d4757acf35f: the last change to server, as the code-facts dump facts.json names it
+  checks: implementation/desk.javascript.specarch-implementation.yaml names the permission check src/guard.allow
+  counted 6 source files, 0 of them with syntax the TypeScript compiler could not read, 1 configuration file and 69 facts: every tracked JavaScript and TypeScript file under server, its tsconfig.json and jsconfig.json files, and every fact the dump holds
+  routes: counted 15 registrations: every call of get, post, put, patch, delete, options, head, all or route with a path and a handler on an Express or Fastify router the reader follows, or on another value
+  settings: counted 3 reads: every read of process.env or import.meta.env
+  wrote 0 pages, 2 schemas, 1 enum, 6 operations, 0 dependencies, 3 settings and 35 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  not held: server/src/app.ts:12: the route GET /files/*: the segment * matches anything after it, and a path parameter holds one segment; left out; could question Q-32
+  not held: server/src/app.ts:13: the route GET /users/:userId?: the parameter :userId? is optional, and a path parameter is always there; left out; could question Q-33
+  not held: server/src/app.ts:14: the route ALL /ping: the method ALL has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out; could question Q-34
+  not held: server/src/types.ts:11: Ticket.extra: the type Record, which a field does not hold; left out; could question Q-35

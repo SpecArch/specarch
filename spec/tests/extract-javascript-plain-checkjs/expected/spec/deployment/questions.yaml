@@ -1,0 +1,39 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which type is the setting LANG? The code reads it by name, and nothing read gives its value or a type. Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: Which type is the setting LANG? The code reads it by name, and nothing read gives its value or a type.
+    kind: decision
+    priority: must
+    blocks: ['#/configuration/lang/schema']
+    decidedBy: system-owner
+    why: A setting has a type, and nothing read gives it.
+    cites:
+      - {source: code, clause: 'service/src/app.js:33', says: Reads LANG.}
+  # specarch-problem: question: open_question: (must, decision) Which type is the setting PARTS_PLUGIN? The code reads it by name, and nothing read gives its value or a type. Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: Which type is the setting PARTS_PLUGIN? The code reads it by name, and nothing read gives its value or a type.
+    kind: decision
+    priority: must
+    blocks: ['#/configuration/partsPlugin/schema']
+    decidedBy: system-owner
+    why: A setting has a type, and nothing read gives it.
+    cites:
+      - {source: code, clause: 'service/src/app.js:31', says: Reads PARTS_PLUGIN.}
+  # specarch-problem: question: open_question: (must, decision) The setting PORT is read as a number, and a JavaScript number has no width. Which width does it take: int32, int64 within 2^53, or a double? Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
+    question: 'The setting PORT is read as a number, and a JavaScript number has no width. Which width does it take: int32, int64 within 2^53, or a double?'
+    kind: decision
+    priority: must
+    blocks: ['#/configuration/port/schema/format']
+    decidedBy: system-owner
+    why: Every number in a specification has a width, and the code states none.
+    cites:
+      - {source: code, clause: 'service/src/app.js:38', says: Reads PORT as a number.}
+  # specarch-problem: question: open_question: (must, decision) What is each setting for, where does its value come from, and is it a secret: LANG, PARTS_PLUGIN, PORT? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
+    question: 'What is each setting for, where does its value come from, and is it a secret: LANG, PARTS_PLUGIN, PORT?'
+    kind: decision
+    priority: must
+    blocks: ['#/configuration/lang/description', '#/configuration/lang/secret', '#/configuration/partsPlugin/description', '#/configuration/partsPlugin/secret', '#/configuration/port/description', '#/configuration/port/secret']
+    decidedBy: system-owner
+    why: The source names the settings it reads and not what they are for.

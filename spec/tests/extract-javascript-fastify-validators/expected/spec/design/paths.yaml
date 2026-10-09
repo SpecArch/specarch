@@ -1,0 +1,95 @@
+permissions:
+  notes.read:
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/src/notes.ts:21', says: GET /notes checks notes.read.}
+  notes.write:
+    origin: stated
+    cites:
+      - {source: code, clause: 'api/src/notes.ts:22', says: 'POST /notes and PUT /notes/{noteId} check notes.write.'}
+paths:
+  /notes:
+    # specarch-problem: warning: test_case_missing: operation getNotes has no red scenario for "denied without notes.read"; add under tests get-notes-denied-without-notes-read: { operation: getNotes, scenario: red, covers: [denied without notes.read], given: "a caller without notes.read", when: "getNotes is called", then: "it is refused as not allowed" } [test_case_missing@design/paths.yaml#/paths/~1notes/get]
+    # specarch-problem: warning: test_golden_missing: operation getNotes has no golden scenario; add one under tests, for example get-notes-succeeds: { operation: getNotes, scenario: golden, given: "a caller with notes.read", when: "getNotes is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1notes/get]
+    get:
+      operationId: getNotes
+      permission: notes.read
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/src/notes.ts:21', says: Registers GET /notes; its middleware checks notes.read.}
+        - {source: code, clause: 'api/src/server.ts:5', says: Registers the plugin that registers GET /notes.}
+    # specarch-problem: warning: test_case_missing: operation postNotes has no red scenario for "missing title"; add under tests post-notes-missing-title: { operation: postNotes, scenario: red, covers: [missing title], given: "...", when: "postNotes is called without title", then: "it is refused" } [test_case_missing.7d6bbb15@design/paths.yaml#/paths/~1notes/post]
+    # specarch-problem: warning: test_case_missing: operation postNotes has no red scenario for "colour not one of its values"; add under tests post-notes-colour-not-one-of-its-values: { operation: postNotes, scenario: red, covers: [colour not one of its values], given: "...", when: "postNotes is called with colour set to a value it does not allow", then: "it is refused" } [test_case_missing.b8bb44f6@design/paths.yaml#/paths/~1notes/post]
+    # specarch-problem: warning: test_case_missing: operation postNotes has no red scenario for "denied without notes.write"; add under tests post-notes-denied-without-notes-write: { operation: postNotes, scenario: red, covers: [denied without notes.write], given: "a caller without notes.write", when: "postNotes is called", then: "it is refused as not allowed" } [test_case_missing.d29676ed@design/paths.yaml#/paths/~1notes/post]
+    # specarch-problem: warning: test_golden_missing: operation postNotes has no golden scenario; add one under tests, for example post-notes-succeeds: { operation: postNotes, scenario: golden, given: "a caller with notes.write", when: "postNotes is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1notes/post]
+    post:
+      operationId: postNotes
+      permission: notes.write
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/schemas/NewNoteBody'}}
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/src/notes.ts:22', says: Registers POST /notes; its middleware checks notes.write.}
+        - {source: code, clause: 'api/src/server.ts:5', says: Registers the plugin that registers POST /notes.}
+  /notes/{noteId}:
+    parameters:
+      - {name: noteId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation putNotesByNoteId has no red scenario for "due not a valid date-time"; add under tests put-notes-by-note-id-due-not-a-valid-date-time: { operation: putNotesByNoteId, scenario: red, covers: [due not a valid date-time], given: "...", when: "putNotesByNoteId is called with due that is not a valid date-time", then: "it is refused" } [test_case_missing.1ec74d06@design/paths.yaml#/paths/~1notes~1{noteId}/put]
+    # specarch-problem: warning: test_case_missing: operation putNotesByNoteId has no red scenario for "colour not one of its values"; add under tests put-notes-by-note-id-colour-not-one-of-its-values: { operation: putNotesByNoteId, scenario: red, covers: [colour not one of its values], given: "...", when: "putNotesByNoteId is called with colour set to a value it does not allow", then: "it is refused" } [test_case_missing.260aa82d@design/paths.yaml#/paths/~1notes~1{noteId}/put]
+    # specarch-problem: warning: test_case_missing: operation putNotesByNoteId has no red scenario for "denied without notes.write"; add under tests put-notes-by-note-id-denied-without-notes-write: { operation: putNotesByNoteId, scenario: red, covers: [denied without notes.write], given: "a caller without notes.write", when: "putNotesByNoteId is called", then: "it is refused as not allowed" } [test_case_missing.2e45b95c@design/paths.yaml#/paths/~1notes~1{noteId}/put]
+    # specarch-problem: warning: test_case_missing: operation putNotesByNoteId has no red scenario for "not found noteId"; add under tests put-notes-by-note-id-not-found-note-id: { operation: putNotesByNoteId, scenario: red, covers: [not found noteId], given: "no record has that noteId", when: "putNotesByNoteId is called with that noteId", then: "it is refused as not found" } [test_case_missing.402f4d2d@design/paths.yaml#/paths/~1notes~1{noteId}/put]
+    # specarch-problem: warning: test_case_missing: operation putNotesByNoteId has no red scenario for "missing title"; add under tests put-notes-by-note-id-missing-title: { operation: putNotesByNoteId, scenario: red, covers: [missing title], given: "...", when: "putNotesByNoteId is called without title", then: "it is refused" } [test_case_missing.6b884034@design/paths.yaml#/paths/~1notes~1{noteId}/put]
+    # specarch-problem: warning: test_golden_missing: operation putNotesByNoteId has no golden scenario; add one under tests, for example put-notes-by-note-id-succeeds: { operation: putNotesByNoteId, scenario: golden, given: "a caller with notes.write", when: "putNotesByNoteId is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1notes~1{noteId}/put]
+    put:
+      operationId: putNotesByNoteId
+      permission: notes.write
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/schemas/Note'}}
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/src/notes.ts:23', says: 'Registers PUT /notes/{noteId}; its middleware checks notes.write.'}
+        - {source: code, clause: 'api/src/server.ts:5', says: 'Registers the plugin that registers PUT /notes/{noteId}.'}
+        - {source: code, clause: 'api/src/notes.ts:27', says: The handler.}
+    # specarch-problem: warning: test_case_missing: operation patchNotesByNoteId has no red scenario for "not found noteId"; add under tests patch-notes-by-note-id-not-found-note-id: { operation: patchNotesByNoteId, scenario: red, covers: [not found noteId], given: "no record has that noteId", when: "patchNotesByNoteId is called with that noteId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1notes~1{noteId}/patch]
+    # specarch-problem: warning: test_golden_missing: operation patchNotesByNoteId has no golden scenario; add one under tests, for example patch-notes-by-note-id-succeeds: { operation: patchNotesByNoteId, scenario: golden, given: "any caller", when: "patchNotesByNoteId is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1notes~1{noteId}/patch]
+    patch:
+      operationId: patchNotesByNoteId
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/schemas/PatchNotesByNoteIdBody'}}
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/src/notes.ts:33', says: 'Registers PATCH /notes/{noteId}.'}
+        - {source: code, clause: 'api/src/server.ts:5', says: 'Registers the plugin that registers PATCH /notes/{noteId}.'}
+        - {source: code, clause: 'api/src/notes.ts:37', says: The handler.}
+  /notes/{noteId}/comments:
+    parameters:
+      - {name: noteId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation postNotesByNoteIdComments has no red scenario for "author not a valid email"; add under tests post-notes-by-note-id-comments-author-not-a-valid-email: { operation: postNotesByNoteIdComments, scenario: red, covers: [author not a valid email], given: "...", when: "postNotesByNoteIdComments is called with author that is not a valid email", then: "it is refused" } [test_case_missing.1fc0d4eb@design/paths.yaml#/paths/~1notes~1{noteId}~1comments/post]
+    # specarch-problem: warning: test_case_missing: operation postNotesByNoteIdComments has no red scenario for "not found noteId"; add under tests post-notes-by-note-id-comments-not-found-note-id: { operation: postNotesByNoteIdComments, scenario: red, covers: [not found noteId], given: "no record has that noteId", when: "postNotesByNoteIdComments is called with that noteId", then: "it is refused as not found" } [test_case_missing.78526fd2@design/paths.yaml#/paths/~1notes~1{noteId}~1comments/post]
+    # specarch-problem: warning: test_case_missing: operation postNotesByNoteIdComments has no red scenario for "missing text"; add under tests post-notes-by-note-id-comments-missing-text: { operation: postNotesByNoteIdComments, scenario: red, covers: [missing text], given: "...", when: "postNotesByNoteIdComments is called without text", then: "it is refused" } [test_case_missing.a3c9b13b@design/paths.yaml#/paths/~1notes~1{noteId}~1comments/post]
+    # specarch-problem: warning: test_case_missing: operation postNotesByNoteIdComments has no red scenario for "visibility not one of its values"; add under tests post-notes-by-note-id-comments-visibility-not-one-of-its-values: { operation: postNotesByNoteIdComments, scenario: red, covers: [visibility not one of its values], given: "...", when: "postNotesByNoteIdComments is called with visibility set to a value it does not allow", then: "it is refused" } [test_case_missing.c03ff322@design/paths.yaml#/paths/~1notes~1{noteId}~1comments/post]
+    # specarch-problem: warning: test_golden_missing: operation postNotesByNoteIdComments has no golden scenario; add one under tests, for example post-notes-by-note-id-comments-succeeds: { operation: postNotesByNoteIdComments, scenario: golden, given: "any caller", when: "postNotesByNoteIdComments is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1notes~1{noteId}~1comments/post]
+    post:
+      operationId: postNotesByNoteIdComments
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/schemas/Comment'}}
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/src/notes.ts:29', says: 'Registers POST /notes/{noteId}/comments.'}
+        - {source: code, clause: 'api/src/server.ts:5', says: 'Registers the plugin that registers POST /notes/{noteId}/comments.'}
+  /status:
+    # specarch-problem: warning: test_golden_missing: operation getStatus has no golden scenario; add one under tests, for example get-status-succeeds: { operation: getStatus, scenario: golden, given: "any caller", when: "getStatus is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1status/get]
+    # specarch-problem: warning: test_red_missing: operation getStatus has no red scenario; add one under tests, for example get-status-refused: { operation: getStatus, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1status/get]
+    get:
+      operationId: getStatus
+      origin: stated
+      cites:
+        - {source: code, clause: 'api/src/server.ts:6', says: Registers GET /status.}

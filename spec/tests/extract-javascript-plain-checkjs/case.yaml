@@ -1,0 +1,14 @@
+arguments: [extract, javascript, --implementation, implementation/parts.javascript.specarch-implementation.yaml, --out, spec, repo/facts.json]
+repository:
+  folder: repo
+  commits:
+    - [service]
+    - [facts.json]
+exitStatus: 0
+standardOutput: |
+  commit e89fdc1eace413efd3b2474f1df1d7d0e8605872: the last change to service, as the code-facts dump facts.json names it
+  checks: implementation/parts.javascript.specarch-implementation.yaml names the permission check src/guard.allow
+  counted 3 source files, 0 of them with syntax the TypeScript compiler could not read, 1 configuration file and 44 facts: every tracked JavaScript and TypeScript file under service, its tsconfig.json and jsconfig.json files, and every fact the dump holds
+  routes: counted 3 registrations: every call of get, post, put, patch, delete, options, head, all or route with a path and a handler on an Express or Fastify router the reader follows, or on another value
+  settings: counted 3 reads: every read of process.env or import.meta.env
+  wrote 0 pages, 2 schemas, 1 enum, 3 operations, 0 dependencies, 3 settings and 19 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold

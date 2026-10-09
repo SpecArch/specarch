@@ -1,0 +1,31 @@
+enums:
+  TicketState:
+    type: string
+    enum: [open, answered, closed]
+    origin: stated
+    cites:
+      - {source: code, clause: 'server/src/types.ts:1', says: 'Type TicketState is the strings open, answered, closed.'}
+schemas:
+  Ticket:
+    type: object
+    properties:
+      id: {type: string}
+      subject: {type: string}
+      state: {$ref: '#/enums/TicketState'}
+      opened: {type: string, format: date-time}
+      tags: {type: array, items: {type: string}}
+      assignee: {type: [string, "null"]}
+      priority: {type: number}
+    required: [id, subject, state, opened, tags]
+    origin: stated
+    cites:
+      - {source: code, clause: 'server/src/types.ts:3', says: Interface Ticket.}
+  NewReply:
+    type: object
+    properties:
+      text: {type: string}
+      internal: {type: boolean}
+    required: [text]
+    origin: stated
+    cites:
+      - {source: code, clause: 'server/src/types.ts:14', says: Interface NewReply.}

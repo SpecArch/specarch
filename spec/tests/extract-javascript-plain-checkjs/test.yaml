@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a code-facts dump of an Express service in plain JavaScript, written as CommonJS, whose jsconfig.json turns checkJs on; one handler states its body in JSDoc as a @typedef of the files read, whose fields are a union of strings @typedef, an optional field, a nullable field and a number; one handler reads two fields of its body by destructuring, and one uses its body whole; and the code loads a module by a computed require, a computed dynamic import(), and exports under a computed name"
+when: "extract javascript is run on the dump with the implementation file"
+then: "it writes one operation per route under the router's mount, with the permission the check names; writes the body the JSDoc states as a schema, since checkJs is on, with the union as an enum, and the body whose fields the handler reads as a schema of those fields by name; asks a must question on the types of the fields read by name, on the body used whole and on the width of the number; asks a should question on the computed require, the computed import() and the computed export; and exits 0"
+verifies: [SA-44]

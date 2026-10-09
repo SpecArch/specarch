@@ -461,13 +461,29 @@ changes `extract.yaml` first.
     `extract.sh` merges the two trees. A screen's call joined to the
     operation it calls, by method and path, waits for a question that
     can name a method and path.
-18. JavaScript and TypeScript: `readers/javascript/` on the TypeScript
-    compiler, over tracked files only; Express and Fastify routes, the
-    validation schemas of zod, yup, joi and JSON Schema, React Router and
-    form libraries, fetch and axios clients, `process.env`, message
-    catalogues; and the plain JavaScript part, with JSDoc read only under
-    `checkJs`. A plain JavaScript example and a TypeScript one read the
-    same service, and the questions differ only where types are missing.
+18. Built. JavaScript and TypeScript (ADR-089): `readers/javascript/` on
+    the TypeScript compiler 6.0.3, pinned exactly, Apache-2.0, with no
+    dependency of its own, its SBOM scan clean, run by
+    `tools/code-facts/dump-javascript.sh` over the tracked files of a
+    committed folder and nothing else, so no `node_modules` is read.
+    `extract javascript` reads a committed dump, refused when another
+    compiler version made it, and writes Express and Fastify routes with
+    the permission the project's named check gives, through `use`,
+    `register` and `route`; a request body from a validation schema the
+    handler applies, Fastify's JSON Schema, the declared `Request` or
+    generic, or the fields the handler reads; zod, yup and joi object
+    schemas and enums; the types routes declare as schemas and enums;
+    React Router's routes as pages with their headings, the fields
+    react-hook-form and Formik bind and their links as navigate actions,
+    text from the default locale's message catalogue; fetch and axios
+    calls as dependencies; and `process.env` and `import.meta.env` as
+    settings. A JSDoc type is read as stated only under `checkJs`, and
+    is otherwise a should question quoting the comment.
+    `examples/room-booking` is one Express service in TypeScript and in
+    plain JavaScript; its `extract.sh` reads both and writes the
+    questions only one asks, which are the ones types answer. A call to
+    the system's own path, a project's client wrapper, a component
+    library's inputs and ORM models wait for later steps.
 19. Next.js content on the JavaScript reader: route handlers' and API
     routes' methods, server actions, `middleware.ts`'s matcher and checks,
     `generateStaticParams`, and `page.schema.ts` with imported constants.

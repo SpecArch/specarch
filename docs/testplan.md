@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 373 design tests, 157 golden and 216 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 379 design tests, 161 golden and 218 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.6.0-dev of the specification: 373 design tests, 157 golden and 216 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 369 |
+| system | 375 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -721,6 +721,54 @@ Scenario: golden; level: system; verifies SA-44.
 - Given: a repository holding a Go module whose files register routes on net/http's ServeMux (method patterns, a pattern with no method, one with a host, a rest wildcard, the exact root, a HEAD route, a mux handed a subtree through StripPrefix, a subtree handed to a handler that is not a router, and a pattern built in a loop), on chi (Route, Group, With, Method, Mount of a router a function returns, Handle for every method, a route behind a condition, a parameter with a pattern, a catch-all and a Route with a computed prefix), on gin (nested groups, Handle, Any and a catch-all), on echo (Group, Add and Match) and on gorilla/mux (HandleFunc with Methods, a subrouter under PathPrefix, Path with HandlerFunc, a route with no Methods and one with Queries); handlers that read a path parameter their path does not have; a function given a router that nothing in the module calls; and a file that imports echo and registers nothing; with no implementation file
 - When: extract go is run on the module
 - Then: it writes one operation per route whose method and path it reads as literals, outside a loop or a condition, with the prefixes of groups, routes, mounts, subrouters and StripPrefix joined and each library's parameters written {name}, named after its handler as extract router names one, citing its registration and its handler; asks a must question for the route in a loop, the one behind a condition, the routes for every method, the subtree handed to a handler that is not a router, the computed prefix, the router given to a function nothing calls, each parameter read that the path does not have, each operation's permission, since no implementation file names the check, its summary and responses, and whether the running system registers it; prints a line and asks a could question for the host, the wildcards and catch-alls, the HEAD route, the Queries route, the parameters' patterns and each handler that serves more than one route; names the file that registers nothing; and exits 0
+
+#### extract-javascript-express-routes
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a code-facts dump of an Express service in TypeScript whose application mounts a router under /api, which mounts an imported router under /tickets; that router's use() adds the check the implementation file names, one route adds a second check, one route is made with route(), and one check is given a permission that is not a literal; its handlers declare their request and reply types with Express's Request and Response, one by a type of the files read and one by a type written in place, and one reads a path parameter its path lacks; the application registers a wildcard, an optional parameter, all, the same route twice, a route in a loop, one behind a condition and one whose path is not a literal, and hands itself to a function; and a router nothing mounts
+- When: extract javascript is run on the dump with the implementation file
+- Then: it writes one operation per route with literal segments under a router it follows, named by method and path or after its handler, citing its registration, its mounts and its handler, with the permission of the one check that guards it and the request body its declared type names; writes the declared types the routes name as schemas and the union of strings as an enum, a Date as a date-time, a nullable field, an optional field and an array; asks a must question on each route's summary and responses, naming the declared reply, its parameters' values, whether the running system registers it, its permission where no one check gives it, the route twice, the loop, the condition, the computed path, the router handed to a function, the router nothing mounts, the parameter read that the path lacks, the record type and the width of each number; prints a line for the wildcard, the optional parameter and all, and for each file that imports Express and gives nothing; and exits 0
+
+#### extract-javascript-fastify-validators
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a code-facts dump of a Fastify service in TypeScript that registers a plugin under a literal prefix; the plugin registers routes with a path and options, with route(), with the check the implementation file names as a preHandler, alone and in a list, with a JSON Schema of the body in a variable and in place, with a body a yup or a joi schema validates, and with a generic that declares the body in place; and module-level object schemas of yup, joi and zod, and an enum of zod, with formats, bounds, enums, defaults, nullable, optional and required fields, a union, a pattern and a coercion
+- When: extract javascript is run on the dump with the implementation file
+- Then: it writes one operation per route under the plugin's prefix with the permission its preHandler's check names, the body the JSON Schema or the validation schema gives, each object schema as a schema named after its variable and the enum as an enum; asks a must question on each route's summary and responses, its parameters' values, whether the running system registers it and its permission where no check gives it, and on the width of each number without bounds; asks a should question on the pattern, the coercion and the body declared in place; prints a line for the union; and exits 0
+
+#### extract-javascript-parser-version
+
+Scenario: red; level: system; verifies SA-44.
+
+- Given: a code-facts dump of JavaScript that another version of the TypeScript compiler than the one this release pins made
+- When: extract javascript is run on the dump
+- Then: it refuses the dump, naming the version that made it and the one it reads, writes nothing and exits 1
+
+#### extract-javascript-plain-checkjs
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a code-facts dump of an Express service in plain JavaScript, written as CommonJS, whose jsconfig.json turns checkJs on; one handler states its body in JSDoc as a @typedef of the files read, whose fields are a union of strings @typedef, an optional field, a nullable field and a number; one handler reads two fields of its body by destructuring, and one uses its body whole; and the code loads a module by a computed require, a computed dynamic import(), and exports under a computed name
+- When: extract javascript is run on the dump with the implementation file
+- Then: it writes one operation per route under the router's mount, with the permission the check names; writes the body the JSDoc states as a schema, since checkJs is on, with the union as an enum, and the body whose fields the handler reads as a schema of those fields by name; asks a must question on the types of the fields read by name, on the body used whole and on the width of the number; asks a should question on the computed require, the computed import() and the computed export; and exits 0
+
+#### extract-javascript-react-screens
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a code-facts dump of a React app in TypeScript whose router createBrowserRouter is given a layout route with an index route, literal child paths, a parameter, a component given as Component, a component imported from a package, a catch-all and a lazy route; and whose <Routes> nest a route under a parent path and declare one behind a condition; whose screens have a heading by a literal, by t() with a key the default locale's catalogue holds and by a variable, fields that react-hook-form's register and Formik's Field bind, one by a name that is not a literal, links whose text is t() with a key the catalogue holds, a literal, a key it lacks and a key that is not a literal, a link to a route with a parameter, one to a path no route serves, and a navigate() call; and message catalogues of English, the locale i18next's init names, and French
+- When: extract javascript is run on the dump
+- Then: it writes one page per route that shows a component of the files read, named after the component, with its route, its title from its literal heading or the catalogue, its fields in the order of the source and a navigate action per link to a route read, its label the link's text in English; asks a must question on each page's kind, title where none is known, entity, source, submit and columns, on its permission, on each label that is not known, on the component from a package, on the route declared twice and on the route behind a condition; asks a should question on the lazy route, the field named by a variable, the message whose key is not a literal and the link to a path no route serves; prints a line for the catch-all and the French catalogue; and exits 0
+
+#### extract-javascript-stale-dump
+
+Scenario: red; level: system; verifies SA-44.
+
+- Given: a code-facts dump of JavaScript committed after the folder it was made from, which a later commit changed again by adding a file
+- When: extract javascript is run on the dump
+- Then: it refuses the dump as stale, writes nothing and exits 1
 
 #### extract-not-offered
 

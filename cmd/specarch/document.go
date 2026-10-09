@@ -41,16 +41,19 @@ type loaded struct {
 
 // marks are the errors and warnings of the specification as the documents
 // in folder mark them: files named from there, and the pointer kept only
-// for a problem in a fragment of the merged specification.
+// for a problem in a fragment of the merged specification, which is any
+// file in the specification's folder but an implementation file, so that
+// a fragment that does not parse is one too.
 func (l loaded) marks(folder string) []generate.Mark {
-	fragments := map[string]bool{}
-	for _, f := range l.spec.Files {
-		fragments[f] = true
+	implementations := map[string]bool{}
+	for _, i := range l.spec.Implementations {
+		implementations[filepath.Clean(i.Path)] = true
 	}
+	dir := filepath.Clean(l.spec.Dir) + string(filepath.Separator)
 	var out []generate.Mark
 	for _, d := range l.diags {
 		m := generate.Mark{Severity: string(d.Severity), File: relSlash(folder, d.File), Line: d.Line, Column: d.Column, Rule: string(d.Rule), Message: d.Message, ID: d.ID}
-		if fragments[d.File] {
+		if file := filepath.Clean(d.File); strings.HasPrefix(file, dir) && !implementations[file] {
 			m.Pointer = d.Path
 		}
 		out = append(out, m)

@@ -8,5 +8,5 @@ standardOutput: |
   commit e2c608aeac93c37701e263dff29416dc17bad9f8: the last change to openapi.yaml
   wire names: snake_case: every property name of the document that has two words joins them with an underscore; each is written in camelCase, and info.wireNames says how it goes on the wire
   counted 1 path and 1 component schema: every key of paths and of components.schemas
-  wrote 1 operation on 1 path, 1 entity, 0 schemas, 0 enums and 2 questions: one operation per get, post, put, patch or delete, one entity per object schema an operation creates or a path with a parameter answers, one schema per other object schema, one enum per string enum, and one question per thing the document does not say
-  not held: schema Loan, property line_2: read as line2, it goes on the wire as line2 under info.wireNames snake_case, which is not its name; left out
+  wrote 1 operation on 1 path, 1 entity, 0 schemas, 0 enums and 3 questions: one operation per get, post, put, patch or delete, one entity per object schema an operation creates or a path with a parameter answers, one schema per other object schema, one enum per string enum, one question per thing the document does not say, and one per thing the meta-model cannot hold
+  not held: schema Loan, property line_2: read as line2, it goes on the wire as line2 under info.wireNames snake_case, which is not its name; left out; could question Q-3

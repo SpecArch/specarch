@@ -69,6 +69,11 @@ Every reader shares these rules:
   file and one per code repository, and every element `origin: stated`
   with `cites`, or `origin: inferred` with `why`. What the surface does not
   say is a question, never a value.
+- What the meta-model cannot hold prints a line and is a `could` question
+  in the tree, citing where the source says it (its file and line when the
+  reader knows the line), so it reaches the problems file with every other
+  problem. A thing a `must` question already asks for gets no second
+  question; its line names that question.
 - A code source is one repository, and its `edition` is the full hash
   of the commit the reader read, which the reader prints. It is the
   newest of the commits that last changed each path read, so a commit

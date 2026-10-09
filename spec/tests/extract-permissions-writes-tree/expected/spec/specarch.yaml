@@ -4,7 +4,7 @@ info:
   title: Permissions of access
   version: 0.1.0
   description: |
-    The roles and the permissions each grants, as the permission check built from access reads them, from the permission table permissions.json, made at commit 91577cff0fdaa5365ab992c1a63461487b4ff941. Every role and permission cites the table; what the table does not say is a question.
+    The roles and the permissions each grants, as the permission check built from access reads them, from the permission table permissions.json, made at commit 91577cff0fdaa5365ab992c1a63461487b4ff941. Every role and permission cites the table; what the table does not say is a question, and so is what the meta-model cannot hold.
   tracksOrigin: true
 stages: [requirements, design]
 sources:

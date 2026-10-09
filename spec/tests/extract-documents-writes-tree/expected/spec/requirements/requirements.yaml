@@ -49,3 +49,12 @@ questions:
     blocks: ['#/requirements/HANDBOOK-1/kind', '#/requirements/HANDBOOK-2/kind', '#/requirements/HANDBOOK-3/kind', '#/requirements/HANDBOOK-4/kind']
     decidedBy: system-owner
     why: A document states what is committed, not which kind of requirement it is.
+  Q-6:
+    question: 'Not held: a code block at line 40: code in a document is not read as a commitment. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [requirements]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: handbook, clause: "3", says: 'Not held: a code block at line 40: code in a document is not read as a commitment.'}

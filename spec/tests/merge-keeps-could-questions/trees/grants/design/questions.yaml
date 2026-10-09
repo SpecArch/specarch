@@ -1,0 +1,42 @@
+questions:
+  Q-1:
+    question: 'What is each role for, and who holds it: desk-staff?'
+    kind: decision
+    priority: must
+    blocks: ['#/roles/desk-staff/description']
+    decidedBy: system-owner
+    why: A permission table names a role and what it grants, not who holds it.
+  Q-2:
+    question: 'What does each permission allow: loans.read, loans.write, members.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.read/description', '#/permissions/loans.write/description', '#/permissions/members.write/description']
+    decidedBy: system-owner
+    why: A permission table names the permissions a role grants and not what they are for.
+  Q-3:
+    question: 'Not held: grant of "Loans:Read" to desk-staff: the permission''s name is not lower-case words joined by dots; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/roles/desk-staff']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/code role desk-staff, says: 'Not held: grant of "Loans:Read" to desk-staff: the permission''s name is not lower-case words joined by dots; left out.'}
+  Q-4:
+    question: 'Not held: grant of public to desk-staff: public is open to everyone and granted by no role; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/roles/desk-staff']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/code role desk-staff, says: 'Not held: grant of public to desk-staff: public is open to everyone and granted by no role; left out.'}
+  Q-5:
+    question: 'Not held: grant of loans.read to "Desk_Clerk": the role''s name is not kebab-case, which a role name is; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/permissions/loans.read']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/code role Desk_Clerk, says: 'Not held: grant of loans.read to "Desk_Clerk": the role''s name is not kebab-case, which a role name is; left out.'}

@@ -20,3 +20,39 @@ questions:
     blocks: [roles]
     decidedBy: system-owner
     why: A check switched off by an empty setting fails open without an error, so no role's grants hold while it is off.
+  Q-4:
+    question: 'Not held: grant of public to auditor: public is open to everyone and granted by no role; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [roles]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: access role auditor, says: 'Not held: grant of public to auditor: public is open to everyone and granted by no role; left out.'}
+  Q-5:
+    question: 'Not held: grant of loans.write to "Branch_Manager": the role''s name is not kebab-case, which a role name is; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [roles]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: access role Branch_Manager, says: 'Not held: grant of loans.write to "Branch_Manager": the role''s name is not kebab-case, which a role name is; left out.'}
+  Q-6:
+    question: 'Not held: grant of "Loans:Read" to kiosk: the permission''s name is not lower-case words joined by dots; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [roles]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: access role kiosk, says: 'Not held: grant of "Loans:Read" to kiosk: the permission''s name is not lower-case words joined by dots; left out.'}
+  Q-7:
+    question: 'Not held: role kiosk: it grants nothing the meta-model holds, and a role that grants nothing is left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [roles]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: access role kiosk, says: 'Not held: role kiosk: it grants nothing the meta-model holds, and a role that grants nothing is left out.'}

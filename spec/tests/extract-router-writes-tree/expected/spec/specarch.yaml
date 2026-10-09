@@ -4,7 +4,7 @@ info:
   title: Routes of router
   version: 0.1.0
   description: |
-    The routes the router built from router registers, read from the route table routes.json, made at commit 2ddae4f53139c036e8b99477922186064bdb4d6f. Every operation cites its route; what the route table does not say is a question.
+    The routes the router built from router registers, read from the route table routes.json, made at commit 2ddae4f53139c036e8b99477922186064bdb4d6f. Every operation cites its route; what the route table does not say is a question, and so is what the meta-model cannot hold.
   tracksOrigin: true
 stages: [requirements, design]
 sources:

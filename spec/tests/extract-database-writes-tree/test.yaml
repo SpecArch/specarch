@@ -4,5 +4,5 @@ level: system
 scenario: golden
 given: "a repository whose first commit holds its migrations and whose second holds the catalogue dump made from them, naming the first; the tables have a small integer key, a decimal with a default, a money column, a unique key, a check the expressions can say and one they can say as a list of values, an enum type, a fixed-width text, an identity column, a foreign key with cascade, an index, a table without a primary key and a view"
 when: "extract database is run on the dump"
-then: "it writes one entity per table, with the types, keys, relations and constraints it can hold, a question for every constraint message and for the missing primary key, names the commit, counts what it read, prints a line for the money column, the fixed width, the default it cannot hold, the index and the view, and exits 0"
+then: "it writes one entity per table, with the types, keys, relations and constraints it can hold, a question for every constraint message and for the missing primary key, names the commit, counts what it read, prints a line and writes a could question citing the table for the money column, the fixed width, the default it cannot hold, the index and the view, and exits 0"
 verifies: [SA-44]

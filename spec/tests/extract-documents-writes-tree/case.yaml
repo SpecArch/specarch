@@ -7,7 +7,7 @@ exitStatus: 0
 standardOutput: |
   commit ba017caa7101f1ff913c98e9e7f53e9a17077a66: the last change to handbook.md
   counted 4 headings, 4 numbered paragraphs, 11 sentences (5 commitments) and 3 tables (2 tables of fields): every ATX heading, every paragraph that starts with a section number such as 3.1, every sentence of a paragraph or list item, and every table, outside fenced code
-  wrote 4 requirements, 2 entities and 5 questions: one per commitment that names its subject, one per table of fields, and one per thing the document does not say
-  not held: a code block at line 40: code in a document is not read as a commitment
-  not held: field fee of Loans, at line 21, of type "money": the meta-model holds no type for it; left out
-  not held: the table at line 36, headed Day | Hours: only a table whose first column is Field, and whose others are Type, Required, Sensitivity or Description, is read
+  wrote 4 requirements, 2 entities and 8 questions: one per commitment that names its subject, one per table of fields, one per thing the document does not say, and one per thing the meta-model cannot hold
+  not held: a code block at line 40: code in a document is not read as a commitment; could question Q-6
+  not held: field fee of Loans, at line 21, of type "money": the meta-model holds no type for it; left out; could question Q-7
+  not held: the table at line 36, headed Day | Hours: only a table whose first column is Field, and whose others are Type, Required, Sensitivity or Description, is read; could question Q-8

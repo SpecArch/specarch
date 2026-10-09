@@ -132,7 +132,7 @@ func OpenAPI(path, out, key string) (*Result, error) {
 		res.Tree.put("requirements/stakeholders.yaml", mapping("stakeholders", ownerStakeholder()))
 		res.Tree.put("design/questions.yaml", mapping("questions", o.questions))
 	}
-	description := fmt.Sprintf("The OpenAPI document %s, read at commit %s: every operation and component schema is a clause, every operation is written under its path citing it, every component schema of type object that an operation creates or a path with a parameter answers is an entity, and every other one a schema. What the document does not say is a question.\n", r.Paths[0], r.Commit)
+	description := fmt.Sprintf("The OpenAPI document %s, read at commit %s: every operation and component schema is a clause, every operation is written under its path citing it, every component schema of type object that an operation creates or a path with a parameter answers is an entity, and every other one a schema. What the document does not say is a question, and so is what the meta-model cannot hold.\n", r.Paths[0], r.Commit)
 	root := rootFile(title, description, stages, mapping(key, src))
 	if o.snake {
 		set(child(root, "info"), "wireNames", wirename.SnakeCase)
@@ -188,7 +188,7 @@ type openapiReader struct {
 	enums     *yaml.Node
 	questions *yaml.Node
 	nextID    int
-	notHeld   []string
+	notHeld   []notHeld
 	// The component schemas written as an entity, a schema or an enum, by
 	// name; a reference to any other is written in place.
 	written map[string]string
@@ -197,8 +197,59 @@ type openapiReader struct {
 	widths []string
 }
 
-func (o *openapiReader) gap(format string, args ...any) {
-	o.notHeld = append(o.notHeld, "not held: "+fmt.Sprintf(format, args...))
+// gap records what the meta-model cannot hold at a pointer: into the tree
+// (#/...), where the element it is about is written, or into the document
+// (/...) for what no element holds. Its clause and the entry it blocks are
+// found once everything is written (held).
+func (o *openapiReader) gap(at string, format string, args ...any) {
+	o.notHeld = append(o.notHeld, notHeld{text: fmt.Sprintf(format, args...), clause: at})
+}
+
+// held is what was not held, each citing the clause of the document it is
+// in (the operation, the path or the component schema) and blocking the
+// element written from that clause, or its section when none is.
+func (o *openapiReader) held() []notHeld {
+	var out []notHeld
+	for _, h := range o.notHeld {
+		at := h.clause
+		if !strings.HasPrefix(at, "#/") {
+			block := "paths"
+			switch {
+			case at == "/components/securitySchemes":
+				block = "permissions"
+			case strings.HasPrefix(at, "/components/schemas/"):
+				block = "schemas"
+			}
+			h.clause, h.blocks = at, []string{block}
+			out = append(out, h)
+			continue
+		}
+		tokens := strings.Split(strings.TrimPrefix(at, "#/"), "/")
+		section, name := tokens[0], tokens[1]
+		element := "#/" + section + "/" + name
+		var written *yaml.Node
+		switch section {
+		case "paths":
+			h.clause = "/paths/" + name
+			written = child(o.paths, strings.NewReplacer("~1", "/", "~0", "~").Replace(name))
+			if len(tokens) > 2 && contains(pathMethods, tokens[2]) && child(written, tokens[2]) != nil {
+				h.clause += "/" + tokens[2]
+				element += "/" + tokens[2]
+			}
+		case "entities":
+			h.clause = "/components/schemas/" + escapeToken(name)
+			written = child(o.entities, name)
+		case "schemas":
+			h.clause = "/components/schemas/" + escapeToken(name)
+			written = child(o.schemas, name)
+		}
+		h.blocks = []string{element}
+		if written == nil {
+			h.blocks = []string{section}
+		}
+		out = append(out, h)
+	}
+	return out
 }
 
 func (o *openapiReader) question(text string, blocks []string, why string) {
@@ -284,7 +335,7 @@ func (o *openapiReader) read() {
 			if !typeNameWord.MatchString(name) {
 				why = "its name is not PascalCase, which an entity's or an enum's is"
 			}
-			o.gap("schema %s: %s; written in place wherever it is referred to", name, why)
+			o.gap("/components/schemas/"+escapeToken(name), "schema %s: %s; written in place wherever it is referred to", name, why)
 		}
 	}
 	o.askWidths()
@@ -292,7 +343,7 @@ func (o *openapiReader) read() {
 		switch k {
 		case "openapi", "info", "paths", "components", "security":
 		default:
-			o.gap("the document's %s: the meta-model does not hold it; left out", k)
+			o.gap("/"+escapeToken(k), "the document's %s: the meta-model does not hold it; left out", k)
 		}
 	}
 	for _, k := range keys(child(o.doc, "components")) {
@@ -300,16 +351,16 @@ func (o *openapiReader) read() {
 		case "schemas", "parameters", "requestBodies", "responses":
 			// Read where an operation refers to them.
 		case "securitySchemes":
-			o.gap("components.securitySchemes: a security scheme is not a permission; named in each operation's permission question, and left out")
+			o.gap("/components/securitySchemes", "components.securitySchemes: a security scheme is not a permission; named in each operation's permission question, and left out")
 		default:
-			o.gap("components.%s: %s; left out", k, notHeldKey(k))
+			o.gap("/components/"+escapeToken(k), "components.%s: %s; left out", k, notHeldKey(k))
 		}
 	}
 	countedPaths := len(sortedKeys(child(o.doc, "paths")))
 	o.res.say("counted %s and %s: every key of paths and of components.schemas", plural(countedPaths, "path"), plural(len(names), "component schema"))
-	o.res.say("wrote %s on %s, %s, %s, %s and %s: one operation per get, post, put, patch or delete, one entity per object schema an operation creates or a path with a parameter answers, one schema per other object schema, one enum per string enum, and one question per thing the document does not say",
-		plural(operations, "operation"), plural(pathCount, "path"), plural(entities, "entity"), plural(values, "schema"), plural(enums, "enum"), plural(o.nextID, "question"))
-	o.res.Lines = append(o.res.Lines, o.notHeld...)
+	o.res.say("wrote %s on %s, %s, %s, %s and %s: one operation per get, post, put, patch or delete, one entity per object schema an operation creates or a path with a parameter answers, one schema per other object schema, one enum per string enum, one question per thing the document does not say, and one per thing the meta-model cannot hold",
+		plural(operations, "operation"), plural(pathCount, "path"), plural(entities, "entity"), plural(values, "schema"), plural(enums, "enum"), plural(o.nextID+couldCount(oneQuestions(o.questions), o.held()), "question"))
+	askNotHeld(o.res, oneQuestions(o.questions), &o.nextID, o.key, o.held())
 }
 
 // pathItem writes the operations of one path and returns how many.
@@ -321,10 +372,10 @@ func (o *openapiReader) pathItem(p string, item *yaml.Node) int {
 			methods = append(methods, k)
 		case "head", "options", "trace":
 			o.clauses = append(o.clauses, flow(mapping("clause", "/paths/"+escapeToken(p)+"/"+k, "title", strings.ToUpper(k)+" "+p)))
-			o.gap("operation %s %s: the meta-model holds the methods get, post, put, patch and delete; left out", strings.ToUpper(k), p)
+			o.gap("#/paths/"+escapeToken(p), "operation %s %s: the meta-model holds the methods get, post, put, patch and delete; left out", strings.ToUpper(k), p)
 		case "parameters", "summary", "description":
 		default:
-			o.gap("path %s: %s; left out", p, notHeldKey(k))
+			o.gap("#/paths/"+escapeToken(p), "path %s: %s; left out", p, notHeldKey(k))
 		}
 	}
 	sort.Slice(methods, func(i, j int) bool { return methodRank(methods[i]) < methodRank(methods[j]) })
@@ -336,7 +387,7 @@ func (o *openapiReader) pathItem(p string, item *yaml.Node) int {
 		for _, m := range methods {
 			o.clauses = append(o.clauses, flow(mapping("clause", "/paths/"+escapeToken(p)+"/"+m, "title", strings.ToUpper(m)+" "+p)))
 		}
-		o.gap("path %s: %s; its operations are left out", p, reason)
+		o.gap("#/paths/"+escapeToken(p), "path %s: %s; its operations are left out", p, reason)
 		return 0
 	}
 	at := "#/paths/" + escapeToken(p)
@@ -409,9 +460,9 @@ func (o *openapiReader) operation(p, method string, op *yaml.Node, params []stri
 			named += pascal(notWord.ReplaceAllString(seg, "_"))
 		}
 		if id == "" {
-			o.gap("operation %s: it has no operationId; it is named %s", label, named)
+			o.gap(at, "operation %s: it has no operationId; it is named %s", label, named)
 		} else {
-			o.gap("operation %s: its operationId %s is not camelCase, which an operationId is; it is named %s", label, id, named)
+			o.gap(at, "operation %s: its operationId %s is not camelCase, which an operationId is; it is named %s", label, id, named)
 		}
 		id = named
 	}
@@ -438,7 +489,7 @@ func (o *openapiReader) operation(p, method string, op *yaml.Node, params []stri
 	responses := mapping()
 	for _, code := range keys(child(op, "responses")) {
 		if !responseCode.MatchString(code) {
-			o.gap("operation %s, response %s: the meta-model holds a response code or default, not a range; left out", label, code)
+			o.gap(at, "operation %s, response %s: the meta-model holds a response code or default, not a range; left out", label, code)
 			continue
 		}
 		at := at + "/responses/" + code
@@ -456,7 +507,7 @@ func (o *openapiReader) operation(p, method string, op *yaml.Node, params []stri
 		switch k {
 		case "operationId", "summary", "description", "parameters", "requestBody", "responses", "deprecated", "security":
 		default:
-			o.gap("operation %s: %s; left out", label, notHeldKey(k))
+			o.gap(at, "operation %s: %s; left out", label, notHeldKey(k))
 		}
 	}
 	set(out, "origin", "stated")
@@ -525,19 +576,19 @@ func (o *openapiReader) parameter(pn *yaml.Node, where, at string, params []stri
 	where = fmt.Sprintf("%s, parameter %s", where, name)
 	switch {
 	case pn == nil || name == "":
-		o.gap("%s: a parameter with no name; left out", where)
+		o.gap(at, "%s: a parameter with no name; left out", where)
 		return nil
 	case in == "cookie":
-		o.gap("%s: the meta-model holds a parameter in the path, the query or a header, not a cookie; left out", where)
+		o.gap(at, "%s: the meta-model holds a parameter in the path, the query or a header, not a cookie; left out", where)
 		return nil
 	case in != "path" && in != "query" && in != "header":
-		o.gap("%s: in %q is not a place a parameter is sent; left out", where, in)
+		o.gap(at, "%s: in %q is not a place a parameter is sent; left out", where, in)
 		return nil
 	case child(pn, "schema") == nil:
-		o.gap("%s: it is given by content and not by a schema, and the meta-model holds a parameter's schema; left out", where)
+		o.gap(at, "%s: it is given by content and not by a schema, and the meta-model holds a parameter's schema; left out", where)
 		return nil
 	case in == "path" && !contains(params, name):
-		o.gap("%s: the path's template has no {%s}; left out", where, name)
+		o.gap(at, "%s: the path's template has no {%s}; left out", where, name)
 		return nil
 	}
 	out := mapping("name", name, "in", in)
@@ -556,7 +607,7 @@ func (o *openapiReader) parameter(pn *yaml.Node, where, at string, params []stri
 		switch k {
 		case "name", "in", "description", "required", "schema":
 		default:
-			o.gap("%s: %s; left out", where, notHeldKey(k))
+			o.gap(at, "%s: %s; left out", where, notHeldKey(k))
 		}
 	}
 	return out
@@ -565,7 +616,7 @@ func (o *openapiReader) parameter(pn *yaml.Node, where, at string, params []stri
 func (o *openapiReader) requestBody(rb *yaml.Node, label, at string) *yaml.Node {
 	content := o.content(child(rb, "content"), "operation "+label+", request body", at+"/content")
 	if content == nil {
-		o.gap("operation %s, request body: no media type the meta-model holds; left out", label)
+		o.gap(at, "operation %s, request body: no media type the meta-model holds; left out", label)
 		return nil
 	}
 	out := mapping()
@@ -592,7 +643,7 @@ func (o *openapiReader) response(r *yaml.Node, where, at string) *yaml.Node {
 		switch k {
 		case "description", "content":
 		default:
-			o.gap("%s: %s; left out", where, notHeldKey(k))
+			o.gap(at, "%s: %s; left out", where, notHeldKey(k))
 		}
 	}
 	return out
@@ -604,15 +655,15 @@ func (o *openapiReader) content(c *yaml.Node, where, at string) *yaml.Node {
 		media := child(c, mt)
 		switch {
 		case !mediaTypeWord.MatchString(mt):
-			o.gap("%s, media type %s: the meta-model holds a media type of lower-case type and subtype, without wildcards or parameters; left out", where, mt)
+			o.gap(at, "%s, media type %s: the meta-model holds a media type of lower-case type and subtype, without wildcards or parameters; left out", where, mt)
 			continue
 		case child(media, "schema") == nil:
-			o.gap("%s, media type %s: it has no schema; left out", where, mt)
+			o.gap(at, "%s, media type %s: it has no schema; left out", where, mt)
 			continue
 		}
 		for _, k := range keys(media) {
 			if k != "schema" {
-				o.gap("%s, media type %s: %s; left out", where, mt, notHeldKey(k))
+				o.gap(at, "%s, media type %s: %s; left out", where, mt, notHeldKey(k))
 			}
 		}
 		schema := o.field(child(media, "schema"), where+", media type "+mt, at+"/"+escapeToken(mt)+"/schema", 0)
@@ -632,7 +683,7 @@ func (o *openapiReader) entity(name, pointer string, s *yaml.Node) bool {
 	at := "#/entities/" + name
 	props, required := o.properties(s, "schema "+name, at)
 	if props == nil {
-		o.gap("schema %s: none of its properties can be held; left out", name)
+		o.gap(at, "schema %s: none of its properties can be held; left out", name)
 		delete(o.written, name)
 		return false
 	}
@@ -665,7 +716,7 @@ func (o *openapiReader) entity(name, pointer string, s *yaml.Node) bool {
 		switch k {
 		case "type", "properties", "required", "description", "title":
 		default:
-			o.gap("schema %s: %s; left out", name, notHeldKey(k))
+			o.gap(at, "schema %s: %s; left out", name, notHeldKey(k))
 		}
 	}
 	return true
@@ -678,7 +729,7 @@ func (o *openapiReader) valueObject(name, pointer string, s *yaml.Node) bool {
 	at := "#/schemas/" + name
 	props, required := o.properties(s, "schema "+name, at)
 	if props == nil {
-		o.gap("schema %s: none of its properties can be held; left out", name)
+		o.gap(at, "schema %s: none of its properties can be held; left out", name)
 		delete(o.written, name)
 		return false
 	}
@@ -702,7 +753,7 @@ func (o *openapiReader) valueObject(name, pointer string, s *yaml.Node) bool {
 		switch k {
 		case "type", "properties", "required", "description", "title":
 		default:
-			o.gap("schema %s: %s; left out", name, notHeldKey(k))
+			o.gap(at, "schema %s: %s; left out", name, notHeldKey(k))
 		}
 	}
 	return true
@@ -754,7 +805,7 @@ func (o *openapiReader) properties(s *yaml.Node, where, at string) (*yaml.Node, 
 	var props *yaml.Node
 	kept := map[string]string{}
 	for _, wire := range keys(child(s, "properties")) {
-		name, ok := o.memberName(wire, where)
+		name, ok := o.memberName(wire, where, at)
 		if !ok {
 			continue
 		}
@@ -779,20 +830,20 @@ func (o *openapiReader) properties(s *yaml.Node, where, at string) (*yaml.Node, 
 
 // memberName is the camelCase name of a property named wire on the wire,
 // or false, with a line, when there is none that goes back unchanged.
-func (o *openapiReader) memberName(wire, where string) (string, bool) {
+func (o *openapiReader) memberName(wire, where, at string) (string, bool) {
 	switch {
 	case !o.snake && memberNameWord.MatchString(wire):
 		return wire, true
 	case !o.snake && enumValueWord.MatchString(wire):
-		o.gap("%s, property %s: its name is snake_case, and the document's other names are camelCase; a specification names its properties on the wire one way (info.wireNames); left out", where, wire)
+		o.gap(at, "%s, property %s: its name is snake_case, and the document's other names are camelCase; a specification names its properties on the wire one way (info.wireNames); left out", where, wire)
 	case !o.snake:
-		o.gap("%s, property %s: its name is neither camelCase nor snake_case; left out", where, wire)
+		o.gap(at, "%s, property %s: its name is neither camelCase nor snake_case; left out", where, wire)
 	default:
 		name, ok := wirename.Camel(wire)
 		if ok && memberNameWord.MatchString(name) {
 			return name, true
 		}
-		o.gap("%s, property %s: read as %s, it goes on the wire as %s under info.wireNames snake_case, which is not its name; left out", where, wire, name, wirename.Snake(name))
+		o.gap(at, "%s, property %s: read as %s, it goes on the wire as %s under info.wireNames snake_case, which is not its name; left out", where, wire, name, wirename.Snake(name))
 	}
 	return "", false
 }
@@ -807,7 +858,7 @@ func (o *openapiReader) field(s *yaml.Node, where, at string, depth int) *yaml.N
 		}
 		target := o.resolve(s)
 		if target == s || depth > 8 {
-			o.gap("%s: the reference %s does not lead to a schema in the document that can be written in place; left out", where, ref)
+			o.gap(at, "%s: the reference %s does not lead to a schema in the document that can be written in place; left out", where, ref)
 			return nil
 		}
 		return o.field(target, where, at, depth+1)
@@ -830,7 +881,7 @@ func (o *openapiReader) field(s *yaml.Node, where, at string, depth int) *yaml.N
 	case typ.Kind == yaml.SequenceNode && len(typ.Content) == 2 && contains(scalarList(typ), "null"):
 		set(out, "type", scalarList(typ))
 	default:
-		o.gap("%s: the type %s is not one the meta-model holds; left out", where, inlineNode(typ))
+		o.gap(at, "%s: the type %s is not one the meta-model holds; left out", where, inlineNode(typ))
 	}
 	base := scalar(typ)
 	if typ != nil && typ.Kind == yaml.SequenceNode {
@@ -844,14 +895,15 @@ func (o *openapiReader) field(s *yaml.Node, where, at string, depth int) *yaml.N
 	switch {
 	case (base == "integer" || base == "number") && !widthHeld(base, format, s):
 		if format != "" {
-			o.gap("%s: the format %s is not a width the meta-model holds for a JSON %s; left out, and asked", where, format, base)
+			o.gap(at, "%s: the format %s is not a width the meta-model holds for a JSON %s; left out, and asked", where, format, base)
+			o.notHeld[len(o.notHeld)-1].asked = at + "/format"
 		}
 		o.widths = append(o.widths, at+"/format")
 	case format == "":
 	case fieldFormats[format]:
 		set(out, "format", format)
 	default:
-		o.gap("%s: the format %s is not one the meta-model holds; left out", where, format)
+		o.gap(at, "%s: the format %s is not one the meta-model holds; left out", where, format)
 	}
 	for _, k := range fieldKeywords {
 		v := child(s, k)
@@ -893,12 +945,12 @@ func (o *openapiReader) field(s *yaml.Node, where, at string, depth int) *yaml.N
 		case "type", "format", "items", "properties", "required", "nullable", "example":
 		default:
 			if !containsWord(fieldKeywords, k) {
-				o.gap("%s: %s; left out", where, notHeldKey(k))
+				o.gap(at, "%s: %s; left out", where, notHeldKey(k))
 			}
 		}
 	}
 	if child(out, "type") == nil {
-		o.gap("%s: no type the meta-model holds is left; left out", where)
+		o.gap(at, "%s: no type the meta-model holds is left; left out", where)
 		return nil
 	}
 	if len(out.Content) <= 4 {

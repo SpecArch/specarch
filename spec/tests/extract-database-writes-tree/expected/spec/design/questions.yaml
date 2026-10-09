@@ -20,3 +20,48 @@ questions:
     blocks: ['#/entities/Notes/primaryKey']
     decidedBy: system-owner
     why: Every entity names the fields that identify a record, and the catalogue gives none for this table.
+  Q-4:
+    question: 'Not held: column public.branches.float_cash, money: the meta-model has no type for it; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Branches']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: migrations public.branches, says: 'Not held: column public.branches.float_cash, money: the meta-model has no type for it; left out.'}
+  Q-5:
+    question: 'Not held: column public.copies.label, character(4): CHAR pads its value with spaces to its width, which the meta-model cannot say; written as a string of at most 4 characters. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Copies']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: migrations public.copies, says: 'Not held: column public.copies.label, character(4): CHAR pads its value with spaces to its width, which the meta-model cannot say; written as a string of at most 4 characters.'}
+  Q-6:
+    question: 'Not held: column public.copies.shelved_at: its default now() is not a value the meta-model can hold. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Copies']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: migrations public.copies, says: 'Not held: column public.copies.shelved_at: its default now() is not a value the meta-model can hold.'}
+  Q-7:
+    question: 'Not held: index copies_title of public.copies, CREATE INDEX copies_title ON public.copies USING btree (title): the meta-model has no index. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Copies']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: migrations public.copies, says: 'Not held: index copies_title of public.copies, CREATE INDEX copies_title ON public.copies USING btree (title): the meta-model has no index.'}
+  Q-8:
+    question: 'Not held: view public.lent_copies: a view is not read from the catalogue; describe it under views by hand. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [views]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: migrations public.lent_copies, says: 'Not held: view public.lent_copies: a view is not read from the catalogue; describe it under views by hand.'}

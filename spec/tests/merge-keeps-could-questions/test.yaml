@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: merge
+level: system
+scenario: golden
+given: "the tree of a route table and the tree of a permission table, each asking with must what the same three permissions allow, the permission table with two could questions on one role and each with a could question on one permission, each about something its reader could not hold"
+when: "merge is run on the two trees"
+then: "it leaves out the permission table's must question as asked twice, keeps every could question, the two on one role and the two on one permission, and exits 0"
+verifies: [SA-45]

@@ -97,7 +97,7 @@ func Router(dumpPath, out, key string) (*Result, error) {
 		res.Tree.put("requirements/stakeholders.yaml", mapping("stakeholders", ownerStakeholder()))
 		res.Tree.put("design/questions.yaml", mapping("questions", rd.questions))
 	}
-	description := fmt.Sprintf("The routes the router built from %s registers, read from the route table %s, made at commit %s. Every operation cites its route; what the route table does not say is a question.\n", t.Path, dumpName, r.Commit)
+	description := fmt.Sprintf("The routes the router built from %s registers, read from the route table %s, made at commit %s. Every operation cites its route; what the route table does not say is a question, and so is what the meta-model cannot hold.\n", t.Path, dumpName, r.Commit)
 	res.Tree.put("specarch.yaml", rootFile("Routes of "+t.Path, description, stages, mapping(key, src)))
 	return res, nil
 }
@@ -111,11 +111,13 @@ type routeReader struct {
 	permissions *yaml.Node
 	questions   *yaml.Node
 	nextID      int
-	notHeld     []string
+	notHeld     []notHeld
 }
 
-func (rd *routeReader) gap(format string, args ...any) {
-	rd.notHeld = append(rd.notHeld, "not held: "+fmt.Sprintf(format, args...))
+// gap records what the meta-model cannot hold of the route at method and
+// path, blocking the entry it is about.
+func (rd *routeReader) gap(method, path, block, asked string, format string, args ...any) {
+	rd.notHeld = append(rd.notHeld, notHeld{text: fmt.Sprintf(format, args...), clause: rd.t.Path + " " + method + " " + path, blocks: []string{block}, asked: asked})
 }
 
 func (rd *routeReader) question(text string, blocks []string, why string) {
@@ -172,18 +174,19 @@ func (rd *routeReader) read(dumpName string) error {
 			unchecked++
 		}
 		if !heldMethods[d.Method] {
-			rd.gap("route %s: the method %s has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out", pair, d.Method)
+			rd.gap(d.Method, d.Path, "paths", "", "route %s: the method %s has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out", pair, d.Method)
 			continue
 		}
 		params, reason := pathParameters(d.Path)
 		if reason != "" {
-			rd.gap("route %s: %s; left out", pair, reason)
+			rd.gap(d.Method, d.Path, "paths", "", "route %s: %s; left out", pair, reason)
 			continue
 		}
 		rt.params = params
 		rt.key = strings.ToLower(d.Method)
 		if permission != nil && !permissionWord.MatchString(rt.permission) {
-			rd.gap("route %s: its permission %q is not a permission name, which is lower-case words joined by dots; asked for instead", pair, rt.permission)
+			opAt := "#/paths/" + escapeToken(d.Path) + "/" + strings.ToLower(d.Method)
+			rd.gap(d.Method, d.Path, opAt, opAt+"/permission", "route %s: its permission %q is not a permission name, which is lower-case words joined by dots; asked for instead", pair, rt.permission)
 			rt.permission = ""
 		}
 		if byPath[d.Path] == nil {
@@ -285,8 +288,8 @@ func (rd *routeReader) read(dumpName string) error {
 	if rd.permissions != nil {
 		permissions = len(rd.permissions.Content) / 2
 	}
-	rd.res.say("wrote %s on %s, %s and %s: one operation per method and path pair the meta-model holds, one permission per name a route checks, and one question per thing the route table does not say", plural(len(rd.routes), "operation"), plural(len(pathOrder), "path"), plural(permissions, "permission"), plural(rd.nextID, "question"))
-	rd.res.Lines = append(rd.res.Lines, rd.notHeld...)
+	rd.res.say("wrote %s on %s, %s and %s: one operation per method and path pair the meta-model holds, one permission per name a route checks, one question per thing the route table does not say, and one per thing the meta-model cannot hold", plural(len(rd.routes), "operation"), plural(len(pathOrder), "path"), plural(permissions, "permission"), plural(rd.nextID+couldCount(oneQuestions(rd.questions), rd.notHeld), "question"))
+	askNotHeld(rd.res, oneQuestions(rd.questions), &rd.nextID, rd.key, rd.notHeld)
 	return nil
 }
 
@@ -316,7 +319,7 @@ func (rd *routeReader) operationIDs() {
 		if !handlerName.MatchString(rt.Handler) {
 			why = "is not a name an operationId can take"
 		}
-		rd.gap("route %s %s: its handler %s %s; the operation is named %s", rt.Method, rt.Path, rt.Handler, why, id)
+		rd.gap(rt.Method, rt.Path, "#/paths/"+escapeToken(rt.Path)+"/"+rt.key, "", "route %s %s: its handler %s %s; the operation is named %s", rt.Method, rt.Path, rt.Handler, why, id)
 		rt.id = id
 	}
 }

@@ -125,13 +125,13 @@ func Database(dumpPath, out, key string) (*Result, error) {
 		res.Tree.put("requirements/stakeholders.yaml", mapping("stakeholders", ownerStakeholder()))
 		res.Tree.put("design/questions.yaml", mapping("questions", d.questions))
 	}
-	if len(d.entityFiles) == 0 {
+	if len(d.entityFiles) == 0 && len(d.questions.Content) == 0 {
 		stages = nil
 	}
 	for name, n := range d.entityFiles {
 		res.Tree.put(name, n)
 	}
-	description := fmt.Sprintf("The tables of the database that the migrations in %s make, read from the catalogue dump %s, made at commit %s. Every entity cites its table; what the catalogue does not say is a question.\n", c.Path, dumpName, r.Commit)
+	description := fmt.Sprintf("The tables of the database that the migrations in %s make, read from the catalogue dump %s, made at commit %s. Every entity cites its table; what the catalogue does not say is a question, and so is what the meta-model cannot hold.\n", c.Path, dumpName, r.Commit)
 	res.Tree.put("specarch.yaml", rootFile("Database of "+c.Path, description, stages, mapping(key, src)))
 	return res, nil
 }
@@ -145,11 +145,13 @@ type dbReader struct {
 	entityFiles map[string]*yaml.Node
 	questions   *yaml.Node
 	nextID      int
-	notHeld     []string
+	notHeld     []notHeld
 }
 
-func (d *dbReader) gap(format string, args ...any) {
-	d.notHeld = append(d.notHeld, "not held: "+fmt.Sprintf(format, args...))
+// gap records what the meta-model cannot hold, at the table or view the
+// catalogue lists it under (schema.name), blocking the entry it is about.
+func (d *dbReader) gap(table, block string, format string, args ...any) {
+	d.notHeld = append(d.notHeld, notHeld{text: fmt.Sprintf(format, args...), clause: d.clause + " " + table, blocks: []string{block}})
 }
 
 func (d *dbReader) read() {
@@ -167,7 +169,7 @@ func (d *dbReader) read() {
 	for _, t := range tables {
 		qualified := t.Schema + "." + t.Name
 		if !plainName.MatchString(t.Name) || !plainName.MatchString(t.Schema) {
-			d.gap("table %s: its name has characters an entity name cannot hold; left out", qualified)
+			d.gap(qualified, "entities", "table %s: its name has characters an entity name cannot hold; left out", qualified)
 			continue
 		}
 		name := pascal(t.Name)
@@ -175,7 +177,7 @@ func (d *dbReader) read() {
 			name = pascal(t.Schema + "_" + t.Name)
 		}
 		if other, ok := byEntity[name]; ok {
-			d.gap("table %s: its entity name %s is taken by %s; left out", qualified, name, other)
+			d.gap(qualified, "entities", "table %s: its entity name %s is taken by %s; left out", qualified, name, other)
 			continue
 		}
 		byEntity[name] = qualified
@@ -209,14 +211,14 @@ func (d *dbReader) read() {
 		if v.Materialized {
 			kind = "materialized view"
 		}
-		d.gap("%s %s.%s: a view is not read from the catalogue; describe it under views by hand", kind, v.Schema, v.Name)
+		d.gap(v.Schema+"."+v.Name, "views", "%s %s.%s: a view is not read from the catalogue; describe it under views by hand", kind, v.Schema, v.Name)
 	}
 	d.res.say("counted %s, %s, %s (%s, %s, %s), %s besides those of keys, %s and %s: every entry of the dump's lists, which hold every schema but pg_catalog, information_schema and pg_toast",
 		plural(len(tables), "table"), plural(columns, "column"), plural(constraints, "constraint"),
 		plural(foreign, "foreign key"), plural(uniques, "unique key"), plural(checks, "check"),
 		plural(indexes, "index"), plural(len(d.c.Views), "view"), plural(len(d.c.Enums), "enum type"))
-	d.res.say("wrote %s and %s: one per table whose name an entity can hold, and one per thing the catalogue does not say", plural(len(d.entities), "entity"), plural(len(d.questions.Content)/2, "question"))
-	d.res.Lines = append(d.res.Lines, d.notHeld...)
+	d.res.say("wrote %s and %s: one per table whose name an entity can hold, one per thing the catalogue does not say, and one per thing the meta-model cannot hold", plural(len(d.entities), "entity"), plural(len(d.questions.Content)/2+couldCount(oneQuestions(d.questions), d.notHeld), "question"))
+	askNotHeld(d.res, oneQuestions(d.questions), &d.nextID, d.key, d.notHeld)
 }
 
 func (d *dbReader) question(text, kind string, blocks []string, why string) {
@@ -295,7 +297,7 @@ func (d *dbReader) table(t dumpTable, name string) {
 		case "primary":
 			names, ok := fieldNames(k.Columns, fields)
 			if !ok {
-				d.gap("primary key %s of %s: a column of it is left out", k.Name, qualified)
+				d.gap(qualified, at, "primary key %s of %s: a column of it is left out", k.Name, qualified)
 				continue
 			}
 			pk = names
@@ -305,15 +307,15 @@ func (d *dbReader) table(t dumpTable, name string) {
 			names, ok := fieldNames(k.Columns, fields)
 			switch {
 			case !ok:
-				d.gap("unique key %s of %s: a column of it is left out", k.Name, qualified)
+				d.gap(qualified, at, "unique key %s of %s: a column of it is left out", k.Name, qualified)
 			case !constraintName.MatchString(k.Name):
-				d.gap("unique key %s of %s: a constraint name is snake_case", k.Name, qualified)
+				d.gap(qualified, at, "unique key %s of %s: a constraint name is snake_case", k.Name, qualified)
 			default:
 				set(constraintNodes, k.Name, flow(mapping("kind", "unique", "fields", names)))
 				messages = append(messages, k.Name)
 			}
 		case "exclusion":
-			d.gap("exclusion constraint %s of %s, %s: the meta-model has no exclusion constraint", k.Name, qualified, k.Definition)
+			d.gap(qualified, at, "exclusion constraint %s of %s, %s: the meta-model has no exclusion constraint", k.Name, qualified, k.Definition)
 		}
 	}
 	for _, ix := range t.Indexes {
@@ -324,16 +326,17 @@ func (d *dbReader) table(t dumpTable, name string) {
 		if ix.Unique {
 			what = "a unique index without a constraint; the meta-model says uniqueness only as a unique constraint"
 		}
-		d.gap("index %s of %s, %s: %s", ix.Name, qualified, ix.Definition, what)
+		d.gap(qualified, at, "index %s of %s, %s: %s", ix.Name, qualified, ix.Definition, what)
 	}
 	for _, k := range checks {
 		if !constraintName.MatchString(k.Name) {
-			d.gap("check %s of %s: a constraint name is snake_case", k.Name, qualified)
+			d.gap(qualified, at, "check %s of %s: a constraint name is snake_case", k.Name, qualified)
 			continue
 		}
 		expression, reason := translateCheck(k.Definition, fields)
 		if reason != "" {
-			d.gap("check %s of %s, %s: %s", k.Name, qualified, k.Definition, reason)
+			d.gap(qualified, at, "check %s of %s, %s: %s", k.Name, qualified, k.Definition, reason)
+			d.notHeld[len(d.notHeld)-1].asked = at + "/constraints/" + k.Name + "/expression"
 			set(constraintNodes, k.Name, flow(mapping("kind", "check")))
 			d.question(
 				fmt.Sprintf("How is the check %s of table %s, %s, written in SpecArch's expressions, and what is a user told when it fails?", k.Name, qualified, k.Definition),
@@ -437,22 +440,23 @@ func fieldNames(columns []string, fields map[string]*field) ([]string, bool) {
 
 func (d *dbReader) foreignKey(t dumpTable, k dumpConstraint, fields map[string]*field, relations *yaml.Node, targets map[string]int) {
 	qualified := t.Schema + "." + t.Name
+	at := "#/entities/" + d.entities[qualified]
 	ref := *k.ReferencesSchema + "." + *k.ReferencesTable
 	target, ok := d.entities[ref]
 	switch {
 	case !ok:
-		d.gap("foreign key %s of %s: it references %s, which is left out", k.Name, qualified, ref)
+		d.gap(qualified, at, "foreign key %s of %s: it references %s, which is left out", k.Name, qualified, ref)
 		return
 	case len(k.Columns) != 1:
-		d.gap("foreign key %s of %s, %s: a relation holds one field, and this key has %d", k.Name, qualified, k.Definition, len(k.Columns))
+		d.gap(qualified, at, "foreign key %s of %s, %s: a relation holds one field, and this key has %d", k.Name, qualified, k.Definition, len(k.Columns))
 		return
 	case fields[k.Columns[0]] == nil:
-		d.gap("foreign key %s of %s: its column is left out", k.Name, qualified)
+		d.gap(qualified, at, "foreign key %s of %s: its column is left out", k.Name, qualified)
 		return
 	}
 	refTable := d.tableOf(ref)
 	if refTable == nil || !referencesPrimaryKey(*refTable, k.ReferencesColumns) {
-		d.gap("foreign key %s of %s, %s: a relation points at the target's primary key, and this key references other columns", k.Name, qualified, k.Definition)
+		d.gap(qualified, at, "foreign key %s of %s, %s: a relation points at the target's primary key, and this key references other columns", k.Name, qualified, k.Definition)
 		return
 	}
 	kind := "many-to-one"
@@ -471,14 +475,14 @@ func (d *dbReader) foreignKey(t dumpTable, k dumpConstraint, fields map[string]*
 		set(rel, "onDelete", "set_null")
 	default:
 		set(rel, "onDelete", "restrict")
-		d.gap("foreign key %s of %s: on delete %s is not a choice of the meta-model; written as restrict", k.Name, qualified, onDelete(k.OnDelete))
+		d.gap(qualified, at, "foreign key %s of %s: on delete %s is not a choice of the meta-model; written as restrict", k.Name, qualified, onDelete(k.OnDelete))
 	}
 	name := camel(*k.ReferencesTable)
 	if targets[ref] > 1 {
 		name = camel(*k.ReferencesTable) + "Via" + pascal(k.Columns[0])
 	}
 	if !memberName.MatchString(name) {
-		d.gap("foreign key %s of %s: no relation name can be made from %s", k.Name, qualified, ref)
+		d.gap(qualified, at, "foreign key %s of %s: no relation name can be made from %s", k.Name, qualified, ref)
 		return
 	}
 	set(relations, name, flow(rel))
@@ -522,17 +526,19 @@ var (
 
 // column reads one column into a field, or prints why it cannot.
 func (d *dbReader) column(t dumpTable, col dumpColumn) *field {
-	qualified := t.Schema + "." + t.Name + "." + col.Name
+	table := t.Schema + "." + t.Name
+	at := "#/entities/" + d.entities[table]
+	qualified := table + "." + col.Name
 	if !plainName.MatchString(col.Name) {
-		d.gap("column %s: its name has characters a field name cannot hold; left out", qualified)
+		d.gap(table, at, "column %s: its name has characters a field name cannot hold; left out", qualified)
 		return nil
 	}
 	f := &field{column: col.Name, name: camel(col.Name), nullable: !col.NotNull}
 	if !memberName.MatchString(f.name) {
-		d.gap("column %s: no field name can be made from it; left out", qualified)
+		d.gap(table, at, "column %s: no field name can be made from it; left out", qualified)
 		return nil
 	}
-	n := d.columnType(qualified, col.Type, f)
+	n := d.columnType(table, at, qualified, col.Type, f)
 	if n == nil {
 		return nil
 	}
@@ -546,7 +552,7 @@ func (d *dbReader) column(t dumpTable, col dumpColumn) *field {
 	switch {
 	case col.Generated != nil:
 		set(n, "readOnly", true)
-		d.gap("column %s: it is generated by the database from %s, which the meta-model cannot hold; written as read-only", qualified, deref(col.Default))
+		d.gap(table, at, "column %s: it is generated by the database from %s, which the meta-model cannot hold; written as read-only", qualified, deref(col.Default))
 	case col.Identity != nil:
 		set(n, "readOnly", true)
 	case col.Default != nil && nextval.MatchString(*col.Default):
@@ -555,7 +561,7 @@ func (d *dbReader) column(t dumpTable, col dumpColumn) *field {
 		if v := defaultValue(*col.Default, f); v != nil {
 			set(n, "default", v)
 		} else {
-			d.gap("column %s: its default %s is not a value the meta-model can hold", qualified, *col.Default)
+			d.gap(table, at, "column %s: its default %s is not a value the meta-model can hold", qualified, *col.Default)
 		}
 	}
 	f.node = n
@@ -571,10 +577,10 @@ func deref(s *string) string {
 
 // columnType writes the field's type keywords, following the PostgreSQL
 // rows of the type-rendering idiom backwards.
-func (d *dbReader) columnType(qualified, typ string, f *field) *yaml.Node {
+func (d *dbReader) columnType(table, at, qualified, typ string, f *field) *yaml.Node {
 	if strings.HasSuffix(typ, "[]") {
 		item := &field{}
-		in := d.columnType(qualified, strings.TrimSuffix(typ, "[]"), item)
+		in := d.columnType(table, at, qualified, strings.TrimSuffix(typ, "[]"), item)
 		if in == nil {
 			return nil
 		}
@@ -604,7 +610,7 @@ func (d *dbReader) columnType(qualified, typ string, f *field) *yaml.Node {
 		if width < 0 {
 			width = 1
 		}
-		d.gap("column %s, %s: CHAR pads its value with spaces to its width, which the meta-model cannot say; written as a string of at most %d characters", qualified, typ, width)
+		d.gap(table, at, "column %s, %s: CHAR pads its value with spaces to its width, which the meta-model cannot say; written as a string of at most %d characters", qualified, typ, width)
 		return mapping("type", "string", "maxLength", width)
 	case "smallint":
 		f.kind, f.bits = "int", 32
@@ -617,7 +623,7 @@ func (d *dbReader) columnType(qualified, typ string, f *field) *yaml.Node {
 		return mapping("type", "string", "format", "int64")
 	case "numeric":
 		if width < 0 {
-			d.gap("column %s, %s: a decimal needs its precision and scale, and the column has none; left out", qualified, typ)
+			d.gap(table, at, "column %s, %s: a decimal needs its precision and scale, and the column has none; left out", qualified, typ)
 			return nil
 		}
 		if scale < 0 {
@@ -630,7 +636,7 @@ func (d *dbReader) columnType(qualified, typ string, f *field) *yaml.Node {
 		return mapping("type", "number", "format", "double")
 	case "real":
 		f.kind = "double"
-		d.gap("column %s, real: a 32-bit float; written as a double, which holds every value of it", qualified)
+		d.gap(table, at, "column %s, real: a 32-bit float; written as a double, which holds every value of it", qualified)
 		return mapping("type", "number", "format", "double")
 	case "boolean":
 		f.kind = "bool"
@@ -643,7 +649,7 @@ func (d *dbReader) columnType(qualified, typ string, f *field) *yaml.Node {
 		return mapping("type", "string", "format", "date-time")
 	case "timestamp without time zone":
 		f.kind = "timestamp"
-		d.gap("column %s, %s: a time without its zone, which the meta-model cannot say; written as an instant", qualified, typ)
+		d.gap(table, at, "column %s, %s: a time without its zone, which the meta-model cannot say; written as an instant", qualified, typ)
 		return mapping("type", "string", "format", "date-time")
 	case "time without time zone":
 		f.kind = "time"
@@ -662,7 +668,7 @@ func (d *dbReader) columnType(qualified, typ string, f *field) *yaml.Node {
 		f.kind, f.values = "enum", values
 		return mapping("type", "string", "enum", values)
 	}
-	d.gap("column %s, %s: the meta-model has no type for it; left out", qualified, typ)
+	d.gap(table, at, "column %s, %s: the meta-model has no type for it; left out", qualified, typ)
 	return nil
 }
 

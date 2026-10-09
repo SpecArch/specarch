@@ -39,3 +39,21 @@ questions:
     blocks: ['#/entities/Loans/properties/loanedOn/sensitivity']
     decidedBy: system-owner
     why: The document has no sensitivity column for them and no sentence that calls them personal or a credential.
+  Q-7:
+    question: 'Not held: field fee of Loans, at line 21, of type "money": the meta-model holds no type for it; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Loans']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: handbook, clause: "2.1", says: 'Not held: field fee of Loans, at line 21, of type "money": the meta-model holds no type for it; left out.'}
+  Q-8:
+    question: 'Not held: the table at line 36, headed Day | Hours: only a table whose first column is Field, and whose others are Type, Required, Sensitivity or Description, is read. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [entities]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: handbook, clause: "3", says: 'Not held: the table at line 36, headed Day | Hours: only a table whose first column is Field, and whose others are Type, Required, Sensitivity or Description, is read.'}

@@ -124,10 +124,10 @@ func Documents(path, out, key string) (*Result, error) {
 	if d.requirements != nil || d.nextID > 0 {
 		stages = append(stages, "requirements")
 	}
-	if d.entities != nil {
+	if d.entities != nil || d.designQuestions != nil {
 		stages = append(stages, "design")
 	}
-	description := fmt.Sprintf("The document %s, read at commit %s: every heading and numbered section is a clause, every sentence that makes a commitment is a requirement citing its clause, and every table of fields is an entity's fields. What the document does not say is a question.\n", r.Paths[0], r.Commit)
+	description := fmt.Sprintf("The document %s, read at commit %s: every heading and numbered section is a clause, every sentence that makes a commitment is a requirement citing its clause, and every table of fields is an entity's fields. What the document does not say is a question, and so is what the meta-model cannot hold.\n", r.Paths[0], r.Commit)
 	res.Tree.put("specarch.yaml", rootFile(title, description, stages, mapping(key, src)))
 	return res, nil
 }
@@ -139,7 +139,7 @@ type docReader struct {
 	clauses   []*docClause
 	sentences []docSentence
 	tables    []docTable
-	notHeld   []string
+	notHeld   []notHeld
 	counts    struct{ headings, numbered, sentences, commitments, tables, known, codeBlocks int }
 
 	requirements    *yaml.Node
@@ -149,8 +149,26 @@ type docReader struct {
 	nextID          int
 }
 
-func (d *docReader) gap(format string, args ...any) {
-	d.notHeld = append(d.notHeld, "not held: "+fmt.Sprintf(format, args...))
+// gap records what the meta-model cannot hold, at the clause the document
+// says it in, or at its line before the first heading.
+func (d *docReader) gap(at *docClause, line int, block string, format string, args ...any) {
+	clause := fmt.Sprintf("line %d", line)
+	if at != nil {
+		clause = at.id
+	}
+	d.notHeld = append(d.notHeld, notHeld{text: fmt.Sprintf(format, args...), clause: clause, blocks: []string{block}})
+}
+
+// questionsFor is the questions of the stage a question's first block is
+// in: the design stage for an entity, the requirements stage otherwise.
+func (d *docReader) questionsFor(blocks []string) *yaml.Node {
+	if strings.HasPrefix(blocks[0], "#/entities/") || blocks[0] == "entities" {
+		if d.designQuestions == nil {
+			d.designQuestions = &yaml.Node{Kind: yaml.MappingNode}
+		}
+		return d.designQuestions
+	}
+	return d.questions
 }
 
 // parse reads the lines into clauses, sentences and tables, in order.
@@ -190,7 +208,7 @@ func (d *docReader) parse(lines []string) {
 			for i++; i < len(lines) && !strings.HasPrefix(strings.TrimSpace(lines[i]), open); i++ {
 			}
 			d.counts.codeBlocks++
-			d.gap("a code block at line %d: code in a document is not read as a commitment", start)
+			d.gap(current, start, "requirements", "a code block at line %d: code in a document is not read as a commitment", start)
 		case mdHeading.MatchString(line):
 			flush()
 			m := mdHeading.FindStringSubmatch(line)
@@ -240,7 +258,7 @@ func (d *docReader) parse(lines []string) {
 func (d *docReader) clause(id, title string, parent *docClause) *docClause {
 	for _, c := range d.clauses {
 		if c.id == id {
-			d.gap("the section %s is named twice; both are cited as one clause", id)
+			d.gap(c, 0, "requirements", "the section %s is named twice; both are cited as one clause", id)
 			return c
 		}
 	}
@@ -320,14 +338,7 @@ func (d *docReader) question(text, priority string, blocks []string, why string,
 	if len(cites) > 0 {
 		set(q, "cites", cites)
 	}
-	into := d.questions
-	if strings.HasPrefix(blocks[0], "#/entities/") {
-		if d.designQuestions == nil {
-			d.designQuestions = &yaml.Node{Kind: yaml.MappingNode}
-		}
-		into = d.designQuestions
-	}
-	set(into, fmt.Sprintf("Q-%d", d.nextID), q)
+	set(d.questionsFor(blocks), fmt.Sprintf("Q-%d", d.nextID), q)
 }
 
 // prefix is the ID prefix of the requirements read: the source key in
@@ -389,9 +400,9 @@ func (d *docReader) write() {
 	if d.entities != nil {
 		entities = len(d.entities.Content) / 2
 	}
-	d.res.say("wrote %s, %s and %s: one per commitment that names its subject, one per table of fields, and one per thing the document does not say",
-		plural(len(ids), "requirement"), plural(entities, "entity"), plural(d.nextID, "question"))
-	d.res.Lines = append(d.res.Lines, d.notHeld...)
+	d.res.say("wrote %s, %s and %s: one per commitment that names its subject, one per table of fields, one per thing the document does not say, and one per thing the meta-model cannot hold",
+		plural(len(ids), "requirement"), plural(entities, "entity"), plural(d.nextID+couldCount(d.questionsFor, d.notHeld), "question"))
+	askNotHeld(d.res, d.questionsFor, &d.nextID, d.key, d.notHeld)
 	if d.requirements != nil || d.nextID > 0 {
 		req := mapping("stakeholders", ownerStakeholder())
 		if d.requirements != nil {
@@ -402,7 +413,7 @@ func (d *docReader) write() {
 		}
 		d.res.Tree.put("requirements/requirements.yaml", req)
 	}
-	if d.entities != nil {
+	if d.entities != nil || d.designQuestions != nil {
 		design := mapping("entities", d.entities)
 		if d.designQuestions != nil {
 			set(design, "questions", d.designQuestions)
@@ -423,14 +434,14 @@ func (d *docReader) readTables() {
 			known = known && fieldColumns[header[i]]
 		}
 		if !known || t.clause == nil {
-			d.gap("the table at line %d, headed %s: only a table whose first column is Field, and whose others are Type, Required, Sensitivity or Description, is read", t.line, strings.Join(t.header, " | "))
+			d.gap(t.clause, t.line, "entities", "the table at line %d, headed %s: only a table whose first column is Field, and whose others are Type, Required, Sensitivity or Description, is read", t.line, strings.Join(t.header, " | "))
 			continue
 		}
 		d.counts.known++
 		heading := t.clause
 		name := namePascal(heading.title)
 		if name == "" {
-			d.gap("the table at line %d: the heading %q gives no entity name", t.line, heading.title)
+			d.gap(t.clause, t.line, "entities", "the table at line %d: the heading %q gives no entity name", t.line, heading.title)
 			continue
 		}
 		props := &yaml.Node{Kind: yaml.MappingNode}
@@ -452,7 +463,7 @@ func (d *docReader) readTables() {
 					set(f, tt[i].(string), tt[i+1])
 				}
 			} else {
-				d.gap("field %s of %s, at line %d, of type %q: the meta-model holds no type for it; left out", col["field"], name, t.line, col["type"])
+				d.gap(t.clause, t.line, "#/entities/"+name, "field %s of %s, at line %d, of type %q: the meta-model holds no type for it; left out", col["field"], name, t.line, col["type"])
 				continue
 			}
 			if s := strings.ToLower(col["sensitivity"]); sensitivities[s] {

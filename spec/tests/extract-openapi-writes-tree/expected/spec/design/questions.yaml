@@ -41,3 +41,120 @@ questions:
     blocks: ['#/paths/~1loans/post/requestBody/content/application~1json/schema/properties/copies/format', '#/entities/Loan/properties/id/format', '#/entities/Loan/properties/fee/format']
     decidedBy: system-owner
     why: The meta-model needs a number's width, and the document gives none it holds; choosing one would be a guess.
+  Q-7:
+    question: 'Not held: operation POST /loans: its operationId create-loan is not camelCase, which an operationId is; it is named postLoans. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1loans/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1loans/post, says: 'Not held: operation POST /loans: its operationId create-loan is not camelCase, which an operationId is; it is named postLoans.'}
+  Q-8:
+    question: 'Not held: operation POST /loans: tags, which the meta-model does not hold here; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1loans/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1loans/post, says: 'Not held: operation POST /loans: tags, which the meta-model does not hold here; left out.'}
+  Q-9:
+    question: 'Not held: operation HEAD /loans/{loanId}: the meta-model holds the methods get, post, put, patch and delete; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1loans~1{loanId}']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: '/paths/~1loans~1{loanId}', says: 'Not held: operation HEAD /loans/{loanId}: the meta-model holds the methods get, post, put, patch and delete; left out.'}
+  Q-10:
+    question: 'Not held: operation GET /loans/{loanId}, parameter session: the meta-model holds a parameter in the path, the query or a header, not a cookie; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1loans~1{loanId}/get']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: '/paths/~1loans~1{loanId}/get', says: 'Not held: operation GET /loans/{loanId}, parameter session: the meta-model holds a parameter in the path, the query or a header, not a cookie; left out.'}
+  Q-11:
+    question: 'Not held: operation GET /loans/{loanId}, response 4XX: the meta-model holds a response code or default, not a range; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1loans~1{loanId}/get']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: '/paths/~1loans~1{loanId}/get', says: 'Not held: operation GET /loans/{loanId}, response 4XX: the meta-model holds a response code or default, not a range; left out.'}
+  Q-12:
+    question: 'Not held: operation GET /loans/{loanId}: the extension x-rate-group, whose meaning the document''s own tools define; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1loans~1{loanId}/get']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: '/paths/~1loans~1{loanId}/get', says: 'Not held: operation GET /loans/{loanId}: the extension x-rate-group, whose meaning the document''s own tools define; left out.'}
+  Q-13:
+    question: 'Not held: schema Loan, property due_on: its name is snake_case, and the document''s other names are camelCase; a specification names its properties on the wire one way (info.wireNames); left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Loan']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /components/schemas/Loan, says: 'Not held: schema Loan, property due_on: its name is snake_case, and the document''s other names are camelCase; a specification names its properties on the wire one way (info.wireNames); left out.'}
+  Q-14:
+    question: 'Not held: schema Loan, property note: allOf combines schemas, which the field subset does not; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Loan']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /components/schemas/Loan, says: 'Not held: schema Loan, property note: allOf combines schemas, which the field subset does not; left out.'}
+  Q-15:
+    question: 'Not held: schema Loan, property note: no type the meta-model holds is left; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Loan']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /components/schemas/Loan, says: 'Not held: schema Loan, property note: no type the meta-model holds is left; left out.'}
+  Q-16:
+    question: 'Not held: schema loanList: its name is not PascalCase, which an entity''s or an enum''s is; written in place wherever it is referred to. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [schemas]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /components/schemas/loanList, says: 'Not held: schema loanList: its name is not PascalCase, which an entity''s or an enum''s is; written in place wherever it is referred to.'}
+  Q-17:
+    question: 'Not held: the document''s servers: the meta-model does not hold it; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /servers, says: 'Not held: the document''s servers: the meta-model does not hold it; left out.'}
+  Q-18:
+    question: 'Not held: the document''s tags: the meta-model does not hold it; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /tags, says: 'Not held: the document''s tags: the meta-model does not hold it; left out.'}
+  Q-19:
+    question: 'Not held: components.securitySchemes: a security scheme is not a permission; named in each operation''s permission question, and left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [permissions]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /components/securitySchemes, says: 'Not held: components.securitySchemes: a security scheme is not a permission; named in each operation''s permission question, and left out.'}

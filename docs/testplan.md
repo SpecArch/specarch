@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 311 design tests, 122 golden and 189 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 312 design tests, 123 golden and 189 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 307 |
+| system | 308 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -537,7 +537,7 @@ Scenario: golden; level: system; verifies SA-44.
 
 - Given: a repository whose first commit holds its migrations and whose second holds the catalogue dump made from them, naming the first; the tables have a small integer key, a decimal with a default, a money column, a unique key, a check the expressions can say and one they can say as a list of values, an enum type, a fixed-width text, an identity column, a foreign key with cascade, an index, a table without a primary key and a view
 - When: extract database is run on the dump
-- Then: it writes one entity per table, with the types, keys, relations and constraints it can hold, a question for every constraint message and for the missing primary key, names the commit, counts what it read, prints a line for the money column, the fixed width, the default it cannot hold, the index and the view, and exits 0
+- Then: it writes one entity per table, with the types, keys, relations and constraints it can hold, a question for every constraint message and for the missing primary key, names the commit, counts what it read, prints a line and writes a could question citing the table for the money column, the fixed width, the default it cannot hold, the index and the view, and exits 0
 
 #### extract-documents-not-markdown
 
@@ -553,7 +553,7 @@ Scenario: golden; level: system; verifies SA-44.
 
 - Given: a repository holding a Markdown handbook with numbered headings and paragraphs, sentences with shall, must, should, a number of days and a time of day, a commitment that names its subject only as it, two tables of fields, one with a sensitivity column and one whose sensitivity a sentence gives for one field, a field of a type the meta-model does not hold, a table of another header and a code block
 - When: extract documents is run on the handbook
-- Then: it writes the outline as clauses at the commit read, one requirement per commitment citing its clause, the fields of each table as an entity with the sensitivity the document gives, and a question for the commitment it cannot place, the requirements' kind, each entity's primary key and the sensitivity not given, prints a line for the type, the table and the code block it does not hold, and exits 0
+- Then: it writes the outline as clauses at the commit read, one requirement per commitment citing its clause, the fields of each table as an entity with the sensitivity the document gives, and a question for the commitment it cannot place, the requirements' kind, each entity's primary key and the sensitivity not given, prints a line and writes a could question citing the section for the type, the table and the code block it does not hold, and exits 0
 
 #### extract-exit-1
 
@@ -585,7 +585,7 @@ Scenario: golden; level: system; verifies SA-44, SA-49.
 
 - Given: a repository holding an OpenAPI 3.1 document whose property names are snake_case throughout: an inline request body, an object schema with a nested object, a name with a digit inside it, one whose last word is a digit, and a required list naming them
 - When: extract openapi is run on the document
-- Then: it writes info.wireNames snake_case and every property, the nested ones and the required lists included, by its camelCase name, leaves out with a line the name that would go back on the wire as another, and exits 0
+- Then: it writes info.wireNames snake_case and every property, the nested ones and the required lists included, by its camelCase name, leaves out with a line and a could question the name that would go back on the wire as another, and exits 0
 
 #### extract-openapi-writes-schema
 
@@ -601,7 +601,7 @@ Scenario: golden; level: system; verifies SA-44.
 
 - Given: a repository holding an OpenAPI 3.0 document with two paths, a path-level parameter by reference, a template parameter it does not declare, a request body by reference, an operationId that is not camelCase, an operation with no summary and one with no security, a head method, a cookie parameter, a response range, an extension, an object schema with an int64 and a float without bounds, a nullable field, a snake_case property and an allOf, a string enum and an array schema named in lower case
 - When: extract openapi is run on the document
-- Then: it writes each operation under its path citing its pointer, the object schema as an entity and the enum as an enum, 3.0's nullable and boolean exclusive bound in the 3.1 form, a question for the missing summary, each permission, the undeclared parameter's values, the primary key and the widths, prints a line for everything it leaves out, and exits 0
+- Then: it writes each operation under its path citing its pointer, the object schema as an entity and the enum as an enum, 3.0's nullable and boolean exclusive bound in the 3.1 form, a question for the missing summary, each permission, the undeclared parameter's values, the primary key and the widths, prints a line for everything it leaves out, a could question citing the operation or the schema for each but the widths it asks for, and exits 0
 
 #### extract-outline-shallow-clone
 
@@ -641,7 +641,7 @@ Scenario: golden; level: system; verifies SA-44.
 
 - Given: a repository whose app folder holds a page with no schema, and a sign-in page whose schema says it is a task that is open to everyone, names the operation it submits to and its fields, and names an entity besides
 - When: extract pages is run on the app folder
-- Then: it writes the sign-in page as a task with its fields and no entity, prints a line for the entity it leaves out, declares public without asking what it allows, asks only for the operation it submits to, and exits 0
+- Then: it writes the sign-in page as a task with its fields and no entity, prints a line and writes a could question for the entity it leaves out, declares public without asking what it allows, asks only for the operation it submits to, and exits 0
 
 #### extract-pages-writes-tree
 
@@ -649,7 +649,7 @@ Scenario: golden; level: system; verifies SA-44.
 
 - Given: a repository whose app folder holds a root page, a route group with a list page whose schema file gives its content, keys the reader does not read, a hook and a compact column that is not a column, a page with a dynamic segment whose schema is outside the subset, a page that says it is generated, and a catch-all segment, a parallel route, a private folder, an intercepting route, a route handler and a page.mdx
 - When: extract pages is run on the app folder
-- Then: it writes one page per route with its parameter, the list page's content from its schema with the entity, its fields and the permission it names, a question for what neither the folders nor the schemas say, names the commit, counts the page and schema files, reports the generated page, prints a line for every folder, file and key it leaves out, and exits 0
+- Then: it writes one page per route with its parameter, the list page's content from its schema with the entity, its fields and the permission it names, a question for what neither the folders nor the schemas say, names the commit, counts the page and schema files, reports the generated page, prints a line for every folder, file and key it leaves out, a could question citing the file, or the schema's line, for each but the content the question for the page asks for, and exits 0
 
 #### extract-permissions-grant-twice
 
@@ -665,7 +665,7 @@ Scenario: golden; level: system; verifies SA-44.
 
 - Given: a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it, naming the first; the table has two roles sharing a permission, a grant of public, a role whose name is not kebab-case, a role whose one permission is not a permission name, and a check that runs only when a setting is present
 - When: extract permissions is run on the permission table
-- Then: it writes each role with the permissions it grants in the order of their names and every permission granted, a question for the roles' and the permissions' descriptions and one for the check a setting switches off, names the commit, counts the grants and gates, prints a line for the gate, the grant of public, the role's name, the permission's name and the role left with nothing, and exits 0
+- Then: it writes each role with the permissions it grants in the order of their names and every permission granted, a question for the roles' and the permissions' descriptions and one for the check a setting switches off, names the commit, counts the grants and gates, prints a line for the gate, prints a line and writes a could question citing the role for the grant of public, the role's name, the permission's name and the role left with nothing, and exits 0
 
 #### extract-router-route-twice
 
@@ -689,7 +689,7 @@ Scenario: golden; level: system; verifies SA-44.
 
 - Given: a repository whose first commit holds a router's folder and whose second holds the route table printed from it, naming the first; the table has two methods on one path, a path with a parameter, a route with no permission, a HEAD route, a path with a wildcard, a handler serving two routes and a permission that is not a permission name
 - When: extract router is run on the route table
-- Then: it writes one operation per held method and path pair with its path parameters and permission, one permission per name a route checks, a question for each operation's summary and responses, each path's parameter values, the permissions' descriptions and the roles that grant them, every route without a usable permission, names the commit, counts the routes, prints a line for the HEAD route, the wildcard, the permission name and the shared handler, and exits 0
+- Then: it writes one operation per held method and path pair with its path parameters and permission, one permission per name a route checks, a question for each operation's summary and responses, each path's parameter values, the permissions' descriptions and the roles that grant them, every route without a usable permission, names the commit, counts the routes, prints a line for the HEAD route, the wildcard, the permission name and the shared handler, a could question citing the route for each but the permission name, which a must question asks for, and exits 0
 
 #### extract-usage-error
 
@@ -713,7 +713,7 @@ Scenario: golden; level: system; verifies SA-44.
 
 - Given: a repository with a BPMN 2.0 file of two processes: one whose start event names its operation, with two user tasks whose potential owners are a resource and an expression, a timer that escalates to the second, a gateway that refuses after the first, a timer of a week and a service task naming its operation; and one with no documentation, no operation on its start event, lanes, a user task with no owner and a repeating timer, and a parallel gateway; beside them a signal and a diagram
 - When: extract workflows is run on the file
-- Then: it writes one workflow per process in the order of their names, the approvals with their roles, deadlines and escalation, a question naming the operation for the trigger and the service task, a question for each permission, subject and anything the file leaves out or the subset does not hold, a role per potential owner, a line per element left out in the order of the file, and exits 0
+- Then: it writes one workflow per process in the order of their names, the approvals with their roles, deadlines and escalation, a question naming the operation for the trigger and the service task, a question for each permission, subject and anything the file leaves out or the subset does not hold, a role per potential owner, a line per element left out in the order of the file, and a could question citing the file's line for each that no must question asks for already, and exits 0
 
 ### Command gaps
 
@@ -1076,6 +1076,14 @@ Scenario: golden; level: system; verifies SA-45.
 - Given: a repository whose first commit holds the migrations and whose second the router, a database tree read at the first that asks one question, and a router tree read at the second that asks two, both declaring the repository as the source code
 - When: merge is run on the two trees
 - Then: it writes one specification with one source code at the second commit, whose clauses are both trees', every element of both trees, the stakeholder they share once and the three questions numbered again in the order the trees are given, says the migrations are unchanged up to the second commit, and exits 0
+
+#### merge-keeps-could-questions
+
+Scenario: golden; level: system; verifies SA-45.
+
+- Given: the tree of a route table and the tree of a permission table, each asking with must what the same three permissions allow, the permission table with two could questions on one role and each with a could question on one permission, each about something its reader could not hold
+- When: merge is run on the two trees
+- Then: it leaves out the permission table's must question as asked twice, keeps every could question, the two on one role and the two on one permission, and exits 0
 
 #### merge-openapi-placeholder
 

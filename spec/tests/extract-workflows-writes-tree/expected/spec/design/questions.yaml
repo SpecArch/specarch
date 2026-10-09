@@ -120,3 +120,57 @@ questions:
     blocks: ['#/roles/refund-clerk/description']
     decidedBy: system-owner
     why: The BPMN file names the role and does not describe it.
+  Q-18:
+    question: 'Not held: processes/requests.bpmn:11: signal cancelled is outside the sequential subset of BPMN 2.0 the meta-model holds; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [workflows]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'processes/requests.bpmn:11', says: 'Not held: signal cancelled is outside the sequential subset of BPMN 2.0 the meta-model holds; left out.'}
+  Q-19:
+    question: 'Not held: processes/requests.bpmn:34: potential owner "Branch Manager" of managerCheck is written as the role branch-manager. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/workflows/refund']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'processes/requests.bpmn:34', says: 'Not held: potential owner "Branch Manager" of managerCheck is written as the role branch-manager.'}
+  Q-20:
+    question: 'Not held: processes/requests.bpmn:39: humanPerformer of managerCheck names who does the task, and an approval names who may approve it; read the potential owners instead; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/workflows/refund']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'processes/requests.bpmn:39', says: 'Not held: humanPerformer of managerCheck names who does the task, and an approval names who may approve it; read the potential owners instead; left out.'}
+  Q-21:
+    question: 'Not held: processes/requests.bpmn:53: the lanes of process audit-review are not read: a potential owner on each user task names who approves; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/workflows/audit-review']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'processes/requests.bpmn:53', says: 'Not held: the lanes of process audit-review are not read: a potential owner on each user task names who approves; left out.'}
+  Q-22:
+    question: 'Not held: processes/requests.bpmn:65: serviceTask record is not on the path from the start event the steps follow; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/workflows/audit-review']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'processes/requests.bpmn:65', says: 'Not held: serviceTask record is not on the path from the start event the steps follow; left out.'}
+  Q-23:
+    question: 'Not held: processes/requests.bpmn:70: BPMNDiagram is not in BPMN''s semantic model (its namespace is http://www.omg.org/spec/BPMN/20100524/DI), such as diagram layout or a tool''s extension; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [workflows]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'processes/requests.bpmn:70', says: 'Not held: BPMNDiagram is not in BPMN''s semantic model (its namespace is http://www.omg.org/spec/BPMN/20100524/DI), such as diagram layout or a tool''s extension; left out.'}

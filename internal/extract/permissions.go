@@ -80,7 +80,7 @@ func Permissions(dumpPath, out, key string) (*Result, error) {
 		res.Tree.put("requirements/stakeholders.yaml", mapping("stakeholders", ownerStakeholder()))
 		res.Tree.put("design/questions.yaml", mapping("questions", pr.questions))
 	}
-	description := fmt.Sprintf("The roles and the permissions each grants, as the permission check built from %s reads them, from the permission table %s, made at commit %s. Every role and permission cites the table; what the table does not say is a question.\n", t.Path, dumpName, r.Commit)
+	description := fmt.Sprintf("The roles and the permissions each grants, as the permission check built from %s reads them, from the permission table %s, made at commit %s. Every role and permission cites the table; what the table does not say is a question, and so is what the meta-model cannot hold.\n", t.Path, dumpName, r.Commit)
 	res.Tree.put("specarch.yaml", rootFile("Permissions of "+t.Path, description, stages, mapping(key, src)))
 	return res, nil
 }
@@ -93,11 +93,13 @@ type permissionReader struct {
 	permissions *yaml.Node
 	questions   *yaml.Node
 	nextID      int
-	notHeld     []string
+	notHeld     []notHeld
 }
 
-func (pr *permissionReader) gap(format string, args ...any) {
-	pr.notHeld = append(pr.notHeld, "not held: "+fmt.Sprintf(format, args...))
+// gap records what the meta-model cannot hold of a grant of the role, as
+// a question on the roles.
+func (pr *permissionReader) gap(role string, format string, args ...any) {
+	pr.notHeld = append(pr.notHeld, notHeld{text: fmt.Sprintf(format, args...), clause: pr.t.Path + " role " + role, blocks: []string{"roles"}})
 }
 
 func (pr *permissionReader) question(text string, blocks []string, why string) {
@@ -129,18 +131,18 @@ func (pr *permissionReader) read(dumpName string) error {
 		seen[g] = true
 		switch {
 		case !roleWord.MatchString(g.Role):
-			pr.gap("grant of %s to %q: the role's name is not kebab-case, which a role name is; left out", g.Permission, g.Role)
+			pr.gap(g.Role, "grant of %s to %q: the role's name is not kebab-case, which a role name is; left out", g.Permission, g.Role)
 		case !permissionWord.MatchString(g.Permission):
-			pr.gap("grant of %q to %s: the permission's name is not lower-case words joined by dots; left out", g.Permission, g.Role)
+			pr.gap(g.Role, "grant of %q to %s: the permission's name is not lower-case words joined by dots; left out", g.Permission, g.Role)
 		case g.Permission == "public":
-			pr.gap("grant of public to %s: public is open to everyone and granted by no role; left out", g.Role)
+			pr.gap(g.Role, "grant of public to %s: public is open to everyone and granted by no role; left out", g.Role)
 		default:
 			byRole[g.Role] = append(byRole[g.Role], g.Permission)
 		}
 	}
 	for _, g := range pr.t.Grants {
 		if roleWord.MatchString(g.Role) && byRole[g.Role] == nil {
-			pr.gap("role %s: it grants nothing the meta-model holds, and a role that grants nothing is left out", g.Role)
+			pr.gap(g.Role, "role %s: it grants nothing the meta-model holds, and a role that grants nothing is left out", g.Role)
 			byRole[g.Role] = []string{}
 		}
 	}
@@ -227,8 +229,8 @@ func (pr *permissionReader) read(dumpName string) error {
 	if pr.permissions != nil {
 		permissions = len(pr.permissions.Content) / 2
 	}
-	pr.res.say("wrote %s, %s and %s: one role per name the table grants something the meta-model holds, one permission per name a role grants, and one question per thing the permission table does not say and per gate", plural(len(roleNames), "role"), plural(permissions, "permission"), plural(pr.nextID, "question"))
-	pr.res.Lines = append(pr.res.Lines, pr.notHeld...)
+	pr.res.say("wrote %s, %s and %s: one role per name the table grants something the meta-model holds, one permission per name a role grants, one question per thing the permission table does not say and per gate, and one per thing the meta-model cannot hold", plural(len(roleNames), "role"), plural(permissions, "permission"), plural(pr.nextID+couldCount(oneQuestions(pr.questions), pr.notHeld), "question"))
+	askNotHeld(pr.res, oneQuestions(pr.questions), &pr.nextID, pr.key, pr.notHeld)
 	return nil
 }
 

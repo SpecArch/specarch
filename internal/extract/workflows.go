@@ -121,13 +121,14 @@ type workflowReader struct {
 	questions  *yaml.Node
 	nextID     int
 	notHeld    []heldLine
+	at         string // the workflow being read, or "" outside a process
 }
 
-// heldLine is one line about what the subset does not hold, at its line
-// of the file, so the lines come in the file's order.
+// heldLine is one thing the subset does not hold, at its line of the file,
+// so the questions and lines come in the file's order.
 type heldLine struct {
 	line int
-	text string
+	notHeld
 }
 
 // Workflows reads a BPMN 2.0 XML file into one workflow per process, in
@@ -210,19 +211,29 @@ func Workflows(path, out, key string) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	res.say("wrote %s, %s and %s: one workflow per process, one role per potential owner, and one question per thing the file does not say or the subset does not hold",
-		plural(len(wr.workflows.Content)/2, "workflow"), plural(len(wr.roles), "role"), plural(wr.nextID, "question"))
 	sort.SliceStable(wr.notHeld, func(i, j int) bool { return wr.notHeld[i].line < wr.notHeld[j].line })
+	var held []notHeld
 	for _, h := range wr.notHeld {
-		res.Lines = append(res.Lines, h.text)
+		held = append(held, h.notHeld)
 	}
+	res.say("wrote %s, %s and %s: one workflow per process, one role per potential owner, and one question per thing the file does not say or the subset does not hold",
+		plural(len(wr.workflows.Content)/2, "workflow"), plural(len(wr.roles), "role"), plural(wr.nextID+couldCount(oneQuestions(wr.questions), held), "question"))
+	askNotHeld(res, oneQuestions(wr.questions), &wr.nextID, wr.key, held)
 	description := fmt.Sprintf("The workflows the BPMN 2.0 file %s defines at commit %s, in the sequential subset the meta-model holds: approvals, operation steps and deadlines. Every workflow cites the file; what it does not say, or says outside the subset, is a question.\n", file, r.Commit)
 	res.Tree.put("specarch.yaml", rootFile("Workflows of "+file, description, []string{"requirements", "design"}, mapping(key, src)))
 	return res, nil
 }
 
-func (wr *workflowReader) gap(e *xmlElement, format string, args ...any) {
-	wr.notHeld = append(wr.notHeld, heldLine{e.line, fmt.Sprintf("not held: %s:%d: %s", wr.file, e.line, fmt.Sprintf(format, args...))})
+// gap records what the subset does not hold at an element of the file,
+// blocking the workflow being read, or the workflows outside a process.
+// asked is the pointer a question the reader asks for it blocks, or "".
+func (wr *workflowReader) gap(e *xmlElement, asked string, format string, args ...any) {
+	block := wr.at
+	if block == "" {
+		block = "workflows"
+	}
+	clause := fmt.Sprintf("%s:%d", wr.file, e.line)
+	wr.notHeld = append(wr.notHeld, heldLine{e.line, notHeld{text: clause + ": " + fmt.Sprintf(format, args...), clause: clause, blocks: []string{block}, asked: asked}})
 }
 
 // question asks a must question; names is the name the file gives for the
@@ -254,7 +265,7 @@ func (wr *workflowReader) definitions(root *xmlElement) []*xmlElement {
 	for _, c := range root.children {
 		switch {
 		case c.space != bpmnModel:
-			wr.gap(c, "%s is not in BPMN's semantic model (its namespace is %s), such as diagram layout or a tool's extension; left out", c.name, c.space)
+			wr.gap(c, "", "%s is not in BPMN's semantic model (its namespace is %s), such as diagram layout or a tool's extension; left out", c.name, c.space)
 		case c.name == "process":
 			processes = append(processes, c)
 		case c.name == "interface":
@@ -265,7 +276,7 @@ func (wr *workflowReader) definitions(root *xmlElement) []*xmlElement {
 			wr.resources[c.attr("id")] = c.attr("name")
 		case bpmnReferenced[c.name]:
 		default:
-			wr.gap(c, "%s %s is outside the sequential subset of BPMN 2.0 the meta-model holds; left out", c.name, c.attr("id"))
+			wr.gap(c, "", "%s %s is outside the sequential subset of BPMN 2.0 the meta-model holds; left out", c.name, c.attr("id"))
 		}
 	}
 	return processes
@@ -278,25 +289,30 @@ func (wr *workflowReader) process(p *xmlElement) {
 		label = p.attr("id")
 	}
 	name := kebab(label)
-	if !roleWord.MatchString(name) {
+	unsaid := !roleWord.MatchString(name)
+	if unsaid {
 		name = "workflow-" + strings.Trim(notPageWord.ReplaceAllString(strings.ToLower(name), "-"), "-")
-		wr.gap(p, "process %s: its name is not one kebab-case can say; the workflow is named %s", label, name)
 	}
 	base := name
 	for n := 2; source0Has(wr.workflows, name); n++ {
 		name = fmt.Sprintf("%s-%d", base, n)
 	}
-	if name != base {
-		wr.gap(p, "process %s: workflow %s is taken by another process; it is named %s", label, base, name)
-	}
 	at := "#/workflows/" + name
+	wr.at = at
+	defer func() { wr.at = "" }()
+	if unsaid {
+		wr.gap(p, "", "process %s: its name is not one kebab-case can say; the workflow is named %s", label, base)
+	}
+	if name != base {
+		wr.gap(p, "", "process %s: workflow %s is taken by another process; it is named %s", label, base, name)
+	}
 	byID := map[string]*xmlElement{}
 	outgoing := map[string][]*xmlElement{}
 	var starts []*xmlElement
 	var boundaries []*xmlElement
 	for _, c := range p.children {
 		if c.space != bpmnModel {
-			wr.gap(c, "%s in process %s is not in BPMN's semantic model; left out", c.name, label)
+			wr.gap(c, "", "%s in process %s is not in BPMN's semantic model; left out", c.name, label)
 			continue
 		}
 		if id := c.attr("id"); id != "" {
@@ -310,7 +326,7 @@ func (wr *workflowReader) process(p *xmlElement) {
 		case c.name == "boundaryEvent":
 			boundaries = append(boundaries, c)
 		case c.name == "laneSet":
-			wr.gap(c, "the lanes of process %s are not read: a potential owner on each user task names who approves; left out", label)
+			wr.gap(c, "", "the lanes of process %s are not read: a potential owner on each user task names who approves; left out", label)
 		}
 	}
 	w := mapping()
@@ -338,7 +354,7 @@ func (wr *workflowReader) process(p *xmlElement) {
 			wr.question(fmt.Sprintf("Workflow %s is started by operation %s, which the BPMN file names on its start event; the file does not declare it, so it waits for the tree that does. Is it that operation?", name, opName),
 				[]string{at + "/trigger"}, opName, "The file names the operation and not its method or path, so the workflow's trigger waits for the tree that declares it; specarch merge writes it once one does.")
 		case opName != "":
-			wr.gap(start, "start event %s names operation %s, which is not a name an operationId can take; asked for instead", start.attr("id"), opName)
+			wr.gap(start, at+"/trigger", "start event %s names operation %s, which is not a name an operationId can take; asked for instead", start.attr("id"), opName)
 			fallthrough
 		default:
 			wr.question(fmt.Sprintf("Which operation starts workflow %s? Its start event names no operation the file declares.", name),
@@ -349,7 +365,7 @@ func (wr *workflowReader) process(p *xmlElement) {
 		if len(starts) > 1 {
 			where = starts[1]
 		}
-		wr.gap(where, "process %s has %d start events, and a workflow starts from one operation; its trigger and steps are asked for", label, len(starts))
+		wr.gap(where, at+"/trigger", "process %s has %d start events, and a workflow starts from one operation; its trigger and steps are asked for", label, len(starts))
 		wr.question(fmt.Sprintf("Which operation starts workflow %s, and what are its steps? Process %s has %d start events.", name, label, len(starts)),
 			[]string{at + "/trigger"}, "", "A workflow in the sequential subset has one start.")
 	}
@@ -368,7 +384,7 @@ func (wr *workflowReader) process(p *xmlElement) {
 		}
 		next := byID[flows[0].attr("targetRef")]
 		if next == nil {
-			wr.gap(flows[0], "sequence flow %s goes to %s, which process %s does not hold; the steps after it are left out", flows[0].attr("id"), flows[0].attr("targetRef"), label)
+			wr.gap(flows[0], "", "sequence flow %s goes to %s, which process %s does not hold; the steps after it are left out", flows[0].attr("id"), flows[0].attr("targetRef"), label)
 			break
 		}
 		if seen[next.attr("id")] {
@@ -410,9 +426,9 @@ func (wr *workflowReader) process(p *xmlElement) {
 		switch {
 		case c.space != bpmnModel || seen[c.attr("id")] || c == start:
 		case c.name == "userTask" || c.name == "serviceTask" || c.name == "exclusiveGateway":
-			wr.gap(c, "%s %s is not on the path from the start event the steps follow; left out", c.name, c.attr("id"))
+			wr.gap(c, "", "%s %s is not on the path from the start event the steps follow; left out", c.name, c.attr("id"))
 		case !bpmnHeld[c.name] && c.name != "laneSet":
-			wr.gap(c, "%s %s in process %s is outside the sequential subset of BPMN 2.0 the meta-model holds; left out", c.name, c.attr("id"), label)
+			wr.gap(c, at, "%s %s in process %s is outside the sequential subset of BPMN 2.0 the meta-model holds; left out", c.name, c.attr("id"), label)
 			wr.question(fmt.Sprintf("Process %s has %s %s, which the sequential subset does not hold; how is workflow %s to be written?", label, c.name, c.attr("id"), name),
 				[]string{at}, "", "Parallel paths, loops and other elements are left out of the subset until a real workflow asks for them (ADR-054), so the workflow as written may be missing a part of the process.")
 		}
@@ -424,11 +440,11 @@ func (wr *workflowReader) process(p *xmlElement) {
 		td := b.first("timerEventDefinition")
 		switch {
 		case task == nil || task.name != "userTask":
-			wr.gap(b, "boundary event %s is not on a user task; the subset holds a timer on an approval only; left out", b.attr("id"))
+			wr.gap(b, "", "boundary event %s is not on a user task; the subset holds a timer on an approval only; left out", b.attr("id"))
 		case td == nil:
-			wr.gap(b, "boundary event %s on %s is not a timer; left out", b.attr("id"), task.attr("id"))
+			wr.gap(b, "", "boundary event %s on %s is not a timer; left out", b.attr("id"), task.attr("id"))
 		case timers[task.attr("id")] != nil:
-			wr.gap(b, "boundary event %s is a second timer on %s, and an approval has one deadline; left out", b.attr("id"), task.attr("id"))
+			wr.gap(b, "", "boundary event %s is a second timer on %s, and an approval has one deadline; left out", b.attr("id"), task.attr("id"))
 		default:
 			timers[task.attr("id")] = b
 		}
@@ -463,7 +479,7 @@ func (wr *workflowReader) process(p *xmlElement) {
 		timer := timers[s.el.attr("id")]
 		deadline, onDeadline, escalateTo := "", "", ""
 		if timer != nil {
-			deadline, onDeadline, escalateTo = wr.deadline(timer, chain[i+1:], outgoing, byID)
+			deadline, onDeadline, escalateTo = wr.deadline(ptr, timer, chain[i+1:], outgoing, byID)
 		}
 		if deadline != "" {
 			set(st, "deadline", deadline)
@@ -508,7 +524,7 @@ func (wr *workflowReader) process(p *xmlElement) {
 // chainGap reports where the chain leaves the subset, with a question on
 // the workflow.
 func (wr *workflowReader) chainGap(e *xmlElement, at, label, name, why string) {
-	wr.gap(e, "%s; the steps after it are left out", why)
+	wr.gap(e, at, "%s; the steps after it are left out", why)
 	wr.question(fmt.Sprintf("Process %s leaves the sequential subset at %s: %s. What are the steps of workflow %s from there?", label, e.attr("id"), why, name),
 		[]string{at}, "", "Only the steps before the element are written, so the workflow may be missing a part of the process.")
 }
@@ -522,7 +538,7 @@ func (wr *workflowReader) stepName(e *xmlElement, chain []bpmnStep) string {
 	name := camel(strings.ReplaceAll(kebab(label), "-", "_"))
 	if !stepWord.MatchString(name) {
 		name = fmt.Sprintf("step%d", len(chain)+1)
-		wr.gap(e, "%s %s: its name %q is not one camelCase can say; the step is named %s", e.name, e.attr("id"), label, name)
+		wr.gap(e, "", "%s %s: its name %q is not one camelCase can say; the step is named %s", e.name, e.attr("id"), label, name)
 	}
 	base := name
 	for n := 2; ; n++ {
@@ -536,7 +552,7 @@ func (wr *workflowReader) stepName(e *xmlElement, chain []bpmnStep) string {
 		name = fmt.Sprintf("%s%d", base, n)
 	}
 	if name != base {
-		wr.gap(e, "%s %s: step %s is taken by an earlier task; it is named %s", e.name, e.attr("id"), base, name)
+		wr.gap(e, "", "%s %s: step %s is taken by an earlier task; it is named %s", e.name, e.attr("id"), base, name)
 	}
 	return name
 }
@@ -571,7 +587,7 @@ func (wr *workflowReader) owners(task *xmlElement) []string {
 			if n, ok := wr.resources[ref]; ok {
 				names = append(names, n)
 			} else {
-				wr.gap(po, "potential owner of %s names resource %s, which the file does not declare; left out", task.attr("id"), ref)
+				wr.gap(po, "", "potential owner of %s names resource %s, which the file does not declare; left out", task.attr("id"), ref)
 			}
 		}
 		if rae := po.first("resourceAssignmentExpression"); rae != nil {
@@ -583,10 +599,10 @@ func (wr *workflowReader) owners(task *xmlElement) []string {
 			role := kebab(n)
 			switch {
 			case !roleWord.MatchString(role):
-				wr.gap(po, "potential owner %q of %s is not a name a role can take; left out", n, task.attr("id"))
+				wr.gap(po, "", "potential owner %q of %s is not a name a role can take; left out", n, task.attr("id"))
 				continue
 			case role != n:
-				wr.gap(po, "potential owner %q of %s is written as the role %s", n, task.attr("id"), role)
+				wr.gap(po, "", "potential owner %q of %s is written as the role %s", n, task.attr("id"), role)
 			}
 			if !contains(out, role) {
 				out = append(out, role)
@@ -596,7 +612,7 @@ func (wr *workflowReader) owners(task *xmlElement) []string {
 	}
 	for _, c := range task.children {
 		if c.space == bpmnModel && (c.name == "humanPerformer" || c.name == "performer") {
-			wr.gap(c, "%s of %s names who does the task, and an approval names who may approve it; read the potential owners instead; left out", c.name, task.attr("id"))
+			wr.gap(c, "", "%s of %s names who does the task, and an approval names who may approve it; read the potential owners instead; left out", c.name, task.attr("id"))
 		}
 	}
 	return out
@@ -606,24 +622,24 @@ var bpmnDuration = regexp.MustCompile(`^P(?:[0-9]+D|(?:[0-9]+D)?T(?:[0-9]+H(?:[0
 
 // deadline reads a timer on a user task: its duration, and refuse when its
 // flow ends the request or escalate to the later approval it reaches.
-func (wr *workflowReader) deadline(timer *xmlElement, later []bpmnStep, outgoing map[string][]*xmlElement, byID map[string]*xmlElement) (string, string, string) {
+func (wr *workflowReader) deadline(ptr string, timer *xmlElement, later []bpmnStep, outgoing map[string][]*xmlElement, byID map[string]*xmlElement) (string, string, string) {
 	if timer.attr("cancelActivity") == "false" {
-		wr.gap(timer, "timer %s does not interrupt its task, and a deadline ends the wait; left out", timer.attr("id"))
+		wr.gap(timer, "", "timer %s does not interrupt its task, and a deadline ends the wait; left out", timer.attr("id"))
 		return "", "", ""
 	}
 	td := timer.first("timerEventDefinition")
 	duration := ""
 	switch d := td.first("timeDuration"); {
 	case d == nil:
-		wr.gap(timer, "timer %s gives a date or a cycle, and a deadline is a duration; asked for instead", timer.attr("id"))
+		wr.gap(timer, ptr+"/deadline", "timer %s gives a date or a cycle, and a deadline is a duration; asked for instead", timer.attr("id"))
 	case !bpmnDuration.MatchString(strings.TrimSpace(d.text)) || zeroDuration(strings.TrimSpace(d.text)):
-		wr.gap(d, "timer %s waits %s, and a deadline is an ISO 8601 duration in days, hours, minutes and seconds that is not zero; asked for instead", timer.attr("id"), strings.TrimSpace(d.text))
+		wr.gap(d, ptr+"/deadline", "timer %s waits %s, and a deadline is an ISO 8601 duration in days, hours, minutes and seconds that is not zero; asked for instead", timer.attr("id"), strings.TrimSpace(d.text))
 	default:
 		duration = strings.TrimSpace(d.text)
 	}
 	flows := outgoing[timer.attr("id")]
 	if len(flows) != 1 {
-		wr.gap(timer, "timer %s has %d outgoing sequence flows, and a deadline goes one way; asked for instead", timer.attr("id"), len(flows))
+		wr.gap(timer, ptr+"/onDeadline", "timer %s has %d outgoing sequence flows, and a deadline goes one way; asked for instead", timer.attr("id"), len(flows))
 		return duration, "", ""
 	}
 	target := byID[flows[0].attr("targetRef")]
@@ -637,7 +653,7 @@ func (wr *workflowReader) deadline(timer *xmlElement, later []bpmnStep, outgoing
 			}
 		}
 	}
-	wr.gap(timer, "timer %s goes to %s, neither an end event nor a later user task; asked for instead", timer.attr("id"), flows[0].attr("targetRef"))
+	wr.gap(timer, ptr+"/onDeadline", "timer %s goes to %s, neither an end event nor a later user task; asked for instead", timer.attr("id"), flows[0].attr("targetRef"))
 	return duration, "", ""
 }
 

@@ -7,4 +7,4 @@ exitStatus: 0
 standardOutput: |
   commit 90b8d42e10ed53d98a707ac5f5aea48c8de04bfc: the last change to openapi.yaml
   counted 1 path and 4 component schemas: every key of paths and of components.schemas
-  wrote 1 operation on 1 path, 1 entity, 3 schemas, 0 enums and 2 questions: one operation per get, post, put, patch or delete, one entity per object schema an operation creates or a path with a parameter answers, one schema per other object schema, one enum per string enum, and one question per thing the document does not say
+  wrote 1 operation on 1 path, 1 entity, 3 schemas, 0 enums and 2 questions: one operation per get, post, put, patch or delete, one entity per object schema an operation creates or a path with a parameter answers, one schema per other object schema, one enum per string enum, one question per thing the document does not say, and one per thing the meta-model cannot hold

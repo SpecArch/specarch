@@ -9,8 +9,8 @@ standardOutput: |
   commit 91577cff0fdaa5365ab992c1a63461487b4ff941: the last change to access, as the permission table permissions.json names it
   counted 6 grants and 1 gate: every entry of the permission table's lists, which hold every grant the check reads and every check the printer declares a setting switches off
   gate: the check RequireAPIKey runs only when the setting DESK_API_KEY is present, and lets every request through while it is empty
-  wrote 2 roles, 2 permissions and 3 questions: one role per name the table grants something the meta-model holds, one permission per name a role grants, and one question per thing the permission table does not say and per gate
-  not held: grant of public to auditor: public is open to everyone and granted by no role; left out
-  not held: grant of loans.write to "Branch_Manager": the role's name is not kebab-case, which a role name is; left out
-  not held: grant of "Loans:Read" to kiosk: the permission's name is not lower-case words joined by dots; left out
-  not held: role kiosk: it grants nothing the meta-model holds, and a role that grants nothing is left out
+  wrote 2 roles, 2 permissions and 7 questions: one role per name the table grants something the meta-model holds, one permission per name a role grants, one question per thing the permission table does not say and per gate, and one per thing the meta-model cannot hold
+  not held: grant of public to auditor: public is open to everyone and granted by no role; left out; could question Q-4
+  not held: grant of loans.write to "Branch_Manager": the role's name is not kebab-case, which a role name is; left out; could question Q-5
+  not held: grant of "Loans:Read" to kiosk: the permission's name is not lower-case words joined by dots; left out; could question Q-6
+  not held: role kiosk: it grants nothing the meta-model holds, and a role that grants nothing is left out; could question Q-7

@@ -4,5 +4,5 @@ level: system
 scenario: golden
 given: "a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it, naming the first; the table has two roles sharing a permission, a grant of public, a role whose name is not kebab-case, a role whose one permission is not a permission name, and a check that runs only when a setting is present"
 when: "extract permissions is run on the permission table"
-then: "it writes each role with the permissions it grants in the order of their names and every permission granted, a question for the roles' and the permissions' descriptions and one for the check a setting switches off, names the commit, counts the grants and gates, prints a line for the gate, the grant of public, the role's name, the permission's name and the role left with nothing, and exits 0"
+then: "it writes each role with the permissions it grants in the order of their names and every permission granted, a question for the roles' and the permissions' descriptions and one for the check a setting switches off, names the commit, counts the grants and gates, prints a line for the gate, prints a line and writes a could question citing the role for the grant of public, the role's name, the permission's name and the role left with nothing, and exits 0"
 verifies: [SA-44]

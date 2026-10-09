@@ -4,7 +4,7 @@ info:
   title: Branch handbook
   version: 0.1.0
   description: |
-    The document handbook.md, read at commit ba017caa7101f1ff913c98e9e7f53e9a17077a66: every heading and numbered section is a clause, every sentence that makes a commitment is a requirement citing its clause, and every table of fields is an entity's fields. What the document does not say is a question.
+    The document handbook.md, read at commit ba017caa7101f1ff913c98e9e7f53e9a17077a66: every heading and numbered section is a clause, every sentence that makes a commitment is a requirement citing its clause, and every table of fields is an entity's fields. What the document does not say is a question, and so is what the meta-model cannot hold.
   tracksOrigin: true
 stages: [requirements, design]
 sources:

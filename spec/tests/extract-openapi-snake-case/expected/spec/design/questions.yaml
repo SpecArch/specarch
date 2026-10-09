@@ -13,3 +13,12 @@ questions:
     blocks: ['#/entities/Loan/primaryKey']
     decidedBy: system-owner
     why: A schema says what a record carries, not which of its fields identify it.
+  Q-3:
+    question: 'Not held: schema Loan, property line_2: read as line2, it goes on the wire as line2 under info.wireNames snake_case, which is not its name; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/entities/Loan']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /components/schemas/Loan, says: 'Not held: schema Loan, property line_2: read as line2, it goes on the wire as line2 under info.wireNames snake_case, which is not its name; left out.'}

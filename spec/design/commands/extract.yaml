@@ -202,6 +202,21 @@ commands:
         description, which no route table holds, and a role's
         description, which no permission table holds. A tree with a question also declares
         the stakeholder `system-owner`, inferred, for the question to name.
+      - What a reader cannot hold, which it prints a line for, is also a
+        could question in the tree, so that it is a problem like any
+        other and reaches the problems file (ADR-065): a decision for
+        `system-owner`, its question the line's text, blocking the
+        element it is about, or the section it would be in when no such
+        element is written. It cites where the source says it: as
+        `path:line` when the reader knows the line, a BPMN file's element
+        or a page schema's key, so that the problems file places its note
+        on that line of the source; otherwise by the clause the reader
+        cites its elements by, a table, a route, a role, a section of a
+        document, an operation or a component schema. Where a must
+        question of the reader already asks for it ("asked for instead"),
+        no could question is written, since both would ask one thing. The
+        could questions are numbered after the reader's own, in the order
+        of the lines.
       - The commit read is the newest of the commits that last changed each
         path read, so a commit elsewhere leaves the output as it was. Git
         runs in the repository holding the path, a submodule's own when the
@@ -244,8 +259,9 @@ commands:
     standardOutput: |
       One line naming the commit read and the paths it was the last change
       to; one line per count, saying what was counted and how; one line per
-      object the specification could not hold, naming it and saying why;
-      and one line per file that says it is generated from another source.
+      object the specification could not hold, naming it, saying why and
+      naming the question that asks about it; and one line per file that
+      says it is generated from another source.
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written

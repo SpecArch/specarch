@@ -21,3 +21,12 @@ questions:
     decidedBy: system-owner
     names: signIn
     why: The schema names the operation and not its method or path, so the page's submit waits for the tree that declares it; specarch merge writes it once one does.
+  Q-4:
+    question: 'Not held: app/sign-in/page.schema.ts: entity Member is for a list, a form or a view, and the page is a task, which submits without loading a record; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/pages/sign-in']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: app/sign-in/page.schema.ts, says: 'Not held: entity Member is for a list, a form or a view, and the page is a task, which submits without loading a record; left out.'}

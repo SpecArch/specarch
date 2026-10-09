@@ -83,3 +83,39 @@ questions:
     blocks: ['#/permissions/copies.read', '#/permissions/copies.write']
     decidedBy: system-owner
     why: A route table names the permission a route checks and not who holds it.
+  Q-13:
+    question: 'Not held: route HEAD /health: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: router HEAD /health, says: 'Not held: route HEAD /health: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out.'}
+  Q-14:
+    question: 'Not held: route GET /files/{path...}: the segment "{path...}" is neither a fixed word nor one whole parameter written {name}, and an OpenAPI path template holds only those; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [paths]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'router GET /files/{path...}', says: 'Not held: route GET /files/{path...}: the segment "{path...}" is neither a fixed word nor one whole parameter written {name}, and an OpenAPI path template holds only those; left out.'}
+  Q-15:
+    question: 'Not held: route PUT /copies/{copyId}: its handler SaveCopy serves more than one route; the operation is named putCopiesByCopyId. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1copies~1{copyId}/put']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'router PUT /copies/{copyId}', says: 'Not held: route PUT /copies/{copyId}: its handler SaveCopy serves more than one route; the operation is named putCopiesByCopyId.'}
+  Q-16:
+    question: 'Not held: route PATCH /copies/{copyId}: its handler SaveCopy serves more than one route; the operation is named patchCopiesByCopyId. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1copies~1{copyId}/patch']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'router PATCH /copies/{copyId}', says: 'Not held: route PATCH /copies/{copyId}: its handler SaveCopy serves more than one route; the operation is named patchCopiesByCopyId.'}

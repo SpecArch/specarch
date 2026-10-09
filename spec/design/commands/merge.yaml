@@ -77,7 +77,9 @@ commands:
       - A question of a tree whose every blocked key a question kept
         before it blocks, with the same priority, is left out, since both
         ask the same thing, such as a permission's description that the
-        router and the permissions reader each ask for (ADR-050).
+        router and the permissions reader each ask for (ADR-050). A
+        could question is never left out so: it holds nothing, and two
+        at one entry are two things a reader could not hold there.
       - Where the code side has operations, a permission a role grants
         and no operation, command or page checks is reported with the
         roles that grant it, since a grant nothing checks is either left

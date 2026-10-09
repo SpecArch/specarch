@@ -834,8 +834,14 @@ func (m *merger) treeQuestions() {
 				continue
 			}
 			priority := source.Str(source.Child(q, "priority"))
+			// A could question holds nothing, and two at one entry are two
+			// things a reader could not hold there, so neither is asked
+			// twice.
 			var by *asker
 			for _, b := range blocks {
+				if priority == "could" {
+					break
+				}
 				a, ok := asked[b.Value]
 				if !ok || a.priority != priority || !strings.HasPrefix(b.Value, "#/") {
 					by = nil
@@ -854,7 +860,7 @@ func (m *merger) treeQuestions() {
 				continue
 			}
 			for _, b := range blocks {
-				if _, ok := asked[b.Value]; !ok {
+				if _, ok := asked[b.Value]; !ok && priority != "could" {
 					asked[b.Value] = asker{p.Key.Value, t.s.Dir, priority}
 				}
 			}

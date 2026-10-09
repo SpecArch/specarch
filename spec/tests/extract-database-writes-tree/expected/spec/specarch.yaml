@@ -4,7 +4,7 @@ info:
   title: Database of migrations
   version: 0.1.0
   description: |
-    The tables of the database that the migrations in migrations make, read from the catalogue dump catalogue.json, made at commit 263d2d4ddc31c7a3c19f25cabe303ec19909ef1c. Every entity cites its table; what the catalogue does not say is a question.
+    The tables of the database that the migrations in migrations make, read from the catalogue dump catalogue.json, made at commit 263d2d4ddc31c7a3c19f25cabe303ec19909ef1c. Every entity cites its table; what the catalogue does not say is a question, and so is what the meta-model cannot hold.
   tracksOrigin: true
 stages: [requirements, design]
 sources:

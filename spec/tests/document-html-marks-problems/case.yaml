@@ -1,0 +1,4 @@
+arguments: [document, html, --out, site, project]
+exitStatus: 1
+standardOutput: |
+  project/design/all.yaml:45:17: error: /permissions/members.read: permission_ungranted: no role grants members.read, so nobody can use what it guards; add it to a role, or use public if it is meant for everyone [permission_ungranted@design/all.yaml#/permissions/members.read]

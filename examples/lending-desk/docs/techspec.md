@@ -347,6 +347,7 @@ http: standard library.
 | traceability | ../../../docs |   |
 | questions | ../../../docs |   |
 | problems | ../../../docs |   |
+| html | ../../../site |   |
 
 #### Idioms
 

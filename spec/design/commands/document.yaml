@@ -127,6 +127,39 @@ commands:
       again until the two agree, so a second run writes the same bytes.
       With `--check` the marked files are compared like any output.
 
+      The html target writes `index.html`: the whole specification as one
+      page, with its styles, script and diagrams inside it and a
+      Content-Security-Policy that allows no request, so it opens from the
+      disk and works offline (ADR-088). It starts with an overview: the
+      title, version and description, the draft and approval notices, the
+      count of errors, warnings and open questions, and what each section
+      holds. Then every section, in life-cycle order: each element of a
+      section of named elements as a card with its name and its pointer,
+      each table of named entries as a table with a row per entry, and
+      every mapping and list item inside with an id. The id of an element
+      is its pointer in the URI fragment form of RFC 6901, every byte a
+      fragment cannot hold percent-encoded, so `/paths/~1loans~1{loanId}`
+      is `/paths/~1loans~1%7BloanId%7D`; a reader links to it with `#` and
+      the id, and names the element by its pointer, shown beside its name. An element shows its Origin, Insight
+      and Notes, and a value that names an element links to it. The data
+      section starts with an SVG diagram of the entities, their fields and
+      relations; the roles and permissions with which role grants which
+      permission and, for each separation of duties, the roles never to be
+      given to one person; the operations with a table of every HTTP
+      operation and its permission; each workflow with its diagram as
+      specarch-gen-bpmn draws it; each page with its screen as
+      specarch-gen-ui writes it, without its scripts, from the first
+      implementation file whose ui target is for the web in plain
+      JavaScript, or a line saying why it has none; each requirement with
+      what satisfies and verifies it, and the traceability matrix after the
+      tests. The page ends with the problems in the order of the problems
+      file, each with its line and notes and a link to the deepest element
+      the page shows that holds its pointer, where a mark links back; an
+      element an open question blocks says so, with a link to the
+      question. A search box hides the elements that do not hold the text,
+      and the page follows the system's light or dark colours, with a
+      button to switch.
+
       In every document an element's why is an Insight and each citation
       a Note (ADR-015), and a document that cites sources ends with them.
     permission: public
@@ -153,6 +186,7 @@ commands:
       - { path: "{out}", description: "The current output, with `--check`." }
     writes:
       - { path: "{out}/<target>.md", description: "The document. Nothing is written with `--check`." }
+      - { path: "{out}/index.html", description: "The page, for the html target. Nothing is written with `--check`." }
       - { path: "specarch.md", description: "Only the regions between markers. Nothing is written with `--check`." }
       - { path: "{out}/problems.txt", description: "The problems, for the problems target, written whether or not the specification is valid. Nothing is written with `--check`." }
       - { path: "{out}/problems.sarif", description: "The same problems as a SARIF 2.1.0 log, for the problems target." }
@@ -168,7 +202,7 @@ commands:
       "1": a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs
       "2": usage error, a target this build does not offer, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22, SA-26, SA-51]
+    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22, SA-26, SA-51, SA-60]
     why: Documents are read by more people than the YAML, so they come first among the targets and are made from the specification rather than kept beside it.
     cites:
       - source: arc42

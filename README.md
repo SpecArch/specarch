@@ -264,6 +264,13 @@ cites a standard for it, the document shows an Insight or a Note next to
 the element; wherever it says how an element is known, an Origin line; and
 wherever an open question blocks an element, the question.
 
+`specarch document html` writes `index.html`, the whole specification as
+one page to open from the disk: the overview first, then every element with
+its pointer as its id, so `index.html#/entities/Loan` opens at it, the
+entity diagram, the workflows and the generated screens, and the problems
+linked to the entries they mark. It needs no server and makes no request.
+The examples keep theirs in `site/`.
+
 `specarch document problems` writes `problems.txt` and `problems.sarif`,
 every error, warning and open question as one compiler line each, and
 marks each one in the YAML files of the specification, hand-written or

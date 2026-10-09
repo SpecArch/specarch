@@ -1,0 +1,47 @@
+entities:
+  Loan: { satisfies: [CASE-1] }
+  Member:
+    type: object
+    properties: { id: { type: string } }
+    primaryKey: [id]
+    satisfies: [CASE-1]
+    origin: decided
+    decidedIn: ADR-001
+  Card:
+    type: object
+    properties:
+      id: { type: string }
+      memberId: { type: string, title: Member }
+    primaryKey: [id]
+    relations:
+      member: { target: Member, kind: many-to-one, via: memberId }
+    satisfies: [CASE-1]
+decisions:
+  ADR-001:
+    title: Members are keyed by an opaque id
+    status: accepted
+    date: "2026-10-08"
+    context: Q-9 asked how a member is identified.
+    decision: An opaque id.
+    consequences: Member.id is the key.
+    answers: [Q-9]
+    decidedBy: owner
+    origin: stated
+    cites: [{ source: owner-answer, says: "Use an opaque id." }]
+questions:
+  Q-2:
+    question: What are the fields of a loan?
+    kind: material
+    priority: must
+    blocks: ["#/entities/Loan"]
+    decidedBy: owner
+  Q-3:
+    question: Is the member id a UUID?
+    kind: decision
+    priority: could
+    blocks: ["#/entities/Member/properties/id"]
+    decidedBy: owner
+permissions:
+  members.read: { description: See members. }
+roles:
+  clerk: { description: Staff at the desk., permissions: [members.read] }

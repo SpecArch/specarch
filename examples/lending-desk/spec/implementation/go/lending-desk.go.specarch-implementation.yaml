@@ -93,3 +93,5 @@ targets:
     output: ../../../docs
   problems:
     output: ../../../docs
+  html:
+    output: ../../../site

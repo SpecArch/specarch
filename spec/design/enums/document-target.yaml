@@ -8,7 +8,7 @@ enums:
       beside the specification the change register and the release notes.
       manual and operations answer with status 2 until the specification
       holds what they need (ADR-016).
-    enum: [techspec, requirements, testplan, traceability, deployment, commissioning, questions, problems, changes, releases, manual, operations]
+    enum: [techspec, requirements, testplan, traceability, deployment, commissioning, questions, problems, changes, releases, html, manual, operations]
     valueDescriptions:
       techspec: arc42 technical specification in Markdown with generated Mermaid diagrams
       requirements: requirements specification, in the layout of ISO/IEC/IEEE 29148
@@ -20,9 +20,10 @@ enums:
       problems: "problems.txt, every error, warning and open question one line each with its notes, and problems.sarif, the same as a SARIF 2.1.0 log; written for an invalid specification too"
       changes: the change and defect register, open items first, from the records beside the specification
       releases: release notes, newest first, each release's changes and fixes grouped as added, changed, removed and fixed, from the records
+      html: "index.html, the whole specification as one page that needs no server and makes no request: an overview first, every element under an anchor named by its pointer, the entity diagram, each workflow's BPMN diagram, each generated screen, the traceability matrix, the open questions, and the problems linked both ways with the entries they mark"
       manual: user manual, from the pages and permissions
       operations: operations guide, from the endpoints, channels and deployments
-    satisfies: [SA-7, SA-16, SA-19, SA-26, SA-51]
+    satisfies: [SA-7, SA-16, SA-19, SA-26, SA-51, SA-60]
     cites:
       - source: iso-29119-3
         clause: "7.2 and 8.3"

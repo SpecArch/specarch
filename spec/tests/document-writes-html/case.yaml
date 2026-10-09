@@ -1,0 +1,3 @@
+arguments: [document, html, --out, site, project]
+exitStatus: 0
+standardOutput: ""

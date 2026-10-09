@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 59 requirements, 5 entities, 12 commands, 7 algorithms, 371 tests, 86 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 60 requirements, 5 entities, 12 commands, 7 algorithms, 373 tests, 87 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -239,6 +239,7 @@ Primary key: path.
 | DocumentTarget | problems | problems.txt, every error, warning and open question one line each with its notes, and problems.sarif, the same as a SARIF 2.1.0 log; written for an invalid specification too |
 | DocumentTarget | changes | the change and defect register, open items first, from the records beside the specification |
 | DocumentTarget | releases | release notes, newest first, each release's changes and fixes grouped as added, changed, removed and fixed, from the records |
+| DocumentTarget | html | index.html, the whole specification as one page that needs no server and makes no request: an overview first, every element under an anchor named by its pointer, the entity diagram, each workflow's BPMN diagram, each generated screen, the traceability matrix, the open questions, and the problems linked both ways with the entries they mark |
 | DocumentTarget | manual | user manual, from the pages and permissions |
 | DocumentTarget | operations | operations guide, from the endpoints, channels and deployments |
 | GeneratorTarget | openapi | OpenAPI 3.1 document |
@@ -642,6 +643,39 @@ can name a line, the marks are written and the specification read
 again until the two agree, so a second run writes the same bytes.
 With `--check` the marked files are compared like any output.
 
+The html target writes `index.html`: the whole specification as one
+page, with its styles, script and diagrams inside it and a
+Content-Security-Policy that allows no request, so it opens from the
+disk and works offline (ADR-088). It starts with an overview: the
+title, version and description, the draft and approval notices, the
+count of errors, warnings and open questions, and what each section
+holds. Then every section, in life-cycle order: each element of a
+section of named elements as a card with its name and its pointer,
+each table of named entries as a table with a row per entry, and
+every mapping and list item inside with an id. The id of an element
+is its pointer in the URI fragment form of RFC 6901, every byte a
+fragment cannot hold percent-encoded, so `/paths/~1loans~1{loanId}`
+is `/paths/~1loans~1%7BloanId%7D`; a reader links to it with `#` and
+the id, and names the element by its pointer, shown beside its name. An element shows its Origin, Insight
+and Notes, and a value that names an element links to it. The data
+section starts with an SVG diagram of the entities, their fields and
+relations; the roles and permissions with which role grants which
+permission and, for each separation of duties, the roles never to be
+given to one person; the operations with a table of every HTTP
+operation and its permission; each workflow with its diagram as
+specarch-gen-bpmn draws it; each page with its screen as
+specarch-gen-ui writes it, without its scripts, from the first
+implementation file whose ui target is for the web in plain
+JavaScript, or a line saying why it has none; each requirement with
+what satisfies and verifies it, and the traceability matrix after the
+tests. The page ends with the problems in the order of the problems
+file, each with its line and notes and a link to the deepest element
+the page shows that holds its pointer, where a mark links back; an
+element an open question blocks says so, with a link to the
+question. A search box hides the elements that do not hold the text,
+and the page follows the system's light or dark colours, with a
+button to switch.
+
 In every document an element's why is an Insight and each citation
 a Note (ADR-015), and a document that cites sources ends with them.
 
@@ -658,7 +692,7 @@ a Note (ADR-015), and a document that cites sources ends with them.
 
 Reads `{paths}`: The specifications and their implementation files; `specarch.md`: The hand-written document beside each root file, when there is one; `records/ beside each specification's folder`: The change, defect and release records, for the changes and releases targets; `{out}`: The current output, with `--check`.
 
-Writes `{out}/<target>.md`: The document. Nothing is written with `--check`; `specarch.md`: Only the regions between markers. Nothing is written with `--check`; `{out}/problems.txt`: The problems, for the problems target, written whether or not the specification is valid. Nothing is written with `--check`; `{out}/problems.sarif`: The same problems as a SARIF 2.1.0 log, for the problems target; `{paths}`: For the problems target, the marks of the problems in every YAML file of the specification it read; no other line of a file changes. Nothing is written with `--check`.
+Writes `{out}/<target>.md`: The document. Nothing is written with `--check`; `{out}/index.html`: The page, for the html target. Nothing is written with `--check`; `specarch.md`: Only the regions between markers. Nothing is written with `--check`; `{out}/problems.txt`: The problems, for the problems target, written whether or not the specification is valid. Nothing is written with `--check`; `{out}/problems.sarif`: The same problems as a SARIF 2.1.0 log, for the problems target; `{paths}`: For the problems target, the marks of the problems in every YAML file of the specification it read; no other line of a file changes. Nothing is written with `--check`.
 
 Standard output: The errors of an invalid specification and the errors of a
 marker, one line each; a warning for each specification with no
@@ -679,6 +713,7 @@ sequenceDiagram
   P->>F: read {out}
   P->>P: checkStatus
   P->>F: write {out}/<target>.md
+  P->>F: write {out}/index.html
   P->>F: write specarch.md
   P->>F: write {out}/problems.txt
   P->>F: write {out}/problems.sarif
@@ -2064,7 +2099,7 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | internal/diff | Compares two merged specifications element by element, finds the public interface, and classifies each difference by the version step it needs. |   |
 | internal/approval | The approval record beside a specification, its digest of the specification's files, and where a version's approval stands against the files now. |   |
 | internal/expr | The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals. |   |
-| internal/generate | The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents; questions writes the open questions and what they hold up, the text gaps prints. Every one renders why as an Insight, each citation as a Note, an element's origin as an Origin line and the open questions about it as Open question paragraphs. | #/algorithms/markersWellFormed |
+| internal/generate | The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents; questions writes the open questions and what they hold up, the text gaps prints; html writes the whole specification as one page, with the entity diagram as SVG and the workflows and screens made in memory with internal/genbpmn and internal/genui. Every one renders why as an Insight, each citation as a Note, an element's origin as an Origin line and the open questions about it as Open question paragraphs. | #/algorithms/markersWellFormed |
 | internal/problems | The problems of a specification, valid or not, gathered from validate's diagnostics and the open questions into one list with ids, columns and notes, written as problems.txt and as a SARIF 2.1.0 log, and marked above their entries in the YAML files of the specification. | #/entities/Problem, #/entities/ProblemNote, #/enums/ProblemSeverity |
 | internal/validate | Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases with the rank of each and the cases left out, the life-cycle links and traceability warnings, the open questions and what they cover, origin, implementation references, and the records beside the specification. | #/entities/Diagnostic, #/enums/Rule, #/enums/Severity, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
 
@@ -6286,6 +6321,65 @@ waits for a later step.
 
 **Insight:** The dump keeps one place for the rules. Writing elements in Swift would split extract's rules across two languages and two releases; facts of syntax are stable as long as the parser is, and pinning its version is what makes a dump repeatable: a newer SwiftSyntax may read the same source into other nodes. The dump is committed beside the code so that CI and a reader of the specification need no Swift toolchain, and it is stale once the folder changes, as a route table is. The idiom table lives in the reader because a dump of every call of a real app would be most of its source again; a name added to the table is a new reader release, and the parser version check holds the two together. A navigation call says which screen opens which, and the meta-model's navigate action (label, kind, target) says exactly that. A flow, the other element that links pages, is a task a person does across pages, with an actor and an event on every step that its page declares; the code gives neither, so each would be a must question on a guessed task, and the validator refuses a step whose event a question blocks. The action keeps the definition readable: the page shows its ways out, and a label the code does not give is one must question. A flow is written by someone who knows the task, from the actions. A screen has no route of its own in an app, so its route is in the must question with its kind; writing /book-list would be a guess. The title is the one literal navigationTitle because that is what the screen shows. The entity is read only where the bindings or a @Query name one SwiftData model, the one place the syntax ties a screen to a model; a draft struct a form binds is a schema and not an entity, so the page keeps its fields and asks for the entity. Swift's Int is as wide as the platform's word (64 bits on every 64-bit Apple platform, 32 on arm64_32), and the conventions require a concrete width; a 64-bit integer as a JSON number loses digits above 2^53 in JavaScript, which is why the validator refuses one unbounded. Writing int64 would hide both, so the format is a must question. A Float is 32 bits and the meta-model's numbers are doubles, a Decimal has no precision or scale, and Codable writes a Date as seconds since 2001 unless the coder is given a strategy: each is a question rather than a convenient type. A SwiftData or Core Data relation holds the related object, not a key, so its kind and key are asked; the primary key is asked because both frameworks identify a record by an identifier no property declares. Vapor follows the shape of extract go's routers (ADR-081): a builder is followed from where the framework hands it over, a group's literal segments are joined, and what the reader cannot place is a must question, never a route at a guessed path. Swift imports modules rather than files, so a check is matched by its function's name and the package names the module for the reader. Info.plist holds the values an app reads through Bundle, and the xcconfig files fill its build-setting references; the keys the system reads to describe the bundle and the entitlements are not settings the app reads, so they print a line and stay out. Every surface that is read fast gives a result early: an app's screens, menus and models show from one dump with no build and no simulator, and since each guess is a question at its line, a change someone asks for on seeing them is an answer to that question.
 
+### ADR-088: document html writes the whole specification as one HTML page that needs no server and makes no request, with every element under an id that is its pointer and every problem linked both ways with its entry
+
+Status: accepted, 2026-10-09.
+
+Context: The documents are Markdown, one per stage, read in a repository
+viewer that draws their Mermaid diagrams. A reviewer or a tester at
+the user acceptance test (docs/acceptance.md) wants to see the whole
+specification at once, search it, and name the element a remark is
+about, often without the repository or a network. The entity
+diagram was only Mermaid, which needs a script from elsewhere to
+draw; the workflows' SVG and the screens existed only as generated
+files in other folders.
+
+Decision: A document target html writes index.html: one page with its styles,
+its script and its diagrams inside it. An overview comes first:
+what the specification is, its draft and approval notices, the count
+of its problems and what each section holds. Every section follows
+in life-cycle order; a section of named elements shows each as a
+card, a section whose entries are short mappings as a table, and
+every mapping and list item inside a definition gets an id. The id
+is the element's pointer in the URI fragment form of RFC 6901, so a
+link is the page's address, `#` and the pointer. Values that name an
+element link to it. The entity diagram is SVG drawn by SpecArch in a
+grid with a box per entity and a line per relation; each workflow is
+the SVG specarch-gen-bpmn draws, shown as an image so its styles and
+ids stay its own; each list page is the screen specarch-gen-ui
+writes, without its scripts, in a sandboxed frame. Both are made in
+memory with the plug-ins' own logic, not by running a plug-in, so
+the page needs nothing on PATH. Problems are listed as the problems
+file lists them, each linked to the deepest element the page shows
+that holds its pointer, where a mark links back; an element an open
+question blocks links to the question. The page carries a
+Content-Security-Policy that allows inline styles and script, data
+images and nothing else. Its colours follow the system's light or
+dark setting, with a button to switch; a search box hides what does
+not hold the text. An invalid specification is written from what
+could be read, with its errors marked, as every document is.
+
+Consequences: A reviewer opens one file from the disk, a mail or a build artefact,
+and sees everything the documents show and the problems where they
+are; a tester names an element by the pointer beside it, the same
+pointer the problems file, the marks and a change request use. The
+page is large for a big specification, a third of a megabyte for the
+library example, and grows with it; splitting it into a page per
+section is a change for when someone asks. A page with a form, a
+view or a task has no screen until specarch-gen-ui writes those
+kinds, and says so. The page is generated like any document and kept
+current with --check; it is not published anywhere.
+
+**Insight:** One self-contained file is what opens everywhere: a page that loads its parts from the disk with a script is refused by browsers for file URLs, and one that loads them from a server needs that server. The id is the pointer because the pointer is already how SpecArch names an element, in the problems file, the SARIF log, the marks and a question's blocks, so one name serves every output. RFC 6901 gives a pointer's form inside a URI fragment, with the characters a fragment may not hold percent-encoded, because RFC 3986 allows only some characters there and a link that breaks the rule is resolved differently by different browsers; following it keeps every link the same everywhere. The HTML standard forbids white space in an id, which the same encoding takes care of. The Content-Security-Policy is what makes no request a guarantee rather than a habit: CSP blocks any fetch the page does not declare, so a text in the specification that reached the page as markup could still not load anything. The workflow's SVG is an image because an SVG inline shares the page's styles and ids, and its own would collide with the page's.
+
+**Note:** From RFC 6901, JavaScript Object Notation (JSON) Pointer, 2013, clause 6: A JSON Pointer can be represented in a URI fragment identifier by encoding it into octets using UTF-8, while percent-encoding those characters not allowed by the fragment rule in RFC 3986. <https://www.rfc-editor.org/rfc/rfc6901>
+
+**Note:** From RFC 3986, Uniform Resource Identifier (URI): Generic Syntax, 2005, clause 3.5: A fragment is made of pchar, slash and question mark; other characters must be percent-encoded. <https://www.rfc-editor.org/rfc/rfc3986>
+
+**Note:** From HTML Living Standard, clause 3.2.6, the id attribute: The value must be unique amongst all the IDs in the element's tree and must contain at least one character. The value must not contain any ASCII whitespace. <https://html.spec.whatwg.org/>
+
+**Note:** From Content Security Policy Level 3, clause 6.1.3, default-src: default-src serves as a fallback for the other fetch directives. <https://www.w3.org/TR/CSP3/>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -6327,6 +6421,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-draft-notice | command document | system | golden | a requirement a must question blocks, one stated in a source and one inferred | document requirements is run | it writes requirements.md with a Draft notice under the summary, an Origin line for each requirement and the open question under the blocked one, and exits 0 |
 | document-entity-diagram | command document | system | golden | a hand-written document with an erDiagram marker | document techspec is run | the region holds the entity diagram, every other line is unchanged, and it exits 0 |
 | document-errors-elsewhere | command document | system | red | a specification with errors only under info and entities, which the requirements document does not read | document requirements is run | it prints both errors, writes requirements.md with a Problems notice saying the specification is invalid and that none of its errors is in what the document covers, and exits 1 |
+| document-html-marks-problems | command document | system | red | the same specification with a permission no role grants, which is an error | document html is run | it prints the error, writes site/index.html all the same with an Invalid notice, the error listed under Problems with a link to the permission, and the permission's row marked with a link back to the problem, and exits 1 |
 | document-invalid-input | command document | system | red | a design file with a relation to an entity that does not exist | document techspec is run | it prints the error, writes the technical specification with a Problems notice and a Problem paragraph at the relation, and exits 1 |
 | document-marker-unclosed | command document | system | red | a marker with no end marker | document techspec is run | it reports the marker's line, writes nothing and exits 1 |
 | document-marker-unknown-object | command document | system | red | a marker for the states of an entity that has none | document techspec is run | it reports the marker's line, writes nothing and exits 1 |
@@ -6357,6 +6452,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-writes-changes | command document | system | golden | a specification with an approved and a released change request and a confirmed defect in the records beside it | document changes is run | it writes changes.md with the open change first, each item's affects and decision, the defect with what it violates, and exits 0 |
 | document-writes-commissioning | command document | system | golden | checks in two environments, one with a why and a citation, and a sign-off with one criterion and one signer | document commissioning is run | it writes commissioning.md with the staging checks before the production ones, a Result column for every step, the sign-off sheet, and exits 0 |
 | document-writes-deployment | command document | system | golden | two environments, a plain and a secret setting, release and rollback steps (one with a why and a citation), a migration that cannot be reversed, and an implementation file with two installations | document deployment is run | it writes deployment.md with the path a release takes, each installation's servers and setting values with the secret only named and an unset value marked, the steps, and exits 0 |
+| document-writes-html | command document | system | golden | a specification with a requirement, three entities, two of them related, a decision, a permission a role grants, and must and could questions that block an entity, a field and a requirement's keys | document html is run | it writes site/index.html, one page with the overview first, the entity diagram as SVG, every element under an id that is its pointer, a mark at each element a question blocks linking to the question, and each question in the problems linked to its entry, and exits 0 |
 | document-writes-questions | command document | system | golden | a specification with two must questions in two stages and a could question, and no implementation file | document questions is run | it writes questions.md with the questions by stage and the outputs, where code generation waits on the questions and the approval, and exits 0 |
 | document-writes-releases | command document | system | golden | a released 1.0.0 that includes a change, and a planned 1.1.0 that includes a change and a defect | document releases is run | it writes releases.md with 1.1.0 first, each release's items grouped as changed and fixed, and exits 0 |
 | document-writes-requirements | command document | system | golden | a specification whose elements have an Insight only, a Note only, both, several Notes and neither | document requirements is run | it writes requirements.md with an Insight for every why and a Note for every citation, after the table for a row, ends with the two sources cited, and exits 0 |
@@ -6735,6 +6831,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-46 | An implementation file shall mark an element another stakeholder owns, one mapping at a time, naming that stakeholder; no generator shall write a marked element, and validate, diff, gaps and the gates shall still read it. | functional | must | accepted | test | An entity whose mapping names a stakeholder under ownedBy gets no table from generate sql and no schema from generate openapi, while a foreign key or a reference to it is still written. An operation whose mapping names a stakeholder under ownedBy gets no operation from generate openapi. A page, or a menu or a menu entry, whose mapping names a stakeholder under ownedBy gets no page and no menu entry from generate ui; a mapping may name a menu or an entry of one, '#/menus/<menu>/items/<entry>', as it names any other element, and one that points at nothing is refused, the same in both builds. validate and gaps read the marked element as before, and a question that blocks it still holds generation up. ownedBy naming no stakeholder of the specification is reported, the same in both builds. | NEED-2, NEED-8 |
 | SA-58 | specarch generate bpmn shall write, through a plug-in, each workflow of a specification as a BPMN 2.0 XML file with its diagram, and the diagram as SVG, that specarch extract workflows reads back to the same workflow, each problem marked at the element it concerns and a draft labelled as one. | functional | must | accepted | test | Each workflow is one process in a file of its own, in the sequential subset of ADR-054, with BPMN DI shapes and edges laid out by a fixed rule, so two runs write the same bytes. extract workflows reads a generated file back to the workflow's description, step names and kinds, approvers, deadlines, and refusal or escalation, and names its trigger and operations in the questions that merge fills; an approval that is the last step comes back as one. Each warning and open question at an element a file shows is marked as an XML comment before that element, in the BPMN file and in the SVG; a problem of one workflow is marked only in that workflow's files. Output generated with --unapproved from a specification no approval record covers says it is a draft, in the BPMN file and visibly in the SVG. | NEED-3, NEED-10 |
 | SA-59 | specarch generate shall mark every warning and open question at the entry each generated file shows for it, shall write a draft labelled as one in every file when --unapproved lets it past open questions or a missing approval, and shall write the rest of a target's output with an entry the target cannot express marked at that entry and exit 1. | functional | must | accepted | test | generate --unapproved on a specification with a must question that blocks an entity writes the target's files, each saying it is a draft and naming the question, and the entity's entry carries the question's mark. A warning at an operation is marked above its handler in Go, in x-specarch-marks on the operation in OpenAPI, and a warning at an entity above its table in SQL. A target that cannot express one entry writes the rest with an error mark at that entry, prints the error and exits 1; SQL writes no migration then, and an approved run over a migration a draft wrote is an error. generate without --out passes over a specification that names no output folder for the target with an output_folder warning and writes the others. | NEED-3, NEED-8 |
+| SA-60 | specarch document html shall write a specification as one HTML page that opens from the disk with no server and makes no request, with an overview first, every element under an anchor named by its pointer, and every problem linked to the entry it marks and marked at that entry. | functional | should | accepted | test | The page is one index.html with its styles, its script and its diagrams inside it, a Content-Security-Policy that allows no request, and the generated-from header after its doctype; two runs write the same bytes. Every element shown has an id equal to its pointer, with what an id or a fragment cannot hold percent-encoded, and no id appears twice. Each error, warning and open question is listed in the order of the problems file and links to the deepest element the page shows that holds its pointer, and that element shows a mark linking back; an element an open question blocks says so and links to the question. Entities are drawn as an SVG diagram with their fields and relations, each workflow as specarch generate bpmn draws it, and each page that specarch generate ui writes as its screen without scripts; a page with no screen says why. An invalid specification is written all the same, from what could be read, with its errors marked. | NEED-3, NEED-10 |
 | SA-32 | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. | functional | must | accepted | test | An idiom key naming no idiom, an exclusion or override without why, an override naming an unknown part or defining one it does not list, rendering a stack that is not the file's, or changing a shipped contract statement is each reported under its rule in both builds; an override copied from an older version is warned about. A field that no row of the type rendering matches for a stack of the implementation file, such as a decimal wider than Oracle holds, is reported as idiom_contract. An override that replaces the Oracle text rows for MAX_STRING_SIZE = EXTENDED validates without a diagnostic. The shipped set holds the fifteen idioms of the first set and ui-components, each statement marked with what checks it, and every one passes the idiom schema and cites only the sources it declares. A ui target's framework, given or by its platform's default, is a stack of its implementation file, so specarch idioms lists ui-components for a TypeScript file whose ui target is nextjs-carbon and not for one on plain-javascript, and an override rendering nextjs-carbon in a file on plain-javascript is reported as idiom_stack in both builds. | NEED-2 |
 | SA-11 | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. | functional | must | accepted | test | A tree whose root lists its stages and holds each stage's files under that folder validates. A file in the wrong folder, a section in the wrong file, a listed stage without a folder, and a folder that is not a stage are each reported as layout. | NEED-4 |
 | SA-12 | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. | functional | must | accepted | test | A specification with only a requirements stage validates with no error. A requirement no design element satisfies, a requirement no test, check or monitor verifies, and a need no requirement refines are reported as warnings once the later stage exists. | NEED-5 |
@@ -6837,6 +6934,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-58:** A workflow is reviewed by people who read BPMN diagrams and run BPMN engines, so the design must reach them in that format; written by hand, the diagram drifts from the workflow on the first change, and one that cannot be read back cannot take a change made in a modeller back into the specification.
 
 **Insight on SA-59:** The people who answer the questions judge a result faster from the code and screens than from documents, and a compiler that stops at the first gap hides every other one; a draft that says what it is, with each gap at its entry, shows both without letting unapproved code pass for approved.
+
+**Insight on SA-60:** Reviewers and testers read a specification long before it is finished and seldom read YAML; one page they can open anywhere, search, and link into by an element's id lets them name exactly what a remark is about, which is what takes it back into the specification.
 
 **Insight on SA-32:** How a decimal, a text column or a missing value is held on a stack is decided once and read by every generator and every agent; without the table each implementation file restates it in prose, each a little differently.
 
@@ -6949,6 +7048,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-57 | decisions ADR-083 |   |
 | SA-58 | commands generate; decisions ADR-085 | tests extract-workflows-reads-generated-bpmn; tests extract-workflows-reads-generated-last-approval; tests generate-bpmn; tests generate-bpmn-approved |
 | SA-59 | commands generate; decisions ADR-086 | tests generate-draft-open-questions; tests generate-skips-no-output-folder; tests generate-sql-refuses-draft-migration |
+| SA-60 | enums DocumentTarget; commands document; decisions ADR-088 | tests document-html-marks-problems; tests document-writes-html |
 
 ## Sources
 
@@ -6960,6 +7060,7 @@ Every source a Note in this document cites.
 | arc42 | arc42, the template for architecture documentation | 8.2 | Gernot Starke and Peter Hruschka | https://arc42.org/overview |
 | bpmn-2-0 | Business Process Model and Notation (BPMN), Version 2.0, with its XML schemas | 2011 | Object Management Group | https://www.omg.org/spec/BPMN/2.0/ |
 | cel | Common Expression Language, language definition | 2024 | The CEL project | https://github.com/google/cel-spec/blob/master/doc/langdef.md |
+| csp-3 | Content Security Policy Level 3 |   | W3C | https://www.w3.org/TR/CSP3/ |
 | ecma-262 | ECMA-262, ECMAScript language specification, the Number type | 2025 | Ecma International | https://tc39.es/ecma262/#sec-ecmascript-language-types-number-type |
 | gnu-coding-standards | GNU Coding Standards |   | The GNU Project | https://www.gnu.org/prep/standards/ |
 | go-tool | The go command, Go documentation | 1.26 | The Go project | https://go.dev/doc/ |
@@ -6977,9 +7078,12 @@ Every source a Note in this document cites.
 | openapi | OpenAPI Specification | 3.1.0 | OpenAPI Initiative | https://spec.openapis.org/oas/v3.1.0 |
 | owasp-session-management | OWASP Session Management Cheat Sheet |   | OWASP | https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html |
 | protoc-plugins | Protocol buffers compiler plug-in protocol, plugin.proto | 2024 | The protocol buffers project | https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto |
+| rfc-3986 | RFC 3986, Uniform Resource Identifier (URI): Generic Syntax | 2005 | IETF | https://www.rfc-editor.org/rfc/rfc3986 |
+| rfc-6901 | RFC 6901, JavaScript Object Notation (JSON) Pointer | 2013 | IETF | https://www.rfc-editor.org/rfc/rfc6901 |
 | rfc-9110 | RFC 9110, HTTP Semantics | 2022 | IETF | https://www.rfc-editor.org/rfc/rfc9110 |
 | rfc-9457 | RFC 9457, Problem Details for HTTP APIs | 2023 | IETF | https://www.rfc-editor.org/rfc/rfc9457 |
 | sarif | Static Analysis Results Interchange Format (SARIF) Version 2.1.0 | 2020 | OASIS | https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html |
 | semver | Semantic Versioning | 2.0.0 | The Semantic Versioning project | https://semver.org/spec/v2.0.0.html |
+| whatwg-html | HTML Living Standard |   | WHATWG | https://html.spec.whatwg.org/ |
 | yaml | YAML Ain't Markup Language (YAML) version 1.2 | 1.2.2 | The YAML Language Development Team | https://yaml.org/spec/1.2.2/ |
 

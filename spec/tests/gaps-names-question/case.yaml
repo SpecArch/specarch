@@ -89,5 +89,6 @@ standardOutput: |+
   | traceability document | draft | Q-1, Q-2, Q-3, Q-4, Q-5, Q-6 |
   | deployment document | ready | |
   | commissioning document | ready | |
+  | html document | draft | Q-1, Q-2, Q-3, Q-4, Q-5, Q-6 |
   | code generation | waits | Q-1, Q-2, Q-3, Q-4, Q-5, Q-6; not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 

@@ -110,3 +110,17 @@ requirements:
     verification: test
     needs: [NEED-3, NEED-8]
     why: The people who answer the questions judge a result faster from the code and screens than from documents, and a compiler that stops at the first gap hides every other one; a draft that says what it is, with each gap at its entry, shows both without letting unapproved code pass for approved.
+  SA-60:
+    statement: specarch document html shall write a specification as one HTML page that opens from the disk with no server and makes no request, with an overview first, every element under an anchor named by its pointer, and every problem linked to the entry it marks and marked at that entry.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - The page is one index.html with its styles, its script and its diagrams inside it, a Content-Security-Policy that allows no request, and the generated-from header after its doctype; two runs write the same bytes.
+      - Every element shown has an id equal to its pointer, with what an id or a fragment cannot hold percent-encoded, and no id appears twice.
+      - Each error, warning and open question is listed in the order of the problems file and links to the deepest element the page shows that holds its pointer, and that element shows a mark linking back; an element an open question blocks says so and links to the question.
+      - Entities are drawn as an SVG diagram with their fields and relations, each workflow as specarch generate bpmn draws it, and each page that specarch generate ui writes as its screen without scripts; a page with no screen says why.
+      - An invalid specification is written all the same, from what could be read, with its errors marked.
+    verification: test
+    needs: [NEED-3, NEED-10]
+    why: Reviewers and testers read a specification long before it is finished and seldom read YAML; one page they can open anywhere, search, and link into by an element's id lets them name exactly what a remark is about, which is what takes it back into the specification.

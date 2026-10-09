@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-088:
+    title: document html writes the whole specification as one HTML page that needs no server and makes no request, with every element under an id that is its pointer and every problem linked both ways with its entry
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      The documents are Markdown, one per stage, read in a repository
+      viewer that draws their Mermaid diagrams. A reviewer or a tester at
+      the user acceptance test (docs/acceptance.md) wants to see the whole
+      specification at once, search it, and name the element a remark is
+      about, often without the repository or a network. The entity
+      diagram was only Mermaid, which needs a script from elsewhere to
+      draw; the workflows' SVG and the screens existed only as generated
+      files in other folders.
+    decision: |
+      A document target html writes index.html: one page with its styles,
+      its script and its diagrams inside it. An overview comes first:
+      what the specification is, its draft and approval notices, the count
+      of its problems and what each section holds. Every section follows
+      in life-cycle order; a section of named elements shows each as a
+      card, a section whose entries are short mappings as a table, and
+      every mapping and list item inside a definition gets an id. The id
+      is the element's pointer in the URI fragment form of RFC 6901, so a
+      link is the page's address, `#` and the pointer. Values that name an
+      element link to it. The entity diagram is SVG drawn by SpecArch in a
+      grid with a box per entity and a line per relation; each workflow is
+      the SVG specarch-gen-bpmn draws, shown as an image so its styles and
+      ids stay its own; each list page is the screen specarch-gen-ui
+      writes, without its scripts, in a sandboxed frame. Both are made in
+      memory with the plug-ins' own logic, not by running a plug-in, so
+      the page needs nothing on PATH. Problems are listed as the problems
+      file lists them, each linked to the deepest element the page shows
+      that holds its pointer, where a mark links back; an element an open
+      question blocks links to the question. The page carries a
+      Content-Security-Policy that allows inline styles and script, data
+      images and nothing else. Its colours follow the system's light or
+      dark setting, with a button to switch; a search box hides what does
+      not hold the text. An invalid specification is written from what
+      could be read, with its errors marked, as every document is.
+    consequences: |
+      A reviewer opens one file from the disk, a mail or a build artefact,
+      and sees everything the documents show and the problems where they
+      are; a tester names an element by the pointer beside it, the same
+      pointer the problems file, the marks and a change request use. The
+      page is large for a big specification, a third of a megabyte for the
+      library example, and grows with it; splitting it into a page per
+      section is a change for when someone asks. A page with a form, a
+      view or a task has no screen until specarch-gen-ui writes those
+      kinds, and says so. The page is generated like any document and kept
+      current with --check; it is not published anywhere.
+    why: |
+      One self-contained file is what opens everywhere: a page that loads
+      its parts from the disk with a script is refused by browsers for
+      file URLs, and one that loads them from a server needs that server.
+      The id is the pointer because the pointer is already how SpecArch
+      names an element, in the problems file, the SARIF log, the marks and
+      a question's blocks, so one name serves every output. RFC 6901 gives
+      a pointer's form inside a URI fragment, with the characters a
+      fragment may not hold percent-encoded, because RFC 3986 allows only
+      some characters there and a link that breaks the rule is resolved
+      differently by different browsers; following it keeps every link
+      the same everywhere. The HTML standard forbids white space in an id,
+      which the same encoding takes care of. The Content-Security-Policy
+      is what makes no request a guarantee rather than a habit: CSP blocks
+      any fetch the page does not declare, so a text in the specification
+      that reached the page as markup could still not load anything. The
+      workflow's SVG is an image because an SVG inline shares the page's
+      styles and ids, and its own would collide with the page's.
+    cites:
+      - source: rfc-6901
+        clause: "6"
+        says: "A JSON Pointer can be represented in a URI fragment identifier by encoding it into octets using UTF-8, while percent-encoding those characters not allowed by the fragment rule in RFC 3986."
+      - source: rfc-3986
+        clause: "3.5"
+        says: "A fragment is made of pchar, slash and question mark; other characters must be percent-encoded."
+      - source: whatwg-html
+        clause: "3.2.6, the id attribute"
+        says: "The value must be unique amongst all the IDs in the element's tree and must contain at least one character. The value must not contain any ASCII whitespace."
+      - source: csp-3
+        clause: "6.1.3, default-src"
+        says: "default-src serves as a fallback for the other fetch directives."
+    satisfies: [SA-60]

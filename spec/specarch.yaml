@@ -54,6 +54,28 @@ sources:
     edition: "2022"
     author: IETF
     url: https://www.rfc-editor.org/rfc/rfc9110
+  rfc-6901:
+    kind: standard
+    title: RFC 6901, JavaScript Object Notation (JSON) Pointer
+    edition: "2013"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc6901
+  rfc-3986:
+    kind: standard
+    title: "RFC 3986, Uniform Resource Identifier (URI): Generic Syntax"
+    edition: "2005"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc3986
+  csp-3:
+    kind: standard
+    title: Content Security Policy Level 3
+    author: W3C
+    url: https://www.w3.org/TR/CSP3/
+  whatwg-html:
+    kind: standard
+    title: HTML Living Standard
+    author: WHATWG
+    url: https://html.spec.whatwg.org/
   rfc-9457:
     kind: standard
     title: RFC 9457, Problem Details for HTTP APIs

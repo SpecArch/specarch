@@ -222,6 +222,7 @@ the marks of problems that are fixed.
 |---|---|
 | Specification fragments (YAML) | `# specarch-problem: error: relation_target: ... [id]` above the entry |
 | Markdown documents | the Open question paragraph for a question (as now), and a Problem paragraph for an error or a warning, at the element |
+| HTML page | a mark at the deepest element the page shows that holds the pointer, linked to the problem in the list at the end of the page, which links back; an element an open question blocks links to the question |
 | BPMN 2.0 XML | `<!-- specarch-problem: ... -->` before the element; `--` in the text is written `- -`, which XML forbids in a comment |
 | Go, Swift, Dart, TypeScript, JavaScript, tests, UI | `// specarch-problem: ...` above the declaration, or under the header of a file that is the entry (a page) |
 | HTML and CSS of the UI | `<!-- specarch-problem: ... -->` and `/* specarch-problem: ... */` under the header, with `--` written `- -` and `*/` written `* /` |

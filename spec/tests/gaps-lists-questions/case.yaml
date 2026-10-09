@@ -49,6 +49,7 @@ standardOutput: |+
   | traceability document | draft | Q-1, Q-2 |
   | deployment document | ready | |
   | commissioning document | ready | |
+  | html document | draft | Q-1, Q-2 |
   | code target echo | waits | Q-1; not approved: there is no records/approvals/1.0.0.yaml beside the specification |
   | code target sql | waits | Q-1, Q-2; not approved: there is no records/approvals/1.0.0.yaml beside the specification |
 

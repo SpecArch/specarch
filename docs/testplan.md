@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 371 design tests, 156 golden and 215 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 373 design tests, 157 golden and 216 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.6.0-dev of the specification: 371 design tests, 156 golden and 215 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 367 |
+| system | 369 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -336,6 +336,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-51.
 - When: document requirements is run
 - Then: it prints both errors, writes requirements.md with a Problems notice saying the specification is invalid and that none of its errors is in what the document covers, and exits 1
 
+#### document-html-marks-problems
+
+Scenario: red; level: system; verifies SA-60.
+
+- Given: the same specification with a permission no role grants, which is an error
+- When: document html is run
+- Then: it prints the error, writes site/index.html all the same with an Invalid notice, the error listed under Problems with a link to the permission, and the permission's row marked with a link back to the problem, and exits 1
+
 #### document-invalid-input
 
 Scenario: red; level: system; covers exit 1.
@@ -575,6 +583,14 @@ Scenario: golden; level: system; verifies SA-16.
 - Given: two environments, a plain and a secret setting, release and rollback steps (one with a why and a citation), a migration that cannot be reversed, and an implementation file with two installations
 - When: document deployment is run
 - Then: it writes deployment.md with the path a release takes, each installation's servers and setting values with the secret only named and an unset value marked, the steps, and exits 0
+
+#### document-writes-html
+
+Scenario: golden; level: system; verifies SA-60.
+
+- Given: a specification with a requirement, three entities, two of them related, a decision, a permission a role grants, and must and could questions that block an entity, a field and a requirement's keys
+- When: document html is run
+- Then: it writes site/index.html, one page with the overview first, the entity diagram as SVG, every element under an id that is its pointer, a mark at each element a question blocks linking to the question, and each question in the problems linked to its entry, and exits 0
 
 #### document-writes-questions
 
@@ -3042,7 +3058,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-227 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+232 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -3196,6 +3212,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-59 | acceptance 2 | golden | SA-59 names no harm |
 | requirement SA-59 | acceptance 3 | golden | SA-59 names no harm |
 | requirement SA-59 | acceptance 4 | golden | SA-59 names no harm |
+| requirement SA-60 | acceptance 1 | golden | SA-60 names no harm |
+| requirement SA-60 | acceptance 2 | golden | SA-60 names no harm |
+| requirement SA-60 | acceptance 3 | golden | SA-60 names no harm |
+| requirement SA-60 | acceptance 4 | golden | SA-60 names no harm |
+| requirement SA-60 | acceptance 5 | golden | SA-60 names no harm |
 | requirement SA-32 | acceptance 1 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 2 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 3 | golden | SA-32 names no harm |

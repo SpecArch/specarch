@@ -157,6 +157,7 @@ What can be made from the specification now. A document is a draft while a must 
 | traceability document | draft | Q-5, Q-1, Q-2, Q-3 |
 | deployment document | ready | |
 | commissioning document | ready | |
+| html document | draft | Q-5, Q-1, Q-2, Q-3, Q-4, Q-6, Q-7 |
 | code target openapi | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 | code target sql | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 

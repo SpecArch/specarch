@@ -228,8 +228,8 @@ jobs:
         # testplan, deployment and commissioning and goes on (ADR-073).
         run: |
           for target in techspec requirements testplan traceability deployment commissioning; do go run ./cmd/specarch document $target --check spec examples || exit 1; done
-          for target in techspec requirements testplan traceability deployment commissioning questions problems changes releases; do go run ./cmd/specarch document $target --check spec examples/library-lending || exit 1; done
-          for target in techspec requirements traceability questions problems; do go run ./cmd/specarch document $target --check examples/lending-desk || exit 1; done
+          for target in techspec requirements testplan traceability deployment commissioning questions problems changes releases html; do go run ./cmd/specarch document $target --check spec examples/library-lending || exit 1; done
+          for target in techspec requirements traceability questions problems html; do go run ./cmd/specarch document $target --check examples/lending-desk || exit 1; done
       - name: Generated code and data are current
         # The library's migrations, OpenAPI document, workflows as BPMN and SVG, and screens, in plain
         # JavaScript and on Next.js, are checked in, so a design change that

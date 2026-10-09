@@ -111,6 +111,7 @@ reader does not see by default:
 | SQL | `-- specarch: <pointer>` above each table and column |
 | Tests | the test's pointer in its name or a comment, and in every failure message |
 | Documents | the element's heading |
+| HTML page | the element's id, its pointer in the URI fragment form of RFC 6901, shown beside its name, so `index.html#/entities/Loan` opens at it |
 
 The header name carries no `X-` prefix (RFC 6648, section 3).
 

@@ -140,6 +140,24 @@ the outputs, each ready, a draft or waiting; `specarch gaps` prints the
 same text and exits 1 while a must or should question is open. `manual`
 and `operations` wait until the specification holds what they need.
 
+`html` writes `index.html`: the whole specification as one page that opens
+from the disk and makes no request, its styles, script and diagrams inside
+it and a Content-Security-Policy that allows nothing else (ADR-088). It
+starts with an overview, then every section in life-cycle order, with an
+SVG diagram of the entities, the permissions each role grants, a table of
+the HTTP operations, each workflow as `generate bpmn` draws it, each list
+page's screen as `generate ui` writes it in plain JavaScript, without its
+scripts, and the traceability matrix; it ends with the problems in the
+order of the problems file. Every element has an id that is its pointer in
+the URI fragment form of RFC 6901, so `index.html#/entities/Loan` opens at
+the entity and a tester names what a remark is about by the pointer beside
+it. Each problem links to the element it marks and the element links back;
+an element an open question blocks links to the question. A search box
+narrows the page to the elements that hold a text, and the colours follow
+the system's light or dark setting, with a button to switch. The diagrams
+and screens are made in memory with the plug-ins' own logic, so the page
+needs nothing on PATH.
+
 In every document, an element's `why` is a paragraph that starts with
 **Insight:** and each of its citations one that starts with **Note:**,
 under the element's heading, or after the table when the element is a row,

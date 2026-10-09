@@ -14,8 +14,8 @@ import (
 // DocumentTargets are the document targets of the design, in the order
 // they are listed; BuiltDocuments says which this program has.
 var (
-	DocumentTargets = []string{"techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "questions", "problems", "changes", "releases", "manual", "operations"}
-	BuiltDocuments  = map[string]bool{"techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "questions": true, "problems": true, "changes": true, "releases": true}
+	DocumentTargets = []string{"techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "questions", "problems", "changes", "releases", "html", "manual", "operations"}
+	BuiltDocuments  = map[string]bool{"techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "questions": true, "problems": true, "changes": true, "releases": true, "html": true}
 )
 
 // documentReads says which sections each document reads, so that a
@@ -28,6 +28,7 @@ var documentReads = map[string][]string{
 	"traceability":  {"needs", "requirements", "tests", "checks", "monitors", "enums", "entities", "views", "permissions", "roles", "separationOfDuties", "session", "paths", "commands", "channels", "dependencies", "jobs", "workflows", "errors", "pages", "menus", "algorithms", "decisions"},
 	"deployment":    {"environments", "configuration", "release", "rollback", "migrations", "monitors"},
 	"commissioning": {"checks", "signoff"},
+	"html":          {"*"},
 }
 
 // IsDocumentTarget reports whether a target name is a document's.
@@ -61,6 +62,9 @@ type State struct {
 	// documents mark at their elements.
 	Marks   []Mark
 	placing *placing
+	// Site is what the html target shows that other generators make, and
+	// the problems it lists.
+	Site *SiteParts
 }
 
 // LeftOut is one derived case the test plan lists as left out.

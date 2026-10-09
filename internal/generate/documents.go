@@ -37,6 +37,8 @@ func Document(target string, root *yaml.Node, relRoot string, impls []Implementa
 		return Changes(root, relRoot, state), true
 	case "releases":
 		return Releases(root, relRoot, state), true
+	case "html":
+		return Site(root, relRoot, impls, state), true
 	default:
 		return "", false
 	}
@@ -44,7 +46,12 @@ func Document(target string, root *yaml.Node, relRoot string, impls []Implementa
 }
 
 // DocumentName is the file a target writes in the folder it owns.
-func DocumentName(target string) string { return target + ".md" }
+func DocumentName(target string) string {
+	if target == "html" {
+		return "index.html"
+	}
+	return target + ".md"
+}
 
 // countText is "1 thing" or "n things".
 func countText(n int, one, many string) string {

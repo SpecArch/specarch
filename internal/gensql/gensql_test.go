@@ -338,6 +338,23 @@ func TestViews(t *testing.T) {
 	}
 }
 
+// TestViewRows writes no column for a view's rows, and no SQL view for a
+// view that adds only rows.
+func TestViewRows(t *testing.T) {
+	r := request(t, "postgresql")
+	withViews(r)
+	views := r.Specification["views"].(map[string]any)
+	views["MemberRow"].(map[string]any)["properties"].(map[string]any)["loans"] = map[string]any{"rows": "loans"}
+	views["MemberWithLoans"] = map[string]any{"from": "Member", "properties": map[string]any{"loans": map[string]any{"rows": "loans"}}}
+	sql := migration(t, r)
+	if !strings.Contains(sql, "CREATE VIEW member_row AS") || strings.Contains(sql, "AS loans") {
+		t.Errorf("member_row should be written without a column for its rows:\n%s", sql)
+	}
+	if strings.Contains(sql, "member_with_loans") {
+		t.Errorf("MemberWithLoans adds only rows, so no SQL view is written for it:\n%s", sql)
+	}
+}
+
 // TestViewCountsSoftDeleted leaves softly deleted records out of a count.
 func TestViewCountsSoftDeleted(t *testing.T) {
 	r := request(t, "postgresql")

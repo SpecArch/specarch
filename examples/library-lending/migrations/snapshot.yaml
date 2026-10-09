@@ -227,3 +227,9 @@ mappings:
   '#/entities/Loan': table loans
   '#/entities/Member': table members
 typeRendering: 1.2.0
+views:
+  MemberWithLoans:
+    from: Member
+    properties:
+      loans:
+        rows: loans

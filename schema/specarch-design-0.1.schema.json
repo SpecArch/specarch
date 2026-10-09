@@ -5188,7 +5188,7 @@
       "additionalProperties": false
     },
     "view": {
-      "description": "SpecArch keyword. A read model: the entity it reads from, whose every field it carries, and the properties it adds. It may be the item of a response and the subject of a list, never the body of a request.",
+      "description": "SpecArch keyword. A read model: the entity it reads from, whose every field it carries, and the properties it adds. It may be the item of a response and, when it carries no rows, the subject of a list; never the body of a request.",
       "type": "object",
       "properties": {
         "description": {
@@ -5240,7 +5240,7 @@
       "additionalProperties": false
     },
     "viewProperty": {
-      "description": "A field a view adds: exactly one of path, relations separated by dots that each lead to one record and end in a field of the last, or count, a relation of the entity that leads to many records. A path has its field's type and is null when a relation has no record; a count is a 64-bit integer and leaves out softly deleted records.",
+      "description": "A field a view adds: exactly one of path, relations separated by dots that each lead to one record and end in a field of the last; count, a relation of the entity that leads to many records; or rows, a one-to-many relation of the entity whose records the view carries. A path has its field's type and is null when a relation has no record; a count is a 64-bit integer and leaves out softly deleted records; rows are a list of the relation's target, softly deleted records left out, and empty when it has none.",
       "type": "object",
       "properties": {
         "description": {
@@ -5251,6 +5251,9 @@
           "pattern": "^[a-z][A-Za-z0-9]*(\\.[a-z][A-Za-z0-9]*)+$"
         },
         "count": {
+          "$ref": "#/$defs/memberName"
+        },
+        "rows": {
           "$ref": "#/$defs/memberName"
         }
       },
@@ -5263,6 +5266,11 @@
         {
           "required": [
             "count"
+          ]
+        },
+        {
+          "required": [
+            "rows"
           ]
         }
       ],

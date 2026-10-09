@@ -106,13 +106,20 @@ extension Design {
                 return
             }
             if ref.hasPrefix("#/views/") {
-                // A view carries its entity's fields and the fields its paths read.
+                // A view carries its entity's fields and the fields its paths read,
                 let name = String(ref.dropFirst("#/views/".count))
                 guard !seen.contains("#" + name), let v = views[name] else { return }
                 seen.insert("#" + name)
                 let fields = viewFields(v)
                 for k in fields.keys.sorted() {
                     out.append(NamedField(name: name + "." + k, node: fields[k]!))
+                }
+                // and the records of each relation it carries as rows.
+                for target in rowsTargets(v) where !seen.contains(target) {
+                    if let e = entities[target] {
+                        seen.insert(target)
+                        visit(e, target)
+                    }
                 }
                 return
             }

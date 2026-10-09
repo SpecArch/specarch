@@ -60,7 +60,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-38 | functional | must | accepted | specarch generate sql shall write the migration of what changed since the last snapshot as new files only, what only adds in an expand migration and what can lose data in a contract migration of its own that the target's settings must allow, and shall refuse a change it cannot tell from a rewrite. |
 | SA-39 | functional | should | accepted | specarch generate openapi shall write, for an openapi target of the dxlib dialect, the document dxlib's OpenAPI reader binds, saying only what dxlib's server enforces and listing on each field what it does not. |
 | SA-40 | functional | should | accepted | specarch generate go-dxlib shall write, for a go-dxlib target, one Go file a service on dxlib compiles beside its own code, holding the tables, a handler per operation, the privileges, roles and menu as data, and a task per repeating job. |
-| SA-41 | functional | should | accepted | A specification shall declare a read model under views, an entity's row with fields read through its relations and counts of its related records added, which is never written, and specarch validate shall check every path, count and use of a view. |
+| SA-41 | functional | should | accepted | A specification shall declare a read model under views, an entity's row with fields read through its relations, counts of its related records and the rows of a one-to-many relation added, which is never written, and specarch validate shall check every path, count, rows and use of a view. |
 | SA-42 | functional | should | accepted | A specification shall define the behaviour, structure and rules of a user interface without naming a stack, the events of a page and where each leads among them, and specarch validate shall check them. |
 | SA-43 | functional | should | accepted | specarch generate ui shall write, through a plug-in, the list pages of a specification for the web in plain JavaScript, with no package, bundler or build step, so that the screens follow the design's pages, events, states, accessibility and theme. |
 | SA-52 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui-typescript, the task pages of a specification for the web on Next.js's app router and IBM's Carbon design system, from an implementation file in TypeScript, so that sign-in and the forms like it follow the design's fields, checks, refusals and events, drawn by the components the ui-components idiom names. |
@@ -267,7 +267,7 @@ Acceptance criteria:
 
 - The document of the library lending example parses, is OpenAPI 3.1.0, pages its list of loans by the idiom's names in the idiom's envelope, answers its refusals with RFC 9457 problem documents naming their types, carries an audited entity's audit fields as read-only, and carries SpecArch's own keywords as x-specarch- extensions.
 - A list by a method other than GET takes its paging in its request body, and a body that is a reference to an entity is reported.
-- Each view is a read-only schema under components, its entity's fields and the ones it adds, a path with the type of the field it ends in and null allowed when a relation on the way may have no record or the field is not required, a count as a 64-bit integer; a list over a view filters and sorts by the view's fields, in both dialects.
+- Each view is a read-only schema under components, its entity's fields and the ones it adds, a path with the type of the field it ends in and null allowed when a relation on the way may have no record or the field is not required, a count as a 64-bit integer, rows as an array of the relation's target; a list over a view filters and sorts by the view's fields, in both dialects.
 - Each implementation file in a plug-in's request carries the idioms it uses, with the content of the idiom that applies and the project's override.
 
 **Insight:** The server interface of a Go service is written by a standard OpenAPI generator in strict mode, so the document is where the design reaches the code; written by hand, it drifts from the design on the first change.
@@ -285,7 +285,7 @@ Acceptance criteria:
 - A unique constraint with a where is a partial unique index on PostgreSQL and a filtered index on SQL Server, whose filter holds only fields compared with values joined with &&; Oracle and MariaDB, which have no such index, refuse it, and so does SQL Server for a condition its filter cannot hold.
 - A second run on an unchanged schema answers only the snapshot.
 - Each plug-in request carries the files already in the output folder.
-- Each view becomes a SQL view after the tables and their foreign keys, listing its entity's columns, joining each relation a path follows with a LEFT JOIN, and counting a relation to many in a subquery that leaves out softly deleted records, with a 64-bit count on every dialect; on SQL Server the statement runs through EXEC, since CREATE VIEW must start a batch. An added field named like an audit, deleted or hash column, and a path ending in a field only written, are refused.
+- Each view becomes a SQL view after the tables and their foreign keys, listing its entity's columns, joining each relation a path follows with a LEFT JOIN, and counting a relation to many in a subquery that leaves out softly deleted records, with a 64-bit count on every dialect; rows are no column, and a view that adds only rows becomes no SQL view; on SQL Server the statement runs through EXEC, since CREATE VIEW must start a batch. An added field named like an audit, deleted or hash column, and a path ending in a field only written, are refused.
 
 **Insight:** The schema is where a design reaches the data, and four engines read one design four ways; the rows say each way once, and the migration written from them cannot drift from the design.
 
@@ -336,15 +336,15 @@ Acceptance criteria:
 
 ### SA-41
 
-A specification shall declare a read model under views, an entity's row with fields read through its relations and counts of its related records added, which is never written, and specarch validate shall check every path, count and use of a view.
+A specification shall declare a read model under views, an entity's row with fields read through its relations, counts of its related records and the rows of a one-to-many relation added, which is never written, and specarch validate shall check every path, count, rows and use of a view.
 
 Kind: functional; priority: should; status: accepted; verified by test; refines NEED-2.
 
 Acceptance criteria:
 
-- A view names the entity it reads from, and adds properties that are either a path through many-to-one or one-to-one relations ending in a field, or a count of a one-to-many or many-to-many relation; it carries every field of its entity besides.
-- A path through a relation that does not exist or does not lead to one record, a count of a relation that does not lead to many, a property that repeats a field of the entity, and a view named like an entity are refused (view).
-- A list may read from a view, with its whitelists naming the view's fields; a view under a request body is refused, since a view is never written.
+- A view names the entity it reads from, and adds properties that are each a path through many-to-one or one-to-one relations ending in a field, a count of a one-to-many or many-to-many relation, or the rows of a one-to-many relation; it carries every field of its entity besides.
+- A path through a relation that does not exist or does not lead to one record, a count of a relation that does not lead to many, rows of a relation that is not one-to-many, a property that repeats a field of the entity, and a view named like an entity are refused (view).
+- A list may read from a view without rows, with its whitelists naming the view's fields, and a list over a view with rows is refused (list_of); a view under a request body is refused, since a view is never written.
 - The techspec shows each view with the source and the type of every added property.
 
 **Insight:** Every list page shows a row with names and counts joined onto it; written by hand, the join drifts from the relations it follows, and a client cannot tell from the document which fields it may filter by.

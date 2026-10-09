@@ -2499,15 +2499,15 @@ Scenario: golden; level: system; verifies SA-48.
 
 Scenario: red; level: system; covers exit 1; verifies SA-41.
 
-- Given: views with a path to a field that does not exist, a path over a one-to-many relation, a property that repeats a field of its entity, a count of a many-to-one relation, a view of an entity that does not exist, a view named like an entity counting a relation it lacks, a list filtering by a field the view lacks, a request body naming a view, and a reference to a view that does not exist
+- Given: views with a path to a field that does not exist, a path over a one-to-many relation, a property that repeats a field of its entity, a count of a many-to-one relation, a view of an entity that does not exist, a view named like an entity counting a relation it lacks, rows of a many-to-one relation and of a relation the entity lacks, a list over a view with rows, a list filtering by a field the view lacks, a request body naming a view, and a reference to a view that does not exist
 - When: validate is run
-- Then: it reports view seven times, list_of, view for the request body and ref_type once each, and exits 1
+- Then: it reports view nine times, list_of twice, view for the request body and ref_type once each, and exits 1
 
 #### validate-views-valid
 
 Scenario: golden; level: system; verifies SA-41.
 
-- Given: a view of a loan with its member's name and, through the member, its branch's name, a view of a member with a count of its loans, and a list over the first view whose whitelists name both the view's fields and its entity's, answering the view's rows
+- Given: a view of a loan with its member's name and, through the member, its branch's name, a view of a member with a count of its loans and its loans as rows, and a list over the first view whose whitelists name both the view's fields and its entity's, answering the view's rows
 - When: validate is run
 - Then: it reports no error, and exits 0
 

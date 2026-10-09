@@ -252,13 +252,13 @@ testing:
       implementationOnly: true
       ci: true
     generated-sql:
-      description: Renders the library lending example on all four dialects and checks the column types, checks, defaults, encrypted columns and foreign keys each must have; the key-width and unwritable-check refusals; the snapshot on a second run; and the views on each dialect, their counts of softly deleted records, and their drop and create around a change of an entity they read; and an owned entity given no table, keeping its foreign keys and listed in the snapshot.
+      description: Renders the library lending example on all four dialects and checks the column types, checks, defaults, encrypted columns and foreign keys each must have; the key-width and unwritable-check refusals; the snapshot on a second run; and the views on each dialect, their counts of softly deleted records, no column for rows and no SQL view for a view of rows only, and their drop and create around a change of an entity they read; and an owned entity given no table, keeping its foreign keys and listed in the snapshot.
       run: go test ./internal/gensql
       level: unit
       implementationOnly: true
       ci: true
     generated-openapi:
-      description: Generates the library lending example's OpenAPI document and checks it parses, pages its list through the idiom, answers its refusals with problem documents and carries the audit fields; that a list by POST takes its paging in the body; the views as read-only schemas in both dialects, a path through an optional relation allowing null and a count as a 64-bit integer; the owned entities and operations left out; and the dxlib dialect's document, which dxlib's own reader reads and validates when SPECARCH_DXLIB names a dxlib checkout, as on the owner's Mac, and is skipped without one, as in CI.
+      description: Generates the library lending example's OpenAPI document and checks it parses, pages its list through the idiom, answers its refusals with problem documents and carries the audit fields; that a list by POST takes its paging in the body; the views as read-only schemas in both dialects, a path through an optional relation allowing null, a count as a 64-bit integer and rows as a required read-only array of the relation's target; the owned entities and operations left out; and the dxlib dialect's document, which dxlib's own reader reads and validates when SPECARCH_DXLIB names a dxlib checkout, as on the owner's Mac, and is skipped without one, as in CI.
       run: go test ./internal/genopenapi
       level: unit
       implementationOnly: true

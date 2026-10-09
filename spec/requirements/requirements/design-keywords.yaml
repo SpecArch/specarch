@@ -64,7 +64,7 @@ requirements:
     acceptance:
       - The document of the library lending example parses, is OpenAPI 3.1.0, pages its list of loans by the idiom's names in the idiom's envelope, answers its refusals with RFC 9457 problem documents naming their types, carries an audited entity's audit fields as read-only, and carries SpecArch's own keywords as x-specarch- extensions.
       - A list by a method other than GET takes its paging in its request body, and a body that is a reference to an entity is reported.
-      - Each view is a read-only schema under components, its entity's fields and the ones it adds, a path with the type of the field it ends in and null allowed when a relation on the way may have no record or the field is not required, a count as a 64-bit integer; a list over a view filters and sorts by the view's fields, in both dialects.
+      - Each view is a read-only schema under components, its entity's fields and the ones it adds, a path with the type of the field it ends in and null allowed when a relation on the way may have no record or the field is not required, a count as a 64-bit integer, rows as an array of the relation's target; a list over a view filters and sorts by the view's fields, in both dialects.
       - Each implementation file in a plug-in's request carries the idioms it uses, with the content of the idiom that applies and the project's override.
     verification: test
     needs: [NEED-2, NEED-3]
@@ -80,7 +80,7 @@ requirements:
       - A unique constraint with a where is a partial unique index on PostgreSQL and a filtered index on SQL Server, whose filter holds only fields compared with values joined with &&; Oracle and MariaDB, which have no such index, refuse it, and so does SQL Server for a condition its filter cannot hold.
       - A second run on an unchanged schema answers only the snapshot.
       - Each plug-in request carries the files already in the output folder.
-      - Each view becomes a SQL view after the tables and their foreign keys, listing its entity's columns, joining each relation a path follows with a LEFT JOIN, and counting a relation to many in a subquery that leaves out softly deleted records, with a 64-bit count on every dialect; on SQL Server the statement runs through EXEC, since CREATE VIEW must start a batch. An added field named like an audit, deleted or hash column, and a path ending in a field only written, are refused.
+      - Each view becomes a SQL view after the tables and their foreign keys, listing its entity's columns, joining each relation a path follows with a LEFT JOIN, and counting a relation to many in a subquery that leaves out softly deleted records, with a 64-bit count on every dialect; rows are no column, and a view that adds only rows becomes no SQL view; on SQL Server the statement runs through EXEC, since CREATE VIEW must start a batch. An added field named like an audit, deleted or hash column, and a path ending in a field only written, are refused.
     verification: test
     needs: [NEED-2]
     why: The schema is where a design reaches the data, and four engines read one design four ways; the rows say each way once, and the migration written from them cannot drift from the design.
@@ -124,14 +124,14 @@ requirements:
     needs: [NEED-2]
     why: The handlers, tables and seeds of a dxlib service follow from its design and its dxlib document; written by hand they drift from both, and the constraints dxlib does not enforce are easy to miss.
   SA-41:
-    statement: A specification shall declare a read model under views, an entity's row with fields read through its relations and counts of its related records added, which is never written, and specarch validate shall check every path, count and use of a view.
+    statement: A specification shall declare a read model under views, an entity's row with fields read through its relations, counts of its related records and the rows of a one-to-many relation added, which is never written, and specarch validate shall check every path, count, rows and use of a view.
     kind: functional
     priority: should
     status: accepted
     acceptance:
-      - A view names the entity it reads from, and adds properties that are either a path through many-to-one or one-to-one relations ending in a field, or a count of a one-to-many or many-to-many relation; it carries every field of its entity besides.
-      - A path through a relation that does not exist or does not lead to one record, a count of a relation that does not lead to many, a property that repeats a field of the entity, and a view named like an entity are refused (view).
-      - A list may read from a view, with its whitelists naming the view's fields; a view under a request body is refused, since a view is never written.
+      - A view names the entity it reads from, and adds properties that are each a path through many-to-one or one-to-one relations ending in a field, a count of a one-to-many or many-to-many relation, or the rows of a one-to-many relation; it carries every field of its entity besides.
+      - A path through a relation that does not exist or does not lead to one record, a count of a relation that does not lead to many, rows of a relation that is not one-to-many, a property that repeats a field of the entity, and a view named like an entity are refused (view).
+      - A list may read from a view without rows, with its whitelists naming the view's fields, and a list over a view with rows is refused (list_of); a view under a request body is refused, since a view is never written.
       - The techspec shows each view with the source and the type of every added property.
     verification: test
     needs: [NEED-2]

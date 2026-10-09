@@ -29,6 +29,12 @@ func (c *checker) checkListOf(d *design, o operation) {
 			c.add(viewNode, o.pointer("listOf", "view"), RuleListOf, "%s is not a view of the specification%s", viewNode.Value, suggest(viewNode.Value, d.views))
 			return
 		}
+		for _, p := range source.Pairs(source.Child(v, "properties")) {
+			if source.Child(p.Value, "rows") != nil {
+				c.add(viewNode, o.pointer("listOf", "view"), RuleListOf, "%s carries the rows of %s in %s, and a list holds one row per record; list a view without rows, and read the rows by the record's identifier", viewNode.Value, source.Str(source.Child(p.Value, "rows")), p.Key.Value)
+				return
+			}
+		}
 		entNode, fields = viewNode, d.viewFields(v)
 	} else {
 		e := d.entities[source.Str(entNode)]

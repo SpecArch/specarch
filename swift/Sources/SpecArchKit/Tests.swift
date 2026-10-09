@@ -458,7 +458,8 @@ extension Design {
         return fields
     }
 
-    /// The entity a successful response returns, alone or in a list, or "".
+    /// The entity a successful response returns, alone or in a list, itself
+    /// or through a view of it, or "".
     func responseEntity(_ op: YNode) -> String {
         for r in pairs(op.child("responses")) where r.key.value.hasPrefix("2") {
             for c in pairs(r.value.child("content")) {
@@ -466,6 +467,7 @@ extension Design {
                 if let it = child(schema, "items") { schema = it }
                 let ref = str(child(schema, "$ref"))
                 if ref.hasPrefix("#/entities/") { return String(ref.dropFirst("#/entities/".count)) }
+                if ref.hasPrefix("#/views/") { return str(child(views[String(ref.dropFirst("#/views/".count))], "from")) }
             }
         }
         return ""

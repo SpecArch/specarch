@@ -49,11 +49,31 @@ views:
     from: Branch
     properties:
       memberCount: { count: members }
+  MemberLoans:
+    from: Member
+    properties:
+      loans: { rows: loans }
+      branchRows: { rows: branch }
+      books: { rows: books }
 permissions:
   loans.read: { description: See loans. }
 roles:
   desk: { description: The desk., permissions: [loans.read] }
 paths:
+  /members:
+    get:
+      operationId: listMembers
+      summary: The members
+      permission: loans.read
+      listOf:
+        view: MemberLoans
+        pageSize: { default: 20, maximum: 100 }
+      responses:
+        "200":
+          description: The members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/views/MemberLoans" } }
   /loans:
     get:
       operationId: listLoans

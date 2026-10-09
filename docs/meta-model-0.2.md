@@ -187,6 +187,19 @@ finishes, so a page waiting on it knows how the end is announced. Derived
 cases: the pending message is shown, and the inbox lists nothing to
 someone without the step's permission.
 
+### Rows in a view
+
+A form that loads a record and edits the rows of its one-to-many relation
+needs the record's answer to carry those rows, and a view could only add
+fields read through relations to one record and counts. A view property
+`rows` names a one-to-many relation of the view's entity, and the view
+carries that relation's records as a list of its target, softly deleted
+ones left out: `MemberWithLoans` is a member with `loans: { rows: loans }`,
+and the read that loads the lending form answers it. A many-to-many
+relation's rows are records of its join entity, carried through the
+entity's one-to-many relation to it. A list holds one row per record, so
+a view with rows is never a list's subject.
+
 ### Value objects
 
 Data that is passed around but not stored and has no identity (a
@@ -341,6 +354,14 @@ and a history entry. Steps 1 to 10 are additions to the 0.1 schema.
     The file names an operation without declaring it, so the reader
     leaves the key out with a must question whose `names` carries the
     name, and merge writes it at the key once a tree declares it.
+13. Built. Rows in a view (ADR-070): `rows` beside `path` and `count`, the
+    rule `view` for a relation that is missing or not one-to-many and
+    `list_of` for a list over a view with rows, in both builds; `generate
+    openapi` writes the rows as an array of the target's schema, and
+    `generate sql` writes no column for them, and no SQL view for a view
+    that adds only rows. Done when the cases `validate-views` and
+    `validate-views-valid` show both and the library's `getMember` answers
+    `MemberWithLoans`. UI step 5 builds on this step.
 
 ## How 0.2 meets the extract steps
 

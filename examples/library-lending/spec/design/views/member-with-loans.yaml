@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.1.schema.json
+views:
+  MemberWithLoans:
+    description: A member with their loans, as the desk reads one member to lend more copies.
+    from: Member
+    properties:
+      loans: { rows: loans }
+    satisfies: [LIB-3]

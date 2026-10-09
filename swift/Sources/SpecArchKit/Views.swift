@@ -1,8 +1,8 @@
 import Foundation
 
 // The read model of the dxlib study (docs/dxlib-lessons.md, section 2):
-// views, an entity's row with fields read through its relations and
-// counts of its related records added.
+// views, an entity's row with fields read through its relations, counts
+// of its related records and the rows of a one-to-many relation added.
 
 /// The relation kinds a path follows and a count counts.
 let toOne: Set<String> = ["many-to-one", "one-to-one"]
@@ -47,11 +47,13 @@ extension Design {
     }
 
     /// The fields of a view: every field of its entity, and each property it
-    /// adds, a path as the field it reads.
+    /// adds, a path as the field it reads. Rows are records, not a field, and
+    /// are left out.
     func viewFields(_ view: YNode) -> [String: YNode] {
         let from = str(view.child("from"))
         var m = fieldsOf(entities[from])
         for p in pairs(view.child("properties")) {
+            if p.value.child("rows") != nil { continue }
             m[p.key.value] = p.value
             let path = str(p.value.child("path"))
             if !path.isEmpty, entities[from] != nil, let f = viewPath(from, path).0 {
@@ -60,13 +62,27 @@ extension Design {
         }
         return m
     }
+
+    /// The entities whose records a view carries as rows.
+    func rowsTargets(_ view: YNode) -> [String] {
+        let from = str(view.child("from"))
+        var out: [String] = []
+        for p in pairs(view.child("properties")) {
+            let rel = str(p.value.child("rows"))
+            if rel.isEmpty { continue }
+            let t = str(relationsOf(entities[from])[rel]?.child("target"))
+            if !t.isEmpty { out.append(t) }
+        }
+        return out
+    }
 }
 
 extension Checker {
     /// Checks that a view reads from an entity, that each path follows
     /// relations to one record and ends in a field, that each count counts a
-    /// relation to many, that no property repeats a field of the entity, that
-    /// no view shares an entity's name, and that no request body names a view.
+    /// relation to many, that each rows names a one-to-many relation, that no
+    /// property repeats a field of the entity, that no view shares an
+    /// entity's name, and that no request body names a view.
     func checkViews(_ d: Design) {
         for v in pairs(d.root.child("views")) {
             let name = v.key.value
@@ -102,6 +118,19 @@ extension Checker {
                         }
                     } else {
                         add(n, pointer("views", name, "properties", prop, "count"), .view, noRelation(from, n.value, rels))
+                    }
+                }
+                if let n = p.value.child("rows") {
+                    let rels = relationsOf(d.entities[from])
+                    if let r = rels[n.value] {
+                        let kind = str(r.child("kind"))
+                        if kind == "many-to-many" {
+                            add(n, pointer("views", name, "properties", prop, "rows"), .view, "\(from).\(n.value) is many-to-many, and its rows are records of its join entity; carry them through a one-to-many relation of \(from) to the join entity instead")
+                        } else if kind != "one-to-many" {
+                            add(n, pointer("views", name, "properties", prop, "rows"), .view, "\(from).\(n.value) is \(kind), which leads to one record; rows are the records of a one-to-many relation; read its fields with a path instead")
+                        }
+                    } else {
+                        add(n, pointer("views", name, "properties", prop, "rows"), .view, noRelation(from, n.value, rels))
                     }
                 }
             }

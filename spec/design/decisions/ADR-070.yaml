@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-070:
+    title: A view may carry the rows of a one-to-many relation, and a view with rows is read one record at a time
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      A form that loads a record and edits the records of its one-to-many
+      relation as child rows, with the loaded rows locked, needs the
+      record's answer to carry those rows. A view could add only fields
+      read through relations to one record and counts, so the answer had
+      no way to say it carried them: the library's getMember said "one
+      member with their loans" and answered a bare member. JSON Schema's
+      own way, a $ref with properties beside it, is valid in OpenAPI 3.1
+      but would be a second way to say a read model next to views, and
+      every generator would have to merge the two.
+    decision: |
+      A view property may be rows, a one-to-many relation of the view's
+      entity; the view then carries that relation's records as a list of
+      its target, empty when there are none, softly deleted records left
+      out. Rows of a relation that is missing or not one-to-many are
+      refused (view); a many-to-many relation's rows are records of its
+      join entity and are carried through the entity's one-to-many
+      relation to it. A list over a view with rows is refused (list_of).
+      generate openapi writes the rows as a read-only array of the
+      target's schema, and generate sql writes no column for them, and no
+      SQL view for a view that adds only rows.
+    consequences: |
+      An operation that reads one record answers a view with rows, and a
+      form that edits child rows loads them from it; the library's
+      getMember answers MemberWithLoans. The rows are every record of the
+      relation that is not softly deleted; a view cannot yet say which of
+      them, such as only the open loans, which waits for a real
+      specification that needs it. The service reads the rows through the
+      relation's key, as it reads the related table anywhere else.
+    why: |
+      A view is already the one place for a record read with what its
+      relations bring, so rows go there rather than into a second form of
+      response schema. A list is paged one row per record, and rows would
+      make each row a record and a list of records, which neither the
+      paging nor a SQL view can hold, so a view with rows is read by
+      identifier only. A SQL view holds one row of plain columns per
+      record, and nesting the rows in it would need each engine's own JSON
+      aggregate, with names and types the interface does not otherwise
+      use; the related table already holds them.
+    satisfies: [SA-41]

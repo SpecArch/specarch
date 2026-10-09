@@ -8,7 +8,8 @@ import (
 // Views: a view is written as a schema of its own, its entity's fields and
 // the fields it adds, every added one read-only. A path has the type of the
 // field it ends in, and may be null when a relation on the way may have no
-// record or the field is not required; a count is a 64-bit integer.
+// record or the field is not required; a count is a 64-bit integer; rows
+// are an array of the relation's target.
 
 // viewAdded is what a view adds to its entity's fields, as plain fields,
 // and their names.
@@ -41,6 +42,20 @@ func (g *gen) viewAdded(name string) (map[string]any, []any) {
 				field["type"] = []any{text(field["type"]), "null"}
 			}
 			field["description"] = "Read through " + path + "."
+			if d := text(prop["description"]); d != "" {
+				field["description"] = d
+			}
+			out[p] = field
+			continue
+		}
+		if rel := text(prop["rows"]); rel != "" {
+			target := text(obj(obj(obj(obj(g.spec["entities"])[from])["relations"])[rel])["target"])
+			if target == "" {
+				continue // the validator reports a relation that does not resolve
+			}
+			names = append(names, p)
+			field := map[string]any{"type": "array", "items": map[string]any{"$ref": "#/entities/" + target}, "readOnly": true,
+				"description": "The records of " + rel + ", softly deleted records left out."}
 			if d := text(prop["description"]); d != "" {
 				field["description"] = d
 			}

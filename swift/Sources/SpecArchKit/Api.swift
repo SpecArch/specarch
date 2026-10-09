@@ -17,6 +17,10 @@ extension Checker {
                 add(viewNode, o.pointer("listOf", "view"), .listOf, "\(viewNode.value) is not a view of the specification\(suggest(viewNode.value, d.views))")
                 return
             }
+            for p in pairs(v.child("properties")) where p.value.child("rows") != nil {
+                add(viewNode, o.pointer("listOf", "view"), .listOf, "\(viewNode.value) carries the rows of \(str(p.value.child("rows"))) in \(p.key.value), and a list holds one row per record; list a view without rows, and read the rows by the record's identifier")
+                return
+            }
             entNode = viewNode
             fields = d.viewFields(v)
         } else {

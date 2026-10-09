@@ -517,11 +517,11 @@ paths:
       summary: One member with their loans
       responses:
         "200":
-          description: The member.
+          description: The member, with their loans.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Member'
+                $ref: '#/components/schemas/MemberWithLoans'
         "404":
           description: No such member.
           content:
@@ -1047,6 +1047,98 @@ components:
       x-specarch-valueDescriptions:
         active: may borrow
         inactive: deactivated at the desk, and borrows nothing more
+    MemberWithLoans:
+      type: object
+      description: A member with their loans, as the desk reads one member to lend more copies.
+      properties:
+        cardNumber:
+          type: string
+          title: Card number
+          description: Printed on the card; assigned when the member joins.
+          maxLength: 8
+          pattern: ^[0-9]{8}$
+        email:
+          type: string
+          format: email
+          title: Email address
+          description: Encrypted at rest, and found by a salted hash of it, since it must stay unique.
+          maxLength: 320
+          x-specarch-sensitivity: personal
+          x-specarch-atRest: encrypted
+          x-specarch-lookup: hash
+        fullName:
+          type: string
+          title: Full name
+          minLength: 1
+          maxLength: 200
+          x-specarch-sensitivity: personal
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        joinedOn:
+          type: string
+          format: date
+          title: Joined on
+          readOnly: true
+        loans:
+          type: array
+          description: The records of loans, softly deleted records left out.
+          items:
+            $ref: '#/components/schemas/Loan'
+          readOnly: true
+        membershipEndsOn:
+          type: string
+          format: date
+          title: Membership ends on
+          description: The last day the card is valid; set a year after joining and moved on by each renewal.
+          readOnly: true
+        outstandingFees:
+          type: string
+          format: decimal
+          title: Outstanding fees
+          description: Sum of unpaid late fees and replacement charges, in the library's currency.
+          readOnly: true
+          x-specarch-precision: 10
+          x-specarch-scale: 2
+        status:
+          $ref: '#/components/schemas/MemberStatus'
+        tier:
+          $ref: '#/components/schemas/MembershipTier'
+        createdAt:
+          type: string
+          format: date-time
+          description: When the record was created; set by the system.
+          readOnly: true
+        createdBy:
+          type: string
+          description: Who created the record; set by the system.
+          readOnly: true
+        lastModifiedAt:
+          type: string
+          format: date-time
+          description: When the record was last changed; set by the system.
+          readOnly: true
+        lastModifiedBy:
+          type: string
+          description: Who last changed the record; set by the system.
+          readOnly: true
+      required:
+        - id
+        - cardNumber
+        - fullName
+        - email
+        - tier
+        - status
+        - joinedOn
+        - membershipEndsOn
+        - outstandingFees
+        - loans
+      readOnly: true
+      x-specarch-view:
+        from: Member
+      x-specarch-audited: true
+      x-specarch-deletion: soft
     MembershipTier:
       type: string
       enum:

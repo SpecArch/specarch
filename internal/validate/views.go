@@ -9,8 +9,8 @@ import (
 )
 
 // The read model of the dxlib study (docs/dxlib-lessons.md, section 2):
-// views, an entity's row with fields read through its relations and
-// counts of its related records added.
+// views, an entity's row with fields read through its relations, counts
+// of its related records and the rows of a one-to-many relation added.
 
 // toOne and toMany are the relation kinds a path follows and a count
 // counts.
@@ -46,6 +46,20 @@ func (d *design) viewPath(entity, path string) (*yaml.Node, string) {
 	return nil, cur + " has no field " + last + suggest(last, fields)
 }
 
+// rowsTargets are the entities whose records a view carries as rows.
+func (d *design) rowsTargets(view *yaml.Node) []string {
+	from := source.Str(source.Child(view, "from"))
+	var out []string
+	for _, p := range source.Pairs(source.Child(view, "properties")) {
+		if rel := source.Str(source.Child(p.Value, "rows")); rel != "" {
+			if t := source.Str(source.Child(topMap(d.entities[from], "relations")[rel], "target")); t != "" {
+				out = append(out, t)
+			}
+		}
+	}
+	return out
+}
+
 // noRelation says an entity has no relation of a name, with the close one
 // or the ones it has.
 func noRelation(entity, name string, rels map[string]*yaml.Node) string {
@@ -56,11 +70,15 @@ func noRelation(entity, name string, rels map[string]*yaml.Node) string {
 }
 
 // viewFields are the fields of a view: every field of its entity, and each
-// property it adds, a path as the field it reads.
+// property it adds, a path as the field it reads. Rows are records, not a
+// field, and are left out.
 func (d *design) viewFields(view *yaml.Node) map[string]*yaml.Node {
 	from := source.Str(source.Child(view, "from"))
 	m := fieldsOf(d.entities[from])
 	for _, p := range source.Pairs(source.Child(view, "properties")) {
+		if source.Child(p.Value, "rows") != nil {
+			continue
+		}
 		m[p.Key.Value] = p.Value
 		if path := source.Str(source.Child(p.Value, "path")); path != "" && d.entities[from] != nil {
 			if f, _ := d.viewPath(from, path); f != nil {
@@ -73,7 +91,8 @@ func (d *design) viewFields(view *yaml.Node) map[string]*yaml.Node {
 
 // checkViews checks that a view reads from an entity, that each path
 // follows relations to one record and ends in a field, that each count
-// counts a relation to many, that no property repeats a field of the
+// counts a relation to many, that each rows names a one-to-many relation,
+// that no property repeats a field of the
 // entity, that no view shares an entity's name, and that no request body
 // names a view.
 func (c *checker) checkViews(d *design) {
@@ -108,6 +127,17 @@ func (c *checker) checkViews(d *design) {
 					c.add(n, source.Pointer("views", name, "properties", prop, "count"), RuleView, "%s", noRelation(from, n.Value, rels))
 				case !toMany[source.Str(source.Child(r, "kind"))]:
 					c.add(n, source.Pointer("views", name, "properties", prop, "count"), RuleView, "%s.%s is %s, which leads to one record; a count counts one-to-many and many-to-many relations; read it with a path instead", from, n.Value, source.Str(source.Child(r, "kind")))
+				}
+			}
+			if n := source.Child(p.Value, "rows"); n != nil {
+				rels := topMap(d.entities[from], "relations")
+				switch r := rels[n.Value]; {
+				case r == nil:
+					c.add(n, source.Pointer("views", name, "properties", prop, "rows"), RuleView, "%s", noRelation(from, n.Value, rels))
+				case source.Str(source.Child(r, "kind")) == "many-to-many":
+					c.add(n, source.Pointer("views", name, "properties", prop, "rows"), RuleView, "%s.%s is many-to-many, and its rows are records of its join entity; carry them through a one-to-many relation of %s to the join entity instead", from, n.Value, from)
+				case source.Str(source.Child(r, "kind")) != "one-to-many":
+					c.add(n, source.Pointer("views", name, "properties", prop, "rows"), RuleView, "%s.%s is %s, which leads to one record; rows are the records of a one-to-many relation; read its fields with a path instead", from, n.Value, source.Str(source.Child(r, "kind")))
 				}
 			}
 		}

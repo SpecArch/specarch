@@ -3,6 +3,7 @@ package genopenapi
 import (
 	"encoding/json"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -166,6 +167,26 @@ func withViews(r *Request) {
 				s["items"] = map[string]any{"$ref": "#/views/LoanRow"}
 			}
 		}
+	}
+}
+
+// TestViewRows writes a view's rows as a read-only array of the
+// relation's target, which the view's schema requires.
+func TestViewRows(t *testing.T) {
+	resp := Generate(request(t, "../../examples/library-lending/spec"))
+	if len(resp.Diagnostics) > 0 {
+		t.Fatalf("diagnostics: %v", resp.Diagnostics)
+	}
+	var doc map[string]any
+	if err := yaml.Unmarshal([]byte(resp.Files[0].Content), &doc); err != nil {
+		t.Fatal(err)
+	}
+	loans := at(t, doc, "components", "schemas", "MemberWithLoans", "properties", "loans")
+	if at(t, loans, "type") != "array" || at(t, loans, "readOnly") != true || at(t, loans, "items", "$ref") != "#/components/schemas/Loan" {
+		t.Errorf("loans should be a read-only array of Loan: %v", loans)
+	}
+	if !slices.Contains(at(t, doc, "components", "schemas", "MemberWithLoans", "required").([]any), any("loans")) {
+		t.Error("MemberWithLoans should require loans, which is empty when there are none")
 	}
 }
 

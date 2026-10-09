@@ -43,6 +43,7 @@ views:
     from: Member
     properties:
       openLoans: { count: loans }
+      loans: { rows: loans }
 permissions:
   loans.read: { description: See loans. }
 roles:

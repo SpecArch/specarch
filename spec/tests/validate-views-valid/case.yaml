@@ -1,5 +1,5 @@
 arguments: [validate, .]
 exitStatus: 0
 standardOutput: |+
-  specarch.yaml:53: warning: /paths/~1loans/get: test_case_missing: operation listLoans has no red scenario for "denied without loans.read"; add under tests list-loans-denied-without-loans-read: { operation: listLoans, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "listLoans is called", then: "it is refused as not allowed" }
-  specarch.yaml:53: warning: /paths/~1loans/get: test_golden_missing: operation listLoans has no golden scenario; add one under tests, for example list-loans-succeeds: { operation: listLoans, scenario: golden, given: "a caller with loans.read", when: "listLoans is called", then: "it answers 200: The loans." }
+  specarch.yaml:54: warning: /paths/~1loans/get: test_case_missing: operation listLoans has no red scenario for "denied without loans.read"; add under tests list-loans-denied-without-loans-read: { operation: listLoans, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "listLoans is called", then: "it is refused as not allowed" }
+  specarch.yaml:54: warning: /paths/~1loans/get: test_golden_missing: operation listLoans has no golden scenario; add one under tests, for example list-loans-succeeds: { operation: listLoans, scenario: golden, given: "a caller with loans.read", when: "listLoans is called", then: "it answers 200: The loans." }

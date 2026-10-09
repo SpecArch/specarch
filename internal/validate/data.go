@@ -121,7 +121,7 @@ func (d *design) responseFields(schema *yaml.Node) []namedField {
 			return
 		}
 		if ref := source.Str(source.Child(s, "$ref")); strings.HasPrefix(ref, "#/views/") {
-			// A view carries its entity's fields and the fields its paths read.
+			// A view carries its entity's fields and the fields its paths read,
 			name := strings.TrimPrefix(ref, "#/views/")
 			v := d.views[name]
 			if seen["#"+name] || v == nil {
@@ -131,6 +131,13 @@ func (d *design) responseFields(schema *yaml.Node) []namedField {
 			fields := d.viewFields(v)
 			for _, k := range sortedKeys(fields) {
 				out = append(out, namedField{name: name + "." + k, node: fields[k]})
+			}
+			// and the records of each relation it carries as rows.
+			for _, target := range d.rowsTargets(v) {
+				if !seen[target] && d.entities[target] != nil {
+					seen[target] = true
+					visit(d.entities[target], target)
+				}
 			}
 			return
 		}

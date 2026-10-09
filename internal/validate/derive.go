@@ -562,7 +562,7 @@ func (d *design) requestFields(op *yaml.Node) (map[string]*yaml.Node, []string) 
 }
 
 // responseEntity is the entity a successful response returns, alone or in
-// a list, or "".
+// a list, itself or through a view of it, or "".
 func (d *design) responseEntity(op *yaml.Node) string {
 	for _, r := range source.Pairs(source.Child(op, "responses")) {
 		if !strings.HasPrefix(r.Key.Value, "2") {
@@ -575,6 +575,9 @@ func (d *design) responseEntity(op *yaml.Node) string {
 			}
 			if ref := source.Str(source.Child(schema, "$ref")); strings.HasPrefix(ref, "#/entities/") {
 				return strings.TrimPrefix(ref, "#/entities/")
+			}
+			if ref := source.Str(source.Child(schema, "$ref")); strings.HasPrefix(ref, "#/views/") {
+				return source.Str(source.Child(d.views[strings.TrimPrefix(ref, "#/views/")], "from"))
 			}
 		}
 	}

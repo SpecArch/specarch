@@ -12,7 +12,10 @@ import (
 // the tables and their foreign keys. A view lists its entity's columns by
 // name, joins each relation a path follows with a LEFT JOIN, so a record
 // with no related record is still listed, and counts a relation to many in
-// a subquery that leaves out softly deleted records.
+// a subquery that leaves out softly deleted records. A view's rows are no
+// column: a SQL view holds one row of scalar columns per record, and the
+// rows are the related table's own, read through the relation's key; a
+// view that adds only rows writes no SQL view at all.
 
 // viewName is a view's name in SQL: the mapping's when it names one
 // (view loan_rows), otherwise the view's name in snake case.
@@ -32,12 +35,24 @@ func viewName(view string, mappings map[string]any) string {
 	return snake(view)
 }
 
+// onlyRows says a view adds nothing but rows, so it has no column of its
+// own and no SQL view is written for it: the entity's table is its row.
+func onlyRows(view map[string]any) bool {
+	props := obj0(view["properties"])
+	for _, p := range props {
+		if text(obj0(p)["rows"]) == "" {
+			return false
+		}
+	}
+	return len(props) > 0
+}
+
 // createViews are the statements that create every view, in name order.
 func (g *gen) createViews() []string {
 	views := obj0(g.spec["views"])
 	var out []string
 	for _, name := range sortedKeys(views) {
-		if g.owned.Covers(ownership.Entity("views", name)) {
+		if g.owned.Covers(ownership.Entity("views", name)) || onlyRows(obj0(views[name])) {
 			continue
 		}
 		if stmt := g.createView(name); stmt != "" {
@@ -81,6 +96,9 @@ func (g *gen) createView(name string) string {
 	for _, p := range sortedKeys(props) {
 		prop := obj0(props[p])
 		pat := at + "/properties/" + p
+		if text(prop["rows"]) != "" {
+			continue // rows are the relation's own table's records, read by the record's key
+		}
 		if taken[snake(p)] {
 			g.problem(pat, "%s is the column %s of %s's table already (an audit, deleted or hash column), and a view's columns must differ; give the added field another name", p, snake(p), from)
 			return ""
@@ -217,7 +235,7 @@ func (g *gen) count(from, relation, at string) (string, bool) {
 }
 
 // viewKeys are the keys of a view the schema is made from.
-var viewKeys = map[string]any{"from": true, "properties": map[string]any{"path": true, "count": true}}
+var viewKeys = map[string]any{"from": true, "properties": map[string]any{"path": true, "count": true, "rows": true}}
 
 // readsOf are the entities a view reads, in a snapshot's or the
 // specification's entities.
@@ -234,6 +252,9 @@ func readsOf(view, entities map[string]any) []string {
 				out = append(out, cur)
 			}
 			continue
+		}
+		if text(prop["rows"]) != "" {
+			continue // no column, so the view does not read the related table
 		}
 		rel := obj0(obj0(obj0(entities[from])["relations"])[text(prop["count"])])
 		out = append(out, text(rel["target"]))
@@ -285,7 +306,7 @@ func (g *gen) staleViews(prev, cur map[string]any) (drop []string, create []stri
 		if ownedIn(prev, "views", name) || ownedIn(cur, "views", name) {
 			continue
 		}
-		if stale(name, obj0(pv[name]), pe) {
+		if stale(name, obj0(pv[name]), pe) && !onlyRows(obj0(pv[name])) {
 			drop = append(drop, "DROP VIEW "+viewName(name, pm))
 		}
 	}
@@ -293,7 +314,7 @@ func (g *gen) staleViews(prev, cur map[string]any) (drop []string, create []stri
 		if ownedIn(prev, "views", name) || ownedIn(cur, "views", name) {
 			continue
 		}
-		if stale(name, obj0(cv[name]), ce) {
+		if stale(name, obj0(cv[name]), ce) && !onlyRows(obj0(cv[name])) {
 			create = append(create, name)
 		}
 	}

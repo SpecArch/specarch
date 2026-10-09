@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 8 requirements, 4 entities, 17 HTTP operations, 3 channels, 1 dependency, 11 pages, 1 flow, 1 workflow, 1 algorithm, 173 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 17 HTTP operations, 3 channels, 1 dependency, 11 pages, 1 flow, 1 workflow, 1 algorithm, 173 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -238,6 +238,20 @@ Deletion is soft: a deleted record keeps a deleted flag set by the system, is no
 | member_card_number_unique | unique: cardNumber | A member with this card number already exists. |
 | member_email_unique | unique: email | A member with this email address already exists. |
 
+### Views
+
+A view is a read model: one row per record of the entity it reads from, with every field of that entity and the fields below. It is never written. A path is null when a relation on it has no record; a count leaves out softly deleted records, and so do rows.
+
+#### MemberWithLoans
+
+A member with their loans, as the desk reads one member to lend more copies.
+
+| Field | Type | Read from | Description |
+|---|---|---|---|
+| loans | list of Loan | rows of Member.loans |   |
+
+Reads from: Member.
+
 ### Enums
 
 | Enum | Value | Meaning |
@@ -393,7 +407,7 @@ sequenceDiagram
   participant C as Client
   participant S as Library Lending
   C->>S: GET /members/{memberId}
-  S-->>C: 200 Member
+  S-->>C: 200 MemberWithLoans
 ```
 
 ### lendCopies (POST /members/{memberId}/loans)
@@ -1513,7 +1527,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 |---|---|---|---|
 | LIB-1 |   | entities Member constraints member_card_number_unique; entities Member; paths /members post | tests register-member; tests register-member-email-taken; checks lend-and-return; checks migrated-members |
 | LIB-2 |   | entities Book; permissions public; paths /books get | tests browse-catalogue; checks service-answers |
-| LIB-3 | money | entities Loan; paths /members/{memberId}/loans post; paths /loans post; pages member-loans; migrations add-membership-tier | tests create-loan-rate-exceeded; tests create-loan-repeated-with-the-same-idempotency-key; tests create-loan-request-larger-than-1024-bytes; tests fees-block-lending; tests lend-a-copy; tests lend-copies; tests lend-copies-limit-reached; tests lend-copies-repeated-with-the-same-idempotency-key; tests lend-limit-reached; tests lending-limit-accepted; tests member-loans-refused; tests member-loans-shown; tests member-loans-six-rows; checks lend-and-return |
+| LIB-3 | money | entities Loan; views MemberWithLoans; paths /members/{memberId}/loans post; paths /loans post; pages member-loans; migrations add-membership-tier | tests create-loan-rate-exceeded; tests create-loan-repeated-with-the-same-idempotency-key; tests create-loan-request-larger-than-1024-bytes; tests fees-block-lending; tests lend-a-copy; tests lend-copies; tests lend-copies-limit-reached; tests lend-copies-repeated-with-the-same-idempotency-key; tests lend-limit-reached; tests lending-limit-accepted; tests member-loans-refused; tests member-loans-shown; tests member-loans-six-rows; checks lend-and-return |
 | LIB-4 |   | entities Loan transitions 1; entities Loan; paths /loans/{loanId}/return post; channels loan.overdue; channels loan.overdue messages LoanOverdue; jobs markOverdue; configuration notificationChannelUrl | tests loan-becomes-overdue; tests mark-overdue-runs-twice; tests mark-overdue-succeeds; monitors overdue-notices-sent |
 | LIB-5 |   | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; configuration dailyRate | tests loan-lent-and-returned; tests return-late; checks lend-and-return |
 | LIB-6 |   | roles member; session | checks member-sees-own-loans |

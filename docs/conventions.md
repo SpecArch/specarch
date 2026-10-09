@@ -463,7 +463,7 @@ redefined.
 | `jobs`, `trigger`, `schedule`, `every`, `consumes`, `role`, `retries`, `limit`, `then` | SpecArch | work the system does on its own; a schedule is the five fields of cron, in UTC |
 | `menus`, `title`, `page`, `items` | SpecArch | the navigation: a tree whose leaves open pages |
 | `workflows`, `trigger`, `subject`, `steps`, `approvers`, `deadline`, `onDeadline`, `escalateTo` | BPMN 2.0, a sequential subset | a request that finishes after people approve it: an approval is a user task with its potential owners and a timer, an operation step a service task |
-| `views`, `from`, `path`, `count` | SpecArch, after the SQL view of ISO/IEC 9075 | a read model: an entity's row with fields read through its relations and counts added, never written |
+| `views`, `from`, `path`, `count`, `rows` | SpecArch, after the SQL view of ISO/IEC 9075 | a read model: an entity's row with fields read through its relations, counts and the rows of a one-to-many relation added, never written |
 | `schemas` | OpenAPI 3, `components.schemas` | value objects: named object schemas with no key and no table, data passed around but not stored |
 | `errors`, `status`, `title`, `condition`, `type`, `problem` | RFC 9457, Problem Details for HTTP APIs | the catalogue of problem types; `condition` is SpecArch's, the standard's other members are the document's own at run time |
 | a duration (`timeout`, `idleTimeout`, `absoluteTimeout`) | ISO 8601, the form JSON Schema's `format: duration` names | days, hours, minutes and seconds only (`PT5S`, `P1DT12H`): weeks, months and years depend on the calendar, so a limit written in them would not mean the same every day |
@@ -1127,16 +1127,32 @@ it. That row is a view, under `views`, named like an entity:
       from: Member
       properties:
         openLoans: { count: loans }
+    MemberWithLoans:
+      from: Member
+      properties:
+        loans: { rows: loans }
 
 A view holds one row per record of its `from` entity and carries every
 field of it, the audit and deleted fields included, so its key still
 names one record. Each property it adds is exactly one of `path`,
 relations separated by dots that each lead to one record (many-to-one or
-one-to-one) and end in a field, or `count`, a relation of the entity that
-leads to many (one-to-many or many-to-many). A path has its field's type
-and is null when a relation on it has no record; a count is a 64-bit
-integer and leaves out softly deleted records. A property may not repeat a
-field of the entity, and a view may not share an entity's name (`view`).
+one-to-one) and end in a field; `count`, a relation of the entity that
+leads to many (one-to-many or many-to-many); or `rows`, a one-to-many
+relation of the entity whose records the view carries. A path has its
+field's type and is null when a relation on it has no record; a count is a
+64-bit integer and leaves out softly deleted records; rows are a list of
+the relation's target, empty when it has none, softly deleted records
+left out. The rows of a many-to-many relation are records of its join
+entity, so they are carried through the entity's one-to-many relation to
+the join entity. A property may not repeat a field of the entity, and a
+view may not share an entity's name (`view`).
+
+Rows are how a record is read with the records of a relation, as a form
+that edits them as child rows loads it. A list holds one row per record,
+so a view with rows is never a list's subject (`list_of`), and rows are no
+column in SQL: a SQL view holds one row of plain columns per record, the
+rows are the related table's own, read through the relation's key, and a
+view that adds only rows has no SQL view at all.
 
 A view is never written. It may be the item of a response, as
 `$ref: "#/views/LoanRow"`, and the subject of a list, as

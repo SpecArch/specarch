@@ -3,7 +3,7 @@ command: validate
 level: system
 scenario: red
 covers: [exit 1]
-given: "views with a path to a field that does not exist, a path over a one-to-many relation, a property that repeats a field of its entity, a count of a many-to-one relation, a view of an entity that does not exist, a view named like an entity counting a relation it lacks, a list filtering by a field the view lacks, a request body naming a view, and a reference to a view that does not exist"
+given: "views with a path to a field that does not exist, a path over a one-to-many relation, a property that repeats a field of its entity, a count of a many-to-one relation, a view of an entity that does not exist, a view named like an entity counting a relation it lacks, rows of a many-to-one relation and of a relation the entity lacks, a list over a view with rows, a list filtering by a field the view lacks, a request body naming a view, and a reference to a view that does not exist"
 when: "validate is run"
-then: "it reports view seven times, list_of, view for the request body and ref_type once each, and exits 1"
+then: "it reports view nine times, list_of twice, view for the request body and ref_type once each, and exits 1"
 verifies: [SA-41]

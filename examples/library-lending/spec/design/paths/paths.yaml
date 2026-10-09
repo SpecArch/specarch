@@ -172,10 +172,10 @@ paths:
       permission: members.read
       responses:
         "200":
-          description: The member.
+          description: The member, with their loans.
           content:
             application/json:
-              schema: { $ref: "#/entities/Member" }
+              schema: { $ref: "#/views/MemberWithLoans" }
         "404": { description: No such member., problem: member-not-found }
 
   /members/{memberId}/loans:

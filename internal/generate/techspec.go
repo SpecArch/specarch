@@ -339,7 +339,7 @@ func buildingBlocks(d *doc, root *yaml.Node) {
 	}
 	if len(views) > 0 {
 		d.heading(3, "Views")
-		d.para("A view is a read model: one row per record of the entity it reads from, with every field of that entity and the fields below. It is never written. A path is null when a relation on it has no record; a count leaves out softly deleted records.")
+		d.para("A view is a read model: one row per record of the entity it reads from, with every field of that entity and the fields below. It is never written. A path is null when a relation on it has no record; a count leaves out softly deleted records, and so do rows.")
 		for _, v := range views {
 			from := str(v.Value, "from")
 			d.heading(4, v.Key.Value)
@@ -349,6 +349,9 @@ func buildingBlocks(d *doc, root *yaml.Node) {
 			d.line("|---|---|---|---|")
 			for _, p := range pairs(v.Value, "properties") {
 				typ, source := "integer, 64-bit", "count of "+from+"."+str(p.Value, "count")
+				if rows := str(p.Value, "rows"); rows != "" {
+					typ, source = "list of "+viewRowsTarget(root, from, rows), "rows of "+from+"."+rows
+				}
 				if path := str(p.Value, "path"); path != "" {
 					typ, source = "", from+"."+path
 					if f, optional := viewPathField(root, from, path); f != nil {
@@ -1034,6 +1037,15 @@ func menuList(d *doc, root *yaml.Node, items []source.Pair, indent string) {
 		d.line("%s- %s", indent, str(m.Value, "title"))
 		menuList(d, root, pairs(m.Value, "items"), indent+"  ")
 	}
+}
+
+// viewRowsTarget is the entity whose records a view's rows are, or the
+// relation's name when it does not resolve.
+func viewRowsTarget(root *yaml.Node, entity, relation string) string {
+	if t := str(get(get(get(get(root, "entities"), entity), "relations"), relation), "target"); t != "" {
+		return t
+	}
+	return relation
 }
 
 // viewPathField follows a view's path from an entity through its relations

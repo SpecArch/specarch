@@ -18,6 +18,9 @@ type Draft struct {
 	Subject   string   // how a message names the subject: "operation createLoan"
 	Text      string   // the test.yaml
 	BlockedBy []string // the must or should questions that hold up the subject
+	// Collision says why the draft cannot be written under its name: another
+	// draft has the same name, or a test of another subject already has it.
+	Collision string
 }
 
 // Drafts lists the tests a valid specification implies and has not got:
@@ -28,8 +31,10 @@ func Drafts(root *yaml.Node) []Draft {
 	subjects := d.subjects()
 	golden := map[string]bool{}
 	covered := map[string]map[string]bool{}
+	existing := map[string]string{} // test name to its subject key
 	for _, p := range source.Pairs(source.Child(root, "tests")) {
 		key := testSubjectKey(p.Value)
+		existing[p.Key.Value] = key
 		if source.Str(source.Child(p.Value, "scenario")) == "golden" {
 			golden[key] = true
 		}
@@ -42,6 +47,7 @@ func Drafts(root *yaml.Node) []Draft {
 	}
 	blocking := blockingQuestions(root)
 	var out []Draft
+	var keys []string // the subject key of each draft
 	for _, s := range subjects {
 		whole := s.kind == "requirement" || s.kind == "flow"
 		blocked := blockedBy(blocking, s.path)
@@ -50,6 +56,7 @@ func Drafts(root *yaml.Node) []Draft {
 			success.name = ""
 			out = append(out, Draft{Name: s.name + "-succeeds", Subject: s.label, BlockedBy: blocked,
 				Text: d.draftText(root, s, success, "every subject needs a golden path, and this is the success the design gives")})
+			keys = append(keys, s.yamlKey)
 		}
 		seen := map[string]bool{}
 		for _, dc := range s.cases {
@@ -58,9 +65,36 @@ func Drafts(root *yaml.Node) []Draft {
 			}
 			seen[dc.name] = true
 			out = append(out, Draft{Name: testName(s, dc), Subject: s.label, BlockedBy: blocked, Text: d.draftText(root, s, dc, s.chosenReason(dc))})
+			keys = append(keys, s.yamlKey)
 		}
 	}
+	markCollisions(out, keys, existing)
 	return out
+}
+
+// markCollisions marks every draft that cannot be written under its name:
+// one whose name another draft has too, whichever comes first, and one
+// whose name is a test of another subject. Writing one of two drafts of a
+// name would leave the other unwritten with no word said.
+func markCollisions(drafts []Draft, keys []string, existing map[string]string) {
+	byName := map[string][]int{}
+	for i, dr := range drafts {
+		byName[dr.Name] = append(byName[dr.Name], i)
+	}
+	for i := range drafts {
+		dr := &drafts[i]
+		if same := byName[dr.Name]; len(same) > 1 {
+			var others []string
+			for _, j := range same {
+				if j != i {
+					others = append(others, drafts[j].Subject)
+				}
+			}
+			dr.Collision = "the draft of " + strings.Join(others, " and ") + " has the same name"
+		} else if key, ok := existing[dr.Name]; ok && key != keys[i] {
+			dr.Collision = "the test there is about " + key + ", not " + keys[i]
+		}
+	}
 }
 
 // chosenReason says why a chosen case is written.

@@ -1,0 +1,9 @@
+operation: signIn
+level: system
+scenario: red
+covers: [email not a valid email]
+given: "..."
+when: "signIn is called with email that is not a valid email"
+then: "it is refused"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

@@ -12,7 +12,8 @@ import (
 
 // runDerive writes a draft test folder for every derived case of a
 // specification that no test covers: 0 when it wrote or had nothing to
-// write, 1 when a specification has errors, 2 on a usage or read error or a
+// write, 1 when a specification has errors or a draft's name is taken by
+// another draft or another subject's test, 2 on a usage or read error or a
 // specification that keeps its tests in the root file.
 func runDerive(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "--" {
@@ -38,12 +39,17 @@ func runDerive(args []string, stdout, stderr io.Writer) int {
 			return 2
 		}
 	}
-	written := 0
+	written, collisions := 0, 0
 	for _, l := range specs {
 		for _, dr := range validate.Drafts(l.spec.Root) {
 			folder := filepath.Join(l.spec.Dir, "tests", dr.Name)
 			if len(dr.BlockedBy) > 0 {
 				fmt.Fprintf(stderr, "specarch derive: left out %s for %s, which %s holds up\n", dr.Name, dr.Subject, strings.Join(dr.BlockedBy, ", "))
+				continue
+			}
+			if dr.Collision != "" {
+				fmt.Fprintf(stderr, "specarch derive: error: did not write %s for %s: %s; write this test by hand under a name of its own\n", filepath.ToSlash(folder), dr.Subject, dr.Collision)
+				collisions++
 				continue
 			}
 			if _, err := os.Stat(folder); err == nil {
@@ -64,5 +70,8 @@ func runDerive(args []string, stdout, stderr io.Writer) int {
 		}
 	}
 	fmt.Fprintf(stderr, "specarch derive: %s written\n", plural(written, "draft test"))
+	if collisions > 0 {
+		return 1
+	}
 	return 0
 }

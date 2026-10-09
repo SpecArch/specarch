@@ -1321,6 +1321,12 @@ outcome the design gives (the 2xx response, exit 0, the page shown, the
 state reached). A requirement and a state machine are subjects of a
 different kind: every case is golden and asked for on its own.
 
+A suggested test is named after its subject, then its case:
+`create-loan-missing-member-id`. When subjects of different kinds give
+the same name, as page `sign-in` and operation `signIn` both give
+`sign-in`, each takes its subject key in front: `page-sign-in-succeeds`
+and `operation-sign-in-succeeds`.
+
 - A `requirement` subject has one case per acceptance criterion,
   `acceptance 1`, `acceptance 2` and so on, with the criterion as its
   outcome; its tests are usually `level: acceptance`.

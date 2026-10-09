@@ -1,0 +1,6 @@
+operation: signIn
+level: system
+scenario: red
+given: "an account with that email"
+when: "signIn is called with another password"
+then: "it is refused"

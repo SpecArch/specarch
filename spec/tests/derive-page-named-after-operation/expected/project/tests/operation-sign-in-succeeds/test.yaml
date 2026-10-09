@@ -1,0 +1,9 @@
+operation: signIn
+level: system
+scenario: golden
+given: "any caller"
+when: "signIn is called with values inside every limit"
+then: "it answers 204: Signed in."
+origin: inferred
+why: "Written by specarch derive: every subject needs a golden path, and this is the success the design gives. A draft: complete the given, when and then, and remove what does not hold."
+expect: { status: 204 }

@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 297 design tests, 114 golden and 183 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 299 design tests, 115 golden and 184 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 293 |
+| system | 295 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -91,6 +91,14 @@ Scenario: golden; level: system; verifies SA-28.
 - When: derive is run
 - Then: it keeps that folder as it is, says so on standard error, writes the other drafts and exits 0
 
+#### derive-name-taken
+
+Scenario: red; level: system; covers exit 1; verifies SA-28.
+
+- Given: a specification whose two entities each have a constraint email_unique, and whose folder page-sign-in-succeeds holds a test of the operation signIn
+- When: derive is run
+- Then: it writes neither constraint's draft nor the page's success draft, names each on standard error with what took its name, writes the other drafts and exits 1
+
 #### derive-page-elements
 
 Scenario: golden; level: system; verifies SA-28, SA-42.
@@ -98,6 +106,14 @@ Scenario: golden; level: system; verifies SA-28, SA-42.
 - Given: a specification whose form picks a member, checks a date against another and has a pin entered twice, and whose list offers Deactivate only to an active member with a reason, both pages satisfying a requirement with a harm
 - When: derive is run
 - Then: it writes, among the operations' and the requirement's drafts, a test for the picker finding nothing, the check broken, the pin entered twice differently, Deactivate not offered and Deactivate without a reason, lists them and exits 0
+
+#### derive-page-named-after-operation
+
+Scenario: golden; level: system; verifies SA-28.
+
+- Given: a specification whose form page sign-in submits to the operation signIn, both without a golden test
+- When: derive is run
+- Then: it writes the operation's drafts under operation-sign-in- and the page's success draft as page-sign-in-succeeds, lists them and exits 0
 
 #### derive-root-tests
 
@@ -2443,7 +2459,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-162 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+163 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2456,6 +2472,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-28 | acceptance 1 | golden | SA-28 names no harm |
 | requirement SA-28 | acceptance 2 | golden | SA-28 names no harm |
 | requirement SA-28 | acceptance 3 | golden | SA-28 names no harm |
+| requirement SA-28 | acceptance 4 | golden | SA-28 names no harm |
 | requirement SA-27 | acceptance 1 | golden | SA-27 names no harm |
 | requirement SA-27 | acceptance 2 | golden | SA-27 names no harm |
 | requirement SA-27 | acceptance 3 | golden | SA-27 names no harm |

@@ -304,7 +304,10 @@ derivation words them, `verifies` from the subject's `satisfies`,
 `expect` where the derivation can fill them (a missing field: the input
 without it; a boundary: the value on or past it; a wrong state: a fixture
 in another state; a success: the response and a fixture inside every
-limit). The name is the one the validator suggests today.
+limit). The name is the one the validator suggests. A draft whose name
+is taken, by another draft or by a test of another subject, is not
+written: derive names both on standard error and exits 1, since writing
+one of the two would leave the other unwritten with nothing said.
 
 The verb goes from the specification to more specification, a direction
 ADR-013 does not have; `derive` names it, and it is one verb because the

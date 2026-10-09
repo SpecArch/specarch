@@ -49,7 +49,7 @@ Version 0.6.0-dev of the specification: 9 needs, 49 requirements, and 0 gaps. Ea
 | SA-25 | NEED-5 | commands diff | tests diff-classifies-changes; tests diff-invalid-spec; tests diff-lists-changes; tests diff-no-release; tests diff-not-covered; tests diff-tracker-unknown; tests diff-usage-error; tests diff-version-step |
 | SA-26 | NEED-3, NEED-5 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-releases |
 | SA-27 | NEED-9 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
-| SA-28 | NEED-9 | commands derive; decisions ADR-055 | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-page-elements; tests derive-root-tests; tests derive-skips-blocked; tests derive-usage-error; tests derive-writes-drafts |
+| SA-28 | NEED-9 | commands derive; decisions ADR-055 | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-name-taken; tests derive-page-elements; tests derive-page-named-after-operation; tests derive-root-tests; tests derive-skips-blocked; tests derive-usage-error; tests derive-writes-drafts |
 | SA-29 | NEED-9 | enums Rule; commands validate; decisions ADR-021 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
 | SA-30 | NEED-8 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests gaps-outline-not-read; tests validate-mapping-origin |
 | SA-31 | NEED-9 | commands generate; decisions ADR-041 | tests generate-stack-fallback; tests generate-stack-plugin; tests generate-tests-dart; tests generate-tests-framework-refused; tests generate-tests-go; tests generate-tests-swift |

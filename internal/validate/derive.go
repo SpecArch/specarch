@@ -164,7 +164,36 @@ func (d *design) subjects() []*subject {
 			out = append(out, s)
 		}
 	}
+	qualifyShared(out)
 	return out
+}
+
+// qualifyShared puts the subject key before the name of every subject whose
+// name a subject of another key has too, as page sign-in and operation
+// signIn both give sign-in: their tests become page-sign-in-... and
+// operation-sign-in-... A name no other subject has stays as it is, and so
+// does a name only subjects of one key share, which the key cannot tell
+// apart.
+func qualifyShared(subjects []*subject) {
+	keys := map[string]map[string]bool{}
+	for _, s := range subjects {
+		if keys[s.name] == nil {
+			keys[s.name] = map[string]bool{}
+		}
+		keys[s.name][subjectKeyWord(s)] = true
+	}
+	for _, s := range subjects {
+		if len(keys[s.name]) > 1 {
+			s.name = subjectKeyWord(s) + "-" + s.name
+		}
+	}
+}
+
+// subjectKeyWord is the first key of a subject in a test: operation, page,
+// entity and so on.
+func subjectKeyWord(s *subject) string {
+	key, _, _ := strings.Cut(s.yamlKey, ":")
+	return key
 }
 
 // requirementSubject is a requirement's acceptance tests: one golden case

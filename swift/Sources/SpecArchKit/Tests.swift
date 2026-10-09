@@ -7,7 +7,7 @@ final class Subject {
     let node: YNode      // where a missing scenario is reported
     let path: String
     let yamlKey: String  // the subject keys of a test, in flow style
-    let name: String     // for the suggested test name
+    var name: String     // for the suggested test name
     var raw = ""         // the subject's own name inside its case names, if any
     var cases: [DerivedCase] = []
     /// The golden path the design implies: what a caller allowed to do it
@@ -221,7 +221,22 @@ extension Design {
         for r in pairs(root.child("requirements")) {
             if let s = requirementSubject(r) { out.append(s) }
         }
+        qualifyShared(out)
         return out
+    }
+
+    /// Puts the subject key before the name of every subject whose name a
+    /// subject of another key has too, as page sign-in and operation signIn
+    /// both give sign-in: their tests become page-sign-in-... and
+    /// operation-sign-in-... A name no other subject has stays as it is, and
+    /// so does a name only subjects of one key share, which the key cannot
+    /// tell apart.
+    func qualifyShared(_ subjects: [Subject]) {
+        var keys: [String: Set<String>] = [:]
+        for s in subjects { keys[s.name, default: []].insert(subjectKeyWord(s)) }
+        for s in subjects where keys[s.name, default: []].count > 1 {
+            s.name = subjectKeyWord(s) + "-" + s.name
+        }
     }
 
     /// A requirement's acceptance tests: one golden case per acceptance
@@ -751,6 +766,11 @@ private func skeleton(_ s: Subject, _ dc: DerivedCase, _ name: String) -> String
 /// when it holds a character that would end or change it.
 private func flowScalar(_ s: String) -> String {
     s.contains(where: { ":,[]{}#\"'".contains($0) }) ? quote(s) : s
+}
+
+/// The first key of a subject in a test: operation, page, entity and so on.
+private func subjectKeyWord(_ s: Subject) -> String {
+    s.yamlKey.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false).first.map(String.init) ?? s.yamlKey
 }
 
 /// A suggested test name: the subject, then the case, without saying the

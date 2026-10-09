@@ -1,0 +1,8 @@
+arguments: [derive, project]
+exitStatus: 0
+standardOutput: |
+  project/tests/operation-sign-in-succeeds/test.yaml
+  project/tests/operation-sign-in-missing-email/test.yaml
+  project/tests/operation-sign-in-missing-password/test.yaml
+  project/tests/operation-sign-in-email-not-a-valid-email/test.yaml
+  project/tests/page-sign-in-succeeds/test.yaml

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: derive
+level: system
+scenario: golden
+given: "a specification whose form page sign-in submits to the operation signIn, both without a golden test"
+when: "derive is run"
+then: "it writes the operation's drafts under operation-sign-in- and the page's success draft as page-sign-in-succeeds, lists them and exits 0"
+verifies: [SA-28]

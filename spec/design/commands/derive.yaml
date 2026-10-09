@@ -14,6 +14,16 @@ commands:
       exit, or the caller of a denied case, where the design says them for
       certain.
 
+      A test is named after its subject, then its case: `create-loan-succeeds`.
+      When subjects of different kinds give the same name, as page `sign-in`
+      and operation `signIn` both give `sign-in`, each of them takes its
+      subject key in front: `page-sign-in-succeeds` and
+      `operation-sign-in-succeeds`. A draft whose name is still taken, by
+      another draft or by a test of another subject in the folder of that
+      name, is not written: derive names it, the subject that took the name
+      and the reason on standard error, writes the other drafts and exits 1;
+      a draft a question holds up is left out as before.
+
       What it writes is a draft the author completes, not a generated
       output: it has no header and no `--check`, and an existing test
       folder is never overwritten. A subject a must or should question
@@ -34,14 +44,18 @@ commands:
     writes:
       - { path: "tests/<name>/test.yaml under each specification's folder", description: One draft test per derived case no test covers. }
     standardOutput: The errors of an invalid specification, one line each; otherwise the path of each test written, one per line.
-    standardError: A usage message on a usage error, the reason on an unreadable path, each test left out or kept with the reason, and the count written.
+    standardError: A usage message on a usage error, the reason on an unreadable path, each test left out, kept or not written with the reason, and the count written.
     exitCodes:
       "0": the tests were written, or there was nothing to write
-      "1": a specification has errors
+      "1": a specification has errors, or a draft's name is taken by another draft or by a test of another subject
       "2": usage error, a path that could not be read or written, or a specification that keeps its tests in the root file
     satisfies: [SA-28]
     why: |
       The validator already says which tests a specification implies and
       gives each one to copy; writing them out is the step that turns the
       warnings into a test suite the author completes, instead of one the
-      author types out from the warnings.
+      author types out from the warnings. A name takes its subject key only
+      when it is shared, so the names of a specification without a shared
+      one stay short; writing one of two drafts of a name would leave the
+      other unwritten with nothing said, so a name that is still shared is
+      an error at each draft.

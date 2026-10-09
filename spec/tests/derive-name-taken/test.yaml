@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: derive
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification whose two entities each have a constraint email_unique, and whose folder page-sign-in-succeeds holds a test of the operation signIn"
+when: "derive is run"
+then: "it writes neither constraint's draft nor the page's success draft, names each on standard error with what took its name, writes the other drafts and exits 1"
+verifies: [SA-28]

@@ -138,6 +138,7 @@ Acceptance criteria:
 - A specification with uncovered chosen cases gets one test folder per case, each marked origin inferred, and validates afterwards.
 - A test folder that exists is kept as it is.
 - A subject a must question blocks gets no test, and derive names it.
+- Two subjects of different kinds that give the same name get drafts of different names, and a draft whose name is still taken is not written; derive names it and exits 1.
 
 **Insight:** The tests a specification implies are only worth listing if writing them out is cheap; a draft the author completes is cheaper than a warning the author copies.
 

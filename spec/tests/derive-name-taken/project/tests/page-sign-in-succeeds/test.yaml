@@ -1,0 +1,6 @@
+operation: signIn
+level: system
+scenario: golden
+given: "any caller"
+when: "signIn is called with values inside every limit"
+then: "it answers 204: Signed in."

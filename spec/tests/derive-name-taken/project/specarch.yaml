@@ -1,0 +1,51 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [tests]
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      email: { type: string, format: email, maxLength: 200 }
+    required: [id, email]
+    primaryKey: [id]
+    constraints:
+      email_unique: { kind: unique, fields: [email], message: The email is taken. }
+  Staff:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      email: { type: string, format: email, maxLength: 200 }
+    required: [id, email]
+    primaryKey: [id]
+    constraints:
+      email_unique: { kind: unique, fields: [email], message: The email is taken. }
+permissions:
+  public: { description: Everyone. }
+paths:
+  /sessions:
+    post:
+      operationId: signIn
+      summary: Sign in
+      permission: public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email, maxLength: 200 }
+              required: [email]
+      responses:
+        "204": { description: Signed in. }
+pages:
+  sign-in:
+    kind: form
+    title: Sign in
+    route: /sign-in
+    entity: Member
+    permission: public
+    submit: signIn
+    fields: [email]

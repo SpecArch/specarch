@@ -49,6 +49,34 @@ entities:
       - copiesOwned
       - copiesAvailable
       - replacementCost
+  FeeWaiverRequest:
+    primaryKey:
+      - id
+    properties:
+      amount:
+        format: decimal
+        precision: 10
+        scale: 2
+        type: string
+      id:
+        format: uuid
+        type: string
+      loanId:
+        format: uuid
+        type: string
+      reason:
+        maxLength: 500
+        type: string
+    relations:
+      loan:
+        kind: many-to-one
+        target: Loan
+        via: loanId
+    required:
+      - id
+      - loanId
+      - amount
+      - reason
   Loan:
     constraints:
       loan_due_after_loaned:

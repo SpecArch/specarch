@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 315 design tests, 124 golden and 191 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 318 design tests, 125 golden and 193 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 311 |
+| system | 314 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -283,6 +283,14 @@ Scenario: red; level: system; covers exit 1.
 - When: document techspec is run with --check
 - Then: it names the missing file and exits 1
 
+#### document-check-skips-unnamed
+
+Scenario: golden; level: system.
+
+- Given: two specifications, one whose implementation file names an output folder for techspec and one whose file names only requirements
+- When: document techspec is run with --check on both
+- Then: it warns at the second one's targets that it has no techspec, checks the first, and exits 0
+
 #### document-citation-unknown-source
 
 Scenario: red; level: system; covers exit 1; verifies SA-13.
@@ -337,7 +345,15 @@ Scenario: red; level: system; covers exit 2.
 
 - Given: a design file, no implementation file and no --out
 - When: document techspec is run
-- Then: it asks for --out or an implementation file and exits 2
+- Then: it warns at the root file, asks for --out or an implementation file and exits 2
+
+#### document-no-output-folder-any
+
+Scenario: red; level: system; covers exit 2.
+
+- Given: a specification whose implementation file names no output folder for techspec, and no --out
+- When: document techspec is run with --check
+- Then: it warns at the file's targets, writes nothing and exits 2, since no specification given has a techspec
 
 #### document-pages-flowchart
 
@@ -1840,6 +1856,14 @@ Scenario: golden; level: system; verifies SA-12.
 - Given: a need with status rejected that no requirement refines, beside a need a requirement refines
 - When: validate is run
 - Then: it does not warn need_unrefined for the rejected need, prints nothing and exits 0
+
+#### validate-number-type-name
+
+Scenario: red; level: system; covers exit 1.
+
+- Given: 1.0, 1 and 1.5 where a string is expected, and 1.5 where an integer is expected
+- When: validate is run
+- Then: each is named a number, the integer expected is named an integer, and it exits 1
 
 #### validate-operation
 

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: document
+level: system
+scenario: red
+covers: [exit 2]
+given: a specification whose implementation file names no output folder for techspec, and no --out
+when: document techspec is run with --check
+then: it warns at the file's targets, writes nothing and exits 2, since no specification given has a techspec

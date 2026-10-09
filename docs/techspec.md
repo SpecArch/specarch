@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 55 requirements, 5 entities, 12 commands, 7 algorithms, 315 tests, 70 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 55 requirements, 5 entities, 12 commands, 7 algorithms, 318 tests, 72 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -60,7 +60,7 @@ The interfaces the system offers, as its clients see them.
 | approve | Record that the documents were read and the specification is approved | public | 0: the approval was recorded; 1: refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current; 2: usage error, or a file that could not be read or written |
 | derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors, or a draft's name is taken by another draft or by a test of another subject; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, or there is no release record for the new version; 2: usage error, a path that could not be read, or a specification with errors |
-| document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (for the problems target, after its files are written), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder, or a file that could not be read or written |
+| document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (for the problems target, after its files are written), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written |
 | extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, or a file that is not BPMN 2.0 XML or holds no process; 2: usage error, a source this build does not offer, or a path that could not be read or written |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open; 1: at least one must or should question is open; 2: usage error, a path that could not be read, or a specification with errors |
 | generate | Write code or data from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads, the specification is not approved, the plug-in reported an error, or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written |
@@ -518,7 +518,11 @@ owns, and nothing outside it, except the regions between
 the root file. Every generated file starts with a header naming the
 root file, its `info.version`, each implementation file, and the
 meta-model version. With `--check` nothing is written: the output is
-made in memory and compared with what is on disk.
+made in memory and compared with what is on disk. A specification
+whose implementation files name no output folder for the target,
+with no `--out`, has no such document: it gets a warning at the
+targets of its first implementation file and is passed over, and the
+others are written or checked (ADR-073).
 
 The techspec target writes `techspec.md`: an arc42 technical
 specification of the whole specification, with chapters only for
@@ -620,8 +624,9 @@ Reads `{paths}`: The specifications and their implementation files; `specarch.md
 Writes `{out}/<target>.md`: The document. Nothing is written with `--check`; `specarch.md`: Only the regions between markers. Nothing is written with `--check`; `{out}/problems.txt`: The problems, for the problems target, written whether or not the specification is valid. Nothing is written with `--check`; `{out}/problems.sarif`: The same problems as a SARIF 2.1.0 log, for the problems target.
 
 Standard output: The diagnostics of an invalid specification and the errors of a
-marker, one line each. With `--check`, one line per file that differs
-or is missing.
+marker, one line each; a warning for each specification with no
+output folder for the target. With `--check`, one line per file that
+differs or is missing.
 
 Standard error: A usage message on a usage error, the reason a file cannot be read or written, and a one-line count at the end.
 
@@ -4619,6 +4624,64 @@ reads; the pending message says who answers and when.
 
 **Insight:** The array named for the relation is the one place the request can say rows without a mapping keyword, and the validator already ties the rows to the relation; the items' own properties say which fields are sent, as a form's body says which fields are. Loaded rows that are never sent keep a request that adds rows from repeating or overwriting the rows already kept, which locking says. One confirmation component keeps the list and the view asking the same thing the same way, and the reason required before it is sent.
 
+### ADR-072: A value of the wrong type is named by its type in JSON Schema's instance data model, so every number is a number
+
+Status: accepted, 2026-10-09.
+
+Context: A schema message names the type of the value it found and the types
+the schema expects: "this is a number, but a string is expected
+here". The Go build named every number a number; the Swift build
+named a number with no fractional part, such as 1 or 1.0, an
+integer. The two builds must print the same output, so one of the
+names had to go.
+
+Decision: The value is named by its type in JSON Schema's instance data model:
+null, a boolean, an object, an array, a number or a string. Every
+number is a number, however it is written. The types expected are
+named as the schema names them, so a schema that asks for an integer
+still says an integer is expected.
+
+Consequences: 1, 1.0 and 1.5 where a string is expected all read "this is a
+number, but a string is expected here" in both builds. 1.5 where an
+integer is expected reads "this is a number, but an integer is
+expected here".
+
+**Insight:** JSON Schema gives an instance one of six primitive types, and integer is not one of them; integer is a value of the type keyword that matches any number with a zero fractional part. It is a test the schema applies to a number, not a type the number has. The same standard makes 1 and 1.0 the same value, so a name that depended on how the number was written would name one value two ways. Where the schema accepts an integer or a number, a number with no fractional part raises no type message at all, so the found side only ever names a number where neither is expected, and a number is what the reader needs to hear there.
+
+**Note:** From JSON Schema, a media type for describing JSON documents, 2020-12, clause Core 4.2.1: An instance has one of six primitive types: null, boolean, object, array, number and string. <https://json-schema.org/specification>
+
+**Note:** From JSON Schema, a media type for describing JSON documents, 2020-12, clause Validation 6.1.1: The type keyword's value integer matches any number with a zero fractional part. <https://json-schema.org/specification>
+
+### ADR-073: A specification that names no output folder for a document has no such document, and is passed over with a warning
+
+Status: accepted, 2026-10-09.
+
+Context: document takes several folders, and the checks run each document
+target over SpecArch's own specification and every example at once.
+An example need not configure every document: one written from
+sources configures only the documents an owner reads while
+questions are open. document stopped with exit 2 at the first
+specification whose implementation files named no output folder for
+the target, so one such example ended the run for every other
+specification, and the loop that runs the targets in turn stopped
+there with them.
+
+Decision: Without `--out`, a specification whose implementation files name no
+output folder for the target is passed over: document prints a
+warning at the targets of its first implementation file (or at the
+root file when it has none) saying it has no such document, and
+writes or checks the others. When every specification given is
+passed over, nothing was made and document exits 2 as before. Two
+implementation files of one specification that name different
+output folders still stop it with exit 2.
+
+Consequences: `document <target> --check spec examples` runs through for every
+target, warns for the lending desk at testplan, deployment and
+commissioning, and CI runs that loop as CONTRIBUTING.md gives it.
+generate keeps its own rule for an output folder.
+
+**Insight:** The targets an implementation file names are how a specification says which documents it has, so one that names none for a target has chosen not to have it; that is not an error in it, and it is no reason to stop the documents of the others. SpecArch reads what it is given and puts each problem at the entry rather than refusing the run (docs/principles.md), so the missing folder is a warning at the targets where a folder would be named. A run in which every specification is passed over has made nothing at all, and exit 0 there would read as a check that passed; it stays an error. Two folders that disagree leave the output's place ambiguous, which is an error, not a choice.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -4654,13 +4717,15 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-check-current | command document | system | golden | output that matches the design file | document techspec is run with --check | it writes nothing, prints nothing and exits 0 |
 | document-check-differs | command document | system | red | a generated file edited by hand | document techspec is run with --check | it names the file that differs, writes nothing and exits 1 |
 | document-check-missing | command document | system | red | no generated output yet | document techspec is run with --check | it names the missing file and exits 1 |
+| document-check-skips-unnamed | command document | system | golden | two specifications, one whose implementation file names an output folder for techspec and one whose file names only requirements | document techspec is run with --check on both | it warns at the second one's targets that it has no techspec, checks the first, and exits 0 |
 | document-citation-unknown-source | command document | system | red | a stakeholder that cites a source the specification does not declare | document requirements is run | it prints the validator's source error, writes nothing and exits 1 |
 | document-draft-notice | command document | system | golden | a requirement a must question blocks, one stated in a source and one inferred | document requirements is run | it writes requirements.md with a Draft notice under the summary, an Origin line for each requirement and the open question under the blocked one, and exits 0 |
 | document-entity-diagram | command document | system | golden | a hand-written document with an erDiagram marker | document techspec is run | the region holds the entity diagram, every other line is unchanged, and it exits 0 |
 | document-invalid-input | command document | system | red | a design file with a relation to an entity that does not exist | document techspec is run | it prints the diagnostic, writes nothing and exits 1 |
 | document-marker-unclosed | command document | system | red | a marker with no end marker | document techspec is run | it reports the marker's line, writes nothing and exits 1 |
 | document-marker-unknown-object | command document | system | red | a marker for the states of an entity that has none | document techspec is run | it reports the marker's line, writes nothing and exits 1 |
-| document-no-output-folder | command document | system | red | a design file, no implementation file and no --out | document techspec is run | it asks for --out or an implementation file and exits 2 |
+| document-no-output-folder | command document | system | red | a design file, no implementation file and no --out | document techspec is run | it warns at the root file, asks for --out or an implementation file and exits 2 |
+| document-no-output-folder-any | command document | system | red | a specification whose implementation file names no output folder for techspec, and no --out | document techspec is run with --check | it warns at the file's targets, writes nothing and exits 2, since no specification given has a techspec |
 | document-pages-flowchart | command document | system | golden | a hand-written document with a flowchart pages marker | document techspec is run | the region holds the pages and the operation the Pay action runs, and it exits 0 |
 | document-permissions-table | command document | system | golden | a hand-written document with a permissions marker | document techspec is run | the region holds the table of permissions and roles, with public granted to everyone, and it exits 0 |
 | document-problems-lists | command document | system | red | a specification with an error at a requirement that cites a line of code beside it, a warning, and a must question that blocks two keys a requirement leaves out and cites the code | document problems is run | it prints the error, writes problems.txt with each problem on a file:line:column line with its id, the question at its entry followed by a note at each blocked entry and at each cited line, and problems.sarif with the same problems, the question as kind open and level none, and exits 1 |
@@ -4847,6 +4912,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-monitor-valid | command validate | system | golden | an operation stage with a monitor that verifies the one requirement, and an installation that watches it | validate is run | it prints nothing, since the monitor counts as verifying the requirement, and exits 0 |
 | validate-need | command validate | system | red | a requirement whose needs name a need that does not exist | validate is run | it reports need and exits 1 |
 | validate-need-rejected | command validate | system | golden | a need with status rejected that no requirement refines, beside a need a requirement refines | validate is run | it does not warn need_unrefined for the rejected need, prints nothing and exits 0 |
+| validate-number-type-name | command validate | system | red | 1.0, 1 and 1.5 where a string is expected, and 1.5 where an integer is expected | validate is run | each is named a number, the integer expected is named an integer, and it exits 1 |
 | validate-operation | command validate | system | red | a list page whose source operation does not exist | validate is run | it reports operation and exits 1 |
 | validate-origin | command validate | system | red | elements whose origin is stated without a citation, inferred without a why, decided without a decision, with an unknown decision, with a proposed decision, or with decidedIn beside another origin or no origin, and a decision decided by another; beside two elements whose origin is right | validate is run | it reports each wrong one with origin_citation, origin_reason or origin_decision and exits 1 |
 | validate-origin-tracked | command validate | system | golden | a specification that tracks origin, with one requirement and one entity that carry none | validate is run | it warns origin_missing for each of them, and exits 0 |
@@ -5152,13 +5218,13 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 
 | Requirement | Satisfied by | Verified by |
 |---|---|---|
-| SA-1 | enums DocumentKind; entities SpecFile; commands validate; decisions ADR-003; decisions ADR-006; decisions ADR-007; decisions ADR-009; decisions ADR-052; decisions ADR-055; decisions ADR-060; decisions ADR-063 | tests validate-schema-name-form; tests validate-schema-untyped-integer; tests validate-valid-design; checks checks-the-examples; monitors main-stays-green |
+| SA-1 | enums DocumentKind; entities SpecFile; commands validate; decisions ADR-003; decisions ADR-006; decisions ADR-007; decisions ADR-009; decisions ADR-052; decisions ADR-055; decisions ADR-060; decisions ADR-063; decisions ADR-072 | tests validate-schema-name-form; tests validate-schema-untyped-integer; tests validate-valid-design; checks checks-the-examples; monitors main-stays-green |
 | SA-2 | enums Rule; commands validate; algorithms referenceResolves; decisions ADR-061 | tests validate-duplicate-name-across-files; tests validate-enabled-by; tests validate-environment; tests validate-need; tests validate-ref-type; tests validate-relation-target; tests validate-requirement-set; tests validate-stakeholder |
 | SA-3 | enums Rule; commands validate; decisions ADR-004; decisions ADR-047; decisions ADR-061 | tests validate-expression-date-days; tests validate-expression-date-number; tests validate-expression-in-stage-file; tests validate-expression-syntax; tests validate-expression-type; tests validate-unique-where |
 | SA-4 | enums Rule; commands validate; algorithms workedExampleHolds; decisions ADR-004 | tests validate-example-mismatch |
 | SA-5 | enums Rule; commands validate; algorithms permissionGranted; algorithms separationOfDuties; decisions ADR-006; decisions ADR-053; decisions ADR-054 | tests validate-permission-undeclared; tests validate-permission-ungranted; tests validate-permission-ungranted-without-description; tests validate-question-covers-ungranted; tests validate-schema-operation-without-permission; tests validate-separation-of-duties |
 | SA-6 | enums Rule; enums Severity; entities Diagnostic; commands validate; algorithms exitStatus; decisions ADR-005; decisions ADR-008 | tests validate-usage-error; tests validate-yaml-syntax; tests version-prints-versions; checks installs-and-answers |
-| SA-7 | enums DocumentTarget; enums GeneratorTarget; entities GeneratedFile; commands document; commands generate; algorithms checkStatus; decisions ADR-013 | tests document-check-differs; tests document-two-implementations; tests document-writes-techspec; tests generate-plugin-path-outside; tests generate-with-plugin; checks checks-the-examples; monitors main-stays-green |
+| SA-7 | enums DocumentTarget; enums GeneratorTarget; entities GeneratedFile; commands document; commands generate; algorithms checkStatus; decisions ADR-013; decisions ADR-073 | tests document-check-differs; tests document-two-implementations; tests document-writes-techspec; tests generate-plugin-path-outside; tests generate-with-plugin; checks checks-the-examples; monitors main-stays-green |
 | SA-8 | entities GeneratedFile; commands document; commands generate; algorithms markersWellFormed | tests document-entity-diagram; tests document-two-implementations; tests document-writes-techspec |
 | SA-9 | enums DocumentKind; enums Rule; commands validate; decisions ADR-001; decisions ADR-002; decisions ADR-007 | tests validate-design-key; tests validate-stack-key |
 | SA-10 | enums Rule; commands validate | tests validate-deployment-environment-missing; tests validate-design-ref; tests validate-implements; tests validate-setting; tests validate-tree-valid |

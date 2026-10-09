@@ -268,6 +268,8 @@ func leaves(ve *jsonschema.ValidationError) []*jsonschema.ValidationError {
 func plainSchemaMessage(k jsonschema.ErrorKind) string {
 	switch e := k.(type) {
 	case *kind.Type:
+		// Got is the value's type in JSON Schema's instance data model,
+		// never integer: 1 and 1.0 are both a number (ADR-072).
 		return fmt.Sprintf("this is %s, but %s is expected here", article(e.Got), joinOr(e.Want))
 	case *kind.Enum:
 		return fmt.Sprintf("%s is not allowed here; use one of %s", display(e.Got), joinValues(e.Want))

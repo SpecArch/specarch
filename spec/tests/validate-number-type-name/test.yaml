@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: 1.0, 1 and 1.5 where a string is expected, and 1.5 where an integer is expected
+when: validate is run
+then: each is named a number, the integer expected is named an integer, and it exits 1

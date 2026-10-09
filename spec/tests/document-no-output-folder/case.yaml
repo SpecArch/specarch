@@ -1,3 +1,4 @@
 arguments: [document, techspec, project]
 exitStatus: 2
-standardOutput: ""
+standardOutput: |
+  project/specarch.yaml:1: warning: no output folder for techspec; no implementation file's targets name techspec and its output, so this specification has no techspec document

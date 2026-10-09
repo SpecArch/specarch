@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-072:
+    title: A value of the wrong type is named by its type in JSON Schema's instance data model, so every number is a number
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      A schema message names the type of the value it found and the types
+      the schema expects: "this is a number, but a string is expected
+      here". The Go build named every number a number; the Swift build
+      named a number with no fractional part, such as 1 or 1.0, an
+      integer. The two builds must print the same output, so one of the
+      names had to go.
+    decision: |
+      The value is named by its type in JSON Schema's instance data model:
+      null, a boolean, an object, an array, a number or a string. Every
+      number is a number, however it is written. The types expected are
+      named as the schema names them, so a schema that asks for an integer
+      still says an integer is expected.
+    why: |
+      JSON Schema gives an instance one of six primitive types, and integer
+      is not one of them; integer is a value of the type keyword that
+      matches any number with a zero fractional part. It is a test the
+      schema applies to a number, not a type the number has. The same
+      standard makes 1 and 1.0 the same value, so a name that depended on
+      how the number was written would name one value two ways. Where the
+      schema accepts an integer or a number, a number with no fractional
+      part raises no type message at all, so the found side only ever
+      names a number where neither is expected, and a number is what the
+      reader needs to hear there.
+    consequences: |
+      1, 1.0 and 1.5 where a string is expected all read "this is a
+      number, but a string is expected here" in both builds. 1.5 where an
+      integer is expected reads "this is a number, but an integer is
+      expected here".
+    satisfies: [SA-1]
+    cites:
+      - source: json-schema
+        clause: "Core 4.2.1"
+        says: "An instance has one of six primitive types: null, boolean, object, array, number and string."
+      - source: json-schema
+        clause: "Validation 6.1.1"
+        says: "The type keyword's value integer matches any number with a zero fractional part."

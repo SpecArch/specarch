@@ -131,7 +131,13 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 	}
 	var plan []planned
 	failed := false
+	skipped := 0
 	for _, l := range specs {
+		if out == "" && !namesOutput(l, target) {
+			fmt.Fprintf(stdout, "%s: warning: no output folder for %s; no implementation file's targets name %s and its output, so this specification has no %s document\n", outputEntry(l), target, target, target)
+			skipped++
+			continue
+		}
 		folder, status := outputFolder(l, target, out, stderr)
 		if status != 0 {
 			return status
@@ -164,6 +170,10 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 	if failed {
 		fmt.Fprintln(stderr, "specarch document: the markers have errors, so nothing was written")
 		return 1
+	}
+	if skipped == len(specs) {
+		fmt.Fprintf(stderr, "specarch: no output folder for %s in any specification given; give --out, or an implementation file whose targets name %s and its output\n", target, target)
+		return 2
 	}
 	if check {
 		return checkPlan("document", plan, stdout, stderr)
@@ -216,6 +226,31 @@ func loadSpecs(paths []string, verb string, stdout, stderr io.Writer) ([]loaded,
 		return nil, 2
 	}
 	return specs, 0
+}
+
+// namesOutput says whether an implementation file of the specification
+// names an output folder for the target under targets.
+func namesOutput(l loaded, target string) bool {
+	for _, i := range l.impls {
+		if source.Str(source.Child(source.Child(source.Child(i.Node, "targets"), target), "output")) != "" {
+			return true
+		}
+	}
+	return false
+}
+
+// outputEntry is where an output folder for a target would be named: the
+// targets of the specification's first implementation file, or that file,
+// or the root file when it has none.
+func outputEntry(l loaded) string {
+	if len(l.impls) == 0 {
+		return l.spec.RootFile + ":1"
+	}
+	i := l.impls[0]
+	if k := source.Key(source.Deref(i.Node), "targets"); k != nil {
+		return fmt.Sprintf("%s:%d", i.Path, k.Line)
+	}
+	return i.Path + ":1"
 }
 
 // outputFolder is --out, or the folder the implementation files name for

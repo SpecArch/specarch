@@ -1,0 +1,7 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:2: error: /info/title: schema: this is a number, but a string is expected here
+  specarch.yaml:7: error: /enums/ItemState/description: schema: this is a number, but a string is expected here
+  specarch.yaml:8: error: /enums/ItemState/valueDescriptions/draft: schema: this is a number, but a string is expected here
+  specarch.yaml:14: error: /entities/Item/properties/name/maxLength: schema: this is a number, but an integer is expected here

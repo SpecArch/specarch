@@ -1,0 +1,15 @@
+specarch: "0.1"
+info: { title: 1.0, version: 1.0.0 }
+enums:
+  ItemState:
+    type: string
+    enum: [draft, live]
+    description: 1
+    valueDescriptions: { draft: 1.5, live: Published. }
+entities:
+  Item:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      name: { type: string, maxLength: 1.5 }
+    primaryKey: [id]

@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-073:
+    title: A specification that names no output folder for a document has no such document, and is passed over with a warning
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      document takes several folders, and the checks run each document
+      target over SpecArch's own specification and every example at once.
+      An example need not configure every document: one written from
+      sources configures only the documents an owner reads while
+      questions are open. document stopped with exit 2 at the first
+      specification whose implementation files named no output folder for
+      the target, so one such example ended the run for every other
+      specification, and the loop that runs the targets in turn stopped
+      there with them.
+    decision: |
+      Without `--out`, a specification whose implementation files name no
+      output folder for the target is passed over: document prints a
+      warning at the targets of its first implementation file (or at the
+      root file when it has none) saying it has no such document, and
+      writes or checks the others. When every specification given is
+      passed over, nothing was made and document exits 2 as before. Two
+      implementation files of one specification that name different
+      output folders still stop it with exit 2.
+    why: |
+      The targets an implementation file names are how a specification
+      says which documents it has, so one that names none for a target has
+      chosen not to have it; that is not an error in it, and it is no
+      reason to stop the documents of the others. SpecArch reads what it
+      is given and puts each problem at the entry rather than refusing
+      the run (docs/principles.md), so the missing folder is a warning at
+      the targets where a folder would be named. A run in which every
+      specification is passed over has made nothing at all, and exit 0
+      there would read as a check that passed; it stays an error. Two
+      folders that disagree leave the output's place ambiguous, which is
+      an error, not a choice.
+    consequences: |
+      `document <target> --check spec examples` runs through for every
+      target, warns for the lending desk at testplan, deployment and
+      commissioning, and CI runs that loop as CONTRIBUTING.md gives it.
+      generate keeps its own rule for an output folder.
+    satisfies: [SA-7]

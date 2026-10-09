@@ -268,6 +268,10 @@ final class SchemaEvaluator: @unchecked Sendable {
         }
     }
 
+    /// The type of the value in JSON Schema's instance data model, which
+    /// has six types: integer is a value of the type keyword that matches
+    /// a number with no fractional part, not a type a value has, so 1 and
+    /// 1.0 are both a number (ADR-072).
     private func typeName(_ v: JSONValue) -> String {
         switch v {
         case .null: return "null"
@@ -275,7 +279,7 @@ final class SchemaEvaluator: @unchecked Sendable {
         case .string: return "string"
         case .array: return "array"
         case .object: return "object"
-        case .number(let n, _): return typeMatches("integer", v) ? "integer" : (n.isNaN ? "number" : "number")
+        case .number: return "number"
         }
     }
 

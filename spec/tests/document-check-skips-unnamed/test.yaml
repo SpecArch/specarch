@@ -1,0 +1,7 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: document
+level: system
+scenario: golden
+given: two specifications, one whose implementation file names an output folder for techspec and one whose file names only requirements
+when: document techspec is run with --check on both
+then: it warns at the second one's targets that it has no techspec, checks the first, and exits 0

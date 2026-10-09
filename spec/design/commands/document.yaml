@@ -10,7 +10,11 @@ commands:
       the root file. Every generated file starts with a header naming the
       root file, its `info.version`, each implementation file, and the
       meta-model version. With `--check` nothing is written: the output is
-      made in memory and compared with what is on disk.
+      made in memory and compared with what is on disk. A specification
+      whose implementation files name no output folder for the target,
+      with no `--out`, has no such document: it gets a warning at the
+      targets of its first implementation file and is passed over, and the
+      others are written or checked (ADR-073).
 
       The techspec target writes `techspec.md`: an arc42 technical
       specification of the whole specification, with chapters only for
@@ -124,13 +128,14 @@ commands:
       - { path: "{out}/problems.sarif", description: "The same problems as a SARIF 2.1.0 log, for the problems target." }
     standardOutput: |
       The diagnostics of an invalid specification and the errors of a
-      marker, one line each. With `--check`, one line per file that differs
-      or is missing.
+      marker, one line each; a warning for each specification with no
+      output folder for the target. With `--check`, one line per file that
+      differs or is missing.
     standardError: A usage message on a usage error, the reason a file cannot be read or written, and a one-line count at the end.
     exitCodes:
       "0": written, or with `--check` the output is current
       "1": a specification has an error (for the problems target, after its files are written), a marker is wrong, or with `--check` the output differs
-      "2": usage error, a target this build does not offer, no output folder, or a file that could not be read or written
+      "2": usage error, a target this build does not offer, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written
     algorithm: checkStatus
     satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22, SA-26, SA-51]
     why: Documents are read by more people than the YAML, so they come first among the targets and are made from the specification rather than kept beside it.

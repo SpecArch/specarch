@@ -170,10 +170,14 @@ jobs:
           grep -F -B2 'Undocumented, from code: is operation showMember (GET /members/{cardNumber})' "$RUNNER_TEMP/desk-one/gaps.txt" | grep -q '(must, decision)'
           grep -F -B2 'GET /members/{cardNumber} checks no permission' "$RUNNER_TEMP/desk-one/gaps.txt" | grep -q '(must, decision)'
       - name: Generated documents are current
-        # examples/lending-desk is a partial specification written from
-        # sources and configures only the four documents an owner reads
-        # while questions are open (docs/from-sources.md, section 4).
+        # The first loop is the one CONTRIBUTING.md gives, over every
+        # specification at once. examples/lending-desk is a partial
+        # specification written from sources and configures only the
+        # documents an owner reads while questions are open
+        # (docs/from-sources.md, section 4), so that loop warns for it at
+        # testplan, deployment and commissioning and goes on (ADR-073).
         run: |
+          for target in techspec requirements testplan traceability deployment commissioning; do go run ./cmd/specarch document $target --check spec examples || exit 1; done
           for target in techspec requirements testplan traceability deployment commissioning questions problems changes releases; do go run ./cmd/specarch document $target --check spec examples/library-lending || exit 1; done
           for target in techspec requirements traceability questions problems; do go run ./cmd/specarch document $target --check examples/lending-desk || exit 1; done
       - name: Generated code and data are current

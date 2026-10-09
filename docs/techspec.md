@@ -1173,13 +1173,17 @@ refused.
   check that an optional value is wholly absent or has its required
   parts, and compared with the code side's fields (ADR-077). Where
   every part's column is there with the type, width and nullability
-  its part gives it, and every check of the entity naming one of
-  them is such a presence check, the columns, their place in
-  `required` and those checks are left out, the field is the code's
-  too, and a line names them; a key only the column gives is written
-  into the part. Where only some parts have a column, a column
-  differs from its part, another check names one, or the field is
-  held as json and has columns, nothing is joined and a must
+  its part gives it, every check of the entity naming one of them is
+  such a presence check, and every presence check the field writes
+  is there, the columns, their place in `required` and those checks
+  are left out, the field is the code's too, and a line names them;
+  a key only the column gives is written into the part, and a part
+  that refers to an enum or a schema is compared on its nullability
+  only. A tree's question on a column or a check read back so, or on
+  a JSON column read as a schema, is left out with a line. Where only
+  some parts have a column, a column differs from its part, another
+  check names one, a presence check is missing, or the field is held
+  as json and has columns, nothing is joined and a must
   question at the field names each difference. A field one tree
   gives as a schema and another as an object is that schema with
   storage json. Where no tree has a field holding a schema, and an
@@ -1271,7 +1275,8 @@ Writes `{out}/`: The merged specification.
 Standard output: One line per tree naming its title and what it holds; one line per
 source joined from several trees, naming the edition taken; one line
 counting the elements written and those found in more than one
-tree; one line per field read back from its columns; one line per requirement joined to a check that gives the
+tree; one line per field read back from its columns, and one per
+question that what was read back answers; one line per requirement joined to a check that gives the
 same number of days; one line per question of a tree that another
 tree answers or a question kept before it asks; one line per
 question whose name is joined to the operation another tree
@@ -5004,13 +5009,17 @@ part's column by the same naming and the check that an optional
 value is wholly absent or has its required parts, and compares
 that with the fields of the code side. Where every part's column is
 there, each with the type, width and nullability the part gives it,
-and every check of the entity that names one of those columns is
-such a presence check, the columns are the field: they are left out
+every check of the entity that names one of those columns is such a
+presence check, and every presence check the field writes is there,
+the columns are the field: they are left out
 of the entity's fields, its required list and its checks, the
 field cites the code too, and a line names them. A key the part
-does not give and its column does is written into the part. Where
+does not give and its column does is written into the part; a part
+that refers to an enum or a schema is compared on its nullability
+only, since the reference says the rest. Where
 only some parts have a column, or a column disagrees with its part,
-or another check names one, nothing is joined, and a must question
+another check names one, or a presence check is missing, nothing is
+joined, and a must question
 at the field names each difference. A field held as json whose
 columns the code side has is asked about the same way.
 

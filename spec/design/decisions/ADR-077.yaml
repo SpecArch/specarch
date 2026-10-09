@@ -30,13 +30,17 @@ decisions:
       value is wholly absent or has its required parts, and compares
       that with the fields of the code side. Where every part's column is
       there, each with the type, width and nullability the part gives it,
-      and every check of the entity that names one of those columns is
-      such a presence check, the columns are the field: they are left out
+      every check of the entity that names one of those columns is such a
+      presence check, and every presence check the field writes is there,
+      the columns are the field: they are left out
       of the entity's fields, its required list and its checks, the
       field cites the code too, and a line names them. A key the part
-      does not give and its column does is written into the part. Where
+      does not give and its column does is written into the part; a part
+      that refers to an enum or a schema is compared on its nullability
+      only, since the reference says the rest. Where
       only some parts have a column, or a column disagrees with its part,
-      or another check names one, nothing is joined, and a must question
+      another check names one, or a presence check is missing, nothing is
+      joined, and a must question
       at the field names each difference. A field held as json whose
       columns the code side has is asked about the same way.
 

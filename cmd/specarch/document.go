@@ -134,7 +134,7 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 	skipped := 0
 	for _, l := range specs {
 		if out == "" && !namesOutput(l, target) {
-			fmt.Fprintf(stdout, "%s: warning: no output folder for %s; no implementation file's targets name %s and its output, so this specification has no %s document\n", outputEntry(l), target, target, target)
+			fmt.Fprintln(stdout, noOutputFolder(l, target).String())
 			skipped++
 			continue
 		}
@@ -239,19 +239,25 @@ func namesOutput(l loaded, target string) bool {
 	return false
 }
 
-// outputEntry is where an output folder for a target would be named: the
-// targets of the first implementation file that has them, or the first
-// implementation file, or the root file when there is none.
-func outputEntry(l loaded) string {
-	if len(l.impls) == 0 {
-		return l.spec.RootFile + ":1"
+// noOutputFolder is the warning for a specification that names no output
+// folder for the target (ADR-073), at the targets of the first
+// implementation file that has them, or at that file, or at the root file
+// when there is none, placed and given its id as validate's are.
+func noOutputFolder(l loaded, target string) validate.Diagnostic {
+	d := validate.Diagnostic{File: l.spec.RootFile, Line: 1, Severity: validate.Warning, Path: "/", Rule: validate.RuleOutputFolder,
+		Message: fmt.Sprintf("no implementation file names an output folder for %s under targets, so this specification has no %s document; name one, or give --out", target, target)}
+	if len(l.impls) > 0 {
+		d.File = l.impls[0].Path
 	}
 	for _, i := range l.impls {
 		if k := source.Key(i.Node, "targets"); k != nil {
-			return fmt.Sprintf("%s:%d", i.Path, k.Line)
+			d.File, d.Line, d.Path = i.Path, k.Line, "/targets"
+			break
 		}
 	}
-	return l.impls[0].Path + ":1"
+	ds := []validate.Diagnostic{d}
+	validate.SpecPlacer(l.spec).Place(ds)
+	return ds[0]
 }
 
 // outputFolder is --out, or the folder the implementation files name for

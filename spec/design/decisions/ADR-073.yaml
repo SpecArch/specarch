@@ -17,8 +17,9 @@ decisions:
     decision: |
       Without `--out`, a specification whose implementation files name no
       output folder for the target is passed over: document prints a
-      warning at the targets of its first implementation file (or at the
-      root file when it has none) saying it has no such document, and
+      warning of rule output_folder, in validate's line, at the targets of
+      the first implementation file that has them (or at that file, or at
+      the root file when it has none) saying it has no such document, and
       writes or checks the others. When every specification given is
       passed over, nothing was made and document exits 2 as before. Two
       implementation files of one specification that name different

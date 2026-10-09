@@ -351,6 +351,7 @@ Primary key: path.
 | Rule | form_field | a page's fieldConditions name a field it does not show, make a field read-only on a page that is not a form, or give readOnly and readOnlyWhen together; its checks or enteredTwice are on a page that is not a form or a task, or a check's field or a field entered twice is not one the page shows; or a check's message is not a full sentence |
 | Rule | value_object | a relation leads to a schema, a schema is named like an entity or a view, storage is on a field that holds no schema or inside a value or is columns on a list, or a value kept in columns is optional with no required part that is never null or holds a list of schemas, itself or a reference to an entity |
 | Rule | wire_name | the specification names its wire names (info.wireNames) and two properties of one object, an entity's, a view's with its entity's, or a body's, a parameter's or a message's, go on the wire under one name |
+| Rule | output_folder | document is given no --out, and no implementation file of a specification names an output folder for the target under targets, so that specification has no such document (a warning, ADR-073) |
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
@@ -4670,8 +4671,9 @@ there with them.
 
 Decision: Without `--out`, a specification whose implementation files name no
 output folder for the target is passed over: document prints a
-warning at the targets of its first implementation file (or at the
-root file when it has none) saying it has no such document, and
+warning of rule output_folder, in validate's line, at the targets of
+the first implementation file that has them (or at that file, or at
+the root file when it has none) saying it has no such document, and
 writes or checks the others. When every specification given is
 passed over, nothing was made and document exits 2 as before. Two
 implementation files of one specification that name different

@@ -1,4 +1,4 @@
 arguments: [document, techspec, project]
 exitStatus: 2
 standardOutput: |
-  project/specarch.yaml:1: warning: no output folder for techspec; no implementation file's targets name techspec and its output, so this specification has no techspec document
+  project/specarch.yaml:1:1: warning: /: output_folder: no implementation file names an output folder for techspec under targets, so this specification has no techspec document; name one, or give --out [output_folder@specarch.yaml#/]

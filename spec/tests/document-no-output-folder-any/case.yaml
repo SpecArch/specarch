@@ -1,4 +1,4 @@
 arguments: [document, techspec, --check, other]
 exitStatus: 2
 standardOutput: |
-  other/other.go.specarch-implementation.yaml:5: warning: no output folder for techspec; no implementation file's targets name techspec and its output, so this specification has no techspec document
+  other/other.go.specarch-implementation.yaml:5:1: warning: /targets: output_folder: no implementation file names an output folder for techspec under targets, so this specification has no techspec document; name one, or give --out [output_folder@other.go.specarch-implementation.yaml#/targets]

@@ -50,7 +50,7 @@ func runProblems(paths []string, out string, check bool, stdout, stderr io.Write
 			}
 		}
 		if out == "" && !namesOutput(l, "problems") {
-			fmt.Fprintf(stdout, "%s: warning: no output folder for problems; no implementation file's targets name problems and its output, so this specification has no problems document\n", outputEntry(l))
+			fmt.Fprintln(stdout, noOutputFolder(l, "problems").String())
 			skipped++
 			continue
 		}

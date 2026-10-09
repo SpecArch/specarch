@@ -1,4 +1,4 @@
 arguments: [document, problems, --check, other]
 exitStatus: 2
 standardOutput: |
-  other/other.go.specarch-implementation.yaml:5: warning: no output folder for problems; no implementation file's targets name problems and its output, so this specification has no problems document
+  other/other.go.specarch-implementation.yaml:5:1: warning: /targets: output_folder: no implementation file names an output folder for problems under targets, so this specification has no problems document; name one, or give --out [output_folder@other.go.specarch-implementation.yaml#/targets]

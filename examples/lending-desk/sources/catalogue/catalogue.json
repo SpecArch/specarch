@@ -4,7 +4,7 @@
     ],
     "views": [
     ],
-    "commit": "1334b2b8b7306a6539c9ec22abf4403ba28517af",
+    "commit": "747ca5a74e35489f85e88bd758b342e9e98b7233",
     "tables": [
         {
             "name": "books",
@@ -200,6 +200,33 @@
                     "notNull": true,
                     "identity": null,
                     "generated": null
+                },
+                {
+                    "name": "address_street",
+                    "type": "character varying(200)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": false,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "address_city",
+                    "type": "character varying(100)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": false,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "address_postcode",
+                    "type": "character varying(20)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": false,
+                    "identity": null,
+                    "generated": null
                 }
             ],
             "comment": null,
@@ -213,6 +240,20 @@
                 }
             ],
             "constraints": [
+                {
+                    "kind": "check",
+                    "name": "members_address",
+                    "columns": [
+                        "address_street",
+                        "address_city",
+                        "address_postcode"
+                    ],
+                    "onDelete": null,
+                    "definition": "CHECK ((((address_street IS NULL) AND (address_city IS NULL) AND (address_postcode IS NULL)) OR ((address_street IS NOT NULL) AND (address_city IS NOT NULL))))",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                },
                 {
                     "kind": "primary",
                     "name": "members_pkey",

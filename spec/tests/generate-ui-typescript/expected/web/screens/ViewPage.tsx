@@ -11,6 +11,12 @@ import {
   StructuredListCell,
   StructuredListRow,
   StructuredListWrapper,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@carbon/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -18,7 +24,7 @@ import { decide } from "./access";
 import { Confirm, runAction } from "./Confirm";
 import { leave } from "./Notice";
 import { evaluate, hidden, type Fields } from "./rules";
-import type { FailureSchema, RowActionSchema, ViewPageSchema } from "./schema";
+import type { FailureSchema, RowActionSchema, ViewFieldSchema, ViewPageSchema } from "./schema";
 import { body, segment, service } from "./service";
 import { useSession } from "./session";
 import { say, type Texts } from "./texts";
@@ -47,6 +53,84 @@ function shown(value: unknown, texts: Texts): string {
     return say(texts, value ? "screens.yes" : "screens.no");
   }
   return String(value);
+}
+
+function isRecord(value: unknown): value is Fields {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/** A value of a schema as one text, its parts' values in order, as a table's cell shows it. */
+function inline(field: ViewFieldSchema, value: unknown, texts: Texts): string {
+  if (field.parts === undefined) {
+    return shown(value, texts);
+  }
+  const items = field.list === true ? (Array.isArray(value) ? (value as readonly unknown[]) : []) : isRecord(value) ? [value] : [];
+  const parts = field.parts;
+  const text = items
+    .filter(isRecord)
+    .map((item) =>
+      parts
+        .filter((part) => item[part.name] !== null && item[part.name] !== undefined && item[part.name] !== "")
+        .map((part) => inline(part, item[part.name], texts))
+        .join(", "),
+    )
+    .join("; ");
+  return text === "" ? say(texts, "screens.none") : text;
+}
+
+/**
+ * What a view shows of a field: its value as text; a value of a schema
+ * part by part; a list of them as a table, a row per item and a column
+ * per part.
+ */
+function Shown({ field, value, texts }: { readonly field: ViewFieldSchema; readonly value: unknown; readonly texts: Texts }) {
+  if (field.parts === undefined) {
+    return <>{shown(value, texts)}</>;
+  }
+  const parts = field.parts;
+  if (field.list === true) {
+    const items = Array.isArray(value) ? (value as readonly unknown[]).filter(isRecord) : [];
+    if (items.length === 0) {
+      return <>{say(texts, "screens.none")}</>;
+    }
+    return (
+      <Table size="sm" aria-label={say(texts, field.label)}>
+        <TableHead>
+          <TableRow>
+            {parts.map((part) => (
+              <TableHeader key={part.name}>{say(texts, part.label)}</TableHeader>
+            ))}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {items.map((item, index) => (
+            <TableRow key={index}>
+              {parts.map((part) => (
+                <TableCell key={part.name}>{inline(part, item[part.name], texts)}</TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    );
+  }
+  if (!isRecord(value)) {
+    return <>{say(texts, "screens.none")}</>;
+  }
+  return (
+    <StructuredListWrapper isCondensed aria-label={say(texts, field.label)}>
+      <StructuredListBody>
+        {parts.map((part) => (
+          <StructuredListRow key={part.name}>
+            <StructuredListCell>{say(texts, part.label)}</StructuredListCell>
+            <StructuredListCell>
+              <Shown field={part} value={value[part.name]} texts={texts} />
+            </StructuredListCell>
+          </StructuredListRow>
+        ))}
+      </StructuredListBody>
+    </StructuredListWrapper>
+  );
 }
 
 /**
@@ -145,7 +229,9 @@ export function ViewPage({ schema, texts, routes, parameters }: ViewPageProps) {
                   .map((field) => (
                     <StructuredListRow key={field.name}>
                       <StructuredListCell>{say(texts, field.label)}</StructuredListCell>
-                      <StructuredListCell>{shown(record[field.name], texts)}</StructuredListCell>
+                      <StructuredListCell>
+                        <Shown field={field} value={record[field.name]} texts={texts} />
+                      </StructuredListCell>
                     </StructuredListRow>
                   ))}
               </StructuredListBody>

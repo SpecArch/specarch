@@ -1,0 +1,7 @@
+arguments: [generate, ui, --unapproved, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:113:20: warning: /pages/member-change/fields/1: generator: address.location.longitude has no title, so its label is its name; give the property a title [generator@specarch.yaml#/pages/member-change/fields/1]
+  project/specarch.yaml:102:41: warning: /pages/member-form/sections/0/fields/1: generator: billing.location.longitude has no title, so its label is its name; give the property a title [generator@specarch.yaml#/pages/member-form/sections/0/fields/1]
+  project/specarch.yaml:103:36: warning: /pages/member-form/sections/1/fields/0: generator: address.location.longitude has no title, so its label is its name; give the property a title [generator@specarch.yaml#/pages/member-form/sections/1/fields/0]
+plugins: [ui-typescript]

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: createMember
+level: system
+scenario: red
+covers: [missing address.street, missing address.city, missing phones.number]
+given: a librarian
+when: createMember is called with an address without its street, then without its city, and with a phone number without its number
+then: each is refused as invalid input, naming the part

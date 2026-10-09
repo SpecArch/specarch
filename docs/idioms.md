@@ -300,7 +300,8 @@ packages every screen imports, and where the components that read the
 schemas live), `list-page`, `form-page`, `view-page`, `task-page`, a part
 per field type (`text-field`, `text-area-field`, `email-field`, `password-field`,
 `number-field`, `date-field`, `select-field`, `checkbox-field`,
-`lookup-field`), `confirm-dialog`, `notification`, `language-choice` and
+`lookup-field`, and `value-field` and `value-list-field` for a field
+holding a value object or a list of them), `confirm-dialog`, `notification`, `language-choice` and
 `menu`. Each names,
 under `names`, the component, the schema type it takes, the Carbon
 components it is built on and the keys of its schema; `names` stays a flat

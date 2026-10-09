@@ -1,0 +1,93 @@
+"use client";
+
+import { Button, FormGroup, InlineNotification, Stack } from "@carbon/react";
+import { Field } from "./Field";
+import type { Values } from "./rules";
+import type { FormFieldSchema } from "./schema";
+import { say, type Texts } from "./texts";
+import { addItem, countOf, holdsValue, removeItem, type HeldValue } from "./values";
+
+export interface ValueFieldProps {
+  readonly field: HeldValue;
+  /** The path the form holds the value under: the field's name, or the path to a part. */
+  readonly path: string;
+  readonly values: Values;
+  readonly problems: Readonly<Record<string, string>>;
+  readonly texts: Texts;
+  readonly readOnly: boolean;
+  /** Replaces the values the form holds, as typing in a part or adding or removing an item does. */
+  readonly onValues: (change: (values: Values) => Values) => void;
+}
+
+interface PartProps extends Omit<ValueFieldProps, "field"> {
+  readonly field: FormFieldSchema;
+}
+
+/** One part of a value: a field drawn by its part, or a value or a list nested in its turn. */
+function Part({ field, path, values, problems, texts, readOnly, onValues }: PartProps) {
+  if (holdsValue(field)) {
+    return <ValueField field={field} path={path} values={values} problems={problems} texts={texts} readOnly={readOnly} onValues={onValues} />;
+  }
+  return (
+    <Field
+      id={path}
+      field={field}
+      value={values[path] ?? ""}
+      problem={problems[path]}
+      texts={texts}
+      readOnly={readOnly || field.readOnly === true}
+      onChange={(value) => onValues((current) => ({ ...current, [path]: value }))}
+    />
+  );
+}
+
+/**
+ * A field holding a value of a schema, as a section of its parts under
+ * its label, or a list of them, as a repeating group: an item per value
+ * with its parts and a button that removes it, and a button that adds one
+ * while there are fewer than the maximum.
+ */
+export function ValueField({ field, path, values, problems, texts, readOnly, onValues }: ValueFieldProps) {
+  const parts = (at: string) => (
+    <Stack gap={6}>
+      {field.parts.map((part) => (
+        <Part key={part.name} field={part} path={at + "." + part.name} values={values} problems={problems} texts={texts} readOnly={readOnly} onValues={onValues} />
+      ))}
+    </Stack>
+  );
+  if (field.type === "value") {
+    return (
+      <FormGroup id={path} legendText={say(texts, field.label)}>
+        {parts(path)}
+      </FormGroup>
+    );
+  }
+  const count = countOf(values, path);
+  const full = field.maximum !== undefined && count >= field.maximum;
+  return (
+    <FormGroup id={path} legendText={say(texts, field.label)}>
+      <Stack gap={5}>
+        {problems[path] !== undefined && <InlineNotification kind="error" role="alert" lowContrast hideCloseButton title={problems[path]} />}
+        {Array.from({ length: count }, (_, index) => (
+          <Stack key={index} gap={5}>
+            {parts(path + "." + index)}
+            {!readOnly && (
+              <div>
+                <Button kind="ghost" type="button" onClick={() => onValues((current) => removeItem(current, path, index))}>
+                  {say(texts, "screens.removeItem")}
+                </Button>
+              </div>
+            )}
+          </Stack>
+        ))}
+        {!readOnly && (
+          <div>
+            <Button kind="tertiary" type="button" disabled={full} onClick={() => onValues((current) => addItem(field, current, path))}>
+              {say(texts, "screens.addItem")}
+            </Button>
+          </div>
+        )}
+      </Stack>
+    </FormGroup>
+  );
+}

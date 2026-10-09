@@ -81,6 +81,8 @@ erDiagram
     string fullName
     string email
     MembershipTier tier
+    PostalAddress address
+    list_PhoneNumber phones
     MemberStatus status
     date joinedOn
     date membershipEndsOn

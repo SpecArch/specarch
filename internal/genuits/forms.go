@@ -192,14 +192,30 @@ type formFieldInput struct {
 	// labelAt is the string key of the label, when it is not the page's
 	// field of the name, as a child row's field is not.
 	labelAt string
+	// path names a part of a value by the path to it, address.street, in
+	// messages; the field's name when it is no part.
+	path string
+	// inSections is set for a field of a form's sections or a part of a
+	// value among them, where a value may be drawn.
+	inSections bool
+	// within are the schemas whose parts hold this field, to end a cycle.
+	within map[string]bool
 }
 
 func (g *gen) formField(in formFieldInput) (value, bool) {
 	prop := in.prop
+	shown := orText(in.path, in.name)
 	label := text(prop["title"])
 	if label == "" {
-		g.problem("warning", in.at, "%s has no title, so its label is its name; give the property a title", in.name)
+		g.problem("warning", in.at, "%s has no title, so its label is its name; give the property a title", shown)
 		label = in.name
+	}
+	if schemaName, many := valueOf(prop); schemaName != "" {
+		part, data, ok := g.valueField(in, schemaName, many, label)
+		if !ok {
+			return nil, false
+		}
+		return g.fieldRules(in, part, data, label)
 	}
 	t := g.propertyType(prop)
 	format := text(prop["format"])
@@ -214,7 +230,7 @@ func (g *gen) formField(in formFieldInput) (value, bool) {
 	case t == "integer" || t == "number":
 		part = "number-field"
 	case t != "string":
-		g.problem("error", in.at, "%s shows %s, of type %s, and this version of %s writes a form's fields of type string, integer, number or boolean", in.pageName, in.name, orText(t, "none"), name)
+		g.problem("error", in.at, "%s shows %s, of type %s, and this version of %s writes a form's fields of type string, integer, number or boolean, or holding a schema", in.pageName, shown, orText(t, "none"), name)
 		return nil, false
 	case format == "date":
 		part = "date-field"
@@ -228,11 +244,11 @@ func (g *gen) formField(in formFieldInput) (value, bool) {
 			part = "text-area-field"
 		}
 	default:
-		g.problem("error", in.at, "%s shows %s, of format %s, which this version of %s does not write on a form; show it on a view", in.pageName, in.name, format, name)
+		g.problem("error", in.at, "%s shows %s, of format %s, which this version of %s does not write on a form; show it on a view", in.pageName, shown, format, name)
 		return nil, false
 	}
 	wire := wirename.Of(g.wireNames, in.name)
-	labelAt := orText(in.labelAt, in.pageName+".fields."+in.name)
+	labelAt := g.labelKey(in)
 	data := []member{
 		{"type", str(g.name(part, "type"))},
 		{g.name(part, "name"), str(wire)},
@@ -286,6 +302,19 @@ func (g *gen) formField(in formFieldInput) (value, bool) {
 			data = append(data, member{g.name(part, m.key), m.val})
 		}
 	}
+	return g.fieldRules(in, part, data, label)
+}
+
+// labelKey is the string key of a field's label: the page's field of its
+// name, or the key the caller gives, as a child row's field and a value's
+// part have.
+func (g *gen) labelKey(in formFieldInput) string {
+	return orText(in.labelAt, in.pageName+".fields."+in.name)
+}
+
+// fieldRules adds what a field's conditions, hook and second entry say to
+// the data its part takes.
+func (g *gen) fieldRules(in formFieldInput, part string, data []member, label string) (value, bool) {
 	if in.readOnly {
 		data = append(data, member{g.name(part, "readOnly"), raw("true")})
 	}
@@ -482,7 +511,7 @@ func (g *gen) formPage(pageName string, pg map[string]any, sess *session, hooks 
 				continue
 			}
 			fv, ok := g.formField(formFieldInput{pageName: pageName, at: ptr, name: f, prop: prop, required: required[f] && !readOnly, readOnly: readOnly,
-				conditions: cond, picker: obj0(pickers[f]), hooked: hooked[f], twice: twice[f], props: props, wires: wires, entity: entity})
+				conditions: cond, picker: obj0(pickers[f]), hooked: hooked[f], twice: twice[f], props: props, wires: wires, entity: entity, inSections: true})
 			if ok {
 				fields = append(fields, fv)
 			}
@@ -702,9 +731,23 @@ func (g *gen) viewPage(pageName string, pg map[string]any, sess *session) (pageO
 	var sections []value
 	for i, s := range sectionsOf(pg) {
 		var fields []value
-		for _, f := range s.fields {
+		for j, f := range s.fields {
 			label := orText(text(obj0(props[f])["title"]), f)
 			entry := []member{{"name", str(wirename.Of(g.wireNames, f))}, {"label", str(g.say(pageName+".fields."+f, label))}}
+			ptr := fmt.Sprintf("%s/fields/%d", at, j)
+			if pg["sections"] != nil {
+				ptr = fmt.Sprintf("%s/sections/%d/fields/%d", at, i, j)
+			}
+			parts, many, ok := g.viewParts(pageName, ptr, f, pageName+".fields."+f, obj0(props[f]), nil)
+			if !ok {
+				continue
+			}
+			if parts != nil {
+				entry = append(entry, member{"parts", array(parts)})
+				if many {
+					entry = append(entry, member{"list", raw("true")})
+				}
+			}
 			if e := text(obj0(conditions[f])["hiddenWhen"]); e != "" {
 				rule, ok := g.condition(e, at+"/fieldConditions/"+f+"/hiddenWhen", "the field's hiddenWhen", props, wires)
 				if !ok {

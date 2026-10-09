@@ -10,6 +10,7 @@ pages:
     sections:
       - { title: Member, fields: [cardNumber, fullName, email, tier] }
       - { title: Membership, fields: [joinedOn, membershipEndsOn, outstandingFees] }
+      - { title: Contact, fields: [address, phones] }
     states:
       failed:
         member-not-found: { message: There is no member with this card. }

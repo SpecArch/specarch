@@ -90,6 +90,10 @@ var screenStrings = map[string]string{
 	"screens.removeRow":      "Remove this row",
 	"screens.rowsAtLeast":    "Add at least {count} rows.",
 	"screens.rowsAtMost":     "Keep to {count} rows at most.",
+	"screens.addItem":        "Add an item",
+	"screens.removeItem":     "Remove this item",
+	"screens.itemsAtLeast":   "Add at least {count} items.",
+	"screens.itemsAtMost":    "Keep to {count} items at most.",
 	"screens.reason":         "Give a reason.",
 	"screens.language":       "Language",
 }

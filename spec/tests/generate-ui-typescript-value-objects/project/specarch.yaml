@@ -1,0 +1,124 @@
+specarch: "0.1"
+info: { title: Members, version: 1.0.0 }
+stages: [implementation]
+permissions:
+  public: { description: Open to everyone. }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      name: { type: string, title: Name, minLength: 1, maxLength: 100 }
+      address: { $ref: "#/schemas/Address", title: Address }
+      billing: { $ref: "#/schemas/Address", title: Billing address, storage: json }
+      phones: { type: array, items: { $ref: "#/schemas/Phone" }, minItems: 1, maxItems: 3, storage: json, title: Phone numbers }
+    required: [id, name, billing, phones]
+    primaryKey: [id]
+schemas:
+  Address:
+    type: object
+    properties:
+      street: { type: string, minLength: 1, maxLength: 200, title: Street }
+      city: { type: string, maxLength: 100, title: City }
+      location: { $ref: "#/schemas/Location", title: Location }
+    required: [street, city]
+  Location:
+    type: object
+    properties:
+      latitude: { type: number, format: double, minimum: -90, maximum: 90, title: Latitude }
+      longitude: { type: number, format: double, minimum: -180, maximum: 180 }
+    required: [latitude, longitude]
+  Phone:
+    type: object
+    properties:
+      number: { type: string, pattern: "^[0-9 +]{6,20}$", maxLength: 20, title: Number }
+      mobile: { type: boolean, title: Mobile }
+    required: [number]
+paths:
+  /members:
+    post:
+      operationId: createMember
+      summary: Add a member
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, minLength: 1, maxLength: 100 }
+                address: { $ref: "#/schemas/Address" }
+                billing: { $ref: "#/schemas/Address" }
+                phones: { type: array, items: { $ref: "#/schemas/Phone" }, minItems: 1, maxItems: 3 }
+              required: [name, billing, phones]
+      responses:
+        "201":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+  /members/{memberId}:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getMember
+      summary: Read a member
+      permission: public
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+    patch:
+      operationId: changeMember
+      summary: Change a member's address and phone numbers
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address: { $ref: "#/schemas/Address" }
+                phones: { type: array, items: { $ref: "#/schemas/Phone" }, minItems: 1, maxItems: 3 }
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+pages:
+  member-form:
+    kind: form
+    title: Add a member
+    route: /members/new
+    entity: Member
+    permission: public
+    submit: createMember
+    sections:
+      - { title: Member, fields: [name, billing] }
+      - { title: Contact, fields: [address, phones] }
+    onSubmitted: { navigate: member-view, with: { memberId: id }, message: The member is added. }
+  member-change:
+    kind: form
+    title: Change the contact
+    route: /members/{memberId}/contact
+    entity: Member
+    permission: public
+    source: getMember
+    submit: changeMember
+    fields: [name, address, phones]
+    fieldConditions:
+      name: { readOnly: true }
+    onSubmitted: { navigate: member-view, with: { memberId: id }, message: The contact is changed. }
+  member-view:
+    kind: view
+    title: Member
+    route: /members/{memberId}
+    entity: Member
+    permission: public
+    source: getMember
+    fields: [name, address, billing, phones]

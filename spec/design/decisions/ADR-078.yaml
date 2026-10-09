@@ -83,6 +83,6 @@ decisions:
       only must read an object's parts and a list's items. A list of an
       entity holding a value answers its stored row until the service
       shapes it; the read and the create do not. A view reading a value's
-      parts is still refused (ADR-063), and a form's nested section is the
-      UI generator's, not written yet.
+      parts is still refused (ADR-063); a form's nested section and
+      repeating group are ADR-079's.
     satisfies: [SA-31, SA-40, SA-50]

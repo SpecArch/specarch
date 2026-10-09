@@ -1,0 +1,10 @@
+arguments: [generate, ui, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:109:53: error: /pages/member-form/childRows/0/fields/0: generator: member-form shows place among the fields of a row, which holds a value of Address, and this version of specarch-gen-ui-typescript draws a value in a form's sections only [generator@specarch.yaml#/pages/member-form/childRows/0/fields/0]
+  project/specarch.yaml:106:20: error: /pages/member-form/fields/1: generator: the ui target's settings.hooks give member-form a hook for address, which holds a value of Address, and a hook gives a field one text; take it out of settings.hooks [generator.183e2c2d@specarch.yaml#/pages/member-form/fields/1]
+  project/specarch.yaml:106:20: error: /pages/member-form/fields/1: generator: member-form asks for address twice, which holds a value of Address; a value is entered once [generator.6d273b22@specarch.yaml#/pages/member-form/fields/1]
+  project/specarch.yaml:106:29: error: /pages/member-form/fields/2: generator: member-form shows contact.reachable, of format date-time, which this version of specarch-gen-ui-typescript does not write on a form; show it on a view [generator@specarch.yaml#/pages/member-form/fields/2]
+  project/specarch.yaml:106:38: error: /pages/member-form/fields/3: generator: member-form shows tree.children, which holds Node inside a value of Node itself, and a form cannot draw a value without end; keep the inner one out of the form [generator@specarch.yaml#/pages/member-form/fields/3]
+  project/specarch.yaml:98:21: error: /pages/members-list/columns/1: generator: members-list shows address in a column, which holds a value of Address, and a cell shows one text; show the value on a view [generator@specarch.yaml#/pages/members-list/columns/1]
+plugins: [ui-typescript]

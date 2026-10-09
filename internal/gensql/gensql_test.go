@@ -654,14 +654,13 @@ func TestValueObjects(t *testing.T) {
 func TestValueObjectEdges(t *testing.T) {
 	before := firstSnapshot(t, "postgresql")
 	r := request(t, "postgresql")
-	r.Specification["schemas"] = map[string]any{
-		"Spot": map[string]any{"type": "object", "required": []any{"latitude"}, "properties": map[string]any{
-			"latitude": map[string]any{"type": "number", "format": "double"},
-		}},
-		"Home": map[string]any{"type": "object", "required": []any{"spot"}, "properties": map[string]any{
-			"spot": map[string]any{"$ref": "#/schemas/Spot"},
-		}},
-	}
+	schemas := r.Specification["schemas"].(map[string]any)
+	schemas["Spot"] = map[string]any{"type": "object", "required": []any{"latitude"}, "properties": map[string]any{
+		"latitude": map[string]any{"type": "number", "format": "double"},
+	}}
+	schemas["Home"] = map[string]any{"type": "object", "required": []any{"spot"}, "properties": map[string]any{
+		"spot": map[string]any{"$ref": "#/schemas/Spot"},
+	}}
 	resp := Generate(r)
 	for _, f := range resp.Files {
 		if f.Path == SnapshotName && f.Content != before.Content {

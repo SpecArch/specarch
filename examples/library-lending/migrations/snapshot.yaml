@@ -146,6 +146,9 @@ entities:
   Member:
     audited: true
     constraints:
+      ck_members_address:
+        expression: (address_city == null && address_postcode == null && address_street == null) || (address_city != null && address_street != null)
+        kind: check
       member_card_number_unique:
         fields:
           - cardNumber
@@ -158,6 +161,15 @@ entities:
     primaryKey:
       - id
     properties:
+      address_city:
+        maxLength: 100
+        type: string
+      address_postcode:
+        maxLength: 12
+        type: string
+      address_street:
+        maxLength: 200
+        type: string
       cardNumber:
         maxLength: 8
         type: string
@@ -184,6 +196,9 @@ entities:
         precision: 10
         scale: 2
         type: string
+      phones:
+        storage: json
+        type: object
       status:
         $ref: '#/enums/MemberStatus'
         default: active

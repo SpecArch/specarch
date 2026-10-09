@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: ui-components
-version: 1.5.0
+version: 1.6.0
 concern: ui-components
 stacks: [nextjs-carbon]
 reads: [pages]
@@ -191,6 +191,28 @@ parts:
           one page read. value is the field of the record the key is, text
           the fields shown to choose by, and fills the fields of the form
           the chosen record fills, each from one of its own.
+  value-field:
+    description: A field holding a value of a schema, its parts drawn in a section of their own.
+    stack:
+      nextjs-carbon:
+        names: { type: value, schemaType: ValueFieldSchema, carbon: FormGroup, name: name, label: label, required: required, parts: parts, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen }
+        code: |
+          A FormGroup under the field's label holding a field for each part
+          of the schema, each drawn by its own field part, a part holding a
+          value or a list nested in its turn. An optional value is left out
+          of the request while none of its parts is given, and has its
+          required parts required once one is.
+  value-list-field:
+    description: A field holding a list of values of a schema, drawn as a repeating group.
+    stack:
+      nextjs-carbon:
+        names: { type: valueList, schemaType: ValueListFieldSchema, carbon: FormGroup, carbonAdd: Button, carbonRemove: Button, name: name, label: label, required: required, parts: parts, minimum: minimum, maximum: maximum, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen }
+        code: |
+          A FormGroup under the field's label with an item per value, each
+          the schema's parts drawn by their field parts and a Button that
+          removes it, and a Button that adds an item while there are fewer
+          than maximum; it starts with minimum items. The list is sent as
+          an array of its items, each with the parts given.
   confirm-dialog:
     description: The confirmation an action asks for before it runs.
     stack:

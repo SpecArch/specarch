@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification whose member holds an optional address kept in columns with a location inside it, a required billing address kept as JSON, and a list of one to three phone numbers, each a number and whether it is a mobile; a form that adds a member in two titled sections, a form that loads a member and changes the address and the phone numbers with the name read-only, and a view of the member; one implementation file in TypeScript whose ui target is nextjs-carbon; and specarch-gen-ui-typescript built from this repository on PATH"
+when: "generate ui is run with --unapproved"
+then: "each form writes the address and the billing address as values, their parts in the order of their names with the location nested in each, required as the schema says and the value itself required for the billing address only, and the phone numbers as a list of values of at least one and at most three items; the view writes the parts of each value and marks the phone numbers a list; the components under screens draw them, and a part's text key is the field's with the path to it; it warns that the longitude, which has no title, is labelled by its name, naming its path, and exits 0"
+verifies: [SA-54]

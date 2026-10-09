@@ -1,0 +1,78 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-079:
+    title: A form draws a field holding a value as a nested section of its parts and a list of values as a repeating group, and a view shows their parts
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      An entity's field may hold a schema, or a list of them (ADR-063),
+      and a request body that takes it takes the value whole, a JSON
+      object or an array of them, refusing one without a required part
+      (ADR-078). specarch-gen-ui-typescript draws a form's fields of type
+      string, integer, number and boolean only, so a form could not show a
+      member's address or their phone numbers, and a view showed such a
+      value as text with no parts.
+    decision: |
+      On a form, a field holding a schema is drawn by the value-field
+      part: a FormGroup under the field's title holding a field for each
+      part of the schema, each drawn by the part its own type and format
+      take, a part holding a schema a nested section in its turn and a
+      part holding a list a repeating group. A field holding a list of
+      schemas is drawn by the value-list-field part: a repeating group
+      under the field's title, an item per value with the schema's parts
+      and a button that removes it, and a button that adds one, starting
+      with as many items as the body's minItems and offering no more than
+      its maxItems. A part's label is its title, its keywords check it as
+      a field's do, and its text key is the page's field key with the
+      path to the part. The parts come in the order of their names, the
+      order every generator writes a schema's parts in, since a plug-in
+      is handed the specification as maps.
+
+      A required value has its required parts required. An optional value
+      is left out of the request while none of its parts is given; once
+      one is, its required parts are required, the rule the presence check
+      holds in the database (ADR-063) and the service refuses (ADR-078).
+      A list is sent as an array of its items, each with the parts given,
+      empty when the person removed every item, at least minItems and at
+      most maxItems of them. A form that loads its record starts each part
+      from the record's value and each list from its items.
+      readOnly, readOnlyWhen and hiddenWhen on the field hold for the
+      whole value; a rule reads the value whole, and a check over one of
+      its parts cannot be written, since the expression language has no
+      field access.
+
+      A hook or enteredTwice on a field holding a value, a value among a
+      child row's fields, a value in a list's column, a schema met again
+      inside itself, and a part of a type or format no field part draws
+      are refused at their entry, naming the path to the part; a picker on
+      one is refused by the validator already, since no relation holds a
+      value.
+
+      A view shows a value's parts as a list of label and value under the
+      field's label, and a list of values as a table of its items with a
+      column per part, a value inside an item shown as its parts' values
+      in order.
+    why: |
+      A value object is one value with parts, so it is drawn as one
+      group, as Carbon groups related controls in a FormGroup with a
+      legend, and a list of them as the repeating group a person adds to
+      and removes from, as child rows already are, without the loaded rows
+      being locked, since an item has no identity to keep. The optional
+      value's rule is the presence check's, so the form never sends what
+      the service would refuse with missing address.street, and never
+      refuses what the database would take: a value with no part given is
+      no value. Name order is the one order the plug-in's input keeps;
+      writing it down, rather than guessing a better one, keeps every
+      generator's order the same until the design can say one. A value
+      has no key a picker could hold, and a hook gives one text where a
+      value has many. A cell shows one text, so a list's column cannot
+      hold a value, and a schema that holds itself, which only JSON can
+      keep, has no last section to draw.
+    consequences: |
+      An address's parts show as city, postcode and street until a page
+      can name the order of a value's parts. A check across a value's
+      parts runs on the server only, in the service's own check of the
+      body. The ui-components idiom gains the
+      value-field and value-list-field parts, so an override written for
+      an earlier version names its version again.
+    satisfies: [SA-54]

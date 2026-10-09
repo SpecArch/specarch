@@ -27,6 +27,29 @@ export const schema = {
         { name: "outstandingFees", label: "member-view.fields.outstandingFees" },
       ],
     },
+    {
+      title: "member-view.sections.2",
+      fields: [
+        {
+          name: "address",
+          label: "member-view.fields.address",
+          parts: [
+            { name: "city", label: "member-view.fields.address.city" },
+            { name: "postcode", label: "member-view.fields.address.postcode" },
+            { name: "street", label: "member-view.fields.address.street" },
+          ],
+        },
+        {
+          name: "phones",
+          label: "member-view.fields.phones",
+          parts: [
+            { name: "label", label: "member-view.fields.phones.label" },
+            { name: "number", label: "member-view.fields.phones.number" },
+          ],
+          list: true,
+        },
+      ],
+    },
   ],
   actions: [
     { label: "member-view.actions.loan-form", navigate: "loan-form", permission: "loans.create" },

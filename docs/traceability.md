@@ -75,7 +75,7 @@ Version 0.6.0-dev of the specification: 9 needs, 56 requirements, and 0 gaps. Ea
 | SA-51 | NEED-1, NEED-8 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066 | tests document-check-invalid; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-lists; tests document-problems-none |
 | SA-52 | NEED-2 | decisions ADR-067 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-53 | NEED-2 | decisions ADR-068 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
-| SA-54 | NEED-2 | decisions ADR-069 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
+| SA-54 | NEED-2 | decisions ADR-069; decisions ADR-079 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-value-objects; tests generate-ui-typescript-value-objects-refused |
 | SA-55 | NEED-2 | decisions ADR-071 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-56 | NEED-2 | decisions ADR-074 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 

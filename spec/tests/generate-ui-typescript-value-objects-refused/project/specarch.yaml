@@ -1,0 +1,110 @@
+specarch: "0.1"
+info: { title: Members, version: 1.0.0 }
+stages: [implementation]
+permissions:
+  public: { description: Open to everyone. }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      name: { type: string, title: Name, maxLength: 100 }
+      address: { $ref: "#/schemas/Address", title: Address }
+      contact: { $ref: "#/schemas/Contact", title: Contact, storage: json }
+      tree: { $ref: "#/schemas/Node", title: Tree, storage: json }
+    required: [id, name]
+    primaryKey: [id]
+    relations:
+      visits: { target: Visit, kind: one-to-many, via: memberId }
+  Visit:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      memberId: { type: string, format: uuid }
+      place: { $ref: "#/schemas/Address", title: Place }
+    required: [id, memberId]
+    primaryKey: [id]
+    relations:
+      member: { target: Member, kind: many-to-one, via: memberId, onDelete: restrict }
+schemas:
+  Address:
+    type: object
+    properties:
+      street: { type: string, maxLength: 200, title: Street }
+    required: [street]
+  Contact:
+    type: object
+    properties:
+      reachable: { type: string, format: date-time, title: Reachable since }
+    required: [reachable]
+  Node:
+    type: object
+    properties:
+      label: { type: string, maxLength: 20, title: Label }
+      children: { type: array, items: { $ref: "#/schemas/Node" }, maxItems: 5, title: Children }
+    required: [label]
+paths:
+  /members:
+    get:
+      operationId: listMembers
+      summary: List the members
+      permission: public
+      listOf:
+        entity: Member
+        pageSize: { default: 20, maximum: 100 }
+      responses:
+        "200":
+          description: The members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" }, maxItems: 100 }
+    post:
+      operationId: createMember
+      summary: Add a member
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, maxLength: 100 }
+                address: { $ref: "#/schemas/Address" }
+                contact: { $ref: "#/schemas/Contact" }
+                tree: { $ref: "#/schemas/Node" }
+                visits:
+                  type: array
+                  maxItems: 5
+                  items:
+                    type: object
+                    properties:
+                      place: { $ref: "#/schemas/Address" }
+              required: [name]
+      responses:
+        "201":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+pages:
+  members-list:
+    kind: list
+    title: Members
+    route: /members
+    entity: Member
+    permission: public
+    source: listMembers
+    columns: [name, address]
+  member-form:
+    kind: form
+    title: Add a member
+    route: /members/new
+    entity: Member
+    permission: public
+    submit: createMember
+    fields: [name, address, contact, tree]
+    enteredTwice: [address]
+    childRows:
+      - { relation: visits, title: Visits, fields: [place] }
+    onSubmitted: { message: The member is added. }

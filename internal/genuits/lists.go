@@ -169,8 +169,12 @@ func (g *gen) listPage(pageName string, pg map[string]any, sess *session) (strin
 		compact[text(c)] = true
 	}
 	var columns []value
-	for _, c := range list(pg["columns"]) {
+	for i, c := range list(pg["columns"]) {
 		f := text(c)
+		if schemaName, _ := valueOf(obj0(props[f])); schemaName != "" {
+			g.problem("error", fmt.Sprintf("%s/columns/%d", at, i), "%s shows %s in a column, which holds a value of %s, and a cell shows one text; show the value on a view", pageName, f, schemaName)
+			continue
+		}
 		columns = append(columns, object([]member{
 			{"field", str(wire(f))},
 			{"title", str(g.say(pageName+".columns."+f, orText(text(obj0(props[f])["title"]), f)))},

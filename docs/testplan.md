@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 336 design tests, 134 golden and 202 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 338 design tests, 135 golden and 203 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 332 |
+| system | 334 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1090,6 +1090,22 @@ Scenario: red; level: system; verifies SA-52, SA-53, SA-54, SA-55, SA-56.
 - When: generate ui is run with --unapproved
 - Then: it reports, for the first file, the page size, the two hooks, the layout, the list that pages itself, the dropped placeholder and the missing key under the settings; for the second, the routes path, the service variable, the token and the translation under the settings; for each file, the integer field at the page's field, the addition at the check's expression and the 201 at the page's onSubmitted, the required field left out at the form, the call at its check's expression, the decimal ordered at the view's condition and the page opened at its action's then, the rows not carried at the first form's relation, the rows not locked at the second form's child rows and the missing array at the third form's relation, the inner group at its entry and the entry to the page with a parameter at its page; and for the second, each page that needs a permission no session can tell; as errors, writes nothing, and exits 1
 
+#### generate-ui-typescript-value-objects
+
+Scenario: golden; level: system; verifies SA-54.
+
+- Given: a specification whose member holds an optional address kept in columns with a location inside it, a required billing address kept as JSON, and a list of one to three phone numbers, each a number and whether it is a mobile; a form that adds a member in two titled sections, a form that loads a member and changes the address and the phone numbers with the name read-only, and a view of the member; one implementation file in TypeScript whose ui target is nextjs-carbon; and specarch-gen-ui-typescript built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: each form writes the address and the billing address as values, their parts in the order of their names with the location nested in each, required as the schema says and the value itself required for the billing address only, and the phone numbers as a list of values of at least one and at most three items; the view writes the parts of each value and marks the phone numbers a list; the components under screens draw them, and a part's text key is the field's with the path to it; it warns that the longitude, which has no title, is labelled by its name, naming its path, and exits 0
+
+#### generate-ui-typescript-value-objects-refused
+
+Scenario: red; level: system; verifies SA-54.
+
+- Given: a specification whose member holds an address, a contact whose one part is a moment of format date-time, and a tree kept as JSON whose nodes hold a list of nodes; a list of members with the address as a column; a form that shows the address, the contact and the tree, asks for the address twice and edits visits as rows whose one field holds an address; an implementation file in TypeScript whose ui target is nextjs-carbon and whose settings give the address a hook; and specarch-gen-ui-typescript built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it refuses, each at its entry, the value among a row's fields, the hook and the second entry on the address, the contact's part of format date-time by its path, the tree's children as the schema met again inside itself, and the address as a column, writes nothing, and exits 1
+
 #### generate-unapproved
 
 Scenario: golden; level: system; verifies SA-20.
@@ -1156,7 +1172,7 @@ Scenario: golden; level: system; verifies SA-32.
 
 - Given: a specification with a list page and two implementation files: one in TypeScript whose ui target is platform web, framework nextjs-carbon, and one in JavaScript whose ui target is platform web and names no framework, so plain-javascript
 - When: idioms is run
-- Then: it lists ui-components 1.5.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and not for the JavaScript file, and exits 0
+- Then: it lists ui-components 1.6.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and not for the JavaScript file, and exits 0
 
 #### idioms-usage-error
 
@@ -2758,7 +2774,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-210 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+211 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2858,6 +2874,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-54 | acceptance 5 | golden | SA-54 names no harm |
 | requirement SA-54 | acceptance 6 | golden | SA-54 names no harm |
 | requirement SA-54 | acceptance 7 | golden | SA-54 names no harm |
+| requirement SA-54 | acceptance 8 | golden | SA-54 names no harm |
 | requirement SA-55 | acceptance 1 | golden | SA-55 names no harm |
 | requirement SA-55 | acceptance 2 | golden | SA-55 names no harm |
 | requirement SA-55 | acceptance 3 | golden | SA-55 names no harm |

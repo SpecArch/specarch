@@ -22,7 +22,8 @@ function matches(pattern: string, value: string): boolean {
   }
 }
 
-function fieldProblem(field: FieldSchema, value: string, texts: Texts): string | undefined {
+/** What is wrong with a field's value by its keywords; undefined when nothing is. */
+export function fieldProblem(field: FieldSchema, value: string, texts: Texts): string | undefined {
   if (value === "") {
     return field.required ? say(texts, "screens.required") : undefined;
   }
@@ -164,7 +165,7 @@ export function hidden(field: { readonly hiddenWhen?: Rule }, record: Fields): b
 }
 
 /** Whether a field is shown and not changed. */
-export function locked(field: FieldSchema, record: Fields): boolean {
+export function locked(field: { readonly readOnly?: boolean; readonly readOnlyWhen?: Rule }, record: Fields): boolean {
   return field.readOnly === true || (field.readOnlyWhen !== undefined && evaluate(field.readOnlyWhen, record) === true);
 }
 

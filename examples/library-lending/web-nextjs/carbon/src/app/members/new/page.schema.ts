@@ -4,7 +4,7 @@ import type { FormPageSchema } from "@/screens";
 export const schema = {
   title: "member-form.title",
   permission: "members.write",
-  submit: { operation: "createMember", method: "POST", path: "/members", fields: ["fullName", "email", "tier"] },
+  submit: { operation: "createMember", method: "POST", path: "/members", fields: ["fullName", "email", "tier", "address", "phones"] },
   layout: "page",
   sections: [
     {
@@ -12,6 +12,35 @@ export const schema = {
         { type: "text", name: "fullName", label: "member-form.fields.fullName", required: true, minLength: 1, maxLength: 200 },
         { type: "email", name: "email", label: "member-form.fields.email", required: true, maxLength: 320 },
         { type: "select", name: "tier", label: "member-form.fields.tier", required: true, options: ["standard", "extended"] },
+        {
+          type: "value",
+          name: "address",
+          label: "member-form.fields.address",
+          required: false,
+          parts: [
+            { type: "text", name: "city", label: "member-form.fields.address.city", required: true, minLength: 1, maxLength: 100 },
+            { type: "text", name: "postcode", label: "member-form.fields.address.postcode", required: false, maxLength: 12 },
+            { type: "text", name: "street", label: "member-form.fields.address.street", required: true, minLength: 1, maxLength: 200 },
+          ],
+        },
+        {
+          type: "valueList",
+          name: "phones",
+          label: "member-form.fields.phones",
+          required: false,
+          parts: [
+            { type: "text", name: "label", label: "member-form.fields.phones.label", required: false, maxLength: 40 },
+            {
+              type: "text",
+              name: "number",
+              label: "member-form.fields.phones.number",
+              required: true,
+              maxLength: 21,
+              pattern: "^\\+?[0-9 ]{6,20}$",
+            },
+          ],
+          maximum: 3,
+        },
       ],
     },
   ],

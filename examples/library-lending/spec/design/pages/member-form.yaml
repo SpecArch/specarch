@@ -7,7 +7,7 @@ pages:
     entity: Member
     permission: members.write
     submit: createMember
-    fields: [fullName, email, tier]
+    fields: [fullName, email, tier, address, phones]
     states:
       failed:
         email-taken: { message: Another member already has this email address., field: email }

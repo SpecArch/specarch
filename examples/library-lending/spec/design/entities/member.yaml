@@ -22,6 +22,14 @@ entities:
         lookup: hash
         description: Encrypted at rest, and found by a salted hash of it, since it must stay unique.
       tier: { title: Tier, $ref: "#/enums/MembershipTier" }
+      address: { title: Address, $ref: "#/schemas/PostalAddress", sensitivity: personal }
+      phones:
+        title: Phone numbers
+        type: array
+        items: { $ref: "#/schemas/PhoneNumber" }
+        maxItems: 3
+        storage: json
+        sensitivity: personal
       status: { title: Status, $ref: "#/enums/MemberStatus", default: active }
       joinedOn: { title: Joined on, type: string, format: date, readOnly: true }
       membershipEndsOn:

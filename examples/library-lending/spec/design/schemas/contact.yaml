@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.1.schema.json
+schemas:
+  PostalAddress:
+    description: Where a member lives, for the letters the desk sends about copies kept past their due day.
+    type: object
+    properties:
+      street: { title: Street, type: string, minLength: 1, maxLength: 200 }
+      city: { title: City, type: string, minLength: 1, maxLength: 100 }
+      postcode: { title: Postcode, type: string, maxLength: 12 }
+    required: [street, city]
+  PhoneNumber:
+    description: A number the desk may call a member on.
+    type: object
+    properties:
+      number: { title: Number, type: string, pattern: "^\\+?[0-9 ]{6,20}$", maxLength: 21 }
+      label: { title: Label, type: string, maxLength: 40, description: "Whose or which number it is, such as home or work." }
+    required: [number]

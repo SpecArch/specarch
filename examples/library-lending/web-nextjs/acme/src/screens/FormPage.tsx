@@ -23,9 +23,11 @@ import { ChildRows, rowProblems, rowsSent, startRows, type RowsState } from "./C
 import { Field } from "./Field";
 import { leave } from "./Notice";
 import { againOf, formProblems, hidden, locked, recordOf, typed, type Fields, type Values } from "./rules";
-import type { EventSchema, FailureSchema, FieldSchema, FormPageSchema, SectionSchema } from "./schema";
+import type { EventSchema, FailureSchema, FieldSchema, FormFieldSchema, FormPageSchema, SectionSchema } from "./schema";
 import { body, segment, service } from "./service";
 import { say, type Texts } from "./texts";
+import { ValueField } from "./ValueField";
+import { firstProblem, holdsValue, scalars, sentValue, startValue, valueProblems } from "./values";
 
 /** The value a field starts with, worked out from the record the form loaded, or from none on a form that creates one. */
 export type FieldHook = (record: Fields) => string;
@@ -57,7 +59,7 @@ function refusal(failed: readonly FailureSchema[], status: number): FailureSchem
   return failed.find((f) => f.status === status) ?? failed.find((f) => f.status === undefined);
 }
 
-function fieldsOf(sections: readonly SectionSchema<FieldSchema>[]): readonly FieldSchema[] {
+function fieldsOf(sections: readonly SectionSchema<FormFieldSchema>[]): readonly FormFieldSchema[] {
   return sections.flatMap((section) => section.fields);
 }
 
@@ -66,10 +68,14 @@ function startAll(schema: FormPageSchema, record: Fields): Readonly<Record<strin
   return Object.fromEntries(schema.rows.map((rows) => [rows.name, startRows(rows, record)]));
 }
 
-/** The values a form starts with: the loaded record's, then each hook's. */
-function start(fields: readonly FieldSchema[], record: Fields, hooks: Readonly<Record<string, FieldHook>>): Values {
+/** The values a form starts with: the loaded record's, then each hook's; a value's parts and a list's items by their paths. */
+function start(fields: readonly FormFieldSchema[], record: Fields, hooks: Readonly<Record<string, FieldHook>>): Values {
   const values: Record<string, string> = {};
   for (const field of fields) {
+    if (holdsValue(field)) {
+      startValue(field, record[field.name], field.name, values);
+      continue;
+    }
     const hook = field.hook === true ? hooks[field.name] : undefined;
     values[field.name] = hook !== undefined ? hook(record) : field.type === "checkbox" ? held(record[field.name] ?? false) : held(record[field.name]);
     if (field.twice !== undefined) {
@@ -134,10 +140,23 @@ export function FormPage({ schema, texts, routes, parameters, hooks }: FormPageP
   if (loaded === undefined) {
     return <InlineLoading description={say(texts, "screens.loading")} />;
   }
-  const record = recordOf(fields, values, loaded);
+  const record: Fields = {
+    ...recordOf(scalars(fields), values, loaded),
+    ...Object.fromEntries(fields.filter(holdsValue).map((field) => [field.name, sentValue(field, values, field.name)])),
+  };
 
-  function check(only: readonly FieldSchema[]): Record<string, string> {
-    const found = formProblems(only, only === fields ? schema.checks : [], values, record, texts);
+  /** Whether a problem was found under a field: its own, its second entry's, or a part's of its value. */
+  function holds(field: FormFieldSchema, found: Readonly<Record<string, string>>): boolean {
+    return firstProblem(field, found) !== undefined;
+  }
+
+  function check(only: readonly FormFieldSchema[]): Record<string, string> {
+    const found = formProblems(scalars(only), only === fields ? schema.checks : [], values, record, texts);
+    for (const field of only.filter(holdsValue)) {
+      if (!hidden(field, record) && !locked(field, record)) {
+        valueProblems(field, values, field.name, texts, found);
+      }
+    }
     const inRows: Record<string, string> = {};
     if (only === fields) {
       for (const child of schema.rows) {
@@ -145,9 +164,9 @@ export function FormPage({ schema, texts, routes, parameters, hooks }: FormPageP
       }
     }
     setProblems({ ...inRows, ...found });
-    const first = only.find((field) => found[field.name] !== undefined || found[againOf(field)] !== undefined);
+    const first = only.map((field) => firstProblem(field, found)).find((key) => key !== undefined);
     if (first !== undefined) {
-      document.getElementById(found[first.name] !== undefined ? first.name : againOf(first))?.focus();
+      document.getElementById(first)?.focus();
     } else {
       const firstRow = Object.keys(inRows)[0];
       if (firstRow !== undefined) {
@@ -167,7 +186,7 @@ export function FormPage({ schema, texts, routes, parameters, hooks }: FormPageP
     }
     const found = check(fields);
     if (Object.keys(found).length > 0) {
-      const at = schema.sections.findIndex((section) => section.fields.some((field) => found[field.name] !== undefined || found[againOf(field)] !== undefined));
+      const at = schema.sections.findIndex((section) => section.fields.some((field) => holds(field, found)));
       if (at >= 0) {
         setStep(at);
       } else if (schema.layout === "steps") {
@@ -178,7 +197,7 @@ export function FormPage({ schema, texts, routes, parameters, hooks }: FormPageP
     setBusy(true);
     const sent: Record<string, unknown> = {};
     for (const field of fields) {
-      const value = typed(field, values[field.name] ?? "");
+      const value = holdsValue(field) ? sentValue(field, values, field.name) : typed(field, values[field.name] ?? "");
       if (schema.submit.fields.includes(field.name) && !hidden(field, record) && value !== null) {
         sent[field.name] = value;
       }
@@ -257,36 +276,55 @@ export function FormPage({ schema, texts, routes, parameters, hooks }: FormPageP
     });
   }
 
-  function drawn(section: SectionSchema<FieldSchema>): ReactNode {
+  function drawn(section: SectionSchema<FormFieldSchema>): ReactNode {
     const shown = section.fields.filter((field) => !hidden(field, record));
     const group = (
       <Stack gap={6}>
-        {shown.map((field) => [
-          <Field
-            key={field.name}
-            field={field}
-            value={values[field.name] ?? ""}
-            problem={problems[field.name]}
-            texts={texts}
-            readOnly={locked(field, record)}
-            onChange={(value) => change(field.name, value)}
-            onPick={(picked) => pick(field, picked)}
-          />,
-          field.twice !== undefined && !locked(field, record) ? (
-            <Field
-              key={againOf(field)}
+        {shown.map((field) =>
+          holdsValue(field) ? (
+            <ValueField
+              key={field.name}
               field={field}
-              value={values[againOf(field)] ?? ""}
-              problem={problems[againOf(field)]}
+              path={field.name}
+              values={values}
+              problems={problems}
               texts={texts}
-              again={{ id: againOf(field), label: say(texts, field.twice) }}
-              onChange={(value) => change(againOf(field), value)}
+              readOnly={locked(field, record)}
+              onValues={(change) => setValues(change)}
             />
-          ) : null,
-        ])}
+          ) : (
+            drawnField(field)
+          ),
+        )}
       </Stack>
     );
     return section.title === undefined ? group : <FormGroup legendText={say(texts, section.title)}>{group}</FormGroup>;
+  }
+
+  function drawnField(field: FieldSchema): ReactNode {
+    return [
+      <Field
+        key={field.name}
+        field={field}
+        value={values[field.name] ?? ""}
+        problem={problems[field.name]}
+        texts={texts}
+        readOnly={locked(field, record)}
+        onChange={(value) => change(field.name, value)}
+        onPick={(picked) => pick(field, picked)}
+      />,
+      field.twice !== undefined && !locked(field, record) ? (
+        <Field
+          key={againOf(field)}
+          field={field}
+          value={values[againOf(field)] ?? ""}
+          problem={problems[againOf(field)]}
+          texts={texts}
+          again={{ id: againOf(field), label: say(texts, field.twice) }}
+          onChange={(value) => change(againOf(field), value)}
+        />
+      ) : null,
+    ];
   }
 
   const last = schema.layout !== "steps" || step === schema.sections.length - 1;

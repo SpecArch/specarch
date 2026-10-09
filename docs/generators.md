@@ -488,12 +488,31 @@ list whose row actions are the approver's operations. Rows in a dialog
 are not written, and a page does not follow an approval to its end, since
 that end is a channel message no browser reads (ADR-071).
 
+A field holding a schema (ADR-063) is a nested section: a FormGroup
+under the field's title with a field for each part, drawn and checked as
+a field is, a part holding a schema nested in its turn. A field holding a
+list of schemas is a repeating group: an item per value with the
+schema's parts, a button that removes it and one that adds an item,
+starting with the body's `minItems` and offering no more than its
+`maxItems`; the list is sent as an array of its items. The parts come in
+the order of their names, as every generator writes a schema's parts,
+since a plug-in gets the specification as maps. An optional value is left
+out of the request while none of its parts is given, and has its required
+parts required once one is, the rule the database's presence check holds;
+a form that loads its record starts the parts and items from the record.
+A view shows a value's parts under the field's label, and a list as a
+table with a column per part. A hook or a second entry on a value, a
+value among a child row's fields or in a list's column, a schema that
+holds itself, and a part no field part draws are refused, naming the path
+to the part (ADR-079).
+
 The screens it is checked against are
 the library lending example's sign-in and second-factor screens, written
 by hand before the generator (ADR-067); its lists are built on plain
 Carbon and through the stub of a fictional library (ADR-068), its forms
-and views on both (ADR-069), and its child rows, reasons and approvals on
-both (ADR-071).
+and views on both (ADR-069), its child rows, reasons and approvals on
+both (ADR-071), and the member's address and phone numbers on both
+(ADR-079).
 
 The screens call the service at `NEXT_PUBLIC_API_URL`, or, with
 `settings.server`, the application's own server routes: a `route.ts` per

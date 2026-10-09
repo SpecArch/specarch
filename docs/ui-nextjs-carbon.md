@@ -300,9 +300,12 @@ needs Q1, Q4 and Q5; step 2 needs Q2, Q3, Q6, Q7 and Q10.
    layouts as one page, tabs or steps (`settings.layouts`); `pickers`
    drawn as lookups; the hooks of the fields `settings.hooks` names,
    handed on by `page.client.tsx` from `page.hooks.ts`, which the project
-   writes; views as their sections read-only. Done: the loan form picks
-   the member and the book, checks that the copy is due after the day it
-   is lent and starts that day with a hook; it, the member's form and the
+   writes; views as their sections read-only; a field holding a value
+   object as a nested section of its parts and a list of them as a
+   repeating group (ADR-079). Done: the loan form picks the member and the
+   book, checks that the copy is due after the day it is lent and starts
+   that day with a hook; the member's form takes an address and phone
+   numbers, which the member's view shows; it, the member's form and the
    member's view build both ways.
 5. **Built: child rows, reasons and approvals** (SA-55, ADR-071). Child
    rows sent in the body's array named for the relation, drawn inline,

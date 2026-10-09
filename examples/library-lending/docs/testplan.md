@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 181 design tests, 54 golden and 126 red, about 47 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 182 design tests, 54 golden and 127 red, about 47 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.1.0 of the specification: 181 design tests, 54 golden and 126 red, abo
 | Level | Design tests |
 |---|---|
 | acceptance | 9 |
-| system | 172 |
+| system | 173 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -316,6 +316,14 @@ Scenario: red; level: system; covers missing fullName, missing email, missing ti
 - Given: a librarian
 - When: createMember is called three times each time without one of fullName and email and tier
 - Then: each call is refused as invalid input
+
+#### register-member-missing-part
+
+Scenario: red; level: system; covers missing address.street, missing address.city, missing phones.number.
+
+- Given: a librarian
+- When: createMember is called with an address without its street, then without its city, and with a phone number without its number
+- Then: each is refused as invalid input, naming the part
 
 #### register-member-name-length
 
@@ -1616,7 +1624,7 @@ stateDiagram-v2
 
 ## 4. Derived cases left out
 
-75 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+76 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1645,6 +1653,7 @@ stateDiagram-v2
 | operation listMembers | page beyond last | golden | occasional case, and operation listMembers satisfies no requirement with a harm |
 | operation listMembers | page size above 100 | red | occasional case, and operation listMembers satisfies no requirement with a harm |
 | operation listMembers | sort by a field not sortable | red | occasional case, and operation listMembers satisfies no requirement with a harm |
+| operation createMember | phones with more than 3 items | red | occasional case, and operation createMember satisfies no requirement with a harm |
 | operation getMember | deleted Member read | red | occasional case, and operation getMember satisfies no requirement with a harm |
 | operation deactivateMember | reason shorter than 1 character | red | occasional case, and operation deactivateMember satisfies no requirement with a harm |
 | operation deactivateMember | reason of 1 character | golden | occasional case, and operation deactivateMember satisfies no requirement with a harm |

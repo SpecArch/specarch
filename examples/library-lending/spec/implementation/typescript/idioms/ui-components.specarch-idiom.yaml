@@ -4,7 +4,7 @@ name: ui-components
 version: 1.0.0
 description: The library's desk lists drawn by @acme/screens, a fictional screens library whose stub sits in the example's workspace.
 why: A project whose screens are drawn by a library of its own renders its generated lists through that library, so they look and work like the screens built by hand; this file shows how, with the library's component, import and schema keys.
-overrides: { idiom: ui-components, version: 1.5.0, parts: [list-page] }
+overrides: { idiom: ui-components, version: 1.6.0, parts: [list-page] }
 parts:
   list-page:
     description: A list page drawn by @acme/screens's list screen.

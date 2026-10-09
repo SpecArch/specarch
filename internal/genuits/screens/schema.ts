@@ -125,6 +125,44 @@ export type FieldSchema =
   | CheckboxFieldSchema
   | LookupFieldSchema;
 
+/**
+ * A field holding a value of a schema, its parts drawn in a section of
+ * their own under its label, each by its own field part. An optional value
+ * is left out while none of its parts is given, and has its required parts
+ * required once one is.
+ */
+export interface ValueFieldSchema {
+  readonly type: "value";
+  readonly name: string;
+  readonly label: StringKey;
+  readonly required: boolean;
+  readonly parts: readonly FormFieldSchema[];
+  readonly readOnly?: boolean;
+  readonly readOnlyWhen?: Rule;
+  readonly hiddenWhen?: Rule;
+}
+
+/**
+ * A field holding a list of values of a schema, drawn as a repeating group:
+ * an item per value with the schema's parts, added and removed, at least
+ * minimum and at most maximum of them, sent as an array of the items.
+ */
+export interface ValueListFieldSchema {
+  readonly type: "valueList";
+  readonly name: string;
+  readonly label: StringKey;
+  readonly required: boolean;
+  readonly parts: readonly FormFieldSchema[];
+  readonly minimum?: number;
+  readonly maximum?: number;
+  readonly readOnly?: boolean;
+  readonly readOnlyWhen?: Rule;
+  readonly hiddenWhen?: Rule;
+}
+
+/** A field of a form's sections: one value, or a value of a schema or a list of them. */
+export type FormFieldSchema = FieldSchema | ValueFieldSchema | ValueListFieldSchema;
+
 /** A rule across the fields, checked before the page is sent. */
 export interface CheckSchema {
   readonly name: string;
@@ -325,18 +363,24 @@ export interface FormPageSchema {
   readonly source?: LoadSchema;
   readonly submit: FormSubmitSchema;
   readonly layout: Layout;
-  readonly sections: readonly SectionSchema<FieldSchema>[];
+  readonly sections: readonly SectionSchema<FormFieldSchema>[];
   readonly rows: readonly ChildRowsSchema[];
   readonly checks: readonly CheckSchema[];
   readonly failed: readonly FailureSchema[];
   readonly events: readonly EventSchema[];
 }
 
-/** A field a view shows, hidden while its rule holds for the record. */
+/**
+ * A field a view shows, hidden while its rule holds for the record; with
+ * parts, it holds a value of a schema, shown part by part, or with list a
+ * list of them, shown as a table of its items.
+ */
 export interface ViewFieldSchema {
   readonly name: string;
   readonly label: StringKey;
   readonly hiddenWhen?: Rule;
+  readonly parts?: readonly ViewFieldSchema[];
+  readonly list?: boolean;
 }
 
 /**

@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 19 HTTP operations, 3 channels, 1 dependency, 11 pages, 1 flow, 1 workflow, 1 algorithm, 181 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 19 HTTP operations, 3 channels, 1 dependency, 11 pages, 1 flow, 1 workflow, 1 algorithm, 182 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -129,6 +129,8 @@ erDiagram
     string fullName
     string email
     MembershipTier tier
+    PostalAddress address
+    list_PhoneNumber phones
     MemberStatus status
     date joinedOn
     date membershipEndsOn
@@ -218,6 +220,8 @@ A person with a library card.
 | fullName | string | yes | at least 1 character, at most 200 characters |   |
 | email | string | yes | at most 320 characters, a valid email | Encrypted at rest, and found by a salted hash of it, since it must stay unique. |
 | tier | MembershipTier | yes |   |   |
+| address | PostalAddress |   |   |   |
+| phones | list of PhoneNumber |   |   |   |
 | status | MemberStatus | yes |   |   |
 | joinedOn | date | yes | set by the system |   |
 | membershipEndsOn | date | yes | set by the system | The last day the card is valid; set a year after joining and moved on by each renewal. |
@@ -253,6 +257,29 @@ A member with their loans, as the desk reads one member to lend more copies.
 | loans | list of Loan | rows of Member.loans |   |
 
 Reads from: Member.
+
+### Schemas
+
+A schema is data passed around but not stored: it has no key and no table, and a request body, a response, a message or another schema carries it.
+
+#### PostalAddress
+
+Where a member lives, for the letters the desk sends about copies kept past their due day.
+
+| Field | Type | Required | Limits | Description |
+|---|---|---|---|---|
+| street | string | yes | at least 1 character, at most 200 characters |   |
+| city | string | yes | at least 1 character, at most 100 characters |   |
+| postcode | string |   | at most 12 characters |   |
+
+#### PhoneNumber
+
+A number the desk may call a member on.
+
+| Field | Type | Required | Limits | Description |
+|---|---|---|---|---|
+| number | string | yes | at most 21 characters, matches `^\+?[0-9 ]{6,20}$` |   |
+| label | string |   | at most 40 characters | Whose or which number it is, such as home or work. |
 
 ### Enums
 
@@ -915,7 +942,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | request-validation | 1.1.0 | shipped |   |
 | soft-delete | 1.1.0 | shipped |   |
 | type-rendering | 1.2.0 | shipped |   |
-| ui-components | 1.5.0 | overridden, copied from 1.5.0 | list-page |
+| ui-components | 1.6.0 | overridden, copied from 1.6.0 | list-page |
 
 **Insight on ui-components:** A project whose screens are drawn by a library of its own renders its generated lists through that library, so they look and work like the screens built by hand; this file shows how, with the library's component, import and schema keys.
 
@@ -985,7 +1012,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | request-validation | 1.1.0 | shipped |   |
 | soft-delete | 1.1.0 | shipped |   |
 | type-rendering | 1.2.0 | shipped |   |
-| ui-components | 1.5.0 | shipped |   |
+| ui-components | 1.6.0 | shipped |   |
 
 #### Implementation decisions
 
@@ -1023,6 +1050,8 @@ The entity fields that are not public, and the ones encrypted at rest. A persona
 |---|---|---|
 | Member.fullName | personal |  |
 | Member.email | personal | encrypted, found by hash |
+| Member.address | personal |  |
+| Member.phones | personal |  |
 
 ### Permissions
 
@@ -1131,9 +1160,9 @@ The menu, each entry shown to who may open its page:
 | fee-waivers-inbox | list | /fee-waivers | FeeWaiverRequest | fees.approve | loanId, amount, reason |
 | loan-form | form | /loans/new | Loan | loans.create | memberId, bookId, lentOn, dueOn |
 | loans-list | list | /loans | Loan | loans.read | memberId, bookId, loanedAt, dueOn, status, lateFee; on a compact screen memberId, dueOn, status |
-| member-form | form | /members/new | Member | members.write | fullName, email, tier |
+| member-form | form | /members/new | Member | members.write | fullName, email, tier, address, phones |
 | member-loans | form | /members/{memberId}/loans | Member | loans.create | membershipEndsOn, outstandingFees; Loans, rows of loans: bookId, dueOn, at most 6, the loaded rows locked |
-| member-view | view | /members/{memberId} | Member | members.read | Member: cardNumber, fullName, email, tier; Membership: joinedOn, membershipEndsOn, outstandingFees |
+| member-view | view | /members/{memberId} | Member | members.read | Member: cardNumber, fullName, email, tier; Membership: joinedOn, membershipEndsOn, outstandingFees; Contact: address, phones |
 | members-list | list | /members | Member | members.read | cardNumber, fullName, email, tier, status, outstandingFees |
 | reset-password | task | /reset-password | none; submits to resetPassword | public | code, newPassword, confirmPassword |
 | second-factor | task | /sign-in/second-factor | none; submits to confirmSecondFactor | public | code |
@@ -1435,6 +1464,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | register-member-denied | operation createMember | system | red | a caller holding only the member role | createMember is called | it is refused as not allowed |
 | register-member-email-taken | operation createMember | system | red | a member registered with ana@example.org | createMember is called with the same email address | it answers 409 and no member is created |
 | register-member-missing-field | operation createMember | system | red | a librarian | createMember is called three times each time without one of fullName and email and tier | each call is refused as invalid input |
+| register-member-missing-part | operation createMember | system | red | a librarian | createMember is called with an address without its street, then without its city, and with a phone number without its number | each is refused as invalid input, naming the part |
 | register-member-name-length | operation createMember | system | red | a librarian | createMember is called with an empty fullName and with a 201-character one | both are refused as invalid input |
 | report-lost | operation reportLost | system | golden | an open loan of a book whose replacement cost is 25.00 | reportLost is called | the loan is lost and 25.00 is added to the member's outstanding fees |
 | report-lost-already-closed | operation reportLost | system | red | a loan already lost | reportLost is called on it | it answers 409 and nothing is charged twice |

@@ -10,7 +10,7 @@ export { ListPage, type ListPageProps } from "./ListPage";
 export { Lookup, type LookupProps } from "./Lookup";
 export { Menu, type MenuProps } from "./Menu";
 export { leave, Notice } from "./Notice";
-export { againOf, evaluate, formProblems, hidden, locked, problemsOf, recordOf, typed, type Fields, type Values } from "./rules";
+export { againOf, evaluate, fieldProblem, formProblems, hidden, locked, problemsOf, recordOf, typed, type Fields, type Values } from "./rules";
 export type {
   CheckboxFieldSchema,
   CheckSchema,
@@ -22,6 +22,7 @@ export type {
   FailureSchema,
   FieldSchema,
   FilterSchema,
+  FormFieldSchema,
   FormPageSchema,
   FormSubmitSchema,
   Layout,
@@ -43,11 +44,15 @@ export type {
   TaskPageSchema,
   TextAreaFieldSchema,
   TextFieldSchema,
+  ValueFieldSchema,
+  ValueListFieldSchema,
   ViewActionSchema,
   ViewFieldSchema,
   ViewPageSchema,
   WireSchema,
 } from "./schema";
 export { TaskPage, type TaskPageProps } from "./TaskPage";
+export { ValueField, type ValueFieldProps } from "./ValueField";
+export { addItem, countOf, given, holdsValue, itemsOf, removeItem, sentValue, startValue, valueProblems, type HeldValue } from "./values";
 export { ViewPage, type ViewPageProps } from "./ViewPage";
 export { say, type Texts } from "./texts";

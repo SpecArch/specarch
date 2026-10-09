@@ -153,6 +153,8 @@ paths:
                 fullName: { type: string, minLength: 1, maxLength: 200 }
                 email: { type: string, format: email }
                 tier: { $ref: "#/enums/MembershipTier" }
+                address: { $ref: "#/schemas/PostalAddress" }
+                phones: { type: array, items: { $ref: "#/schemas/PhoneNumber" }, maxItems: 3 }
               required: [fullName, email, tier]
       responses:
         "201":

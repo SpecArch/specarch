@@ -539,6 +539,8 @@ paths:
             schema:
               type: object
               properties:
+                address:
+                  $ref: '#/components/schemas/PostalAddress'
                 email:
                   type: string
                   format: email
@@ -546,6 +548,11 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 200
+                phones:
+                  type: array
+                  maxItems: 3
+                  items:
+                    $ref: '#/components/schemas/PhoneNumber'
                 tier:
                   $ref: '#/components/schemas/MembershipTier'
               required:
@@ -1028,6 +1035,8 @@ components:
       type: object
       description: A person with a library card.
       properties:
+        address:
+          $ref: '#/components/schemas/PostalAddress'
         cardNumber:
           type: string
           title: Card number
@@ -1072,6 +1081,13 @@ components:
           readOnly: true
           x-specarch-precision: 10
           x-specarch-scale: 2
+        phones:
+          type: array
+          title: Phone numbers
+          maxItems: 3
+          items:
+            $ref: '#/components/schemas/PhoneNumber'
+          x-specarch-sensitivity: personal
         status:
           $ref: '#/components/schemas/MemberStatus'
         tier:
@@ -1118,6 +1134,8 @@ components:
       type: object
       description: A member with their loans, as the desk reads one member to lend more copies.
       properties:
+        address:
+          $ref: '#/components/schemas/PostalAddress'
         cardNumber:
           type: string
           title: Card number
@@ -1168,6 +1186,13 @@ components:
           readOnly: true
           x-specarch-precision: 10
           x-specarch-scale: 2
+        phones:
+          type: array
+          title: Phone numbers
+          maxItems: 3
+          items:
+            $ref: '#/components/schemas/PhoneNumber'
+          x-specarch-sensitivity: personal
         status:
           $ref: '#/components/schemas/MemberStatus'
         tier:
@@ -1214,6 +1239,43 @@ components:
       x-specarch-valueDescriptions:
         extended: up to 6 open loans, 28-day loan period
         standard: up to 3 open loans, 21-day loan period
+    PhoneNumber:
+      type: object
+      description: A number the desk may call a member on.
+      properties:
+        label:
+          type: string
+          title: Label
+          description: Whose or which number it is, such as home or work.
+          maxLength: 40
+        number:
+          type: string
+          title: Number
+          maxLength: 21
+          pattern: ^\+?[0-9 ]{6,20}$
+      required:
+        - number
+    PostalAddress:
+      type: object
+      description: Where a member lives, for the letters the desk sends about copies kept past their due day.
+      properties:
+        city:
+          type: string
+          title: City
+          minLength: 1
+          maxLength: 100
+        postcode:
+          type: string
+          title: Postcode
+          maxLength: 12
+        street:
+          type: string
+          title: Street
+          minLength: 1
+          maxLength: 200
+      required:
+        - street
+        - city
     Problem:
       type: object
       description: A problem details object, RFC 9457.

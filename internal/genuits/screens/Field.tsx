@@ -17,13 +17,15 @@ export interface FieldProps {
   readonly readOnly?: boolean;
   /** The id and label of a second entry of the field, in place of its own. */
   readonly again?: { readonly id: string; readonly label: string };
+  /** The id of the field when the page holds it more than once, as a row's field. */
+  readonly id?: string;
   /** The record a lookup picked, for the fields it fills. */
   readonly onPick?: (record: Fields) => void;
 }
 
 /** One field of a page, drawn by the Carbon control its type takes. */
-export function Field({ field, value, problem, texts, onChange, readOnly = false, again, onPick }: FieldProps) {
-  const id = again?.id ?? field.name;
+export function Field({ field, value, problem, texts, onChange, readOnly = false, again, id: placed, onPick }: FieldProps) {
+  const id = again?.id ?? placed ?? field.name;
   const labelText = again?.label ?? say(texts, field.label);
   const invalid = problem !== undefined;
   const props = {
@@ -132,6 +134,7 @@ export function Field({ field, value, problem, texts, onChange, readOnly = false
       return (
         <Lookup
           field={field}
+          id={id}
           label={labelText}
           value={value}
           problem={problem}

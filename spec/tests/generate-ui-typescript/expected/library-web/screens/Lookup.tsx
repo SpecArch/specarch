@@ -10,6 +10,8 @@ import { say, type Texts } from "./texts";
 
 export interface LookupProps {
   readonly field: LookupFieldSchema;
+  /** The id of the control, the field's name unless the page holds it more than once. */
+  readonly id?: string;
   readonly label: string;
   readonly value: string;
   readonly problem?: string;
@@ -29,7 +31,7 @@ function words(field: LookupFieldSchema, record: Fields): string {
  * records its source lists: searched by the service as the person types
  * when the source searches, and otherwise among the one page read.
  */
-export function Lookup({ field, label, value, problem, texts, readOnly, onPick }: LookupProps) {
+export function Lookup({ field, id, label, value, problem, texts, readOnly, onPick }: LookupProps) {
   const [typed, setTyped] = useState("");
   const [items, setItems] = useState<readonly Fields[]>([]);
   const [failed, setFailed] = useState(false);
@@ -67,7 +69,7 @@ export function Lookup({ field, label, value, problem, texts, readOnly, onPick }
   const nothing = !failed && typed !== "" && offered.every((item) => !words(field, item).toLowerCase().includes(typed.toLowerCase()));
   return (
     <ComboBox<Fields>
-      id={field.name}
+      id={id ?? field.name}
       titleText={label}
       items={offered}
       itemToString={(item) => (item === null ? "" : words(field, item))}

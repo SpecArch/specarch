@@ -113,10 +113,6 @@ func (g *gen) refusalsOf(pageName string, op map[string]any, failed map[string]a
 // listPage writes the schema, the page and the refusal test of a list.
 func (g *gen) listPage(pageName string, pg map[string]any, sess *session) (string, string, string, bool) {
 	at := "/pages/" + pageName
-	if _, ok := pg["inbox"]; ok {
-		g.problem("warning", at+"/inbox", "%s is the inbox of a workflow's step, and this version of %s does not draw an inbox; it is left out", pageName, name)
-		return "", "", "", false
-	}
 	for _, k := range []string{"onSubmitted", "pickers"} {
 		if _, ok := pg[k]; ok {
 			g.problem("warning", at+"/"+k, "%s gives %s, which this version of %s does not read on a list; the list is drawn without it", pageName, k, name)
@@ -326,7 +322,8 @@ func (g *gen) listPage(pageName string, pg map[string]any, sess *session) (strin
 	return schema.String(), page.String(), g.refusalTest(pageName, text(pg["route"]), permission, g.name(part, "permission")), true
 }
 
-// rowAction reads an action of kind operation on a list's row.
+// rowAction reads an action of kind operation on a list's row, or on the
+// record a view shows.
 func (g *gen) rowAction(pageName, ptr string, am map[string]any, labelKey, permission string, entity map[string]any, pk []any, failed map[string]any) (value, bool) {
 	target := text(am["target"])
 	op, path, method := g.operation(target)
@@ -394,7 +391,7 @@ func (g *gen) rowAction(pageName, ptr string, am map[string]any, labelKey, permi
 	}
 	then := obj0(am["then"])
 	if text(then["navigate"]) != "" {
-		g.problem("error", ptr+"/then", "the action %s leads to %s once it succeeds, and this version of %s stays on the list and shows the message only", text(am["label"]), text(then["navigate"]), name)
+		g.problem("error", ptr+"/then", "the action %s leads to %s once it succeeds, and this version of %s stays on the page and shows the message only", text(am["label"]), text(then["navigate"]), name)
 		return nil, false
 	}
 	if m := text(then["message"]); m != "" {

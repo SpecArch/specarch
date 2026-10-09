@@ -146,9 +146,11 @@ export interface FailureSchema {
 
 /**
  * What a success the operation answers leads to: a page by its name, the
- * route parameters taken from the answer's body, and a message. A page
- * that keeps returnTo hands on the page sign-in was asked for from; any
- * other page gives way to it.
+ * route parameters taken from the answer's body, or on a form that loads
+ * its record from that record, and a message. On a form that starts an
+ * approval, the event of status 202 is the pending state. A page that
+ * keeps returnTo hands on the page sign-in was asked for from; any other
+ * page gives way to it.
  */
 export interface EventSchema {
   /** With none, every success the operation answers. */
@@ -208,8 +210,8 @@ export interface ReasonSchema {
 }
 
 /**
- * An action on a row: the operation, its path with the route parameters
- * each taken from a field of the row, who may run it and while what holds,
+ * An action on a row, or on the record a view shows: the operation, its
+ * path with the route parameters each taken from a field of the record, who may run it and while what holds,
  * its confirmation, the reason it asks for, its message and its refusals.
  */
 export interface RowActionSchema {
@@ -293,9 +295,29 @@ export interface FormSubmitSchema extends SubmitSchema {
 }
 
 /**
+ * The records of a relation edited as rows under a form: the array of the
+ * request body they are sent in, the property of the loaded record that
+ * holds the loaded ones, each row's fields, and the fields its items take.
+ * A field not sent is shown read-only. The maximum counts loaded and added
+ * rows together; the minimum is of the rows sent. Loaded rows are locked
+ * and never sent.
+ */
+export interface ChildRowsSchema {
+  readonly name: string;
+  readonly loaded?: string;
+  readonly title: StringKey;
+  readonly fields: readonly FieldSchema[];
+  readonly sent: readonly string[];
+  readonly maximum?: number;
+  readonly minimum?: number;
+  readonly lockLoaded: boolean;
+}
+
+/**
  * A form that creates a record, or with source loads one and changes it:
- * its sections, checked by their keywords and the page's checks before the
- * request is sent, its refusals and where each success leads.
+ * its sections and child rows, checked by their keywords and the page's
+ * checks before the request is sent, its refusals and where each success
+ * leads.
  */
 export interface FormPageSchema {
   readonly title: StringKey;
@@ -304,6 +326,7 @@ export interface FormPageSchema {
   readonly submit: FormSubmitSchema;
   readonly layout: Layout;
   readonly sections: readonly SectionSchema<FieldSchema>[];
+  readonly rows: readonly ChildRowsSchema[];
   readonly checks: readonly CheckSchema[];
   readonly failed: readonly FailureSchema[];
   readonly events: readonly EventSchema[];
@@ -326,11 +349,15 @@ export interface ViewActionSchema {
   readonly permission: string;
 }
 
-/** One record read from an operation, its sections shown read-only. */
+/**
+ * One record read from an operation, its sections shown read-only, with
+ * the actions that open a page and those that run an operation on it.
+ */
 export interface ViewPageSchema {
   readonly title: StringKey;
   readonly permission: string;
   readonly source: LoadSchema;
   readonly sections: readonly SectionSchema<ViewFieldSchema>[];
   readonly actions: readonly ViewActionSchema[];
+  readonly operations: readonly RowActionSchema[];
 }

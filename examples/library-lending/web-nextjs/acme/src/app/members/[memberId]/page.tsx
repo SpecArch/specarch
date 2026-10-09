@@ -8,6 +8,7 @@ export const metadata: Metadata = { title: strings["member-view.title"] };
 
 const routes = {
   "loan-form": "/loans/new",
+  "member-loans": "/members/{memberId}/loans",
 };
 
 export default async function Page({ params }: { readonly params: Promise<Record<string, string>> }) {

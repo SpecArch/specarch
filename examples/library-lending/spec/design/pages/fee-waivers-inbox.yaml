@@ -9,6 +9,9 @@ pages:
     source: listFeeWaivers
     inbox: { workflow: fee-waiver, step: approve }
     columns: [loanId, amount, reason]
+    actions:
+      - { label: Approve, kind: operation, target: approveFeeWaiver, confirm: "Approve waiving this fee?", then: { message: The request is approved and the fee is waived. } }
+      - { label: Refuse, kind: operation, target: refuseFeeWaiver, confirm: "Refuse this request? The fee stands.", reason: reason, then: { message: The request is refused. } }
     states:
       empty: { message: No request waits for approval. }
     satisfies: [LIB-8]

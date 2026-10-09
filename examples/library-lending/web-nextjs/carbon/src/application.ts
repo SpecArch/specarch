@@ -9,6 +9,7 @@ export const application: Application = {
     {
       title: "menu.loans.title",
       items: [
+        { title: "menu.loans.items.approvals", route: "/fee-waivers", permission: "fees.approve" },
         { title: "menu.loans.items.lend", route: "/loans/new", permission: "loans.create" },
         { title: "menu.loans.items.list", route: "/loans", permission: "loans.read" },
       ],

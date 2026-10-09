@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 17 HTTP operations, 3 channels, 1 dependency, 11 pages, 1 flow, 1 workflow, 1 algorithm, 173 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 19 HTTP operations, 3 channels, 1 dependency, 11 pages, 1 flow, 1 workflow, 1 algorithm, 181 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -67,6 +67,8 @@ The interfaces the system offers, as its clients see them.
 | POST /loans/{loanId}/fee-waivers | requestFeeWaiver | Ask for a loan's late fee to be waived | fees.request |
 | GET /fee-waivers | listFeeWaivers | List the requests to waive a late fee that wait for a desk supervisor | fees.approve |
 | POST /fee-waivers/{waiverId}/waive | waiveFee | Waive the late fee an approved request names | fees.approve |
+| POST /fee-waivers/{waiverId}/approve | approveFeeWaiver | Approve a request to waive a late fee, at its approve step | fees.approve |
+| POST /fee-waivers/{waiverId}/refuse | refuseFeeWaiver | Refuse a request to waive a late fee, at its approve step, saying why | fees.approve |
 
 ### Channels
 
@@ -552,6 +554,33 @@ sequenceDiagram
   S-->>C: 200 FeeWaiverRequest
 ```
 
+### approveFeeWaiver (POST /fee-waivers/{waiverId}/approve)
+
+Answers the approve step of the fee-waiver workflow. The fee is
+waived once the request is approved.
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant S as Library Lending
+  C->>S: POST /fee-waivers/{waiverId}/approve
+  S-->>C: 200 FeeWaiverRequest
+```
+
+### refuseFeeWaiver (POST /fee-waivers/{waiverId}/refuse)
+
+Answers the approve step of the fee-waiver workflow. The request
+ends refused and the fee stands; the reason is kept with it for the
+librarian who asked.
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant S as Library Lending
+  C->>S: POST /fee-waivers/{waiverId}/refuse
+  S-->>C: 200 FeeWaiverRequest
+```
+
 ### Job markOverdue
 
 Every night, finds the open loans past their due date, marks each overdue, and publishes LoanOverdue for it, so the member is told.
@@ -885,7 +914,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | request-validation | 1.1.0 | shipped |   |
 | soft-delete | 1.1.0 | shipped |   |
 | type-rendering | 1.2.0 | shipped |   |
-| ui-components | 1.3.0 | overridden, copied from 1.3.0 | list-page |
+| ui-components | 1.4.0 | overridden, copied from 1.4.0 | list-page |
 
 **Insight on ui-components:** A project whose screens are drawn by a library of its own renders its generated lists through that library, so they look and work like the screens built by hand; this file shows how, with the library's component, import and schema keys.
 
@@ -954,7 +983,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | request-validation | 1.1.0 | shipped |   |
 | soft-delete | 1.1.0 | shipped |   |
 | type-rendering | 1.2.0 | shipped |   |
-| ui-components | 1.3.0 | shipped |   |
+| ui-components | 1.4.0 | shipped |   |
 
 #### Implementation decisions
 
@@ -1048,6 +1077,10 @@ flowchart LR
   op_requestFeeWaiver(["requestFeeWaiver"])
   fee_waiver_form -.->|"submit"| op_requestFeeWaiver
   op_requestFeeWaiver -->|"submitted"| loans_list
+  op_approveFeeWaiver(["approveFeeWaiver"])
+  fee_waivers_inbox -.->|"Approve"| op_approveFeeWaiver
+  op_refuseFeeWaiver(["refuseFeeWaiver"])
+  fee_waivers_inbox -.->|"Refuse"| op_refuseFeeWaiver
   op_createLoan(["createLoan"])
   loan_form -.->|"submit"| op_createLoan
   op_createLoan -->|"submitted"| member_view
@@ -1062,9 +1095,11 @@ flowchart LR
   member_loans -.->|"submit"| op_lendCopies
   op_lendCopies -->|"submitted"| member_view
   member_view -->|"Lend a book"| loan_form
+  member_view -->|"Lend copies"| member_loans
+  op_deactivateMember(["deactivateMember"])
+  member_view -.->|"Deactivate"| op_deactivateMember
   members_list -->|"select"| member_view
   members_list -->|"New member"| member_form
-  op_deactivateMember(["deactivateMember"])
   members_list -.->|"Deactivate"| op_deactivateMember
   op_resetPassword(["resetPassword"])
   reset_password -.->|"submit"| op_resetPassword
@@ -1106,11 +1141,13 @@ The elements of each page that pick, offer, hide or check something:
 
 | Page | Element | What it does |
 |---|---|---|
+| fee-waivers-inbox | action Refuse | its confirmation asks for a reason, sent as reason |
 | loan-form | picker memberId | a Member, through the relation member, picked from listMembers, showing cardNumber, fullName |
 | loan-form | picker bookId | a Book, through the relation book, picked from listBooks, showing title, author, copiesAvailable |
 | loan-form | check due-after-lent | `lentOn == null \|\| dueOn > lentOn`, or it is not sent: A copy is due after the day it is lent. (beside dueOn) |
 | loans-list | action Return | offered while `status == "open" \|\| status == "overdue"` |
 | loans-list | action Lost | offered while `status == "open" \|\| status == "overdue"` |
+| member-view | action Deactivate | offered while `status == "active"`; its confirmation asks for a reason, sent as reason |
 | members-list | action Deactivate | offered while `status == "active"`; its confirmation asks for a reason, sent as reason |
 | reset-password | check confirmation-matches | `confirmPassword == newPassword`, or it is not sent: The two passwords are not the same. (beside confirmPassword) |
 
@@ -1262,6 +1299,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 | Test | Subject | Level | Scenario | Given | When | Then |
 |---|---|---|---|---|---|---|
+| approve-fee-waiver | operation approveFeeWaiver | system | golden | a desk supervisor, and a request by another librarian to waive a fee of 3.50, waiting at approve | approveFeeWaiver is called for it | it answers 200, the request is approved, and the loan's late fee is 0.00 |
+| approve-fee-waiver-denied | operation approveFeeWaiver | system | red | a librarian, who does not hold fees.approve, a desk supervisor whose session expired, and a waiting request | each calls approveFeeWaiver for it | the first is refused as not allowed and the second as not signed in, and the request still waits |
+| approve-fee-waiver-unknown-waiver | operation approveFeeWaiver | system | red | a desk supervisor and no request with a given id | approveFeeWaiver is called with waiverId abc, and with that id | the first is refused as invalid input and the second as not found |
 | book-available-above-owned | Book constraint book_available_within_owned | system | red | a book with 2 copies owned | it is saved with 3 available | it is refused |
 | book-available-at-most-owned | Book constraint book_available_within_owned | system | golden | a book with 2 copies owned | it is saved with 2 available | it is saved |
 | book-isbn-once | Book constraint book_isbn_unique | system | golden | no book with ISBN 9780000000001 | a book with that ISBN is saved | it is saved |
@@ -1297,6 +1337,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | fee-waiver-requester-approves-own-request | workflow fee-waiver | acceptance | red | a desk supervisor who also works the desk and holds fees.request, and a request to waive a fee they asked for themselves | they approve their own request | it is refused, the request still waits for another desk supervisor, and waiveFee is not called |
 | fee-waivers-inbox-denied-with-expired-session | page fee-waivers-inbox | system | red | a desk supervisor whose session has expired | the page fee-waivers-inbox is opened | it is refused as not signed in |
 | fee-waivers-inbox-denied-without-fees-approve | page fee-waivers-inbox | system | red | a librarian, who asked for a waiting request and does not hold fees.approve | the page fee-waivers-inbox is opened | it is not shown, so the librarian sees no request to approve, their own included |
+| fee-waivers-inbox-refuse | page fee-waivers-inbox | system | red | a desk supervisor and a waiting request by another librarian | the page fee-waivers-inbox is opened, and Refuse is confirmed for the request with no reason | it sends nothing until a reason is given, and the request still waits |
 | fee-waivers-inbox-succeeds | page fee-waivers-inbox | system | golden | a desk supervisor, and two requests to waive a late fee waiting at approve | the page fee-waivers-inbox is opened | it lists both requests with their loan, amount and reason |
 | fees-block-lending | requirement LIB-3 | acceptance | golden | a member who owes a late fee | the librarian lends them a copy | A member with outstanding fees is refused a loan with 409. |
 | get-member-denied-with-expired-session | operation getMember | system | red | a librarian whose session expired after half an hour without a request | getMember is called for a member that exists | it is refused as not signed in, and nothing changes |
@@ -1368,6 +1409,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | member-loans-refused | page member-loans | system | red | a librarian, and a member with outstanding fees | a row is added and the form is submitted | it shows: This member cannot borrow these copies now: the loan limit is reached, fees are outstanding, or a copy is not available. |
 | member-loans-shown | page member-loans | system | golden | a librarian, and a member with two open loans | the page member-loans is opened for that member | it shows the two loans, which cannot be changed, and a row to add a copy |
 | member-loans-six-rows | page member-loans | system | red | a librarian, and a member with four loans loaded and two rows added | a seventh row of loans is added | it is refused: the form holds at most 6 rows of loans |
+| member-view-deactivate | page member-view | system | red | a librarian and an active member | the page member-view is opened for the member, and Deactivate is confirmed with no reason | it sends nothing until a reason is given, and the member stays active |
 | member-view-denied | page member-view | system | red | a caller holding only the member role | the page member-view is opened | it is not shown |
 | member-view-denied-with-expired-session | page member-view | system | red | a librarian whose session expired after half an hour without a request | the page member-view is opened | it is not shown, and the sign-in page is shown instead |
 | member-view-not-found | page member-view | system | red | a librarian | the page member-view is opened for an id no member has | it says the member was not found |
@@ -1382,6 +1424,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | overdue-loan-lost-twice | Loan overdue to lost | system | red | a loan already lost | reportLost is called again | it is refused and nothing is charged twice |
 | overdue-loan-returned | Loan overdue to returned | system | golden | an overdue loan | returnLoan is called | the loan is returned with its late fee |
 | overdue-loan-returned-twice | Loan overdue to returned | system | red | a loan already returned | returnLoan is called again | it is refused and the fee is not charged twice |
+| refuse-fee-waiver | operation refuseFeeWaiver | system | golden | a desk supervisor, and a request by another librarian to waive a fee of 3.50, waiting at approve | refuseFeeWaiver is called for it with the reason "The book came back damaged." | it answers 200, the request ends refused with that reason, and the fee still stands |
+| refuse-fee-waiver-bad-input | operation refuseFeeWaiver | system | red | a desk supervisor, a waiting request, and no request with a given id | refuseFeeWaiver is called with waiverId abc, with that id, and for the waiting request without a reason | the first and the last are refused as invalid input and the second as not found, and the request still waits |
+| refuse-fee-waiver-denied | operation refuseFeeWaiver | system | red | a librarian, who does not hold fees.approve, a desk supervisor whose session expired, and a waiting request | each calls refuseFeeWaiver for it with a reason | the first is refused as not allowed and the second as not signed in, and the request still waits |
 | register-member | operation createMember | system | golden | a librarian | createMember is called for a standard-tier member with a one-letter name, and again with a 200-character name | both members are created, each with a new eight-digit card number and no fees |
 | register-member-bad-values | operation createMember | system | red | a librarian | createMember is called with email set to 'not-an-address', and with tier set to gold | both are refused as invalid input |
 | register-member-card-number-clash | operation createMember | system | red | not applicable |   | The card number is assigned by the system, never sent by a client, so a request cannot clash on it. The constraint itself is tested under member-card-number-twice. |
@@ -1532,7 +1577,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | LIB-5 |   | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; configuration dailyRate | tests loan-lent-and-returned; tests return-late; checks lend-and-return |
 | LIB-6 |   | roles member; session | checks member-sees-own-loans |
 | LIB-7 |   | pages loan-form; pages member-form; flows lend-a-copy | tests lend-a-copy-at-the-desk; tests lend-a-copy-limit-reached; checks lend-and-return; monitors catalogue-latency |
-| LIB-8 |   | entities FeeWaiverRequest; roles desk-supervisor; paths /loans/{loanId}/fee-waivers post; paths /fee-waivers get; paths /fee-waivers/{waiverId}/waive post; channels fee.waivers; channels fee.waivers messages FeeWaiverDecided; workflows fee-waiver; pages fee-waiver-form; pages fee-waivers-inbox | tests fee-waiver; tests fee-waiver-approval-without-permission; tests fee-waiver-deadline-passes; tests fee-waiver-form-denied-with-expired-session; tests fee-waiver-form-denied-without-fees-request; tests fee-waiver-form-not-found-loan-id; tests fee-waiver-form-sent-for-approval; tests fee-waiver-form-succeeds; tests fee-waiver-refused; tests fee-waiver-requester-approves-own-request; tests fee-waivers-inbox-denied-with-expired-session; tests fee-waivers-inbox-denied-without-fees-approve; tests fee-waivers-inbox-succeeds; tests list-fee-waivers-denied-with-expired-session; tests list-fee-waivers-denied-without-fees-approve; tests list-fee-waivers-succeeds; tests request-fee-waiver; tests waive-fee |
+| LIB-8 |   | entities FeeWaiverRequest; roles desk-supervisor; paths /loans/{loanId}/fee-waivers post; paths /fee-waivers get; paths /fee-waivers/{waiverId}/waive post; paths /fee-waivers/{waiverId}/approve post; paths /fee-waivers/{waiverId}/refuse post; channels fee.waivers; channels fee.waivers messages FeeWaiverDecided; workflows fee-waiver; pages fee-waiver-form; pages fee-waivers-inbox | tests approve-fee-waiver; tests fee-waiver; tests fee-waiver-approval-without-permission; tests fee-waiver-deadline-passes; tests fee-waiver-form-denied-with-expired-session; tests fee-waiver-form-denied-without-fees-request; tests fee-waiver-form-not-found-loan-id; tests fee-waiver-form-sent-for-approval; tests fee-waiver-form-succeeds; tests fee-waiver-refused; tests fee-waiver-requester-approves-own-request; tests fee-waivers-inbox-denied-with-expired-session; tests fee-waivers-inbox-denied-without-fees-approve; tests fee-waivers-inbox-succeeds; tests list-fee-waivers-denied-with-expired-session; tests list-fee-waivers-denied-without-fees-approve; tests list-fee-waivers-succeeds; tests refuse-fee-waiver; tests request-fee-waiver; tests waive-fee |
 
 ## Sources
 

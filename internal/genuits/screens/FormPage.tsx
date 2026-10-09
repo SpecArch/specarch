@@ -18,6 +18,7 @@ import {
 } from "@carbon/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { ChildRows, rowProblems, rowsSent, startRows, type RowsState } from "./ChildRows";
 import { Field } from "./Field";
 import { leave } from "./Notice";
 import { againOf, formProblems, hidden, locked, recordOf, typed, type Fields, type Values } from "./rules";
@@ -59,6 +60,11 @@ function fieldsOf(sections: readonly SectionSchema<FieldSchema>[]): readonly Fie
   return sections.flatMap((section) => section.fields);
 }
 
+/** The rows of each child relation a form starts with, by the relation's name. */
+function startAll(schema: FormPageSchema, record: Fields): Readonly<Record<string, RowsState>> {
+  return Object.fromEntries(schema.rows.map((rows) => [rows.name, startRows(rows, record)]));
+}
+
 /** The values a form starts with: the loaded record's, then each hook's. */
 function start(fields: readonly FieldSchema[], record: Fields, hooks: Readonly<Record<string, FieldHook>>): Values {
   const values: Record<string, string> = {};
@@ -84,6 +90,7 @@ export function FormPage({ schema, texts, routes, parameters, hooks }: FormPageP
   const [loaded, setLoaded] = useState<Fields | undefined>(() => (schema.source === undefined ? {} : undefined));
   const [loadFailed, setLoadFailed] = useState<string | undefined>(undefined);
   const [values, setValues] = useState<Values>(() => (schema.source === undefined ? start(fieldsOf(schema.sections), {}, hooks ?? {}) : {}));
+  const [rows, setRows] = useState<Readonly<Record<string, RowsState>>>(() => (schema.source === undefined ? startAll(schema, {}) : {}));
   const [problems, setProblems] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState(0);
@@ -108,6 +115,7 @@ export function FormPage({ schema, texts, routes, parameters, hooks }: FormPageP
         const record = answer as Fields;
         setLoaded(record);
         setValues(start(fieldsOf(schema.sections), record, hooks ?? {}));
+        setRows(startAll(schema, record));
       })
       .catch(() => {
         if (current) {
@@ -129,12 +137,23 @@ export function FormPage({ schema, texts, routes, parameters, hooks }: FormPageP
 
   function check(only: readonly FieldSchema[]): Record<string, string> {
     const found = formProblems(only, only === fields ? schema.checks : [], values, record, texts);
-    setProblems(found);
+    const inRows: Record<string, string> = {};
+    if (only === fields) {
+      for (const child of schema.rows) {
+        Object.assign(inRows, rowProblems(child, rows[child.name] ?? { loaded: [], added: [] }, texts));
+      }
+    }
+    setProblems({ ...inRows, ...found });
     const first = only.find((field) => found[field.name] !== undefined || found[againOf(field)] !== undefined);
     if (first !== undefined) {
       document.getElementById(found[first.name] !== undefined ? first.name : againOf(first))?.focus();
+    } else {
+      const firstRow = Object.keys(inRows)[0];
+      if (firstRow !== undefined) {
+        document.getElementById(firstRow)?.focus();
+      }
     }
-    return found;
+    return { ...inRows, ...found };
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -150,6 +169,8 @@ export function FormPage({ schema, texts, routes, parameters, hooks }: FormPageP
       const at = schema.sections.findIndex((section) => section.fields.some((field) => found[field.name] !== undefined || found[againOf(field)] !== undefined));
       if (at >= 0) {
         setStep(at);
+      } else if (schema.layout === "steps") {
+        setStep(schema.sections.length - 1); // the rows are on the last step
       }
       return;
     }
@@ -160,6 +181,9 @@ export function FormPage({ schema, texts, routes, parameters, hooks }: FormPageP
       if (schema.submit.fields.includes(field.name) && !hidden(field, record) && value !== null) {
         sent[field.name] = value;
       }
+    }
+    for (const child of schema.rows) {
+      sent[child.name] = rowsSent(child, rows[child.name] ?? { loaded: [], added: [] });
     }
     const headers: Record<string, string> = { "Content-Type": "application/json", Accept: "application/json, application/problem+json" };
     if (schema.submit.idempotencyKey !== undefined) {
@@ -188,7 +212,7 @@ export function FormPage({ schema, texts, routes, parameters, hooks }: FormPageP
         schema.events.find((candidate) => candidate.status === undefined) ??
         {};
       const answer = await body(response);
-      const from: Fields = { ...parameters, ...(typeof answer === "object" && answer !== null ? (answer as Fields) : {}) };
+      const from: Fields = { ...loaded, ...parameters, ...(typeof answer === "object" && answer !== null ? (answer as Fields) : {}) };
       const route =
         success.navigate === undefined
           ? undefined
@@ -265,6 +289,16 @@ export function FormPage({ schema, texts, routes, parameters, hooks }: FormPageP
   }
 
   const last = schema.layout !== "steps" || step === schema.sections.length - 1;
+  const children = schema.rows.map((child) => (
+    <ChildRows
+      key={child.name}
+      rows={child}
+      state={rows[child.name] ?? { loaded: [], added: [] }}
+      problems={problems}
+      texts={texts}
+      onChange={(added) => setRows((current) => ({ ...current, [child.name]: { loaded: current[child.name]?.loaded ?? [], added } }))}
+    />
+  ));
   let content: ReactNode;
   switch (schema.layout) {
     case "tabs":
@@ -307,6 +341,7 @@ export function FormPage({ schema, texts, routes, parameters, hooks }: FormPageP
         <Stack gap={6}>
           {problems[""] !== undefined && <InlineNotification kind="error" role="alert" lowContrast hideCloseButton title={problems[""]} />}
           {content}
+          {last && children}
           <ButtonSet>
             {schema.layout === "steps" && step > 0 && (
               <Button kind="secondary" type="button" onClick={() => setStep(step - 1)}>

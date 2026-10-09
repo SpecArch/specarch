@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: fee-waivers-inbox
+level: system
+scenario: red
+covers: [Refuse without a reason]
+given: a desk supervisor and a waiting request by another librarian
+when: the page fee-waivers-inbox is opened, and Refuse is confirmed for the request with no reason
+then: it sends nothing until a reason is given, and the request still waits

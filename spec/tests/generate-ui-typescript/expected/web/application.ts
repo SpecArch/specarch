@@ -11,6 +11,7 @@ export const application: Application = {
       items: [
         { title: "menu.people.items.all", route: "/members", permission: "members.read" },
         { title: "menu.people.items.invite", route: "/invitations", permission: "public" },
+        { title: "menu.people.items.removals", route: "/removals", permission: "members.approve" },
       ],
     },
   ],

@@ -11,11 +11,13 @@ import {
   StructuredListRow,
   StructuredListWrapper,
 } from "@carbon/react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { decide } from "./access";
-import { hidden, type Fields } from "./rules";
-import type { FailureSchema, ViewPageSchema } from "./schema";
+import { Confirm, runAction } from "./Confirm";
+import { leave } from "./Notice";
+import { evaluate, hidden, type Fields } from "./rules";
+import type { FailureSchema, RowActionSchema, ViewPageSchema } from "./schema";
 import { body, segment, service } from "./service";
 import { useSession } from "./session";
 import { say, type Texts } from "./texts";
@@ -49,13 +51,20 @@ function shown(value: unknown, texts: Texts): string {
 /**
  * One record read from the view's source, its sections shown read-only,
  * with the actions that open a page offered to whoever holds their
- * permission.
+ * permission, and those that run an operation on the record offered while
+ * their rule holds for it too; a success reads the record again.
  */
 export function ViewPage({ schema, texts, routes, parameters }: ViewPageProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const session = useSession();
   const [record, setRecord] = useState<Fields | undefined>(undefined);
   const [failed, setFailed] = useState<string | undefined>(undefined);
+  const [reload, setReload] = useState(0);
+  const [confirming, setConfirming] = useState<RowActionSchema | undefined>(undefined);
+  const [reason, setReason] = useState("");
+  const [running, setRunning] = useState(false);
+  const [refused, setRefused] = useState("");
 
   useEffect(() => {
     let current = true;
@@ -79,7 +88,7 @@ export function ViewPage({ schema, texts, routes, parameters }: ViewPageProps) {
     return () => {
       current = false;
     };
-  }, [schema, parameters, texts]);
+  }, [schema, parameters, texts, reload]);
 
   if (failed !== undefined) {
     return <InlineNotification kind="error" role="alert" lowContrast hideCloseButton title={failed} />;
@@ -87,10 +96,43 @@ export function ViewPage({ schema, texts, routes, parameters }: ViewPageProps) {
   if (record === undefined) {
     return <InlineLoading description={say(texts, "screens.loading")} />;
   }
-  const offered = schema.actions.filter((action) => session !== undefined && session !== null && decide(action.permission, session) === "allowed");
+  const holds = (permission: string) => session !== undefined && session !== null && decide(permission, session) === "allowed";
+  const offered = schema.actions.filter((action) => holds(action.permission));
+  const runs = schema.operations.filter((action) => holds(action.permission) && (action.when === undefined || evaluate(action.when, record) === true));
+
+  async function run(action: RowActionSchema) {
+    if (action.reason !== undefined && reason.trim() === "") {
+      return;
+    }
+    setRunning(true);
+    const answer = await runAction(action, { ...parameters, ...record }, reason, texts);
+    if (answer === undefined) {
+      setRefused("");
+      if (action.message !== undefined) {
+        leave(say(texts, action.message), pathname);
+      }
+      setReload((n) => n + 1);
+    } else {
+      setRefused(answer);
+    }
+    setRunning(false);
+    setConfirming(undefined);
+    setReason("");
+  }
+
+  function start(action: RowActionSchema) {
+    setReason("");
+    if (action.confirm === undefined) {
+      void run(action);
+    } else {
+      setConfirming(action);
+    }
+  }
+
   return (
     <section className="screens-view">
       <h1>{say(texts, schema.title)}</h1>
+      {refused !== "" && <InlineNotification kind="error" role="alert" lowContrast title={refused} onClose={() => setRefused("")} />}
       <Stack gap={7}>
         {schema.sections.map((section, index) => (
           <div key={index}>
@@ -109,7 +151,7 @@ export function ViewPage({ schema, texts, routes, parameters }: ViewPageProps) {
             </StructuredListWrapper>
           </div>
         ))}
-        {offered.length > 0 && (
+        {offered.length + runs.length > 0 && (
           <ButtonSet>
             {offered.map((action) => (
               <Button
@@ -120,9 +162,25 @@ export function ViewPage({ schema, texts, routes, parameters }: ViewPageProps) {
                 {say(texts, action.label)}
               </Button>
             ))}
+            {runs.map((action) => (
+              <Button key={action.operation} kind={action.confirm === undefined ? "secondary" : "danger"} disabled={running} onClick={() => start(action)}>
+                {say(texts, action.label)}
+              </Button>
+            ))}
           </ButtonSet>
         )}
       </Stack>
+      {confirming?.confirm !== undefined && (
+        <Confirm
+          action={{ ...confirming, confirm: confirming.confirm }}
+          texts={texts}
+          reason={reason}
+          running={running}
+          onReason={setReason}
+          onConfirm={() => void run(confirming)}
+          onClose={() => setConfirming(undefined)}
+        />
+      )}
     </section>
   );
 }

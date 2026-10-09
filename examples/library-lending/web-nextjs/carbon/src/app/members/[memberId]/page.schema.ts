@@ -28,5 +28,23 @@ export const schema = {
       ],
     },
   ],
-  actions: [{ label: "member-view.actions.loan-form", navigate: "loan-form", permission: "loans.create" }],
+  actions: [
+    { label: "member-view.actions.loan-form", navigate: "loan-form", permission: "loans.create" },
+    { label: "member-view.actions.member-loans", navigate: "member-loans", permission: "loans.create" },
+  ],
+  operations: [
+    {
+      label: "member-view.actions.deactivateMember.label",
+      operation: "deactivateMember",
+      method: "POST",
+      path: "/members/{memberId}/deactivate",
+      parameters: { memberId: "id" },
+      permission: "members.write",
+      when: ["==", ["field", "status"], ["value", "active"]],
+      confirm: "member-view.actions.deactivateMember.confirm",
+      reason: { property: "reason", label: "member-view.actions.deactivateMember.reason", maxLength: 500 },
+      message: "member-view.actions.deactivateMember.message",
+      failed: [{ status: 404, problem: "member-not-found", message: "member-view.failed.member-not-found" }],
+    },
+  ],
 } satisfies ViewPageSchema;

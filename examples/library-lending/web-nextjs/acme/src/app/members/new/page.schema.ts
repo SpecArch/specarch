@@ -15,6 +15,7 @@ export const schema = {
       ],
     },
   ],
+  rows: [],
   checks: [],
   failed: [{ status: 409, problem: "email-taken", message: "member-form.failed.email-taken" }],
   events: [{ navigate: "member-view", with: { memberId: "id" }, message: "member-form.onSubmitted" }],

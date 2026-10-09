@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: refuseFeeWaiver
+level: system
+scenario: golden
+given: a desk supervisor, and a request by another librarian to waive a fee of 3.50, waiting at approve
+when: refuseFeeWaiver is called for it with the reason "The book came back damaged."
+then: it answers 200, the request ends refused with that reason, and the fee still stands
+verifies: [LIB-8]

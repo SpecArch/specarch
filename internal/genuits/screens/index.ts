@@ -1,3 +1,5 @@
+export { ChildRows, type ChildRowsProps, type RowsState } from "./ChildRows";
+export { Confirm, runAction, type ConfirmProps } from "./Confirm";
 export { Field, type FieldProps } from "./Field";
 export { FormPage, type FieldHook, type FormPageProps } from "./FormPage";
 export { Guard, type GuardProps } from "./Guard";
@@ -10,6 +12,7 @@ export { againOf, evaluate, formProblems, hidden, locked, problemsOf, recordOf, 
 export type {
   CheckboxFieldSchema,
   CheckSchema,
+  ChildRowsSchema,
   ColumnSchema,
   DateFieldSchema,
   EmailFieldSchema,

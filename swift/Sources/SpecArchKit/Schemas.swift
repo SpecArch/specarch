@@ -8512,7 +8512,7 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: ui-components
-version: 1.3.0
+version: 1.4.0
 concern: ui-components
 stacks: [nextjs-carbon]
 reads: [pages]
@@ -8595,7 +8595,7 @@ parts:
     description: A page of kind form, which creates a record or, with source, loads one and changes it.
     stack:
       nextjs-carbon:
-        names: { component: FormPage, schemaType: FormPageSchema, carbonForm: Form, carbonSection: FormGroup, carbonTabs: Tabs, carbonSteps: ProgressIndicator, carbonSubmit: Button, carbonError: InlineNotification, title: title, permission: permission, source: source, submit: submit, layout: layout, sections: sections, checks: checks, failed: failed, events: events }
+        names: { component: FormPage, schemaType: FormPageSchema, carbonForm: Form, carbonSection: FormGroup, carbonTabs: Tabs, carbonSteps: ProgressIndicator, carbonSubmit: Button, carbonError: InlineNotification, carbonRows: FormGroup, carbonRemove: Button, title: title, permission: permission, source: source, submit: submit, layout: layout, sections: sections, rows: rows, checks: checks, failed: failed, events: events }
         code: |
           The sections in a Form, each a FormGroup under its title, laid
           out as the ui target's settings.layouts say: on one page, as
@@ -8612,11 +8612,19 @@ parts:
           value of the hook of its name, which page.tsx imports from
           page.hooks.ts beside it, a file the project writes, typed
           FieldHook: (record) => string.
+
+          Child rows follow the sections, each set in a FormGroup under
+          its title: the loaded rows read-only, and the rows added on the
+          form drawn inline by their field parts, each with a Button that
+          removes it, up to the maximum, loaded and added together. Each
+          added row is checked by its fields' keywords, and the rows are
+          sent as the array of the body named for the relation, each with
+          the fields its items take; a loaded row is never sent.
   view-page:
     description: A page of kind view, one record's sections read-only.
     stack:
       nextjs-carbon:
-        names: { component: ViewPage, schemaType: ViewPageSchema, carbonList: StructuredListWrapper, carbonRow: StructuredListRow, carbonActions: ButtonSet, title: title, permission: permission, source: source, sections: sections, actions: actions }
+        names: { component: ViewPage, schemaType: ViewPageSchema, carbonList: StructuredListWrapper, carbonRow: StructuredListRow, carbonActions: ButtonSet, carbonDialog: Modal, title: title, permission: permission, source: source, sections: sections, actions: actions, operations: operations }
         code: |
           The record source answers, its path filled from the route's
           parameters, each section a StructuredList of label and value
@@ -8624,6 +8632,11 @@ parts:
           record. The actions that open a page are buttons, offered to
           whoever holds their permission, their route's parameters taken
           from the record's fields of their names or the view's route.
+          The actions that run an operation on the record are buttons too,
+          offered while their rule holds for the record, each asking its
+          confirmation in a Modal, with a TextArea for the reason it
+          requires and sends; a success says its message and reads the
+          record again, and a refusal shows in an InlineNotification.
   task-page:
     description: A form that submits to an operation without loading a record, such as sign-in.
     stack:

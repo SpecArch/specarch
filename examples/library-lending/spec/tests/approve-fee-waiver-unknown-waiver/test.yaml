@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: approveFeeWaiver
+level: system
+scenario: red
+covers: [waiverId not a valid uuid, not found waiverId]
+given: a desk supervisor and no request with a given id
+when: approveFeeWaiver is called with waiverId abc, and with that id
+then: the first is refused as invalid input and the second as not found

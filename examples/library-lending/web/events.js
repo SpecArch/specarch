@@ -13,6 +13,10 @@ export const FEE_WAIVERS_INBOX_PAGED = "FEE_WAIVERS_INBOX_PAGED";
 export const FEE_WAIVERS_INBOX_LOADED = "FEE_WAIVERS_INBOX_LOADED";
 /** The fee waivers to approve could not be read: { status } */
 export const FEE_WAIVERS_INBOX_FAILED = "FEE_WAIVERS_INBOX_FAILED";
+/** approveFeeWaiver succeeded: { id } */
+export const APPROVE_FEE_WAIVER_SUCCEEDED = "APPROVE_FEE_WAIVER_SUCCEEDED";
+/** approveFeeWaiver was refused or failed: { id, status } */
+export const APPROVE_FEE_WAIVER_FAILED = "APPROVE_FEE_WAIVER_FAILED";
 /** The filters of the loans list were applied: { status, memberId } */
 export const LOANS_LIST_FILTERED = "LOANS_LIST_FILTERED";
 /** Another page of the loans list was asked for: { page } */

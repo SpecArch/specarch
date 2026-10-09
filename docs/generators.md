@@ -450,17 +450,33 @@ name: `page.client.tsx`, which the generator writes, imports it from
 hook fails `tsc`. A view shows its sections read-only, a field hidden while
 its condition holds, and offers the actions that open a page to whoever
 holds their permission. A required property of the request body the form
-does not show, a field the body does not take that is not read-only, a
-view's action that runs an operation, and a hook or a layout for a page
-that is not a form or a field it does not show are refused.
+does not show, a field the body does not take that is not read-only, and a
+hook or a layout for a page that is not a form or a field it does not show
+are refused.
 
-Child rows, a form that starts an approval, and inboxes are reported and
-left out of this version; step 5 of `docs/ui-nextjs-carbon.md` adds them.
+A form's child rows are sent as the array of its request body named for
+the relation, each row with the fields the array's items take; a field
+the items do not take is shown on the loaded rows only. A form that loads
+its record reads the loaded rows from the property of the view its source
+answers that adds the relation's rows (`rows`), shows them read-only and
+sends only the rows added, so its loaded rows must be locked. Added rows
+are drawn inline, checked by their keywords, at least the body's
+`minItems` and, with the loaded ones, at most the maximum. A view's action
+that runs an operation is offered while its `when` holds for the record,
+asks the list's confirmation with the reason it requires, and reads the
+record again after a success; an action that leads to another page once
+it succeeds is refused. A form that submits to a workflow's trigger acts
+on the 202 answer, its event the page's pending state, and an inbox is a
+list whose row actions are the approver's operations. Rows in a dialog
+are not written, and a page does not follow an approval to its end, since
+that end is a channel message no browser reads (ADR-071).
+
 The screens it is checked against are
 the library lending example's sign-in and second-factor screens, written
 by hand before the generator (ADR-067); its lists are built on plain
-Carbon and through the stub of a fictional library (ADR-068), and its
-forms and views on both (ADR-069).
+Carbon and through the stub of a fictional library (ADR-068), its forms
+and views on both (ADR-069), and its child rows, reasons and approvals on
+both (ADR-071).
 
 ## Tests from the specification
 

@@ -86,6 +86,11 @@ var screenStrings = map[string]string{
 	"screens.number":         "Type a number.",
 	"screens.step":           "Use a multiple of {count}.",
 	"screens.yes":            "Yes",
+	"screens.addRow":         "Add a row",
+	"screens.removeRow":      "Remove this row",
+	"screens.rowsAtLeast":    "Add at least {count} rows.",
+	"screens.rowsAtMost":     "Keep to {count} rows at most.",
+	"screens.reason":         "Give a reason.",
 }
 
 type gen struct {

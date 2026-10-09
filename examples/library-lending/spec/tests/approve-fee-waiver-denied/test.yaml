@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: approveFeeWaiver
+level: system
+scenario: red
+covers: [denied without fees.approve, denied with expired session]
+given: a librarian, who does not hold fees.approve, a desk supervisor whose session expired, and a waiting request
+when: each calls approveFeeWaiver for it
+then: the first is refused as not allowed and the second as not signed in, and the request still waits

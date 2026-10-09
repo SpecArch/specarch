@@ -6,7 +6,6 @@ import {
   InlineLoading,
   InlineNotification,
   Link,
-  Modal,
   MultiSelect,
   OverflowMenu,
   OverflowMenuItem,
@@ -23,12 +22,12 @@ import {
   TableToolbar,
   TableToolbarContent,
   TableToolbarSearch,
-  TextArea,
   TextInput,
 } from "@carbon/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { decide } from "./access";
+import { Confirm, runAction } from "./Confirm";
 import { leave } from "./Notice";
 import { evaluate } from "./rules";
 import type { ColumnSchema, FailureSchema, ListPageSchema, RowActionSchema } from "./schema";
@@ -185,24 +184,15 @@ export function ListPage({ schema, texts, routes }: ListPageProps) {
       return;
     }
     setRunning(true);
-    try {
-      const response = await fetch(service + fill(action.path, action.parameters, row), {
-        method: action.method,
-        credentials: "include",
-        headers: { Accept: "application/json", ...(action.reason ? { "Content-Type": "application/json" } : {}) },
-        body: action.reason ? JSON.stringify({ [action.reason.property]: reason.trim() }) : undefined,
-      });
-      if (response.ok) {
-        setFailed("");
-        if (action.message !== undefined) {
-          leave(say(texts, action.message), pathname);
-        }
-        setReload((n) => n + 1);
-      } else {
-        setFailed(say(texts, refusal(action.failed, response.status)?.message ?? "screens.failed"));
+    const refused = await runAction(action, row, reason, texts);
+    if (refused === undefined) {
+      setFailed("");
+      if (action.message !== undefined) {
+        leave(say(texts, action.message), pathname);
       }
-    } catch {
-      setFailed(say(texts, "screens.failed"));
+      setReload((n) => n + 1);
+    } else {
+      setFailed(refused);
     }
     setRunning(false);
     setConfirming(undefined);
@@ -343,27 +333,15 @@ export function ListPage({ schema, texts, routes }: ListPageProps) {
         />
       </TableContainer>
       {confirming?.action.confirm !== undefined && (
-        <Modal
-          open
-          danger
-          modalHeading={say(texts, confirming.action.confirm)}
-          primaryButtonText={say(texts, confirming.action.label)}
-          secondaryButtonText={say(texts, "screens.cancel")}
-          primaryButtonDisabled={running || (confirming.action.reason !== undefined && reason.trim() === "")}
-          onRequestSubmit={() => void run(confirming.action, confirming.row)}
-          onRequestClose={() => setConfirming(undefined)}
-        >
-          {confirming.action.reason !== undefined && (
-            <TextArea
-              id="screens-reason"
-              labelText={say(texts, confirming.action.reason.label)}
-              value={reason}
-              maxCount={confirming.action.reason.maxLength}
-              enableCounter={confirming.action.reason.maxLength !== undefined}
-              onChange={(event) => setReason(event.target.value)}
-            />
-          )}
-        </Modal>
+        <Confirm
+          action={{ ...confirming.action, confirm: confirming.action.confirm }}
+          texts={texts}
+          reason={reason}
+          running={running}
+          onReason={setReason}
+          onConfirm={() => void run(confirming.action, confirming.row)}
+          onClose={() => setConfirming(undefined)}
+        />
       )}
     </section>
   );

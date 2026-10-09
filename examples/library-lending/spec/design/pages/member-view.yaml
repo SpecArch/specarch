@@ -15,3 +15,5 @@ pages:
         member-not-found: { message: There is no member with this card. }
     actions:
       - { label: Lend a book, kind: navigate, target: loan-form, permission: loans.create }
+      - { label: Lend copies, kind: navigate, target: member-loans, permission: loans.create }
+      - { label: Deactivate, kind: operation, target: deactivateMember, permission: members.write, when: 'status == "active"', confirm: "Deactivate this member? They will borrow nothing more.", reason: reason, then: { message: The member is deactivated. } }

@@ -28,7 +28,7 @@ steps. In short:
    with screens built by hand.
 
 Questions Q1 to Q10 at the end were the owner's, who answered each as
-recommended on 2026-10-09 (ADR-051). Steps 1 to 4 are built.
+recommended on 2026-10-09 (ADR-051). Steps 1 to 5 are built.
 
 ## Where SpecArch stands
 
@@ -62,9 +62,9 @@ below:
 | an action offered by the row's state | an expression over the row, in the expression language, that says when a row action is offered | step 3, for that part |
 | a picker (`pickers`) | a field that holds the key of another entity's record, picked from a list an operation reads, and may fill other fields | step 4 |
 | a rule across fields (`checks`, `enteredTwice`, `fieldConditions`) | a confirmation equal to a password, an end after a start; a field read-only or hidden by an expression. A page is one mode (a form without `source` creates, one with it edits, a view shows), so a field hidden in a mode is one that page does not list | step 4 |
-| child rows | rows of a child entity edited under the parent's form, with a maximum and the loaded rows locked | step 5 |
-| a confirmation with a reason | the reason is typed, required and sent with the request | step 5 |
-| an approval | a write that starts an approval and answers "accepted, pending", with how completion is announced | step 5 |
+| child rows (`childRows`, a view's `rows`) | rows of a child entity edited under the parent's form, with a maximum and the loaded rows locked | step 5 |
+| a confirmation with a reason (`reason`) | the reason is typed, required and sent with the request | step 5 |
+| an approval (`workflows`, `inbox`) | a write that starts an approval and answers "accepted, pending", with how completion is announced | step 5 |
 
 `ownedBy` (ADR-046, built) already covers what the request asks of a
 page, a menu entry and a server route: a menu entry is a mapping pointer
@@ -304,13 +304,19 @@ needs Q1, Q4 and Q5; step 2 needs Q2, Q3, Q6, Q7 and Q10.
    the member and the book, checks that the copy is due after the day it
    is lent and starts that day with a hook; it, the member's form and the
    member's view build both ways.
-5. **Child rows, reasons and approvals.** Child rows edited inline or in a
-   dialog, loaded rows locked, a maximum count and per-row checks; a
-   confirmation that requires a reason and sends it; a write that answers
-   pending, the screen that follows it until the approval ends, and an
-   approver's inbox. Waits for the 0.2 steps that add child rows, the
-   confirmation with a reason and the approval. Done when the example has
-   each and builds both ways.
+5. **Built: child rows, reasons and approvals** (SA-55, ADR-071). Child
+   rows sent in the body's array named for the relation, drawn inline,
+   loaded rows read from the view the source answers (`rows`, ADR-070),
+   locked and never sent, a maximum count and per-row checks; a view's
+   actions that run an operation, with a confirmation that requires a
+   reason and sends it, through the list's one confirmation; a form that
+   starts an approval acting on the 202 answer as its pending state, and
+   the approver's inbox as a list with the approval's operations as row
+   actions. Rows in a dialog are not written, and the page does not follow
+   an approval to its end, which is a channel message no browser reads.
+   Done: the member's copies lent as rows under their loans, the member
+   deactivated from the view with a reason, a fee waiver asked for and
+   approved or refused with a reason from the inbox, built both ways.
 6. **Server routes, strings and theme.** A server route per operation a
    page calls, when the target puts one between browser and service,
    adding the session's token and paging what the settings name (Q8), and

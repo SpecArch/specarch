@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: refuseFeeWaiver
+level: system
+scenario: red
+covers: [waiverId not a valid uuid, not found waiverId, missing reason]
+given: a desk supervisor, a waiting request, and no request with a given id
+when: "refuseFeeWaiver is called with waiverId abc, with that id, and for the waiting request without a reason"
+then: the first and the last are refused as invalid input and the second as not found, and the request still waits

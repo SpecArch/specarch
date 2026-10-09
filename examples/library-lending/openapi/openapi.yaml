@@ -117,6 +117,73 @@ paths:
       x-specarch-permission: fees.approve
       x-specarch-satisfies:
         - LIB-8
+  /fee-waivers/{waiverId}/approve:
+    parameters:
+      - name: waiverId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: approveFeeWaiver
+      summary: Approve a request to waive a late fee, at its approve step
+      description: |
+        Answers the approve step of the fee-waiver workflow. The fee is
+        waived once the request is approved.
+      responses:
+        "200":
+          description: The request is approved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeeWaiverRequest'
+      security:
+        - bearerAuth: []
+      x-specarch-permission: fees.approve
+      x-specarch-satisfies:
+        - LIB-8
+  /fee-waivers/{waiverId}/refuse:
+    parameters:
+      - name: waiverId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: refuseFeeWaiver
+      summary: Refuse a request to waive a late fee, at its approve step, saying why
+      description: |
+        Answers the approve step of the fee-waiver workflow. The request
+        ends refused and the fee stands; the reason is kept with it for the
+        librarian who asked.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: Why the request is refused, kept with it.
+                  minLength: 1
+                  maxLength: 500
+              required:
+                - reason
+      responses:
+        "200":
+          description: The request is refused.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeeWaiverRequest'
+      security:
+        - bearerAuth: []
+      x-specarch-permission: fees.approve
+      x-specarch-satisfies:
+        - LIB-8
   /fee-waivers/{waiverId}/waive:
     parameters:
       - name: waiverId

@@ -21,6 +21,26 @@ entities:
     primaryKey: [id]
     relations:
       homeBranch: { target: Branch, kind: many-to-one, via: homeBranchId, onDelete: restrict }
+      visitLog: { target: Visit, kind: one-to-many, via: memberId }
+  Visit:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true, title: Visit }
+      memberId: { type: string, format: uuid }
+      visitedOn: { type: string, format: date, title: Visited on }
+      note: { type: [string, "null"], maxLength: 100, title: Note }
+    required: [id, memberId, visitedOn, note]
+    primaryKey: [id]
+    relations:
+      member: { target: Member, kind: many-to-one, via: memberId, onDelete: restrict }
+  RemovalRequest:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      memberId: { type: string, format: uuid, title: Member }
+      why: { type: string, minLength: 1, maxLength: 200, title: Why }
+    required: [id, memberId, why]
+    primaryKey: [id]
   Branch:
     type: object
     properties:
@@ -28,6 +48,18 @@ entities:
       name: { type: string, title: Name, minLength: 1, maxLength: 100 }
     required: [id, name]
     primaryKey: [id]
+views:
+  MemberWithVisits:
+    from: Member
+    properties:
+      visitLog: { rows: visitLog }
+workflows:
+  removal:
+    description: A member is removed only after a second clerk approves it.
+    trigger: requestRemoval
+    subject: RemovalRequest
+    steps:
+      - { name: approve, kind: approval, approvers: [supervisor], permission: members.approve, deadline: P2D, onDeadline: refuse }
 errors:
   sign-in-refused: { status: 401, title: Sign-in refused, condition: The email address or the password is wrong. }
   invitation-used: { status: 409, title: Invitation used, condition: The invitation was used before. }
@@ -35,10 +67,12 @@ errors:
 permissions:
   members.read: { description: See the members. }
   members.write: { description: Change the members. }
+  members.approve: { description: Approve a member's removal. }
   public: { description: Open to everyone. }
 roles:
   member: { description: A member., permissions: [members.read] }
   clerk: { description: Keeps the members., permissions: [members.read, members.write] }
+  supervisor: { description: Approves removals., permissions: [members.read, members.approve] }
 session: { description: A member signs in once and works in a session., idleTimeout: PT30M, absoluteTimeout: PT12H }
 paths:
   /members:
@@ -127,10 +161,10 @@ paths:
       permission: members.read
       responses:
         "200":
-          description: The member.
+          description: The member, with their visits.
           content:
             application/json:
-              schema: { $ref: "#/entities/Member" }
+              schema: { $ref: "#/views/MemberWithVisits" }
         "404": { description: No such member., problem: member-gone }
     put:
       operationId: updateMember
@@ -172,6 +206,79 @@ paths:
       responses:
         "204": { description: Suspended. }
         "404": { description: No such member., problem: member-gone }
+  /members/{memberId}/visits:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: recordVisits
+      summary: Record a member's visits
+      permission: members.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                visitLog:
+                  type: array
+                  minItems: 1
+                  maxItems: 5
+                  items:
+                    type: object
+                    properties:
+                      visitedOn: { type: string, format: date }
+                      note: { type: string, maxLength: 100 }
+                    required: [visitedOn]
+              required: [visitLog]
+      responses:
+        "201": { description: Recorded. }
+        "404": { description: No such member., problem: member-gone }
+  /members/{memberId}/removals:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: requestRemoval
+      summary: Ask for a member to be removed
+      permission: members.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                why: { type: string, minLength: 1, maxLength: 200 }
+              required: [why]
+      responses:
+        "202":
+          description: The request waits for a supervisor.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/RemovalRequest" }
+  /removals:
+    get:
+      operationId: listRemovals
+      summary: The removals waiting for approval
+      permission: members.approve
+      listOf:
+        entity: RemovalRequest
+        pageSize: { default: 20, maximum: 50 }
+      responses:
+        "200":
+          description: The waiting removals.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/RemovalRequest" } }
+  /removals/{removalId}/approve:
+    parameters:
+      - { name: removalId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: approveRemoval
+      summary: Approve a removal
+      permission: members.approve
+      responses:
+        "204": { description: Approved. }
   /sessions/current:
     get:
       operationId: getSession
@@ -343,12 +450,51 @@ pages:
         member-gone: { message: That member is gone. }
     actions:
       - { label: Change, kind: navigate, target: member-edit, permission: members.write }
+      - { label: Suspend, kind: operation, target: suspendMember, permission: members.write, when: 'status == "active"', confirm: "Suspend this member?", reason: why, then: { message: The member is suspended. } }
+  visits-form:
+    kind: form
+    title: Record visits
+    route: /members/{memberId}/visits
+    entity: Member
+    permission: members.write
+    source: getMember
+    submit: recordVisits
+    fields: [name]
+    fieldConditions:
+      name: { readOnly: true }
+    childRows:
+      - { relation: visitLog, title: Visits, fields: [visitedOn, note, id], maximum: 5, lockLoadedRows: true }
+    states:
+      failed:
+        member-gone: { message: That member is gone. }
+    onSubmitted: { navigate: member-view, with: { memberId: id }, message: The visits are recorded. }
+  removal-form:
+    kind: form
+    title: Ask to remove a member
+    route: /members/{memberId}/removal
+    entity: RemovalRequest
+    permission: members.write
+    submit: requestRemoval
+    fields: [why]
+    onSubmitted: { navigate: members-list, message: Sent for approval. A supervisor answers within two days. }
+  removals-inbox:
+    kind: list
+    title: Removals to approve
+    route: /removals
+    entity: RemovalRequest
+    permission: members.approve
+    source: listRemovals
+    inbox: { workflow: removal, step: approve }
+    columns: [memberId, why]
+    actions:
+      - { label: Approve, kind: operation, target: approveRemoval, confirm: "Approve this removal?", then: { message: The member is removed. } }
 menus:
   people:
     title: People
     items:
       all: { title: All members, page: members-list }
       invite: { title: Invite someone, page: invitation }
+      removals: { title: Removals to approve, page: removals-inbox }
   admin:
     title: Administration
     items:

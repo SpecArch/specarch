@@ -46,6 +46,7 @@ export const schema = {
       ],
     },
   ],
+  rows: [],
   checks: [
     {
       name: "due-after-lent",

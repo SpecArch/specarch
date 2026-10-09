@@ -64,6 +64,7 @@ export const schema = {
       ],
     },
   ],
+  rows: [],
   checks: [
     {
       name: "notes-not-the-name",

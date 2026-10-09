@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-071:
+    title: Child rows are sent in the body's array of the relation's name, loaded rows are read from a view's rows and never sent, and a view's operation actions share the list's confirmation
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Step 5 of docs/ui-nextjs-carbon.md writes child rows, a confirmation
+      that requires a reason, a request that waits for approval and an
+      approver's inbox on Next.js and Carbon. The design's child rows name
+      a relation, its fields, a maximum and whether loaded rows are locked;
+      they do not say where the rows go in the request, nor where loaded
+      rows come from. A confirmation with a reason was written for a list's
+      row actions in step 3; a view refused actions that run an operation.
+      A workflow's trigger answers 202, and its end is announced on a
+      channel the browser has no transport for.
+    decision: |
+      A form's child rows are sent as the array property of its request
+      body named for the relation, each row with the fields the array's
+      items take; a row field the items do not take is shown on the loaded
+      rows only, and a property the items require must be shown. A form
+      that loads its record reads its loaded rows from the property of the
+      view its source answers that adds rows of the relation (ADR-070),
+      shows them read-only in a table and sends only the rows added, so its
+      child rows must lock the loaded rows; a form that could change them
+      is refused until a body can say which row changed. The added rows are
+      drawn inline, each with its fields' parts and a button that removes
+      it, checked by their keywords; their count is at least the body's
+      minItems and, with the loaded ones, at most the maximum. A view's
+      action that runs an operation is read as a list's row action is,
+      with the record in place of the row, and drawn as a button that asks
+      the same confirmation, through one Confirm component both use; a
+      success reads the record again. A form whose submit is a workflow's
+      trigger is drawn like any other, its event marked with status 202 as
+      the page's pending state, and an inbox is drawn as a list, its row
+      actions the approver's operations. The ui-components idiom is 1.4.0:
+      form-page names rows, view-page names operations.
+    consequences: |
+      The library lending example lends copies as rows under a member's
+      loans, deactivates a member from the view with a reason, asks for a
+      fee waiver that waits, and has the desk supervisor approve or refuse
+      it, with a reason, from the inbox through two operations of its own.
+      Rows in a dialog are not written; the rows are inline, which the plan
+      left to the stack. The page that asked for an approval does not
+      follow it to its end, since the end is a channel message no browser
+      reads; the pending message says who answers and when.
+    why: |
+      The array named for the relation is the one place the request can
+      say rows without a mapping keyword, and the validator already ties
+      the rows to the relation; the items' own properties say which fields
+      are sent, as a form's body says which fields are. Loaded rows that
+      are never sent keep a request that adds rows from repeating or
+      overwriting the rows already kept, which locking says. One
+      confirmation component keeps the list and the view asking the same
+      thing the same way, and the reason required before it is sent.
+    satisfies: [SA-55]

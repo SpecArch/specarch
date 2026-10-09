@@ -189,6 +189,9 @@ type formFieldInput struct {
 	props              map[string]any
 	wires              map[string]string
 	entity             map[string]any
+	// labelAt is the string key of the label, when it is not the page's
+	// field of the name, as a child row's field is not.
+	labelAt string
 }
 
 func (g *gen) formField(in formFieldInput) (value, bool) {
@@ -229,10 +232,11 @@ func (g *gen) formField(in formFieldInput) (value, bool) {
 		return nil, false
 	}
 	wire := wirename.Of(g.wireNames, in.name)
+	labelAt := orText(in.labelAt, in.pageName+".fields."+in.name)
 	data := []member{
 		{"type", str(g.name(part, "type"))},
 		{g.name(part, "name"), str(wire)},
-		{g.name(part, "label"), str(g.say(in.pageName+".fields."+in.name, label))},
+		{g.name(part, "label"), str(g.say(labelAt, label))},
 		{g.name(part, "required"), raw(strconv.FormatBool(in.required))},
 	}
 	switch part {
@@ -375,17 +379,7 @@ type pageOut struct {
 // formPage writes the files of a form.
 func (g *gen) formPage(pageName string, pg map[string]any, sess *session, hooks []string, layout string) (pageOut, bool) {
 	at := "/pages/" + pageName
-	if _, ok := pg["childRows"]; ok {
-		g.problem("warning", at+"/childRows", "%s edits child rows, and this version of %s does not draw them; it is left out", pageName, name)
-		return pageOut{}, false
-	}
 	submit := text(pg["submit"])
-	for _, w := range obj0(g.spec["workflows"]) {
-		if text(obj0(w)["trigger"]) == submit && submit != "" {
-			g.problem("warning", at+"/submit", "%s starts an approval through %s, and this version of %s does not draw a request that waits; it is left out", pageName, submit, name)
-			return pageOut{}, false
-		}
-	}
 	before := len(g.diags)
 	if text(pg["enabledBy"]) != "" {
 		g.problem("error", at+"/enabledBy", "%s is switched on by %s, and this version of %s does not read configuration, so the page would be served while it is off", pageName, text(pg["enabledBy"]), name)
@@ -449,6 +443,7 @@ func (g *gen) formPage(pageName string, pg map[string]any, sess *session, hooks 
 		}
 	}
 	submitMembers = append(submitMembers, member{"fields", array(sent)})
+	rows := g.childRows(pageName, pg, entity, bodyProps, required, shown)
 	if key := text(op["idempotencyKey"]); key != "" {
 		submitMembers = append(submitMembers, member{"idempotencyKey", str(key)})
 	}
@@ -521,6 +516,14 @@ func (g *gen) formPage(pageName string, pg map[string]any, sess *session, hooks 
 		g.problem("error", at+"/onSubmitted", "%s says nothing of what follows a success, so the page could not tell the person what happened; add onSubmitted", pageName)
 	} else {
 		entry := []member{}
+		// A request that waits for approval is answered 202, and the event
+		// is the page's pending state: what it says and where it leads.
+		for _, w := range obj0(g.spec["workflows"]) {
+			if text(obj0(w)["trigger"]) == submit {
+				entry = append(entry, member{"status", raw("202")})
+				break
+			}
+		}
 		if target := text(ev["navigate"]); target != "" {
 			tp, found := obj(obj0(g.spec["pages"])[target])
 			if !found {
@@ -555,6 +558,7 @@ func (g *gen) formPage(pageName string, pg map[string]any, sess *session, hooks 
 	add("submit", object(submitMembers))
 	add("layout", str(orText(layout, "page")))
 	add("sections", array(sections))
+	add("rows", array(rows))
 	add("checks", array(checks))
 	add("failed", array(g.refusalsOf(pageName, op, obj0(obj0(pg["states"])["failed"]))))
 	add("events", array(events))
@@ -563,6 +567,114 @@ func (g *gen) formPage(pageName string, pg map[string]any, sess *session, hooks 
 	}
 	schema, page, client := g.pageFiles(pageName, pg, part, schemaMembers, routes, hooks)
 	return pageOut{schema, page, client, g.refusalTest(pageName, text(pg["route"]), permission, g.name(part, "permission"))}, true
+}
+
+// childRows reads a form's child rows: the body's array property of the
+// relation's name that takes them, the property of the loaded record that
+// holds the loaded ones, and each row's fields, checked by the target
+// entity's keywords; a field the array's items do not take is shown and
+// never sent. The relation's name is taken off required and marked shown,
+// since the rows send it.
+func (g *gen) childRows(pageName string, pg, entity, bodyProps map[string]any, required, shown map[string]bool) []value {
+	at := "/pages/" + pageName + "/childRows"
+	out := []value{}
+	entities := obj0(g.spec["entities"])
+	for i, r := range list(pg["childRows"]) {
+		row := obj0(r)
+		ptr := fmt.Sprintf("%s/%d", at, i)
+		rel := text(row["relation"])
+		target := text(obj0(obj0(entity["relations"])[rel])["target"])
+		targetEntity := obj0(entities[target])
+		targetProps := obj0(targetEntity["properties"])
+		wire := wirename.Of(g.wireNames, rel)
+		arr := obj0(bodyProps[rel])
+		items := obj0(arr["items"])
+		if ref, ok := strings.CutPrefix(text(items["$ref"]), "#/entities/"); ok {
+			items = obj0(entities[ref])
+		}
+		if g.propertyType(arr) != "array" || g.propertyType(items) != "object" {
+			g.problem("error", ptr+"/relation", "%s edits the rows of %s, and the request body of %s has no array of objects named %s to send them in; add it to the body", pageName, rel, text(pg["submit"]), rel)
+			continue
+		}
+		shown[rel] = true
+		itemProps := obj0(items["properties"])
+		itemRequired := map[string]bool{}
+		for _, q := range list(items["required"]) {
+			itemRequired[text(q)] = true
+		}
+		var loaded string
+		if pg["source"] != nil {
+			if row["lockLoadedRows"] != true {
+				g.problem("error", ptr, "%s loads the rows of %s and may change them, and this version of %s sends only the rows added; lock the loaded rows with lockLoadedRows", pageName, rel, name)
+				continue
+			}
+			if loaded = g.loadedRows(text(pg["source"]), rel); loaded == "" {
+				g.problem("error", ptr+"/relation", "%s loads its record from %s, whose answer carries no rows of %s, so the loaded rows cannot be shown; answer a view that adds rows: %s", pageName, text(pg["source"]), rel, rel)
+				continue
+			}
+		}
+		shownRow := map[string]bool{}
+		var fields, sent []value
+		for j, fv := range list(row["fields"]) {
+			f := text(fv)
+			shownRow[f] = true
+			prop := obj0(targetProps[f])
+			if prop == nil {
+				continue // the validator reports a field the target lacks
+			}
+			readOnly := prop["readOnly"] == true || itemProps[f] == nil
+			field, ok := g.formField(formFieldInput{pageName: pageName, at: fmt.Sprintf("%s/fields/%d", ptr, j), name: f, prop: prop,
+				required: itemRequired[f] && !readOnly, readOnly: readOnly, entity: targetEntity, labelAt: pageName + ".rows." + rel + ".fields." + f})
+			if !ok {
+				continue
+			}
+			fields = append(fields, field)
+			if !readOnly {
+				sent = append(sent, str(wirename.Of(g.wireNames, f)))
+			}
+		}
+		for _, q := range sortedKeys(anyMapBool(itemRequired)) {
+			if !shownRow[q] {
+				g.problem("error", ptr+"/fields", "the rows of %s are sent to %s, whose items require %s, which the rows do not show", rel, text(pg["submit"]), q)
+			}
+		}
+		entry := []member{{"name", str(wire)}}
+		if loaded != "" {
+			entry = append(entry, member{"loaded", str(loaded)})
+		}
+		entry = append(entry,
+			member{"title", str(g.say(pageName+".rows."+rel, text(row["title"])))},
+			member{"fields", array(fields)},
+			member{"sent", array(sent)})
+		if m := text(row["maximum"]); m != "" {
+			entry = append(entry, member{"maximum", raw(m)})
+		}
+		if m := text(arr["minItems"]); m != "" && m != "0" {
+			entry = append(entry, member{"minimum", raw(m)})
+		}
+		entry = append(entry, member{"lockLoaded", raw(strconv.FormatBool(row["lockLoadedRows"] == true))})
+		out = append(out, object(entry))
+	}
+	return out
+}
+
+// loadedRows is the property of an operation's answer that carries the
+// rows of a relation: a property of the view it answers that adds rows of
+// it, on the wire; "" when it carries none.
+func (g *gen) loadedRows(sourceID, relation string) string {
+	op, _, _ := g.operation(sourceID)
+	schema := obj0(obj0(obj0(obj0(obj0(op["responses"])["200"])["content"])["application/json"])["schema"])
+	view, ok := strings.CutPrefix(text(schema["$ref"]), "#/views/")
+	if !ok {
+		return ""
+	}
+	props := obj0(obj0(obj0(g.spec["views"])[view])["properties"])
+	for _, p := range sortedKeys(props) {
+		if text(obj0(props[p])["rows"]) == relation {
+			return wirename.Of(g.wireNames, p)
+		}
+	}
+	return ""
 }
 
 // viewPage writes the files of a view.
@@ -610,18 +722,22 @@ func (g *gen) viewPage(pageName string, pg map[string]any, sess *session) (pageO
 		sections = append(sections, object(section))
 	}
 	routes := map[string]string{}
-	var actions []value
+	var actions, operations []value
 	pages := obj0(g.spec["pages"])
 	own := map[string]bool{}
 	for _, p := range pathParam.FindAllString(text(pg["route"]), -1) {
 		own[p[1:len(p)-1]] = true
 	}
+	failed := obj0(obj0(pg["states"])["failed"])
 	for i, a := range list(pg["actions"]) {
 		am := obj0(a)
 		ptr := fmt.Sprintf("%s/actions/%d", at, i)
 		target := text(am["target"])
 		if text(am["kind"]) != "navigate" {
-			g.problem("error", ptr, "the action %s runs %s, and this version of %s writes a view's actions that open a page only", text(am["label"]), target, name)
+			op, ok := g.rowAction(pageName, ptr, am, pageName+".actions."+target, orText(text(am["permission"]), permission), entity, list(entity["primaryKey"]), failed)
+			if ok {
+				operations = append(operations, op)
+			}
 			continue
 		}
 		tp, ok := obj(pages[target])
@@ -652,6 +768,7 @@ func (g *gen) viewPage(pageName string, pg map[string]any, sess *session) (pageO
 	add("source", source)
 	add("sections", array(sections))
 	add("actions", array(actions))
+	add("operations", array(operations))
 	if g.failedSince(before) {
 		return pageOut{}, false
 	}

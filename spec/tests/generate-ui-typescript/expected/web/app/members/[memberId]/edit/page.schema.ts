@@ -28,6 +28,7 @@ export const schema = {
       ],
     },
   ],
+  rows: [],
   checks: [],
   failed: [{ status: 404, problem: "member-gone", message: "member-edit.failed.member-gone" }],
   events: [{ navigate: "member-view", with: { memberId: "id" }, message: "member-edit.onSubmitted" }],

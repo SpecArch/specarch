@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 173 design tests, 52 golden and 120 red, about 45 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 181 design tests, 54 golden and 126 red, about 47 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,11 +11,37 @@ Version 0.1.0 of the specification: 173 design tests, 52 golden and 120 red, abo
 | Level | Design tests |
 |---|---|
 | acceptance | 9 |
-| system | 164 |
+| system | 172 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
 ## 2. Test cases
+
+### Operation approveFeeWaiver
+
+#### approve-fee-waiver
+
+Scenario: golden; level: system; verifies LIB-8.
+
+- Given: a desk supervisor, and a request by another librarian to waive a fee of 3.50, waiting at approve
+- When: approveFeeWaiver is called for it
+- Then: it answers 200, the request is approved, and the loan's late fee is 0.00
+
+#### approve-fee-waiver-denied
+
+Scenario: red; level: system; covers denied without fees.approve, denied with expired session.
+
+- Given: a librarian, who does not hold fees.approve, a desk supervisor whose session expired, and a waiting request
+- When: each calls approveFeeWaiver for it
+- Then: the first is refused as not allowed and the second as not signed in, and the request still waits
+
+#### approve-fee-waiver-unknown-waiver
+
+Scenario: red; level: system; covers waiverId not a valid uuid, not found waiverId.
+
+- Given: a desk supervisor and no request with a given id
+- When: approveFeeWaiver is called with waiverId abc, and with that id
+- Then: the first is refused as invalid input and the second as not found
 
 ### Book constraint book_available_within_owned
 
@@ -450,6 +476,14 @@ Scenario: red; level: system; covers denied without fees.approve; verifies LIB-8
 - Given: a librarian, who asked for a waiting request and does not hold fees.approve
 - When: the page fee-waivers-inbox is opened
 - Then: it is not shown, so the librarian sees no request to approve, their own included
+
+#### fee-waivers-inbox-refuse
+
+Scenario: red; level: system; covers Refuse without a reason.
+
+- Given: a desk supervisor and a waiting request by another librarian
+- When: the page fee-waivers-inbox is opened, and Refuse is confirmed for the request with no reason
+- Then: it sends nothing until a reason is given, and the request still waits
 
 #### fee-waivers-inbox-succeeds
 
@@ -1047,6 +1081,14 @@ Scenario: red; level: system; covers loans with more than 6 rows; verifies LIB-3
 
 ### Page member-view
 
+#### member-view-deactivate
+
+Scenario: red; level: system; covers Deactivate without a reason.
+
+- Given: a librarian and an active member
+- When: the page member-view is opened for the member, and Deactivate is confirmed with no reason
+- Then: it sends nothing until a reason is given, and the member stays active
+
 #### member-view-denied
 
 Scenario: red; level: system; covers denied without members.read.
@@ -1166,6 +1208,32 @@ Scenario: red; level: system; covers from wrong state.
 - Given: a loan already returned
 - When: returnLoan is called again
 - Then: it is refused and the fee is not charged twice
+
+### Operation refuseFeeWaiver
+
+#### refuse-fee-waiver
+
+Scenario: golden; level: system; verifies LIB-8.
+
+- Given: a desk supervisor, and a request by another librarian to waive a fee of 3.50, waiting at approve
+- When: refuseFeeWaiver is called for it with the reason "The book came back damaged."
+- Then: it answers 200, the request ends refused with that reason, and the fee still stands
+
+#### refuse-fee-waiver-bad-input
+
+Scenario: red; level: system; covers waiverId not a valid uuid, not found waiverId, missing reason.
+
+- Given: a desk supervisor, a waiting request, and no request with a given id
+- When: refuseFeeWaiver is called with waiverId abc, with that id, and for the waiting request without a reason
+- Then: the first and the last are refused as invalid input and the second as not found, and the request still waits
+
+#### refuse-fee-waiver-denied
+
+Scenario: red; level: system; covers denied without fees.approve, denied with expired session.
+
+- Given: a librarian, who does not hold fees.approve, a desk supervisor whose session expired, and a waiting request
+- When: each calls refuseFeeWaiver for it with a reason
+- Then: the first is refused as not allowed and the second as not signed in, and the request still waits
 
 ### Operation reportLost
 
@@ -1548,7 +1616,7 @@ stateDiagram-v2
 
 ## 4. Derived cases left out
 
-70 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+75 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1595,6 +1663,10 @@ stateDiagram-v2
 | operation requestFeeWaiver | reason of 500 characters | golden | occasional case, and operation requestFeeWaiver satisfies no requirement with a harm |
 | operation listFeeWaivers | page beyond last | golden | occasional case, and operation listFeeWaivers satisfies no requirement with a harm |
 | operation listFeeWaivers | page size above 100 | red | occasional case, and operation listFeeWaivers satisfies no requirement with a harm |
+| operation refuseFeeWaiver | reason shorter than 1 character | red | occasional case, and operation refuseFeeWaiver satisfies no requirement with a harm |
+| operation refuseFeeWaiver | reason of 1 character | golden | occasional case, and operation refuseFeeWaiver satisfies no requirement with a harm |
+| operation refuseFeeWaiver | reason longer than 500 characters | red | occasional case, and operation refuseFeeWaiver satisfies no requirement with a harm |
+| operation refuseFeeWaiver | reason of 500 characters | golden | occasional case, and operation refuseFeeWaiver satisfies no requirement with a harm |
 | job markOverdue | an item fails every try | red | occasional case, and job markOverdue satisfies no requirement with a harm |
 | page fee-waivers-inbox | empty | golden | occasional case, and page fee-waivers-inbox satisfies no requirement with a harm |
 | page loan-form | fails with lending-refused | red | occasional case, and page loan-form satisfies no requirement with a harm |
@@ -1606,6 +1678,7 @@ stateDiagram-v2
 | page loans-list | Lost not offered | red | occasional case, and page loans-list satisfies no requirement with a harm |
 | page member-form | fails with email-taken | red | occasional case, and page member-form satisfies no requirement with a harm |
 | page member-view | fails with member-not-found | red | occasional case, and page member-view satisfies no requirement with a harm |
+| page member-view | Deactivate not offered | red | occasional case, and page member-view satisfies no requirement with a harm |
 | page members-list | empty | golden | occasional case, and page members-list satisfies no requirement with a harm |
 | page members-list | filtered empty | golden | occasional case, and page members-list satisfies no requirement with a harm |
 | page members-list | fails with member-not-found | red | occasional case, and page members-list satisfies no requirement with a harm |

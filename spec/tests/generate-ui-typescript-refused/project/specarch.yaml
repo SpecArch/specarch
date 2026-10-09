@@ -15,6 +15,16 @@ entities:
       fee: { type: string, format: decimal, precision: 6, scale: 2, title: Fee }
     required: [id, name, status, joinedOn, fee]
     primaryKey: [id]
+    relations:
+      visitLog: { target: Visit, kind: one-to-many, via: memberId }
+  Visit:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      memberId: { type: string, format: uuid }
+      visitedOn: { type: string, format: date, title: Visited on }
+    required: [id, memberId, visitedOn]
+    primaryKey: [id]
 errors:
   sign-in-refused: { status: 401, title: Sign-in refused, condition: The email address or the password is wrong. }
   invitation-used: { status: 409, title: Invitation used, condition: The invitation was used before. }
@@ -100,6 +110,39 @@ paths:
       responses:
         "204": { description: Suspended. }
         "404": { description: No such member., problem: member-gone }
+  /members/{memberId}/visits:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: recordVisits
+      summary: Record a member's visits
+      permission: members.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                visits: { type: array, items: { type: object, properties: { visitedOn: { type: string, format: date } } } }
+                visitLog: { type: array, items: { type: object, properties: { visitedOn: { type: string, format: date } } } }
+      responses:
+        "201": { description: Recorded. }
+  /visits:
+    post:
+      operationId: recordVisitsAnywhere
+      summary: Record visits
+      permission: members.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                visits: { type: array, items: { type: object, properties: { visitedOn: { type: string, format: date } } } }
+      responses:
+        "201": { description: Recorded. }
   /sessions/current:
     get:
       operationId: getSession
@@ -236,7 +279,48 @@ pages:
     fieldConditions:
       fee: { hiddenWhen: 'fee > decimal("0.00", 2)' }
     actions:
-      - { label: Suspend, kind: operation, target: suspendMember, permission: members.write, confirm: "Suspend this member?", reason: why }
+      - { label: Suspend, kind: operation, target: suspendMember, permission: members.write, confirm: "Suspend this member?", reason: why, then: { navigate: members-list } }
+  visits-form:
+    kind: form
+    title: Record visits
+    route: /members/{memberId}/visits
+    entity: Member
+    permission: members.write
+    source: getMember
+    submit: recordVisits
+    fields: [name]
+    fieldConditions:
+      name: { readOnly: true }
+    childRows:
+      - { relation: visitLog, title: Visits, fields: [visitedOn], lockLoadedRows: true }
+    onSubmitted: { message: The visits are recorded. }
+  visits-unlocked:
+    kind: form
+    title: Change visits
+    route: /members/{memberId}/visits/edit
+    entity: Member
+    permission: members.write
+    source: getMember
+    submit: recordVisits
+    fields: [name]
+    fieldConditions:
+      name: { readOnly: true }
+    childRows:
+      - { relation: visitLog, title: Visits, fields: [visitedOn] }
+    onSubmitted: { message: The visits are recorded. }
+  visits-new:
+    kind: form
+    title: Record visits anywhere
+    route: /visits/new
+    entity: Member
+    permission: members.write
+    submit: recordVisitsAnywhere
+    fields: [name]
+    fieldConditions:
+      name: { readOnly: true }
+    childRows:
+      - { relation: visitLog, title: Visits, fields: [visitedOn] }
+    onSubmitted: { message: The visits are recorded. }
 menus:
   people:
     title: People

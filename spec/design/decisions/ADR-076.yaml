@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-076:
+    title: A dxlib service's endpoints and privileges are read from the OpenAPI document dxlib emits, and the Go reader reads from its source only what dxlib cannot emit
+    status: proposed
+    date: "2026-10-09"
+    context: |
+      Most of the owner's Go services are built on dxlib and dxlib_module
+      (docs/dxlib-lessons.md). dxlib already writes, from what a service
+      registers at start, an OpenAPI 3.1 document in its own dialect
+      (OpenAPIAsJSON, api/OPENAPI.md in dxlib): every endpoint by method
+      and URI, its parameters with their dxlib types, its responses, and
+      in extensions its endpoint type, its privileges, its rate-limit
+      group and its content-length ceiling, with WebSocket endpoints in a
+      document-level extension. extract openapi reads that document today
+      and reports every x-dxlib- key as a thing it cannot hold, so each
+      operation's permission is a must question although the document
+      names it. dxlib_module grants privileges to roles through tables its
+      seed calls fill, and checks an endpoint's privileges against a
+      member's effective privileges: holding any one of them is enough,
+      an endpoint with none lets every caller its middleware lets through,
+      and the privilege EVERYTHING stands for all. The middleware chain,
+      which decides whether a caller must sign in at all, stays in code
+      and is not in the document.
+    decision: |
+      For a dxlib service the emitted document is the printer of the
+      endpoints: the project writes it with dxlib's own emitter after
+      every Define hook has run, commits it beside the code with the
+      commit it was made from, and extract openapi reads it. An operation
+      whose x-dxlib-endpoint-type is present is read in dxlib's dialect:
+      one name in x-dxlib-privileges is the operation's permission, stated,
+      citing the operation's pointer, and declared; none, or the key
+      absent, is a must question saying that the operation checks no
+      privilege and is open to every caller its middleware admits; two or
+      more is a must question naming them, since dxlib lets a caller
+      holding any one through and an operation has one permission. The
+      other x-dxlib- keys keep their lines, and so does the WebSocket
+      extension, since the meta-model has no socket. The roles come from
+      a permission table that a printer in dxlib_module writes from the
+      tables its check reads (ADR-050); a grant of EVERYTHING is printed
+      as it is and is a must question, never expanded. The Go reader
+      (ADR-075) reads from source only what dxlib cannot emit: where each
+      endpoint is registered, the handler's name and the middleware chain,
+      the parameters a handler reads with dxlib's getters, the problems it
+      answers, the list endpoints' search, filter and order whitelists,
+      the tables and fields the handler touches, the role and privilege
+      seeds, and the configuration keys read.
+    why: |
+      dxlib's emitter is a printer in the sense of ADR-044: it runs the
+      service's own Define hooks, so an endpoint registered in a loop, by
+      a module or under a setting is in it, and only what is registered
+      is. It already exists, its round trip is tested in dxlib, and its
+      dialect is the one specarch's own dxlib generator writes, so reading
+      it back closes the loop with no new format. x-dxlib-privileges is
+      read only beside x-dxlib-endpoint-type, because an x- key means what
+      its own tools define (OpenAPI 3.1, 4.9), and only that key says the
+      document is dxlib's. More than one privilege is a question and not
+      the first one, because dxlib's any-of check and the meta-model's one
+      permission differ, and choosing would write a check the code does
+      not make. No privilege is a must question and never public, as for
+      the route table (ADR-044), because the open endpoint is the one a
+      reader must not miss, and whether a caller must sign in is decided
+      by middleware the document leaves out. EVERYTHING is asked about and
+      not expanded, because expanding it would write grants that change
+      whenever a permission is added, which no role table holds. The rest
+      is read from source because nothing at run time lists it: a handler
+      body is code, and only a parser sees which getters it calls.
+    consequences: |
+      A dxlib service needs one program that runs its Define hooks and
+      writes each API's document, as api/OPENAPI.md section 6 describes,
+      until dxlib offers that as a flag of its own; and one printer for
+      its permission table, until dxlib_module offers it. The dxlib and
+      dxlib_module changes that would help are listed in
+      docs/reading-code.md, Go on dxlib, for those repositories' own
+      queues.
+    satisfies: [SA-44]

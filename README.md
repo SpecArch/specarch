@@ -148,6 +148,7 @@ a defect in the roadmap, not an accepted state.
 | `docs/generators.md` | the rules every document and code target follows, and the plug-in protocol |
 | `docs/sync-gates.md` | the CI checks that keep a spec and its code equal |
 | `docs/extraction.md` | how an existing system gets its as-built spec, and what goes wrong |
+| `docs/reading-code.md` | what extract reads from source code per language and framework, and what stays with a printer |
 | `docs/from-sources.md` | the procedure an agent follows to write a specification from existing documents and code, with how to install and pin `specarch` |
 | `docs/roadmap.md` | document targets, code targets, sync gates, first real projects, the next meta-model |
 | `docs/meta-model-0.2.md` | meta-model 0.2: separation of duties, workflows, task pages and page elements, value objects, missing tests as errors, and the steps that build them |

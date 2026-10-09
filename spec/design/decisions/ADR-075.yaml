@@ -1,0 +1,145 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-075:
+    title: Source code is read by a parser of its own language for what no running system prints, every guess is a question at its file and line, and a parsed tree merges with a printed one as a second citation
+    status: proposed
+    date: "2026-10-09"
+    context: |
+      The readers of extract read what the running system produces or
+      holds: a catalogue dump, a route table and a permission table its
+      own printers write, an OpenAPI document, a file-system router's
+      folders, Markdown and BPMN. ADR-044 and ADR-050 chose a printer the
+      project keeps over a reader of Go, because only the running router
+      shows a route registered in a loop, behind a setting or by a
+      library, and only the running check knows where its grants are
+      read. The owner asks for readers of source code itself, per
+      language: Go, Swift, JavaScript and TypeScript, and Dart with
+      Flutter, and the frameworks on them (Next.js, Nuxt and Vue). Much
+      of what a system is lives only in its source: where an operation
+      is declared, the parameters a handler reads and the problems it
+      answers, the screens of a phone or desktop application and how one
+      leads to the next, the calls a client makes, the settings the code
+      reads. No printer can say these, since none of them is a table the
+      running system holds. A parser reads syntax, and syntax is not
+      behaviour: a path built from a variable, a route registered in a
+      loop, a check behind a helper and a type from a package not read
+      are each a guess. docs/reading-code.md sets out, per language and
+      surface, what is read from source and what stays with a printer.
+    decision: |
+      A surface the running system can print stays with its printer: the
+      routes it registers, the grants its check reads, the tables after
+      every migration. A parsed reader adds to it, and is the source
+      only where nothing can print the surface: declarations' places,
+      handler bodies, screens and navigation, client calls, settings
+      read, models declared in code. Where a project has no printer yet,
+      a parsed reader's routes and grants are written, and each carries a
+      must question asking whether the running system registers or
+      grants it, which a printed tree answers in the merge.
+
+      Each language is read by its own parser, never by a grammar of
+      SpecArch's: Go by go/parser from the standard library, inside
+      specarch; Swift by SwiftSyntax, TypeScript and JavaScript by the
+      TypeScript compiler, Vue single-file components by
+      @vue/compiler-sfc, and Dart by the analyzer package, each in a
+      small program in that language kept in this repository under
+      readers/, pinned with its lockfile, its licence and SBOM scan
+      recorded. Such a program writes a code-facts dump, a JSON object in
+      a format SpecArch defines: the version of the format, the language,
+      the parser's name and version, the folder read, the commit that last
+      changed it, and every fact as its kind, its file, line and column,
+      and its literal values, sorted by file, line and column. Like a
+      route table it is run in a committed folder by a script that
+      refuses changes not committed, it is committed beside the code, it
+      is stale once that folder changes, and a dump from another parser
+      version than the release pins is refused. The specarch extract
+      verb, in Go, turns facts into elements, so the rules below are kept
+      in one place.
+
+      A reader reads only the tracked files of the folder at the commit,
+      never a module cache, node_modules or a package cache, so a type, a
+      constant or a function declared outside them is not known, and what
+      it would give is a question. A fact is written only where the
+      syntax says it as a literal, or through a call the reader's table of
+      idioms for that library knows; anything else the reader meets on a
+      surface it reads (a path, a method, a permission or a destination
+      computed, a registration in a loop or behind a condition, a call
+      through a helper the table does not know, a spread, a dynamic
+      import) is written as a question at that file and line: must when it
+      concerns a route, a permission, a role, a gate on a setting, an
+      entity's key or a personal or credential field, should otherwise.
+      Every element of a parsed tree is origin stated and cites its
+      declaration as the clause path:line under the code source, whose
+      outline lists the files read, so the problems file places each
+      note on that line. A file of a library the reader knows that
+      produces nothing on a surface prints a line, so it shows in the
+      coverage.
+
+      A code source written by a reader says how it was read:
+      reading: printed for a dump the running system made, reading: parsed
+      for a parsed reader, a key of a code source in the 0.1 design
+      schema. specarch merge joins an element both give into one element
+      with both citations, and leaves a key they give different values out
+      with a must question citing both, as it does now. Between a printed
+      and a parsed tree of one surface it also writes: an element only the
+      parsed tree has, a must question (declared at path:line, not in the
+      running system: code that is never reached, or reached only under a
+      setting); an element only the printed tree has, a could question
+      citing the dump (registered by code the reader does not follow). A
+      question of the parsed tree that asks whether the running system
+      has an element is left out once the printed tree gives it.
+    why: |
+      A printer stays first because ADR-044 and ADR-050 still hold: a
+      parser sees one way of writing a registration and misses a loop, a
+      library and a setting, and the owner chose the printer for exactly
+      that. The parsed reader is added, not substituted, and the merge
+      turns every place they differ into a question rather than letting
+      one quietly win, which is the compiler principle of
+      docs/principles.md applied to two readings of one system.
+
+      The language's own parser, because it is the one its compiler and
+      tools use, so it accepts what the language accepts and nothing
+      else; a grammar of SpecArch's, or a generic one such as tree-sitter,
+      lags the language and differs from it at the edges, and a
+      difference there is a fact read wrong without a word. tree-sitter
+      was weighed and left: its grammars are separate projects that
+      follow each language at their own pace, its Go bindings need cgo,
+      which ends specarch's single static binary and its cross builds,
+      and it gives no types, which the TypeScript compiler does for a
+      project's own declarations. None of SwiftSyntax, the TypeScript
+      compiler or the Dart analyzer can be embedded in a Go program, so
+      each runs in its own toolchain, which a project in that language
+      has already. A committed dump rather than running that toolchain
+      inside extract, because every printed source of extract is a
+      committed dump with a commit and a staleness check already built and
+      tested, CI then needs no Node, Swift or Dart, and a changed fact
+      shows in review as a diff. The parser's version in the dump and a
+      pinned version, because the same file can parse differently under
+      two versions, and byte-identical output (SA-44) holds only for one.
+
+      Tracked files only, because the existing rule says only what a
+      commit names is read, and a module cache or node_modules is not in
+      any commit: its content depends on the machine. A literal or a
+      known idiom only, because anything else is a guess, and a guess
+      written as a value is the confident, wrong model docs/extraction.md
+      warns about; a question at the file and line costs the owner one
+      answer and is never wrong. path:line as the clause, because a
+      citation's clause falls under the longest outline clause it starts
+      with followed by a colon, so the file stays the outline entry and
+      gaps still counts per file, and a citation without the commit and
+      the line goes stale while still looking precise (SA-44). The key reading on the source, because merge has to know
+      which tree saw the running system: a route only the parsed tree has
+      is either dead or switched by a setting, and a route only the
+      printed tree has is one the parser missed, and the two call for
+      different questions.
+    consequences: |
+      Every language after Go adds a program under readers/ in its own
+      language, with its own lockfile and scan, and a script under tools/
+      to run it; the project runs it after each change, as it runs its
+      route printer. The code-facts format grows one kind of fact at a
+      time with the steps of docs/extraction.md, each kind with its
+      conformance cases. A project that keeps nothing but source can be
+      extracted at all, at the cost of a must question on each route and
+      grant until a printer answers it. The design schema gains reading on
+      a code source in both validator builds, in the first step that
+      builds a parsed reader.
+    satisfies: [SA-44, SA-45]

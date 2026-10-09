@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 56 requirements, 5 entities, 12 commands, 7 algorithms, 319 tests, 73 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 56 requirements, 5 entities, 12 commands, 7 algorithms, 319 tests, 75 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -4749,6 +4749,161 @@ cookie without one.
 
 **Insight:** A route per called operation is what the hand-built applications repeat file by file, and the operations are already in the pages, so the generator can write them and leave out what another team owns. Carrying the token from a cookie the browser cannot read to a header the service checks keeps the token out of the page's script, which is why a server stands in front of the service at all; reading the service's address from a variable Next.js would ship to the browser would undo that. A translation is the project's text, so it lives in the project's file, and a key without an entry is an error because a missing one shows the first language in its place without anyone seeing it. Laying the colours over Carbon's own themes keeps every token the specification does not name at Carbon's value, checked for contrast by Carbon, while the ones it names are the ones its pairs check.
 
+### ADR-075: Source code is read by a parser of its own language for what no running system prints, every guess is a question at its file and line, and a parsed tree merges with a printed one as a second citation
+
+Status: proposed, 2026-10-09.
+
+Context: The readers of extract read what the running system produces or
+holds: a catalogue dump, a route table and a permission table its
+own printers write, an OpenAPI document, a file-system router's
+folders, Markdown and BPMN. ADR-044 and ADR-050 chose a printer the
+project keeps over a reader of Go, because only the running router
+shows a route registered in a loop, behind a setting or by a
+library, and only the running check knows where its grants are
+read. The owner asks for readers of source code itself, per
+language: Go, Swift, JavaScript and TypeScript, and Dart with
+Flutter, and the frameworks on them (Next.js, Nuxt and Vue). Much
+of what a system is lives only in its source: where an operation
+is declared, the parameters a handler reads and the problems it
+answers, the screens of a phone or desktop application and how one
+leads to the next, the calls a client makes, the settings the code
+reads. No printer can say these, since none of them is a table the
+running system holds. A parser reads syntax, and syntax is not
+behaviour: a path built from a variable, a route registered in a
+loop, a check behind a helper and a type from a package not read
+are each a guess. docs/reading-code.md sets out, per language and
+surface, what is read from source and what stays with a printer.
+
+Decision: A surface the running system can print stays with its printer: the
+routes it registers, the grants its check reads, the tables after
+every migration. A parsed reader adds to it, and is the source
+only where nothing can print the surface: declarations' places,
+handler bodies, screens and navigation, client calls, settings
+read, models declared in code. Where a project has no printer yet,
+a parsed reader's routes and grants are written, and each carries a
+must question asking whether the running system registers or
+grants it, which a printed tree answers in the merge.
+
+Each language is read by its own parser, never by a grammar of
+SpecArch's: Go by go/parser from the standard library, inside
+specarch; Swift by SwiftSyntax, TypeScript and JavaScript by the
+TypeScript compiler, Vue single-file components by
+@vue/compiler-sfc, and Dart by the analyzer package, each in a
+small program in that language kept in this repository under
+readers/, pinned with its lockfile, its licence and SBOM scan
+recorded. Such a program writes a code-facts dump, a JSON object in
+a format SpecArch defines: the version of the format, the language,
+the parser's name and version, the folder read, the commit that last
+changed it, and every fact as its kind, its file, line and column,
+and its literal values, sorted by file, line and column. Like a
+route table it is run in a committed folder by a script that
+refuses changes not committed, it is committed beside the code, it
+is stale once that folder changes, and a dump from another parser
+version than the release pins is refused. The specarch extract
+verb, in Go, turns facts into elements, so the rules below are kept
+in one place.
+
+A reader reads only the tracked files of the folder at the commit,
+never a module cache, node_modules or a package cache, so a type, a
+constant or a function declared outside them is not known, and what
+it would give is a question. A fact is written only where the
+syntax says it as a literal, or through a call the reader's table of
+idioms for that library knows; anything else the reader meets on a
+surface it reads (a path, a method, a permission or a destination
+computed, a registration in a loop or behind a condition, a call
+through a helper the table does not know, a spread, a dynamic
+import) is written as a question at that file and line: must when it
+concerns a route, a permission, a role, a gate on a setting, an
+entity's key or a personal or credential field, should otherwise.
+Every element of a parsed tree is origin stated and cites its
+declaration as the clause path:line under the code source, whose
+outline lists the files read, so the problems file places each
+note on that line. A file of a library the reader knows that
+produces nothing on a surface prints a line, so it shows in the
+coverage.
+
+A code source written by a reader says how it was read:
+reading: printed for a dump the running system made, reading: parsed
+for a parsed reader, a key of a code source in the 0.1 design
+schema. specarch merge joins an element both give into one element
+with both citations, and leaves a key they give different values out
+with a must question citing both, as it does now. Between a printed
+and a parsed tree of one surface it also writes: an element only the
+parsed tree has, a must question (declared at path:line, not in the
+running system: code that is never reached, or reached only under a
+setting); an element only the printed tree has, a could question
+citing the dump (registered by code the reader does not follow). A
+question of the parsed tree that asks whether the running system
+has an element is left out once the printed tree gives it.
+
+Consequences: Every language after Go adds a program under readers/ in its own
+language, with its own lockfile and scan, and a script under tools/
+to run it; the project runs it after each change, as it runs its
+route printer. The code-facts format grows one kind of fact at a
+time with the steps of docs/extraction.md, each kind with its
+conformance cases. A project that keeps nothing but source can be
+extracted at all, at the cost of a must question on each route and
+grant until a printer answers it. The design schema gains reading on
+a code source in both validator builds, in the first step that
+builds a parsed reader.
+
+**Insight:** A printer stays first because ADR-044 and ADR-050 still hold: a parser sees one way of writing a registration and misses a loop, a library and a setting, and the owner chose the printer for exactly that. The parsed reader is added, not substituted, and the merge turns every place they differ into a question rather than letting one quietly win, which is the compiler principle of docs/principles.md applied to two readings of one system. The language's own parser, because it is the one its compiler and tools use, so it accepts what the language accepts and nothing else; a grammar of SpecArch's, or a generic one such as tree-sitter, lags the language and differs from it at the edges, and a difference there is a fact read wrong without a word. tree-sitter was weighed and left: its grammars are separate projects that follow each language at their own pace, its Go bindings need cgo, which ends specarch's single static binary and its cross builds, and it gives no types, which the TypeScript compiler does for a project's own declarations. None of SwiftSyntax, the TypeScript compiler or the Dart analyzer can be embedded in a Go program, so each runs in its own toolchain, which a project in that language has already. A committed dump rather than running that toolchain inside extract, because every printed source of extract is a committed dump with a commit and a staleness check already built and tested, CI then needs no Node, Swift or Dart, and a changed fact shows in review as a diff. The parser's version in the dump and a pinned version, because the same file can parse differently under two versions, and byte-identical output (SA-44) holds only for one. Tracked files only, because the existing rule says only what a commit names is read, and a module cache or node_modules is not in any commit: its content depends on the machine. A literal or a known idiom only, because anything else is a guess, and a guess written as a value is the confident, wrong model docs/extraction.md warns about; a question at the file and line costs the owner one answer and is never wrong. path:line as the clause, because a citation's clause falls under the longest outline clause it starts with followed by a colon, so the file stays the outline entry and gaps still counts per file, and a citation without the commit and the line goes stale while still looking precise (SA-44). The key reading on the source, because merge has to know which tree saw the running system: a route only the parsed tree has is either dead or switched by a setting, and a route only the printed tree has is one the parser missed, and the two call for different questions.
+
+### ADR-076: A dxlib service's endpoints and privileges are read from the OpenAPI document dxlib emits, and the Go reader reads from its source only what dxlib cannot emit
+
+Status: proposed, 2026-10-09.
+
+Context: Most of the owner's Go services are built on dxlib and dxlib_module
+(docs/dxlib-lessons.md). dxlib already writes, from what a service
+registers at start, an OpenAPI 3.1 document in its own dialect
+(OpenAPIAsJSON, api/OPENAPI.md in dxlib): every endpoint by method
+and URI, its parameters with their dxlib types, its responses, and
+in extensions its endpoint type, its privileges, its rate-limit
+group and its content-length ceiling, with WebSocket endpoints in a
+document-level extension. extract openapi reads that document today
+and reports every x-dxlib- key as a thing it cannot hold, so each
+operation's permission is a must question although the document
+names it. dxlib_module grants privileges to roles through tables its
+seed calls fill, and checks an endpoint's privileges against a
+member's effective privileges: holding any one of them is enough,
+an endpoint with none lets every caller its middleware lets through,
+and the privilege EVERYTHING stands for all. The middleware chain,
+which decides whether a caller must sign in at all, stays in code
+and is not in the document.
+
+Decision: For a dxlib service the emitted document is the printer of the
+endpoints: the project writes it with dxlib's own emitter after
+every Define hook has run, commits it beside the code with the
+commit it was made from, and extract openapi reads it. An operation
+whose x-dxlib-endpoint-type is present is read in dxlib's dialect:
+one name in x-dxlib-privileges is the operation's permission, stated,
+citing the operation's pointer, and declared; none, or the key
+absent, is a must question saying that the operation checks no
+privilege and is open to every caller its middleware admits; two or
+more is a must question naming them, since dxlib lets a caller
+holding any one through and an operation has one permission. The
+other x-dxlib- keys keep their lines, and so does the WebSocket
+extension, since the meta-model has no socket. The roles come from
+a permission table that a printer in dxlib_module writes from the
+tables its check reads (ADR-050); a grant of EVERYTHING is printed
+as it is and is a must question, never expanded. The Go reader
+(ADR-075) reads from source only what dxlib cannot emit: where each
+endpoint is registered, the handler's name and the middleware chain,
+the parameters a handler reads with dxlib's getters, the problems it
+answers, the list endpoints' search, filter and order whitelists,
+the tables and fields the handler touches, the role and privilege
+seeds, and the configuration keys read.
+
+Consequences: A dxlib service needs one program that runs its Define hooks and
+writes each API's document, as api/OPENAPI.md section 6 describes,
+until dxlib offers that as a flag of its own; and one printer for
+its permission table, until dxlib_module offers it. The dxlib and
+dxlib_module changes that would help are listed in
+docs/reading-code.md, Go on dxlib, for those repositories' own
+queues.
+
+**Insight:** dxlib's emitter is a printer in the sense of ADR-044: it runs the service's own Define hooks, so an endpoint registered in a loop, by a module or under a setting is in it, and only what is registered is. It already exists, its round trip is tested in dxlib, and its dialect is the one specarch's own dxlib generator writes, so reading it back closes the loop with no new format. x-dxlib-privileges is read only beside x-dxlib-endpoint-type, because an x- key means what its own tools define (OpenAPI 3.1, 4.9), and only that key says the document is dxlib's. More than one privilege is a question and not the first one, because dxlib's any-of check and the meta-model's one permission differ, and choosing would write a check the code does not make. No privilege is a must question and never public, as for the route table (ADR-044), because the open endpoint is the one a reader must not miss, and whether a caller must sign in is decided by middleware the document leaves out. EVERYTHING is asked about and not expanded, because expanding it would write grants that change whenever a permission is added, which no role table holds. The rest is read from source because nothing at run time lists it: a handler body is code, and only a parser sees which getters it calls.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -5332,8 +5487,8 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-41 | enums Rule; decisions ADR-033; decisions ADR-070 | tests validate-views; tests validate-views-valid |
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
-| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-route-twice; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read |
-| SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-source-differs; tests merge-tree-invalid; tests merge-workflows-joins-trigger; tests validate-source-given-outside |
+| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-route-twice; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read |
+| SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-source-differs; tests merge-tree-invalid; tests merge-workflows-joins-trigger; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046; decisions ADR-068 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-mapping-menu-entry; tests validate-owned-by-unknown |
 | SA-47 | enums Rule; decisions ADR-054 | tests document-techspec-open-workflow; tests validate-maker-checker; tests validate-workflow; tests validate-workflow-valid |
 | SA-48 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |

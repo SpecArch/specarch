@@ -334,6 +334,69 @@ Steps, in order:
     validates with no errors; the approval's permission and the subject
     stay must questions, since BPMN has neither.
 
+The steps from 12 read source code itself, by a parser of each language,
+for what no running system prints (ADR-075). `docs/reading-code.md` sets
+out per language and framework what is read from source and what stays
+with a printer, the code-facts dump, and how a parsed tree merges with the
+printed ones; the dxlib services are ADR-076. Each step adds its readers'
+idioms, a generic example under `examples/` and conformance cases, and
+changes `extract.yaml` first.
+
+12. dxlib's emitted document (ADR-076). `extract openapi` reads an
+    operation that carries `x-dxlib-endpoint-type` in dxlib's dialect: one
+    name in `x-dxlib-privileges` is its permission, stated and declared;
+    none, or more than one, a must question. The example is a dxlib
+    service's document in that dialect, merged with a permission table.
+13. The shared core of a parsed reader and Go on dxlib's endpoints:
+    `reading: printed` and `reading: parsed` on a code source in the 0.1
+    design schema, in both validator builds; the merge rows of
+    `docs/reading-code.md` between a printed and a parsed tree; `extract go`
+    reading a module's tracked files with `go/parser`, with dxlib's
+    `NewEndPoint`, `NewWSEndPoint` and `RegisterHandler` calls (place,
+    handler, middleware chain), the parameter getters a handler calls and
+    the problems it answers, every element citing `path:line`. Merged with
+    step 12's tree, each operation has two citations.
+14. Go on dxlib's tables, seeds and configuration: `NewModelDBTable` and
+    `NewDXTableSimple` (names, wire names, list whitelists), dxlib_module's
+    role and privilege seed calls, the configuration keys read and the
+    configuration files read as data; gates on a setting found in the
+    middleware the implementation file names, compared in the merge with
+    the permission table's.
+15. Go on `net/http` and the common routers: `http.ServeMux` patterns,
+    chi, gin, echo and gorilla/mux; path parameters, request bodies from
+    the module's own structs, validator tags, the project's named
+    permission check, API clients and settings. The implementation file
+    gains the key that names a project's check. The lending desk's
+    server is read and merged with its route table.
+16. The file-system routers that need no parser: Next.js `pages/` and
+    `pages/api/`, `app/` route files and `middleware.ts` by their place,
+    Nuxt `pages/` and `server/`, in the pages reader, each method and
+    middleware a must question until step 18 or 19 reads it.
+17. Swift: the code-facts dump format (`codeFacts: 1`),
+    `tools/code-facts/dump-swift.sh` and `readers/swift/` on SwiftSyntax,
+    with its licence and SBOM scan; SwiftUI screens and navigation,
+    forms, Codable and SwiftData models, Core Data models read as data,
+    URLSession clients, Vapor routes, `Info.plist` and `.xcconfig`
+    settings.
+18. JavaScript and TypeScript: `readers/javascript/` on the TypeScript
+    compiler, over tracked files only; Express and Fastify routes, the
+    validation schemas of zod, yup, joi and JSON Schema, React Router and
+    form libraries, fetch and axios clients, `process.env`, message
+    catalogues; and the plain JavaScript part, with JSDoc read only under
+    `checkJs`. A plain JavaScript example and a TypeScript one read the
+    same service, and the questions differ only where types are missing.
+19. Next.js content on the JavaScript reader: route handlers' and API
+    routes' methods, server actions, `middleware.ts`'s matcher and checks,
+    `generateStaticParams`, and `page.schema.ts` with imported constants.
+20. Vue and Nuxt: `@vue/compiler-sfc` in the JavaScript reader, with its
+    licence and SBOM scan; vue-router and Nuxt pages, layouts, route
+    middleware and `definePageMeta`, Nitro handlers, `v-model` fields and
+    a mapped component library such as PrimeVue.
+21. Dart and Flutter: `readers/dart/` on the analyzer package; go_router
+    and Navigator, form fields, `json_serializable` and `freezed` models,
+    retrofit, dio and `http` clients, `shelf_router` and dart_frog routes,
+    `fromEnvironment` settings.
+
 ## What goes wrong
 
 Each of these was met in practice.

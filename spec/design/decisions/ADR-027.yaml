@@ -14,7 +14,12 @@ decisions:
     decision: |
       specarch-gen-openapi writes openapi.yaml, OpenAPI 3.1.0. Paths,
       parameters, bodies and responses are the design's as they are; an
-      entity or an enum is a schema under components. SpecArch's own field
+      entity or an enum is a schema under components, and a field that
+      names one by $ref keeps beside it the keywords any field carries,
+      since OpenAPI 3.1's schemas are JSON Schema 2020-12, where a $ref
+      applies beside other keywords. A view's path that may have no value
+      and ends in a $ref is written as that $ref, which takes no type
+      beside it to add null to, with a warning at the path. SpecArch's own field
       and operation keywords become x-specarch- extensions (permission,
       limits, emits, satisfies, precision, scale, sensitivity, atRest,
       lookup); rationale and test hints (why, cites, origin, mistakes,

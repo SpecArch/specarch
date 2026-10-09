@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 342 design tests, 137 golden and 205 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 346 design tests, 140 golden and 206 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 338 |
+| system | 342 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -922,6 +922,22 @@ Scenario: golden; level: system; verifies SA-39.
 - When: generate openapi is run with --unapproved
 - Then: it writes the document dxlib binds: one POST per operation at /<operationId> with every parameter in its JSON body, a dxlib type on every field and the constraints dxlib does not enforce listed as unenforced, privileges, dxlib's error body and list envelope, and no security scheme, and exits 0
 
+#### generate-openapi-dxlib-ref-siblings
+
+Scenario: golden; level: system; verifies SA-39.
+
+- Given: a specification whose field names an enum by $ref with a description, a maxLength and a sensitivity beside it, a query parameter with a description whose schema names the enum, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved
+- Then: it writes the $ref with only extensions beside it, which is all dxlib's reader takes there: the maxLength listed as unenforced and the sensitivity as an extension; it warns at the field and at the parameter that the description is left out, and exits 0
+
+#### generate-openapi-dxlib-ref-siblings-refused
+
+Scenario: red; level: system; verifies SA-39.
+
+- Given: a specification whose field names an enum by $ref and narrows it with an enum beside it, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved
+- Then: it reports at the field that the enum beside the $ref cannot be carried in the dxlib dialect, writes nothing, and exits 1
+
 #### generate-openapi-owned
 
 Scenario: golden; level: system; verifies SA-46.
@@ -929,6 +945,22 @@ Scenario: golden; level: system; verifies SA-46.
 - Given: a specification whose Author entity and the operation that reads one author the implementation file marks as owned by the catalogue team, another operation that answers an Author, and specarch-gen-openapi built from this repository on PATH
 - When: generate openapi is run with --unapproved
 - Then: it writes openapi.yaml with no Author schema and no path for the owned operation, the other operation still referring to the Author schema, and exits 0
+
+#### generate-openapi-ref-siblings
+
+Scenario: golden; level: system; verifies SA-36.
+
+- Given: a specification whose fields and response name an enum or an entity by $ref with keywords beside it: a description, a default, deprecated, a title, a sensitivity and readOnly, and an implementation file in Go with an openapi target; specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved
+- Then: it writes openapi.yaml with every keyword beside its $ref, JSON Schema's as they are and SpecArch's as extensions, and exits 0
+
+#### generate-openapi-view-ref-path
+
+Scenario: golden; level: system; verifies SA-36.
+
+- Given: a view of loans with a path through the loan's member to the member's address, a field that is not required and names a value object by $ref, and an implementation file in Go with an openapi target; specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved
+- Then: it writes the view's address as the read-only $ref with no type and no description beside it, warns at the path that the document does not say it may have no value, writes the document, and exits 0
 
 #### generate-openapi-wire-names
 

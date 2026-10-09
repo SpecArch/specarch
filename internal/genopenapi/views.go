@@ -2,6 +2,7 @@ package genopenapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 )
 
@@ -38,10 +39,20 @@ func (g *gen) viewAdded(name string) (map[string]any, []any) {
 			}
 			field["readOnly"] = true
 			delete(field, "default")
-			if optional && !nullable(field) {
-				field["type"] = []any{text(field["type"]), "null"}
+			delete(field, "description")
+			if text(field["$ref"]) != "" {
+				// A $ref takes no type beside it, so null cannot be added
+				// to it, and the description is only the one written here.
+				if optional {
+					g.warnOnce("/views/"+name+"/properties/"+p+"/path",
+						fmt.Sprintf("%s may have no value, and the document does not say so: it ends in a $ref, which takes no type beside it to add null to", path))
+				}
+			} else {
+				if optional && !nullable(field) {
+					field["type"] = []any{text(field["type"]), "null"}
+				}
+				field["description"] = "Read through " + path + "."
 			}
-			field["description"] = "Read through " + path + "."
 			if d := text(prop["description"]); d != "" {
 				field["description"] = d
 			}
@@ -149,4 +160,15 @@ func subjectName(l map[string]any) string {
 		return v
 	}
 	return text(l["entity"])
+}
+
+// warnOnce reports a warning at a path, once however often the element is
+// written: a view is read for its own schema and for each list over it.
+func (g *gen) warnOnce(path, message string) {
+	for _, d := range g.diags {
+		if d.Path == path && d.Message == message {
+			return
+		}
+	}
+	g.diags = append(g.diags, Diagnostic{File: g.root, Line: 1, Severity: "warning", Path: path, Rule: "generator", Message: message})
 }

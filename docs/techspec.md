@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 56 requirements, 5 entities, 12 commands, 7 algorithms, 342 tests, 79 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 56 requirements, 5 entities, 12 commands, 7 algorithms, 346 tests, 79 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -3077,7 +3077,12 @@ reading the project's files.
 
 Decision: specarch-gen-openapi writes openapi.yaml, OpenAPI 3.1.0. Paths,
 parameters, bodies and responses are the design's as they are; an
-entity or an enum is a schema under components. SpecArch's own field
+entity or an enum is a schema under components, and a field that
+names one by $ref keeps beside it the keywords any field carries,
+since OpenAPI 3.1's schemas are JSON Schema 2020-12, where a $ref
+applies beside other keywords. A view's path that may have no value
+and ends in a $ref is written as that $ref, which takes no type
+beside it to add null to, with a warning at the path. SpecArch's own field
 and operation keywords become x-specarch- extensions (permission,
 limits, emits, satisfies, precision, scale, sensitivity, atRest,
 lookup); rationale and test hints (why, cites, origin, mistakes,
@@ -3222,7 +3227,13 @@ parameter's or a field's, is written in snake_case, since dxlib's
 standard operations take a parameter's name as its column's. A field keeps only what
 dxlib's validator applies, carries its dxlib type in x-dxlib-type, and
 lists every other constraint in x-specarch-unenforced, which the
-reader skips as it skips any extension not its own. dxlib reads a
+reader skips as it skips any extension not its own. dxlib's reader
+takes nothing but extensions beside a $ref, so a field that is a
+$ref carries its constraints as unenforced and SpecArch's keywords as
+extensions; a description beside it is left out with a warning at
+the field, and a type, enum, items, properties or required beside
+it, whose loss would change what the value may be, is an error at
+the field. dxlib reads a
 parameter sent as null and one left out as one case, not given, so a
 field that may be null takes dxlib's nullable type where its base has
 one (nullable-string, nullable-int32, nullable-int64) and is never
@@ -5600,7 +5611,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-no-plugin | command generate | system | red | a target this build does not have and no specarch-gen-openapi on PATH | generate openapi is run | it says there is no generator for the target and exits 2 |
 | generate-openapi | command generate | system | golden | a specification with an enum, an audited entity, a problem catalogue and a list of the entity with search, filter, sort and a page size, and an implementation file in Go whose openapi target names a security scheme; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes openapi.yaml, OpenAPI 3.1.0, with the list paged by the paginated-list names in its envelope, the 404 as a problem document, the audit fields read-only and the security scheme on the operation, and exits 0 |
 | generate-openapi-dxlib | command generate | system | golden | a specification with a list, a create with limits, a read by id answering a problem, an audited and softly deleted entity, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes the document dxlib binds: one POST per operation at /<operationId> with every parameter in its JSON body, a dxlib type on every field and the constraints dxlib does not enforce listed as unenforced, privileges, dxlib's error body and list envelope, and no security scheme, and exits 0 |
+| generate-openapi-dxlib-ref-siblings | command generate | system | golden | a specification whose field names an enum by $ref with a description, a maxLength and a sensitivity beside it, a query parameter with a description whose schema names the enum, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes the $ref with only extensions beside it, which is all dxlib's reader takes there: the maxLength listed as unenforced and the sensitivity as an extension; it warns at the field and at the parameter that the description is left out, and exits 0 |
+| generate-openapi-dxlib-ref-siblings-refused | command generate | system | red | a specification whose field names an enum by $ref and narrows it with an enum beside it, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it reports at the field that the enum beside the $ref cannot be carried in the dxlib dialect, writes nothing, and exits 1 |
 | generate-openapi-owned | command generate | system | golden | a specification whose Author entity and the operation that reads one author the implementation file marks as owned by the catalogue team, another operation that answers an Author, and specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes openapi.yaml with no Author schema and no path for the owned operation, the other operation still referring to the Author schema, and exits 0 |
+| generate-openapi-ref-siblings | command generate | system | golden | a specification whose fields and response name an enum or an entity by $ref with keywords beside it: a description, a default, deprecated, a title, a sensitivity and readOnly, and an implementation file in Go with an openapi target; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes openapi.yaml with every keyword beside its $ref, JSON Schema's as they are and SpecArch's as extensions, and exits 0 |
+| generate-openapi-view-ref-path | command generate | system | golden | a view of loans with a path through the loan's member to the member's address, a field that is not required and names a value object by $ref, and an implementation file in Go with an openapi target; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes the view's address as the read-only $ref with no type and no description beside it, warns at the path that the document does not say it may have no value, writes the document, and exits 0 |
 | generate-openapi-wire-names | command generate | system | golden | a specification whose wire names are snake_case, with an audited entity of names of two words, a nested object with an acronym, and a list of the entity filtered and sorted by such names, and an implementation file in Go with an openapi target; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes openapi.yaml with every property, required list, audit field, filter, sort value, paging parameter and envelope field in snake_case, the path parameter as the specification names it, and exits 0 |
 | generate-plugin-path-outside | command generate | system | red | a plug-in that answers a path outside the output folder | generate escape is run | it refuses the path, writes nothing and exits 2 |
 | generate-plugin-reports-error | command generate | system | red | a plug-in that answers an error diagnostic | generate strict is run | it prints the diagnostic, writes nothing and exits 1 |
@@ -6084,10 +6099,10 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-33 | decisions ADR-024 | tests validate-stored-data; tests validate-stored-data-valid |
 | SA-34 | decisions ADR-025 | tests validate-interface-problems; tests validate-interface-valid |
 | SA-35 | decisions ADR-026 | tests validate-jobs-menus; tests validate-jobs-menus-valid |
-| SA-36 | decisions ADR-027; decisions ADR-062 | tests generate-openapi; tests generate-openapi-wire-names |
+| SA-36 | decisions ADR-027; decisions ADR-062 | tests generate-openapi; tests generate-openapi-ref-siblings; tests generate-openapi-view-ref-path; tests generate-openapi-wire-names |
 | SA-37 | decisions ADR-029; decisions ADR-061 | tests generate-sql |
 | SA-38 | decisions ADR-030 | tests generate-sql-expand |
-| SA-39 | decisions ADR-031 | tests generate-openapi-dxlib |
+| SA-39 | decisions ADR-031 | tests generate-openapi-dxlib; tests generate-openapi-dxlib-ref-siblings; tests generate-openapi-dxlib-ref-siblings-refused |
 | SA-40 | decisions ADR-032; decisions ADR-078 | tests generate-go-dxlib; tests generate-go-dxlib-value-objects |
 | SA-41 | enums Rule; decisions ADR-033; decisions ADR-070 | tests validate-views; tests validate-views-valid |
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |

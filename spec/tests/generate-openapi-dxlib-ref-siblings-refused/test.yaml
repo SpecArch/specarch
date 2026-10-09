@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: generate
+level: system
+scenario: red
+given: "a specification whose field names an enum by $ref and narrows it with an enum beside it, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH"
+when: "generate openapi is run with --unapproved"
+then: "it reports at the field that the enum beside the $ref cannot be carried in the dxlib dialect, writes nothing, and exits 1"
+verifies: [SA-39]

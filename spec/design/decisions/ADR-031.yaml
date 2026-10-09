@@ -20,7 +20,13 @@ decisions:
       standard operations take a parameter's name as its column's. A field keeps only what
       dxlib's validator applies, carries its dxlib type in x-dxlib-type, and
       lists every other constraint in x-specarch-unenforced, which the
-      reader skips as it skips any extension not its own. dxlib reads a
+      reader skips as it skips any extension not its own. dxlib's reader
+      takes nothing but extensions beside a $ref, so a field that is a
+      $ref carries its constraints as unenforced and SpecArch's keywords as
+      extensions; a description beside it is left out with a warning at
+      the field, and a type, enum, items, properties or required beside
+      it, whose loss would change what the value may be, is an error at
+      the field. dxlib reads a
       parameter sent as null and one left out as one case, not given, so a
       field that may be null takes dxlib's nullable type where its base has
       one (nullable-string, nullable-int32, nullable-int64) and is never

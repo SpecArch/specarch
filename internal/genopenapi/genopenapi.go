@@ -154,8 +154,10 @@ func Generate(r *Request) Response {
 		add(doc, "paths", paths)
 	}
 	add(doc, "components", g.components())
-	if len(g.diags) > 0 {
-		return Response{Files: []File{}, Diagnostics: g.diags}
+	for _, d := range g.diags {
+		if d.Severity == "error" {
+			return Response{Files: []File{}, Diagnostics: g.diags}
+		}
 	}
 	var b bytes.Buffer
 	info2 := obj(g.spec["info"])
@@ -165,7 +167,7 @@ func Generate(r *Request) Response {
 	if err := enc.Encode(doc); err != nil {
 		return Response{Files: []File{}, Diagnostics: []Diagnostic{g.problem("/", "the document cannot be written as YAML (%v); this is a bug in specarch-gen-openapi", err)}}
 	}
-	return Response{Files: []File{{Path: FileName, Content: b.String()}}, Diagnostics: []Diagnostic{}}
+	return Response{Files: []File{{Path: FileName, Content: b.String()}}, Diagnostics: append([]Diagnostic{}, g.diags...)}
 }
 
 func (g *gen) problem(path, format string, args ...any) Diagnostic {
@@ -348,16 +350,15 @@ var schemaKeys = []string{"type", "format", "title", "description", "enum", "con
 var extensionKeys = []string{"precision", "scale", "sensitivity", "atRest", "lookup"}
 
 // schema writes a field: JSON Schema's keywords as they are, a $ref into
-// the components, and SpecArch's own keywords as extensions. Rationale and
-// test hints (why, cites, origin, mistakes) are not interface and are left
-// out.
+// the components, and SpecArch's own keywords as extensions. The keywords
+// beside a $ref are written beside it, as OpenAPI 3.1 and JSON Schema
+// 2020-12 hold them. Rationale and test hints (why, cites, origin,
+// mistakes) are not interface and are left out.
 func (g *gen) schema(s map[string]any) *yaml.Node {
-	if r := text(s["$ref"]); r != "" {
-		if i := strings.LastIndex(r, "/"); i >= 0 {
-			return ref("#/components/schemas/" + r[i+1:])
-		}
-	}
 	n := mapping()
+	if r := text(s["$ref"]); r != "" {
+		add(n, "$ref", str("#/components/schemas/"+r[strings.LastIndex(r, "/")+1:]))
+	}
 	for _, k := range schemaKeys {
 		if v, ok := s[k]; ok {
 			add(n, k, plain(v))

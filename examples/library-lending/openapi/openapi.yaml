@@ -1010,6 +1010,7 @@ components:
           readOnly: true
         status:
           $ref: '#/components/schemas/LoanStatus'
+          title: Status
       required:
         - id
         - memberId
@@ -1037,6 +1038,8 @@ components:
       properties:
         address:
           $ref: '#/components/schemas/PostalAddress'
+          title: Address
+          x-specarch-sensitivity: personal
         cardNumber:
           type: string
           title: Card number
@@ -1090,8 +1093,11 @@ components:
           x-specarch-sensitivity: personal
         status:
           $ref: '#/components/schemas/MemberStatus'
+          title: Status
+          default: active
         tier:
           $ref: '#/components/schemas/MembershipTier'
+          title: Tier
         createdAt:
           type: string
           format: date-time
@@ -1136,6 +1142,8 @@ components:
       properties:
         address:
           $ref: '#/components/schemas/PostalAddress'
+          title: Address
+          x-specarch-sensitivity: personal
         cardNumber:
           type: string
           title: Card number
@@ -1195,8 +1203,11 @@ components:
           x-specarch-sensitivity: personal
         status:
           $ref: '#/components/schemas/MemberStatus'
+          title: Status
+          default: active
         tier:
           $ref: '#/components/schemas/MembershipTier'
+          title: Tier
         createdAt:
           type: string
           format: date-time

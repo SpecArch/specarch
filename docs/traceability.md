@@ -57,10 +57,10 @@ Version 0.6.0-dev of the specification: 9 needs, 56 requirements, and 0 gaps. Ea
 | SA-33 | NEED-1, NEED-2 | decisions ADR-024 | tests validate-stored-data; tests validate-stored-data-valid |
 | SA-34 | NEED-1, NEED-2 | decisions ADR-025 | tests validate-interface-problems; tests validate-interface-valid |
 | SA-35 | NEED-1, NEED-5 | decisions ADR-026 | tests validate-jobs-menus; tests validate-jobs-menus-valid |
-| SA-36 | NEED-2, NEED-3 | decisions ADR-027; decisions ADR-062 | tests generate-openapi; tests generate-openapi-wire-names |
+| SA-36 | NEED-2, NEED-3 | decisions ADR-027; decisions ADR-062 | tests generate-openapi; tests generate-openapi-ref-siblings; tests generate-openapi-view-ref-path; tests generate-openapi-wire-names |
 | SA-37 | NEED-2 | decisions ADR-029; decisions ADR-061 | tests generate-sql |
 | SA-38 | NEED-2 | decisions ADR-030 | tests generate-sql-expand |
-| SA-39 | NEED-2 | decisions ADR-031 | tests generate-openapi-dxlib |
+| SA-39 | NEED-2 | decisions ADR-031 | tests generate-openapi-dxlib; tests generate-openapi-dxlib-ref-siblings; tests generate-openapi-dxlib-ref-siblings-refused |
 | SA-40 | NEED-2 | decisions ADR-032; decisions ADR-078 | tests generate-go-dxlib; tests generate-go-dxlib-value-objects |
 | SA-41 | NEED-2 | enums Rule; decisions ADR-033; decisions ADR-070 | tests validate-views; tests validate-views-valid |
 | SA-42 | NEED-2 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |

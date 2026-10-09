@@ -1,0 +1,6 @@
+arguments: [generate, openapi, --unapproved, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:34:11: warning: /paths/~1books~1{bookId}/get/parameters/0: generator: the description is left out of the dxlib dialect: the parameter's schema is a $ref, and dxlib's reader takes nothing but extensions beside one [generator@specarch.yaml#/paths/~1books~1{bookId}/get/parameters/0]
+  project/specarch.yaml:16:14: warning: /entities/Book/properties/shelf: generator: the description beside the $ref is left out of the dxlib dialect: dxlib's reader takes nothing but extensions beside a $ref [generator@specarch.yaml#/entities/Book/properties/shelf]
+plugins: [openapi]

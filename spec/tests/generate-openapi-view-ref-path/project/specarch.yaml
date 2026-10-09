@@ -1,0 +1,77 @@
+specarch: "0.1"
+info: { title: Lending desk, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Branch:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      name: { type: string, minLength: 1, maxLength: 100 }
+    required: [id, name]
+    primaryKey: [id]
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      fullName: { type: string, minLength: 1, maxLength: 200 }
+      branchId: { type: [string, "null"], format: uuid }
+      address: { $ref: "#/schemas/Address" }
+    required: [id, fullName]
+    primaryKey: [id]
+    relations:
+      branch: { target: Branch, kind: many-to-one, via: branchId, onDelete: restrict }
+      loans: { target: Loan, kind: one-to-many, via: memberId }
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      memberId: { type: string, format: uuid }
+      dueOn: { type: string, format: date }
+    required: [id, memberId, dueOn]
+    primaryKey: [id]
+    relations:
+      member: { target: Member, kind: many-to-one, via: memberId, onDelete: restrict }
+    deletion: soft
+schemas:
+  Address:
+    type: object
+    properties:
+      street: { type: string, maxLength: 100 }
+    required: [street]
+views:
+  LoanRow:
+    description: A loan as the desk's list shows it.
+    from: Loan
+    properties:
+      memberName: { path: member.fullName }
+      memberAddress: { path: member.address }
+      branchName: { path: member.branch.name, description: Empty when the member has no branch. }
+  MemberRow:
+    from: Member
+    properties:
+      openLoans: { count: loans }
+      loans: { rows: loans }
+permissions:
+  loans.read: { description: See loans. }
+roles:
+  desk: { description: The desk., permissions: [loans.read] }
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: The loans
+      permission: loans.read
+      listOf:
+        view: LoanRow
+        searchable: [memberName]
+        filterable: [branchName, dueOn]
+        sortable: [dueOn, memberName]
+        pageSize: { default: 20, maximum: 100 }
+      responses:
+        "200":
+          description: The loans.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/views/LoanRow" } }

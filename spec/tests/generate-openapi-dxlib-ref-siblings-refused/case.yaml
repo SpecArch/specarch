@@ -1,0 +1,5 @@
+arguments: [generate, openapi, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:16:14: error: /entities/Book/properties/shelf: generator: enum beside the $ref cannot be carried in the dxlib dialect: dxlib's reader takes nothing but extensions beside a $ref, and leaving it out would change what the value may be [generator@specarch.yaml#/entities/Book/properties/shelf]
+plugins: [openapi]

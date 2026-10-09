@@ -161,8 +161,8 @@ func dxBaseType(f map[string]any, enums map[string]any) (string, string) {
 // dxSchema writes a field in the dxlib dialect. at names it in a
 // diagnostic.
 func (g *gen) dxSchema(f map[string]any, at string) *yaml.Node {
-	if r := text(f["$ref"]); r != "" {
-		return ref("#/components/schemas/" + r[strings.LastIndex(r, "/")+1:])
+	if text(f["$ref"]) != "" {
+		return g.dxRef(f, at)
 	}
 	t, why := dxType(f, obj(g.spec["enums"]))
 	if t == "" {
@@ -227,6 +227,13 @@ func (g *gen) dxSchema(f map[string]any, at string) *yaml.Node {
 		}
 	}
 	add(n, "x-dxlib-type", str(t))
+	g.dxExtensions(n, f, t)
+	return n
+}
+
+// dxExtensions writes the constraints dxlib does not enforce and
+// SpecArch's own keywords of a field of dxlib type t.
+func (g *gen) dxExtensions(n *yaml.Node, f map[string]any, t string) {
 	if u := unenforced(f, t); len(u) > 0 {
 		add(n, "x-specarch-unenforced", plain(u))
 	}
@@ -235,6 +242,31 @@ func (g *gen) dxSchema(f map[string]any, at string) *yaml.Node {
 			add(n, "x-specarch-"+k, plain(v))
 		}
 	}
+}
+
+// dxRef writes a field that is a $ref in the dxlib dialect. dxlib's reader
+// takes nothing but extensions beside a $ref, so the constraints beside it
+// are listed as unenforced, as on any other field, and each other keyword
+// the dialect carries on a field is reported at the field rather than
+// dropped: a description as a warning, and a type, enum, items,
+// properties or required, which would change what the value may be, as
+// an error. A title, default, examples, readOnly, writeOnly or
+// deprecated is left out here as on every field of the dialect.
+func (g *gen) dxRef(f map[string]any, at string) *yaml.Node {
+	r := text(f["$ref"])
+	n := ref("#/components/schemas/" + r[strings.LastIndex(r, "/")+1:])
+	if text(f["description"]) != "" {
+		g.diags = append(g.diags, Diagnostic{File: g.root, Line: 1, Severity: "warning", Path: at, Rule: "generator",
+			Message: "the description beside the $ref is left out of the dxlib dialect: dxlib's reader takes nothing but extensions beside a $ref"})
+	}
+	for _, k := range []string{"type", "enum", "items", "properties", "required"} {
+		if _, ok := f[k]; !ok {
+			continue
+		}
+		g.diags = append(g.diags, g.problem(at, "%s beside the $ref cannot be carried in the dxlib dialect: dxlib's reader takes nothing but extensions beside a $ref, and leaving it out would change what the value may be", k))
+	}
+	t, _ := dxType(f, obj(g.spec["enums"]))
+	g.dxExtensions(n, f, t)
 	return n
 }
 
@@ -470,14 +502,28 @@ func (g *gen) dxOperation(path, method string, op, item map[string]any) *yaml.No
 	}
 	props := map[string]any{}
 	var required []any
-	for _, p := range append(list(item["parameters"]), list(op["parameters"])...) {
+	itemAt := at[:strings.LastIndex(at, "/")]
+	var params []any
+	var paramAt []string
+	for i, p := range list(item["parameters"]) {
+		params, paramAt = append(params, p), append(paramAt, fmt.Sprintf("%s/parameters/%d", itemAt, i))
+	}
+	for i, p := range list(op["parameters"]) {
+		params, paramAt = append(params, p), append(paramAt, fmt.Sprintf("%s/parameters/%d", at, i))
+	}
+	for i, p := range params {
 		pm := obj(p)
 		if text(pm["in"]) == "header" {
 			continue // dxlib reads a header itself; it is not a parameter of the body
 		}
 		s := obj(pm["schema"])
 		if d := text(pm["description"]); d != "" && text(s["description"]) == "" {
-			s = withKey(s, "description", d)
+			if text(s["$ref"]) != "" {
+				g.diags = append(g.diags, Diagnostic{File: g.root, Line: 1, Severity: "warning", Path: paramAt[i], Rule: "generator",
+					Message: "the description is left out of the dxlib dialect: the parameter's schema is a $ref, and dxlib's reader takes nothing but extensions beside one"})
+			} else {
+				s = withKey(s, "description", d)
+			}
 		}
 		props[text(pm["name"])] = s
 		if pm["required"] == true {

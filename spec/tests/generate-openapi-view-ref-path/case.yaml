@@ -1,0 +1,5 @@
+arguments: [generate, openapi, --unapproved, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:49:30: warning: /views/LoanRow/properties/memberAddress/path: generator: member.address may have no value, and the document does not say so: it ends in a $ref, which takes no type beside it to add null to [generator@specarch.yaml#/views/LoanRow/properties/memberAddress/path]
+plugins: [openapi]

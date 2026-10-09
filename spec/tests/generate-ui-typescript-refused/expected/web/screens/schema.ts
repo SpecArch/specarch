@@ -268,6 +268,19 @@ export interface RowActionSchema {
   readonly failed: readonly FailureSchema[];
 }
 
+/**
+ * An action on a row that opens a page whose route takes a parameter: the
+ * page, its route parameters each from a field of the row, who may take it
+ * and while what holds.
+ */
+export interface RowLinkSchema {
+  readonly label: StringKey;
+  readonly navigate: string;
+  readonly with: Readonly<Record<string, string>>;
+  readonly permission: string;
+  readonly when?: Rule;
+}
+
 /** Where selecting a row leads: a page, its route parameters each from a field of the row. */
 export interface SelectSchema {
   readonly navigate: string;
@@ -296,7 +309,7 @@ export interface ListPageSchema {
   readonly pageSize: number;
   readonly pageSizes: readonly number[];
   readonly actions: readonly PageActionSchema[];
-  readonly rowActions: readonly RowActionSchema[];
+  readonly rowActions: readonly (RowActionSchema | RowLinkSchema)[];
   readonly select?: SelectSchema;
   readonly empty: StringKey;
   readonly filteredEmpty: StringKey;

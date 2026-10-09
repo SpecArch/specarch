@@ -839,6 +839,11 @@ an operation run from an action succeeds. Each says where it leads:
 kind operation; an action of kind navigate leads already. `navigate` names
 a page, and `with` gives exactly that page's route parameters, each from
 a field of the page's entity: the record submitted, selected or acted on.
+A list's action of kind navigate whose target's route takes a parameter
+gives it the same way, under the action's own `with`, and is offered on
+each row; one whose target takes none is a toolbar button. `with` on
+the action of a page that is not a list is refused: a view fills its
+actions' routes from its record's fields of their names.
 `message` is a status message, a full sentence, announced without moving
 focus (WCAG 2.2, 4.1.3). A full sentence starts with a capital, a letter
 of a script without case or a digit, and ends with a full stop, a

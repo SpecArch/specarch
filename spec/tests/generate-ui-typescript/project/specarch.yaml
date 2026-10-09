@@ -401,6 +401,7 @@ pages:
     actions:
       - { label: Invite, kind: navigate, target: invitation }
       - { label: Suspend, kind: operation, target: suspendMember, permission: members.write, when: 'status == "active"', confirm: "Suspend this member?", reason: why, then: { message: The member is suspended. } }
+      - { label: Change, kind: navigate, target: member-edit, permission: members.write, when: 'status == "active"', with: { memberId: id } }
   directory:
     kind: list
     title: Directory

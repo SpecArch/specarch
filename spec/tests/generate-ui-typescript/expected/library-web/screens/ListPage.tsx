@@ -91,7 +91,8 @@ function text(value: unknown): string {
 /**
  * A list read from its operation a page at a time, sorted, searched and
  * filtered by the service, with its row actions, each offered while its
- * rule holds for the row and its permission is held.
+ * rule holds for the row and its permission is held: one runs an operation
+ * on the row, and one opens a page with its route filled from the row.
  */
 export function ListPage({ schema, texts, routes }: ListPageProps) {
   const pathname = usePathname();
@@ -309,9 +310,13 @@ export function ListPage({ schema, texts, routes }: ListPageProps) {
                   <TableCell>
                     {offered(row).length > 0 && (
                       <OverflowMenu aria-label={say(texts, "screens.actions") + " " + text(row[columns[0]?.field ?? ""])} flipped>
-                        {offered(row).map((action) => (
-                          <OverflowMenuItem key={action.operation} itemText={say(texts, action.label)} onClick={() => start(action, row)} />
-                        ))}
+                        {offered(row).map((action) =>
+                          "navigate" in action ? (
+                            <OverflowMenuItem key={action.label} itemText={say(texts, action.label)} href={fill(routes[action.navigate] ?? "/", action.with, row)} />
+                          ) : (
+                            <OverflowMenuItem key={action.label} itemText={say(texts, action.label)} onClick={() => start(action, row)} />
+                          ),
+                        )}
                       </OverflowMenu>
                     )}
                   </TableCell>

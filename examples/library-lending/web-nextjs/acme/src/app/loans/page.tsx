@@ -12,6 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const routes = {
+  "fee-waiver-form": "/loans/{loanId}/fee-waiver",
 };
 
 export default async function Page() {

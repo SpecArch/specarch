@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a list's actions that open a page: one whose with gives the page's route parameter from a field of the row and one to a page that takes none, which are right; one without with to a page that needs a parameter, one from a field the entity lacks and one giving a parameter the page does not take; and a view's action that opens a page with with"
+when: "validate is run"
+then: "it reports flow four times, each at its action, and exits 1"
+verifies: [SA-42]

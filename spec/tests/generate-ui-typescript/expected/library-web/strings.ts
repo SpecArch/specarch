@@ -55,6 +55,7 @@ export const strings = {
   "member-view.fields.name": "Name",
   "member-view.title": "Member",
   "members-list.actions.invitation": "Invite",
+  "members-list.actions.member-edit.label": "Change",
   "members-list.actions.suspendMember.confirm": "Suspend this member?",
   "members-list.actions.suspendMember.label": "Suspend",
   "members-list.actions.suspendMember.message": "The member is suspended.",

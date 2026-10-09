@@ -24,6 +24,7 @@
   "loan-form.fields.memberId": "Anggota",
   "loan-form.onSubmitted": "Eksemplar dipinjamkan.",
   "loan-form.title": "Pinjamkan eksemplar",
+  "loans-list.actions.fee-waiver-form.label": "Ajukan penghapusan denda",
   "loans-list.actions.reportLost.confirm": "Tagihkan biaya penggantian dan tutup peminjaman ini?",
   "loans-list.actions.reportLost.label": "Hilang",
   "loans-list.actions.reportLost.message": "Peminjaman ditutup dan biaya penggantian ditagihkan.",

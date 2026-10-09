@@ -257,6 +257,7 @@ pages:
     actions:
       - { label: Invite, kind: navigate, target: invitation }
       - { label: Suspend, kind: operation, target: suspendMember, permission: members.write, when: 'status == "active"', confirm: "Suspend this member?", reason: why, then: { message: The member is suspended. } }
+      - { label: Open, kind: navigate, target: member-view, confirm: "Open this member?", with: { memberId: id } }
   member-form:
     kind: form
     title: Register a member

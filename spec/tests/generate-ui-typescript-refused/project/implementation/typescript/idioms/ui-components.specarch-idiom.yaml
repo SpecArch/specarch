@@ -3,7 +3,7 @@ name: ui-components
 version: 1.0.0
 description: Lists drawn by a library of the project's own.
 why: The project's lists are drawn by its own library, so a generated one looks like those built by hand.
-overrides: { idiom: ui-components, version: 1.6.0, parts: [list-page] }
+overrides: { idiom: ui-components, version: 1.7.0, parts: [list-page] }
 parts:
   list-page:
     description: A list drawn by the library.

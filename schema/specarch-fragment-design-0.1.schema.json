@@ -2148,6 +2148,14 @@
         "then": {
           "description": "For an operation: where it leads once it succeeds.",
           "$ref": "#/$defs/pageEvent"
+        },
+        "with": {
+          "description": "For navigate on a list: the route parameters of the page it opens, each from a field of the row it is on, exactly the parameters that page's route takes. A list's action that opens a page whose route takes a parameter is offered on each row, while its when holds; one whose page takes none is a button of the list's toolbar.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minProperties": 1
         }
       },
       "required": [

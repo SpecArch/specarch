@@ -27,6 +27,9 @@ extension Checker {
                 checkEvent(d, n, ["pages", name, e.0], fields, "a field of the page's entity")
             }
             for (i, a) in items(pg.child("actions")).enumerated() {
+                if str(a.child("kind")) == "navigate" {
+                    checkActionWith(d, name, kind, i, a, fields)
+                }
                 guard let n = a.child("then") else { continue }
                 if str(a.child("kind")) != "operation" {
                     add(a.key("then"), pointer("pages", name, "actions", "\(i)", "then"), .flow, "the action \(str(a.child("label"))) navigates already, and then follows an operation; leave it out")
@@ -106,11 +109,36 @@ extension Checker {
             add(m, pointer(base + ["message"]), .flow, "the message is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one")
         }
         guard let nav = ev.child("navigate") else { return } // the schema asks for navigate beside with
-        let with = ev.child("with")
-        guard let target = d.pages[nav.value] else {
+        guard d.pages[nav.value] != nil else {
             add(nav, pointer(base + ["navigate"]), .flow, "\(nav.value) is not a page of the specification\(suggest(nav.value, d.pages))")
             return
         }
+        checkWith(d, nav, "navigate", ev.child("with"), base, fields, from)
+    }
+
+    /// Checks the route parameters an action of kind navigate gives the page
+    /// it opens. On a list they come from the row, under with, and a page
+    /// whose route takes none is opened from the toolbar; on any other page
+    /// with is left out, since a view takes them from its record's fields of
+    /// their names or its own route.
+    func checkActionWith(_ d: Design, _ name: String, _ kind: String, _ i: Int, _ a: YNode, _ fields: [String: YNode]) {
+        let base = ["pages", name, "actions", "\(i)"]
+        let with = a.child("with")
+        if kind != "list" {
+            if with != nil {
+                add(a.key("with"), pointer(base + ["with"]), .flow, "\(name) is a \(kind) page, and with gives a list's row the route parameters of the page it opens; leave it out")
+            }
+            return
+        }
+        // the schema asks for target, and the page check reports one that does not exist
+        guard let target = a.child("target"), d.pages[target.value] != nil else { return }
+        checkWith(d, target, "target", with, base, fields, "a field of the page's entity")
+    }
+
+    /// Checks that with gives exactly the route parameters of the page nav
+    /// names, each from one of fields; key is where nav is, under base.
+    func checkWith(_ d: Design, _ nav: YNode, _ key: String, _ with: YNode?, _ base: [String], _ fields: [String: YNode], _ from: String) {
+        guard let target = d.pages[nav.value] else { return }
         let route = str(target.child("route"))
         let params = pathParameters(route)
         let want = Set(params)
@@ -127,7 +155,7 @@ extension Checker {
         }
         let missing = params.filter { !given.contains($0) }
         if !missing.isEmpty {
-            add(with ?? nav, pointer(base + ["navigate"]), .flow, "page \(nav.value) needs the route parameter \(missing.joined(separator: " and ")); give it under with, from \(from)")
+            add(with ?? nav, pointer(base + [key]), .flow, "page \(nav.value) needs the route parameter \(missing.joined(separator: " and ")); give it under with, from \(from)")
         }
     }
 }

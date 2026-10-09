@@ -35,6 +35,7 @@ export type {
   PasswordFieldSchema,
   ReasonSchema,
   RowActionSchema,
+  RowLinkSchema,
   Rule,
   SectionSchema,
   SelectFieldSchema,

@@ -1624,7 +1624,7 @@ stateDiagram-v2
 
 ## 4. Derived cases left out
 
-76 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+77 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1685,6 +1685,7 @@ stateDiagram-v2
 | page loans-list | fails with fee-ledger-unavailable | red | occasional case, and page loans-list satisfies no requirement with a harm |
 | page loans-list | Return not offered | red | occasional case, and page loans-list satisfies no requirement with a harm |
 | page loans-list | Lost not offered | red | occasional case, and page loans-list satisfies no requirement with a harm |
+| page loans-list | Ask to waive the fee not offered | red | occasional case, and page loans-list satisfies no requirement with a harm |
 | page member-form | fails with email-taken | red | occasional case, and page member-form satisfies no requirement with a harm |
 | page member-view | fails with member-not-found | red | occasional case, and page member-view satisfies no requirement with a harm |
 | page member-view | Deactivate not offered | red | occasional case, and page member-view satisfies no requirement with a harm |

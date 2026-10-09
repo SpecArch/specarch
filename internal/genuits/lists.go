@@ -257,7 +257,9 @@ func (g *gen) listPage(pageName string, pg map[string]any, sess *session) (strin
 			}
 			routes[target] = text(tp["route"])
 			if pathParam.MatchString(text(tp["route"])) {
-				g.problem("error", ptr, "the action %s opens %s at %s, whose route takes a parameter a list's toolbar cannot give", text(am["label"]), target, text(tp["route"]))
+				if row, ok := g.rowLink(ptr, am, labelKey, actionPermission, entity, text(tp["route"])); ok {
+					rowActions = append(rowActions, row)
+				}
 				continue
 			}
 			pageActions = append(pageActions, object([]member{{"label", str(g.say(labelKey, text(am["label"])))}, {"navigate", str(target)}, {"permission", str(actionPermission)}}))
@@ -362,21 +364,9 @@ func (g *gen) rowAction(pageName, ptr string, am map[string]any, labelKey, permi
 		{"parameters", object(parameters)},
 		{"permission", str(permission)},
 	}
-	if when := text(am["when"]); when != "" {
-		node, errs := expr.Parse(when)
-		if len(errs) > 0 {
-			g.problem("error", ptr+"/when", "the action's when does not parse: %s", errs[0].Message)
-			return nil, false
-		}
-		fields := map[string]string{}
-		for f := range props {
-			fields[f] = wirename.Of(g.wireNames, f)
-		}
-		rule, ok := g.rule(node, fields, ptr+"/when")
-		if !ok {
-			return nil, false
-		}
-		entry = append(entry, member{"when", rule})
+	entry, ok := g.whenOf(entry, ptr, am, props)
+	if !ok {
+		return nil, false
 	}
 	if c := text(am["confirm"]); c != "" {
 		entry = append(entry, member{"confirm", str(g.say(labelKey+".confirm", c))})
@@ -406,6 +396,61 @@ func (g *gen) rowAction(pageName, ptr string, am map[string]any, labelKey, permi
 	}
 	entry = append(entry, member{"failed", array(g.refusalsOf(pageName, op, failed))})
 	return object(entry), true
+}
+
+// rowLink is a list's action that opens a page whose route takes a
+// parameter: offered on each row while its when holds, the parameters
+// filled from the row's fields its with names.
+func (g *gen) rowLink(ptr string, am map[string]any, labelKey, permission string, entity map[string]any, route string) (value, bool) {
+	with := obj0(am["with"])
+	for _, p := range pathParam.FindAllString(route, -1) {
+		if with[p[1:len(p)-1]] == nil {
+			g.problem("error", ptr, "the action %s opens %s at %s, and its with does not give %s from the row", text(am["label"]), text(am["target"]), route, p)
+			return nil, false
+		}
+	}
+	if text(am["confirm"]) != "" {
+		g.problem("error", ptr+"/confirm", "the action %s opens a page, and this version of %s asks no confirmation before it does", text(am["label"]), name)
+		return nil, false
+	}
+	var ws []member
+	for _, k := range sortedKeys(with) {
+		ws = append(ws, member{k, str(wirename.Of(g.wireNames, text(with[k])))})
+	}
+	entry := []member{
+		{"label", str(g.say(labelKey+".label", text(am["label"])))},
+		{"navigate", str(text(am["target"]))},
+		{"with", object(ws)},
+		{"permission", str(permission)},
+	}
+	entry, ok := g.whenOf(entry, ptr, am, obj0(entity["properties"]))
+	if !ok {
+		return nil, false
+	}
+	return object(entry), true
+}
+
+// whenOf adds an action's when to its entry, as the rule the components
+// evaluate on the record, its fields by their wire names.
+func (g *gen) whenOf(entry []member, ptr string, am map[string]any, props map[string]any) ([]member, bool) {
+	when := text(am["when"])
+	if when == "" {
+		return entry, true
+	}
+	node, errs := expr.Parse(when)
+	if len(errs) > 0 {
+		g.problem("error", ptr+"/when", "the action's when does not parse: %s", errs[0].Message)
+		return nil, false
+	}
+	fields := map[string]string{}
+	for f := range props {
+		fields[f] = wirename.Of(g.wireNames, f)
+	}
+	rule, ok := g.rule(node, fields, ptr+"/when")
+	if !ok {
+		return nil, false
+	}
+	return append(entry, member{"when", rule}), true
 }
 
 // enumValues are the values a field may take, when they are a list.

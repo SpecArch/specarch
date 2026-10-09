@@ -48,6 +48,9 @@ func (c *checker) checkPageEvents(d *design) {
 			c.checkEvent(d, n, []string{"pages", name, e.key}, fields, "a field of the page's entity")
 		}
 		for i, a := range source.Items(source.Child(pg, "actions")) {
+			if source.Str(source.Child(a, "kind")) == "navigate" {
+				c.checkActionWith(d, name, kind, i, a, fields)
+			}
 			n := source.Child(a, "then")
 			if n == nil {
 				continue
@@ -174,15 +177,42 @@ func (c *checker) checkEvent(d *design, ev *yaml.Node, base []string, fields map
 		c.add(m, source.Pointer(append(base, "message")...), RuleFlow, "the message is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one")
 	}
 	nav := source.Child(ev, "navigate")
-	with := source.Child(ev, "with")
 	if nav == nil {
 		return // the schema asks for navigate beside with
 	}
-	target := d.pages[nav.Value]
-	if target == nil {
+	if d.pages[nav.Value] == nil {
 		c.add(nav, source.Pointer(append(base, "navigate")...), RuleFlow, "%s is not a page of the specification%s", nav.Value, suggest(nav.Value, d.pages))
 		return
 	}
+	c.checkWith(d, nav, "navigate", source.Child(ev, "with"), base, fields, from)
+}
+
+// checkActionWith checks the route parameters an action of kind navigate
+// gives the page it opens. On a list they come from the row, under with,
+// and a page whose route takes none is opened from the toolbar; on any
+// other page with is left out, since a view takes them from its record's
+// fields of their names or its own route.
+func (c *checker) checkActionWith(d *design, name, kind string, i int, a *yaml.Node, fields map[string]*yaml.Node) {
+	base := []string{"pages", name, "actions", fmt.Sprint(i)}
+	with := source.Child(a, "with")
+	if kind != "list" {
+		if with != nil {
+			c.add(source.Key(a, "with"), source.Pointer(append(base, "with")...), RuleFlow, "%s is a %s page, and with gives a list's row the route parameters of the page it opens; leave it out", name, kind)
+		}
+		return
+	}
+	target := source.Child(a, "target")
+	if target == nil || d.pages[target.Value] == nil {
+		return // the schema asks for target, and the page check reports one that does not exist
+	}
+	c.checkWith(d, target, "target", with, base, fields, "a field of the page's entity")
+}
+
+// checkWith checks that with gives exactly the route parameters of the
+// page nav names, each from one of fields; key is where nav is, under
+// base.
+func (c *checker) checkWith(d *design, nav *yaml.Node, key string, with *yaml.Node, base []string, fields map[string]*yaml.Node, from string) {
+	target := d.pages[nav.Value]
 	params := routeParams(source.Str(source.Child(target, "route")))
 	want := map[string]bool{}
 	for _, p := range params {
@@ -210,7 +240,7 @@ func (c *checker) checkEvent(d *design, ev *yaml.Node, base []string, fields map
 		if at == nil {
 			at = nav
 		}
-		c.add(at, source.Pointer(append(base, "navigate")...), RuleFlow, "page %s needs the route parameter %s; give it under with, from %s", nav.Value, strings.Join(missing, " and "), from)
+		c.add(at, source.Pointer(append(base, key)...), RuleFlow, "page %s needs the route parameter %s; give it under with, from %s", nav.Value, strings.Join(missing, " and "), from)
 	}
 }
 

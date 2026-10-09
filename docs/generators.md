@@ -437,11 +437,14 @@ filter is the operation's query parameter or, through the idiom's
 `filter` name, a field `listOf` makes filterable, an enum drawn as a list
 of its values. The list has a column picker, a refresh that keeps its
 page, and keeps `compactColumns` below Carbon's medium breakpoint. An
-action of kind navigate is a button of the toolbar; an action of kind
-operation is in each row's menu while its `when` holds for the row and its
-permission is held, and runs after its confirmation, sending the reason
-it names as the only property of its body; `onSelect` opens its page from
-the row's first column.
+action of kind navigate whose page takes no route parameter is a button
+of the toolbar; one whose page takes parameters, and an action of kind
+operation, are in each row's menu while their `when` holds for the row
+and their permission is held. The first opens its page as a link, its
+route filled from the row's fields its `with` names, and is refused with
+a `confirm`, since it asks none; the second runs after its confirmation,
+sending the reason it names as the only property of its body.
+`onSelect` opens its page from the row's first column.
 
 `application.ts` holds the menu and how the session is read:
 `settings.session` names the operation that answers who is signed in, the

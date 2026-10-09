@@ -172,5 +172,5 @@ pages:
       - { label: Retire, kind: operation, target: deactivateMember, when: status, confirm: "Retire this member?", reason: note }
       - { label: Count, kind: operation, target: deactivateMember, when: "status == ", confirm: "Count?", reason: count }
       - { label: Explain, kind: operation, target: deactivateMember, confirm: "Explain?", reason: why }
-      - { label: Open, kind: navigate, target: member-view, confirm: "Open?", reason: reason }
+      - { label: Open, kind: navigate, target: member-view, confirm: "Open?", reason: reason, with: { memberId: id } }
       - { label: Quiet, kind: operation, target: deactivateMember, reason: reason }

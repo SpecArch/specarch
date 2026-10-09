@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-082:
+    title: A list's action that opens a page whose route takes a parameter is a row action, its parameters under with from the row
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      A list could open a page whose route takes a parameter only from its
+      onSelect, the one page a row's first column links to. Its actions of
+      kind navigate were the toolbar's buttons, and a toolbar holds no row
+      to fill a route from, so the generator refused an action to such a
+      page. The library lending example's fee-waiver form, at
+      /loans/{loanId}/fee-waiver, was reachable by its URL only, since the
+      loans list's rows already open nothing and the form needs a loan.
+    decision: |
+      An action of kind navigate takes with, the route parameters of the
+      page it opens, each from a field of the record it is on, as a page
+      event's with does (ADR-034's pageEvent). On a list, the page the
+      action opens decides where it is drawn: one whose route takes a
+      parameter is offered on each row, while its when holds for the row
+      and its permission is held, its route filled from the row's fields
+      its with names; one whose route takes none stays a button of the
+      toolbar. The validator checks with as it checks an event's: exactly
+      the parameters the page's route takes, each from a field of the
+      page's entity, a parameter missing or not the page's and a field the
+      entity lacks each an error at the action (flow). with on the action
+      of a page that is not a list is an error at its with (flow): a view
+      fills its actions' routes from the record's fields of their names or
+      its own route. On Next.js and Carbon the row's menu holds both kinds
+      of row action in the order the page gives them, an action that
+      opens a page as a link; the ui-components idiom is 1.7.0.
+    consequences: |
+      The loans list offers "Ask to waive the fee" on a returned loan's
+      row and opens the fee-waiver form for that loan, on plain Carbon and
+      through the example's override. A row's action that opens a page
+      after a confirmation is refused by specarch-gen-ui-typescript, which
+      asks none before it opens a page. A view's actions keep binding by
+      field name; moving them to with is open.
+    why: |
+      with already says, for onSelect and then, which field of the record
+      fills which route parameter, and the validator already checks it;
+      reusing it keeps one way to say a binding. Deciding toolbar or row
+      by the target's route, not by whether with is written, leaves no
+      second reading: a page whose route takes a parameter can only be
+      opened from a record, and a page that takes none needs no row, so
+      a with there names a parameter the page does not have and is an
+      error. Requiring with on a list, where the row's fields are rarely
+      named as the route's parameters (id against loanId), keeps the
+      binding written instead of guessed, and a missing one surfaces at
+      the action instead of as a link to a wrong page.
+    satisfies: [SA-42, SA-53]

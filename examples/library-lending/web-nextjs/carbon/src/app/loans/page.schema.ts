@@ -53,6 +53,13 @@ export const schema = {
         { problem: "default", message: "loans-list.failed.default" },
       ],
     },
+    {
+      label: "loans-list.actions.fee-waiver-form.label",
+      navigate: "fee-waiver-form",
+      with: { loanId: "id" },
+      permission: "fees.request",
+      when: ["==", ["field", "status"], ["value", "returned"]],
+    },
   ],
   empty: "loans-list.empty",
   filteredEmpty: "loans-list.filteredEmpty",

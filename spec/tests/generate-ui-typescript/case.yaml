@@ -3,9 +3,9 @@ exitStatus: 0
 standardOutput: |
   project/specarch.yaml:375:44: warning: /pages/invitation/fields/3: generator: nickname has no title, so its label is its name; give the property a title [generator@specarch.yaml#/pages/invitation/fields/3]
   project/specarch.yaml:1:1: warning: /: generator: strings.en-GB.json has an entry for members-list.retired, which no screen uses; it is left out [generator.8db6760a@specarch.yaml#/]
-  project/specarch.yaml:540:5: warning: /theme/modes/print: generator: the mode print has no media query of its own on the web, and specarch-gen-ui-typescript writes the dark mode only; it is left out [generator@specarch.yaml#/theme/modes/print]
+  project/specarch.yaml:541:5: warning: /theme/modes/print: generator: the mode print has no media query of its own on the web, and specarch-gen-ui-typescript writes the dark mode only; it is left out [generator@specarch.yaml#/theme/modes/print]
   project/specarch.yaml:1:1: warning: /: generator: the ui target's settings.tokens gives space a token, and no token of the design-tokens idiom takes space on nextjs-carbon, whose own spacing and type scale apply; it is left out [generator.d2ca4afc@specarch.yaml#/]
   project/specarch.yaml:375:44: warning: /pages/invitation/fields/3: generator: nickname has no title, so its label is its name; give the property a title [generator@specarch.yaml#/pages/invitation/fields/3]
-  project/specarch.yaml:540:5: warning: /theme/modes/print: generator: the mode print has no media query of its own on the web, and specarch-gen-ui-typescript writes the dark mode only; it is left out [generator@specarch.yaml#/theme/modes/print]
-  project/specarch.yaml:524:1: warning: /theme: generator: the theme's colours reach no token of nextjs-carbon, and its own look applies; map the parts to the theme's tokens under the ui target's settings.tokens [generator@specarch.yaml#/theme]
+  project/specarch.yaml:541:5: warning: /theme/modes/print: generator: the mode print has no media query of its own on the web, and specarch-gen-ui-typescript writes the dark mode only; it is left out [generator@specarch.yaml#/theme/modes/print]
+  project/specarch.yaml:525:1: warning: /theme: generator: the theme's colours reach no token of nextjs-carbon, and its own look applies; map the parts to the theme's tokens under the ui target's settings.tokens [generator@specarch.yaml#/theme]
 plugins: [ui-typescript]

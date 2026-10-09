@@ -171,7 +171,20 @@ operation with `then`:
 
 `with` maps the target's route parameters to fields of the page's
 entity, the record submitted, selected or acted on, and each is checked
-(`flow`). A message after an event is a status message in a full
+(`flow`). A list's action of kind navigate takes `with` too, when the page
+it opens has route parameters: it is then offered on each row, while its
+`when` holds, and opens the page with its route filled from that row;
+an action whose page takes no parameter is a button of the list's
+toolbar:
+
+    loans-list:
+      kind: list
+      actions:
+        - { label: Ask to waive the fee, kind: navigate, target: fee-waiver-form, when: 'status == "returned"', with: { loanId: id } }
+
+The page the action opens decides where it is drawn, so `with` is
+required exactly when that page's route takes a parameter, and is an
+error on an action of any other kind of page (ADR-082). A message after an event is a status message in a full
 sentence, announced without moving focus (WCAG 4.1.3).
 
 A flow is a task a person does across pages, named once, so that the

@@ -37,6 +37,7 @@ export const strings = {
   "loan-form.fields.memberId": "Member",
   "loan-form.onSubmitted": "The copy is lent.",
   "loan-form.title": "Lend a copy",
+  "loans-list.actions.fee-waiver-form.label": "Ask to waive the fee",
   "loans-list.actions.reportLost.confirm": "Charge the replacement cost and close this loan?",
   "loans-list.actions.reportLost.label": "Lost",
   "loans-list.actions.reportLost.message": "The loan is closed and the replacement cost charged.",

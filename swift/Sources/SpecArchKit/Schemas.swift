@@ -2861,6 +2861,14 @@ let designSchemaJSON = #"""
         "then": {
           "description": "For an operation: where it leads once it succeeds.",
           "$ref": "#/$defs/pageEvent"
+        },
+        "with": {
+          "description": "For navigate on a list: the route parameters of the page it opens, each from a field of the row it is on, exactly the parameters that page's route takes. A list's action that opens a page whose route takes a parameter is offered on each row, while its when holds; one whose page takes none is a button of the list's toolbar.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minProperties": 1
         }
       },
       "required": [
@@ -8639,7 +8647,7 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: ui-components
-version: 1.6.0
+version: 1.7.0
 concern: ui-components
 stacks: [nextjs-carbon]
 reads: [pages]
@@ -8707,15 +8715,17 @@ parts:
         code: |
           The rows of source in a Carbon Table under a TableToolbar with the
           search, the column picker, a refresh that keeps the page and the
-          actions that open a page; the filters in a form above it; the
-          page under it in Pagination, the page size from listOf. The
-          service pages, sorts, searches and filters, through the
-          paginated-list idiom's names on the wire. columns are the page's
+          actions that open a page whose route takes no parameter; the
+          filters in a form above it; the page under it in Pagination, the
+          page size from listOf. The service pages, sorts, searches and
+          filters, through the paginated-list idiom's names on the wire. columns are the page's
           columns in order, each with its title key and whether it sorts
           and stays on a compact screen; each row's actions are in an
           OverflowMenu, offered while their rule holds for the row and their
-          permission is held, each after its confirmation in a Modal that
-          asks for the reason it sends.
+          permission is held: one that runs an operation after its
+          confirmation in a Modal that asks for the reason it sends, and one
+          that opens a page whose route takes a parameter as a link, its
+          route filled from the row's fields its with names.
           import, when a part names one, is where its component and schema
           type come from in place of the application's components.
   form-page:

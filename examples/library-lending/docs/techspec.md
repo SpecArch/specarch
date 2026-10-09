@@ -943,7 +943,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | request-validation | 1.1.0 | shipped |   |
 | soft-delete | 1.1.0 | shipped |   |
 | type-rendering | 1.2.0 | shipped |   |
-| ui-components | 1.6.0 | overridden, copied from 1.6.0 | list-page |
+| ui-components | 1.7.0 | overridden, copied from 1.7.0 | list-page |
 
 **Insight on ui-components:** A project whose screens are drawn by a library of its own renders its generated lists through that library, so they look and work like the screens built by hand; this file shows how, with the library's component, import and schema keys.
 
@@ -1013,7 +1013,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | request-validation | 1.1.0 | shipped |   |
 | soft-delete | 1.1.0 | shipped |   |
 | type-rendering | 1.2.0 | shipped |   |
-| ui-components | 1.6.0 | shipped |   |
+| ui-components | 1.7.0 | shipped |   |
 
 #### Implementation decisions
 
@@ -1120,6 +1120,7 @@ flowchart LR
   loans_list -.->|"Return"| op_returnLoan
   op_reportLost(["reportLost"])
   loans_list -.->|"Lost"| op_reportLost
+  loans_list -->|"Ask to waive the fee"| fee_waiver_form
   op_createMember(["createMember"])
   member_form -.->|"submit"| op_createMember
   op_createMember -->|"submitted"| member_view
@@ -1179,6 +1180,7 @@ The elements of each page that pick, offer, hide or check something:
 | loan-form | check due-after-lent | `lentOn == null \|\| dueOn > lentOn`, or it is not sent: A copy is due after the day it is lent. (beside dueOn) |
 | loans-list | action Return | offered while `status == "open" \|\| status == "overdue"` |
 | loans-list | action Lost | offered while `status == "open" \|\| status == "overdue"` |
+| loans-list | action Ask to waive the fee | offered while `status == "returned"` |
 | member-view | action Deactivate | offered while `status == "active"`; its confirmation asks for a reason, sent as reason |
 | members-list | action Deactivate | offered while `status == "active"`; its confirmation asks for a reason, sent as reason |
 | reset-password | check confirmation-matches | `confirmPassword == newPassword`, or it is not sent: The two passwords are not the same. (beside confirmPassword) |

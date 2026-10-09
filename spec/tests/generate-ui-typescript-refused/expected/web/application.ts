@@ -12,12 +12,15 @@
 // specarch-problem: error: generator: the check calls int, and this version of specarch-gen-ui-typescript checks in the browser with comparisons, &&, ||, ! and size only; check it on the server, or rewrite it with those [generator@specarch.yaml#/pages/member-form/checks/long-enough/expression]
 // specarch-problem: error: generator: the field's hiddenWhen orders fee, a decimal, which the browser cannot compare exactly; check it on the server [generator@specarch.yaml#/pages/member-view/fieldConditions/fee/hiddenWhen]
 // specarch-problem: error: generator: the action Suspend leads to members-list once it succeeds, and this version of specarch-gen-ui-typescript stays on the page and shows the message only [generator@specarch.yaml#/pages/member-view/actions/0/then]
+// specarch-problem: error: generator: the action Open opens a page, and this version of specarch-gen-ui-typescript asks no confirmation before it does [generator@specarch.yaml#/pages/members-list/actions/2/confirm]
 // specarch-problem: error: generator: visits-form loads its record from getMember, whose answer carries no rows of visitLog, so the loaded rows cannot be shown; answer a view that adds rows: visitLog [generator@specarch.yaml#/pages/visits-form/childRows/0/relation]
 // specarch-problem: error: generator: visits-new edits the rows of visitLog, and the request body of recordVisitsAnywhere has no array of objects named visitLog to send them in; add it to the body [generator@specarch.yaml#/pages/visits-new/childRows/0/relation]
 // specarch-problem: error: generator: visits-unlocked loads the rows of visitLog and may change them, and this version of specarch-gen-ui-typescript sends only the rows added; lock the loaded rows with lockLoadedRows [generator@specarch.yaml#/pages/visits-unlocked/childRows/0]
 // specarch-problem: error: generator: the ui target's settings.server.pages names listMembers, which pages itself through its listOf; take it out of the settings [generator.308bfcec@specarch.yaml#/]
 // specarch-problem: error: generator: more is a group inside the menu people, and the side navigation draws one level of groups; move its entries into a menu of their own [generator@specarch.yaml#/menus/people/items/more]
 // specarch-problem: error: generator: the menu entry one opens member-view at /members/{memberId}, whose route takes a parameter a menu cannot give; open a page whose route takes none [generator@specarch.yaml#/menus/people/items/one/page]
+// specarch-problem: warning: generator: strings.id.json has an entry for menu.people.items.all, which no screen uses; it is left out [generator.dff0e220@specarch.yaml#/]
+// specarch-problem: warning: generator: strings.id.json has an entry for menu.people.title, which no screen uses; it is left out [generator.e5999893@specarch.yaml#/]
 // specarch-problem: error: generator: strings.id.json gives screens.minLength without {count}, which the en text fills in; keep it in the translation [generator.a3a0aefd@specarch.yaml#/]
 // specarch-problem: error: generator: strings.id.json has no entry for screens.yes, which the screens use, so a page would show the key; add its id text of "Yes" [generator.5d80bbfa@specarch.yaml#/]
 import type { Application } from "@/screens";
@@ -30,5 +33,5 @@ export const application: Application = {
   service: "/api",
   session: { path: "/sessions/current", signedIn: "open", permissions: "granted" },
   signIn: "/sign-in",
-  menu: [{ title: "menu.people.title", items: [{ title: "menu.people.items.all", route: "/members", permission: "members.read" }] }],
+  menu: [],
 };

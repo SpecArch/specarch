@@ -17,6 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const routes = {
   invitation: "/invitations",
+  "member-edit": "/members/{memberId}/edit",
   "member-view": "/members/{memberId}",
 };
 

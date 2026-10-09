@@ -3,7 +3,7 @@ name: ui-components
 version: 1.0.0
 description: The list page drawn by the project's own library.
 why: The project's screens are drawn by its own library, @acme/screens, so a generated list looks like the ones built by hand.
-overrides: { idiom: ui-components, version: 1.6.0, parts: [list-page] }
+overrides: { idiom: ui-components, version: 1.7.0, parts: [list-page] }
 parts:
   list-page:
     description: A list page in @acme/screens.

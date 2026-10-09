@@ -40,6 +40,13 @@ export const schema = {
         { problem: "default", message: "members-list.failed.default" },
       ],
     },
+    {
+      label: "members-list.actions.member-edit.label",
+      navigate: "member-edit",
+      with: { memberId: "id" },
+      permission: "members.write",
+      when: ["==", ["field", "status"], ["value", "active"]],
+    },
   ],
   select: { navigate: "member-view", with: { memberId: "id" } },
   empty: "members-list.empty",

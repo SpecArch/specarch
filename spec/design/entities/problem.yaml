@@ -12,7 +12,7 @@ entities:
       severity: { $ref: "#/enums/ProblemSeverity" }
       file: { type: string, description: "The fragment the entry is in, relative to the folder the problems file is in." }
       line: { type: integer, format: int32, minimum: 1, description: "The line of the entry, from 1." }
-      column: { type: integer, format: int32, minimum: 1, description: "The column of the node the pointer names when the problem is on its line, otherwise of the first character on the line that is not a space; from 1, in Unicode characters." }
+      column: { type: integer, format: int32, minimum: 1, description: "From 1, in Unicode characters: for an expression, the column inside the expression; otherwise the column of the node the pointer names when the problem is on its line, and else of the first character on the line that is not a space. For an error or a warning, the column of its diagnostic." }
       path: { type: string, description: "JSON pointer to the entry, such as `/entities/Loan/relations/member/target`; `/` for the whole file." }
       rule: { type: string, minLength: 1, description: "The Rule of an error or a warning, and `open_question` for a question." }
       message: { type: string, minLength: 1, description: "What is wrong and how to fix it, in one plain sentence; for a question, its priority and kind, the question, who decides and how it is answered." }

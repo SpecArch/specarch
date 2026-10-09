@@ -180,7 +180,7 @@ by its notes.
 | severity | ProblemSeverity | yes |   |   |
 | file | string | yes |   | The fragment the entry is in, relative to the folder the problems file is in. |
 | line | int32 | yes | at least 1 | The line of the entry, from 1. |
-| column | int32 | yes | at least 1 | The column of the node the pointer names when the problem is on its line, otherwise of the first character on the line that is not a space; from 1, in Unicode characters. |
+| column | int32 | yes | at least 1 | From 1, in Unicode characters: for an expression, the column inside the expression; otherwise the column of the node the pointer names when the problem is on its line, and else of the first character on the line that is not a space. For an error or a warning, the column of its diagnostic. |
 | path | string | yes |   | JSON pointer to the entry, such as `/entities/Loan/relations/member/target`; `/` for the whole file. |
 | rule | string | yes | at least 1 character | The Rule of an error or a warning, and `open_question` for a question. |
 | message | string | yes | at least 1 character | What is wrong and how to fix it, in one plain sentence; for a question, its priority and kind, the question, who decides and how it is answered. |

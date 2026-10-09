@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+entity: Loan
+constraint: loan_lent_by_recording
+level: system
+scenario: golden
+given: a loan recorded at 2026-10-09T09:00:00Z
+when: it is saved lent on 2026-10-07, a day the system was down
+then: it is saved

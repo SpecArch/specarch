@@ -7,12 +7,14 @@ pages:
     entity: Loan
     permission: loans.create
     submit: createLoan
-    fields: [memberId, bookId]
+    fields: [memberId, bookId, lentOn, dueOn]
     pickers:
       memberId: { source: listMembers, shows: [cardNumber, fullName] }
       bookId: { source: listBooks, shows: [title, author, copiesAvailable] }
+    checks:
+      due-after-lent: { expression: "lentOn == null || dueOn > lentOn", message: A copy is due after the day it is lent., field: dueOn }
     states:
       failed:
-        lending-refused: { message: "This member cannot borrow now: the loan limit is reached, fees are outstanding, or no copy is available." }
+        lending-refused: { message: "This member cannot borrow now: the loan limit is reached, fees are outstanding, no copy is available, or the due day is later than the tier allows." }
     onSubmitted: { navigate: member-view, with: { memberId: memberId }, message: The copy is lent. }
     satisfies: [LIB-7]

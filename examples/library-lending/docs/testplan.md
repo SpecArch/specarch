@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 169 design tests, 51 golden and 117 red, about 44 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 173 design tests, 52 golden and 120 red, about 45 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.1.0 of the specification: 169 design tests, 51 golden and 117 red, abo
 | Level | Design tests |
 |---|---|
 | acceptance | 9 |
-| system | 160 |
+| system | 164 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -179,6 +179,14 @@ Scenario: golden; level: system; verifies LIB-3.
 - When: createLoan is called for them
 - Then: an open loan due in 21 days is created, the book has no copy available, and LoanCreated is published
 
+#### lend-bad-dates
+
+Scenario: red; level: system; covers lentOn not a valid date, dueOn not a valid date.
+
+- Given: a librarian, a member and a book with a copy available
+- When: createLoan is called with lentOn 2026-02-30 and again with dueOn 28/10/2026
+- Then: both are refused as invalid input
+
 #### lend-bad-ids
 
 Scenario: red; level: system; covers memberId not a valid uuid, bookId not a valid uuid.
@@ -213,11 +221,11 @@ Scenario: red; level: system; covers response 409; verifies LIB-3.
 
 #### lend-missing-field
 
-Scenario: red; level: system; covers missing memberId, missing bookId.
+Scenario: red; level: system; covers missing memberId, missing bookId, missing lentOn, missing dueOn.
 
 - Given: a librarian
-- When: createLoan is called without memberId and again without bookId
-- Then: both are refused as invalid input
+- When: createLoan is called without each of memberId, bookId, lentOn and dueOn in turn
+- Then: each is refused as invalid input
 
 #### lend-unknown-member-or-book
 
@@ -749,21 +757,21 @@ Scenario: red; level: system; covers from wrong state.
 - When: the nightly job runs
 - Then: the loan stays returned
 
-### Loan constraint loan_due_after_loaned
+### Loan constraint loan_due_after_lent
 
-#### loan-due-after-loaned
+#### loan-due-after-lent
 
 Scenario: golden; level: system.
 
-- Given: a loan made on 2026-10-07
+- Given: a copy lent on 2026-10-07
 - When: it is saved due on 2026-10-28
 - Then: it is saved
 
-#### loan-due-on-loan-day
+#### loan-due-on-lent-day
 
-Scenario: red; level: system; covers violates loan_due_after_loaned.
+Scenario: red; level: system; covers violates loan_due_after_lent.
 
-- Given: a loan made on 2026-10-07
+- Given: a copy lent on 2026-10-07
 - When: it is saved due on 2026-10-07
 - Then: it is refused
 
@@ -785,6 +793,14 @@ Scenario: red; level: system; covers denied with expired session.
 - When: the page loan-form is opened
 - Then: it is not shown, and the sign-in page is shown instead
 
+#### loan-form-due-before-lent
+
+Scenario: red; level: system; covers violates due-after-lent.
+
+- Given: a librarian, a member and a book with a copy available
+- When: the form is submitted lent on 2026-10-09 and due on 2026-10-09
+- Then: it is not sent, and says beside the due day: A copy is due after the day it is lent.
+
 #### loan-form-picks-nothing
 
 Scenario: red; level: system; covers picker memberId finds nothing, picker bookId finds nothing.
@@ -800,6 +816,24 @@ Scenario: golden; level: system.
 - Given: a librarian
 - When: the page loan-form is filled in and sent
 - Then: the copy is lent
+
+### Loan constraint loan_lent_by_recording
+
+#### loan-lent-after-recorded
+
+Scenario: red; level: system; covers violates loan_lent_by_recording.
+
+- Given: a loan recorded at 2026-10-09T09:00:00Z
+- When: it is saved lent on 2026-10-10
+- Then: it is refused
+
+#### loan-lent-before-recorded
+
+Scenario: golden; level: system.
+
+- Given: a loan recorded at 2026-10-09T09:00:00Z
+- When: it is saved lent on 2026-10-07, a day the system was down
+- Then: it is saved
 
 ### Loan state machine
 

@@ -2,7 +2,7 @@
 operation: createLoan
 level: system
 scenario: red
-covers: [missing memberId, missing bookId]
+covers: [missing memberId, missing bookId, missing lentOn, missing dueOn]
 given: a librarian
-when: createLoan is called without memberId and again without bookId
-then: both are refused as invalid input
+when: createLoan is called without each of memberId, bookId, lentOn and dueOn in turn
+then: each is refused as invalid input

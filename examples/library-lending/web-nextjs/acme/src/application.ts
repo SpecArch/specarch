@@ -6,7 +6,19 @@ export const application: Application = {
   session: { path: "/sessions/current", signedIn: "signedIn", permissions: "permissions" },
   signIn: "/sign-in",
   menu: [
-    { title: "menu.loans.title", items: [{ title: "menu.loans.items.list", route: "/loans", permission: "loans.read" }] },
-    { title: "menu.members.title", items: [{ title: "menu.members.items.list", route: "/members", permission: "members.read" }] },
+    {
+      title: "menu.loans.title",
+      items: [
+        { title: "menu.loans.items.lend", route: "/loans/new", permission: "loans.create" },
+        { title: "menu.loans.items.list", route: "/loans", permission: "loans.read" },
+      ],
+    },
+    {
+      title: "menu.members.title",
+      items: [
+        { title: "menu.members.items.list", route: "/members", permission: "members.read" },
+        { title: "menu.members.items.register", route: "/members/new", permission: "members.write" },
+      ],
+    },
   ],
 };

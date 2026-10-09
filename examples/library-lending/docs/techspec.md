@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 8 requirements, 4 entities, 17 HTTP operations, 3 channels, 1 dependency, 11 pages, 1 flow, 1 workflow, 1 algorithm, 169 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 8 requirements, 4 entities, 17 HTTP operations, 3 channels, 1 dependency, 11 pages, 1 flow, 1 workflow, 1 algorithm, 173 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -115,6 +115,7 @@ erDiagram
     uuid memberId FK
     uuid bookId FK
     timestamp loanedAt
+    date lentOn
     date dueOn
     timestamp returnedAt
     LoanStatus status
@@ -184,8 +185,9 @@ One copy of one book lent to one member for a period.
 | id | uuid | yes | set by the system |   |
 | memberId | uuid | yes |   |   |
 | bookId | uuid | yes |   |   |
-| loanedAt | timestamp | yes | set by the system |   |
-| dueOn | date | yes | set by the system |   |
+| loanedAt | timestamp | yes | set by the system | When the loan was recorded. |
+| lentOn | date or null | yes |   | The day the copy left the desk: today, or an earlier day for a loan the desk made while the system was down. Null for a loan recorded before the desk gave the day, which was lent on the day of loanedAt. |
+| dueOn | date | yes |   | The day the copy is due back, no later than the member's tier allows. |
 | returnedAt | timestamp or null |   | set by the system |   |
 | status | LoanStatus | yes |   |   |
 | lateFee | decimal(10, 2) | yes | set by the system | Computed by the lateFee algorithm when the copy is returned; zero until then. |
@@ -199,7 +201,8 @@ Primary key: id.
 
 | Constraint | Rule | Message |
 |---|---|---|
-| loan_due_after_loaned | check `dueOn > date(loanedAt)` | The due date must be after the loan date. |
+| loan_due_after_lent | check `lentOn == null \|\| dueOn > lentOn` | A copy is due after the day it is lent. |
+| loan_lent_by_recording | check `lentOn == null \|\| lentOn <= date(loanedAt)` | A copy is lent no later than the day its loan is recorded. |
 | loan_returned_after_loaned | check `returnedAt == null \|\| returnedAt >= loanedAt` | A copy cannot be returned before it was lent. |
 
 ### Member
@@ -359,7 +362,7 @@ sequenceDiagram
 
 ### listMembers (GET /members)
 
-Lists Member a page at a time, 20 records by default, at most 100 a page. It may be sorted by fullName and joinedOn. A request outside these is refused, not ignored (the paginated-list idiom).
+Lists Member a page at a time, 20 records by default, at most 100 a page. A search matches cardNumber and fullName. It may be sorted by fullName and joinedOn. A request outside these is refused, not ignored (the paginated-list idiom).
 
 ```mermaid
 sequenceDiagram
@@ -438,7 +441,8 @@ sequenceDiagram
 ### createLoan (POST /loans)
 
 Refused when the member already holds the maximum open loans for their
-tier, has outstanding fees, or the book has no copy available.
+tier, has outstanding fees, or the book has no copy available, or when
+the copy is due later than the member's tier allows.
 
 Refuses with 409 lending-refused.
 
@@ -867,7 +871,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | request-validation | 1.1.0 | shipped |   |
 | soft-delete | 1.1.0 | shipped |   |
 | type-rendering | 1.2.0 | shipped |   |
-| ui-components | 1.2.0 | overridden, copied from 1.2.0 | list-page |
+| ui-components | 1.3.0 | overridden, copied from 1.3.0 | list-page |
 
 **Insight on ui-components:** A project whose screens are drawn by a library of its own renders its generated lists through that library, so they look and work like the screens built by hand; this file shows how, with the library's component, import and schema keys.
 
@@ -936,7 +940,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | request-validation | 1.1.0 | shipped |   |
 | soft-delete | 1.1.0 | shipped |   |
 | type-rendering | 1.2.0 | shipped |   |
-| ui-components | 1.2.0 | shipped |   |
+| ui-components | 1.3.0 | shipped |   |
 
 #### Implementation decisions
 
@@ -1074,7 +1078,7 @@ The menu, each entry shown to who may open its page:
 |---|---|---|---|---|---|
 | fee-waiver-form | form | /loans/{loanId}/fee-waiver | FeeWaiverRequest | fees.request | amount, reason |
 | fee-waivers-inbox | list | /fee-waivers | FeeWaiverRequest | fees.approve | loanId, amount, reason |
-| loan-form | form | /loans/new | Loan | loans.create | memberId, bookId |
+| loan-form | form | /loans/new | Loan | loans.create | memberId, bookId, lentOn, dueOn |
 | loans-list | list | /loans | Loan | loans.read | memberId, bookId, loanedAt, dueOn, status, lateFee; on a compact screen memberId, dueOn, status |
 | member-form | form | /members/new | Member | members.write | fullName, email, tier |
 | member-loans | form | /members/{memberId}/loans | Member | loans.create | membershipEndsOn, outstandingFees; Loans, rows of loans: bookId, dueOn, at most 6, the loaded rows locked |
@@ -1090,6 +1094,7 @@ The elements of each page that pick, offer, hide or check something:
 |---|---|---|
 | loan-form | picker memberId | a Member, through the relation member, picked from listMembers, showing cardNumber, fullName |
 | loan-form | picker bookId | a Book, through the relation book, picked from listBooks, showing title, author, copiesAvailable |
+| loan-form | check due-after-lent | `lentOn == null \|\| dueOn > lentOn`, or it is not sent: A copy is due after the day it is lent. (beside dueOn) |
 | loans-list | action Return | offered while `status == "open" \|\| status == "overdue"` |
 | loans-list | action Lost | offered while `status == "open" \|\| status == "overdue"` |
 | members-list | action Deactivate | offered while `status == "active"`; its confirmation asks for a reason, sent as reason |
@@ -1100,7 +1105,7 @@ What each page shows when it is empty or fails; while it loads or submits, the s
 | Page | State | Message |
 |---|---|---|
 | fee-waivers-inbox | empty | No request waits for approval. |
-| loan-form | failed: lending-refused | This member cannot borrow now: the loan limit is reached, fees are outstanding, or no copy is available. |
+| loan-form | failed: lending-refused | This member cannot borrow now: the loan limit is reached, fees are outstanding, no copy is available, or the due day is later than the tier allows. |
 | loans-list | empty | No loans yet. A loan is made from a member's record. |
 | loans-list | filtered empty | No loan matches these filters. |
 | loans-list | failed: loan-closed | This loan was already closed, so nothing changed. |
@@ -1286,6 +1291,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | lend-a-copy | operation createLoan | system | golden | a standard-tier member with no loans and no fees, and a book with one copy available | createLoan is called for them | an open loan due in 21 days is created, the book has no copy available, and LoanCreated is published |
 | lend-a-copy-at-the-desk |   | acceptance | golden | a librarian at the desk, and a member with no loans and no fees | the librarian selects the member in the members list, chooses Lend a book on their record, and submits the loan form for an available copy | the member's record opens again with the new loan and the message that the copy is lent |
 | lend-a-copy-limit-reached |   | acceptance | red | a librarian at the desk, and a member who has reached the loan limit of their tier | the librarian goes through the flow and submits the loan form | the form stays open and says the loan is refused, and no loan is recorded |
+| lend-bad-dates | operation createLoan | system | red | a librarian, a member and a book with a copy available | createLoan is called with lentOn 2026-02-30 and again with dueOn 28/10/2026 | both are refused as invalid input |
 | lend-bad-ids | operation createLoan | system | red | a librarian | createLoan is called with memberId abc and again with bookId abc | both are refused as invalid input |
 | lend-copies | operation lendCopies | system | golden | an extended-tier member with two open loans and no fees, and two books with a copy available each | lendCopies is called for both books | two open loans are created, each due on the date the member's tier sets |
 | lend-copies-bad-loans | operation lendCopies | system | red | a librarian | lendCopies is called without loans, with no loan, and with seven | each is refused as invalid input, and no loan is created |
@@ -1300,7 +1306,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | lend-denied | operation createLoan | system | red | a caller holding only the member role | createLoan is called | it is refused as not allowed |
 | lend-event-not-delivered | operation createLoan | system | red | the loan.lifecycle channel is unavailable | createLoan is called | no loan is created and the call fails, so a loan never exists without its event |
 | lend-limit-reached | operation createLoan | system | red | a standard-tier member with three open loans | createLoan is called for a fourth book | it answers 409 and no loan is created |
-| lend-missing-field | operation createLoan | system | red | a librarian | createLoan is called without memberId and again without bookId | both are refused as invalid input |
+| lend-missing-field | operation createLoan | system | red | a librarian | createLoan is called without each of memberId, bookId, lentOn and dueOn in turn | each is refused as invalid input |
 | lend-unknown-member-or-book | operation createLoan | system | red | a librarian | createLoan is called with a memberId and then a bookId that no record has | both are refused as not found |
 | lending-limit-accepted | requirement LIB-3 | acceptance | golden | a standard-tier member with three open loans | the librarian lends them a fourth copy | A standard-tier member with three open loans is refused a fourth with 409. |
 | list-fee-waivers-denied-with-expired-session | operation listFeeWaivers | system | red | a desk supervisor whose session has expired | listFeeWaivers is called | it is refused as not signed in |
@@ -1315,13 +1321,16 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | list-members-denied | operation listMembers | system | red | a caller holding only the member role | listMembers is called | it is refused as not allowed |
 | list-members-denied-with-expired-session | operation listMembers | system | red | a librarian whose session expired after half an hour without a request | listMembers is called | it is refused as not signed in, and nothing changes |
 | loan-becomes-overdue | Loan open to overdue | system | golden | an open loan due yesterday | the nightly job runs | the loan is overdue and LoanOverdue is published |
-| loan-due-after-loaned | Loan constraint loan_due_after_loaned | system | golden | a loan made on 2026-10-07 | it is saved due on 2026-10-28 | it is saved |
-| loan-due-on-loan-day | Loan constraint loan_due_after_loaned | system | red | a loan made on 2026-10-07 | it is saved due on 2026-10-07 | it is refused |
+| loan-due-after-lent | Loan constraint loan_due_after_lent | system | golden | a copy lent on 2026-10-07 | it is saved due on 2026-10-28 | it is saved |
+| loan-due-on-lent-day | Loan constraint loan_due_after_lent | system | red | a copy lent on 2026-10-07 | it is saved due on 2026-10-07 | it is refused |
 | loan-form-denied | page loan-form | system | red | a caller holding only the member role | the page loan-form is opened | it is not shown |
 | loan-form-denied-with-expired-session | page loan-form | system | red | a librarian whose session expired after half an hour without a request | the page loan-form is opened | it is not shown, and the sign-in page is shown instead |
+| loan-form-due-before-lent | page loan-form | system | red | a librarian, a member and a book with a copy available | the form is submitted lent on 2026-10-09 and due on 2026-10-09 | it is not sent, and says beside the due day: A copy is due after the day it is lent. |
 | loan-form-picks-nothing | page loan-form | system | red | a librarian, and no member or book matching what is typed | a member and then a book are looked for on the page loan-form | each picker says nothing matches, and the field stays empty |
 | loan-form-shown | page loan-form | system | golden | a librarian | the page loan-form is filled in and sent | the copy is lent |
+| loan-lent-after-recorded | Loan constraint loan_lent_by_recording | system | red | a loan recorded at 2026-10-09T09:00:00Z | it is saved lent on 2026-10-10 | it is refused |
 | loan-lent-and-returned | Loan state machine | system | golden | a Loan that is open | returnLoan happens before the due date | the Loan ends returned, with no late fee |
+| loan-lent-before-recorded | Loan constraint loan_lent_by_recording | system | golden | a loan recorded at 2026-10-09T09:00:00Z | it is saved lent on 2026-10-07, a day the system was down | it is saved |
 | loan-overdue-only-from-open | Loan open to overdue | system | red | a returned loan due last week | the nightly job runs | the loan stays returned |
 | loan-returned-after-loaned | Loan constraint loan_returned_after_loaned | system | golden | a loan made at 2026-10-07T10:00:00Z | it is saved returned at 2026-10-08T10:00:00Z | it is saved |
 | loan-returned-before-loaned | Loan constraint loan_returned_after_loaned | system | red | a loan made at 2026-10-07T10:00:00Z | it is saved returned at 2026-10-06T10:00:00Z | it is refused |

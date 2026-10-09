@@ -131,6 +131,7 @@ paths:
       listOf:
         entity: Member
         sortable: [fullName, joinedOn]
+        searchable: [cardNumber, fullName]
         pageSize: { default: 20, maximum: 100 }
       responses:
         "200":
@@ -223,7 +224,7 @@ paths:
                   loans: { type: array, items: { $ref: "#/entities/Loan" } }
                 required: [loans]
         "404": { description: No such member., problem: member-not-found }
-        "409": { description: "Loan limit reached, fees outstanding, or no copy available.", problem: lending-refused }
+        "409": { description: "Loan limit reached, fees outstanding, no copy available, or due too late.", problem: lending-refused }
       satisfies: [LIB-3]
 
   /members/{memberId}/deactivate:
@@ -273,7 +274,8 @@ paths:
       summary: Lend a copy to a member
       description: |
         Refused when the member already holds the maximum open loans for their
-        tier, has outstanding fees, or the book has no copy available.
+        tier, has outstanding fees, or the book has no copy available, or when
+        the copy is due later than the member's tier allows.
       permission: loans.create
       idempotencyKey: Idempotency-Key
       limits:
@@ -294,10 +296,12 @@ paths:
               properties:
                 memberId: { type: string, format: uuid }
                 bookId: { type: string, format: uuid }
-              required: [memberId, bookId]
+                lentOn: { type: string, format: date }
+                dueOn: { type: string, format: date }
+              required: [memberId, bookId, lentOn, dueOn]
       responses:
         "201":
-          description: The new loan, with the due date set from the member's tier.
+          description: The new loan.
           content:
             application/json:
               schema: { $ref: "#/entities/Loan" }

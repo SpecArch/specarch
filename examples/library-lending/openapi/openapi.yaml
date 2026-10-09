@@ -212,7 +212,8 @@ paths:
       summary: Lend a copy to a member
       description: |
         Refused when the member already holds the maximum open loans for their
-        tier, has outstanding fees, or the book has no copy available.
+        tier, has outstanding fees, or the book has no copy available, or when
+        the copy is due later than the member's tier allows.
       parameters:
         - name: Idempotency-Key
           in: header
@@ -231,15 +232,23 @@ paths:
                 bookId:
                   type: string
                   format: uuid
+                dueOn:
+                  type: string
+                  format: date
+                lentOn:
+                  type: string
+                  format: date
                 memberId:
                   type: string
                   format: uuid
               required:
                 - memberId
                 - bookId
+                - lentOn
+                - dueOn
       responses:
         "201":
-          description: The new loan, with the due date set from the member's tier.
+          description: The new loan.
           content:
             application/json:
               schema:
@@ -395,6 +404,11 @@ paths:
           in: query
           schema:
             $ref: '#/components/schemas/MembershipTier'
+        - name: search
+          in: query
+          schema:
+            type: string
+            description: Free text, matched against cardNumber and fullName.
         - name: sort
           in: query
           schema:
@@ -626,7 +640,7 @@ paths:
                 $ref: '#/components/schemas/Problem'
           x-specarch-problem: member-not-found
         "409":
-          description: Loan limit reached, fees outstanding, or no copy available.
+          description: Loan limit reached, fees outstanding, no copy available, or due too late.
           content:
             application/problem+json:
               schema:
@@ -884,7 +898,7 @@ components:
           type: string
           format: date
           title: Due on
-          readOnly: true
+          description: The day the copy is due back, no later than the member's tier allows.
         id:
           type: string
           format: uuid
@@ -897,10 +911,18 @@ components:
           readOnly: true
           x-specarch-precision: 10
           x-specarch-scale: 2
+        lentOn:
+          type:
+            - string
+            - "null"
+          format: date
+          title: Lent on
+          description: 'The day the copy left the desk: today, or an earlier day for a loan the desk made while the system was down. Null for a loan recorded before the desk gave the day, which was lent on the day of loanedAt.'
         loanedAt:
           type: string
           format: date-time
-          title: Lent at
+          title: Recorded at
+          description: When the loan was recorded.
           readOnly: true
         memberId:
           type: string
@@ -919,6 +941,7 @@ components:
         - memberId
         - bookId
         - loanedAt
+        - lentOn
         - dueOn
         - status
         - lateFee

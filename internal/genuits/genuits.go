@@ -57,23 +57,35 @@ var screens embed.FS
 
 // The screens' own texts, the generator's words where a page has none.
 var screenStrings = map[string]string{
-	"screens.email":        "Type an email address, such as name@example.org.",
-	"screens.failed":       "This cannot be done right now. Try again in a moment.",
-	"screens.maxLength":    "Use at most {count} characters.",
-	"screens.minLength":    "Use at least {count} characters.",
-	"screens.pattern":      "This is not in the form asked for.",
-	"screens.required":     "Fill this in.",
-	"screens.rule.pattern": "It matches {pattern}.",
-	"screens.actions":      "Actions",
-	"screens.any":          "Any",
-	"screens.cancel":       "Cancel",
-	"screens.columns":      "Columns",
-	"screens.filter":       "Filter",
-	"screens.loading":      "Loading",
-	"screens.menu":         "Menu",
-	"screens.refresh":      "Refresh",
-	"screens.refused":      "You do not hold the permission this page needs.",
-	"screens.search":       "Search",
+	"screens.email":          "Type an email address, such as name@example.org.",
+	"screens.failed":         "This cannot be done right now. Try again in a moment.",
+	"screens.maxLength":      "Use at most {count} characters.",
+	"screens.minLength":      "Use at least {count} characters.",
+	"screens.pattern":        "This is not in the form asked for.",
+	"screens.required":       "Fill this in.",
+	"screens.rule.pattern":   "It matches {pattern}.",
+	"screens.actions":        "Actions",
+	"screens.any":            "Any",
+	"screens.cancel":         "Cancel",
+	"screens.columns":        "Columns",
+	"screens.filter":         "Filter",
+	"screens.loading":        "Loading",
+	"screens.menu":           "Menu",
+	"screens.refresh":        "Refresh",
+	"screens.refused":        "You do not hold the permission this page needs.",
+	"screens.search":         "Search",
+	"screens.again":          "The two entries differ.",
+	"screens.back":           "Back",
+	"screens.date":           "Type a day as yyyy-mm-dd.",
+	"screens.maximum":        "Use {count} or less.",
+	"screens.minimum":        "Use {count} or more.",
+	"screens.next":           "Next",
+	"screens.no":             "No",
+	"screens.none":           "None",
+	"screens.nothingMatches": "Nothing matches.",
+	"screens.number":         "Type a number.",
+	"screens.step":           "Use a multiple of {count}.",
+	"screens.yes":            "Yes",
 }
 
 type gen struct {
@@ -141,6 +153,7 @@ func Generate(r *Request) genui.Response {
 	pages := obj0(g.spec["pages"])
 	owned := ownership.Of(g.impl.Content)
 	drawn := map[string]bool{}
+	hooks, layouts := g.formSettings()
 	for _, pageName := range sortedKeys(pages) {
 		pg := obj0(pages[pageName])
 		if owned.Covers(ownership.Entity("pages", pageName)) {
@@ -169,8 +182,29 @@ func Generate(r *Request) genui.Response {
 			if test != "" {
 				files = append(files, genui.File{Path: "tests/" + pageName + ".test.ts", Content: header + test})
 			}
+		case "form", "view":
+			var out pageOut
+			var ok bool
+			if text(pg["kind"]) == "form" {
+				out, ok = g.formPage(pageName, pg, sess, hooks[pageName], layouts[pageName])
+			} else {
+				out, ok = g.viewPage(pageName, pg, sess)
+			}
+			if !ok {
+				continue
+			}
+			files = append(files,
+				genui.File{Path: folder + "/page.schema.ts", Content: header + out.schema},
+				genui.File{Path: folder + "/page.tsx", Content: header + out.page})
+			if out.client != "" {
+				files = append(files, genui.File{Path: folder + "/page.client.tsx", Content: header + out.client})
+			}
+			drawn[pageName] = true
+			if out.test != "" {
+				files = append(files, genui.File{Path: "tests/" + pageName + ".test.ts", Content: header + out.test})
+			}
 		default:
-			g.problem("warning", "/pages/"+pageName, "%s is a %s, and this version of %s writes task and list pages only; it is left out", pageName, text(pg["kind"]), name)
+			g.problem("warning", "/pages/"+pageName, "%s is a %s, which this version of %s does not write; it is left out", pageName, text(pg["kind"]), name)
 		}
 	}
 	app, menuEntries := g.application(sess, drawn)

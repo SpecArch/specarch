@@ -17,7 +17,8 @@ steps. In short:
    public packages only; a project renders through its own component
    library by overriding it, as any idiom is overridden today.
 3. The design keywords the screens need and SpecArch lacks (a page with no
-   entity, a lookup field, child rows, a rule across fields, an action
+   entity, a field picked from another entity's records, child rows, a
+   rule across fields, an action
    offered by the row's state, a confirmation with a reason, an approval)
    are meta-model work, planned in meta-model 0.2. This plan consumes
    them; each step says which one it waits for.
@@ -27,7 +28,7 @@ steps. In short:
    with screens built by hand.
 
 Questions Q1 to Q10 at the end were the owner's, who answered each as
-recommended on 2026-10-09 (ADR-051). Steps 1 to 3 are built.
+recommended on 2026-10-09 (ADR-051). Steps 1 to 4 are built.
 
 ## Where SpecArch stands
 
@@ -59,8 +60,8 @@ below:
 |---|---|---|
 | a page with no entity | a task form that submits to an operation without loading a record: sign-in, second factor, password reset | step 2 |
 | an action offered by the row's state | an expression over the row, in the expression language, that says when a row action is offered | step 3, for that part |
-| a lookup field | a field that holds the key of another entity's record, picked from a list an operation reads, and may fill other fields | step 4 |
-| a rule across fields | a confirmation equal to a password, an end after a start; read-only or hidden by mode or by an expression | step 4 |
+| a picker (`pickers`) | a field that holds the key of another entity's record, picked from a list an operation reads, and may fill other fields | step 4 |
+| a rule across fields (`checks`, `enteredTwice`, `fieldConditions`) | a confirmation equal to a password, an end after a start; a field read-only or hidden by an expression. A page is one mode (a form without `source` creates, one with it edits, a view shows), so a field hidden in a mode is one that page does not list | step 4 |
 | child rows | rows of a child entity edited under the parent's form, with a maximum and the loaded rows locked | step 5 |
 | a confirmation with a reason | the reason is typed, required and sent with the request | step 5 |
 | an approval | a write that starts an approval and answers "accepted, pending", with how completion is announced | step 5 |
@@ -292,13 +293,17 @@ needs Q1, Q4 and Q5; step 2 needs Q2, Q3, Q6, Q7 and Q10.
    Done: the members, loans and fee waivers lists build both ways, the
    refusal tests pass, and `generate --check` is clean on both and reports
    a schema edited by hand.
-4. **Forms and views.** Forms with sections, validation from the entity's
-   JSON Schema keywords and across fields, read-only and hidden fields by
-   mode or expression, layouts as one page, tabs or steps; lookup fields;
-   the hooks of fields the target names; views as the form's sections
-   read-only. Waits for the 0.2 steps that add the lookup field and the
-   rule across fields. Done when the loan form has a lookup of the
-   member, a rule across two fields and a hook, and builds both ways.
+4. **Built: forms and views** (SA-54, ADR-069). Forms that create a
+   record or load and change one, with sections, validation from the
+   entity's JSON Schema keywords, `checks` across fields and fields
+   `enteredTwice`, fields read-only or hidden by `fieldConditions`,
+   layouts as one page, tabs or steps (`settings.layouts`); `pickers`
+   drawn as lookups; the hooks of the fields `settings.hooks` names,
+   handed on by `page.client.tsx` from `page.hooks.ts`, which the project
+   writes; views as their sections read-only. Done: the loan form picks
+   the member and the book, checks that the copy is due after the day it
+   is lent and starts that day with a hook; it, the member's form and the
+   member's view build both ways.
 5. **Child rows, reasons and approvals.** Child rows edited inline or in a
    dialog, loaded rows locked, a maximum count and per-row checks; a
    confirmation that requires a reason and sends it; a write that answers

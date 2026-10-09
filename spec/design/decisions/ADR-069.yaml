@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-069:
+    title: Forms and views read the page elements as rules over the record, and a hook is wired by a client file the generator writes beside one it never writes
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Step 4 of docs/ui-nextjs-carbon.md writes the forms and the views on
+      Next.js and Carbon, with the pickers, field conditions, checks and
+      fields entered twice of the design's page elements, the layout of a
+      form's sections, and the hooks of fields the ui target names. The
+      plan named a lookup field and fields read-only or hidden by mode; the
+      design says pickers and fieldConditions, and a page is one mode
+      already. A hook is a function, and page.tsx is a server component,
+      which cannot hand a function to the client component that draws the
+      form.
+    decision: |
+      A form's field is drawn by the part of its property's type and
+      format, or by the lookup part when the page picks it; its required
+      is the request body's, and a field the body does not take is shown
+      only read-only. readOnly, readOnlyWhen, hiddenWhen and the checks
+      become the rules task pages already evaluate, over the record: the
+      loaded record's fields with the form's own typed over them, an empty
+      field null. A hidden field is neither checked nor sent. A picker
+      reads its source a page at a time and searches through the service
+      when listOf names searchable fields; otherwise it offers one page,
+      with a warning at the picker. How a form's sections sit, on one page,
+      as tabs or as steps, is settings.layouts, as ui-design.md leaves it
+      to the stack. The fields settings.hooks names are marked in the
+      schema, and page.client.tsx, a client file the generator writes,
+      imports their hooks from page.hooks.ts, which the project writes,
+      and hands them to the component; page.tsx draws that file. A form
+      with child rows, or one whose submit starts an approval, is left out
+      with a warning: both are step 5. A view's actions that run an
+      operation are refused for now, as are rules that order a decimal.
+    consequences: |
+      The schema stays one object literal of data, which step 7 compares as
+      JSON5. The ui-components idiom is 1.3.0: the form and view parts name
+      their keys, and each field part names readOnlyWhen, hiddenWhen, hook
+      and twice. The example's Loan gains lentOn, nullable for the loans
+      recorded before it, its due day becomes the desk's to set, and its
+      constraint compares the two; the loan form checks the same, starts
+      lentOn with a hook, and picks the member and the book. Members are
+      searchable by card number and name, so the member picker searches
+      through the service.
+    why: |
+      A rule written once in the design and read the same by the service
+      and the browser cannot drift; typing the values as the service has
+      them is what makes a number or a check box compare as the server
+      does. A decimal ordered in the browser would compare as text or as a
+      float, either of which can disagree with the server, so it is the
+      server's. Keeping the hook out of the schema keeps the schema data
+      and comparable; a hook file the generator never writes cannot be
+      overwritten, and an import of it fails tsc when it is missing.
+    satisfies: [SA-54]

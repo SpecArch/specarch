@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.6.0-dev of the specification: 5 stakeholders, 9 needs and 53 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.6.0-dev of the specification: 5 stakeholders, 9 needs and 54 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 ## 1. Purpose and scope
 
@@ -32,7 +32,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-49, SA-46, SA-32, SA-9, SA-10 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-49, SA-46, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-19 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
@@ -65,6 +65,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-43 | functional | should | accepted | specarch generate ui shall write, through a plug-in, the list pages of a specification for the web in plain JavaScript, with no package, bundler or build step, so that the screens follow the design's pages, events, states, accessibility and theme. |
 | SA-52 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui-typescript, the task pages of a specification for the web on Next.js's app router and IBM's Carbon design system, from an implementation file in TypeScript, so that sign-in and the forms like it follow the design's fields, checks, refusals and events, drawn by the components the ui-components idiom names. |
 | SA-53 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui-typescript, the list pages of a specification on Next.js and Carbon, the menu, and a guard that opens each page only to someone who holds its permission, from one permission each, with a derived test per page and of the menu, drawn through the ui-components idiom a project may override. |
+| SA-54 | functional | should | accepted | specarch generate ui shall write, through specarch-gen-ui-typescript, the forms and views of a specification on Next.js and Carbon, each field drawn by its type and format or picked from a list, checked by its keywords and the page's checks across fields, read-only or hidden by its conditions, and started by a hook the project writes where the ui target's settings name one. |
 | SA-48 | functional | should | accepted | A specification shall declare a value object under schemas, data passed around but not stored and with no identity, which a request body, a response, a message, another schema and an entity's field may refer to and a relation may not, and specarch validate shall check every use of one. |
 | SA-49 | functional | should | accepted | A specification shall be able to say, once for the whole interface, that its properties go on the wire in snake_case while it names them in camelCase, and specarch validate shall refuse two properties of one object that would go on the wire under one name. |
 | SA-50 | functional | should | accepted | An entity's field shall be able to hold a value object, one schema or a list of them, stored in columns of the entity's row or as one JSON value as the field's storage says, and specarch validate shall refuse a value object that cannot be stored that way. |
@@ -419,6 +420,24 @@ Acceptance criteria:
 - The library lending example's members, loans and fee waivers lists build on plain Carbon and through the stub of a fictional library, @acme/screens, their derived tests pass, and generate --check reports a schema edited by hand.
 
 **Insight:** A menu entry that opens a page its reader is refused is reported as a broken feature, and a list is most of what a back-office screen is; the guard and the menu read one permission so they cannot drift apart.
+
+### SA-54
+
+specarch generate ui shall write, through specarch-gen-ui-typescript, the forms and views of a specification on Next.js and Carbon, each field drawn by its type and format or picked from a list, checked by its keywords and the page's checks across fields, read-only or hidden by its conditions, and started by a hook the project writes where the ui target's settings name one.
+
+Kind: functional; priority: should; status: accepted; verified by test; refines NEED-2.
+
+Acceptance criteria:
+
+- Each form and each view becomes a schema and a page.tsx at its route behind the guard, with the derived test that it is refused without its permission; a route's parameters are handed to the page, and fill the path of the operation a form or a view loads its record from.
+- A form's fields come in its sections, each under its title, laid out as the ui target's settings.layouts say, on one page, as tabs or as steps; a field is drawn by the part of its type and format (text, text area, email, password, number, date, an enum's values, a check box), or by the lookup part when the page picks it, reading its source a page at a time and searching through the service when listOf names searchable fields.
+- A field is checked before the request is sent by its keywords and its second entry when the page asks for it twice; readOnly, readOnlyWhen and hiddenWhen and the page's checks become rules over the record, of names, constants, comparisons, &&, ||, ! and size, a hidden field neither checked nor sent; the request sends the fields its body takes, and an idempotency key in the header the operation names, kept for a retry of a request that got no answer and chosen anew after an answer, since a key used again is answered as its first request was.
+- A field the ui target's settings.hooks name starts with the value of the hook of its name, which page.client.tsx imports from page.hooks.ts beside the page, a file the project writes, so a missing hook fails tsc.
+- A view shows its sections read-only, a field hidden while its condition holds, and offers the actions that open a page to whoever holds their permission.
+- A form with child rows or one that starts an approval is reported and left out; a field of another type or format, a required property of the request body the form does not show, a field the body does not take that is not read-only, a rule that orders a decimal or uses any other operator or function, a view's action that runs an operation, a hook or a layout the settings give a page that is not a form or a field it does not show, and a layout other than page, tabs or steps are refused.
+- The library lending example's loan form picks the member and the book, checks that the copy is due after the day it is lent, and starts that day with a hook; it and the member's form and view build on plain Carbon and through the stub of @acme/screens.
+
+**Insight:** Forms and views are the rest of a back-office screen, and a form that checks less than the service refuses, or a different rule than it, sends the person a refusal they could have been spared; a hook keeps what the design cannot say in a file the generator never overwrites.
 
 ### SA-48
 

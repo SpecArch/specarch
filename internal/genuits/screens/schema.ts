@@ -23,6 +23,16 @@ interface FieldBase {
   readonly name: string;
   readonly label: StringKey;
   readonly required: boolean;
+  /** Shown and never changed by the person: the field's own, or the page's. */
+  readonly readOnly?: boolean;
+  /** Read-only while this rule holds for the values. */
+  readonly readOnlyWhen?: Rule;
+  /** Not shown, checked or sent while this rule holds for the values. */
+  readonly hiddenWhen?: Rule;
+  /** The value it starts with comes from the page's hook of its name. */
+  readonly hook?: boolean;
+  /** Typed a second time, the second entry compared and never sent. */
+  readonly twice?: StringKey;
 }
 
 /** A field of type string with no format the other field types take. */
@@ -48,7 +58,72 @@ export interface PasswordFieldSchema extends FieldBase {
   readonly rules: readonly Message[];
 }
 
-export type FieldSchema = TextFieldSchema | EmailFieldSchema | PasswordFieldSchema;
+/** A field of type string wider than one line holds. */
+export interface TextAreaFieldSchema extends FieldBase {
+  readonly type: "textArea";
+  readonly maxLength?: number;
+}
+
+/** A field of type integer or number. */
+export interface NumberFieldSchema extends FieldBase {
+  readonly type: "number";
+  readonly min?: number;
+  readonly max?: number;
+  readonly step?: number;
+}
+
+/** A field of format date, its value written yyyy-mm-dd. */
+export interface DateFieldSchema extends FieldBase {
+  readonly type: "date";
+}
+
+/** A field whose values are an enum. */
+export interface SelectFieldSchema extends FieldBase {
+  readonly type: "select";
+  readonly options: readonly string[];
+}
+
+/** A field of type boolean. */
+export interface CheckboxFieldSchema extends FieldBase {
+  readonly type: "checkbox";
+}
+
+/**
+ * Where a lookup reads the records to pick from: a list operation read a
+ * page at a time through the paginated-list idiom's names, searched by the
+ * service when it names search, and otherwise one page searched here.
+ */
+export interface LookupSourceSchema {
+  readonly operation: string;
+  readonly path: string;
+  readonly items: string;
+  readonly pageSize: { readonly name: string; readonly value: number };
+  readonly search?: string;
+}
+
+/**
+ * A field that holds the key of another record, picked from a list: the
+ * record's field the key is, the fields shown to choose by, and the fields
+ * of the page the chosen record fills, each from one of its own.
+ */
+export interface LookupFieldSchema extends FieldBase {
+  readonly type: "lookup";
+  readonly source: LookupSourceSchema;
+  readonly value: string;
+  readonly text: readonly string[];
+  readonly fills: Readonly<Record<string, string>>;
+}
+
+export type FieldSchema =
+  | TextFieldSchema
+  | TextAreaFieldSchema
+  | EmailFieldSchema
+  | PasswordFieldSchema
+  | NumberFieldSchema
+  | DateFieldSchema
+  | SelectFieldSchema
+  | CheckboxFieldSchema
+  | LookupFieldSchema;
 
 /** A rule across the fields, checked before the page is sent. */
 export interface CheckSchema {
@@ -76,7 +151,8 @@ export interface FailureSchema {
  * other page gives way to it.
  */
 export interface EventSchema {
-  readonly status: number;
+  /** With none, every success the operation answers. */
+  readonly status?: number;
   readonly navigate?: string;
   readonly with?: Readonly<Record<string, string>>;
   readonly message?: StringKey;
@@ -184,4 +260,77 @@ export interface ListPageSchema {
   readonly filteredEmpty: StringKey;
   readonly failed: readonly FailureSchema[];
   readonly wire: WireSchema;
+}
+
+/** A group of a form's or a view's fields, in focus order, with its title when it has one. */
+export interface SectionSchema<F> {
+  readonly title?: StringKey;
+  readonly fields: readonly F[];
+}
+
+/** How a form's sections sit: on one page, as tabs, or as steps taken in order. */
+export type Layout = "page" | "tabs" | "steps";
+
+/**
+ * The operation a form loads its record from: the page's route parameters
+ * fill its path, and its refusals are the page's failed states it answers.
+ */
+export interface LoadSchema {
+  readonly operation: string;
+  readonly path: string;
+  readonly failed: readonly FailureSchema[];
+}
+
+/**
+ * The operation a form sends its fields to, and the fields its request
+ * body takes; the path's parameters come from the page's route, or from
+ * the loaded record. idempotencyKey names the header the key is sent in,
+ * kept while a request goes unanswered and chosen anew after an answer.
+ */
+export interface FormSubmitSchema extends SubmitSchema {
+  readonly fields: readonly string[];
+  readonly idempotencyKey?: string;
+}
+
+/**
+ * A form that creates a record, or with source loads one and changes it:
+ * its sections, checked by their keywords and the page's checks before the
+ * request is sent, its refusals and where each success leads.
+ */
+export interface FormPageSchema {
+  readonly title: StringKey;
+  readonly permission: string;
+  readonly source?: LoadSchema;
+  readonly submit: FormSubmitSchema;
+  readonly layout: Layout;
+  readonly sections: readonly SectionSchema<FieldSchema>[];
+  readonly checks: readonly CheckSchema[];
+  readonly failed: readonly FailureSchema[];
+  readonly events: readonly EventSchema[];
+}
+
+/** A field a view shows, hidden while its rule holds for the record. */
+export interface ViewFieldSchema {
+  readonly name: string;
+  readonly label: StringKey;
+  readonly hiddenWhen?: Rule;
+}
+
+/**
+ * An action of a view that opens a page: its route parameters are taken
+ * from the record's fields of their names, or from the view's own route.
+ */
+export interface ViewActionSchema {
+  readonly label: StringKey;
+  readonly navigate: string;
+  readonly permission: string;
+}
+
+/** One record read from an operation, its sections shown read-only. */
+export interface ViewPageSchema {
+  readonly title: StringKey;
+  readonly permission: string;
+  readonly source: LoadSchema;
+  readonly sections: readonly SectionSchema<ViewFieldSchema>[];
+  readonly actions: readonly ViewActionSchema[];
 }

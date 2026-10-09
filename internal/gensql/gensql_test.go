@@ -71,7 +71,7 @@ func TestDialects(t *testing.T) {
 			"email BYTEA NOT NULL", "email_hash CHAR(64) NOT NULL", "CONSTRAINT member_email_unique UNIQUE (email_hash)",
 			"status VARCHAR(8) NOT NULL", "CHECK (status IN ('open', 'overdue', 'returned', 'lost'))",
 			"is_deleted BOOLEAN DEFAULT false NOT NULL", "returned_at TIMESTAMP WITH TIME ZONE,",
-			"CHECK ((due_on > CAST(loaned_at AS DATE)))", "REFERENCES members (id) ON DELETE RESTRICT",
+			"CHECK (((lent_on IS NULL) OR (lent_on <= CAST(loaned_at AS DATE))))", "REFERENCES members (id) ON DELETE RESTRICT",
 		},
 		"sqlserver": {
 			"full_name NVARCHAR(200) NOT NULL", "late_fee DECIMAL(10,2) NOT NULL", "loaned_at DATETIMEOFFSET NOT NULL",
@@ -81,7 +81,7 @@ func TestDialects(t *testing.T) {
 		"oracle": {
 			"full_name VARCHAR2(200 CHAR) NOT NULL", "late_fee NUMBER(10,2) NOT NULL", "email BLOB NOT NULL",
 			"id VARCHAR2(36 CHAR) NOT NULL", "is_deleted NUMBER(1) DEFAULT 0 NOT NULL", "CHECK (is_deleted IN (0, 1))",
-			"CHECK ((due_on > TRUNC(loaned_at)))", "REFERENCES members (id);",
+			"CHECK (((lent_on IS NULL) OR (lent_on <= TRUNC(loaned_at))))", "REFERENCES members (id);",
 		},
 		"mariadb": {
 			"full_name VARCHAR(200) NOT NULL", "late_fee DECIMAL(10,2) NOT NULL", "loaned_at VARCHAR(35) NOT NULL",

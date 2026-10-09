@@ -79,8 +79,11 @@ entities:
       - reason
   Loan:
     constraints:
-      loan_due_after_loaned:
-        expression: dueOn > date(loanedAt)
+      loan_due_after_lent:
+        expression: lentOn == null || dueOn > lentOn
+        kind: check
+      loan_lent_by_recording:
+        expression: lentOn == null || lentOn <= date(loanedAt)
         kind: check
       loan_returned_after_loaned:
         expression: returnedAt == null || returnedAt >= loanedAt
@@ -102,6 +105,11 @@ entities:
         precision: 10
         scale: 2
         type: string
+      lentOn:
+        format: date
+        type:
+          - string
+          - "null"
       loanedAt:
         format: date-time
         type: string
@@ -131,6 +139,7 @@ entities:
       - memberId
       - bookId
       - loanedAt
+      - lentOn
       - dueOn
       - status
       - lateFee

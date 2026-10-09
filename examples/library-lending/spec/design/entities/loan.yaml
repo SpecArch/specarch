@@ -7,8 +7,9 @@ entities:
       id: { type: string, format: uuid, readOnly: true }
       memberId: { title: Member, type: string, format: uuid }
       bookId: { title: Book, type: string, format: uuid }
-      loanedAt: { title: Lent at, type: string, format: date-time, readOnly: true }
-      dueOn: { title: Due on, type: string, format: date, readOnly: true }
+      loanedAt: { title: Recorded at, type: string, format: date-time, readOnly: true, description: When the loan was recorded. }
+      lentOn: { title: Lent on, type: [string, "null"], format: date, description: "The day the copy left the desk: today, or an earlier day for a loan the desk made while the system was down. Null for a loan recorded before the desk gave the day, which was lent on the day of loanedAt." }
+      dueOn: { title: Due on, type: string, format: date, description: "The day the copy is due back, no later than the member's tier allows." }
       returnedAt: { type: [string, "null"], format: date-time, readOnly: true }
       status: { title: Status, $ref: "#/enums/LoanStatus" }
       lateFee:
@@ -19,16 +20,20 @@ entities:
         scale: 2
         readOnly: true
         description: Computed by the lateFee algorithm when the copy is returned; zero until then.
-    required: [id, memberId, bookId, loanedAt, dueOn, status, lateFee]
+    required: [id, memberId, bookId, loanedAt, lentOn, dueOn, status, lateFee]
     primaryKey: [id]
     relations:
       member: { target: Member, kind: many-to-one, via: memberId, onDelete: restrict }
       book: { target: Book, kind: many-to-one, via: bookId, onDelete: restrict }
     constraints:
-      loan_due_after_loaned:
+      loan_due_after_lent:
         kind: check
-        expression: dueOn > date(loanedAt)
-        message: The due date must be after the loan date.
+        expression: lentOn == null || dueOn > lentOn
+        message: A copy is due after the day it is lent.
+      loan_lent_by_recording:
+        kind: check
+        expression: lentOn == null || lentOn <= date(loanedAt)
+        message: A copy is lent no later than the day its loan is recorded.
       loan_returned_after_loaned:
         kind: check
         expression: returnedAt == null || returnedAt >= loanedAt

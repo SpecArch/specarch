@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: loan-form
+level: system
+scenario: red
+covers: [violates due-after-lent]
+given: a librarian, a member and a book with a copy available
+when: the form is submitted lent on 2026-10-09 and due on 2026-10-09
+then: "it is not sent, and says beside the due day: A copy is due after the day it is lent."

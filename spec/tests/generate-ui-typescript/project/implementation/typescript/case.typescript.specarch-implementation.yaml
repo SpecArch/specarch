@@ -12,3 +12,5 @@ targets:
     settings:
       language: en
       session: { operation: getSession, signedIn: open, permissions: granted, signIn: sign-in }
+      hooks: { member-form: [joinedOn] }
+      layouts: { member-form: tabs }

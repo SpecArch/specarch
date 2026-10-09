@@ -364,7 +364,7 @@ first screen (ADR-040).
 
 `specarch-gen-ui-typescript` writes, for a `ui` target of platform `web`
 and framework `nextjs-carbon` in an implementation file in TypeScript,
-each task page as `page.schema.ts` and `page.tsx` under `app/` at the
+each page as `page.schema.ts` and `page.tsx` under `app/` at the
 page's route (`{param}` becomes `[param]`), the components that read the
 schemas once under `screens/`, and every text once in `strings.ts`, in the
 language `settings.language` names, which is required. The schema file is
@@ -372,8 +372,8 @@ data only: one object literal typed with `satisfies`, whose keys are the
 names of the `ui-components` idiom (`docs/idioms.md`), a project's
 override first, laid out as prettier lays out an object literal at a width
 of 140. `page.tsx` hands the component the schema, the texts it names and
-the routes its events lead to. A field is a property of the request body of
-type string, drawn by the text, email or password field part by its
+the routes its events lead to. On a task page, a field is a property of
+the request body of type string, drawn by the text, email or password field part by its
 format and checked by its keywords before the request is sent; a password
 shows its rules under it. A check across fields is written as a rule in
 the data, of names, constants, comparisons, `&&`, `||`, `!` and `size`; any
@@ -411,7 +411,7 @@ signs in. The guard and the menu ask one function whether a page opens to
 the person, so a menu entry shows exactly when its page opens; the guard
 sends someone signed out to sign in with `returnTo`, shows anyone else the
 refusal, and never makes a refused page, which so calls no operation.
-Each list that needs a permission gets `tests/<page>.test.ts`, and the
+Each list, form and view that needs a permission gets `tests/<page>.test.ts`, and the
 menu `tests/menu.test.ts`, derived tests node's test runner runs. The
 side navigation draws one level of groups, so a group inside a menu is an
 error at the entry, and so is an entry that opens a page whose route
@@ -422,11 +422,45 @@ menu or a menu entry marked `ownedBy` is left out. A part of the
 idiom that names `import` draws through that package, so a project's
 override renders its lists through its own library (`docs/idioms.md`).
 
-Forms, views and inboxes are reported and left out of this version; the steps of
-`docs/ui-nextjs-carbon.md` add them. The screens it is checked against are
+Each form and each view is a schema and a `page.tsx` behind the guard,
+with its derived test, the route's parameters handed to the page. A form
+without `source` creates a record; one with it loads the record first,
+from the operation `source` names, its path filled from the route. Its
+fields come in its sections, each under its title, on one page, as tabs or
+as steps, as `settings.layouts` says per form. A field is drawn by the part
+of its property's type and format: text, a text area for a string longer
+than 255 characters or of no maximum, email, password, number, date, an
+enum's values, a check box; a field the page picks is a lookup that reads
+its source a page at a time, searched through the service when `listOf`
+names searchable fields and otherwise among the one page read, with a
+warning at the picker. A field is required when the request body requires
+it, is checked by its keywords before the request is sent, and is typed a
+second time when the page lists it under `enteredTwice`. `readOnly`,
+`readOnlyWhen`, `hiddenWhen` and the checks are rules over the record, as
+on a task page, the form's values typed as the service has them and an
+empty field null; a hidden field is neither checked nor sent, and a rule
+that orders a decimal is refused, since the browser cannot compare one
+exactly. The request sends the fields its body takes, and an idempotency
+key in the header the operation names: kept for the retry of a request
+that got no answer, and chosen anew after an answer, since a key used
+again is answered as its first request was. A field
+`settings.hooks` names for a form starts with the value of the hook of its
+name: `page.client.tsx`, which the generator writes, imports it from
+`page.hooks.ts` beside the page, which the project writes, so a missing
+hook fails `tsc`. A view shows its sections read-only, a field hidden while
+its condition holds, and offers the actions that open a page to whoever
+holds their permission. A required property of the request body the form
+does not show, a field the body does not take that is not read-only, a
+view's action that runs an operation, and a hook or a layout for a page
+that is not a form or a field it does not show are refused.
+
+Child rows, a form that starts an approval, and inboxes are reported and
+left out of this version; step 5 of `docs/ui-nextjs-carbon.md` adds them.
+The screens it is checked against are
 the library lending example's sign-in and second-factor screens, written
 by hand before the generator (ADR-067); its lists are built on plain
-Carbon and through the stub of a fictional library (ADR-068).
+Carbon and through the stub of a fictional library (ADR-068), and its
+forms and views on both (ADR-069).
 
 ## Tests from the specification
 

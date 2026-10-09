@@ -69,6 +69,7 @@ erDiagram
     uuid memberId FK
     uuid bookId FK
     timestamp loanedAt
+    date lentOn
     date dueOn
     timestamp returnedAt
     LoanStatus status
@@ -153,7 +154,7 @@ This row-level rule is enforced by the service and is not yet expressible in
 the meta-model; see the roadmap for v0.2.
 
 Money: every amount is a decimal string with two places (ADR-002). Time:
-`loanedAt` and `returnedAt` are UTC timestamps; `dueOn` is a calendar date,
+`loanedAt` and `returnedAt` are UTC timestamps; `lentOn` and `dueOn` are calendar dates,
 so a loan due on the 21st is overdue from the start of the 22nd, library time.
 
 ## 9. Architecture decisions

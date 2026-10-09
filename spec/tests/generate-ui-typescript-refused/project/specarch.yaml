@@ -12,7 +12,8 @@ entities:
       name: { type: string, title: Name, minLength: 1, maxLength: 100 }
       status: { type: string, enum: [active, inactive], title: Status }
       joinedOn: { type: string, format: date, title: Joined on }
-    required: [id, name, status, joinedOn]
+      fee: { type: string, format: decimal, precision: 6, scale: 2, title: Fee }
+    required: [id, name, status, joinedOn, fee]
     primaryKey: [id]
 errors:
   sign-in-refused: { status: 401, title: Sign-in refused, condition: The email address or the password is wrong. }
@@ -46,6 +47,27 @@ paths:
           content:
             application/json:
               schema: { type: array, items: { $ref: "#/entities/Member" } }
+    post:
+      operationId: createMember
+      summary: Register a member
+      permission: members.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, minLength: 1, maxLength: 100 }
+                status: { type: string, enum: [active, inactive] }
+                joinedOn: { type: string, format: date }
+              required: [name, status, joinedOn]
+      responses:
+        "201":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
   /members/{memberId}:
     parameters:
       - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
@@ -192,6 +214,17 @@ pages:
     actions:
       - { label: Invite, kind: navigate, target: invitation }
       - { label: Suspend, kind: operation, target: suspendMember, permission: members.write, when: 'status == "active"', confirm: "Suspend this member?", reason: why, then: { message: The member is suspended. } }
+  member-form:
+    kind: form
+    title: Register a member
+    route: /members/new
+    entity: Member
+    permission: members.write
+    submit: createMember
+    fields: [name, status]
+    checks:
+      long-enough: { expression: 'size(name) >= int("2")', message: The name is too short., field: name }
+    onSubmitted: { navigate: members-list, message: The member is registered. }
   member-view:
     kind: view
     title: Member
@@ -199,7 +232,11 @@ pages:
     entity: Member
     permission: members.read
     source: getMember
-    fields: [name]
+    fields: [name, fee]
+    fieldConditions:
+      fee: { hiddenWhen: 'fee > decimal("0.00", 2)' }
+    actions:
+      - { label: Suspend, kind: operation, target: suspendMember, permission: members.write, confirm: "Suspend this member?", reason: why }
 menus:
   people:
     title: People

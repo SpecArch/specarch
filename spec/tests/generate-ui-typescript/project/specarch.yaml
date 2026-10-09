@@ -12,7 +12,21 @@ entities:
       name: { type: string, title: Name, minLength: 1, maxLength: 100 }
       status: { type: string, enum: [active, inactive], title: Status }
       joinedOn: { type: string, format: date, title: Joined on }
-    required: [id, name, status, joinedOn]
+      homeBranchId: { type: [string, "null"], format: uuid, title: Home branch }
+      visits: { type: integer, format: int32, minimum: 0, maximum: 1000, title: Visits }
+      newsletter: { type: boolean, title: Newsletter }
+      notes: { type: [string, "null"], title: Notes }
+      pin: { type: [string, "null"], pattern: "^[0-9]{4}$", maxLength: 4, title: PIN, writeOnly: true }
+    required: [id, name, status, joinedOn, homeBranchId, visits, newsletter, notes, pin]
+    primaryKey: [id]
+    relations:
+      homeBranch: { target: Branch, kind: many-to-one, via: homeBranchId, onDelete: restrict }
+  Branch:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      name: { type: string, title: Name, minLength: 1, maxLength: 100 }
+    required: [id, name]
     primaryKey: [id]
 errors:
   sign-in-refused: { status: 401, title: Sign-in refused, condition: The email address or the password is wrong. }
@@ -46,6 +60,50 @@ paths:
           content:
             application/json:
               schema: { type: array, items: { $ref: "#/entities/Member" } }
+    post:
+      operationId: createMember
+      summary: Register a member
+      permission: members.write
+      idempotencyKey: Idempotency-Key
+      parameters:
+        - { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, minLength: 1, maxLength: 100 }
+                status: { type: string, enum: [active, inactive] }
+                joinedOn: { type: string, format: date }
+                homeBranchId: { type: string, format: uuid }
+                visits: { type: integer, format: int32, minimum: 0, maximum: 1000 }
+                newsletter: { type: boolean }
+                notes: { type: string }
+                pin: { type: string, pattern: "^[0-9]{4}$", maxLength: 4 }
+              required: [name, status, joinedOn]
+      responses:
+        "201":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+  /branches:
+    get:
+      operationId: listBranches
+      summary: The branches
+      permission: members.read
+      listOf:
+        entity: Branch
+        searchable: [name]
+        pageSize: { default: 20, maximum: 50 }
+      responses:
+        "200":
+          description: The branches.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Branch" } }
   /directory:
     get:
       operationId: listDirectory
@@ -73,6 +131,28 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/entities/Member" }
+        "404": { description: No such member., problem: member-gone }
+    put:
+      operationId: updateMember
+      summary: Change a member
+      permission: members.write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, minLength: 1, maxLength: 100 }
+                status: { type: string, enum: [active, inactive] }
+              required: [name, status]
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+        "404": { description: No such member., problem: member-gone }
   /members/{memberId}/suspend:
     parameters:
       - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
@@ -213,6 +293,41 @@ pages:
     columns: [name]
     states:
       empty: { message: No member yet. }
+  member-form:
+    kind: form
+    title: Register a member
+    route: /members/new
+    entity: Member
+    permission: members.write
+    submit: createMember
+    sections:
+      - { title: Who, fields: [name, status, joinedOn] }
+      - { title: More, fields: [homeBranchId, visits, newsletter, notes, pin] }
+    pickers:
+      homeBranchId: { source: listBranches, shows: [name] }
+    fieldConditions:
+      visits: { readOnlyWhen: 'status == "inactive"' }
+      notes: { hiddenWhen: "!newsletter" }
+    checks:
+      notes-not-the-name: { expression: notes != name, message: The notes repeat the name., field: notes }
+    enteredTwice: [pin]
+    onSubmitted: { navigate: member-view, with: { memberId: id }, message: The member is registered. }
+  member-edit:
+    kind: form
+    title: Change a member
+    route: /members/{memberId}/edit
+    entity: Member
+    permission: members.write
+    source: getMember
+    submit: updateMember
+    fields: [joinedOn, name, status]
+    fieldConditions:
+      name: { readOnlyWhen: 'status == "inactive"' }
+      joinedOn: { readOnly: true }
+    states:
+      failed:
+        member-gone: { message: That member is gone. }
+    onSubmitted: { navigate: member-view, with: { memberId: id }, message: The member is changed. }
   member-view:
     kind: view
     title: Member
@@ -220,7 +335,14 @@ pages:
     entity: Member
     permission: members.read
     source: getMember
-    fields: [name]
+    fields: [name, joinedOn]
+    fieldConditions:
+      joinedOn: { hiddenWhen: 'status == "inactive"' }
+    states:
+      failed:
+        member-gone: { message: That member is gone. }
+    actions:
+      - { label: Change, kind: navigate, target: member-edit, permission: members.write }
 menus:
   people:
     title: People

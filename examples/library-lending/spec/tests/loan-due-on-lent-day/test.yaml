@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
 entity: Loan
-constraint: loan_due_after_loaned
+constraint: loan_due_after_lent
 level: system
 scenario: red
-covers: [violates loan_due_after_loaned]
-given: a loan made on 2026-10-07
+covers: [violates loan_due_after_lent]
+given: a copy lent on 2026-10-07
 when: it is saved due on 2026-10-07
 then: it is refused

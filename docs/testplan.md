@@ -961,19 +961,19 @@ Scenario: golden; level: system; verifies SA-43.
 
 #### generate-ui-typescript
 
-Scenario: golden; level: system; verifies SA-52, SA-53.
+Scenario: golden; level: system; verifies SA-52, SA-53, SA-54.
 
-- Given: a specification with two task pages, a list page that filters by an enum and by a date it may filter, searches, sorts two of its columns, keeps one on a compact screen, opens a page from its toolbar and a view from a row, and suspends a row while it is active after a confirmation that asks for the reason, a public list, a view, and two menus; two implementation files in TypeScript in one folder, each with its ui target in nextjs-carbon, its own output and the session's operation in its settings, one owning the administration menu to another stakeholder and the other drawing lists through a library of its own by an override; and specarch-gen-ui-typescript built from this repository on PATH
+- Given: a specification with two task pages, a list page that filters by an enum and by a date it may filter, searches, sorts two of its columns, keeps one on a compact screen, opens a page from its toolbar and a view from a row, and suspends a row while it is active after a confirmation that asks for the reason, a public list; a form that registers a member in two titled sections, with a text, an enum, a date, an integer, a boolean, a text without a maximum and a PIN typed twice, a branch picked from a list that searches, a field read-only while the status is inactive and one hidden while the newsletter is off, a check across two fields and an idempotency key; a form that loads a member and changes it, with a field always read-only and one read-only by an expression; a view that hides a field by an expression and opens the second form; and two menus; two implementation files in TypeScript in one folder, each with its ui target in nextjs-carbon, its own output and the session's operation in its settings, a hook for the registration's date and its sections as tabs in one and steps in the other, one owning the administration menu to another stakeholder and the other drawing lists through a library of its own by an override; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it runs the plug-in once per output folder; each writes the task pages, the list's schema and page behind the guard with the derived test that it is refused without its permission, the public list with no such test, application.ts with the session and the menu without the owned one, the menu's derived test, the components under screens and the texts in strings.ts; the second imports the list's component and schema type from the library and names its columns by the override; each warns that the field with no title is labelled by its name and that the view is left out, and exits 0
+- Then: it runs the plug-in once per output folder; each writes the task pages, the list's schema and page behind the guard with the derived test that it is refused without its permission, the public list with no such test, each form's and the view's schema and page behind the guard with its derived test, the registration's hook handed on by page.client.tsx from page.hooks.ts, application.ts with the session and the menu without the owned one, the menu's derived test, the components under screens and the texts in strings.ts; the second imports the list's component and schema type from the library and names its columns by the override; each warns that the field with no title is labelled by its name, and exits 0
 
 #### generate-ui-typescript-refused
 
-Scenario: red; level: system; verifies SA-52, SA-53.
+Scenario: red; level: system; verifies SA-52, SA-53, SA-54.
 
-- Given: the specification of the golden case, whose invitation page also shows a field of type integer, checks it with an expression that adds, and whose operation answers a 201 the page has no event for, whose menu holds a group inside a group and an entry that opens a page whose route takes a parameter, and whose second implementation file names no session; and specarch-gen-ui-typescript built from this repository on PATH
+- Given: the specification of the golden case, whose invitation page also shows a field of type integer, checks it with an expression that adds, and whose operation answers a 201 the page has no event for; a form that leaves out a field its request body requires and checks with an expression that calls int; a view that hides a decimal field by ordering it and offers an action that runs an operation; a menu that holds a group inside a group and an entry that opens a page whose route takes a parameter; a first implementation file whose settings give a view a hook, a form a hook for a field it does not show and a layout that is not page, tabs or steps, and a second that names no session; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it reports, for each file, the integer field at the page's field, the addition at the check's expression and the 201 at the page's onSubmitted, the inner group at its entry and the entry to the page with a parameter at its page, and for the second the list that needs a permission no session can tell, as errors, writes nothing, and exits 1
+- Then: it reports, for the first file, the two hooks and the layout under the settings; for each file, the integer field at the page's field, the addition at the check's expression and the 201 at the page's onSubmitted, the required field left out at the form, the call at its check's expression, the decimal ordered at the view's condition and the operation at its action, the inner group at its entry and the entry to the page with a parameter at its page; and for the second, each page that needs a permission no session can tell; as errors, writes nothing, and exits 1
 
 #### generate-unapproved
 
@@ -1041,7 +1041,7 @@ Scenario: golden; level: system; verifies SA-32.
 
 - Given: a specification with a list page and two implementation files: one in TypeScript whose ui target is platform web, framework nextjs-carbon, and one in JavaScript whose ui target is platform web and names no framework, so plain-javascript
 - When: idioms is run
-- Then: it lists ui-components 1.2.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and not for the JavaScript file, and exits 0
+- Then: it lists ui-components 1.3.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and not for the JavaScript file, and exits 0
 
 #### idioms-usage-error
 
@@ -2555,7 +2555,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-184 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+191 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2648,6 +2648,13 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-53 | acceptance 5 | golden | SA-53 names no harm |
 | requirement SA-53 | acceptance 6 | golden | SA-53 names no harm |
 | requirement SA-53 | acceptance 7 | golden | SA-53 names no harm |
+| requirement SA-54 | acceptance 1 | golden | SA-54 names no harm |
+| requirement SA-54 | acceptance 2 | golden | SA-54 names no harm |
+| requirement SA-54 | acceptance 3 | golden | SA-54 names no harm |
+| requirement SA-54 | acceptance 4 | golden | SA-54 names no harm |
+| requirement SA-54 | acceptance 5 | golden | SA-54 names no harm |
+| requirement SA-54 | acceptance 6 | golden | SA-54 names no harm |
+| requirement SA-54 | acceptance 7 | golden | SA-54 names no harm |
 | requirement SA-48 | acceptance 1 | golden | SA-48 names no harm |
 | requirement SA-48 | acceptance 2 | golden | SA-48 names no harm |
 | requirement SA-48 | acceptance 3 | golden | SA-48 names no harm |

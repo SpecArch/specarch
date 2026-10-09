@@ -14,7 +14,7 @@ export const schema = {
     { field: "outstandingFees", title: "members-list.columns.outstandingFees", sortable: false, compact: true },
   ],
   filters: [{ field: "tier", query: "tier", title: "members-list.filters.tier", options: ["standard", "extended"] }],
-  search: false,
+  search: true,
   pageSize: 20,
   pageSizes: [10, 20, 50, 100],
   actions: [{ label: "members-list.actions.member-form", navigate: "member-form", permission: "members.write" }],

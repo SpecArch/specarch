@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+entity: Loan
+constraint: loan_lent_by_recording
+level: system
+scenario: red
+covers: [violates loan_lent_by_recording]
+given: a loan recorded at 2026-10-09T09:00:00Z
+when: it is saved lent on 2026-10-10
+then: it is refused

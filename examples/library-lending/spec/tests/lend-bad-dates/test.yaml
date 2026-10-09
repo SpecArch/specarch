@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: createLoan
+level: system
+scenario: red
+covers: [lentOn not a valid date, dueOn not a valid date]
+given: a librarian, a member and a book with a copy available
+when: createLoan is called with lentOn 2026-02-30 and again with dueOn 28/10/2026
+then: both are refused as invalid input

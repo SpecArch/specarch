@@ -200,6 +200,22 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: A menu entry that opens a page its reader is refused is reported as a broken feature, and a list is most of what a back-office screen is; the guard and the menu read one permission so they cannot drift apart.
+  SA-54:
+    statement: specarch generate ui shall write, through specarch-gen-ui-typescript, the forms and views of a specification on Next.js and Carbon, each field drawn by its type and format or picked from a list, checked by its keywords and the page's checks across fields, read-only or hidden by its conditions, and started by a hook the project writes where the ui target's settings name one.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - Each form and each view becomes a schema and a page.tsx at its route behind the guard, with the derived test that it is refused without its permission; a route's parameters are handed to the page, and fill the path of the operation a form or a view loads its record from.
+      - A form's fields come in its sections, each under its title, laid out as the ui target's settings.layouts say, on one page, as tabs or as steps; a field is drawn by the part of its type and format (text, text area, email, password, number, date, an enum's values, a check box), or by the lookup part when the page picks it, reading its source a page at a time and searching through the service when listOf names searchable fields.
+      - A field is checked before the request is sent by its keywords and its second entry when the page asks for it twice; readOnly, readOnlyWhen and hiddenWhen and the page's checks become rules over the record, of names, constants, comparisons, &&, ||, ! and size, a hidden field neither checked nor sent; the request sends the fields its body takes, and an idempotency key in the header the operation names, kept for a retry of a request that got no answer and chosen anew after an answer, since a key used again is answered as its first request was.
+      - A field the ui target's settings.hooks name starts with the value of the hook of its name, which page.client.tsx imports from page.hooks.ts beside the page, a file the project writes, so a missing hook fails tsc.
+      - A view shows its sections read-only, a field hidden while its condition holds, and offers the actions that open a page to whoever holds their permission.
+      - A form with child rows or one that starts an approval is reported and left out; a field of another type or format, a required property of the request body the form does not show, a field the body does not take that is not read-only, a rule that orders a decimal or uses any other operator or function, a view's action that runs an operation, a hook or a layout the settings give a page that is not a form or a field it does not show, and a layout other than page, tabs or steps are refused.
+      - The library lending example's loan form picks the member and the book, checks that the copy is due after the day it is lent, and starts that day with a hook; it and the member's form and view build on plain Carbon and through the stub of @acme/screens.
+    verification: test
+    needs: [NEED-2]
+    why: Forms and views are the rest of a back-office screen, and a form that checks less than the service refuses, or a different rule than it, sends the person a refusal they could have been spared; a hook keeps what the design cannot say in a file the generator never overwrites.
   SA-48:
     statement: A specification shall declare a value object under schemas, data passed around but not stored and with no identity, which a request body, a response, a message, another schema and an entity's field may refer to and a relation may not, and specarch validate shall check every use of one.
     kind: functional

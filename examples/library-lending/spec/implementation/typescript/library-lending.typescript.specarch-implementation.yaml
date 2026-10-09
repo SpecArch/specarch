@@ -58,6 +58,7 @@ targets:
     settings:
       language: en
       session: { operation: getSession, signedIn: signedIn, permissions: permissions, signIn: sign-in }
+      hooks: { loan-form: [lentOn] }
 
 tasks:
   install: { run: pnpm install --frozen-lockfile, ci: true }

@@ -1,11 +1,13 @@
 {
     "permissionTable": 1,
     "path": "examples/lending-desk/sources/code",
-    "commit": "85f752f8ddf25f3f53c9196d923c07ac54521429",
+    "commit": "cc6535461d6b180ff5b7a0b5bbcd7891771f6b50",
     "grants": [
         {"role": "desk-staff", "permission": "loans.read"},
         {"role": "desk-staff", "permission": "loans.write"},
-        {"role": "desk-staff", "permission": "members.write"}
+        {"role": "desk-staff", "permission": "members.write"},
+        {"role": "desk-supervisor", "permission": "loans.read"},
+        {"role": "desk-supervisor", "permission": "loans.writeoff"}
     ],
     "gates": []
 }

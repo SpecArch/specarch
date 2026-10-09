@@ -7,6 +7,7 @@ entities:
       cardNumber: { type: string, maxLength: 10, pattern: "^[0-9]{10}$", sensitivity: internal, description: The number printed on the card. }
       fullName: { type: string, minLength: 1, maxLength: 200, sensitivity: personal }
       phoneNumber: { type: string, sensitivity: personal, description: "In the manual and not in the database; Q-6 asks whether to build it." }
+      address: { $ref: "#/schemas/Address", description: Where the member lives; a member may give none. }
     required: [cardNumber, fullName]
     primaryKey: [cardNumber]
     satisfies: [LEND-1]
@@ -16,6 +17,7 @@ entities:
       - { source: desk-manual, clause: "2", says: "The desk keeps a member's card number (internal), full name (personal) and phone number (personal)." }
       - { source: desk-code, clause: "lending/model.go:14", says: "Member has CardNumber, 10 digits, and FullName." }
       - { source: desk-code, clause: "migrations/001_init.sql:1", says: "card_number CHAR(10) is the key; full_name VARCHAR(200) NOT NULL." }
+      - { source: desk-code, clause: "lending/model.go:17", says: "Member has an Address, nil when the member gave none." }
   Book:
     description: One copy on the shelves.
     type: object
@@ -48,8 +50,22 @@ entities:
     origin: stated
     cites:
       - { source: desk-manual, clause: "3.3", says: "The due date is printed on the slip." }
-      - { source: desk-code, clause: "lending/model.go:26", says: "Loan has ID, CardNumber, Barcode, LoanedOn, DueOn and ReturnedOn, which is empty until the book is back." }
+      - { source: desk-code, clause: "lending/model.go:35", says: "Loan has ID, CardNumber, Barcode, LoanedOn, DueOn and ReturnedOn, which is empty until the book is back." }
       - { source: desk-code, clause: "migrations/001_init.sql:11", says: "loans references members and books; returned_on may be null." }
+
+schemas:
+  Address:
+    description: Where a member lives. One that is given has its street and city.
+    type: object
+    properties:
+      street: { type: string, minLength: 1, maxLength: 200, sensitivity: personal }
+      city: { type: string, minLength: 1, maxLength: 100, sensitivity: personal }
+      postcode: { type: string, maxLength: 20, sensitivity: personal }
+    required: [street, city]
+    origin: stated
+    cites:
+      - { source: desk-code, clause: "lending/model.go:22", says: "Address has Street, City and Postcode; one that is given has its street and city, and the postcode may be left out." }
+      - { source: desk-code, clause: "migrations/003_member_address.sql:1", says: "members gets address_street VARCHAR(200), address_city VARCHAR(100) and address_postcode VARCHAR(20), with a check that an address is wholly absent or has its street and city." }
 
 permissions:
   members.write:
@@ -70,7 +86,7 @@ permissions:
     origin: inferred
     why: Undocumented, from code; it stands or falls with LEND-7 and Q-2.
     cites:
-      - { source: desk-code, clause: "lending/routes.go:19", says: "GET /members/{cardNumber}/loans checks loans.read." }
+      - { source: desk-code, clause: "lending/routes.go:21", says: "GET /members/{cardNumber}/loans checks loans.read." }
 
 roles:
   desk-staff:
@@ -98,7 +114,7 @@ paths:
       origin: stated
       cites:
         - { source: desk-manual, clause: "2.2", says: "Desk staff register new members." }
-        - { source: desk-code, clause: "lending/routes.go:30", says: "RegisterMember answers 201." }
+        - { source: desk-code, clause: "lending/routes.go:32", says: "RegisterMember answers 201." }
   /loans:
     post:
       operationId: lendBook
@@ -125,7 +141,7 @@ paths:
       origin: stated
       cites:
         - { source: desk-manual, clause: "3.1", says: "Desk staff lend a book by scanning the member's card and the book's barcode." }
-        - { source: desk-code, clause: "lending/routes.go:36", says: "LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise." }
+        - { source: desk-code, clause: "lending/routes.go:38", says: "LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise." }
   /loans/{loanId}/return:
     parameters:
       - { name: loanId, in: path, required: true, schema: { type: integer, format: int64, minimum: 1, maximum: 9007199254740991 } }
@@ -139,7 +155,7 @@ paths:
       origin: stated
       cites:
         - { source: desk-manual, clause: "5.1", says: "Checking a book in closes the loan." }
-        - { source: desk-code, clause: "lending/routes.go:45", says: "ReturnBook closes the loan and answers 200." }
+        - { source: desk-code, clause: "lending/routes.go:47", says: "ReturnBook closes the loan and answers 200." }
   /loans/{loanId}/renew:
     parameters:
       - { name: loanId, in: path, required: true, schema: { type: integer, format: int64, minimum: 1, maximum: 9007199254740991 } }
@@ -171,4 +187,4 @@ paths:
       origin: inferred
       why: Undocumented, from code; Q-2 asks whether it is wanted.
       cites:
-        - { source: desk-code, clause: "lending/routes.go:50", says: "ListMemberLoans answers 200 with the member's loans." }
+        - { source: desk-code, clause: "lending/routes.go:64", says: "ListMemberLoans answers 200 with the member's loans." }

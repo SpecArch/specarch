@@ -1,0 +1,52 @@
+questions:
+  Q-1:
+    question: Are the fields addressCity, addressPostcode and addressStreet of Members one value, a field address holding the schema Address kept in columns, or fields of their own? They are the columns specarch generate sql writes for such a field.
+    kind: decision
+    priority: should
+    blocks: ['#/entities/Members/properties/addressCity', '#/entities/Members/properties/addressPostcode', '#/entities/Members/properties/addressStreet']
+    decidedBy: system-owner
+    why: Columns that share a prefix are often fields of their own, and the catalogue cannot tell; these are every part of Address, and no tree gives Members a field address, so the merge asks rather than joins them (ADR-077).
+    cites:
+      - {source: code, clause: migrations public.members, says: Table public.members.}
+      - {source: api, clause: /components/schemas/Members, says: 'The schema Members, with the properties cardNumber.'}
+      - {source: api, clause: /components/schemas/Address, says: 'The schema Address, with the properties street, city and postcode.'}
+  Q-2:
+    question: 'Undocumented, from code: is field addressStreet of entity Members meant to be part of the system? The code has it at migrations public.members, and no document mentions it.'
+    kind: decision
+    priority: should
+    blocks: ['#/entities/Members/properties/addressStreet']
+    decidedBy: system-owner
+    options: ['Yes: the documents are to describe it', 'No: the code is to change']
+    why: Only the code has it, and it concerns neither security nor a source given outside, so the owner confirms it before it is built on.
+  Q-3:
+    question: 'Undocumented, from code: is field addressCity of entity Members meant to be part of the system? The code has it at migrations public.members, and no document mentions it.'
+    kind: decision
+    priority: should
+    blocks: ['#/entities/Members/properties/addressCity']
+    decidedBy: system-owner
+    options: ['Yes: the documents are to describe it', 'No: the code is to change']
+    why: Only the code has it, and it concerns neither security nor a source given outside, so the owner confirms it before it is built on.
+  Q-4:
+    question: 'Undocumented, from code: is field addressPostcode of entity Members meant to be part of the system? The code has it at migrations public.members, and no document mentions it.'
+    kind: decision
+    priority: should
+    blocks: ['#/entities/Members/properties/addressPostcode']
+    decidedBy: system-owner
+    options: ['Yes: the documents are to describe it', 'No: the code is to change']
+    why: Only the code has it, and it concerns neither security nor a source given outside, so the owner confirms it before it is built on.
+  Q-5:
+    question: 'Undocumented, from code: is field createdAt of entity Members meant to be part of the system? The code has it at migrations public.members, and no document mentions it.'
+    kind: decision
+    priority: should
+    blocks: ['#/entities/Members/properties/createdAt']
+    decidedBy: system-owner
+    options: ['Yes: the documents are to describe it', 'No: the code is to change']
+    why: Only the code has it, and it concerns neither security nor a source given outside, so the owner confirms it before it is built on.
+  Q-6:
+    question: 'Undocumented, from code: is field createdBy of entity Members meant to be part of the system? The code has it at migrations public.members, and no document mentions it.'
+    kind: decision
+    priority: should
+    blocks: ['#/entities/Members/properties/createdBy']
+    decidedBy: system-owner
+    options: ['Yes: the documents are to describe it', 'No: the code is to change']
+    why: Only the code has it, and it concerns neither security nor a source given outside, so the owner confirms it before it is built on.

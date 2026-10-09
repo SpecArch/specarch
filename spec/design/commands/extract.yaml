@@ -26,7 +26,9 @@ commands:
         PascalCase, each column a field in camelCase, with its type,
         nullability, default, primary key, foreign keys as relations, and
         unique and check constraints. A check the expression subset can say
-        is written as its expression.
+        is written as its expression. A json or jsonb column is a field of
+        type object, and a should question at the field asks which schema
+        it holds, since the catalogue does not say its shape (ADR-077).
       - `router`: a route table, written by `tools/routes/dump-routes.sh`
         around the project's own route printer, which builds the router as
         the server does and prints every route it registered: its method,
@@ -77,8 +79,9 @@ commands:
         it is, its primary key a must question, and a reference to it a
         reference to the entity; any other becomes a schema under
         `schemas`, with no question about a key, and a reference to it a
-        reference to the schema, except inside an entity, which holds it
-        in place; one of type string with an enum of snake_case values
+        reference to the schema, inside an entity too, with storage json
+        and a line where the design would refuse it in columns (ADR-063,
+        ADR-077); one of type string with an enum of snake_case values
         becomes an enum; a reference to any other component schema is
         written in place. A document whose property names are snake_case
         (one has an underscore and none a capital) gives info.wireNames

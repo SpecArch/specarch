@@ -84,7 +84,7 @@ requirements:
     origin: inferred
     why: Undocumented, from code. The service serves GET /members/{cardNumber}/loans; the manual never mentions it. Q-2 asks the desk manager to confirm it.
     cites:
-      - { source: desk-code, clause: "lending/routes.go:19", says: "GET /members/{cardNumber}/loans, checked against loans.read." }
+      - { source: desk-code, clause: "lending/routes.go:21", says: "GET /members/{cardNumber}/loans, checked against loans.read." }
 
 questions:
   Q-1:

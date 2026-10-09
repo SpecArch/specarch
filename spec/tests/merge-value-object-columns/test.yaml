@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: merge
+level: system
+scenario: golden
+given: "a tree read from a database whose members table has address_street, address_city and address_postcode columns with the check that an address is wholly absent or has its street and city, and a jsonb preferences column with the reader's question; and an interface tree whose Members holds address, an Address, and preferences, a Preferences, Address giving the postcode no width"
+when: "merge is run on the two trees"
+then: "it reads the three columns and the check back as the field address, writes the postcode's width into Address, writes preferences as Preferences kept as json, leaves out both questions of the database tree with a line each, asks nothing, and exits 0"
+verifies: [SA-45, SA-50]

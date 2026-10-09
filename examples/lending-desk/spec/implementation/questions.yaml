@@ -31,5 +31,5 @@ questions:
     options: ["Keep it, behind a permission desk staff hold", "Take it out of the service", "Keep it open to everyone"]
     why: Undocumented, from code, and it answers a personal field to a caller who shows no permission, which is how an open endpoint is usually found. An operation's permission cannot be left out of the design, so the route waits here rather than as a guess.
     cites:
-      - { source: desk-code, clause: "lending/routes.go:20", says: "GET /members/{cardNumber} checks no permission." }
-      - { source: desk-code, clause: "lending/routes.go:55", says: "ShowMember answers one member's card number and full name." }
+      - { source: desk-code, clause: "lending/routes.go:22", says: "GET /members/{cardNumber} checks no permission." }
+      - { source: desk-code, clause: "lending/routes.go:69", says: "ShowMember answers one member's card number and full name." }

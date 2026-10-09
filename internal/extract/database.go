@@ -222,11 +222,15 @@ func (d *dbReader) read() {
 }
 
 func (d *dbReader) question(text, kind string, blocks []string, why string) {
+	d.ask("must", text, kind, blocks, why)
+}
+
+func (d *dbReader) ask(priority, text, kind string, blocks []string, why string) {
 	d.nextID++
 	q := mapping(
 		"question", text,
 		"kind", kind,
-		"priority", "must",
+		"priority", priority,
 		"blocks", blocks,
 		"decidedBy", owner,
 		"why", why,
@@ -660,6 +664,14 @@ func (d *dbReader) columnType(table, at, qualified, typ string, f *field) *yaml.
 	case "uuid":
 		f.kind = "string"
 		return mapping("type", "string", "format", "uuid")
+	case "json", "jsonb":
+		// Any JSON value: the catalogue does not say its shape, which a
+		// schema says, so the field is an object and the schema a
+		// question (ADR-077).
+		f.kind = "json"
+		d.ask("should", fmt.Sprintf("Which schema does the column %s hold? It is %s, and the catalogue does not say the shape of the JSON value in it.", qualified, typ), "decision", []string{at + "/properties/" + f.name},
+			"A JSON column holds any JSON value; the schema it holds is what the code that writes it or a document says, and an entity's field holding a schema says how it is kept (ADR-063).")
+		return mapping("type", "object")
 	case "bytea":
 		f.kind = "bytes"
 		return mapping("type", "string", "format", "byte")

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: merge
+level: system
+scenario: red
+given: "a tree read from a database whose members table has address_street, address_city of at most 80 characters and address_postcode, with no check, and an interface tree whose Members holds address, an Address whose city is at most 100 characters"
+when: "merge is run on the two trees"
+then: "it joins nothing: the three columns stay fields, each an undocumented question, address stays as the interface gives it with its Not built yet question, and a must question at address names the city's two widths and the missing check that an address is wholly absent or has its required parts; it exits 0"
+verifies: [SA-45, SA-50]

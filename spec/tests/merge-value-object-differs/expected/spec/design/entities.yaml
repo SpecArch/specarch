@@ -1,0 +1,26 @@
+entities:
+  Members:
+    type: object
+    properties:
+      cardNumber: {type: string, maxLength: 10}
+      addressStreet: {type: [string, "null"], maxLength: 200}
+      addressCity: {type: [string, "null"], maxLength: 80}
+      addressPostcode: {type: [string, "null"], maxLength: 20}
+      address: {$ref: '#/schemas/Address'}
+    required: [cardNumber]
+    primaryKey: [cardNumber]
+    origin: stated
+    cites:
+      - {source: code, clause: migrations public.members, says: Table public.members.}
+      - {source: api, clause: /components/schemas/Members, says: 'The schema Members, with the properties cardNumber and address.'}
+schemas:
+  Address:
+    type: object
+    properties:
+      street: {type: string, maxLength: 200}
+      city: {type: string, maxLength: 100}
+      postcode: {type: string}
+    required: [street, city]
+    origin: stated
+    cites:
+      - {source: api, clause: /components/schemas/Address, says: 'The schema Address, with the properties street, city and postcode.'}

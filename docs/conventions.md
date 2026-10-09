@@ -1215,6 +1215,19 @@ entity's own field that holds a schema. Each is refused as
 `value_object`. In the interface the field is a reference to the schema
 whatever its storage.
 
+A specification read from sources finds the value again (ADR-077). `extract
+openapi` writes an entity's property that refers to a component schema as a
+reference to it, with `storage: json` where columns would be refused, and
+`extract database` writes a JSON column as a field of type `object` with a
+question asking which schema it holds. `specarch merge` writes each field
+holding a schema out as `generate sql` does and reads the code side's
+columns back as that field where they are exactly what it writes: every
+part's column, with its type, width and nullability, and the check that an
+optional value is wholly absent or has its required parts. Where they
+differ it asks at the field, and where no tree names a field but an
+entity's columns are every part of a schema under one prefix, it asks
+whether they are one value.
+
 ### Secrets
 
 A setting under `configuration` says whether it is a `secret`. A secret's

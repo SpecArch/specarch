@@ -21,6 +21,25 @@ commands:
         one requires and the other does not is left out of `required`,
         with a must question on that field that blocks the entity's
         `required`.
+      - An entity's field holding a schema in columns is written out as
+        `specarch generate sql` writes it, every part's column and the
+        check that an optional value is wholly absent or has its required
+        parts, and compared with the code side's fields (ADR-077). Where
+        every part's column is there with the type, width and nullability
+        its part gives it, and every check of the entity naming one of
+        them is such a presence check, the columns, their place in
+        `required` and those checks are left out, the field is the code's
+        too, and a line names them; a key only the column gives is written
+        into the part. Where only some parts have a column, a column
+        differs from its part, another check names one, or the field is
+        held as json and has columns, nothing is joined and a must
+        question at the field names each difference. A field one tree
+        gives as a schema and another as an object is that schema with
+        storage json. Where no tree has a field holding a schema, and an
+        entity's code-side fields are every part's column of a schema
+        under one prefix, a should question at those fields asks whether
+        they are one value, a field named after the prefix, or fields of
+        their own.
       - An element is stated when a tree states it; it is inferred only
         when every tree that has it infers it.
       - A tree whose sources are all code is on the code side; any other
@@ -30,7 +49,8 @@ commands:
         section, or, for a field, the same entity. Only the code has it:
         it is written inferred, with a why that starts "Undocumented, from
         code." and names where, and a question asks the owner to confirm
-        it. Only the documents have it: it is written as they state it,
+        it; a field, which holds no origin of its own, is written as the
+        code has it, and only the question says so. Only the documents have it: it is written as they state it,
         and a question in `implementation/questions.yaml`, blocking
         `implementation`, starts "Not built yet." and cites the documents
         and the code that was read. Either question is must when the
@@ -109,7 +129,7 @@ commands:
       One line per tree naming its title and what it holds; one line per
       source joined from several trees, naming the edition taken; one line
       counting the elements written and those found in more than one
-      tree; one line per requirement joined to a check that gives the
+      tree; one line per field read back from its columns; one line per requirement joined to a check that gives the
       same number of days; one line per question of a tree that another
       tree answers or a question kept before it asks; one line per
       question whose name is joined to the operation another tree

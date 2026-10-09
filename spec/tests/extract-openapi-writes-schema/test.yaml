@@ -4,5 +4,5 @@ level: system
 scenario: golden
 given: "a repository holding an OpenAPI 3.1 document with one operation whose 201 answers a component, whose request body and 409 answer are two other components, and a fourth component the first holds in a property"
 when: "extract openapi is run on the document"
-then: "it writes the component the 201 answers as an entity with a question about its key, the request body and the refusal as schemas with no such question, the held component in place inside the entity and as a schema of its own, and exits 0"
+then: "it writes the component the 201 answers as an entity with a question about its key, the request body and the refusal as schemas with no such question, the held component as a schema of its own that the entity refers to, kept as json since it is optional and has no required part, with a line saying so, and exits 0"
 verifies: [SA-48]

@@ -128,7 +128,7 @@ components:
 
 // TestOpenAPIResources writes a component an operation creates, or a path
 // with a parameter answers, as an entity, and every other object
-// component as a schema, which an entity holds in place.
+// component as a schema, which an entity refers to.
 func TestOpenAPIResources(t *testing.T) {
 	var doc yaml.Node
 	src := `
@@ -165,9 +165,11 @@ components:
 			t.Errorf("%s is written under %q, want %q", name, o.written[name], section)
 		}
 	}
+	// Terms is optional and has no required part, so the design keeps it
+	// only as json (ADR-063, ADR-077).
 	terms := child(child(child(o.entities, "Loan"), "properties"), "terms")
-	if child(terms, "$ref") != nil || child(child(terms, "properties"), "days") == nil {
-		t.Error("Loan holds Terms by reference; an entity may not hold a schema, so it is written in place")
+	if scalar(child(terms, "$ref")) != "#/schemas/Terms" || scalar(child(terms, "storage")) != "json" {
+		t.Errorf("Loan holds Terms as %s; want a reference to the schema with storage json", inlineNode(terms))
 	}
 	if o.nextID == 0 || child(o.schemas, "Refusal") == nil {
 		t.Errorf("want key questions for the entities and Refusal under schemas; %d questions", o.nextID)

@@ -1,0 +1,14 @@
+specarch: "0.1"
+info:
+  title: Desk interface
+  version: 0.1.0
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  api:
+    kind: document
+    title: The members interface
+    edition: "1.0"
+    clauses:
+      - {clause: /components/schemas/Members, title: Members}
+      - {clause: /components/schemas/Address, title: Address}

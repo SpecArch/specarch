@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 56 requirements, 5 entities, 12 commands, 7 algorithms, 323 tests, 75 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 56 requirements, 5 entities, 12 commands, 7 algorithms, 327 tests, 76 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -688,7 +688,9 @@ The sources this build reads:
   PascalCase, each column a field in camelCase, with its type,
   nullability, default, primary key, foreign keys as relations, and
   unique and check constraints. A check the expression subset can say
-  is written as its expression.
+  is written as its expression. A json or jsonb column is a field of
+  type object, and a should question at the field asks which schema
+  it holds, since the catalogue does not say its shape (ADR-077).
 - `router`: a route table, written by `tools/routes/dump-routes.sh`
   around the project's own route printer, which builds the router as
   the server does and prints every route it registered: its method,
@@ -739,8 +741,9 @@ The sources this build reads:
   it is, its primary key a must question, and a reference to it a
   reference to the entity; any other becomes a schema under
   `schemas`, with no question about a key, and a reference to it a
-  reference to the schema, except inside an entity, which holds it
-  in place; one of type string with an enum of snake_case values
+  reference to the schema, inside an entity too, with storage json
+  and a line where the design would refuse it in columns (ADR-063,
+  ADR-077); one of type string with an enum of snake_case values
   becomes an enum; a reference to any other component schema is
   written in place. A document whose property names are snake_case
   (one has an underscore and none a capital) gives info.wireNames
@@ -1165,6 +1168,25 @@ refused.
   one requires and the other does not is left out of `required`,
   with a must question on that field that blocks the entity's
   `required`.
+- An entity's field holding a schema in columns is written out as
+  `specarch generate sql` writes it, every part's column and the
+  check that an optional value is wholly absent or has its required
+  parts, and compared with the code side's fields (ADR-077). Where
+  every part's column is there with the type, width and nullability
+  its part gives it, and every check of the entity naming one of
+  them is such a presence check, the columns, their place in
+  `required` and those checks are left out, the field is the code's
+  too, and a line names them; a key only the column gives is written
+  into the part. Where only some parts have a column, a column
+  differs from its part, another check names one, or the field is
+  held as json and has columns, nothing is joined and a must
+  question at the field names each difference. A field one tree
+  gives as a schema and another as an object is that schema with
+  storage json. Where no tree has a field holding a schema, and an
+  entity's code-side fields are every part's column of a schema
+  under one prefix, a should question at those fields asks whether
+  they are one value, a field named after the prefix, or fields of
+  their own.
 - An element is stated when a tree states it; it is inferred only
   when every tree that has it infers it.
 - A tree whose sources are all code is on the code side; any other
@@ -1174,7 +1196,8 @@ refused.
   section, or, for a field, the same entity. Only the code has it:
   it is written inferred, with a why that starts "Undocumented, from
   code." and names where, and a question asks the owner to confirm
-  it. Only the documents have it: it is written as they state it,
+  it; a field, which holds no origin of its own, is written as the
+  code has it, and only the question says so. Only the documents have it: it is written as they state it,
   and a question in `implementation/questions.yaml`, blocking
   `implementation`, starts "Not built yet." and cites the documents
   and the code that was read. Either question is must when the
@@ -1248,7 +1271,7 @@ Writes `{out}/`: The merged specification.
 Standard output: One line per tree naming its title and what it holds; one line per
 source joined from several trees, naming the edition taken; one line
 counting the elements written and those found in more than one
-tree; one line per requirement joined to a check that gives the
+tree; one line per field read back from its columns; one line per requirement joined to a check that gives the
 same number of days; one line per question of a tree that another
 tree answers or a question kept before it asks; one line per
 question whose name is joined to the operation another tree
@@ -4952,6 +4975,64 @@ queues.
 
 **Insight:** dxlib's emitter is a printer in the sense of ADR-044: it runs the service's own Define hooks, so an endpoint registered in a loop, by a module or under a setting is in it, and only what is registered is. It already exists, its round trip is tested in dxlib, and its dialect is the one specarch's own dxlib generator writes, so reading it back closes the loop with no new format. x-dxlib-privileges is read only beside x-dxlib-endpoint-type, because an x- key means what its own tools define (OpenAPI 3.1, 4.9), and only that key says the document is dxlib's. More than one privilege is a question and not the first one, because dxlib's any-of check and the meta-model's one permission differ, and choosing would write a check the code does not make. No privilege is a must question and never public, as for the route table (ADR-044), because the open endpoint is the one a reader must not miss, and whether a caller must sign in is decided by middleware the document leaves out. EVERYTHING is asked about and not expanded, because expanding it would write grants that change whenever a permission is added, which no role table holds. The rest is read from source because nothing at run time lists it: a handler body is code, and only a parser sees which getters it calls.
 
+### ADR-077: Merge reads a value object back from the columns generate sql would write for it, or from a JSON column, only where a tree names the field, and asks where none does
+
+Status: accepted, 2026-10-09.
+
+Context: An entity's field holding a schema is kept in columns named after
+the path to each part, or in one JSON column (ADR-063). A database
+read from its catalogue shows only columns: address_street,
+address_city and address_postcode, or one jsonb column. The
+catalogue cannot say that three columns are one value or what shape
+a JSON column holds; an interface document or a manual can, since
+it names the field and its schema. The readers each read one
+surface, and the merge compares them (ADR-045), so the merge is
+where the columns meet the field.
+
+Decision: extract database writes a json or jsonb column as a field of type
+object, which holds any JSON value, and asks a should question at
+the field: which schema it holds. extract openapi writes an entity's
+property that refers to a component schema written under schemas as
+a reference to that schema, and an array of them as a list of it;
+where the design would refuse it in columns (ADR-063), it writes
+storage json, the one storage the design allows it, and prints a
+line.
+
+merge then reads each entity field holding a schema in columns
+back: it writes the field out as specarch generate sql does, every
+part's column by the same naming and the check that an optional
+value is wholly absent or has its required parts, and compares
+that with the fields of the code side. Where every part's column is
+there, each with the type, width and nullability the part gives it,
+and every check of the entity that names one of those columns is
+such a presence check, the columns are the field: they are left out
+of the entity's fields, its required list and its checks, the
+field cites the code too, and a line names them. A key the part
+does not give and its column does is written into the part. Where
+only some parts have a column, or a column disagrees with its part,
+or another check names one, nothing is joined, and a must question
+at the field names each difference. A field held as json whose
+columns the code side has is asked about the same way.
+
+A field one tree gives as a schema and another as an object is the
+same field kept as JSON: it is written as the schema with storage
+json, and the object's question is answered by the tree that gives
+the schema. Where no tree names the field, and the code side's
+fields of an entity are every part's column of a schema under one
+prefix, merge joins nothing and asks a should question at those
+fields: are they one value, a field named after the prefix holding
+the schema, or fields of their own.
+
+Consequences: A database whose value is spread over columns that do not follow
+the naming generate sql uses, such as street and city with no
+prefix, is never read as a value; its fields stay fields. The
+lending desk's interface names Member and its database Members, so
+no tree gives Members an address: the merge asks whether its three
+address columns are one value. A JSON column read alone keeps its
+question until the owner names the schema.
+
+**Insight:** Reading back by writing out is how a compiler checks a round trip: the merge never has a second rule for naming a column or for the presence check, so what generate sql writes from a field the merge reads as that field, and nothing else. A JSON column holds any JSON value; JSON Schema's object type is the closest the field subset has, and the shape is a question rather than a guess, since only a document or the code that writes it can say it. Columns that share a prefix are often not one value: created_at and created_by, a shipping_ and a billing_ address, or columns added one at a time. Matching them against a schema some tree holds finds the likely value, and the likely value is still the owner's to confirm, so where no tree names the field the merge asks, and where a tree does but the columns differ, the difference is a must question as any other disagreement between the trees is. The OpenAPI reader wrote a schema inside an entity in place while an entity could not hold one; ADR-063 lets it, and writing the reference keeps the one schema the interface names, which is what lets the merge find its columns.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -5025,6 +5106,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-writes-techspec | command document | system | golden | a design file and an implementation file that names techspec's output folder | document techspec is run on both | it writes techspec/shop.techspec.md with every chapter the design fills, chapter 7 from the implementation file, and exits 0 |
 | document-writes-testplan | command document | system | golden | a specification with a golden and a red test of one entity constraint, one with a why | document testplan is run | it writes testplan.md with the count of each scenario, the levels, both test cases under their subject with given, when and then, and exits 0 |
 | document-writes-traceability | command document | system | golden | needs, two requirements, an entity that satisfies one and a test that verifies it, and a rejected need | document traceability is run | it writes traceability.md with both matrices and lists as gaps the unrefined need, the requirement without acceptance criteria and the one nothing satisfies or verifies, with no Harm column since no requirement names a harm, and exits 0 |
+| extract-database-json-column | command extract | system | golden | a repository holding a catalogue dump whose members table has a jsonb column that is NOT NULL and a json column that may be null | extract database is run on the dump | it writes each JSON column as a field of type object, the nullable one allowing null, asks a should question at each field which schema it holds, and exits 0 |
 | extract-database-stale-dump | command extract | system | red | a catalogue dump made at the commit that added the first migration, and a later commit that adds a second migration to the same folder | extract database is run on the dump | it refuses the dump as stale, naming both commits, writes nothing and exits 1 |
 | extract-database-writes-tree | command extract | system | golden | a repository whose first commit holds its migrations and whose second holds the catalogue dump made from them, naming the first; the tables have a small integer key, a decimal with a default, a money column, a unique key, a check the expressions can say and one they can say as a list of values, an enum type, a fixed-width text, an identity column, a foreign key with cascade, an index, a table without a primary key and a view | extract database is run on the dump | it writes one entity per table, with the types, keys, relations and constraints it can hold, a question for every constraint message and for the missing primary key, names the commit, counts what it read, prints a line and writes a could question citing the table for the money column, the fixed width, the default it cannot hold, the index and the view, and exits 0 |
 | extract-documents-not-markdown | command extract | system | red | a handbook kept as plain text rather than Markdown | extract documents is run on it | it says this build reads Markdown documents, writes nothing and exits 1 |
@@ -5034,7 +5116,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-openapi-dxlib-privileges | command extract | system | golden | a repository holding an OpenAPI document in dxlib's dialect whose operations carry x-dxlib-endpoint-type: two that check one privilege, one that checks another, one that checks two, one that checks none, one whose privilege is not a permission name, one whose privilege is public, one that lists one privilege twice and one whose list holds a mapping, all under the document's mutualTLS security, and one operation without x-dxlib-endpoint-type that names a privilege | extract openapi is run on the document | it writes the one privilege of a dxlib operation as its permission and declares each such permission citing the operations that check it, with a must question on what each allows and which role grants each; it reads a privilege listed twice as one, asks a must question for the operation that checks two privileges, the one that checks none, the one whose privilege is no permission name, the one whose privilege is public and the one whose list is not of names, and prints the security of each dxlib operation as a line of its own, since it is not the permission; it reads x-dxlib-privileges only beside x-dxlib-endpoint-type, so the other operation's permission is asked as before and its extension printed as a line; and exits 0 |
 | extract-openapi-not-openapi | command extract | system | red | a committed Swagger 2.0 document, which names no openapi version | extract openapi is run on it | it says the file is not an OpenAPI 3.0 or 3.1 document, writes nothing and exits 1 |
 | extract-openapi-snake-case | command extract | system | golden | a repository holding an OpenAPI 3.1 document whose property names are snake_case throughout: an inline request body, an object schema with a nested object, a name with a digit inside it, one whose last word is a digit, and a required list naming them | extract openapi is run on the document | it writes info.wireNames snake_case and every property, the nested ones and the required lists included, by its camelCase name, leaves out with a line and a could question the name that would go back on the wire as another, and exits 0 |
-| extract-openapi-writes-schema | command extract | system | golden | a repository holding an OpenAPI 3.1 document with one operation whose 201 answers a component, whose request body and 409 answer are two other components, and a fourth component the first holds in a property | extract openapi is run on the document | it writes the component the 201 answers as an entity with a question about its key, the request body and the refusal as schemas with no such question, the held component in place inside the entity and as a schema of its own, and exits 0 |
+| extract-openapi-writes-schema | command extract | system | golden | a repository holding an OpenAPI 3.1 document with one operation whose 201 answers a component, whose request body and 409 answer are two other components, and a fourth component the first holds in a property | extract openapi is run on the document | it writes the component the 201 answers as an entity with a question about its key, the request body and the refusal as schemas with no such question, the held component as a schema of its own that the entity refers to, kept as json since it is optional and has no required part, with a line saying so, and exits 0 |
 | extract-openapi-writes-tree | command extract | system | golden | a repository holding an OpenAPI 3.0 document with two paths, a path-level parameter by reference, a template parameter it does not declare, a request body by reference, an operationId that is not camelCase, an operation with no summary and one with no security, a head method, a cookie parameter, a response range, an extension, an object schema with an int64 and a float without bounds, a nullable field, a snake_case property and an allOf, a string enum and an array schema named in lower case | extract openapi is run on the document | it writes each operation under its path citing its pointer, the object schema as an entity and the enum as an enum, 3.0's nullable and boolean exclusive bound in the 3.1 form, a question for the missing summary, each permission, the undeclared parameter's values, the primary key and the widths, prints a line for everything it leaves out, a could question citing the operation or the schema for each but the widths it asks for, and exits 0 |
 | extract-outline-shallow-clone | command extract | system | red | a clone of depth 1 of a repository with two commits | extract outline is run on a folder of it | it refuses the shallow clone, whose history cannot name the last change to a path, writes nothing and exits 1 |
 | extract-outline-uncommitted | command extract | system | red | a folder whose files are committed, one of them changed since and not committed | extract outline is run on the folder | it refuses, naming the changed file, since no commit names what would be read; it writes nothing and exits 1 |
@@ -5105,6 +5187,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | merge-source-differs | command merge | system | red | two trees that both declare the source code, at two different urls | merge is run on the two trees | it refuses them, naming the source and what differs, writes nothing and exits 1 |
 | merge-tree-invalid | command merge | system | red | two trees, the second of which has an entity without its properties, which validate reports | merge is run on the two trees | it refuses the second tree, saying validate reports errors in it, writes nothing and exits 1 |
 | merge-usage-error | command merge | system | red | one tree | merge is run on it alone | it says merge needs at least two trees, prints how to use it and exits 2 |
+| merge-value-object-columns | command merge | system | golden | a tree read from a database whose members table has address_street, address_city and address_postcode columns with the check that an address is wholly absent or has its street and city, and a jsonb preferences column with the reader's question; and an interface tree whose Members holds address, an Address, and preferences, a Preferences, Address giving the postcode no width | merge is run on the two trees | it reads the three columns and the check back as the field address, writes the postcode's width into Address, writes preferences as Preferences kept as json, leaves out both questions of the database tree with a line each, asks nothing, and exits 0 |
+| merge-value-object-differs | command merge | system | red | a tree read from a database whose members table has address_street, address_city of at most 80 characters and address_postcode, with no check, and an interface tree whose Members holds address, an Address whose city is at most 100 characters | merge is run on the two trees | it joins nothing: the three columns stay fields, each an undocumented question, address stays as the interface gives it with its Not built yet question, and a must question at address names the city's two widths and the missing check that an address is wholly absent or has its required parts; it exits 0 |
+| merge-value-object-unnamed | command merge | system | golden | a tree read from a database whose members table has address_street, address_city, address_postcode, created_at and created_by, and an interface tree whose Members has no address and which holds the schema Address of a street, a city and a postcode | merge is run on the two trees | it joins nothing and asks one should question at the three address fields whether they are one value, a field address holding Address, or fields of their own; created_at and created_by, which no schema's parts match, get only their undocumented questions; it exits 0 |
 | merge-workflows-joins-trigger | command merge | system | golden | the tree of a route table that declares requestWriteOff, and the tree of a BPMN file whose workflow leaves its trigger and its service task's operation out, each with a must question naming the operation, requestWriteOff and writeOffLoan | merge is run on the two trees | the trigger is written as requestWriteOff after the workflow's description and its question is left out as joined, naming the tree that declares it; the question for writeOffLoan, which no tree declares, stays open; it exits 0 |
 | validate-accessibility | command validate | system | red | a specification that names WCAG 2.2 at level AA, whose pages show or filter by a field with a title and two without one, and a page with two actions of the same label | validate is run | it reports accessibility for each field without a title, naming the pages that show it or filter by it, and for the second action, and exits 1 |
 | validate-algorithm | command validate | system | red | an operation that names an algorithm that does not exist | validate is run | it reports algorithm and exits 1 |
@@ -5539,13 +5624,13 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-41 | enums Rule; decisions ADR-033; decisions ADR-070 | tests validate-views; tests validate-views-valid |
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
-| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076 | tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-route-twice; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read |
-| SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-source-differs; tests merge-tree-invalid; tests merge-workflows-joins-trigger; tests validate-source-given-outside |
+| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076 | tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-route-twice; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read |
+| SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-077 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-source-differs; tests merge-tree-invalid; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests merge-workflows-joins-trigger; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046; decisions ADR-068 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-mapping-menu-entry; tests validate-owned-by-unknown |
 | SA-47 | enums Rule; decisions ADR-054 | tests document-techspec-open-workflow; tests validate-maker-checker; tests validate-workflow; tests validate-workflow-valid |
 | SA-48 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |
 | SA-49 | enums Rule; decisions ADR-062 | tests extract-openapi-snake-case; tests generate-openapi-wire-names; tests validate-wire-names |
-| SA-50 | enums Rule; decisions ADR-063 | tests generate-sql-value-object-fields; tests validate-value-object-fields; tests validate-value-object-fields-valid |
+| SA-50 | enums Rule; decisions ADR-063; decisions ADR-077 | tests extract-database-json-column; tests generate-sql-value-object-fields; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests validate-value-object-fields; tests validate-value-object-fields-valid |
 | SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066 | tests document-check-invalid; tests document-errors-elsewhere; tests document-problem-without-element; tests document-problems-lists; tests document-problems-none |
 | SA-52 | decisions ADR-067 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-53 | decisions ADR-068 | tests generate-ui-typescript; tests generate-ui-typescript-refused |

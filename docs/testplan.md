@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 323 design tests, 126 golden and 197 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 327 design tests, 129 golden and 198 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 319 |
+| system | 323 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -590,6 +590,14 @@ Scenario: golden; level: system; verifies SA-16, SA-22.
 
 ### Command extract
 
+#### extract-database-json-column
+
+Scenario: golden; level: system; verifies SA-44, SA-50.
+
+- Given: a repository holding a catalogue dump whose members table has a jsonb column that is NOT NULL and a json column that may be null
+- When: extract database is run on the dump
+- Then: it writes each JSON column as a field of type object, the nullable one allowing null, asks a should question at each field which schema it holds, and exits 0
+
 #### extract-database-stale-dump
 
 Scenario: red; level: system; covers exit 1; verifies SA-44.
@@ -668,7 +676,7 @@ Scenario: golden; level: system; verifies SA-48.
 
 - Given: a repository holding an OpenAPI 3.1 document with one operation whose 201 answers a component, whose request body and 409 answer are two other components, and a fourth component the first holds in a property
 - When: extract openapi is run on the document
-- Then: it writes the component the 201 answers as an entity with a question about its key, the request body and the refusal as schemas with no such question, the held component in place inside the entity and as a schema of its own, and exits 0
+- Then: it writes the component the 201 answers as an entity with a question about its key, the request body and the refusal as schemas with no such question, the held component as a schema of its own that the entity refers to, kept as json since it is optional and has no required part, with a line saying so, and exits 0
 
 #### extract-openapi-writes-tree
 
@@ -1239,6 +1247,30 @@ Scenario: red; level: system; covers usage error, exit 2.
 - Given: one tree
 - When: merge is run on it alone
 - Then: it says merge needs at least two trees, prints how to use it and exits 2
+
+#### merge-value-object-columns
+
+Scenario: golden; level: system; verifies SA-45, SA-50.
+
+- Given: a tree read from a database whose members table has address_street, address_city and address_postcode columns with the check that an address is wholly absent or has its street and city, and a jsonb preferences column with the reader's question; and an interface tree whose Members holds address, an Address, and preferences, a Preferences, Address giving the postcode no width
+- When: merge is run on the two trees
+- Then: it reads the three columns and the check back as the field address, writes the postcode's width into Address, writes preferences as Preferences kept as json, leaves out both questions of the database tree with a line each, asks nothing, and exits 0
+
+#### merge-value-object-differs
+
+Scenario: red; level: system; verifies SA-45, SA-50.
+
+- Given: a tree read from a database whose members table has address_street, address_city of at most 80 characters and address_postcode, with no check, and an interface tree whose Members holds address, an Address whose city is at most 100 characters
+- When: merge is run on the two trees
+- Then: it joins nothing: the three columns stay fields, each an undocumented question, address stays as the interface gives it with its Not built yet question, and a must question at address names the city's two widths and the missing check that an address is wholly absent or has its required parts; it exits 0
+
+#### merge-value-object-unnamed
+
+Scenario: golden; level: system; verifies SA-45, SA-50.
+
+- Given: a tree read from a database whose members table has address_street, address_city, address_postcode, created_at and created_by, and an interface tree whose Members has no address and which holds the schema Address of a street, a city and a postcode
+- When: merge is run on the two trees
+- Then: it joins nothing and asks one should question at the three address fields whether they are one value, a field address holding Address, or fields of their own; created_at and created_by, which no schema's parts match, get only their undocumented questions; it exits 0
 
 #### merge-workflows-joins-trigger
 

@@ -1,0 +1,11 @@
+arguments: [extract, database, --out, spec, service/catalogue.json]
+repository:
+  folder: service
+  commits:
+    - [migrations]
+    - [catalogue.json]
+exitStatus: 0
+standardOutput: |
+  commit 46824a975caf8b815470f06e04e0c560e25b777e: the last change to migrations, as the dump catalogue.json names it
+  counted 1 table, 3 columns, 1 constraint (0 foreign keys, 0 unique keys, 0 checks), 0 indexes besides those of keys, 0 views and 0 enum types: every entry of the dump's lists, which hold every schema but pg_catalog, information_schema and pg_toast
+  wrote 1 entity and 2 questions: one per table whose name an entity can hold, one per thing the catalogue does not say, and one per thing the meta-model cannot hold

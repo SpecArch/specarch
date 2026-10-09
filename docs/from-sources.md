@@ -148,7 +148,7 @@ documents gave:
 |---|---|
 | agree | one element, `origin: stated`, citing the document section and the code line |
 | disagree | the element as far as both agree, and a `must` question (`decision`) that cites both and says "the document says X, the code does Y"; the disputed key is left out, and the question blocks it |
-| only the code has it | the element with `origin: inferred`, a `why` that starts "Undocumented, from code." and names the line, citing the code, and a question, `should` or `must` by the rule below, asking the owner to confirm it |
+| only the code has it | the element with `origin: inferred`, a `why` that starts "Undocumented, from code." and names the line, citing the code, and a question, `should` or `must` by the rule below, asking the owner to confirm it; a field, which holds no origin of its own, gets only the question |
 | only the documents have it | the element as the documents state it, and a question, `should` or `must` by the rule below, in `implementation/questions.yaml`, blocking `implementation`, that starts "Not built yet." and cites the section and the code where it would be |
 
 A question about an element only one side has is `must`, not `should`,
@@ -170,7 +170,15 @@ as "The loan period is 21 days.", is compared with the code's check
 constraints that move a date by days: when exactly one has every word of
 the statement's subject in its name (`loans_loan_period`), it satisfies
 the requirement, and a different number leaves the statement out with a
-`must` question citing both. Two code trees of one repository, read at
+`must` question citing both. A field the documents give as a schema kept
+in columns is compared with the columns `specarch generate sql` writes for
+it, `address_street` and the rest, and read back as that field where the
+code's columns and checks are exactly those; where they differ, a `must`
+question at the field names each difference. A field one side gives as a
+schema and the other as a JSON column is that schema kept as JSON. Columns
+that are every part of a schema under one prefix, where no tree names the
+field, are asked about as one `should` question rather than joined
+(ADR-077). Two code trees of one repository, read at
 different commits, become one source at the newest commit, once git shows that every path each tree
 read is unchanged up to it. Where two trees give one key different
 values, the key is left out and a `must` question cites both, whichever

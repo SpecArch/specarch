@@ -1,0 +1,15 @@
+questions:
+  Q-1:
+    question: Which schema does the column public.members.preferences hold? It is jsonb, and the catalogue does not say the shape of the JSON value in it.
+    kind: decision
+    priority: should
+    blocks: ['#/entities/Members/properties/preferences']
+    decidedBy: system-owner
+    why: A JSON column holds any JSON value; the schema it holds is what the code that writes it or a document says, and an entity's field holding a schema says how it is kept (ADR-063).
+  Q-2:
+    question: 'What is a user told when each constraint of table public.members fails: members_address?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Members/constraints/members_address/message']
+    decidedBy: system-owner
+    why: The catalogue holds a constraint's name and definition, not the words a user reads when it fails.

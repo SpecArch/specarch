@@ -28,14 +28,14 @@ mappings:
     origin: stated
     cites:
       - { source: desk-code, clause: "migrations/001_init.sql:6", says: "CREATE TABLE books." }
-      - { source: desk-code, clause: "lending/model.go:20", says: "type Book." }
+      - { source: desk-code, clause: "lending/model.go:29", says: "type Book." }
       - { source: desk-manual, clause: "3.4", says: "The catalogue team keeps the book records; the desk reads them and never edits them." }
   "#/entities/Loan":
     target: table loans, type lending.Loan
     origin: stated
     cites:
       - { source: desk-code, clause: "migrations/001_init.sql:11", says: "CREATE TABLE loans." }
-      - { source: desk-code, clause: "lending/model.go:26", says: "type Loan." }
+      - { source: desk-code, clause: "lending/model.go:35", says: "type Loan." }
   "#/roles/desk-staff":
     target: table role_permissions, filled by seeds/001_roles.sql
     origin: stated
@@ -60,7 +60,7 @@ mappings:
     target: lending.Server.ListMemberLoans
     origin: stated
     cites:
-      - { source: desk-code, clause: "lending/routes.go:19", says: "The route." }
+      - { source: desk-code, clause: "lending/routes.go:21", says: "The route." }
 
 targets:
   # The SQL and the OpenAPI document are generated only to check them, by

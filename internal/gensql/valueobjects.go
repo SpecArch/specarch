@@ -86,6 +86,13 @@ type flat struct {
 }
 
 func (g *gen) flattenEntity(name string, e map[string]any, schemas map[string]any) map[string]any {
+	out, _ := g.flattenEntityFrom(name, e, schemas)
+	return out
+}
+
+// flattenEntityFrom is flattenEntity, with each part's column and the path
+// of the part it comes from.
+func (g *gen) flattenEntityFrom(name string, e map[string]any, schemas map[string]any) (map[string]any, map[string]any) {
 	props := obj0(e["properties"])
 	f := &flat{g: g, at: "/entities/" + name, table: g.tableName(name), schemas: schemas, props: map[string]any{}, constraints: maps.Clone(obj0(e["constraints"])), from: map[string]any{}}
 	if f.constraints == nil {
@@ -146,7 +153,7 @@ func (g *gen) flattenEntity(name string, e map[string]any, schemas map[string]an
 	if len(f.constraints) > 0 {
 		out["constraints"] = f.constraints
 	}
-	return out
+	return out, f.from
 }
 
 // parts writes out a schema's parts under prefix, the column of the value
@@ -214,4 +221,40 @@ func (f *flat) presence(col string, all, presence []string) {
 		there = append(there, c+" != null")
 	}
 	f.constraints[name] = map[string]any{"kind": "check", "expression": "(" + strings.Join(absent, " && ") + ") || (" + strings.Join(there, " && ") + ")"}
+}
+
+// WrittenOut is an entity as generate sql writes it out before it renders a
+// table: Fields holds every field, a part kept in columns by its column's
+// name; Required the fields that are NOT NULL; Checks the expression of
+// each check, the presence checks included; From each part's column and
+// the path of the part it comes from (address.street).
+type WrittenOut struct {
+	Fields   map[string]any
+	Required []string
+	Checks   map[string]string
+	From     map[string]string
+}
+
+// WriteOut writes out an entity's fields holding a schema as generate sql
+// does, so that what reads columns back reads them by the same names and
+// the same presence checks (ADR-077). e and schemas are as the design
+// writes them.
+func WriteOut(name string, e map[string]any, schemas map[string]any) WrittenOut {
+	out, from := e, map[string]any{}
+	if holdsValueObject(e, schemas) {
+		out, from = (&gen{}).flattenEntityFrom(name, e, schemas)
+	}
+	w := WrittenOut{Fields: obj0(out["properties"]), Checks: map[string]string{}, From: map[string]string{}}
+	for col, part := range from {
+		w.From[col] = text(part)
+	}
+	for _, r := range list(out["required"]) {
+		w.Required = append(w.Required, text(r))
+	}
+	for cn, c := range obj0(out["constraints"]) {
+		if text(obj0(c)["kind"]) == "check" {
+			w.Checks[cn] = text(obj0(c)["expression"])
+		}
+	}
+	return w
 }

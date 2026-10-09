@@ -1,0 +1,16 @@
+entities:
+  Members:
+    type: object
+    properties:
+      cardNumber: {type: string, maxLength: 10}
+      addressStreet: {type: [string, "null"], maxLength: 200}
+      addressCity: {type: [string, "null"], maxLength: 100}
+      addressPostcode: {type: [string, "null"], maxLength: 20}
+      preferences: {type: [object, "null"]}
+    required: [cardNumber]
+    primaryKey: [cardNumber]
+    constraints:
+      members_address: {kind: check, expression: addressStreet == null && addressCity == null && addressPostcode == null || addressStreet != null && addressCity != null}
+    origin: stated
+    cites:
+      - {source: code, clause: migrations public.members, says: Table public.members.}

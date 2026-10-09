@@ -1,0 +1,12 @@
+entities:
+  Members:
+    type: object
+    properties:
+      cardNumber: {type: string, maxLength: 10}
+      preferences: {type: object}
+      history: {type: [object, "null"]}
+    required: [cardNumber, preferences]
+    primaryKey: [cardNumber]
+    origin: stated
+    cites:
+      - {source: code, clause: migrations public.members, says: 'Table public.members: card_number character varying(10) not null, preferences jsonb not null, history json. members_pkey PRIMARY KEY (card_number).'}

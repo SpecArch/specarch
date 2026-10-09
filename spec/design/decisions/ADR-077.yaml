@@ -1,0 +1,78 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-077:
+    title: Merge reads a value object back from the columns generate sql would write for it, or from a JSON column, only where a tree names the field, and asks where none does
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      An entity's field holding a schema is kept in columns named after
+      the path to each part, or in one JSON column (ADR-063). A database
+      read from its catalogue shows only columns: address_street,
+      address_city and address_postcode, or one jsonb column. The
+      catalogue cannot say that three columns are one value or what shape
+      a JSON column holds; an interface document or a manual can, since
+      it names the field and its schema. The readers each read one
+      surface, and the merge compares them (ADR-045), so the merge is
+      where the columns meet the field.
+    decision: |
+      extract database writes a json or jsonb column as a field of type
+      object, which holds any JSON value, and asks a should question at
+      the field: which schema it holds. extract openapi writes an entity's
+      property that refers to a component schema written under schemas as
+      a reference to that schema, and an array of them as a list of it;
+      where the design would refuse it in columns (ADR-063), it writes
+      storage json, the one storage the design allows it, and prints a
+      line.
+
+      merge then reads each entity field holding a schema in columns
+      back: it writes the field out as specarch generate sql does, every
+      part's column by the same naming and the check that an optional
+      value is wholly absent or has its required parts, and compares
+      that with the fields of the code side. Where every part's column is
+      there, each with the type, width and nullability the part gives it,
+      and every check of the entity that names one of those columns is
+      such a presence check, the columns are the field: they are left out
+      of the entity's fields, its required list and its checks, the
+      field cites the code too, and a line names them. A key the part
+      does not give and its column does is written into the part. Where
+      only some parts have a column, or a column disagrees with its part,
+      or another check names one, nothing is joined, and a must question
+      at the field names each difference. A field held as json whose
+      columns the code side has is asked about the same way.
+
+      A field one tree gives as a schema and another as an object is the
+      same field kept as JSON: it is written as the schema with storage
+      json, and the object's question is answered by the tree that gives
+      the schema. Where no tree names the field, and the code side's
+      fields of an entity are every part's column of a schema under one
+      prefix, merge joins nothing and asks a should question at those
+      fields: are they one value, a field named after the prefix holding
+      the schema, or fields of their own.
+    why: |
+      Reading back by writing out is how a compiler checks a round trip:
+      the merge never has a second rule for naming a column or for the
+      presence check, so what generate sql writes from a field the merge
+      reads as that field, and nothing else. A JSON column holds any JSON
+      value; JSON Schema's object type is the closest the field subset
+      has, and the shape is a question rather than a guess, since only a
+      document or the code that writes it can say it. Columns that share a
+      prefix are often not one value: created_at and created_by, a
+      shipping_ and a billing_ address, or columns added one at a time.
+      Matching them against a schema some tree holds finds the likely
+      value, and the likely value is still the owner's to confirm, so
+      where no tree names the field the merge asks, and where a tree does
+      but the columns differ, the difference is a must question as any
+      other disagreement between the trees is. The OpenAPI reader wrote a
+      schema inside an entity in place while an entity could not hold
+      one; ADR-063 lets it, and writing the reference keeps the one
+      schema the interface names, which is what lets the merge find its
+      columns.
+    consequences: |
+      A database whose value is spread over columns that do not follow
+      the naming generate sql uses, such as street and city with no
+      prefix, is never read as a value; its fields stay fields. The
+      lending desk's interface names Member and its database Members, so
+      no tree gives Members an address: the merge asks whether its three
+      address columns are one value. A JSON column read alone keeps its
+      question until the owner names the schema.
+    satisfies: [SA-45, SA-50]

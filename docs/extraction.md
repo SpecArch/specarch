@@ -309,7 +309,12 @@ Steps, in order:
     OpenAPI document mentions. `specarch gaps` lists the phone number as
     a `must` question citing clause 2 and the members table, and the
     route as two: the router's, on its permission, and the merge's,
-    undocumented, from code. The merged specification validates with no
+    undocumented, from code. The members table keeps a member's address
+    in `address_street`, `address_city` and `address_postcode`, and the
+    OpenAPI document gives `Member` an `Address`; since the document's
+    `Member` and the table's `Members` are two entities, no tree gives
+    `Members` an address, and the merge asks whether the three columns
+    are one value (ADR-077). The merged specification validates with no
     errors, and CI runs the script twice and compares the folders. A
     release tag after this step.
 

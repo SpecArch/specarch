@@ -1,0 +1,13 @@
+entities:
+  Members:
+    type: object
+    properties:
+      cardNumber: {type: string, maxLength: 10}
+      addressStreet: {type: [string, "null"], maxLength: 200}
+      addressCity: {type: [string, "null"], maxLength: 80}
+      addressPostcode: {type: [string, "null"], maxLength: 20}
+    required: [cardNumber]
+    primaryKey: [cardNumber]
+    origin: stated
+    cites:
+      - {source: code, clause: migrations public.members, says: Table public.members.}

@@ -1,0 +1,31 @@
+entities:
+  Members:
+    type: object
+    properties:
+      cardNumber: {type: string, maxLength: 10}
+      address: {$ref: '#/schemas/Address'}
+      preferences: {$ref: '#/schemas/Preferences'}
+    required: [cardNumber]
+    primaryKey: [cardNumber]
+    origin: stated
+    cites:
+      - {source: api, clause: /components/schemas/Members, says: 'The schema Members, with the properties cardNumber, address and preferences.'}
+schemas:
+  Address:
+    type: object
+    properties:
+      street: {type: string, maxLength: 200}
+      city: {type: string, maxLength: 100}
+      postcode: {type: string}
+    required: [street, city]
+    origin: stated
+    cites:
+      - {source: api, clause: /components/schemas/Address, says: 'The schema Address, with the properties street, city and postcode.'}
+  Preferences:
+    type: object
+    properties:
+      language: {type: string, maxLength: 10}
+    required: [language]
+    origin: stated
+    cites:
+      - {source: api, clause: /components/schemas/Preferences, says: 'The schema Preferences, with the properties language.'}

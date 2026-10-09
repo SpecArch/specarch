@@ -64,6 +64,8 @@ type merger struct {
 	questions  []*yaml.Node           // the merged questions' values, numbered in order
 	qfiles     []string               // the file of each question
 	stages     map[string]bool        // the stages written
+	voAsk      []voAsk                // the questions about value objects, asked after the disputes
+	readBack   map[string]*readBack   // a pointer read back as a value object -> what answers the questions on it
 }
 
 // Merge merges the trees, each a specification that tracks origin and that
@@ -86,9 +88,11 @@ func Merge(specs []*spec.Spec, out string) (*Result, error) {
 	for i, t := range m.trees {
 		m.mergeTree(i, t)
 	}
+	m.readValueObjects()
 	m.removeDisputed()
 	m.treeQuestions()
 	asked := m.disputeQuestions()
+	asked += m.valueObjectQuestions()
 	asked += m.sideQuestions()
 	asked += m.quantityQuestions()
 	m.placeholders()
@@ -570,6 +574,9 @@ func stepsKey(steps []mergeStep) string {
 // mergeNode merges a later tree's mapping into the merged one.
 func (m *merger) mergeNode(acc, add *yaml.Node, at []mergeStep) {
 	acc, add = source.Deref(acc), source.Deref(add)
+	if len(at) == 4 && at[0].key == "entities" && at[2].key == "properties" {
+		add = jsonField(acc, add)
+	}
 	// An entity's required fields are joined against the fields it had
 	// before this tree's were added.
 	var before []string
@@ -805,6 +812,9 @@ func (m *merger) treeQuestions() {
 			q := copyNode(p.Value)
 			blocks := source.Items(source.Child(q, "blocks"))
 			if m.join(ti, t, p.Key.Value, q) {
+				continue
+			}
+			if m.readBackAnswers(ti, t, p.Key.Value, blocks) {
 				continue
 			}
 			var givers []string
@@ -1285,11 +1295,28 @@ func contains(list []string, s string) bool {
 // the owner to confirm it.
 func (m *merger) undocumented(e *element, n *yaml.Node, label, priority string) {
 	where := joinAnd(clausesOf(n))
+	if where == "" && e.parent != "" {
+		// A field cites nothing of its own: where the code trees' entity
+		// is.
+		var clauses []string
+		for _, ti := range e.trees {
+			for _, cl := range clausesOf(follow(m.trees[ti].s.Root, []mergeStep{{key: "entities"}, {key: e.tokens[1]}})) {
+				if !contains(clauses, cl) {
+					clauses = append(clauses, cl)
+				}
+			}
+		}
+		where = joinAnd(clauses)
+	}
 	if where == "" {
 		where = "a code tree"
 	}
-	setKey(n, "origin", str("inferred"))
-	setKey(n, "why", str(fmt.Sprintf("Undocumented, from code. The code has it at %s, and no document merged here mentions it.", where)))
+	// A field holds no origin of its own: its entity's says it, and the
+	// question says the field is undocumented.
+	if e.parent == "" {
+		setKey(n, "origin", str("inferred"))
+		setKey(n, "why", str(fmt.Sprintf("Undocumented, from code. The code has it at %s, and no document merged here mentions it.", where)))
+	}
 	ptr := "#" + source.Pointer(e.tokens...)
 	q := mapping(
 		"question", fmt.Sprintf("Undocumented, from code: is %s meant to be part of the system? The code has it at %s, and no document mentions it.", label, where),

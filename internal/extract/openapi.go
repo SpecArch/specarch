@@ -793,6 +793,7 @@ func (o *openapiReader) entity(name, pointer string, s *yaml.Node) bool {
 		delete(o.written, name)
 		return false
 	}
+	o.storage(name, props, required)
 	out := mapping("type", "object")
 	set(out, "description", nonEmpty(scalar(child(s, "description"))))
 	set(out, "properties", props)
@@ -826,6 +827,82 @@ func (o *openapiReader) entity(name, pointer string, s *yaml.Node) bool {
 		}
 	}
 	return true
+}
+
+// storage gives storage json to each field of an entity holding one schema
+// that the design would refuse in columns, since json is then the one
+// storage it allows (ADR-063, ADR-077); the interface does not say how a
+// value is kept.
+func (o *openapiReader) storage(entity string, props *yaml.Node, required []string) {
+	for i := 0; i+1 < len(props.Content); i += 2 {
+		field, f := props.Content[i].Value, props.Content[i+1]
+		name, ok := strings.CutPrefix(scalar(child(f, "$ref")), "#/schemas/")
+		if !ok {
+			continue
+		}
+		if why := o.notInColumns(name, !contains(required, field), []string{name}); why != "" {
+			set(f, "storage", "json")
+			o.res.say("schema %s, property %s: %s, which the design does not keep in columns; written with storage json, the one storage it allows", entity, field, why)
+		}
+	}
+}
+
+// notInColumns says why a value of the component schema name cannot be
+// kept in columns, as the design's value_object rule says (ADR-063), or ""
+// when it can. It reads the document's components, since a schema may be
+// written after the entity that holds it.
+func (o *openapiReader) notInColumns(name string, optional bool, seen []string) string {
+	s := o.resolve(child(child(child(o.doc, "components"), "schemas"), name))
+	if optional && !o.alwaysSet(s, seen) {
+		return fmt.Sprintf("it is optional and %s has no required part that is never null", name)
+	}
+	required := scalarList(child(s, "required"))
+	for _, wire := range keys(child(s, "properties")) {
+		p := child(child(s, "properties"), wire)
+		if inner, ok := strings.CutPrefix(scalar(child(child(p, "items"), "$ref")), "#/components/schemas/"); ok && schemaType(p) == "array" && o.written[inner] != "" && o.written[inner] != "enums" {
+			return fmt.Sprintf("%s.%s is a list of %s", name, wire, inner)
+		}
+		inner, ok := strings.CutPrefix(scalar(child(p, "$ref")), "#/components/schemas/")
+		switch {
+		case !ok:
+		case o.written[inner] == "entities":
+			return fmt.Sprintf("%s.%s refers to %s, a record of its own", name, wire, inner)
+		case o.written[inner] != "schemas":
+		case contains(seen, inner):
+			return fmt.Sprintf("%s.%s is %s again, inside %s", name, wire, inner, inner)
+		default:
+			if why := o.notInColumns(inner, !contains(required, wire) || o.nullable(p), append(append([]string{}, seen...), inner)); why != "" {
+				return why
+			}
+		}
+	}
+	return ""
+}
+
+// alwaysSet says whether a component schema has a required part that is
+// never null: a scalar, or a schema that has one in its turn.
+func (o *openapiReader) alwaysSet(s *yaml.Node, seen []string) bool {
+	required := scalarList(child(s, "required"))
+	for _, wire := range keys(child(s, "properties")) {
+		p := child(child(s, "properties"), wire)
+		if !contains(required, wire) || o.nullable(p) {
+			continue
+		}
+		inner, ok := strings.CutPrefix(scalar(child(p, "$ref")), "#/components/schemas/")
+		if !ok || o.written[inner] != "schemas" {
+			return true
+		}
+		if !contains(seen, inner) && o.alwaysSet(o.resolve(p), append(append([]string{}, seen...), inner)) {
+			return true
+		}
+	}
+	return false
+}
+
+// nullable says whether a schema allows null: OpenAPI 3.0's nullable, or a
+// type list with null.
+func (o *openapiReader) nullable(s *yaml.Node) bool {
+	return o.v30 && scalar(child(s, "nullable")) == "true" || contains(scalarList(child(s, "type")), "null")
 }
 
 // valueObject writes a component schema of type object that no operation
@@ -957,9 +1034,7 @@ func (o *openapiReader) memberName(wire, where, at string) (string, bool) {
 // field writes a schema in the meta-model's field subset (ADR-049).
 func (o *openapiReader) field(s *yaml.Node, where, at string, depth int) *yaml.Node {
 	if ref := scalar(child(s, "$ref")); ref != "" {
-		// An entity may not hold a schema, so inside an entity a schema
-		// is written in place.
-		if name, ok := strings.CutPrefix(ref, "#/components/schemas/"); ok && o.written[name] != "" && !(o.written[name] == "schemas" && strings.HasPrefix(at, "#/entities/")) {
+		if name, ok := strings.CutPrefix(ref, "#/components/schemas/"); ok && o.written[name] != "" {
 			return flow(mapping("$ref", "#/"+o.written[name]+"/"+name))
 		}
 		target := o.resolve(s)

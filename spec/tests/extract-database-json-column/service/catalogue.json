@@ -1,0 +1,68 @@
+{
+    "path": "migrations",
+    "enums": [
+    ],
+    "views": [
+    ],
+    "commit": "46824a975caf8b815470f06e04e0c560e25b777e",
+    "tables": [
+        {
+            "name": "members",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "card_number",
+                    "type": "character varying(10)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "preferences",
+                    "type": "jsonb",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "history",
+                    "type": "json",
+                    "comment": null,
+                    "default": null,
+                    "notNull": false,
+                    "identity": null,
+                    "generated": null
+                }
+            ],
+            "comment": null,
+            "indexes": [
+                {
+                    "name": "members_pkey",
+                    "unique": true,
+                    "primary": true,
+                    "definition": "CREATE UNIQUE INDEX members_pkey ON public.members USING btree (card_number)",
+                    "backsConstraint": true
+                }
+            ],
+            "constraints": [
+                {
+                    "kind": "primary",
+                    "name": "members_pkey",
+                    "columns": [
+                        "card_number"
+                    ],
+                    "onDelete": null,
+                    "definition": "PRIMARY KEY (card_number)",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                }
+            ]
+        }
+    ],
+    "catalogue": "postgresql"
+}

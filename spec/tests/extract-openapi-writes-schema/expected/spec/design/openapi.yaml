@@ -27,7 +27,7 @@ entities:
     properties:
       barcode: {type: string, maxLength: 20}
       placedOn: {type: string, format: date}
-      terms: {type: object, properties: {days: {type: string, maxLength: 3}}}
+      terms: {$ref: '#/schemas/Terms', storage: json}
     required: [barcode, placedOn]
     origin: stated
     cites:

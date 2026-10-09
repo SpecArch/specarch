@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a catalogue dump whose members table has a jsonb column that is NOT NULL and a json column that may be null"
+when: "extract database is run on the dump"
+then: "it writes each JSON column as a field of type object, the nullable one allowing null, asks a should question at each field which schema it holds, and exits 0"
+verifies: [SA-44, SA-50]

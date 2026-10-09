@@ -46,18 +46,19 @@ jobs:
           go run ./cmd/specarch validate "$RUNNER_TEMP/routes-one"
       - name: The lending desk's database and routes merge the same twice, validate and give their gaps
         # gaps exits 1 while a must or should question is open, which is
-        # the normal state of a specification read from sources. Sixteen
+        # the normal state of a specification read from sources. Seventeen
         # must: what each of the seven routes does, the values of the five
         # paths' parameters, what the permissions allow and which role
         # grants each, the members route that checks no permission, and
-        # the loans table's message. Two could: the card numbers of the
+        # the messages of the loans table's check and the members table's
+        # address check. Two could: the card numbers of the
         # loans and members tables, CHAR columns written as strings.
         run: |
           for run in one two; do go run ./cmd/specarch merge --out "$RUNNER_TEMP/merged-$run" "$RUNNER_TEMP/one" "$RUNNER_TEMP/routes-one" > "$RUNNER_TEMP/merged-$run.txt" || exit 1; done
           diff -r "$RUNNER_TEMP/merged-one" "$RUNNER_TEMP/merged-two" && cmp "$RUNNER_TEMP/merged-one.txt" "$RUNNER_TEMP/merged-two.txt"
           go run ./cmd/specarch validate "$RUNNER_TEMP/merged-one"
           status=0; go run ./cmd/specarch gaps "$RUNNER_TEMP/merged-one" > "$RUNNER_TEMP/gaps.txt" || status=$?
-          test "$status" -eq 1 && grep -q '18 open questions (16 must, 0 should, 2 could)' "$RUNNER_TEMP/gaps.txt"
+          test "$status" -eq 1 && grep -q '19 open questions (17 must, 0 should, 2 could)' "$RUNNER_TEMP/gaps.txt"
       - name: The lending desk's manual extracts the same twice, and merged with the code gives the loan period as one must question
         # The manual says 21 days at clause 3.3; the loans table checks 14.
         run: |

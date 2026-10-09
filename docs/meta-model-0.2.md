@@ -211,7 +211,9 @@ schema may refer to it, an entity may not relate to it, and the SQL
 generator writes no table for it. An entity's field may hold one, in
 columns of the entity's row or as one JSON value (ADR-063). `extract
 openapi` then writes a component schema with no key as one, instead of an
-entity with a question about its key.
+entity with a question about its key, and an entity's property referring
+to one as a reference to it; `specarch merge` reads a field's columns, or
+a JSON column, back as the field (ADR-077).
 
 ### Smaller keywords
 

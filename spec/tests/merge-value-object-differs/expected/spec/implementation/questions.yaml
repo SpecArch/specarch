@@ -1,0 +1,12 @@
+questions:
+  Q-5:
+    question: 'Not built yet. The documents have field address of entity Members, and the code read for entity Members does not: is it to be built, or are the documents to change?'
+    kind: decision
+    priority: should
+    blocks: [implementation]
+    decidedBy: system-owner
+    options: ['Built: the code is to add it', 'Dropped: the documents are to change']
+    why: Only the documents have it, and it concerns neither security nor a source given outside, so the owner confirms it before it is built on.
+    cites:
+      - {source: code, clause: migrations public.members, says: Table public.members.}
+      - {source: api, clause: /components/schemas/Members, says: 'The schema Members, with the properties cardNumber and address.'}

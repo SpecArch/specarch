@@ -38,7 +38,7 @@ sources:
   desk-code:
     kind: code
     title: The lending desk service
-    edition: 85f752f8ddf25f3f53c9196d923c07ac54521429
+    edition: 747ca5a74e35489f85e88bd758b342e9e98b7233
     author: The desk team
     url: ../sources/code
     clauses:
@@ -47,6 +47,7 @@ sources:
       - { clause: lending/access.go, title: The permission check }
       - { clause: migrations/001_init.sql, title: The tables }
       - { clause: migrations/002_roles.sql, title: The roles tables }
+      - { clause: migrations/003_member_address.sql, title: The member's address }
       - { clause: seeds/001_roles.sql, title: The seed of the roles tables }
 
 questions:

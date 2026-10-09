@@ -1,0 +1,12 @@
+arguments: [merge, --out, spec, trees/code, trees/api]
+exitStatus: 0
+standardOutput: |
+  tree trees/code: Desk database, on the code side: 2 elements and 0 questions
+  tree trees/api: Desk interface, on the documents side: 3 elements and 0 questions
+  merged 3 elements, each an entry of a section or an operation: 2 in more than one tree, and 0 keys the trees disagree on
+  wrote 5 questions: 0 from the trees, numbered again in the order the trees are given, and 5 the merge asked
+  question Q-1 (must): #/entities/Members/properties/address: the columns differ from the field
+  question Q-2 (should): #/entities/Members/properties/addressStreet: undocumented, from code
+  question Q-3 (should): #/entities/Members/properties/addressCity: undocumented, from code
+  question Q-4 (should): #/entities/Members/properties/addressPostcode: undocumented, from code
+  question Q-5 (should): #/entities/Members/properties/address: not built yet

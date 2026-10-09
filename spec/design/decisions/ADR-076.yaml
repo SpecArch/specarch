@@ -2,7 +2,7 @@
 decisions:
   ADR-076:
     title: A dxlib service's endpoints and privileges are read from the OpenAPI document dxlib emits, and the Go reader reads from its source only what dxlib cannot emit
-    status: proposed
+    status: accepted
     date: "2026-10-09"
     context: |
       Most of the owner's Go services are built on dxlib and dxlib_module
@@ -33,8 +33,10 @@ decisions:
       absent, is a must question saying that the operation checks no
       privilege and is open to every caller its middleware admits; two or
       more is a must question naming them, since dxlib lets a caller
-      holding any one through and an operation has one permission. The
-      other x-dxlib- keys keep their lines, and so does the WebSocket
+      holding any one through and an operation has one permission; a name
+      that is not lower-case words joined by dots, the name public, which
+      dxlib grants like any other privilege, and a value that is not a
+      list are each a must question too. The other x-dxlib- keys keep their lines, and so does the WebSocket
       extension, since the meta-model has no socket. The roles come from
       a permission table that a printer in dxlib_module writes from the
       tables its check reads (ADR-050); a grant of EVERYTHING is printed
@@ -66,6 +68,16 @@ decisions:
       is read from source because nothing at run time lists it: a handler
       body is code, and only a parser sees which getters it calls.
     consequences: |
+      dxlib_module names its own privileges in capitals with underscores,
+      such as a GLOBAL. prefix and EVERYTHING, and the meta-model names a
+      permission in lower-case words joined by dots, so on such a service
+      most operations get the must question for a name of another form
+      until the owner decides how a dxlib name maps to a permission name;
+      the reader does not rename one by itself, since a renamed permission
+      would no longer match the grants the permission table prints. The
+      security an operation in this dialect is given, such as the
+      mutualTLS dxlib writes under its mtls mode, prints a line, since it
+      says how a caller proves who it is and not what it may do.
       A dxlib service needs one program that runs its Define hooks and
       writes each API's document, as api/OPENAPI.md section 6 describes,
       until dxlib offers that as a flag of its own; and one printer for

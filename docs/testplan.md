@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 319 design tests, 125 golden and 194 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 320 design tests, 126 golden and 194 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 315 |
+| system | 316 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -613,6 +613,14 @@ Scenario: red; level: system; covers exit 2.
 - Given: a source this build does not read yet
 - When: extract events is run on a topic registry
 - Then: it names the sources it reads, writes nothing and exits 2
+
+#### extract-openapi-dxlib-privileges
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository holding an OpenAPI document in dxlib's dialect whose operations carry x-dxlib-endpoint-type: two that check one privilege, one that checks another, one that checks two, one that checks none, one whose privilege is not a permission name, one whose privilege is public, one that lists one privilege twice and one whose list holds a mapping, all under the document's mutualTLS security, and one operation without x-dxlib-endpoint-type that names a privilege
+- When: extract openapi is run on the document
+- Then: it writes the one privilege of a dxlib operation as its permission and declares each such permission citing the operations that check it, with a must question on what each allows and which role grants each; it reads a privilege listed twice as one, asks a must question for the operation that checks two privileges, the one that checks none, the one whose privilege is no permission name, the one whose privilege is public and the one whose list is not of names, and prints the security of each dxlib operation as a line of its own, since it is not the permission; it reads x-dxlib-privileges only beside x-dxlib-endpoint-type, so the other operation's permission is asked as before and its extension printed as a line; and exits 0
 
 #### extract-openapi-not-openapi
 
@@ -2622,7 +2630,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-203 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+204 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2803,6 +2811,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-44 | acceptance 4 | golden | SA-44 names no harm |
 | requirement SA-44 | acceptance 5 | golden | SA-44 names no harm |
 | requirement SA-44 | acceptance 6 | golden | SA-44 names no harm |
+| requirement SA-44 | acceptance 7 | golden | SA-44 names no harm |
 | requirement SA-45 | acceptance 1 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 2 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 3 | golden | SA-45 names no harm |

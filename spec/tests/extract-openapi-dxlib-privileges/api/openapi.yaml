@@ -1,0 +1,100 @@
+openapi: "3.1.0"
+info:
+  title: lending
+  version: "1.0.0"
+security:
+  - mutualTLS: []
+paths:
+  /archiveLoan:
+    post:
+      operationId: archiveLoan
+      summary: Archive a loan
+      x-dxlib-endpoint-type: EndPointTypeHTTPJSON
+      x-dxlib-privileges: [loans.write, loans.write]
+      responses:
+        "200":
+          description: The loan archived.
+  /tagLoan:
+    post:
+      operationId: tagLoan
+      summary: Tag a loan
+      x-dxlib-endpoint-type: EndPointTypeHTTPJSON
+      x-dxlib-privileges: [{name: loans.write}]
+      responses:
+        "200":
+          description: The loan tagged.
+  /listLoans:
+    post:
+      operationId: listLoans
+      summary: List the loans
+      x-dxlib-endpoint-type: EndPointTypeHTTPJSON
+      x-dxlib-privileges: [loans.read]
+      responses:
+        "200":
+          description: The loans.
+  /showLoan:
+    post:
+      operationId: showLoan
+      summary: Show one loan
+      x-dxlib-endpoint-type: EndPointTypeHTTPJSON
+      x-dxlib-privileges: [loans.read]
+      x-dxlib-rate-limit-group: reads
+      responses:
+        "200":
+          description: The loan.
+  /createLoan:
+    post:
+      operationId: createLoan
+      summary: Lend a copy
+      x-dxlib-endpoint-type: EndPointTypeHTTPJSON
+      x-dxlib-privileges: [loans.write]
+      responses:
+        "200":
+          description: The loan made.
+  /cancelLoan:
+    post:
+      operationId: cancelLoan
+      summary: Cancel a loan
+      x-dxlib-endpoint-type: EndPointTypeHTTPJSON
+      x-dxlib-privileges: [loans.write, loans.supervise]
+      responses:
+        "200":
+          description: The loan cancelled.
+  /listBooks:
+    post:
+      operationId: listBooks
+      summary: List the books
+      x-dxlib-endpoint-type: EndPointTypeHTTPJSON
+      responses:
+        "200":
+          description: The books.
+  /exportAll:
+    post:
+      operationId: exportAll
+      summary: Export every record
+      x-dxlib-endpoint-type: EndPointTypeHTTPJSON
+      x-dxlib-privileges: [EXPORT_ALL]
+      responses:
+        "200":
+          description: The export.
+  /health:
+    post:
+      operationId: health
+      summary: Say the service is up
+      x-dxlib-endpoint-type: EndPointTypeHTTPJSON
+      x-dxlib-privileges: [public]
+      responses:
+        "200":
+          description: Up.
+  /renewLoan:
+    post:
+      operationId: renewLoan
+      summary: Renew a loan
+      x-dxlib-privileges: [loans.write]
+      responses:
+        "200":
+          description: The loan renewed.
+components:
+  securitySchemes:
+    mutualTLS:
+      type: mutualTLS

@@ -93,10 +93,24 @@ commands:
         snake_case in a document whose other names are camelCase, or that
         would not go back on the wire unchanged under info.wireNames; and an
         operationId that is not camelCase, the operation then named by
-        its method and path. Every operation's permission is a must
-        question naming the security the document gives, since a security
+        its method and path. Every operation outside dxlib's dialect has
+        its permission as a must question naming the security the
+        document gives, since a security
         scheme is not a permission, and so is an integer or number with no
-        width; a missing summary or responses is a must question too. The
+        width; a missing summary or responses is a must question too. An
+        operation that carries `x-dxlib-endpoint-type` is read in dxlib's
+        dialect (ADR-076): the one name its `x-dxlib-privileges` lists is
+        its permission, when it is lower-case words joined by dots and not
+        `public`, and every such permission is declared citing the first
+        operation that checks it, its description and the role that grants
+        it must questions; none, more than one, a name of another form,
+        `public` and a value that is not a list of names are each a must
+        question on the operation's permission, never written as public; a
+        name listed twice counts once. The security such an operation is
+        given prints a line, since it is not its permission. Its other
+        `x-dxlib-` keys print a line as any extension does, and so does
+        `x-dxlib-privileges` on an operation without
+        `x-dxlib-endpoint-type`. The
         edition is the commit that last changed the file.
       - `permissions`: a permission table, written by
         `tools/permissions/dump-permissions.sh` around the project's own

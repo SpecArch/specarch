@@ -115,6 +115,10 @@ decisions:
       shows in review as a diff. The parser's version in the dump and a
       pinned version, because the same file can parse differently under
       two versions, and byte-identical output (SA-44) holds only for one.
+      Refusing such a dump whole, as a stale dump is refused, is not a
+      definition left unread: the dump is not the definition but a
+      reading of it, made again in one command, and facts from an
+      unknown parser would be values no one can trace.
 
       Tracked files only, because the existing rule says only what a
       commit names is read, and a module cache or node_modules is not in

@@ -123,6 +123,9 @@ func OpenAPI(path, out, key string) (*Result, error) {
 	if o.enums != nil {
 		set(design, "enums", o.enums)
 	}
+	if o.permits != nil {
+		set(design, "permissions", o.permits)
+	}
 	if len(design.Content) > 0 {
 		stages = []string{"design"}
 		res.Tree.put("design/"+key+".yaml", design)
@@ -187,6 +190,12 @@ type openapiReader struct {
 	schemas   *yaml.Node
 	enums     *yaml.Node
 	questions *yaml.Node
+	// The permissions dxlib's x-dxlib-privileges names (ADR-076), each
+	// with the operations that check it, in the order read.
+	dxlibOps  int // operations in dxlib's dialect
+	checkedBy map[string][]string
+	firstAt   map[string]string
+	permits   *yaml.Node
 	nextID    int
 	notHeld   []notHeld
 	// The component schemas written as an entity, a schema or an enum, by
@@ -310,6 +319,10 @@ func (o *openapiReader) read() {
 			pathCount++
 		}
 	}
+	o.declarePermissions()
+	if o.dxlibOps > 0 {
+		o.res.say("dialect: dxlib: %s carry x-dxlib-endpoint-type, and each one's x-dxlib-privileges is read as its permission; %s declared, each named alone by an operation's privileges", plural(o.dxlibOps, "operation"), plural(len(o.checkedBy), "permission"))
+	}
 	entities, values, enums := 0, 0, 0
 	for _, name := range names {
 		pointer := "/components/schemas/" + escapeToken(name)
@@ -351,7 +364,11 @@ func (o *openapiReader) read() {
 		case "schemas", "parameters", "requestBodies", "responses":
 			// Read where an operation refers to them.
 		case "securitySchemes":
-			o.gap("/components/securitySchemes", "components.securitySchemes: a security scheme is not a permission; named in each operation's permission question, and left out")
+			if o.dxlibOps > 0 {
+				o.gap("/components/securitySchemes", "components.securitySchemes: a security scheme is not a permission; named in each operation's permission question, or, for an operation in dxlib's dialect, in a line of its own, and left out")
+			} else {
+				o.gap("/components/securitySchemes", "components.securitySchemes: a security scheme is not a permission; named in each operation's permission question, and left out")
+			}
 		default:
 			o.gap("/components/"+escapeToken(k), "components.%s: %s; left out", k, notHeldKey(k))
 		}
@@ -503,9 +520,12 @@ func (o *openapiReader) operation(p, method string, op *yaml.Node, params []stri
 	if child(op, "deprecated") != nil && scalar(child(op, "deprecated")) == "true" {
 		set(out, "deprecated", true)
 	}
+	dxlib := child(op, "x-dxlib-endpoint-type") != nil
 	for _, k := range keys(op) {
-		switch k {
-		case "operationId", "summary", "description", "parameters", "requestBody", "responses", "deprecated", "security":
+		switch {
+		case k == "operationId", k == "summary", k == "description", k == "parameters", k == "requestBody", k == "responses", k == "deprecated", k == "security":
+		case k == "x-dxlib-privileges" && dxlib:
+			// Read below as the operation's permission.
 		default:
 			o.gap(at, "operation %s: %s; left out", label, notHeldKey(k))
 		}
@@ -522,9 +542,95 @@ func (o *openapiReader) operation(p, method string, op *yaml.Node, params []stri
 		o.question(fmt.Sprintf("What does %s do, and what does it answer? The document gives no %s.", label, missingWhat(unasked)),
 			unasked, "An operation needs a summary and its responses, and the document does not give them.")
 	}
+	if dxlib {
+		o.dxlibOps++
+		o.dxlibPermission(out, op, label, pointer, at)
+		return out
+	}
 	o.question(fmt.Sprintf("Which permission does %s check? %s", label, o.securityText(op)),
 		[]string{at + "/permission"}, "A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.")
 	return out
+}
+
+// dxlibPermission reads the permission of an operation in dxlib's dialect
+// (ADR-076): the one privilege x-dxlib-privileges names. dxlib lets a
+// caller holding any one of an endpoint's privileges through, and one with
+// none every caller its middleware admits, which the document does not
+// name; so none, more than one, or a name that is no permission is asked.
+func (o *openapiReader) dxlibPermission(out, op *yaml.Node, label, pointer, at string) {
+	if child(op, "security") != nil || child(o.doc, "security") != nil {
+		o.gap(at, "operation %s: %s A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out", label, o.securityText(op))
+	}
+	given := child(op, "x-dxlib-privileges")
+	list := given != nil && given.Kind == yaml.SequenceNode
+	var privileges []string
+	seen := map[string]bool{}
+	for _, item := range items(given) {
+		if item.Kind != yaml.ScalarNode {
+			list = false
+			break
+		}
+		if !seen[item.Value] {
+			seen[item.Value] = true
+			privileges = append(privileges, item.Value)
+		}
+	}
+	switch {
+	case given != nil && !list:
+		o.question(fmt.Sprintf("%s gives x-dxlib-privileges as %s, which is not a list of names as dxlib writes it. Which permission does it check?", label, inlineNode(given)),
+			[]string{at + "/permission"}, "dxlib's dialect writes the privileges as a list, and a value in another form says nothing the reader can trust.")
+	case len(privileges) == 1 && privileges[0] == "public":
+		o.question(fmt.Sprintf("%s checks the privilege public, which dxlib grants only to a role that holds it, while public in a specification means open to everyone. Which permission should it check, or is it meant to be open?", label),
+			[]string{at + "/permission"}, "Writing the privilege public as the permission public would open the operation to everyone, which the code does not do.")
+	case len(privileges) == 1 && permissionWord.MatchString(privileges[0]):
+		name := privileges[0]
+		set(out, "permission", name)
+		if o.checkedBy == nil {
+			o.checkedBy, o.firstAt = map[string][]string{}, map[string]string{}
+		}
+		if _, seen := o.firstAt[name]; !seen {
+			o.firstAt[name] = pointer
+		}
+		o.checkedBy[name] = append(o.checkedBy[name], label)
+	case len(privileges) == 0:
+		o.question(fmt.Sprintf("%s checks no privilege: its x-dxlib-privileges is empty or absent, so dxlib lets through every caller its middleware admits. Is it meant to be open to everyone (public), or which permission should it check?", label),
+			[]string{at + "/permission"}, "dxlib checks no privilege on an endpoint that names none, and whether a caller must sign in is decided by middleware the document does not name; an open endpoint is never written as public without the owner's word.")
+	case len(privileges) == 1:
+		o.question(fmt.Sprintf("%s checks the privilege %s, which is not a permission name (lower-case words joined by dots). Which permission should it check?", label, privileges[0]),
+			[]string{at + "/permission"}, "The meta-model names a permission in lower-case words joined by dots, and renaming the privilege would write a check the code does not make.")
+	default:
+		o.question(fmt.Sprintf("%s checks the privileges %s: dxlib lets a caller holding any one of them through, and an operation checks one permission. Which permission should it check?", label, joinAnd(privileges)),
+			[]string{at + "/permission"}, "An operation names one permission; choosing one of dxlib's would write a check the code does not make.")
+	}
+}
+
+// declarePermissions declares every permission dxlib's privileges named,
+// citing the first operation that checks it, and asks what each allows
+// and which role grants it, which the document does not say.
+func (o *openapiReader) declarePermissions() {
+	if len(o.checkedBy) == 0 {
+		return
+	}
+	names := make([]string, 0, len(o.checkedBy))
+	for n := range o.checkedBy {
+		names = append(names, n)
+	}
+	sort.Strings(names)
+	o.permits = &yaml.Node{Kind: yaml.MappingNode}
+	var blocks, grants []string
+	for _, n := range names {
+		by := o.checkedBy[n]
+		set(o.permits, n, mapping(
+			"origin", "stated",
+			"cites", []*yaml.Node{citation(o.key, o.firstAt[n], fmt.Sprintf("%s %s %s in x-dxlib-privileges.", joinAnd(by), checkOrChecks(len(by)), n))},
+		))
+		blocks = append(blocks, "#/permissions/"+escapeToken(n)+"/description")
+		grants = append(grants, "#/permissions/"+escapeToken(n))
+	}
+	o.question(fmt.Sprintf("What does each permission allow: %s?", strings.Join(names, ", ")),
+		blocks, "dxlib's document names the privilege an endpoint checks and not what it is for.")
+	o.question(fmt.Sprintf("Which role grants each permission: %s?", strings.Join(names, ", ")),
+		grants, "dxlib's document names the privilege an endpoint checks and not who holds it.")
 }
 
 // missingWhat names what an operation's question blocks.

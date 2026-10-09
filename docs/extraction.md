@@ -342,11 +342,18 @@ printed ones; the dxlib services are ADR-076. Each step adds its readers'
 idioms, a generic example under `examples/` and conformance cases, and
 changes `extract.yaml` first.
 
-12. dxlib's emitted document (ADR-076). `extract openapi` reads an
-    operation that carries `x-dxlib-endpoint-type` in dxlib's dialect: one
-    name in `x-dxlib-privileges` is its permission, stated and declared;
-    none, or more than one, a must question. The example is a dxlib
-    service's document in that dialect, merged with a permission table.
+12. Built. dxlib's emitted document (ADR-076). `extract openapi` reads
+    an operation that carries `x-dxlib-endpoint-type` in dxlib's dialect:
+    the one name in `x-dxlib-privileges` is its permission, stated and
+    declared, with its description and the role that grants it must
+    questions; none, more than one, a name that is not lower-case words
+    joined by dots, `public`, which dxlib grants like any other privilege,
+    and a value that is not a list of names are each a must question,
+    never written as public. The security an operation is given prints a
+    line, since it is not its permission. The
+    conformance case reads a document in that dialect with each of these;
+    the example service on dxlib, with its emitted document committed,
+    comes with step 13.
 13. The shared core of a parsed reader and Go on dxlib's endpoints:
     `reading: printed` and `reading: parsed` on a code source in the 0.1
     design schema, in both validator builds; the merge rows of

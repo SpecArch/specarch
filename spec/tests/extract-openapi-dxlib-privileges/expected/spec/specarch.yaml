@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: lending
+  version: 0.1.0
+  description: |
+    The OpenAPI document openapi.yaml, read at commit d652964868ace144c3b97644b39753c8c4e420e7: every operation and component schema is a clause, every operation is written under its path citing it, every component schema of type object that an operation creates or a path with a parameter answers is an entity, and every other one a schema. What the document does not say is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  openapi:
+    kind: document
+    title: lending
+    edition: d652964868ace144c3b97644b39753c8c4e420e7
+    url: ../api/openapi.yaml
+    clauses:
+      - {clause: /paths/~1archiveLoan/post, title: POST /archiveLoan}
+      - {clause: /paths/~1cancelLoan/post, title: POST /cancelLoan}
+      - {clause: /paths/~1createLoan/post, title: POST /createLoan}
+      - {clause: /paths/~1exportAll/post, title: POST /exportAll}
+      - {clause: /paths/~1health/post, title: POST /health}
+      - {clause: /paths/~1listBooks/post, title: POST /listBooks}
+      - {clause: /paths/~1listLoans/post, title: POST /listLoans}
+      - {clause: /paths/~1renewLoan/post, title: POST /renewLoan}
+      - {clause: /paths/~1showLoan/post, title: POST /showLoan}
+      - {clause: /paths/~1tagLoan/post, title: POST /tagLoan}

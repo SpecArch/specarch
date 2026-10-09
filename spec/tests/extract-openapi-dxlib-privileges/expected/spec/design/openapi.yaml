@@ -1,0 +1,114 @@
+paths:
+  /archiveLoan:
+    post:
+      operationId: archiveLoan
+      summary: Archive a loan
+      responses:
+        "200":
+          description: The loan archived.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1archiveLoan/post, says: 'POST /archiveLoan: Archive a loan.'}
+      permission: loans.write
+  /cancelLoan:
+    post:
+      operationId: cancelLoan
+      summary: Cancel a loan
+      responses:
+        "200":
+          description: The loan cancelled.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1cancelLoan/post, says: 'POST /cancelLoan: Cancel a loan.'}
+  /createLoan:
+    post:
+      operationId: createLoan
+      summary: Lend a copy
+      responses:
+        "200":
+          description: The loan made.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1createLoan/post, says: 'POST /createLoan: Lend a copy.'}
+      permission: loans.write
+  /exportAll:
+    post:
+      operationId: exportAll
+      summary: Export every record
+      responses:
+        "200":
+          description: The export.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1exportAll/post, says: 'POST /exportAll: Export every record.'}
+  /health:
+    post:
+      operationId: health
+      summary: Say the service is up
+      responses:
+        "200":
+          description: Up.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1health/post, says: 'POST /health: Say the service is up.'}
+  /listBooks:
+    post:
+      operationId: listBooks
+      summary: List the books
+      responses:
+        "200":
+          description: The books.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1listBooks/post, says: 'POST /listBooks: List the books.'}
+  /listLoans:
+    post:
+      operationId: listLoans
+      summary: List the loans
+      responses:
+        "200":
+          description: The loans.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1listLoans/post, says: 'POST /listLoans: List the loans.'}
+      permission: loans.read
+  /renewLoan:
+    post:
+      operationId: renewLoan
+      summary: Renew a loan
+      responses:
+        "200":
+          description: The loan renewed.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1renewLoan/post, says: 'POST /renewLoan: Renew a loan.'}
+  /showLoan:
+    post:
+      operationId: showLoan
+      summary: Show one loan
+      responses:
+        "200":
+          description: The loan.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1showLoan/post, says: 'POST /showLoan: Show one loan.'}
+      permission: loans.read
+  /tagLoan:
+    post:
+      operationId: tagLoan
+      summary: Tag a loan
+      responses:
+        "200":
+          description: The loan tagged.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1tagLoan/post, says: 'POST /tagLoan: Tag a loan.'}
+permissions:
+  loans.read:
+    origin: stated
+    cites:
+      - {source: openapi, clause: /paths/~1listLoans/post, says: POST /listLoans and POST /showLoan check loans.read in x-dxlib-privileges.}
+  loans.write:
+    origin: stated
+    cites:
+      - {source: openapi, clause: /paths/~1archiveLoan/post, says: POST /archiveLoan and POST /createLoan check loans.write in x-dxlib-privileges.}

@@ -1,0 +1,246 @@
+questions:
+  Q-1:
+    question: 'POST /cancelLoan checks the privileges loans.write and loans.supervise: dxlib lets a caller holding any one of them through, and an operation checks one permission. Which permission should it check?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1cancelLoan/post/permission']
+    decidedBy: system-owner
+    why: An operation names one permission; choosing one of dxlib's would write a check the code does not make.
+  Q-2:
+    question: POST /exportAll checks the privilege EXPORT_ALL, which is not a permission name (lower-case words joined by dots). Which permission should it check?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1exportAll/post/permission']
+    decidedBy: system-owner
+    why: The meta-model names a permission in lower-case words joined by dots, and renaming the privilege would write a check the code does not make.
+  Q-3:
+    question: POST /health checks the privilege public, which dxlib grants only to a role that holds it, while public in a specification means open to everyone. Which permission should it check, or is it meant to be open?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1health/post/permission']
+    decidedBy: system-owner
+    why: Writing the privilege public as the permission public would open the operation to everyone, which the code does not do.
+  Q-4:
+    question: 'POST /listBooks checks no privilege: its x-dxlib-privileges is empty or absent, so dxlib lets through every caller its middleware admits. Is it meant to be open to everyone (public), or which permission should it check?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1listBooks/post/permission']
+    decidedBy: system-owner
+    why: dxlib checks no privilege on an endpoint that names none, and whether a caller must sign in is decided by middleware the document does not name; an open endpoint is never written as public without the owner's word.
+  Q-5:
+    question: Which permission does POST /renewLoan check? The document gives it the security mutualTLS.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1renewLoan/post/permission']
+    decidedBy: system-owner
+    why: A security scheme says how a caller proves who it is, not what it may do, so the permission is asked and never written as public.
+  Q-6:
+    question: 'POST /tagLoan gives x-dxlib-privileges as [{name: loans.write}], which is not a list of names as dxlib writes it. Which permission does it check?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1tagLoan/post/permission']
+    decidedBy: system-owner
+    why: dxlib's dialect writes the privileges as a list, and a value in another form says nothing the reader can trust.
+  Q-7:
+    question: 'What does each permission allow: loans.read, loans.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.read/description', '#/permissions/loans.write/description']
+    decidedBy: system-owner
+    why: dxlib's document names the privilege an endpoint checks and not what it is for.
+  Q-8:
+    question: 'Which role grants each permission: loans.read, loans.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.read', '#/permissions/loans.write']
+    decidedBy: system-owner
+    why: dxlib's document names the privilege an endpoint checks and not who holds it.
+  Q-9:
+    question: 'Not held: operation POST /archiveLoan: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1archiveLoan/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1archiveLoan/post, says: 'Not held: operation POST /archiveLoan: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out.'}
+  Q-10:
+    question: 'Not held: operation POST /archiveLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib''s privileges what it may do, so the security is not its permission; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1archiveLoan/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1archiveLoan/post, says: 'Not held: operation POST /archiveLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib''s privileges what it may do, so the security is not its permission; left out.'}
+  Q-11:
+    question: 'Not held: operation POST /cancelLoan: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1cancelLoan/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1cancelLoan/post, says: 'Not held: operation POST /cancelLoan: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out.'}
+  Q-12:
+    question: 'Not held: operation POST /cancelLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib''s privileges what it may do, so the security is not its permission; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1cancelLoan/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1cancelLoan/post, says: 'Not held: operation POST /cancelLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib''s privileges what it may do, so the security is not its permission; left out.'}
+  Q-13:
+    question: 'Not held: operation POST /createLoan: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1createLoan/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1createLoan/post, says: 'Not held: operation POST /createLoan: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out.'}
+  Q-14:
+    question: 'Not held: operation POST /createLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib''s privileges what it may do, so the security is not its permission; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1createLoan/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1createLoan/post, says: 'Not held: operation POST /createLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib''s privileges what it may do, so the security is not its permission; left out.'}
+  Q-15:
+    question: 'Not held: operation POST /exportAll: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1exportAll/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1exportAll/post, says: 'Not held: operation POST /exportAll: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out.'}
+  Q-16:
+    question: 'Not held: operation POST /exportAll: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib''s privileges what it may do, so the security is not its permission; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1exportAll/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1exportAll/post, says: 'Not held: operation POST /exportAll: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib''s privileges what it may do, so the security is not its permission; left out.'}
+  Q-17:
+    question: 'Not held: operation POST /health: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1health/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1health/post, says: 'Not held: operation POST /health: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out.'}
+  Q-18:
+    question: 'Not held: operation POST /health: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib''s privileges what it may do, so the security is not its permission; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1health/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1health/post, says: 'Not held: operation POST /health: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib''s privileges what it may do, so the security is not its permission; left out.'}
+  Q-19:
+    question: 'Not held: operation POST /listBooks: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1listBooks/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1listBooks/post, says: 'Not held: operation POST /listBooks: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out.'}
+  Q-20:
+    question: 'Not held: operation POST /listBooks: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib''s privileges what it may do, so the security is not its permission; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1listBooks/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1listBooks/post, says: 'Not held: operation POST /listBooks: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib''s privileges what it may do, so the security is not its permission; left out.'}
+  Q-21:
+    question: 'Not held: operation POST /listLoans: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1listLoans/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1listLoans/post, says: 'Not held: operation POST /listLoans: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out.'}
+  Q-22:
+    question: 'Not held: operation POST /listLoans: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib''s privileges what it may do, so the security is not its permission; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1listLoans/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1listLoans/post, says: 'Not held: operation POST /listLoans: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib''s privileges what it may do, so the security is not its permission; left out.'}
+  Q-23:
+    question: 'Not held: operation POST /renewLoan: the extension x-dxlib-privileges, whose meaning the document''s own tools define; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1renewLoan/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1renewLoan/post, says: 'Not held: operation POST /renewLoan: the extension x-dxlib-privileges, whose meaning the document''s own tools define; left out.'}
+  Q-24:
+    question: 'Not held: operation POST /showLoan: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1showLoan/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1showLoan/post, says: 'Not held: operation POST /showLoan: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out.'}
+  Q-25:
+    question: 'Not held: operation POST /showLoan: the extension x-dxlib-rate-limit-group, whose meaning the document''s own tools define; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1showLoan/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1showLoan/post, says: 'Not held: operation POST /showLoan: the extension x-dxlib-rate-limit-group, whose meaning the document''s own tools define; left out.'}
+  Q-26:
+    question: 'Not held: operation POST /showLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib''s privileges what it may do, so the security is not its permission; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1showLoan/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1showLoan/post, says: 'Not held: operation POST /showLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib''s privileges what it may do, so the security is not its permission; left out.'}
+  Q-27:
+    question: 'Not held: operation POST /tagLoan: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1tagLoan/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1tagLoan/post, says: 'Not held: operation POST /tagLoan: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out.'}
+  Q-28:
+    question: 'Not held: operation POST /tagLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib''s privileges what it may do, so the security is not its permission; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1tagLoan/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /paths/~1tagLoan/post, says: 'Not held: operation POST /tagLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib''s privileges what it may do, so the security is not its permission; left out.'}
+  Q-29:
+    question: 'Not held: components.securitySchemes: a security scheme is not a permission; named in each operation''s permission question, or, for an operation in dxlib''s dialect, in a line of its own, and left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [permissions]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: openapi, clause: /components/securitySchemes, says: 'Not held: components.securitySchemes: a security scheme is not a permission; named in each operation''s permission question, or, for an operation in dxlib''s dialect, in a line of its own, and left out.'}

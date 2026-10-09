@@ -795,6 +795,7 @@ Acceptance criteria:
 - A dump older than the last change to the path it was made from, a path with changes not committed and a shallow clone are each refused with status 1.
 - extract outline on a folder writes a source listing its files as clauses, and gaps on that tree lists each of them as producing nothing.
 - extract router on a committed route table writes one operation per method and path pair, with its path parameters and the permission it checks, that validate accepts with no errors, and a route that checks no permission is a must question.
+- extract openapi on a document in dxlib's dialect writes the one privilege an operation's x-dxlib-privileges names as its permission and declares it, and asks a must question for an operation that names none, more than one, public or a name of another form.
 - extract workflows on a committed BPMN 2.0 file writes one workflow per process with its approvals, deadlines and operation steps, that validate accepts with no errors, prints a line with the file's line for each element outside the sequential subset and writes it as a could question citing that line, and asks for the operations the file names with a must question that names them.
 
 **Insight:** Reading a large system by hand misses the element nobody happened to look at, and a citation without the commit it was read at goes stale while still looking precise; extraction is rerun to see what changed, so any difference that is not a change in the sources hides the one that is.

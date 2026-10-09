@@ -1,0 +1,8 @@
+arguments: [merge, --out, spec, trees/router, trees/workflows]
+exitStatus: 0
+standardOutput: |
+  tree trees/router: Routes of examples/lending-desk/sources/code, on the code side: 3 elements and 4 questions
+  tree trees/workflows: Workflows of examples/lending-desk/sources/workflows/write-off.bpmn, on the code side: 3 elements and 6 questions
+  joined: Q-2 of trees/workflows, on #/workflows/write-off/trigger, is left out; Workflows of examples/lending-desk/sources/workflows/write-off.bpmn names operation requestWriteOff, which Routes of examples/lending-desk/sources/code declares
+  merged 5 elements, each an entry of a section or an operation: 1 in more than one tree, and 0 keys the trees disagree on
+  wrote 9 questions: 9 from the trees, numbered again in the order the trees are given, and 0 the merge asked

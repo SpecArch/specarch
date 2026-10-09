@@ -330,13 +330,16 @@ and a history entry. Steps 1 to 10 are additions to the 0.1 schema.
     with the same output; every tree in the repository validates as 0.2
     with no errors; and the extract script's output is still byte-identical
     on two runs.
-12. The workflows reader, extract step 11: `specarch extract workflows` for
+12. Built. The workflows reader, extract step 11: `specarch extract workflows` for
     BPMN 2.0 XML, read with the standard library, writing the user tasks,
     service tasks and timers of the subset as `workflows`, and anything
     outside it as a line and a question. It needs step 3 and extract step
     10. Done when a BPMN file added to the lending desk with one approval,
     a deadline and a service task gives one workflow, validated and
     byte-identical, and merge joins its trigger to the router's operation.
+    The file names an operation without declaring it, so the reader
+    leaves the key out with a must question whose `names` carries the
+    name, and merge writes it at the key once a tree declares it.
 
 ## How 0.2 meets the extract steps
 

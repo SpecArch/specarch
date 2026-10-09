@@ -49,7 +49,7 @@ project's repository. `specarch extract <source>`, the verb that goes from
 existing code or documents to a specification, is designed in
 `spec/design/commands/extract.yaml` and built one reader at a time in the
 steps of "Building extract" below. The Go build reads the sources
-`outline`, `database`, `router`, `documents`, `openapi` and `permissions`, and `specarch merge` joins their trees; a source not built yet is answered with status
+`outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages` and `workflows`, and `specarch merge` joins their trees; a source not built yet is answered with status
 2, and the Swift build has no extract or merge verb.
 
 ## Building extract
@@ -115,7 +115,8 @@ Steps, in order:
    under the requirement SA-44, with `extract.yaml` holding the rules
    above. `extract outline` writes a source with its files as clauses and
    no elements, for a surface no reader reads yet, such as workflow
-   definitions, so that `specarch gaps` lists it as not read rather than
+   definitions in a format other than BPMN 2.0, so that `specarch gaps`
+   lists it as not read rather than
    losing it. `extract database` reads a catalogue dump into entities:
    columns, types, nullability, defaults, primary and foreign keys,
    unique keys and checks; a check the expression subset can say becomes
@@ -303,11 +304,26 @@ Steps, in order:
     errors, and CI runs the script twice and compares the folders. A
     release tag after this step.
 
-Not a step yet: a reader for workflow definitions. Meta-model 0.1 has no
-object for a workflow (`flows` are a person's navigation across pages);
-`workflows` is a 0.2 item, and until it exists the outline reader records
-the workflow sources as not read. The reader, for BPMN 2.0 XML, is step 12
-of `docs/meta-model-0.2.md`, after the workflow object and step 10 here.
+11. Built. The workflows reader, `extract workflows`, for BPMN 2.0 XML
+    read with the standard library (step 12 of `docs/meta-model-0.2.md`).
+    Each process is a workflow in the sequential subset of ADR-054: user
+    tasks are approvals with their potential owners as roles and a timer
+    as the deadline, an exclusive gateway after an approval with one flow
+    to an end event is its refusal, and service tasks are operation steps.
+    BPMN names the operations a workflow calls but does not declare them,
+    so the trigger and each step's operation are left out with a must
+    question that carries the name under `names`; `specarch merge` writes
+    the name at the key once another tree declares that operation, and
+    prints the question as joined. Everything outside the subset prints a
+    line with its file and line and is asked for. The lending desk gains
+    a write-off that a desk supervisor approves within two days:
+    `sources/workflows/write-off.bpmn`, the routes for the request, which
+    answers 202, and for the write-off, and the supervisor's role in the
+    seeds. End to end, the merge joins the trigger to the router's
+    operation, documented with its 202 in the OpenAPI document, and the
+    write-off step to the router's, and the merged specification
+    validates with no errors; the approval's permission and the subject
+    stay must questions, since BPMN has neither.
 
 ## What goes wrong
 

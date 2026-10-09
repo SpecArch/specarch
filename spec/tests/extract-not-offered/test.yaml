@@ -4,5 +4,5 @@ level: system
 scenario: red
 covers: [exit 2]
 given: "a source this build does not read yet"
-when: "extract workflows is run on a workflow definition"
+when: "extract events is run on a topic registry"
 then: "it names the sources it reads, writes nothing and exits 2"

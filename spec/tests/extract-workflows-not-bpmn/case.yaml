@@ -1,0 +1,7 @@
+arguments: [extract, workflows, --out, spec, models/order.xml]
+repository:
+  folder: models
+  commits:
+    - [order.xml]
+exitStatus: 1
+standardOutput: ""

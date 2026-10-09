@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: gaps
+level: system
+scenario: red
+covers: [exit 1]
+given: "the tree extract workflows wrote for a BPMN file, whose workflow leaves out its trigger and its service task's operation, each with a must question that names the operation"
+when: "gaps is run"
+then: "each of those questions lists the name it gives and the file and line of the element that leaves the key out, and it exits 1"
+verifies: [SA-19]

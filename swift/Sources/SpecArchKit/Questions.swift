@@ -12,9 +12,16 @@ extension Checker {
                 add(by, ptr + "/decidedBy", .stakeholder, "\(by.value) is not a stakeholder of the specification\(suggest(by.value, d.stakeholders))")
             }
             var stageList: [String] = []
-            for (i, item) in items(q.child("blocks")).enumerated() {
+            let blocks = items(q.child("blocks"))
+            for (i, item) in blocks.enumerated() {
                 guard let b = checkBlock(d, item, "\(ptr)/blocks/\(i)") else { continue }
+                if let names = q.child("names"), blocks.count == 1 {
+                    checkNames(d, id, names, b)
+                }
                 if !stageList.contains(b.stage) { stageList.append(b.stage) }
+            }
+            if let names = q.child("names"), blocks.count != 1 {
+                add(names, ptr + "/names", .questionBlock, "question \(id) names \(names.value) for one key, and blocks \(blocks.count) entries; block only the key the name is for, such as #/workflows/<name>/trigger")
             }
             let key = d.root.child("questions")?.key(id)
             if stageList.count > 1 {
@@ -34,6 +41,19 @@ extension Checker {
                 add(a, pointer("decisions", id, "answers", "\(i)"), .questionAnswered,
                     "\(id) answers question \(a.value), but \(a.value) is still open; remove the question now that it is answered, or set the decision's status to proposed")
             }
+        }
+    }
+
+    /// Checks that a question naming what the source gives blocks one key,
+    /// and that the specification leaves that key out.
+    func checkNames(_ d: Design, _ id: String, _ names: YNode, _ b: Block) {
+        let ptr = pointer("questions", id, "names")
+        if b.key.isEmpty {
+            add(names, ptr, .questionBlock, "question \(id) names \(names.value) for one key, and blocks #\(pointer(b.tokens)), which is not a key; block the key the name is for, such as #/workflows/<name>/trigger")
+            return
+        }
+        if resolve(d.root, b.tokens).1 {
+            add(names, ptr, .questionBlock, "question \(id) names \(names.value) for #\(pointer(b.tokens)), which the specification gives already; leave the key out until the name resolves, or remove the question")
         }
     }
 

@@ -3094,6 +3094,10 @@
           "minItems": 2,
           "uniqueItems": true
         },
+        "names": {
+          "description": "For a question that blocks one key a reader left out: the name the source gives there, which only another surface declares, such as the operation a workflow's trigger names. The key is left out until the name resolves; specarch merge writes it at the key and removes the question once the merged specification declares an element of that name.",
+          "$ref": "#/$defs/memberName"
+        },
         "why": {
           "$ref": "#/$defs/why"
         },

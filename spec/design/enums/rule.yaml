@@ -183,7 +183,7 @@ enums:
       acceptance_missing: a requirement has no acceptance criteria (a warning)
       requirement_unsatisfied: the specification has a design and no element of it satisfies a requirement (a warning)
       requirement_unverified: the specification has tests, checks or monitors and none verifies a requirement (a warning)
-      question_block: a question's `blocks` entry is neither a stage, a section, nor a pointer to an element of the specification or to one missing key of it
+      question_block: a question's `blocks` entry is neither a stage, a section, nor a pointer to an element of the specification or to one missing key of it, or a question with `names` does not block exactly one key the specification leaves out
       question_stage: a question blocks more than one stage, or sits in a file of another stage than the one it blocks
       question_answered: an accepted decision answers a question that is still in the specification
       origin_citation: an element whose origin is stated cites nothing

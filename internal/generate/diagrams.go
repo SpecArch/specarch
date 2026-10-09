@@ -401,23 +401,28 @@ func flowFlowchart(flow *yaml.Node) string {
 // workflowFlowchart draws a workflow as its steps in order: each approval
 // with its approvers and permission, the refusal that ends the request,
 // the deadline on the edge it takes, and each operation the system calls.
-func workflowFlowchart(w *yaml.Node) string {
+func workflowFlowchart(d *doc, name string, w *yaml.Node) string {
 	steps := items(w, "steps")
 	if len(steps) == 0 {
 		return ""
 	}
 	var b strings.Builder
 	b.WriteString("flowchart LR\n")
-	fmt.Fprintf(&b, "  start([\"%s answers 202\"])\n", mermaidText(str(w, "trigger")))
+	fmt.Fprintf(&b, "  start([\"%s answers 202\"])\n", mermaidText(d.known(w, "trigger", "the trigger", "workflows", name)))
 	index := map[string]int{}
 	refused := false
 	for i, st := range steps {
 		index[str(st, "name")] = i
+		at := []string{"workflows", name, "steps", fmt.Sprint(i)}
 		if str(st, "kind") == "approval" {
 			refused = true
-			fmt.Fprintf(&b, "  s%d[\"%s: %s with %s\"]\n", i, mermaidText(str(st, "name")), mermaidText(strings.Join(strs(st, "approvers"), ", ")), mermaidText(str(st, "permission")))
+			approvers := strings.Join(strs(st, "approvers"), ", ")
+			if approvers == "" {
+				approvers = d.known(st, "approvers", "the approvers", at...)
+			}
+			fmt.Fprintf(&b, "  s%d[\"%s: %s with %s\"]\n", i, mermaidText(str(st, "name")), mermaidText(approvers), mermaidText(d.known(st, "permission", "the permission", at...)))
 		} else {
-			fmt.Fprintf(&b, "  s%d[[\"%s\"]]\n", i, mermaidText(str(st, "operation")))
+			fmt.Fprintf(&b, "  s%d[[\"%s\"]]\n", i, mermaidText(d.known(st, "operation", "the operation", at...)))
 		}
 	}
 	b.WriteString("  done((\"approved\"))\n")
@@ -440,7 +445,7 @@ func workflowFlowchart(w *yaml.Node) string {
 		if to, ok := index[str(st, "escalateTo")]; ok && str(st, "onDeadline") == "escalate" {
 			late = fmt.Sprintf("s%d", to)
 		}
-		fmt.Fprintf(&b, "  s%d -->|\"%s passes\"| %s\n", i, mermaidText(str(st, "deadline")), late)
+		fmt.Fprintf(&b, "  s%d -->|\"%s passes\"| %s\n", i, mermaidText(d.known(st, "deadline", "the deadline", "workflows", name, "steps", fmt.Sprint(i))), late)
 	}
 	return fence(b.String())
 }

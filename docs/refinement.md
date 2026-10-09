@@ -78,6 +78,7 @@ object whose key is an ID in the usual form, such as `Q-12` or `OPEN-3`.
 | `blocks` | what cannot be final until it is answered: a stage name, a section name, or a pointer to an element (`#/entities/Loan`, `#/paths/~1loans/post`) or to a key of one (`#/requirements/BR-3/priority`) |
 | `decidedBy` | the stakeholder who decides or provides, by key; a role, never a person |
 | `options` | for a decision with a known set of answers: the answers, two or more, so that the question can be put as a choice |
+| `names` | for a question that blocks one key a reader left out: the name the source gives there, such as the operation a workflow's trigger names, which only another surface declares; `specarch merge` writes it at the key and leaves the question out once a tree declares an element of that name |
 | `why`, `cites` | why the question arises, and where in the source the ambiguity is |
 
 The three priorities follow 29148's note that the time to resolve an open

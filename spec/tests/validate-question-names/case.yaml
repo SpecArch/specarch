@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:30: error: /questions/Q-1/names: question_block: question Q-1 names describeLoan for #/entities/Loan/description, which the specification gives already; leave the key out until the name resolves, or remove the question
+  specarch.yaml:37: error: /questions/Q-2/names: question_block: question Q-2 names lendBook for one key, and blocks #/entities/Loan, which is not a key; block the key the name is for, such as #/workflows/<name>/trigger
+  specarch.yaml:44: error: /questions/Q-3/names: question_block: question Q-3 names lendBook for one key, and blocks 2 entries; block only the key the name is for, such as #/workflows/<name>/trigger

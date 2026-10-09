@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: document
+level: system
+scenario: golden
+given: "the tree extract workflows wrote for a BPMN file, whose workflow's trigger, subject, approval permission and step operation are held open by must questions, two of them naming an operation"
+when: "document techspec is run"
+then: "the workflow's text and flowchart write each open key as what it is, the question that holds it and the name it gives, and it exits 0"
+verifies: [SA-47]

@@ -22,15 +22,22 @@ func (c *checker) checkQuestions(d *design) {
 		}
 		stages := map[string]bool{}
 		var stageList []string
-		for i, item := range source.Items(source.Child(q, "blocks")) {
+		blocks := source.Items(source.Child(q, "blocks"))
+		for i, item := range blocks {
 			b, ok := c.checkBlock(d, item, fmt.Sprintf("%s/blocks/%d", ptr, i))
 			if !ok {
 				continue
+			}
+			if names := source.Child(q, "names"); names != nil && len(blocks) == 1 {
+				c.checkNames(d, id, names, b)
 			}
 			if !stages[b.Stage] {
 				stages[b.Stage] = true
 				stageList = append(stageList, b.Stage)
 			}
+		}
+		if names := source.Child(q, "names"); names != nil && len(blocks) != 1 {
+			c.add(names, ptr+"/names", RuleQuestionBlock, "question %s names %s for one key, and blocks %d entries; block only the key the name is for, such as #/workflows/<name>/trigger", id, names.Value, len(blocks))
 		}
 		key := source.Key(source.Child(d.root, "questions"), id)
 		switch {
@@ -99,6 +106,19 @@ func (c *checker) checkBlock(d *design, item *yaml.Node, ptr string) (spec.Block
 		n = next
 	}
 	return b, true
+}
+
+// checkNames checks that a question naming what the source gives blocks one
+// key, and that the specification leaves that key out.
+func (c *checker) checkNames(d *design, id string, names *yaml.Node, b spec.Block) {
+	ptr := source.Pointer("questions", id, "names")
+	if b.Key() == "" {
+		c.add(names, ptr, RuleQuestionBlock, "question %s names %s for one key, and blocks %s, which is not a key; block the key the name is for, such as #/workflows/<name>/trigger", id, names.Value, "#"+source.Pointer(b.Tokens...))
+		return
+	}
+	if _, given := source.Resolve(d.root, b.Tokens); given {
+		c.add(names, ptr, RuleQuestionBlock, "question %s names %s for %s, which the specification gives already; leave the key out until the name resolves, or remove the question", id, names.Value, "#"+source.Pointer(b.Tokens...))
+	}
 }
 
 func joinAnd(items []string) string {

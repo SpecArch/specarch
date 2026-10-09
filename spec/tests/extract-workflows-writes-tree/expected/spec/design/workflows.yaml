@@ -1,0 +1,36 @@
+roles:
+  branch-manager:
+    origin: stated
+    cites:
+      - {source: code, clause: processes/requests.bpmn, says: 'Line 34: Role branch-manager is a potential owner of user task managerCheck.'}
+  refund-clerk:
+    origin: stated
+    cites:
+      - {source: code, clause: processes/requests.bpmn, says: 'Line 23: Role refund-clerk is a potential owner of user task clerkCheck.'}
+workflows:
+  audit-review:
+    steps:
+      - name: review
+        kind: approval
+        onDeadline: refuse
+    origin: stated
+    cites:
+      - {source: code, clause: processes/requests.bpmn, says: 'Line 52: Process audit-review defines the workflow, with the task review.'}
+  refund:
+    description: A refund above the clerk's limit is paid only after a clerk and then a manager approve it.
+    steps:
+      - name: checkRefund
+        kind: approval
+        approvers: [refund-clerk]
+        deadline: PT4H
+        onDeadline: escalate
+        escalateTo: approveRefund
+      - name: approveRefund
+        kind: approval
+        approvers: [branch-manager]
+        onDeadline: refuse
+      - name: pay
+        kind: operation
+    origin: stated
+    cites:
+      - {source: code, clause: processes/requests.bpmn, says: 'Line 13: Process Refund defines the workflow, with the tasks clerkCheck, managerCheck and pay in that order.'}

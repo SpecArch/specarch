@@ -67,6 +67,13 @@ commands:
         name, as an empty mapping, is one it does not give, so a tree that
         gives it with content answers the question, such as a field a page
         shows whose type the database gives (ADR-057).
+      - A question of a tree that names, under `names`, the operation a
+        key it blocks refers to, such as a workflow's trigger or a step's
+        operation, or a page's source or submit, is left out as joined
+        when another tree declares an operation of that name: the name is
+        written at the key, where the design schema puts it, and the line
+        names the trees that declare it. A name no tree declares keeps
+        its question.
       - A question of a tree whose every blocked key a question kept
         before it blocks, with the same priority, is left out, since both
         ask the same thing, such as a permission's description that the
@@ -103,6 +110,8 @@ commands:
       tree; one line per requirement joined to a check that gives the
       same number of days; one line per question of a tree that another
       tree answers or a question kept before it asks; one line per
+      question whose name is joined to the operation another tree
+      declares; one line per
       placeholder source; one line per permission granted and checked by
       nothing; and one line per
       question the merge asked, naming what it blocks and why.

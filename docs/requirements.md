@@ -683,6 +683,7 @@ Acceptance criteria:
 - A dump older than the last change to the path it was made from, a path with changes not committed and a shallow clone are each refused with status 1.
 - extract outline on a folder writes a source listing its files as clauses, and gaps on that tree lists each of them as producing nothing.
 - extract router on a committed route table writes one operation per method and path pair, with its path parameters and the permission it checks, that validate accepts with no errors, and a route that checks no permission is a must question.
+- extract workflows on a committed BPMN 2.0 file writes one workflow per process with its approvals, deadlines and operation steps, that validate accepts with no errors, prints a line with the file's line for each element outside the sequential subset, and asks for the operations the file names with a must question that names them.
 
 **Insight:** Reading a large system by hand misses the element nobody happened to look at, and a citation without the commit it was read at goes stale while still looking precise; extraction is rerun to see what changed, so any difference that is not a change in the sources hides the one that is.
 
@@ -698,6 +699,7 @@ Acceptance criteria:
 - Two trees that give the same key of the same element different values merge into the element without that key and a must question citing both.
 - An element only the code has, merged with a documents tree that speaks of its section, is written inferred, starting its why with "Undocumented, from code.", with a question that is must for an operation, a permission, a role, a personal or credential field, or a source given outside, and should otherwise.
 - A tree validate reports an error in, and a source two trees declare differently, are each refused with status 1.
+- A question that names the operation a workflow's trigger refers to is left out as joined, and the trigger written, when another tree declares that operation; a name no tree declares keeps its question.
 
 **Insight:** The comparison between surfaces, and between the documents and the code, is where a specification extracted from an existing system finds what is wrong with it; done by hand it is skipped where the two look alike, and a choice made quietly between two sources hides the disagreement the owner must settle.
 

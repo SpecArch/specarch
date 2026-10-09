@@ -57,10 +57,50 @@ func (l loaded) state() *generate.State {
 		}
 	}
 	st.StatePaths = validate.StatePaths(l.spec.Root)
+	st.Places = l.namedPlaces()
 	for _, c := range validate.LeftOutCases(l.spec.Root) {
 		st.LeftOut = append(st.LeftOut, generate.LeftOut{Subject: c.Subject, Case: c.Case, Scenario: c.Scenario, Reason: c.Reason})
 	}
 	return st
+}
+
+// namedPlaces finds, for each question that names what the source gives,
+// the file and line of the element whose key it leaves out, from the
+// specification's root.
+func (l loaded) namedPlaces() map[string]string {
+	places := map[string]string{}
+	for _, q := range source.Pairs(source.Child(l.spec.Root, "questions")) {
+		blocks := source.Items(source.Child(q.Value, "blocks"))
+		if source.Child(q.Value, "names") == nil || len(blocks) != 1 {
+			continue
+		}
+		b, ok := spec.ParseBlock(blocks[0].Value)
+		if !ok || b.Key() == "" {
+			continue
+		}
+		// The element is the key's parent; its key node, or its item in a
+		// list, is where it starts.
+		var at *yaml.Node
+		n := l.spec.Root
+		for _, t := range b.Tokens[:len(b.Tokens)-1] {
+			parent := source.Deref(n)
+			n = source.Child(parent, t)
+			if parent != nil && parent.Kind == yaml.MappingNode {
+				at = source.Key(parent, t)
+			} else {
+				at = n
+			}
+		}
+		if at == nil || n == nil {
+			continue
+		}
+		file, err := filepath.Rel(l.spec.Dir, l.spec.Files[at])
+		if err != nil || l.spec.Files[at] == "" {
+			continue
+		}
+		places[blocks[0].Value] = fmt.Sprintf("%s:%d", filepath.ToSlash(file), at.Line)
+	}
+	return places
 }
 
 // runDocument implements the document command and its checkStatus

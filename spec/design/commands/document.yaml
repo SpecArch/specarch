@@ -56,6 +56,11 @@ commands:
       document shows an element's origin as an Origin line and the open
       questions about it as Open question paragraphs, and starts with a
       Draft notice when a must or should question blocks what it reads.
+      In the technical specification, a workflow's trigger, subject, an
+      approval's permission and deadline and a step's operation that a
+      question holds open are written as what they are, the question that
+      holds them, and the name it gives, in the text and in the
+      flowchart.
 
       The changes and releases targets are made from the records beside the
       specification, and their header names the records folder too. The

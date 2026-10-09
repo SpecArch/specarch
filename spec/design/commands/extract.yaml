@@ -16,7 +16,8 @@ commands:
 
       - `outline`: the files under the paths, each a clause of one code
         source, and no elements. It records a surface no reader reads yet,
-        such as workflow definitions, so that `specarch gaps` lists every
+        such as workflow definitions in a format other than BPMN 2.0, so
+        that `specarch gaps` lists every
         file as producing nothing rather than losing it.
       - `database`: a PostgreSQL catalogue dump, written by
         `tools/catalogue/dump-catalogue.sh` with the query
@@ -150,6 +151,38 @@ commands:
         must question, and so is the permission it checks, never written
         as public. Every permission a schema names is declared, its
         description and the role that grants it must questions.
+      - `workflows`: one BPMN 2.0 XML file, read with the standard
+        library, whose processes are written as `workflows` in the
+        sequential subset of ADR-054, one workflow per process, named
+        after the process in kebab-case and ordered by name. The
+        process's documentation is the description. Its one start event
+        gives the trigger: the operation its message event's
+        `operationRef` names, through the file's interface. A user task
+        is an approval step, its roles the resources or expressions of
+        its potential owners in kebab-case, and an interrupting timer
+        with a duration on it the deadline: `refuse` when the timer's
+        flow ends the request, `escalate` when it reaches a later user
+        task. An exclusive gateway right after a user task, with one flow
+        to an end event, is that approval's refusal. A service task is an
+        operation step, its operation the one its `operationRef` names.
+        Each step is named after its task in camelCase. An operation the
+        file names is not declared by it, so the trigger and a step's
+        operation are left out and a must question carries the name
+        under `names`; `specarch merge` writes it once a tree declares
+        that operation. The subject, each approval's permission and
+        description, and each role's grants and description are must
+        questions, since BPMN has none of them; each potential owner is
+        declared as a role by name, citing the task. What the subset
+        does not hold prints a line with its file and line and is left
+        out: another definition, such as a signal, an element outside
+        BPMN's semantic model, such as diagram layout, lanes, a
+        performer, a timer that does not interrupt or gives a date or a
+        cycle, a duration in weeks, months or years, and a task off the
+        path from the start event; an element the path meets that the
+        subset does not hold, such as a parallel gateway, a loop or a
+        second start event, also ends the steps there with a must
+        question on the workflow. Each line names the file's line, and
+        the lines come in the file's order.
 
       Every reader follows these rules:
 
@@ -186,11 +219,11 @@ commands:
     permission: public
     arguments:
       - name: source
-        description: "The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions` or `pages`."
+        description: "The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages` or `workflows`."
         required: true
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
       - name: paths
-        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder."
+        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder; for workflows, one BPMN 2.0 XML file."
         required: true
         repeatable: true
         schema: { type: string }
@@ -214,7 +247,7 @@ commands:
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written
-      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, or a file that is not an OpenAPI 3.0 or 3.1 document"
+      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, or a file that is not BPMN 2.0 XML or holds no process"
       "2": usage error, a source this build does not offer, or a path that could not be read or written
     satisfies: [SA-11, SA-44]
     why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

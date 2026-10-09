@@ -456,7 +456,7 @@ func runtime(d *doc, root *yaml.Node) {
 		d.para(str(w.Value, "description"))
 		d.explain(w.Value)
 		workflowDetails(d, root, w.Key.Value, w.Value)
-		d.block(workflowFlowchart(w.Value))
+		d.block(workflowFlowchart(d, w.Key.Value, w.Value))
 	}
 	for _, c := range cmds {
 		d.heading(3, "Command "+c.Key.Value)
@@ -1296,11 +1296,15 @@ func roleCombinations(root *yaml.Node, perms []string, cardinality int) [][]stri
 // the four-eyes rule every approval keeps, the pages that ask for it and
 // list what waits, and the messages it publishes when it ends.
 func workflowDetails(d *doc, root *yaml.Node, name string, w *yaml.Node) {
-	text := "Starts when " + str(w, "trigger") + " accepts a request and answers 202; the request waits as a " + str(w, "subject") + "."
+	text := "Starts when " + d.known(w, "trigger", "the trigger", "workflows", name) + " accepts a request and answers 202; the request waits as " + d.known(w, "subject", "the subject", "workflows", name) + "."
+	if str(w, "subject") != "" {
+		text = strings.Replace(text, " waits as ", " waits as a ", 1)
+	}
 	var approvals []string
-	for _, st := range items(w, "steps") {
+	for i, st := range items(w, "steps") {
 		if str(st, "kind") == "approval" {
-			approvals = append(approvals, fmt.Sprintf("%s (%s, within %s)", str(st, "name"), str(st, "permission"), str(st, "deadline")))
+			at := []string{"workflows", name, "steps", fmt.Sprint(i)}
+			approvals = append(approvals, fmt.Sprintf("%s (%s, within %s)", str(st, "name"), d.known(st, "permission", "the permission", at...), d.known(st, "deadline", "the deadline", at...)))
 		}
 	}
 	if len(approvals) > 0 {

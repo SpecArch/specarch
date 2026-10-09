@@ -11,7 +11,7 @@
 #
 # - trees/<reader>: the tree each reader wrote, and <reader>.txt its
 #   standard output: manual (extract documents), openapi, database,
-#   router, permissions and pages.
+#   router, permissions, pages and workflows.
 # - spec: the merged specification, and merge.txt the merge's standard
 #   output.
 # - validate.txt and gaps.txt: what specarch validate and specarch gaps
@@ -63,12 +63,14 @@ read_surface router router "$sources/routes/routes.json"
 read_surface permissions permissions "$sources/permissions/permissions.json"
 read_surface openapi openapi "$sources/openapi/openapi.yaml"
 read_surface pages pages "$sources/web/app"
+read_surface workflows workflows "$sources/workflows/write-off.bpmn"
 
 # The documents first, the code after, so the merge's questions come in
 # the order an owner reads the sources.
 $specarch merge --out spec \
 	trees/manual trees/openapi \
-	trees/database trees/router trees/permissions trees/pages >merge.txt
+	trees/database trees/router trees/permissions trees/pages \
+	trees/workflows >merge.txt
 
 $specarch validate spec >validate.txt 2>&1
 

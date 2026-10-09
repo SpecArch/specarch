@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 289 design tests, 110 golden and 179 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 295 design tests, 113 golden and 182 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 285 |
+| system | 291 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -337,6 +337,14 @@ Scenario: red; level: system; covers exit 2.
 - When: document manual is run
 - Then: it says which targets it has and exits 2
 
+#### document-techspec-open-workflow
+
+Scenario: golden; level: system; verifies SA-47.
+
+- Given: the tree extract workflows wrote for a BPMN file, whose workflow's trigger, subject, approval permission and step operation are held open by must questions, two of them naming an operation
+- When: document techspec is run
+- Then: the workflow's text and flowchart write each open key as what it is, the question that holds it and the name it gives, and it exits 0
+
 #### document-techspec-without-implementation
 
 Scenario: golden; level: system.
@@ -520,7 +528,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 Scenario: red; level: system; covers exit 2.
 
 - Given: a source this build does not read yet
-- When: extract workflows is run on a workflow definition
+- When: extract events is run on a topic registry
 - Then: it names the sources it reads, writes nothing and exits 2
 
 #### extract-openapi-not-openapi
@@ -575,7 +583,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 
 Scenario: golden; level: system; verifies SA-44.
 
-- Given: a repository holding a folder of workflow definitions, which no reader reads yet, one of them a TypeScript file that says it is generated from the others
+- Given: a repository holding a folder of workflow definitions in a format no reader reads, one of them a TypeScript file that says it is generated from the others
 - When: extract outline is run on the folder with a source key
 - Then: it writes a root that lists every tracked file as a clause of that source at the commit, and no element; it names the commit, counts the files, reports the generated file, and exits 0
 
@@ -651,6 +659,22 @@ Scenario: red; level: system; covers usage error, exit 2.
 - When: extract is run without arguments
 - Then: it prints how to use it and exits 2
 
+#### extract-workflows-not-bpmn
+
+Scenario: red; level: system; covers exit 1; verifies SA-44.
+
+- Given: a committed XML file that is a state chart, not BPMN 2.0
+- When: extract workflows is run on it
+- Then: it says the file is not a BPMN 2.0 XML file, writes nothing and exits 1
+
+#### extract-workflows-writes-tree
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository with a BPMN 2.0 file of two processes: one whose start event names its operation, with two user tasks whose potential owners are a resource and an expression, a timer that escalates to the second, a gateway that refuses after the first, a timer of a week and a service task naming its operation; and one with no documentation, no operation on its start event, lanes, a user task with no owner and a repeating timer, and a parallel gateway; beside them a signal and a diagram
+- When: extract workflows is run on the file
+- Then: it writes one workflow per process in the order of their names, the approvals with their roles, deadlines and escalation, a question naming the operation for the trigger and the service task, a question for each permission, subject and anything the file leaves out or the subset does not hold, a role per potential owner, a line per element left out in the order of the file, and exits 0
+
 ### Command gaps
 
 #### gaps-coverage
@@ -676,6 +700,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-19.
 - Given: a specification that tracks origin, with two must questions in two stages, one of them blocking an entity that is only a name, a could question, and an implementation file whose code target echo reads only the requirements
 - When: gaps is run
 - Then: it prints the questions by stage with the missing keys of the blocked entity, the elements by origin, and the outputs with what each waits on, and exits 1
+
+#### gaps-names-question
+
+Scenario: red; level: system; covers exit 1; verifies SA-19.
+
+- Given: the tree extract workflows wrote for a BPMN file, whose workflow leaves out its trigger and its service task's operation, each with a must question that names the operation
+- When: gaps is run
+- Then: each of those questions lists the name it gives and the file and line of the element that leaves the key out, and it exits 1
 
 #### gaps-none
 
@@ -1044,6 +1076,14 @@ Scenario: red; level: system; covers usage error, exit 2.
 - Given: one tree
 - When: merge is run on it alone
 - Then: it says merge needs at least two trees, prints how to use it and exits 2
+
+#### merge-workflows-joins-trigger
+
+Scenario: golden; level: system; verifies SA-45.
+
+- Given: the tree of a route table that declares requestWriteOff, and the tree of a BPMN file whose workflow leaves its trigger and its service task's operation out, each with a must question naming the operation, requestWriteOff and writeOffLoan
+- When: merge is run on the two trees
+- Then: the trigger is written as requestWriteOff after the workflow's description and its question is left out as joined, naming the tree that declares it; the question for writeOffLoan, which no tree declares, stays open; it exits 0
 
 ### Command validate
 
@@ -1807,6 +1847,14 @@ Scenario: golden; level: system; verifies SA-5, SA-17.
 - When: validate is run
 - Then: the missing description and the ungranted permission are covered by the question; it prints nothing and exits 0
 
+#### validate-question-names
+
+Scenario: red; level: system; covers exit 1; verifies SA-17.
+
+- Given: three questions that name what the source gives: one for a key the specification gives already, one blocking a whole element, and one blocking two keys
+- When: validate is run
+- Then: it reports each with question_block and exits 1
+
 #### validate-question-should-not-covering
 
 Scenario: red; level: system; covers exit 1; verifies SA-17.
@@ -2379,7 +2427,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-159 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+161 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2520,10 +2568,12 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-44 | acceptance 3 | golden | SA-44 names no harm |
 | requirement SA-44 | acceptance 4 | golden | SA-44 names no harm |
 | requirement SA-44 | acceptance 5 | golden | SA-44 names no harm |
+| requirement SA-44 | acceptance 6 | golden | SA-44 names no harm |
 | requirement SA-45 | acceptance 1 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 2 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 3 | golden | SA-45 names no harm |
 | requirement SA-45 | acceptance 4 | golden | SA-45 names no harm |
+| requirement SA-45 | acceptance 5 | golden | SA-45 names no harm |
 | requirement SA-1 | acceptance 1 | golden | SA-1 names no harm |
 | requirement SA-1 | acceptance 2 | golden | SA-1 names no harm |
 | requirement SA-2 | acceptance 1 | golden | SA-2 names no harm |

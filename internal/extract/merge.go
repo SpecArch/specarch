@@ -804,6 +804,9 @@ func (m *merger) treeQuestions() {
 		for _, p := range source.Pairs(source.Child(t.s.Root, spec.QuestionsSection)) {
 			q := copyNode(p.Value)
 			blocks := source.Items(source.Child(q, "blocks"))
+			if m.join(ti, t, p.Key.Value, q) {
+				continue
+			}
 			var givers []string
 			answered := len(blocks) > 0
 			for _, b := range blocks {
@@ -862,6 +865,83 @@ func (m *merger) treeQuestions() {
 			m.addQuestion(q, file)
 		}
 	}
+}
+
+// join writes the name a question gives at the one key it blocks, when
+// the key names an element of a kind the merged specification declares
+// under that name, and reports the question left out as joined.
+func (m *merger) join(ti int, t *mergeTree, id string, q *yaml.Node) bool {
+	names := source.Str(source.Child(q, "names"))
+	blocks := source.Items(source.Child(q, "blocks"))
+	if names == "" || len(blocks) != 1 {
+		return false
+	}
+	parsed, ok := spec.ParseBlock(blocks[0].Value)
+	if !ok || parsed.Key() == "" || namedKind(parsed.Tokens) != "operation" {
+		return false
+	}
+	var by []string
+	for ui, u := range m.trees {
+		if ui == ti {
+			continue
+		}
+		for _, p := range source.Pairs(source.Child(u.s.Root, "paths")) {
+			for _, method := range pathMethods {
+				if source.Str(source.Child(source.Child(p.Value, method), "operationId")) == names && !contains(by, u.title) {
+					by = append(by, u.title)
+				}
+			}
+		}
+	}
+	steps := treeSteps(t.s.Root, parsed.Tokens)
+	parent := m.walk(steps[:len(steps)-1])
+	if len(by) == 0 || parent == nil || parent.Kind != yaml.MappingNode || source.Child(parent, parsed.Key()) != nil {
+		return false
+	}
+	setBefore(parent, parsed.Key(), str(names), keysAfter[parsed.Key()]...)
+	m.res.say("joined: %s of %s, on %s, is left out; %s names operation %s, which %s %s", id, t.s.Dir, m.pointerOf(steps), t.title, names, joinAnd(by), declareOrDeclares(len(by)))
+	return true
+}
+
+// namedKind is the kind of element a key names by its name, for the keys
+// a reader may leave out and name in a question; "" for any other.
+func namedKind(tokens []string) string {
+	key := tokens[len(tokens)-1]
+	switch {
+	case tokens[0] == "workflows" && (key == "trigger" || key == "operation"):
+		return "operation"
+	case tokens[0] == "pages" && (key == "source" || key == "submit"):
+		return "operation"
+	}
+	return ""
+}
+
+// keysAfter are the keys a joined key is written before, so it sits where
+// the design schema puts it.
+var keysAfter = map[string][]string{
+	"trigger":   {"subject", "steps", "emits", "satisfies", "why", "cites", "origin", "decidedIn"},
+	"operation": {"satisfies", "why", "cites", "origin", "decidedIn"},
+	"source":    {"submit", "onSubmitted", "satisfies", "why", "cites", "origin", "decidedIn"},
+	"submit":    {"onSubmitted", "satisfies", "why", "cites", "origin", "decidedIn"},
+}
+
+func declareOrDeclares(n int) string {
+	if n == 1 {
+		return "declares"
+	}
+	return "declare"
+}
+
+// setBefore adds a key to a mapping before the first of the keys named,
+// or at its end.
+func setBefore(m *yaml.Node, key string, v *yaml.Node, before ...string) {
+	for i := 0; i+1 < len(m.Content); i += 2 {
+		if contains(before, m.Content[i].Value) {
+			m.Content = append(m.Content[:i], append([]*yaml.Node{str(key), v}, m.Content[i:]...)...)
+			return
+		}
+	}
+	m.Content = append(m.Content, str(key), v)
 }
 
 // giversOf names the trees other than the asking one that give the key at

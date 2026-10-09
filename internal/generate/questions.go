@@ -54,6 +54,9 @@ type State struct {
 	// StatePaths are, per entity with a state machine, its paths from an
 	// initial to a terminal state, for the test plan.
 	StatePaths map[string][]string
+	// Places are, per block of a question that names what the source
+	// gives, the file and line of the element whose key it leaves out.
+	Places map[string]string
 }
 
 // LeftOut is one derived case the test plan lists as left out.
@@ -118,6 +121,29 @@ func (q question) about(ptr string) bool {
 		}
 	}
 	return false
+}
+
+// known is a key's value or, while a question holds the key open, what
+// the key is and the question that holds it, with the name the source
+// gives when the question names one, so every output marks the gap where
+// it is. tokens point at the element the key is of.
+func (d *doc) known(n *yaml.Node, key, what string, tokens ...string) string {
+	if v := str(n, key); v != "" {
+		return v
+	}
+	ptr := source.Pointer(append(append([]string{}, tokens...), key)...)
+	for _, q := range d.questions {
+		for _, b := range q.blocks {
+			if !b.IsPointer() || source.Pointer(b.Tokens...) != ptr {
+				continue
+			}
+			if names := str(q.node, "names"); names != "" {
+				return fmt.Sprintf("%s (open in %s, which names %s)", what, q.id, names)
+			}
+			return fmt.Sprintf("%s (open in %s)", what, q.id)
+		}
+	}
+	return what + " (not given)"
 }
 
 func (q question) label() string {
@@ -289,6 +315,14 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 				blocks = append(blocks, text)
 			}
 			d.line("- Blocks: %s", strings.Join(blocks, ", "))
+			if names := str(q.node, "names"); names != "" {
+				where := ""
+				if items := items(q.node, "blocks"); len(items) == 1 && state != nil && state.Places[items[0].Value] != "" {
+					where = " at " + state.Places[items[0].Value]
+				}
+				text := fmt.Sprintf("- Names: %s, the name the source gives for the key left out%s; it is written there once the specification declares an element of that name", names, where)
+				d.line("%s", text)
+			}
 			if opts := strs(q.node, "options"); len(opts) > 0 {
 				d.line("- Options:")
 				for i, o := range opts {

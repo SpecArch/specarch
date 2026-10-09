@@ -10,7 +10,9 @@ commands:
       specification tracks it, the questions grouped by stage in
       life-cycle order and within a stage by priority then ID, each with
       who decides, what it blocks (and for a blocked element, which keys
-      are missing there), its options, its Insight and Notes; then, when
+      are missing there), the name it gives for the key it blocks with
+      the file and line of the element that leaves the key out, its
+      options, its Insight and Notes; then, when
       a source lists its clauses, the coverage: per such source, the
       elements each clause produced, how many clauses produced nothing,
       and the citations outside the listed clauses; then the outputs, one row per document target and per code target the

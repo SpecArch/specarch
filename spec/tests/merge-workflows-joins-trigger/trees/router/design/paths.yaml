@@ -1,0 +1,15 @@
+permissions:
+  loans.write:
+    origin: stated
+    cites:
+      - {source: code, clause: 'examples/lending-desk/sources/code POST /loans/{loanId}/write-off-requests', says: 'POST /loans/{loanId}/write-off-requests checks loans.write.'}
+paths:
+  /loans/{loanId}/write-off-requests:
+    parameters:
+      - {name: loanId, in: path, required: true}
+    post:
+      operationId: requestWriteOff
+      permission: loans.write
+      origin: stated
+      cites:
+        - {source: code, clause: 'examples/lending-desk/sources/code POST /loans/{loanId}/write-off-requests', says: 'POST /loans/{loanId}/write-off-requests checks loans.write; its handler is RequestWriteOff.'}

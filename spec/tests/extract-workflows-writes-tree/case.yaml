@@ -1,0 +1,19 @@
+arguments: [extract, workflows, --out, spec, repo/processes/requests.bpmn]
+repository:
+  folder: repo
+  commits:
+    - [processes]
+exitStatus: 0
+standardOutput: |
+  commit 04804c4676148ebdc1b974f04d3d0bea4b30d9ce: the last change to processes/requests.bpmn
+  counted 2 processes, 3 user tasks, 2 service tasks and 3 boundary events: the BPMN elements process, userTask, serviceTask and boundaryEvent in processes/requests.bpmn, each once
+  wrote 2 workflows, 2 roles and 17 questions: one workflow per process, one role per potential owner, and one question per thing the file does not say or the subset does not hold
+  not held: processes/requests.bpmn:11: signal cancelled is outside the sequential subset of BPMN 2.0 the meta-model holds; left out
+  not held: processes/requests.bpmn:34: potential owner "Branch Manager" of managerCheck is written as the role branch-manager
+  not held: processes/requests.bpmn:39: humanPerformer of managerCheck names who does the task, and an approval names who may approve it; read the potential owners instead; left out
+  not held: processes/requests.bpmn:42: timer managerLate waits P1W, and a deadline is an ISO 8601 duration in days, hours, minutes and seconds that is not zero; asked for instead
+  not held: processes/requests.bpmn:53: the lanes of process audit-review are not read: a potential owner on each user task names who approves; left out
+  not held: processes/requests.bpmn:57: timer reviewEvery gives a date or a cycle, and a deadline is a duration; asked for instead
+  not held: processes/requests.bpmn:62: parallelGateway split is not a step of the sequential subset; the steps after it are left out
+  not held: processes/requests.bpmn:65: serviceTask record is not on the path from the start event the steps follow; left out
+  not held: processes/requests.bpmn:70: BPMNDiagram is not in BPMN's semantic model (its namespace is http://www.omg.org/spec/BPMN/20100524/DI), such as diagram layout or a tool's extension; left out

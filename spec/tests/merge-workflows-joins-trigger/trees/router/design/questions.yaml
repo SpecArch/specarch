@@ -1,0 +1,29 @@
+questions:
+  Q-1:
+    question: 'What values does each path parameter of /loans/{loanId}/write-off-requests take: loanId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1{loanId}~1write-off-requests/parameters/0/schema']
+    decidedBy: system-owner
+    why: A route table names a path's parameters and not the values they take.
+  Q-2:
+    question: What does POST /loans/{loanId}/write-off-requests do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1loans~1{loanId}~1write-off-requests/post/summary', '#/paths/~1loans~1{loanId}~1write-off-requests/post/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  Q-3:
+    question: 'What does each permission allow: loans.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.write/description']
+    decidedBy: system-owner
+    why: A route table names the permission a route checks and not what it is for.
+  Q-4:
+    question: 'Which role grants each permission: loans.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.write']
+    decidedBy: system-owner
+    why: A route table names the permission a route checks and not who holds it.

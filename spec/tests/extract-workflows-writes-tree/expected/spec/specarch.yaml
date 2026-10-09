@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: Workflows of processes/requests.bpmn
+  version: 0.1.0
+  description: |
+    The workflows the BPMN 2.0 file processes/requests.bpmn defines at commit 04804c4676148ebdc1b974f04d3d0bea4b30d9ce, in the sequential subset the meta-model holds: approvals, operation steps and deadlines. Every workflow cites the file; what it does not say, or says outside the subset, is a question.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 04804c4676148ebdc1b974f04d3d0bea4b30d9ce
+    url: ../repo
+    clauses:
+      - {clause: processes/requests.bpmn, title: The BPMN 2.0 process definitions}

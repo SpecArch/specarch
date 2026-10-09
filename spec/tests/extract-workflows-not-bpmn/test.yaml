@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: red
+covers: [exit 1]
+given: "a committed XML file that is a state chart, not BPMN 2.0"
+when: "extract workflows is run on it"
+then: "it says the file is not a BPMN 2.0 XML file, writes nothing and exits 1"
+verifies: [SA-44]

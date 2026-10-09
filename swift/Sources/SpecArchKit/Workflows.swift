@@ -16,7 +16,9 @@ extension Checker {
             var triggerPerm = ""
             if let t = w.value.child("trigger") {
                 if let o = d.operations[t.value] {
-                    if o.node.child("responses")?.child("202") == nil {
+                    // With no responses at all, the operation's answers are
+                    // not known yet, which the missing key itself reports.
+                    if let responses = o.node.child("responses"), responses.child("202") == nil {
                         add(t, pointer("workflows", name, "trigger"), .workflow, "operation \(t.value) does not answer 202; a workflow's trigger accepts the request and answers 202 while it waits for approval")
                     } else {
                         triggerPerm = str(o.node.child("permission"))
@@ -108,15 +110,16 @@ extension Design {
             switch str(st.child("kind")) {
             case "approval":
                 approvals.append(str(st.child("name")))
-                let perm = str(st.child("permission"))
+                let perm = stepPermission(st)
                 if !perms.contains(perm) { perms.append(perm) }
             case "operation":
-                operations.append(str(st.child("operation")))
+                let op = str(st.child("operation"))
+                operations.append(op.isEmpty ? "the operation of " + str(st.child("name")) : op)
             default:
                 break
             }
         }
-        var when = "a request is made through " + trigger
+        var when = "a request is made through " + (trigger.isEmpty ? "its trigger" : trigger)
         if !approvals.isEmpty { when += " and is approved at " + joinAnd(approvals) }
         var then = "it answers 202, and the request ends approved"
         if !operations.isEmpty { then = "it answers 202, then " + joinAnd(operations) + " is called, and the request ends approved" }
@@ -127,11 +130,12 @@ extension Design {
         if !operations.isEmpty { stopped += " and " + joinAnd(operations) + " is not called" }
         for st in items(p.value.child("steps")) where str(st.child("kind")) == "approval" {
             let step = str(st.child("name"))
-            let perm = str(st.child("permission"))
+            let perm = stepPermission(st)
             let waiting = "a request waiting at " + step
             s.red("refused at " + step, frequent, waiting, "a caller with " + perm + " refuses it", stopped)
             let passed = str(st.child("onDeadline")) == "escalate" ? "the request moves on to " + str(st.child("escalateTo")) : stopped
-            s.byNature("deadline passes at " + step, waiting, str(st.child("deadline")) + " passes with no answer", passed)
+            let deadline = str(st.child("deadline"))
+            s.byNature("deadline passes at " + step, waiting, (deadline.isEmpty ? "the deadline" : deadline) + " passes with no answer", passed)
             s.red("approval without " + perm, frequent, "a caller without " + perm, "they approve a request waiting at " + step, "it is refused as not allowed, and the request still waits")
         }
         if !approvals.isEmpty {
@@ -139,5 +143,12 @@ extension Design {
                        "it is refused, because the person who made a request never approves it, and the request still waits")
         }
         return s
+    }
+
+    /// The permission an approval checks, or what names it while a
+    /// question holds it open.
+    func stepPermission(_ st: YNode) -> String {
+        let perm = str(st.child("permission"))
+        return perm.isEmpty ? "the permission of " + str(st.child("name")) : perm
     }
 }

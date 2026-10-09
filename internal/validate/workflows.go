@@ -30,7 +30,9 @@ func (c *checker) checkWorkflows(d *design) {
 			switch {
 			case !ok:
 				c.add(t, source.Pointer("workflows", name, "trigger"), RuleWorkflow, "%s is not an operationId of the specification%s", t.Value, suggest(t.Value, opNames))
-			case source.Child(source.Child(o.node, "responses"), "202") == nil:
+			case source.Child(o.node, "responses") != nil && source.Child(source.Child(o.node, "responses"), "202") == nil:
+				// With no responses at all, the operation's answers are not
+				// known yet, which the missing key itself reports.
 				c.add(t, source.Pointer("workflows", name, "trigger"), RuleWorkflow, "operation %s does not answer 202; a workflow's trigger accepts the request and answers 202 while it waits for approval", t.Value)
 			default:
 				triggerPerm = source.Str(source.Child(o.node, "permission"))
@@ -134,14 +136,22 @@ func (d *design) workflowSubject(p source.Pair) *subject {
 		switch source.Str(source.Child(st, "kind")) {
 		case "approval":
 			approvals = append(approvals, source.Str(source.Child(st, "name")))
-			if perm := source.Str(source.Child(st, "permission")); !slices.Contains(perms, perm) {
+			if perm := stepPermission(st); !slices.Contains(perms, perm) {
 				perms = append(perms, perm)
 			}
 		case "operation":
-			operations = append(operations, source.Str(source.Child(st, "operation")))
+			op := source.Str(source.Child(st, "operation"))
+			if op == "" {
+				op = "the operation of " + source.Str(source.Child(st, "name"))
+			}
+			operations = append(operations, op)
 		}
 	}
-	when := "a request is made through " + trigger
+	through := trigger
+	if through == "" {
+		through = "its trigger"
+	}
+	when := "a request is made through " + through
 	if len(approvals) > 0 {
 		when += " and is approved at " + joinAnd(approvals)
 	}
@@ -159,14 +169,18 @@ func (d *design) workflowSubject(p source.Pair) *subject {
 			continue
 		}
 		step := source.Str(source.Child(st, "name"))
-		perm := source.Str(source.Child(st, "permission"))
+		perm := stepPermission(st)
 		waiting := "a request waiting at " + step
 		s.red("refused at "+step, frequent, waiting, "a caller with "+perm+" refuses it", stopped)
 		passed := stopped
 		if source.Str(source.Child(st, "onDeadline")) == "escalate" {
 			passed = "the request moves on to " + source.Str(source.Child(st, "escalateTo"))
 		}
-		s.byNature("deadline passes at "+step, waiting, source.Str(source.Child(st, "deadline"))+" passes with no answer", passed)
+		deadline := source.Str(source.Child(st, "deadline"))
+		if deadline == "" {
+			deadline = "the deadline"
+		}
+		s.byNature("deadline passes at "+step, waiting, deadline+" passes with no answer", passed)
 		s.red("approval without "+perm, frequent, "a caller without "+perm, "they approve a request waiting at "+step, "it is refused as not allowed, and the request still waits")
 	}
 	if len(approvals) > 0 {
@@ -174,6 +188,15 @@ func (d *design) workflowSubject(p source.Pair) *subject {
 			"it is refused, because the person who made a request never approves it, and the request still waits")
 	}
 	return s
+}
+
+// stepPermission is the permission an approval checks, or what names it
+// while a question holds it open.
+func stepPermission(st *yaml.Node) string {
+	if perm := source.Str(source.Child(st, "permission")); perm != "" {
+		return perm
+	}
+	return "the permission of " + source.Str(source.Child(st, "name"))
 }
 
 // workflowReason says why a chosen case of a workflow is written whatever

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "three questions that name what the source gives: one for a key the specification gives already, one blocking a whole element, and one blocking two keys"
+when: "validate is run"
+then: "it reports each with question_block and exits 1"
+verifies: [SA-17]

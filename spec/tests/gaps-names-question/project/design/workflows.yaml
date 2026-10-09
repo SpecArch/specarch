@@ -1,0 +1,19 @@
+roles:
+  desk-supervisor:
+    origin: stated
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/workflows/write-off.bpmn, says: 'Line 23: Role desk-supervisor is a potential owner of user task approve.'}
+workflows:
+  write-off:
+    description: A lost book's loan is written off only after a desk supervisor approves, within two days.
+    steps:
+      - name: approve
+        kind: approval
+        approvers: [desk-supervisor]
+        deadline: P2D
+        onDeadline: refuse
+      - name: writeOff
+        kind: operation
+    origin: stated
+    cites:
+      - {source: code, clause: examples/lending-desk/sources/workflows/write-off.bpmn, says: 'Line 16: Process write-off defines the workflow, with the tasks approve and writeOffStep in that order.'}

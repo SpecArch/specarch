@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             id="requests" targetNamespace="http://example.com/requests">
+  <interface id="api" name="API">
+    <operation id="requestRefundOperation" name="requestRefund"/>
+    <operation id="payRefundOperation" name="payRefund"/>
+    <operation id="badOperation" name="Pay_Refund"/>
+  </interface>
+  <resource id="clerk" name="refund-clerk"/>
+  <signal id="cancelled" name="Cancelled"/>
+
+  <process id="refund" name="Refund">
+    <documentation>
+      A refund above the clerk's limit is paid only after a clerk and then a
+      manager approve it.
+    </documentation>
+    <startEvent id="asked">
+      <messageEventDefinition operationRef="requestRefundOperation"/>
+    </startEvent>
+    <sequenceFlow id="f1" sourceRef="asked" targetRef="clerkCheck"/>
+    <userTask id="clerkCheck" name="Check refund">
+      <potentialOwner resourceRef="clerk"/>
+    </userTask>
+    <boundaryEvent id="clerkLate" attachedToRef="clerkCheck">
+      <timerEventDefinition><timeDuration>PT4H</timeDuration></timerEventDefinition>
+    </boundaryEvent>
+    <sequenceFlow id="f2" sourceRef="clerkLate" targetRef="managerCheck"/>
+    <sequenceFlow id="f3" sourceRef="clerkCheck" targetRef="clerkSays"/>
+    <exclusiveGateway id="clerkSays"/>
+    <sequenceFlow id="f4" sourceRef="clerkSays" targetRef="managerCheck"/>
+    <sequenceFlow id="f5" sourceRef="clerkSays" targetRef="no"/>
+    <userTask id="managerCheck" name="Approve refund">
+      <potentialOwner>
+        <resourceAssignmentExpression>
+          <formalExpression>Branch Manager</formalExpression>
+        </resourceAssignmentExpression>
+      </potentialOwner>
+      <humanPerformer resourceRef="clerk"/>
+    </userTask>
+    <boundaryEvent id="managerLate" attachedToRef="managerCheck">
+      <timerEventDefinition><timeDuration>P1W</timeDuration></timerEventDefinition>
+    </boundaryEvent>
+    <sequenceFlow id="f6" sourceRef="managerLate" targetRef="no"/>
+    <sequenceFlow id="f7" sourceRef="managerCheck" targetRef="pay"/>
+    <serviceTask id="pay" name="Pay" operationRef="payRefundOperation"/>
+    <sequenceFlow id="f8" sourceRef="pay" targetRef="paid"/>
+    <endEvent id="no"/>
+    <endEvent id="paid"/>
+  </process>
+
+  <process id="audit-review">
+    <laneSet id="lanes"/>
+    <startEvent id="begin"/>
+    <sequenceFlow id="g1" sourceRef="begin" targetRef="review"/>
+    <userTask id="review" name="Review"/>
+    <boundaryEvent id="reviewEvery" attachedToRef="review">
+      <timerEventDefinition><timeCycle>R3/PT1H</timeCycle></timerEventDefinition>
+    </boundaryEvent>
+    <sequenceFlow id="g2" sourceRef="reviewEvery" targetRef="finish"/>
+    <sequenceFlow id="g3" sourceRef="review" targetRef="split"/>
+    <parallelGateway id="split"/>
+    <sequenceFlow id="g4" sourceRef="split" targetRef="record"/>
+    <sequenceFlow id="g5" sourceRef="split" targetRef="finish"/>
+    <serviceTask id="record" name="Record" operationRef="badOperation"/>
+    <sequenceFlow id="g6" sourceRef="record" targetRef="finish"/>
+    <endEvent id="finish"/>
+  </process>
+
+  <bpmndi:BPMNDiagram id="diagram"/>
+</definitions>

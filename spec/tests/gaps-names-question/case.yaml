@@ -1,0 +1,93 @@
+arguments: [gaps, project]
+exitStatus: 1
+standardOutput: |+
+  # Workflows of examples/lending-desk/sources/workflows/write-off.bpmn: open questions
+
+  Version 0.1.0 of the specification: 6 open questions (6 must, 0 should, 0 could). A must question holds up everything that reads what it blocks; a should question holds up code generation and approval until the stakeholder confirms what was inferred; a could question holds up nothing. Each is answered by the stakeholder named, with a decision record that names the question under answers; the question is then removed.
+
+  Elements by origin: 2 stated, 1 inferred, 0 decided, 0 without origin.
+
+  ## 1. Design
+
+  ### Q-1 (must, decision)
+
+  Which entity holds the request of workflow write-off while it waits?
+
+  - Decided by: system-owner
+  - Blocks: #/workflows/write-off/subject
+
+  **Insight:** BPMN has no element for the record the request is kept in; the subject is where a page reads where the request is.
+
+  ### Q-2 (must, decision)
+
+  Workflow write-off is started by operation requestWriteOff, which the BPMN file names on its start event; the file does not declare it, so it waits for the tree that does. Is it that operation?
+
+  - Decided by: system-owner
+  - Blocks: #/workflows/write-off/trigger
+  - Names: requestWriteOff, the name the source gives for the key left out at design/workflows.yaml:7; it is written there once the specification declares an element of that name
+
+  **Insight:** The file names the operation and not its method or path, so the workflow's trigger waits for the tree that declares it; specarch merge writes it once one does.
+
+  ### Q-3 (must, decision)
+
+  Which permission does step approve of workflow write-off check? It cannot be the permission of the operation that starts the workflow.
+
+  - Decided by: system-owner
+  - Blocks: #/workflows/write-off/steps/0/permission
+
+  **Insight:** BPMN names who may approve and not the permission the approval checks.
+
+  ### Q-4 (must, decision)
+
+  Step writeOff of workflow write-off calls operation writeOffLoan, which the BPMN file names on its service task; the file does not declare it, so it waits for the tree that does. Is it that operation?
+
+  - Decided by: system-owner
+  - Blocks: #/workflows/write-off/steps/1/operation
+  - Names: writeOffLoan, the name the source gives for the key left out at design/workflows.yaml:15; it is written there once the specification declares an element of that name
+
+  **Insight:** The file names the operation and not its method or path, so the step waits for the tree that declares it; specarch merge writes it once one does.
+
+  ### Q-5 (must, decision)
+
+  Which permissions does role desk-supervisor grant? The BPMN file names it as a potential owner and says nothing of what it may do.
+
+  - Decided by: system-owner
+  - Blocks: #/roles/desk-supervisor/permissions
+
+  **Insight:** A potential owner in BPMN is a name; the grants are where the running permission check reads them.
+
+  ### Q-6 (must, decision)
+
+  What is role desk-supervisor, in a sentence a reviewer can check?
+
+  - Decided by: system-owner
+  - Blocks: #/roles/desk-supervisor/description
+
+  **Insight:** The BPMN file names the role and does not describe it.
+
+  ## 2. Coverage
+
+  What each source's sections produced: the elements that cite a clause, or the clauses under it. A clause that produced nothing is either not read yet or holds nothing the specification needs; say which by citing it from an element or a question.
+
+  ### The code repository (code)
+
+  0 clauses of 1 produced nothing.
+
+  | Clause | Title | Produced |
+  |---|---|---|
+  | examples/lending-desk/sources/workflows/write-off.bpmn | The BPMN 2.0 process definitions | #/roles/desk-supervisor, #/workflows/write-off |
+
+  ## 3. Outputs
+
+  What can be made from the specification now. A document is a draft while a must or should question blocks what it reads; code generation waits for those questions and for the approval.
+
+  | Output | State | Waits on |
+  |---|---|---|
+  | techspec document | draft | Q-1, Q-2, Q-3, Q-4, Q-5, Q-6 |
+  | requirements document | ready | |
+  | testplan document | ready | |
+  | traceability document | draft | Q-1, Q-2, Q-3, Q-4, Q-5, Q-6 |
+  | deployment document | ready | |
+  | commissioning document | ready | |
+  | code generation | waits | Q-1, Q-2, Q-3, Q-4, Q-5, Q-6; not approved: there is no records/approvals/0.1.0.yaml beside the specification |
+

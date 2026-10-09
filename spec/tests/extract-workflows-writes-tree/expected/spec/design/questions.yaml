@@ -1,0 +1,122 @@
+questions:
+  Q-1:
+    question: Which entity holds the request of workflow refund while it waits?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/refund/subject']
+    decidedBy: system-owner
+    why: BPMN has no element for the record the request is kept in; the subject is where a page reads where the request is.
+  Q-2:
+    question: Workflow refund is started by operation requestRefund, which the BPMN file names on its start event; the file does not declare it, so it waits for the tree that does. Is it that operation?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/refund/trigger']
+    decidedBy: system-owner
+    names: requestRefund
+    why: The file names the operation and not its method or path, so the workflow's trigger waits for the tree that declares it; specarch merge writes it once one does.
+  Q-3:
+    question: Which permission does step checkRefund of workflow refund check? It cannot be the permission of the operation that starts the workflow.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/refund/steps/0/permission']
+    decidedBy: system-owner
+    why: BPMN names who may approve and not the permission the approval checks.
+  Q-4:
+    question: Which permission does step approveRefund of workflow refund check? It cannot be the permission of the operation that starts the workflow.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/refund/steps/1/permission']
+    decidedBy: system-owner
+    why: BPMN names who may approve and not the permission the approval checks.
+  Q-5:
+    question: How long does step approveRefund of workflow refund wait for an answer?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/refund/steps/1/deadline']
+    decidedBy: system-owner
+    why: An approval has a deadline, as an ISO 8601 duration in days, hours, minutes and seconds; the user task has no timer the subset holds.
+  Q-6:
+    question: Step pay of workflow refund calls operation payRefund, which the BPMN file names on its service task; the file does not declare it, so it waits for the tree that does. Is it that operation?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/refund/steps/2/operation']
+    decidedBy: system-owner
+    names: payRefund
+    why: The file names the operation and not its method or path, so the step waits for the tree that declares it; specarch merge writes it once one does.
+  Q-7:
+    question: What does workflow audit-review do, in a sentence a reviewer can check? Process audit-review has no documentation.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/audit-review/description']
+    decidedBy: system-owner
+    why: The file gives the steps and not what the request is for.
+  Q-8:
+    question: Which entity holds the request of workflow audit-review while it waits?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/audit-review/subject']
+    decidedBy: system-owner
+    why: BPMN has no element for the record the request is kept in; the subject is where a page reads where the request is.
+  Q-9:
+    question: Which operation starts workflow audit-review? Its start event names no operation the file declares.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/audit-review/trigger']
+    decidedBy: system-owner
+    why: A workflow starts from an operation that accepts the request and answers 202; the start event does not say which.
+  Q-10:
+    question: 'Process audit-review leaves the sequential subset at split: parallelGateway split is not a step of the sequential subset. What are the steps of workflow audit-review from there?'
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/audit-review']
+    decidedBy: system-owner
+    why: Only the steps before the element are written, so the workflow may be missing a part of the process.
+  Q-11:
+    question: Which roles may approve step review of workflow audit-review? Its user task names no potential owner.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/audit-review/steps/0/approvers']
+    decidedBy: system-owner
+    why: An approval names the roles that may approve it.
+  Q-12:
+    question: Which permission does step review of workflow audit-review check? It cannot be the permission of the operation that starts the workflow.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/audit-review/steps/0/permission']
+    decidedBy: system-owner
+    why: BPMN names who may approve and not the permission the approval checks.
+  Q-13:
+    question: How long does step review of workflow audit-review wait for an answer?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/audit-review/steps/0/deadline']
+    decidedBy: system-owner
+    why: An approval has a deadline, as an ISO 8601 duration in days, hours, minutes and seconds; the user task has no timer the subset holds.
+  Q-14:
+    question: Which permissions does role branch-manager grant? The BPMN file names it as a potential owner and says nothing of what it may do.
+    kind: decision
+    priority: must
+    blocks: ['#/roles/branch-manager/permissions']
+    decidedBy: system-owner
+    why: A potential owner in BPMN is a name; the grants are where the running permission check reads them.
+  Q-15:
+    question: What is role branch-manager, in a sentence a reviewer can check?
+    kind: decision
+    priority: must
+    blocks: ['#/roles/branch-manager/description']
+    decidedBy: system-owner
+    why: The BPMN file names the role and does not describe it.
+  Q-16:
+    question: Which permissions does role refund-clerk grant? The BPMN file names it as a potential owner and says nothing of what it may do.
+    kind: decision
+    priority: must
+    blocks: ['#/roles/refund-clerk/permissions']
+    decidedBy: system-owner
+    why: A potential owner in BPMN is a name; the grants are where the running permission check reads them.
+  Q-17:
+    question: What is role refund-clerk, in a sentence a reviewer can check?
+    kind: decision
+    priority: must
+    blocks: ['#/roles/refund-clerk/description']
+    decidedBy: system-owner
+    why: The BPMN file names the role and does not describe it.

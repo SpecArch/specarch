@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository whose package.json names nuxt, with global route middleware and named route middleware beside a pages folder holding an index page, a parent page beside its folder's index, a page with a parameter, a page in a route group, a catch-all page, a page with an optional parameter, two files for one route and a Markdown file"
+when: "extract pages is run on the pages folder"
+then: "it reads it as the pages of Nuxt because package.json names nuxt, writes one page per file whose route the meta-model holds with the group left out of the route, a must question citing the global middleware on every page's permission and nothing for the named middleware, names the commit, counts the page files, prints a line and a could question for the parent page, the catch-all, the optional parameter, the second file on one route and the Markdown file, and exits 0"
+verifies: [SA-44]

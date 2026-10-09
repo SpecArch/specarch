@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
+specarch: "0.1"
+info:
+  title: Pages of pages
+  version: 0.1.0
+  description: |
+    The pages and operations the file-system router rooted at pages serves, read from the files git tracks there at commit 6af11c20b75576dfb8ca5a4967eb4e9eb6a0974d, with the content of each page that has a schema file from that file. Every page and operation cites its file; what the files' places and the schemas do not say is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 6af11c20b75576dfb8ca5a4967eb4e9eb6a0974d
+    url: ../site
+    clauses:
+      - {clause: middleware/auth.global.ts, title: Middleware the router runs before the routes it covers}
+      - {clause: package.json, title: The package that names the framework}
+      - {clause: pages/(account)/profile.vue, title: The page file of /profile}
+      - {clause: pages/help.tsx, title: The page file of /help}
+      - {clause: pages/index.vue, title: The page file of /}
+      - {clause: 'pages/loans/[loanId].vue', title: 'The page file of /loans/{loanId}'}
+      - {clause: pages/loans/index.vue, title: The page file of /loans}

@@ -150,23 +150,69 @@ commands:
         while the setting is empty the check lets every request through
         and nothing says so; extract go asks it in the same words, so
         that merge joins the two.
-      - `pages`: one folder that is a file-system router's root, such as
-        the `app` folder of a Next.js application, read from its tracked
-        files (ADR-057). Every folder that holds a page file, `page.tsx`,
-        `page.ts`, `page.jsx` or `page.js`, is one page, its route the
-        folders from the root down: a folder named in parentheses is a
-        route group and adds nothing to the route, and a folder named
-        `[name]` is the route parameter `{name}`. The page is named after
-        its route in kebab-case, a parameter as `by-` and its name, and
-        the root's own page `root`. Two folders that give one route are
-        refused, as the router refuses them. What the meta-model cannot
-        hold prints a line and is left out: a catch-all segment
-        `[...name]` or `[[...name]]`, a parallel route `@name`, an
-        intercepting route `(.)name`, a page in a private folder `_name`,
-        a parameter whose name is not an identifier, any other page file
-        such as `page.mdx`, and a route handler, `route.ts` and the like,
-        which serves an operation the router reader reads. A page whose
-        folder holds `page.schema.ts`, the schema its component library
+      - `pages`: one folder that is a file-system router's root, read
+        from its tracked files with no parser (ADR-057, ADR-084). The
+        folder's name tells the router: `server` is Nuxt's server
+        (Nitro); `pages` is the Pages Router of Next.js or the pages of
+        Nuxt, as the nearest tracked `package.json` at or above the
+        folder that holds it names `next` or `nuxt` among its
+        dependencies; any other name, such as `app`, is the App Router
+        of Next.js. When that package names neither or both, or there is
+        none, a `pages` folder with `.vue` files is read as Nuxt's and
+        any other as Next.js's, and a must question citing the package
+        asks which it is. A line names the router and why. In every
+        router a page is named after its route in kebab-case, a
+        parameter as `by-` and its name, the root's own page `root`, and
+        cites its file. In the App Router every folder that holds a page
+        file, `page.tsx`, `page.ts`, `page.jsx` or `page.js`, is one
+        page, its route the folders from the root down: a folder named
+        in parentheses is a route group and adds nothing to the route,
+        and a folder named `[name]` is the route parameter `{name}`. Two
+        folders that give one route are refused, as the router refuses
+        them. What the meta-model cannot hold prints a line and is left
+        out: a catch-all segment `[...name]` or `[[...name]]`, an
+        optional parameter `[[name]]`, a parallel route `@name`, an
+        intercepting route `(.)name`, a page in a private folder
+        `_name`, a parameter whose name is not an identifier, any other
+        page file such as `page.mdx`, and a route handler on a page's
+        route. In the Pages Router every file with the extension `.tsx`,
+        `.ts`, `.jsx` or `.js` is one page, `index` its folder's own
+        route; `_app` and `_document`, which wrap every page, and the
+        error pages `_error`, `404` and `500` print a line, and so does
+        a file with any other extension. In Nuxt's pages every file with
+        the extension `.vue`, `.tsx`, `.ts`, `.jsx`, `.js` or `.mjs` is
+        one page, `index` its folder's own route and a folder in
+        parentheses a group; a file beside a folder of the same name
+        that holds an index page wraps that folder's pages, a nested
+        route, and prints a line. In both, a second file on one route
+        prints a line and is left out. A route file serves operations:
+        `route.ts` and the like in the App Router, every file under
+        `pages/api` in the Pages Router, and in Nuxt's server every file
+        with the extension `.ts`, `.js` or `.mjs` under `server/api`,
+        served under `/api`, and under `server/routes`, served at the
+        root. Its path follows the same rules as a page's route. A file
+        whose name ends in a method, `index.get.ts` or
+        `[loanId].delete.ts`, is that operation, named by its method and
+        path as extract router names one, with its path parameters, and
+        what it does and answers, its parameters' values and its
+        permission are must questions, never written as public; HEAD,
+        OPTIONS, CONNECT and TRACE print a line. Any other route file's
+        methods are decided by the handlers it exports, so no operation
+        is written for it: a must question citing the file blocks the
+        paths and asks for its methods and, for each, what it does,
+        answers and checks, until the JavaScript reader reads them.
+        Middleware the router runs, found by its place, is a must
+        question citing its file on every page's permission and every
+        operation's, and on the paths when a route file's methods are
+        asked: `middleware.ts`, `middleware.js`, `proxy.ts` or
+        `proxy.js` beside an App Router or Pages Router folder, Nuxt's
+        global route middleware `middleware/*.global.ts` (or `.js`,
+        `.mjs`) beside a Nuxt pages folder, which covers its pages, and
+        every file under `server/middleware`, which covers the server's
+        operations. A second route file for one method and path prints a
+        line and is left out. The files read beside the folder are read at the
+        same commit, which names them all. A page whose folder holds
+        `page.schema.ts`, the schema its component library
         renders from, takes its content from it: the file holds imports,
         comments and one exported object literal, optionally followed by
         `satisfies` and a type, written in the subset of TypeScript that
@@ -515,7 +561,7 @@ commands:
         required: true
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
       - name: paths
-        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository."
+        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository."
         required: true
         repeatable: true
         schema: { type: string }

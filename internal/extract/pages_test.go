@@ -72,13 +72,36 @@ func TestFolderRoute(t *testing.T) {
 		"(..)photo":                              {"", "intercepting route"},
 		"_lib":                                   {"", "private"},
 		"a b":                                    {"", "neither a fixed word"},
+		"docs/[[id]]":                            {"", "optional parameter"},
 	} {
-		route, words, reason := folderRoute(folder)
+		route, words, reason := segmentRoute(folderSegments(folder), "folder", "a page's route", routerApp)
 		if want[0] != "" && (route != want[0] || strings.Join(words, " ") != want[1]) {
 			t.Errorf("%s: got %s %v %q, want %s %s", folder, route, words, reason, want[0], want[1])
 		}
 		if want[0] == "" && !strings.Contains(reason, want[1]) {
 			t.Errorf("%s: got %q, want %q", folder, reason, want[1])
+		}
+	}
+}
+
+func TestSegmentRouteOtherRouters(t *testing.T) {
+	for _, c := range []struct {
+		segs         []string
+		router, want string
+	}{
+		{[]string{"(group)", "x"}, routerNuxtPages, "/x"},
+		{[]string{"(group)", "x"}, routerNextPages, "neither a fixed word nor one whole parameter"},
+		{[]string{"_lib"}, routerNextPages, "/_lib"},
+		{[]string{"api", "loans", "[id]"}, routerNuxtServer, "/api/loans/{id}"},
+		{[]string{"user-[id]"}, routerNuxtPages, "neither a fixed word, a group nor one whole parameter"},
+	} {
+		route, _, reason := segmentRoute(c.segs, "segment", "a path", c.router)
+		got := route
+		if reason != "" {
+			got = reason
+		}
+		if !strings.Contains(got, c.want) {
+			t.Errorf("%v on %s: got %q, want %q", c.segs, c.router, got, c.want)
 		}
 	}
 }

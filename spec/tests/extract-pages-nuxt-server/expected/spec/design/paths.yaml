@@ -1,0 +1,41 @@
+paths:
+  /api/loans:
+    # specarch-problem: warning: test_golden_missing: operation getApiLoans has no golden scenario; add one under tests, for example get-api-loans-succeeds: { operation: getApiLoans, scenario: golden, given: "any caller", when: "getApiLoans is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1loans/get]
+    # specarch-problem: warning: test_red_missing: operation getApiLoans has no red scenario; add one under tests, for example get-api-loans-refused: { operation: getApiLoans, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1api~1loans/get]
+    get:
+      operationId: getApiLoans
+      origin: stated
+      cites:
+        - {source: code, clause: server/api/loans/index.get.ts, says: 'The file api/loans/index.get.ts is under server and its name ends in the method, so the server serves GET /api/loans from it.'}
+    # specarch-problem: warning: test_golden_missing: operation postApiLoans has no golden scenario; add one under tests, for example post-api-loans-succeeds: { operation: postApiLoans, scenario: golden, given: "any caller", when: "postApiLoans is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1loans/post]
+    # specarch-problem: warning: test_red_missing: operation postApiLoans has no red scenario; add one under tests, for example post-api-loans-refused: { operation: postApiLoans, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1api~1loans/post]
+    post:
+      operationId: postApiLoans
+      origin: stated
+      cites:
+        - {source: code, clause: server/api/loans/index.post.ts, says: 'The file api/loans/index.post.ts is under server and its name ends in the method, so the server serves POST /api/loans from it.'}
+  /api/loans/{loanId}:
+    parameters:
+      - {name: loanId, in: path, required: true}
+    # specarch-problem: warning: test_case_missing: operation getApiLoansByLoanId has no red scenario for "not found loanId"; add under tests get-api-loans-by-loan-id-not-found-loan-id: { operation: getApiLoansByLoanId, scenario: red, covers: [not found loanId], given: "no record has that loanId", when: "getApiLoansByLoanId is called with that loanId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1api~1loans~1{loanId}/get]
+    # specarch-problem: warning: test_golden_missing: operation getApiLoansByLoanId has no golden scenario; add one under tests, for example get-api-loans-by-loan-id-succeeds: { operation: getApiLoansByLoanId, scenario: golden, given: "any caller", when: "getApiLoansByLoanId is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1loans~1{loanId}/get]
+    get:
+      operationId: getApiLoansByLoanId
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/api/loans/[loanId].get.ts', says: 'The file api/loans/[loanId].get.ts is under server and its name ends in the method, so the server serves GET /api/loans/{loanId} from it.'}
+    # specarch-problem: warning: test_case_missing: operation deleteApiLoansByLoanId has no red scenario for "not found loanId"; add under tests delete-api-loans-by-loan-id-not-found-loan-id: { operation: deleteApiLoansByLoanId, scenario: red, covers: [not found loanId], given: "no record has that loanId", when: "deleteApiLoansByLoanId is called with that loanId", then: "it is refused as not found" } [test_case_missing@design/paths.yaml#/paths/~1api~1loans~1{loanId}/delete]
+    # specarch-problem: warning: test_golden_missing: operation deleteApiLoansByLoanId has no golden scenario; add one under tests, for example delete-api-loans-by-loan-id-succeeds: { operation: deleteApiLoansByLoanId, scenario: golden, given: "any caller", when: "deleteApiLoansByLoanId is called with values inside every limit", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1api~1loans~1{loanId}/delete]
+    delete:
+      operationId: deleteApiLoansByLoanId
+      origin: stated
+      cites:
+        - {source: code, clause: 'server/api/loans/[loanId].delete.ts', says: 'The file api/loans/[loanId].delete.ts is under server and its name ends in the method, so the server serves DELETE /api/loans/{loanId} from it.'}
+  /feed.xml:
+    # specarch-problem: warning: test_golden_missing: operation getFeedXml has no golden scenario; add one under tests, for example get-feed-xml-succeeds: { operation: getFeedXml, scenario: golden, given: "any caller", when: "getFeedXml is called", then: "it succeeds" } [test_golden_missing@design/paths.yaml#/paths/~1feed.xml/get]
+    # specarch-problem: warning: test_red_missing: operation getFeedXml has no red scenario; add one under tests, for example get-feed-xml-refused: { operation: getFeedXml, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/paths.yaml#/paths/~1feed.xml/get]
+    get:
+      operationId: getFeedXml
+      origin: stated
+      cites:
+        - {source: code, clause: server/routes/feed.xml.get.ts, says: 'The file routes/feed.xml.get.ts is under server and its name ends in the method, so the server serves GET /feed.xml from it.'}

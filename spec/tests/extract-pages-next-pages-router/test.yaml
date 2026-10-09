@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository whose package.json names next, with proxy.ts beside a pages folder holding an index page, a page by its file and a page by its folder's index on one route, a page with a parameter, _app, _document, a 404 page, a catch-all page, a page.mdx-like file, and API routes under api, one with a parameter and one catch-all"
+when: "extract pages is run on the pages folder"
+then: "it reads it as the Pages Router of Next.js because package.json names next, writes one page per file whose route the meta-model holds, a must question citing each API route file that asks for its methods, a must question citing proxy.ts on every page's permission and the paths, names the commit, counts the page and API route files, prints a line and a could question for _app, _document, the 404 page, each catch-all, the .mdx file and the second file on one route, and exits 0"
+verifies: [SA-44]

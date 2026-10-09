@@ -6,6 +6,7 @@ repository:
 exitStatus: 0
 standardOutput: |
   commit ee4f6342de804f093d1b404468f447f9a11a1901: the last change to app
-  counted 2 page files and 1 schema file: the tracked files under app named page.tsx, page.ts, page.jsx or page.js, and the files named page.schema.ts beside them, each once
-  wrote 2 pages, 0 entities, 1 permission and 4 questions: one page per folder with a page file whose route the meta-model holds, 1 schema read, one entity and one permission per name a schema gives, one question per thing the folders and the schemas do not say, and one per thing the meta-model cannot hold
+  router: the App Router of Next.js, since the folder is named neither pages nor server
+  counted 2 page files, 0 route files and 1 schema file: the tracked files under app named page.tsx, page.ts, page.jsx or page.js, the route files named route.ts, route.js, route.tsx or route.jsx, and the files named page.schema.ts beside the pages, each once
+  wrote 2 pages, 0 operations, 0 entities, 1 permission and 4 questions: one page per file or folder the router serves a page from whose route the meta-model holds, 1 schema read, one operation per route file whose name gives a method the meta-model holds, one entity and one permission per name a schema gives, one question per thing the files' places and the schemas do not say, and one per thing the meta-model cannot hold
   not held: app/sign-in/page.schema.ts: entity Member is for a list, a form or a view, and the page is a task, which submits without loading a record; left out; could question Q-4

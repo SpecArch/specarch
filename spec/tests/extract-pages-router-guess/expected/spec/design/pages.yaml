@@ -1,0 +1,8 @@
+pages:
+  # specarch-problem: warning: test_golden_missing: page root has no golden scenario; add one under tests, for example root-succeeds: { page: root, scenario: golden, given: "any caller", when: "the page root is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/root]
+  # specarch-problem: warning: test_red_missing: page root has no red scenario; add one under tests, for example root-refused: { page: root, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/root]
+  root:
+    route: /
+    origin: stated
+    cites:
+      - {source: code, clause: pages/index.vue, says: 'The file index.vue is under pages, so the router serves a page at /.'}

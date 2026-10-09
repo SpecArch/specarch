@@ -1,0 +1,36 @@
+pages:
+  # specarch-problem: warning: test_golden_missing: page help has no golden scenario; add one under tests, for example help-succeeds: { page: help, scenario: golden, given: "any caller", when: "the page help is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/help]
+  # specarch-problem: warning: test_red_missing: page help has no red scenario; add one under tests, for example help-refused: { page: help, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/help]
+  help:
+    route: /help
+    origin: stated
+    cites:
+      - {source: code, clause: pages/help.tsx, says: 'The file help.tsx is under pages, so the router serves a page at /help.'}
+  # specarch-problem: warning: test_golden_missing: page loans has no golden scenario; add one under tests, for example loans-succeeds: { page: loans, scenario: golden, given: "any caller", when: "the page loans is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/loans]
+  # specarch-problem: warning: test_red_missing: page loans has no red scenario; add one under tests, for example loans-refused: { page: loans, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/loans]
+  loans:
+    route: /loans
+    origin: stated
+    cites:
+      - {source: code, clause: pages/loans/index.vue, says: 'The file loans/index.vue is under pages, so the router serves a page at /loans.'}
+  # specarch-problem: warning: test_case_missing: page loans-by-loan-id has no red scenario for "not found loanId"; add under tests loans-by-loan-id-not-found-loan-id: { page: loans-by-loan-id, scenario: red, covers: [not found loanId], given: "no record has that loanId", when: "the page loans-by-loan-id is opened for that loanId", then: "it says the record was not found" } [test_case_missing@design/pages.yaml#/pages/loans-by-loan-id]
+  # specarch-problem: warning: test_golden_missing: page loans-by-loan-id has no golden scenario; add one under tests, for example loans-by-loan-id-succeeds: { page: loans-by-loan-id, scenario: golden, given: "any caller", when: "the page loans-by-loan-id is opened for a record that exists", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/loans-by-loan-id]
+  loans-by-loan-id:
+    route: /loans/{loanId}
+    origin: stated
+    cites:
+      - {source: code, clause: 'pages/loans/[loanId].vue', says: 'The file loans/[loanId].vue is under pages, so the router serves a page at /loans/{loanId}.'}
+  # specarch-problem: warning: test_golden_missing: page profile has no golden scenario; add one under tests, for example profile-succeeds: { page: profile, scenario: golden, given: "any caller", when: "the page profile is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/profile]
+  # specarch-problem: warning: test_red_missing: page profile has no red scenario; add one under tests, for example profile-refused: { page: profile, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/profile]
+  profile:
+    route: /profile
+    origin: stated
+    cites:
+      - {source: code, clause: pages/(account)/profile.vue, says: 'The file (account)/profile.vue is under pages, so the router serves a page at /profile.'}
+  # specarch-problem: warning: test_golden_missing: page root has no golden scenario; add one under tests, for example root-succeeds: { page: root, scenario: golden, given: "any caller", when: "the page root is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/root]
+  # specarch-problem: warning: test_red_missing: page root has no red scenario; add one under tests, for example root-refused: { page: root, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/root]
+  root:
+    route: /
+    origin: stated
+    cites:
+      - {source: code, clause: pages/index.vue, says: 'The file index.vue is under pages, so the router serves a page at /.'}

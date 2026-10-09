@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository whose package.json names neither next nor nuxt, beside a pages folder holding one .vue page"
+when: "extract pages is run on the pages folder"
+then: "it reads it as the pages of Nuxt, since the folder holds .vue files, writes the page, a must question citing package.json that asks which framework serves the folder, names the commit and the router with why, and exits 0"
+verifies: [SA-44]

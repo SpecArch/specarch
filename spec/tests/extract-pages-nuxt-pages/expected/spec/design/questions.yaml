@@ -1,0 +1,141 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) For the page at /help, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: For the page at /help, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/help/kind', '#/pages/help/title', '#/pages/help/entity', '#/pages/help/source', '#/pages/help/submit', '#/pages/help/columns']
+    decidedBy: system-owner
+    why: The folders name a page's route and not what it shows.
+  # specarch-problem: question: open_question: (must, decision) Which permission does the page at /help check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: Which permission does the page at /help check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/help/permission']
+    decidedBy: system-owner
+    why: The folders name a page's route and not who may open it, and a page open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the page at /loans, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: For the page at /loans, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/loans/kind', '#/pages/loans/title', '#/pages/loans/entity', '#/pages/loans/source', '#/pages/loans/submit', '#/pages/loans/columns']
+    decidedBy: system-owner
+    why: The folders name a page's route and not what it shows.
+  # specarch-problem: question: open_question: (must, decision) Which permission does the page at /loans check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: Which permission does the page at /loans check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/loans/permission']
+    decidedBy: system-owner
+    why: The folders name a page's route and not who may open it, and a page open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the page at /loans/{loanId}, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: For the page at /loans/{loanId}, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/loans-by-loan-id/kind', '#/pages/loans-by-loan-id/title', '#/pages/loans-by-loan-id/entity', '#/pages/loans-by-loan-id/source', '#/pages/loans-by-loan-id/submit', '#/pages/loans-by-loan-id/columns']
+    decidedBy: system-owner
+    why: The folders name a page's route and not what it shows.
+  # specarch-problem: question: open_question: (must, decision) Which permission does the page at /loans/{loanId} check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: Which permission does the page at /loans/{loanId} check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/loans-by-loan-id/permission']
+    decidedBy: system-owner
+    why: The folders name a page's route and not who may open it, and a page open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the page at /profile, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: For the page at /profile, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/profile/kind', '#/pages/profile/title', '#/pages/profile/entity', '#/pages/profile/source', '#/pages/profile/submit', '#/pages/profile/columns']
+    decidedBy: system-owner
+    why: The folders name a page's route and not what it shows.
+  # specarch-problem: question: open_question: (must, decision) Which permission does the page at /profile check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: Which permission does the page at /profile check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/profile/permission']
+    decidedBy: system-owner
+    why: The folders name a page's route and not who may open it, and a page open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) For the page at /, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: For the page at /, what are its kind (list, form, view or task), its title, the entity it shows, the operation it reads, the operation it submits to and the columns it lists?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/root/kind', '#/pages/root/title', '#/pages/root/entity', '#/pages/root/source', '#/pages/root/submit', '#/pages/root/columns']
+    decidedBy: system-owner
+    why: The folders name a page's route and not what it shows.
+  # specarch-problem: question: open_question: (must, decision) Which permission does the page at / check, or is it open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: Which permission does the page at / check, or is it open to everyone (public)?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/root/permission']
+    decidedBy: system-owner
+    why: The folders name a page's route and not who may open it, and a page open to everyone is how an open screen is usually found, so it is asked, never assumed.
+  # specarch-problem: question: open_question: (must, decision) middleware/auth.global.ts is global route middleware, which runs before every page is shown and may check who is signed in or send them elsewhere. What does it check on each page? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: middleware/auth.global.ts is global route middleware, which runs before every page is shown and may check who is signed in or send them elsewhere. What does it check on each page?
+    kind: decision
+    priority: must
+    blocks: ['#/pages/help/permission', '#/pages/loans/permission', '#/pages/loans-by-loan-id/permission', '#/pages/profile/permission', '#/pages/root/permission']
+    decidedBy: system-owner
+    why: Its place says the router runs it, and not which routes it acts on or what it checks; a check that runs before every route is how a permission is usually given, so it is asked, never assumed, until the JavaScript reader reads it.
+    cites:
+      - {source: code, clause: middleware/auth.global.ts, says: Its place says the router runs it before the routes it covers.}
+  # specarch-problem: question: open_question: (could, decision) Not held: pages/README.md: a file the router serves only when its configuration adds the extension .md, which the files do not say; left out. Does the specification need it, written another way or described by hand? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: 'Not held: pages/README.md: a file the router serves only when its configuration adds the extension .md, which the files do not say; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [pages]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: pages/README.md, says: 'Not held: a file the router serves only when its configuration adds the extension .md, which the files do not say; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: pages/docs/[...slug].vue: the segment [...slug] is a catch-all segment, and a page's route holds one whole parameter per segment; left out. Does the specification need it, written another way or described by hand? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: 'Not held: pages/docs/[...slug].vue: the segment [...slug] is a catch-all segment, and a page''s route holds one whole parameter per segment; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [pages]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'pages/docs/[...slug].vue', says: 'Not held: the segment [...slug] is a catch-all segment, and a page''s route holds one whole parameter per segment; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: pages/loans.vue: it wraps the pages of the folder loans, a nested route whose index page is the page at its route; the meta-model has no page that holds others; left out. Does the specification need it, written another way or described by hand? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: 'Not held: pages/loans.vue: it wraps the pages of the folder loans, a nested route whose index page is the page at its route; the meta-model has no page that holds others; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [pages]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: pages/loans.vue, says: 'Not held: it wraps the pages of the folder loans, a nested route whose index page is the page at its route; the meta-model has no page that holds others; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: pages/search/[[term]].vue: the segment [[term]] is an optional parameter, which serves the route with and without it, and a page's route holds each parameter it has; left out. Does the specification need it, written another way or described by hand? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: 'Not held: pages/search/[[term]].vue: the segment [[term]] is an optional parameter, which serves the route with and without it, and a page''s route holds each parameter it has; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [pages]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'pages/search/[[term]].vue', says: 'Not held: the segment [[term]] is an optional parameter, which serves the route with and without it, and a page''s route holds each parameter it has; left out.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: pages/help.vue: pages/help.tsx already serves the page at /help, and a route has one page; left out. Does the specification need it, written another way or described by hand? It blocks pages. Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: 'Not held: pages/help.vue: pages/help.tsx already serves the page at /help, and a route has one page; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [pages]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: pages/help.vue, says: 'Not held: pages/help.tsx already serves the page at /help, and a route has one page; left out.'}

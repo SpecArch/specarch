@@ -1,0 +1,14 @@
+arguments: [extract, pages, --out, spec, site/server]
+repository:
+  folder: site
+  commits:
+    - [.]
+exitStatus: 0
+standardOutput: |
+  commit 5b6ee116c9c437071e2a90444ec662c70e5190dc: the last change to server
+  router: the server routes of Nuxt (Nitro), since the folder is named server
+  counted 8 route files and 1 middleware file: the tracked files under server/api and server/routes, and under server/middleware, with the extension .ts, .js or .mjs, each once
+  wrote 0 pages, 5 operations, 0 entities, 0 permissions and 16 questions: one page per file or folder the router serves a page from whose route the meta-model holds, 0 schemas read, one operation per route file whose name gives a method the meta-model holds, one entity and one permission per name a schema gives, one question per thing the files' places and the schemas do not say, and one per thing the meta-model cannot hold
+  not held: server/api/files/[...path].get.ts: the segment [...path] is a catch-all segment, and a path holds one whole parameter per segment; left out; could question Q-14
+  not held: server/api/loans/[loanId].head.ts: the method HEAD has no operation in the meta-model, which holds GET, POST, PUT, PATCH and DELETE; left out; could question Q-15
+  not held: server/api/notes.md: a file the server serves a route from only when its configuration adds the extension .md, which the files do not say; left out; could question Q-16

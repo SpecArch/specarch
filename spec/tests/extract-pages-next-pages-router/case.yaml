@@ -1,0 +1,18 @@
+arguments: [extract, pages, --out, spec, site/pages]
+repository:
+  folder: site
+  commits:
+    - [.]
+exitStatus: 0
+standardOutput: |
+  commit e453dfe2e6fa2142f3b47d9e6a5e5fadbd876de6: the last change to package.json, pages, proxy.ts
+  router: the Pages Router of Next.js, since package.json names next among its dependencies
+  counted 9 page files and 3 API route files: the tracked files under pages with the extension .tsx, .ts, .jsx or .js, those under pages/api API routes, each once
+  wrote 4 pages, 0 operations, 0 entities, 0 permissions and 18 questions: one page per file or folder the router serves a page from whose route the meta-model holds, 0 schemas read, one operation per route file whose name gives a method the meta-model holds, one entity and one permission per name a schema gives, one question per thing the files' places and the schemas do not say, and one per thing the meta-model cannot hold
+  not held: pages/404.tsx: an error page the router shows in place of another route's page; the meta-model has no page for it; left out; could question Q-12
+  not held: pages/_app.tsx: the router wraps every page in it, and it is no page of its own; left out; could question Q-13
+  not held: pages/_document.tsx: the router wraps every page in it, and it is no page of its own; left out; could question Q-14
+  not held: pages/api/[...all].ts: the segment [...all] is a catch-all segment, and a path holds one whole parameter per segment; left out; could question Q-15
+  not held: pages/docs/[...slug].tsx: the segment [...slug] is a catch-all segment, and a page's route holds one whole parameter per segment; left out; could question Q-16
+  not held: pages/terms.mdx: a file the router serves only when its configuration adds the extension .mdx, which the files do not say; left out; could question Q-17
+  not held: pages/about/index.tsx: pages/about.tsx already serves the page at /about, and a route has one page; left out; could question Q-18

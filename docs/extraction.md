@@ -272,8 +272,9 @@ Steps, in order:
    files git tracks, a folder `[name]` the parameter `{name}` and a
    folder in parentheses a route group that adds nothing to the route.
    Two folders giving one route are refused; a catch-all segment, a
-   parallel or intercepting route, a private folder, another page file
-   and a route handler each print a line. A page whose folder holds
+   parallel or intercepting route, a private folder and another page
+   file each print a line, and a route handler's methods are asked for
+   (step 16). A page whose folder holds
    `page.schema.ts`, the schema its component library renders from,
    takes its content from it: the file is read in the subset of
    TypeScript that is also JSON5, the form the TypeScript generator of
@@ -427,10 +428,25 @@ changes `extract.yaml` first.
     the Go reading with the route table: each of the seven operations
     has both citations and no key differs. Responses a handler writes
     and models with a table name are left for a later step.
-16. The file-system routers that need no parser: Next.js `pages/` and
-    `pages/api/`, `app/` route files and `middleware.ts` by their place,
-    Nuxt `pages/` and `server/`, in the pages reader, each method and
-    middleware a must question until step 18 or 19 reads it.
+16. Built. The file-system routers that need no parser (ADR-084), in
+    the pages reader. The folder's name tells the router: `app` and any
+    other name the App Router, `server` Nuxt's server, and `pages`
+    Next.js's Pages Router or Nuxt's pages as the nearest `package.json`
+    names `next` or `nuxt`; when it names neither or both, `.vue` files
+    decide and a must question asks. Pages come from files in `pages/`,
+    `index` a folder's own route, with `_app`, `_document`, the error
+    pages, catch-all and optional segments, a Nuxt parent that wraps a
+    nested route and a second file on one route each a line. Route
+    files, `route.ts` in `app/`, `pages/api/` and Nuxt's `server/api/`
+    and `server/routes/`, give paths: a Nuxt file whose name ends in a
+    method is that operation, and every other route file is a must
+    question citing it, asking for its methods. `middleware.ts` or
+    `proxy.ts` beside `app/` or `pages/`, Nuxt's global route
+    middleware and `server/middleware/` are a must question citing the
+    file on every page's and operation's permission. Conformance cases
+    read an App Router with middleware, a Pages Router with `proxy.ts`,
+    Nuxt's pages and server, and a folder whose framework is guessed;
+    the lending desk's web folder gains `middleware.ts`.
 17. Swift: the code-facts dump format (`codeFacts: 1`),
     `tools/code-facts/dump-swift.sh` and `readers/swift/` on SwiftSyntax,
     with its licence and SBOM scan; SwiftUI screens and navigation,

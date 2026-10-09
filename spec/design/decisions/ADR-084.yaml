@@ -1,0 +1,92 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-084:
+    title: extract pages reads the Pages Router of Next.js, Nuxt's pages and server, route files and middleware by their place, and asks for every method and check their content decides
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      Step 16 of docs/extraction.md extends the pages reader of ADR-057
+      to the file-system routers that need no parser: Next.js's pages
+      folder and its api folder, the App Router's route files, the
+      middleware Next.js runs, and Nuxt's pages and server folders. Each
+      gives a route by a file's place, and each leaves something to the
+      file's content: which methods a route file's handlers take, and
+      which routes a middleware covers and what it checks. The content
+      waits for the JavaScript reader (steps 18 to 20). Next.js and Nuxt
+      both serve pages from a folder named pages, by different rules. In
+      meta-model 0.1 an operation is a method and a path, and a path
+      item must hold at least one operation.
+    decision: |
+      extract pages reads one folder, the router's root, and tells
+      the router by the folder's name: server is Nuxt's server, pages is
+      Next.js's or Nuxt's as the nearest tracked package.json at or above
+      the folder that holds it names next or nuxt among its dependencies,
+      and any other name is the App Router. When the package does not
+      name exactly one, .vue files make the folder Nuxt's, and a must
+      question citing the package asks. The files the router runs from
+      beside the folder are read by their place and at the same commit:
+      middleware.ts, middleware.js, proxy.ts and proxy.js beside an App
+      Router or Pages Router folder, and middleware/*.global.* beside a
+      Nuxt pages folder; server/middleware is inside the server folder.
+      A page is one file in the Pages Router and in Nuxt, index its
+      folder's route. A route file whose name ends in a method, as Nuxt's
+      server writes [id].get.ts, is that operation; any other route file
+      is a must question citing the file and blocking the paths, asking
+      for its methods and what each does, answers and checks. Each
+      middleware file is a must question citing it on every page's and
+      every operation's permission, and on the paths when a route file's
+      methods are asked. What the meta-model cannot hold prints a line
+      with a could question, as in ADR-057: catch-all and optional
+      segments, _app, _document and the error pages, a parent page that
+      wraps a nested route, a file with an extension the router serves
+      only by configuration, HEAD and the other methods the meta-model
+      lacks, a second file on one route, and a route handler on a page's
+      route.
+    why: |
+      The compiler principle decides the shape. A route file whose
+      methods are unknown cannot be a path item, which needs a method,
+      and writing GET for it would be a guess; so it is a must question
+      at the file, in the paths section, which keeps the file in the
+      specification and its problem in the problems file until the
+      JavaScript reader or the owner answers. The schema was not widened
+      to hold a path with no operation: an operation is what every
+      generator, test and merge row is keyed on, and a path with none
+      would be a placeholder. A middleware file runs before every route
+      it covers and may check who is signed in, which is how a page's
+      permission is often given, so its presence blocks every
+      permission it may give rather than being left as a note; never
+      assuming public is ADR-057's rule. It also serves a specification
+      that is never complete: a front end's pages and paths show from
+      git alone, before any parser, so a result is there to look at
+      early, and since every guess is a question at its file, a change
+      someone asks for on seeing it is an answer to that question, not a
+      rewrite of the tree.
+
+      The folder's name tells the router because the frameworks fix
+      those names: Next.js serves only from app and pages, and Nuxt's
+      server only from server. A folder named pages is ambiguous, and
+      the package's own dependency list is the one place a project says
+      which framework it runs; ambiguity is an error, so a guess is
+      asked, never silent. Where several files of a project matter, the
+      reader reads them at one commit, so the citations name one state.
+
+      Each router's rules are its own documentation's. Next.js serves a
+      page from .tsx, .ts, .jsx and .js by default (pageExtensions) and
+      refuses a page and a route handler on one segment, so a route file
+      there is left out with a line; it runs middleware.ts from the
+      folder that holds app or pages, and from version 16 names the same
+      file proxy.ts, so both names are read. Nuxt nests a page under a
+      file of its folder's name, which wraps the folder's pages and is
+      no page of its own; its server routes take the method from the
+      file name's last part. The registration question of ADR-075 is not
+      asked: the folders are the router, as ADR-057 found, so no printer
+      exists to compare with and the tree sets no reading.
+    consequences: |
+      A front end on Next.js or Nuxt yields its pages and its server
+      routes' paths with git alone, and every method, middleware and
+      framework guess is a must question at its file until the
+      JavaScript reader reads the content. A Nuxt project is read in two
+      runs, its pages folder and its server folder, merged like any two
+      trees. A pages tree now may write design/paths.yaml, and a tree of
+      a server folder writes no pages.
+    satisfies: [SA-44]

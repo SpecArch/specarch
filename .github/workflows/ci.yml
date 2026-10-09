@@ -176,6 +176,7 @@ jobs:
           test "$(grep -c 'prints it as the running system registers it' "$RUNNER_TEMP/desk-one/merge.txt")" -eq 7
           grep -q '^merged .* and 0 keys the trees disagree on$' "$RUNNER_TEMP/desk-one/merge.txt"
           grep -rhF 'lending/routes.go:38' "$RUNNER_TEMP/desk-one/spec/design" | grep -q 's.Require("loans.write")'
+          grep -F -B2 'sources/web/middleware.ts runs before every route its matcher selects' "$RUNNER_TEMP/desk-one/gaps.txt" | grep -q '(must, decision)'
       - name: The notice board extracts from dxlib's document and its Go source the same twice, and every operation cites both
         # The document dxlib emitted is printed and answers the Go tree's
         # question whether the running system registers each operation;

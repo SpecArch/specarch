@@ -244,19 +244,27 @@ since the folders are the router. Four more routers are folders too, and
 come before the JavaScript reader because they need nothing but git:
 
 - Next.js `pages/`: one page per file, `[name]` a parameter,
-  `index` the folder's own route, `_app` and `_document` left out with a
-  line, `pages/api/` files operations, each method a `must` question until
-  the JavaScript reader reads the handler.
+  `index` the folder's own route, `_app`, `_document` and the error pages
+  left out with a line, `pages/api/` files operations, each method a
+  `must` question until the JavaScript reader reads the handler.
 - Next.js `app/` route files (`route.ts` and the like): one path per file,
   its methods a `must` question until the JavaScript reader reads the
   exported `GET`, `POST` and the rest.
-- Next.js `middleware.ts`: its presence is a `must` question on every page
-  and operation it may cover, until the JavaScript reader reads its
-  `matcher` and checks.
-- Nuxt `pages/` and `server/api/`: `[id].vue` a parameter, `[...slug].vue`
-  a catch-all printed as a line (as the pages reader does), `index.vue` the
-  folder's own route; `server/api/loans/[id].get.ts` an operation whose
-  method is in the file name.
+- Next.js `middleware.ts`, named `proxy.ts` from Next.js 16, beside `app/`
+  or `pages/`: its presence is a `must` question on every page and
+  operation it may cover, until the JavaScript reader reads its `matcher`
+  and checks.
+- Nuxt `pages/`, `server/api/` and `server/routes/`: `[id].vue` a
+  parameter, `[...slug].vue` a catch-all printed as a line (as the pages
+  reader does), `index.vue` the folder's own route, `loans.vue` beside a
+  `loans/` folder with an index page the parent of a nested route and a
+  line; `server/api/loans/[id].get.ts` an operation whose method is in the
+  file name, a file with no method a `must` question as for Next.js.
+  Global route middleware (`middleware/*.global.ts`) and
+  `server/middleware/` are asked as for `middleware.ts`.
+- A folder named `pages` is Next.js's or Nuxt's as the nearest
+  `package.json` names `next` or `nuxt`; when it does not say, the reader
+  reads `.vue` files as Nuxt's and asks.
 
 ## Swift
 

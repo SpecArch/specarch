@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 353 design tests, 142 golden and 211 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 357 design tests, 146 golden and 211 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.6.0-dev of the specification: 353 design tests, 142 golden and 211 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 349 |
+| system | 353 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -778,6 +778,30 @@ Scenario: golden; level: system; verifies SA-44.
 - When: extract outline is run on the folder with a source key
 - Then: it writes a root that lists every tracked file as a clause of that source at the commit, and no element; it names the commit, counts the files, reports the generated file, and exits 0
 
+#### extract-pages-next-pages-router
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository whose package.json names next, with proxy.ts beside a pages folder holding an index page, a page by its file and a page by its folder's index on one route, a page with a parameter, _app, _document, a 404 page, a catch-all page, a page.mdx-like file, and API routes under api, one with a parameter and one catch-all
+- When: extract pages is run on the pages folder
+- Then: it reads it as the Pages Router of Next.js because package.json names next, writes one page per file whose route the meta-model holds, a must question citing each API route file that asks for its methods, a must question citing proxy.ts on every page's permission and the paths, names the commit, counts the page and API route files, prints a line and a could question for _app, _document, the 404 page, each catch-all, the .mdx file and the second file on one route, and exits 0
+
+#### extract-pages-nuxt-pages
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository whose package.json names nuxt, with global route middleware and named route middleware beside a pages folder holding an index page, a parent page beside its folder's index, a page with a parameter, a page in a route group, a catch-all page, a page with an optional parameter, two files for one route and a Markdown file
+- When: extract pages is run on the pages folder
+- Then: it reads it as the pages of Nuxt because package.json names nuxt, writes one page per file whose route the meta-model holds with the group left out of the route, a must question citing the global middleware on every page's permission and nothing for the named middleware, names the commit, counts the page files, prints a line and a could question for the parent page, the catch-all, the optional parameter, the second file on one route and the Markdown file, and exits 0
+
+#### extract-pages-nuxt-server
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository whose server folder holds route files under api and routes whose names end in get, post or delete, one ending in head, one with no method, a catch-all route, a Markdown file, server middleware and a utility file
+- When: extract pages is run on the server folder
+- Then: it writes one operation per route file whose name ends in a method the meta-model holds, under /api for api and at the root for routes, named by its method and path, with its path parameters and a must question for the parameters' values, what each operation does and answers and its permission, a must question citing the file with no method that asks for its methods, a must question citing the middleware on every operation's permission and the paths, names the commit, counts the route and middleware files, prints a line and a could question for the HEAD route, the catch-all and the Markdown file, and exits 0
+
 #### extract-pages-route-twice
 
 Scenario: red; level: system; covers exit 1; verifies SA-44.
@@ -785,6 +809,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-44.
 - Given: a repository whose app folder holds two route groups, each with a page in a folder of the same name, so that both give one route
 - When: extract pages is run on the app folder
 - Then: it refuses the folder, naming both page files and the route, writes nothing, and exits 1
+
+#### extract-pages-router-guess
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository whose package.json names neither next nor nuxt, beside a pages folder holding one .vue page
+- When: extract pages is run on the pages folder
+- Then: it reads it as the pages of Nuxt, since the folder holds .vue files, writes the page, a must question citing package.json that asks which framework serves the folder, names the commit and the router with why, and exits 0
 
 #### extract-pages-task
 
@@ -798,9 +830,9 @@ Scenario: golden; level: system; verifies SA-44.
 
 Scenario: golden; level: system; verifies SA-44.
 
-- Given: a repository whose app folder holds a root page, a route group with a list page whose schema file gives its content, keys the reader does not read, a hook and a compact column that is not a column, a page with a dynamic segment whose schema is outside the subset, a page that says it is generated, and a catch-all segment, a parallel route, a private folder, an intercepting route, a route handler and a page.mdx
+- Given: a repository whose app folder holds a root page, a route group with a list page whose schema file gives its content, keys the reader does not read, a hook and a compact column that is not a column, a page with a dynamic segment whose schema is outside the subset, a page that says it is generated, and a catch-all segment, a parallel route, a private folder, an intercepting route, a route handler and a page.mdx, and middleware.ts beside the app folder
 - When: extract pages is run on the app folder
-- Then: it writes one page per route with its parameter, the list page's content from its schema with the entity, its fields and the permission it names, a question for what neither the folders nor the schemas say, names the commit, counts the page and schema files, reports the generated page, prints a line for every folder, file and key it leaves out, a could question citing the file, or the schema's line, for each but the content the question for the page asks for, and exits 0
+- Then: it writes one page per route with its parameter, the list page's content from its schema with the entity, its fields and the permission it names, a question for what neither the folders nor the schemas say, a must question citing the route handler that asks for its methods, a must question citing middleware.ts on every page's permission and the paths, names the commit and the router, counts the page and schema files, reports the generated page, prints a line for every folder, file and key it leaves out, a could question citing the file, or the schema's line, for each but the content the question for the page asks for, and exits 0
 
 #### extract-permissions-grant-twice
 

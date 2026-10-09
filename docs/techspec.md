@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 57 requirements, 5 entities, 12 commands, 7 algorithms, 353 tests, 81 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 57 requirements, 5 entities, 12 commands, 7 algorithms, 357 tests, 82 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -835,23 +835,69 @@ The sources this build reads:
   while the setting is empty the check lets every request through
   and nothing says so; extract go asks it in the same words, so
   that merge joins the two.
-- `pages`: one folder that is a file-system router's root, such as
-  the `app` folder of a Next.js application, read from its tracked
-  files (ADR-057). Every folder that holds a page file, `page.tsx`,
-  `page.ts`, `page.jsx` or `page.js`, is one page, its route the
-  folders from the root down: a folder named in parentheses is a
-  route group and adds nothing to the route, and a folder named
-  `[name]` is the route parameter `{name}`. The page is named after
-  its route in kebab-case, a parameter as `by-` and its name, and
-  the root's own page `root`. Two folders that give one route are
-  refused, as the router refuses them. What the meta-model cannot
-  hold prints a line and is left out: a catch-all segment
-  `[...name]` or `[[...name]]`, a parallel route `@name`, an
-  intercepting route `(.)name`, a page in a private folder `_name`,
-  a parameter whose name is not an identifier, any other page file
-  such as `page.mdx`, and a route handler, `route.ts` and the like,
-  which serves an operation the router reader reads. A page whose
-  folder holds `page.schema.ts`, the schema its component library
+- `pages`: one folder that is a file-system router's root, read
+  from its tracked files with no parser (ADR-057, ADR-084). The
+  folder's name tells the router: `server` is Nuxt's server
+  (Nitro); `pages` is the Pages Router of Next.js or the pages of
+  Nuxt, as the nearest tracked `package.json` at or above the
+  folder that holds it names `next` or `nuxt` among its
+  dependencies; any other name, such as `app`, is the App Router
+  of Next.js. When that package names neither or both, or there is
+  none, a `pages` folder with `.vue` files is read as Nuxt's and
+  any other as Next.js's, and a must question citing the package
+  asks which it is. A line names the router and why. In every
+  router a page is named after its route in kebab-case, a
+  parameter as `by-` and its name, the root's own page `root`, and
+  cites its file. In the App Router every folder that holds a page
+  file, `page.tsx`, `page.ts`, `page.jsx` or `page.js`, is one
+  page, its route the folders from the root down: a folder named
+  in parentheses is a route group and adds nothing to the route,
+  and a folder named `[name]` is the route parameter `{name}`. Two
+  folders that give one route are refused, as the router refuses
+  them. What the meta-model cannot hold prints a line and is left
+  out: a catch-all segment `[...name]` or `[[...name]]`, an
+  optional parameter `[[name]]`, a parallel route `@name`, an
+  intercepting route `(.)name`, a page in a private folder
+  `_name`, a parameter whose name is not an identifier, any other
+  page file such as `page.mdx`, and a route handler on a page's
+  route. In the Pages Router every file with the extension `.tsx`,
+  `.ts`, `.jsx` or `.js` is one page, `index` its folder's own
+  route; `_app` and `_document`, which wrap every page, and the
+  error pages `_error`, `404` and `500` print a line, and so does
+  a file with any other extension. In Nuxt's pages every file with
+  the extension `.vue`, `.tsx`, `.ts`, `.jsx`, `.js` or `.mjs` is
+  one page, `index` its folder's own route and a folder in
+  parentheses a group; a file beside a folder of the same name
+  that holds an index page wraps that folder's pages, a nested
+  route, and prints a line. In both, a second file on one route
+  prints a line and is left out. A route file serves operations:
+  `route.ts` and the like in the App Router, every file under
+  `pages/api` in the Pages Router, and in Nuxt's server every file
+  with the extension `.ts`, `.js` or `.mjs` under `server/api`,
+  served under `/api`, and under `server/routes`, served at the
+  root. Its path follows the same rules as a page's route. A file
+  whose name ends in a method, `index.get.ts` or
+  `[loanId].delete.ts`, is that operation, named by its method and
+  path as extract router names one, with its path parameters, and
+  what it does and answers, its parameters' values and its
+  permission are must questions, never written as public; HEAD,
+  OPTIONS, CONNECT and TRACE print a line. Any other route file's
+  methods are decided by the handlers it exports, so no operation
+  is written for it: a must question citing the file blocks the
+  paths and asks for its methods and, for each, what it does,
+  answers and checks, until the JavaScript reader reads them.
+  Middleware the router runs, found by its place, is a must
+  question citing its file on every page's permission and every
+  operation's, and on the paths when a route file's methods are
+  asked: `middleware.ts`, `middleware.js`, `proxy.ts` or
+  `proxy.js` beside an App Router or Pages Router folder, Nuxt's
+  global route middleware `middleware/*.global.ts` (or `.js`,
+  `.mjs`) beside a Nuxt pages folder, which covers its pages, and
+  every file under `server/middleware`, which covers the server's
+  operations. A second route file for one method and path prints a
+  line and is left out. The files read beside the folder are read at the
+  same commit, which names them all. A page whose folder holds
+  `page.schema.ts`, the schema its component library
   renders from, takes its content from it: the file holds imports,
   comments and one exported object literal, optionally followed by
   `satisfies` and a type, written in the subset of TypeScript that
@@ -1199,7 +1245,7 @@ Every reader follows these rules:
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
 | `<source>` | string | yes | The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows` or `go`. |
-| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository. |
+| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file; for go, files or folders of Go source in one repository. |
 | `--out` | string | yes | The folder the specification is written into; it becomes the specification's root folder. |
 | `--implementation` | string |   | For go, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through. |
 | `--source-key` | string |   | The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given. |
@@ -5742,6 +5788,58 @@ still needs --unapproved.
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.6: A complete set of requirements holds no to-be-defined, to-be-specified or to-be-resolved clause; resolving them is iterative, within a time set by risk and dependency. <https://www.iso.org/standard/72089.html>
 
+### ADR-084: extract pages reads the Pages Router of Next.js, Nuxt's pages and server, route files and middleware by their place, and asks for every method and check their content decides
+
+Status: accepted, 2026-10-09.
+
+Context: Step 16 of docs/extraction.md extends the pages reader of ADR-057
+to the file-system routers that need no parser: Next.js's pages
+folder and its api folder, the App Router's route files, the
+middleware Next.js runs, and Nuxt's pages and server folders. Each
+gives a route by a file's place, and each leaves something to the
+file's content: which methods a route file's handlers take, and
+which routes a middleware covers and what it checks. The content
+waits for the JavaScript reader (steps 18 to 20). Next.js and Nuxt
+both serve pages from a folder named pages, by different rules. In
+meta-model 0.1 an operation is a method and a path, and a path
+item must hold at least one operation.
+
+Decision: extract pages reads one folder, the router's root, and tells
+the router by the folder's name: server is Nuxt's server, pages is
+Next.js's or Nuxt's as the nearest tracked package.json at or above
+the folder that holds it names next or nuxt among its dependencies,
+and any other name is the App Router. When the package does not
+name exactly one, .vue files make the folder Nuxt's, and a must
+question citing the package asks. The files the router runs from
+beside the folder are read by their place and at the same commit:
+middleware.ts, middleware.js, proxy.ts and proxy.js beside an App
+Router or Pages Router folder, and middleware/*.global.* beside a
+Nuxt pages folder; server/middleware is inside the server folder.
+A page is one file in the Pages Router and in Nuxt, index its
+folder's route. A route file whose name ends in a method, as Nuxt's
+server writes [id].get.ts, is that operation; any other route file
+is a must question citing the file and blocking the paths, asking
+for its methods and what each does, answers and checks. Each
+middleware file is a must question citing it on every page's and
+every operation's permission, and on the paths when a route file's
+methods are asked. What the meta-model cannot hold prints a line
+with a could question, as in ADR-057: catch-all and optional
+segments, _app, _document and the error pages, a parent page that
+wraps a nested route, a file with an extension the router serves
+only by configuration, HEAD and the other methods the meta-model
+lacks, a second file on one route, and a route handler on a page's
+route.
+
+Consequences: A front end on Next.js or Nuxt yields its pages and its server
+routes' paths with git alone, and every method, middleware and
+framework guess is a must question at its file until the
+JavaScript reader reads the content. A Nuxt project is read in two
+runs, its pages folder and its server folder, merged like any two
+trees. A pages tree now may write design/paths.yaml, and a tree of
+a server folder writes no pages.
+
+**Insight:** The compiler principle decides the shape. A route file whose methods are unknown cannot be a path item, which needs a method, and writing GET for it would be a guess; so it is a must question at the file, in the paths section, which keeps the file in the specification and its problem in the problems file until the JavaScript reader or the owner answers. The schema was not widened to hold a path with no operation: an operation is what every generator, test and merge row is keyed on, and a path with none would be a placeholder. A middleware file runs before every route it covers and may check who is signed in, which is how a page's permission is often given, so its presence blocks every permission it may give rather than being left as a note; never assuming public is ADR-057's rule. It also serves a specification that is never complete: a front end's pages and paths show from git alone, before any parser, so a result is there to look at early, and since every guess is a question at its file, a change someone asks for on seeing it is an answer to that question, not a rewrite of the tree. The folder's name tells the router because the frameworks fix those names: Next.js serves only from app and pages, and Nuxt's server only from server. A folder named pages is ambiguous, and the package's own dependency list is the one place a project says which framework it runs; ambiguity is an error, so a guess is asked, never silent. Where several files of a project matter, the reader reads them at one commit, so the citations name one state. Each router's rules are its own documentation's. Next.js serves a page from .tsx, .ts, .jsx and .js by default (pageExtensions) and refuses a page and a route handler on one segment, so a route file there is left out with a line; it runs middleware.ts from the folder that holds app or pages, and from version 16 names the same file proxy.ts, so both names are read. Nuxt nests a page under a file of its folder's name, which wraps the folder's pages and is no page of its own; its server routes take the method from the file name's last part. The registration question of ADR-075 is not asked: the folders are the router, as ADR-057 found, so no printer exists to compare with and the tree sets no reading.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -5838,9 +5936,13 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-outline-shallow-clone | command extract | system | red | a clone of depth 1 of a repository with two commits | extract outline is run on a folder of it | it refuses the shallow clone, whose history cannot name the last change to a path, writes nothing and exits 1 |
 | extract-outline-uncommitted | command extract | system | red | a folder whose files are committed, one of them changed since and not committed | extract outline is run on the folder | it refuses, naming the changed file, since no commit names what would be read; it writes nothing and exits 1 |
 | extract-outline-writes-clauses | command extract | system | golden | a repository holding a folder of workflow definitions in a format no reader reads, one of them a TypeScript file that says it is generated from the others | extract outline is run on the folder with a source key | it writes a root that lists every tracked file as a clause of that source at the commit, and no element; it names the commit, counts the files, reports the generated file, and exits 0 |
+| extract-pages-next-pages-router | command extract | system | golden | a repository whose package.json names next, with proxy.ts beside a pages folder holding an index page, a page by its file and a page by its folder's index on one route, a page with a parameter, _app, _document, a 404 page, a catch-all page, a page.mdx-like file, and API routes under api, one with a parameter and one catch-all | extract pages is run on the pages folder | it reads it as the Pages Router of Next.js because package.json names next, writes one page per file whose route the meta-model holds, a must question citing each API route file that asks for its methods, a must question citing proxy.ts on every page's permission and the paths, names the commit, counts the page and API route files, prints a line and a could question for _app, _document, the 404 page, each catch-all, the .mdx file and the second file on one route, and exits 0 |
+| extract-pages-nuxt-pages | command extract | system | golden | a repository whose package.json names nuxt, with global route middleware and named route middleware beside a pages folder holding an index page, a parent page beside its folder's index, a page with a parameter, a page in a route group, a catch-all page, a page with an optional parameter, two files for one route and a Markdown file | extract pages is run on the pages folder | it reads it as the pages of Nuxt because package.json names nuxt, writes one page per file whose route the meta-model holds with the group left out of the route, a must question citing the global middleware on every page's permission and nothing for the named middleware, names the commit, counts the page files, prints a line and a could question for the parent page, the catch-all, the optional parameter, the second file on one route and the Markdown file, and exits 0 |
+| extract-pages-nuxt-server | command extract | system | golden | a repository whose server folder holds route files under api and routes whose names end in get, post or delete, one ending in head, one with no method, a catch-all route, a Markdown file, server middleware and a utility file | extract pages is run on the server folder | it writes one operation per route file whose name ends in a method the meta-model holds, under /api for api and at the root for routes, named by its method and path, with its path parameters and a must question for the parameters' values, what each operation does and answers and its permission, a must question citing the file with no method that asks for its methods, a must question citing the middleware on every operation's permission and the paths, names the commit, counts the route and middleware files, prints a line and a could question for the HEAD route, the catch-all and the Markdown file, and exits 0 |
 | extract-pages-route-twice | command extract | system | red | a repository whose app folder holds two route groups, each with a page in a folder of the same name, so that both give one route | extract pages is run on the app folder | it refuses the folder, naming both page files and the route, writes nothing, and exits 1 |
+| extract-pages-router-guess | command extract | system | golden | a repository whose package.json names neither next nor nuxt, beside a pages folder holding one .vue page | extract pages is run on the pages folder | it reads it as the pages of Nuxt, since the folder holds .vue files, writes the page, a must question citing package.json that asks which framework serves the folder, names the commit and the router with why, and exits 0 |
 | extract-pages-task | command extract | system | golden | a repository whose app folder holds a page with no schema, and a sign-in page whose schema says it is a task that is open to everyone, names the operation it submits to and its fields, and names an entity besides | extract pages is run on the app folder | it writes the sign-in page as a task with its fields and no entity, prints a line and writes a could question for the entity it leaves out, declares public without asking what it allows, asks only for the operation it submits to, and exits 0 |
-| extract-pages-writes-tree | command extract | system | golden | a repository whose app folder holds a root page, a route group with a list page whose schema file gives its content, keys the reader does not read, a hook and a compact column that is not a column, a page with a dynamic segment whose schema is outside the subset, a page that says it is generated, and a catch-all segment, a parallel route, a private folder, an intercepting route, a route handler and a page.mdx | extract pages is run on the app folder | it writes one page per route with its parameter, the list page's content from its schema with the entity, its fields and the permission it names, a question for what neither the folders nor the schemas say, names the commit, counts the page and schema files, reports the generated page, prints a line for every folder, file and key it leaves out, a could question citing the file, or the schema's line, for each but the content the question for the page asks for, and exits 0 |
+| extract-pages-writes-tree | command extract | system | golden | a repository whose app folder holds a root page, a route group with a list page whose schema file gives its content, keys the reader does not read, a hook and a compact column that is not a column, a page with a dynamic segment whose schema is outside the subset, a page that says it is generated, and a catch-all segment, a parallel route, a private folder, an intercepting route, a route handler and a page.mdx, and middleware.ts beside the app folder | extract pages is run on the app folder | it writes one page per route with its parameter, the list page's content from its schema with the entity, its fields and the permission it names, a question for what neither the folders nor the schemas say, a must question citing the route handler that asks for its methods, a must question citing middleware.ts on every page's permission and the paths, names the commit and the router, counts the page and schema files, reports the generated page, prints a line for every folder, file and key it leaves out, a could question citing the file, or the schema's line, for each but the content the question for the page asks for, and exits 0 |
 | extract-permissions-grant-twice | command extract | system | red | a permission table that lists one role granting one permission twice | extract permissions is run on the permission table | it refuses the table, naming the grant listed twice, writes nothing and exits 1 |
 | extract-permissions-writes-tree | command extract | system | golden | a repository whose first commit holds the folder a permission check is built from and whose second holds the permission table printed from it, naming the first; the table has two roles sharing a permission, a privilege in dxlib_module's capitals, a grant of EVERYTHING, two privileges that give one permission granted to two roles, a grant of public, a role whose name is not kebab-case, a role whose permissions are not a permission name and a privilege that gives another's permission, and a check that runs only when a setting is present | extract permissions is run on the permission table | it writes each role with the permissions it grants in the order of their names and every permission granted, the privilege in capitals mapped by the rule of ADR-076 and declared inferred; a must question on the grant of EVERYTHING, which it does not expand, on each of the two privileges that give one permission and on the name that is not a permission name, each blocking the role's permissions, with the role written with the grants it can read; a question for the roles' and the permissions' descriptions and one for the check a setting switches off, citing the table; names the commit, counts the grants and gates, prints a line for the gate, prints a line and writes a could question citing the role for the grant of public and the role's name, and exits 0 |
 | extract-router-route-twice | command extract | system | red | a route table that lists the same method and path pair twice | extract router is run on the route table | it refuses the route table, naming the route listed twice, writes nothing and exits 1 |
@@ -6365,7 +6467,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-41 | enums Rule; decisions ADR-033; decisions ADR-070 | tests validate-views; tests validate-views-valid |
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
-| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081 | tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-tables-seeds; tests extract-go-http-handlers; tests extract-go-routers; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-route-twice; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read; tests validate-source-reading |
+| SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081; decisions ADR-084 | tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-tables-seeds; tests extract-go-http-handlers; tests extract-go-routers; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-next-pages-router; tests extract-pages-nuxt-pages; tests extract-pages-nuxt-server; tests extract-pages-route-twice; tests extract-pages-router-guess; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-route-twice; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read; tests validate-source-reading |
 | SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-077 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-printed-parsed; tests merge-printed-parsed-grants; tests merge-source-differs; tests merge-tree-invalid; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests merge-workflows-joins-trigger; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046; decisions ADR-068 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-mapping-menu-entry; tests validate-owned-by-unknown |
 | SA-47 | enums Rule; decisions ADR-054 | tests document-techspec-open-workflow; tests validate-maker-checker; tests validate-workflow; tests validate-workflow-valid |

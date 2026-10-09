@@ -4,7 +4,7 @@ info:
   title: Pages of app
   version: 0.1.0
   description: |
-    The pages the file-system router rooted at app serves, read from the folders git tracks there at commit ee4f6342de804f093d1b404468f447f9a11a1901, with the content of each page that has a schema file from that file. Every page cites its page file; what the folders and the schemas do not say is a question, and so is what the meta-model cannot hold.
+    The pages and operations the file-system router rooted at app serves, read from the files git tracks there at commit ee4f6342de804f093d1b404468f447f9a11a1901, with the content of each page that has a schema file from that file. Every page and operation cites its file; what the files' places and the schemas do not say is a question, and so is what the meta-model cannot hold.
   tracksOrigin: true
 stages: [requirements, design]
 sources:

@@ -44,6 +44,7 @@ var (
 type page struct {
 	name, route, folder string
 	file                string // the page file, from the repository's root
+	says                string // what the page file's place says, as its citation
 	schema              string // the schema file, or ""
 	kind, title         string
 	entity, permission  string
@@ -53,22 +54,37 @@ type page struct {
 	read                []string            // the keys the schema gave, in the order written
 }
 
-// Pages reads a file-system router's root folder into one page per folder
-// that holds a page file, with the content of each page that has a schema
-// file from it.
+// Pages reads a file-system router's root folder into one page per file or
+// folder it serves a page from, with the content of each page that has a
+// schema file from it, and one operation per route file whose name gives
+// its method. The router is told by the folder's name (ADR-084).
 func Pages(root, out, key string) (*Result, error) {
 	info, err := os.Stat(root)
 	if err != nil {
 		return nil, err
 	}
 	if !info.IsDir() {
-		return nil, refuse("%s is not a folder; extract pages reads a file-system router's root folder, such as app", root)
+		return nil, refuse("%s is not a folder; extract pages reads a file-system router's root folder, such as app, pages or server", root)
 	}
 	r, err := Open([]string{root})
 	if err != nil {
 		return nil, err
 	}
 	rd := &pageReader{r: r, key: key, res: &Result{Tree: newTree()}, base: r.Paths[0]}
+	beside, err := rd.beside()
+	if err != nil {
+		return nil, err
+	}
+	if len(beside) > 0 {
+		paths := []string{root}
+		for _, f := range beside {
+			paths = append(paths, filepath.Join(r.Repository.Root, filepath.FromSlash(f)))
+		}
+		if r, err = Open(paths); err != nil {
+			return nil, err
+		}
+		rd.r = r
+	}
 	commitLine(rd.res, r)
 	if err := rd.read(); err != nil {
 		return nil, err
@@ -80,6 +96,15 @@ func Pages(root, out, key string) (*Result, error) {
 			clauses = append(clauses, flow(mapping("clause", pg.schema, "title", "The schema of the page at "+pg.route)))
 		}
 	}
+	for _, rf := range rd.routeFiles {
+		clauses = append(clauses, flow(mapping("clause", rf.file, "title", "The route file of "+rf.path)))
+	}
+	for _, f := range rd.middleware {
+		clauses = append(clauses, flow(mapping("clause", f, "title", "Middleware the router runs before the routes it covers")))
+	}
+	if rd.packageFile != "" {
+		clauses = append(clauses, flow(mapping("clause", rd.packageFile, "title", "The package that names the framework")))
+	}
 	sort.Slice(clauses, func(i, j int) bool {
 		return source0(clauses[i]) < source0(clauses[j])
 	})
@@ -87,20 +112,29 @@ func Pages(root, out, key string) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	design := mapping()
-	if rd.entities != nil {
-		set(design, "entities", rd.entities)
-	}
-	if rd.permissions != nil {
-		set(design, "permissions", rd.permissions)
-	}
-	set(design, "pages", rd.pageNodes)
 	res := rd.res
-	res.Tree.put("design/pages.yaml", design)
+	if len(rd.pages) > 0 {
+		design := mapping()
+		if rd.entities != nil {
+			set(design, "entities", rd.entities)
+		}
+		if rd.permissions != nil {
+			set(design, "permissions", rd.permissions)
+		}
+		set(design, "pages", rd.pageNodes)
+		res.Tree.put("design/pages.yaml", design)
+	}
+	if rd.paths != nil {
+		res.Tree.put("design/paths.yaml", mapping("paths", rd.paths))
+	}
 	res.Tree.put("requirements/stakeholders.yaml", mapping("stakeholders", ownerStakeholder()))
 	res.Tree.put("design/questions.yaml", mapping("questions", rd.questions))
-	description := fmt.Sprintf("The pages the file-system router rooted at %s serves, read from the folders git tracks there at commit %s, with the content of each page that has a schema file from that file. Every page cites its page file; what the folders and the schemas do not say is a question, and so is what the meta-model cannot hold.\n", rd.base, r.Commit)
-	res.Tree.put("specarch.yaml", rootFile("Pages of "+rd.base, description, []string{"requirements", "design"}, mapping(key, src)))
+	description := fmt.Sprintf("The pages and operations the file-system router rooted at %s serves, read from the files git tracks there at commit %s, with the content of each page that has a schema file from that file. Every page and operation cites its file; what the files' places and the schemas do not say is a question, and so is what the meta-model cannot hold.\n", rd.base, r.Commit)
+	title := "Pages of " + rd.base
+	if rd.router == routerNuxtServer {
+		title = "Routes of " + rd.base
+	}
+	res.Tree.put("specarch.yaml", rootFile(title, description, []string{"requirements", "design"}, mapping(key, src)))
 	return res, nil
 }
 
@@ -118,6 +152,15 @@ type pageReader struct {
 	questions   *yaml.Node
 	nextID      int
 	notHeld     []pageNotHeld
+
+	router      string       // which file-system router serves the folder
+	routerWhy   string       // what told the reader which router it is
+	routerAsk   string       // why the router is a guess, or ""
+	packageFile string       // the package.json that names the framework, or ""
+	middleware  []string     // the middleware files the router runs, by their place
+	routeFiles  []*routeFile // the route files, in the order of their paths
+	paths       *yaml.Node   // the operations route files give, or nil
+	generated   []string     // a line per file read that says it is generated
 }
 
 // pageNotHeld is a thing not held, about a page whose name is known only
@@ -190,58 +233,50 @@ func (rd *pageReader) within(f string) string {
 	return strings.TrimPrefix(f, rd.base+"/")
 }
 
+// pageCandidate is a page file a router serves a page from, before the
+// reader checks that no other file serves its route.
+type pageCandidate struct {
+	file, folder, route, says string
+	words                     []string
+}
+
 func (rd *pageReader) read() error {
+	var cands []pageCandidate
 	schemas := map[string]string{} // folder below the root -> schema file
-	var pageList []string
-	var generated []string
-	for _, f := range rd.r.Files {
-		rel := rd.within(f)
-		name := path.Base(rel)
-		folder := path.Dir(rel)
-		switch {
-		case pageFiles[name]:
-			pageList = append(pageList, f)
-		case name == pageSchemaFile:
-			schemas[folder] = f
-		case routeFiles[name]:
-			rd.gap("paths", f, "%s: a route handler serves an operation, which the router reader reads, not a page; left out", f)
-		case otherPageFile.MatchString(name):
-			rd.gap("pages", f, "%s: a page file the router serves only when its configuration adds the extension, which the folders do not say; left out", f)
-		default:
-			continue
-		}
-		if line, text, ok := generatedMark(filepath.Join(rd.r.Repository.Root, filepath.FromSlash(f))); ok {
-			generated = append(generated, fmt.Sprintf("generated: %s:%d says it is generated from another source: %s", f, line, text))
-		}
+	rd.res.say("router: %s, since %s", rd.routerName(), rd.routerWhy)
+	switch rd.router {
+	case routerApp:
+		cands, schemas = rd.collectApp()
+	case routerNextPages:
+		cands = rd.collectNextPages()
+	case routerNuxtPages:
+		cands = rd.collectNuxtPages()
+	case routerNuxtServer:
+		rd.collectNuxtServer()
 	}
 	byRoute := map[string]*page{}
 	byFolder := map[string]*page{}
-	for _, f := range pageList {
-		folder := path.Dir(rd.within(f))
-		if prev := byFolder[folder]; prev != nil {
-			rd.gap("pages", f, "%s: %s already serves the page of this folder; left out", f, path.Base(prev.file))
+	for _, c := range cands {
+		if prev := byRoute[c.route]; prev != nil {
+			if rd.router == routerApp {
+				return refuse("%s and %s both give the route %s; a file-system router refuses two pages on one route", prev.file, c.file, c.route)
+			}
+			rd.gap("pages", c.file, "%s: %s already serves the page at %s, and a route has one page; left out", c.file, prev.file, c.route)
 			continue
 		}
-		route, nameWords, reason := folderRoute(folder)
-		if reason != "" {
-			rd.gap("pages", f, "%s: %s; left out", f, reason)
-			continue
-		}
-		if prev := byRoute[route]; prev != nil {
-			return refuse("%s and %s both give the route %s; a file-system router refuses two pages on one route", prev.file, f, route)
-		}
-		pg := &page{route: route, folder: folder, file: f, lists: map[string][]string{}, named: map[string]string{}}
-		pg.name = strings.Join(nameWords, "-")
+		pg := &page{route: c.route, folder: c.folder, file: c.file, says: c.says, lists: map[string][]string{}, named: map[string]string{}}
+		pg.name = strings.Join(c.words, "-")
 		if pg.name == "" {
 			pg.name = "root"
 		}
 		if pg.name[0] < 'a' || pg.name[0] > 'z' {
 			pg.name = "page-" + pg.name
 		}
-		byRoute[route] = pg
-		byFolder[folder] = pg
+		byRoute[c.route] = pg
+		byFolder[c.folder] = pg
 		rd.pages = append(rd.pages, pg)
 	}
+	rd.settleRouteFiles(byRoute)
 	schemaFolders := make([]string, 0, len(schemas))
 	for folder := range schemas {
 		schemaFolders = append(schemaFolders, folder)
@@ -260,13 +295,15 @@ func (rd *pageReader) read() error {
 			return err
 		}
 	}
-	if len(rd.pages) == 0 {
-		return refuse("%s holds no page file the meta-model can hold (page.tsx, page.ts, page.jsx or page.js in a folder whose route it can say); extract pages reads a file-system router's root folder, such as app", rd.base)
+	if len(rd.pages) == 0 && len(rd.routeFiles) == 0 {
+		return refuse("%s holds no file %s serves a page or an operation from whose route the meta-model can hold; extract pages reads a file-system router's root folder, such as app, pages or server", rd.base, rd.routerName())
 	}
-	rd.res.say("counted %s and %s: the tracked files under %s named page.tsx, page.ts, page.jsx or page.js, and the files named %s beside them, each once", plural(len(pageList), "page file"), plural(len(schemas), "schema file"), rd.base, pageSchemaFile)
-	rd.res.Lines = append(rd.res.Lines, generated...)
+	rd.res.Lines = append(rd.res.Lines, rd.generated...)
 	rd.names()
 	rd.write()
+	rd.writeRoutes()
+	rd.askMiddleware()
+	rd.askRouter()
 	permissions := 0
 	if rd.permissions != nil {
 		permissions = len(rd.permissions.Content) / 2
@@ -275,32 +312,103 @@ func (rd *pageReader) read() error {
 	if rd.entities != nil {
 		entities = len(rd.entities.Content) / 2
 	}
-	rd.res.say("wrote %s, %s, %s and %s: one page per folder with a page file whose route the meta-model holds, %s read, one entity and one permission per name a schema gives, one question per thing the folders and the schemas do not say, and one per thing the meta-model cannot hold", plural(len(rd.pages), "page"), plural(entities, "entity"), plural(permissions, "permission"), plural(rd.nextID+couldCount(oneQuestions(rd.questions), rd.held()), "question"), plural(read, "schema"))
+	operations := 0
+	for _, rf := range rd.routeFiles {
+		if rf.key != "" {
+			operations++
+		}
+	}
+	rd.res.say("wrote %s, %s, %s, %s and %s: one page per file or folder the router serves a page from whose route the meta-model holds, %s read, one operation per route file whose name gives a method the meta-model holds, one entity and one permission per name a schema gives, one question per thing the files' places and the schemas do not say, and one per thing the meta-model cannot hold", plural(len(rd.pages), "page"), plural(operations, "operation"), plural(entities, "entity"), plural(permissions, "permission"), plural(rd.nextID+couldCount(oneQuestions(rd.questions), rd.held()), "question"), plural(read, "schema"))
 	askNotHeld(rd.res, oneQuestions(rd.questions), &rd.nextID, rd.key, rd.held())
 	return nil
 }
 
-// folderRoute is the route a folder below the root serves and the words of
-// the page's name, or why the meta-model cannot hold it.
-func folderRoute(folder string) (string, []string, string) {
-	if folder == "." {
-		return "/", nil, ""
+// collectApp takes the App Router's page, schema and route files: one page
+// per folder that holds a page file.
+func (rd *pageReader) collectApp() ([]pageCandidate, map[string]string) {
+	schemas := map[string]string{}
+	var pageList, routeList []string
+	for _, f := range rd.files() {
+		rel := rd.within(f)
+		name := path.Base(rel)
+		folder := path.Dir(rel)
+		switch {
+		case pageFiles[name]:
+			pageList = append(pageList, f)
+		case name == pageSchemaFile:
+			schemas[folder] = f
+		case routeFiles[name]:
+			routeList = append(routeList, f)
+		case otherPageFile.MatchString(name):
+			rd.gap("pages", f, "%s: a page file the router serves only when its configuration adds the extension, which the folders do not say; left out", f)
+		default:
+			continue
+		}
+		rd.markGenerated(f)
 	}
+	var cands []pageCandidate
+	byFolder := map[string]string{}
+	for _, f := range pageList {
+		folder := path.Dir(rd.within(f))
+		if prev := byFolder[folder]; prev != "" {
+			rd.gap("pages", f, "%s: %s already serves the page of this folder; left out", f, path.Base(prev))
+			continue
+		}
+		route, words, reason := segmentRoute(folderSegments(folder), "folder", "a page's route", routerApp)
+		if reason != "" {
+			rd.gap("pages", f, "%s: %s; left out", f, reason)
+			continue
+		}
+		byFolder[folder] = f
+		says := fmt.Sprintf("The folder %s holds %s, so the router serves a page at %s.", folder, path.Base(f), route)
+		if folder == "." {
+			says = fmt.Sprintf("The root folder holds %s, so the router serves a page at %s.", path.Base(f), route)
+		}
+		cands = append(cands, pageCandidate{file: f, folder: folder, route: route, says: says, words: words})
+	}
+	for _, f := range routeList {
+		folder := path.Dir(rd.within(f))
+		route, _, reason := segmentRoute(folderSegments(folder), "folder", "a path", routerApp)
+		if reason != "" {
+			rd.gap("paths", f, "%s: %s; left out", f, reason)
+			continue
+		}
+		rd.addRouteFile(f, route, "", fmt.Sprintf("The folder %s holds %s, so the router serves %s from it.", folder, path.Base(f), route))
+	}
+	rd.res.say("counted %s, %s and %s: the tracked files under %s named page.tsx, page.ts, page.jsx or page.js, the route files named route.ts, route.js, route.tsx or route.jsx, and the files named %s beside the pages, each once", plural(len(pageList), "page file"), plural(len(routeList), "route file"), plural(len(schemas), "schema file"), rd.base, pageSchemaFile)
+	return cands, schemas
+}
+
+func folderSegments(folder string) []string {
+	if folder == "." {
+		return nil
+	}
+	return strings.Split(folder, "/")
+}
+
+// segmentRoute is the route a router serves from the segments of a file's
+// place below its root, the words of a page's name, or why the meta-model
+// cannot hold it. noun names a segment in a reason: folder or segment;
+// holder what a parameter is a part of: a page's route or a path.
+func segmentRoute(segs []string, noun, holder, router string) (string, []string, string) {
 	var route, words []string
 	seen := map[string]bool{}
-	for _, seg := range strings.Split(folder, "/") {
+	for _, seg := range segs {
+		group := strings.HasPrefix(seg, "(") && strings.HasSuffix(seg, ")")
 		switch {
-		case strings.HasPrefix(seg, "(."):
+		case router == routerApp && strings.HasPrefix(seg, "(."):
 			return "", nil, fmt.Sprintf("the folder %s is an intercepting route, which shows another route's page in place; the meta-model has no page for it", seg)
-		case strings.HasPrefix(seg, "(") && strings.HasSuffix(seg, ")"):
+		case group && (router == routerApp || router == routerNuxtPages):
 			continue
-		case strings.HasPrefix(seg, "@"):
+		case router == routerApp && strings.HasPrefix(seg, "@"):
 			return "", nil, fmt.Sprintf("the folder %s is a parallel route, a slot of a layout and not a route; the meta-model has no page for it", seg)
-		case strings.HasPrefix(seg, "_"):
+		case router == routerApp && strings.HasPrefix(seg, "_"):
 			return "", nil, fmt.Sprintf("the folder %s is private, which the router does not serve", seg)
 		case strings.HasPrefix(seg, "[...") || strings.HasPrefix(seg, "[[..."):
-			return "", nil, fmt.Sprintf("the folder %s is a catch-all segment, and a page's route holds one whole parameter per segment", seg)
-		case strings.HasPrefix(seg, "[") && strings.HasSuffix(seg, "]"):
+			return "", nil, fmt.Sprintf("the %s %s is a catch-all segment, and %s holds one whole parameter per segment", noun, seg, holder)
+		case strings.HasPrefix(seg, "[[") && strings.HasSuffix(seg, "]]"):
+			return "", nil, fmt.Sprintf("the %s %s is an optional parameter, which serves the route with and without it, and %s holds each parameter it has", noun, seg, holder)
+		case strings.HasPrefix(seg, "[") && strings.HasSuffix(seg, "]") && strings.Count(seg, "[") == 1:
 			name := seg[1 : len(seg)-1]
 			if !paramName.MatchString(name) {
 				return "", nil, fmt.Sprintf("the parameter %s is not an identifier", name)
@@ -316,8 +424,10 @@ func folderRoute(folder string) (string, []string, string) {
 			if w := pageWord(seg); w != "" {
 				words = append(words, w)
 			}
+		case router == routerApp || router == routerNuxtPages:
+			return "", nil, fmt.Sprintf("the %s %s is neither a fixed word, a group nor one whole parameter", noun, seg)
 		default:
-			return "", nil, fmt.Sprintf("the folder %s is neither a fixed word, a group nor one whole parameter", seg)
+			return "", nil, fmt.Sprintf("the %s %s is neither a fixed word nor one whole parameter", noun, seg)
 		}
 	}
 	return "/" + strings.Join(route, "/"), words, ""
@@ -581,11 +691,7 @@ func (rd *pageReader) write() {
 			set(n, "filters", l)
 		}
 		set(n, "origin", "stated")
-		folder := "The folder " + pg.folder
-		if pg.folder == "." {
-			folder = "The root folder"
-		}
-		cites := []*yaml.Node{citation(rd.key, pg.file, fmt.Sprintf("%s holds %s, so the router serves a page at %s.", folder, path.Base(pg.file), pg.route))}
+		cites := []*yaml.Node{citation(rd.key, pg.file, pg.says)}
 		if pg.schema != "" {
 			says := "The page's schema gives none of the page's keys."
 			if len(pg.read) > 0 {

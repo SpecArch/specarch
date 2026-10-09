@@ -1,0 +1,16 @@
+arguments: [extract, pages, --out, spec, site/pages]
+repository:
+  folder: site
+  commits:
+    - [.]
+exitStatus: 0
+standardOutput: |
+  commit 6af11c20b75576dfb8ca5a4967eb4e9eb6a0974d: the last change to middleware/auth.global.ts, package.json, pages
+  router: the pages of Nuxt, since package.json names nuxt among its dependencies
+  counted 9 page files: the tracked files under pages with the extension .vue, .tsx, .ts, .jsx, .js or .mjs, each once
+  wrote 5 pages, 0 operations, 0 entities, 0 permissions and 16 questions: one page per file or folder the router serves a page from whose route the meta-model holds, 0 schemas read, one operation per route file whose name gives a method the meta-model holds, one entity and one permission per name a schema gives, one question per thing the files' places and the schemas do not say, and one per thing the meta-model cannot hold
+  not held: pages/README.md: a file the router serves only when its configuration adds the extension .md, which the files do not say; left out; could question Q-12
+  not held: pages/docs/[...slug].vue: the segment [...slug] is a catch-all segment, and a page's route holds one whole parameter per segment; left out; could question Q-13
+  not held: pages/loans.vue: it wraps the pages of the folder loans, a nested route whose index page is the page at its route; the meta-model has no page that holds others; left out; could question Q-14
+  not held: pages/search/[[term]].vue: the segment [[term]] is an optional parameter, which serves the route with and without it, and a page's route holds each parameter it has; left out; could question Q-15
+  not held: pages/help.vue: pages/help.tsx already serves the page at /help, and a route has one page; left out; could question Q-16

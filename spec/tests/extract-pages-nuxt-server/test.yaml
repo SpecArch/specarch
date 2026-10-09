@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository whose server folder holds route files under api and routes whose names end in get, post or delete, one ending in head, one with no method, a catch-all route, a Markdown file, server middleware and a utility file"
+when: "extract pages is run on the server folder"
+then: "it writes one operation per route file whose name ends in a method the meta-model holds, under /api for api and at the root for routes, named by its method and path, with its path parameters and a must question for the parameters' values, what each operation does and answers and its permission, a must question citing the file with no method that asks for its methods, a must question citing the middleware on every operation's permission and the paths, names the commit, counts the route and middleware files, prints a line and a could question for the HEAD route, the catch-all and the Markdown file, and exits 0"
+verifies: [SA-44]

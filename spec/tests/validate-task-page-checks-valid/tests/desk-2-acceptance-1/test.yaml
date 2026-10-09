@@ -1,0 +1,8 @@
+requirement: DESK-2
+level: acceptance
+scenario: golden
+covers: [acceptance 1]
+given: "a member who was sent a reset code"
+when: "..."
+then: "A new password typed two ways is not set."
+verifies: [DESK-2]

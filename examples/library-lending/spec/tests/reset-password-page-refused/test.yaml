@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: reset-password
+level: system
+scenario: red
+covers: [fails with reset-code-refused]
+given: a member whose reset code has expired
+when: the page reset-password is submitted with that code
+then: "it shows beside the code: The reset code is wrong, used or expired. Ask for a new one."

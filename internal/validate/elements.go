@@ -11,8 +11,8 @@ import (
 )
 
 // The page elements of docs/conventions.md, Page elements: pickers, an
-// action's when and reason, a field's conditions, and a form's checks and
-// fields entered twice.
+// action's when and reason, a field's conditions, and a form's or a task's
+// checks and fields entered twice.
 
 // checkPageElements checks the page elements of every page.
 func (c *checker) checkPageElements(d *design) {
@@ -29,8 +29,36 @@ func (c *checker) checkPageElements(d *design) {
 		c.checkPickers(d, name, pg, kind, ent, shown)
 		c.checkActionElements(d, name, pg, kind, ent)
 		c.checkFieldConditions(d, name, pg, kind, ent, shown)
+		if kind == "task" {
+			shown = d.taskFields(pg)
+		}
 		c.checkFormChecks(d, name, pg, kind, shown)
 	}
+}
+
+// taskFields are the properties of the request body a task page sends
+// that the page shows, or nil when its submit is missing, names no
+// operation or names one that takes no body; the schema, the reference
+// check and the task page check report those.
+func (d *design) taskFields(pg *yaml.Node) map[string]*yaml.Node {
+	op := d.operations[source.Str(source.Child(pg, "submit"))].node
+	props, _ := d.requestFields(op)
+	if op == nil || props == nil {
+		return nil
+	}
+	shown := map[string]*yaml.Node{}
+	for _, f := range pageFields(pg) {
+		if props[f.Value] != nil {
+			shown[f.Value] = props[f.Value]
+		}
+	}
+	return shown
+}
+
+// sendsChecks says whether a page of the kind is sent with checks and
+// fields entered twice: a form, or a task.
+func sendsChecks(kind string) bool {
+	return kind == "form" || kind == "task"
 }
 
 // loadsRecord says whether a page has a record before anything is
@@ -69,6 +97,24 @@ func (c *checker) checkCondition(n *yaml.Node, ptr, what string, env expr.Env) {
 	c.exprErrors(n, ptr, what, errs)
 	if len(errs) == 0 && (t.Kind != expr.Bool || t.Nullable) {
 		c.addFile(c.fileOf(n), exprLine(n, 1), ptr, RuleExpressionType, "%s gives %s, but it must give true or false; compare the values with ==, <, > or similar", what, t)
+	}
+}
+
+// checkSyntax reports an expression that does not parse, for one whose
+// names cannot be typed.
+func (c *checker) checkSyntax(n *yaml.Node, ptr, what string) {
+	if n == nil || !source.IsScalar(n) {
+		return
+	}
+	if _, errs := expr.Parse(n.Value); len(errs) > 0 {
+		c.exprErrors(n, ptr, what, errs)
+	}
+}
+
+// checkMessage reports a check's message that is not a full sentence.
+func (c *checker) checkMessage(m *yaml.Node, ptr string) {
+	if m != nil && !sentence(m.Value) {
+		c.add(m, ptr, RuleFormField, "the message is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one")
 	}
 }
 
@@ -252,16 +298,27 @@ func (c *checker) checkFieldConditions(d *design, name string, pg *yaml.Node, ki
 	}
 }
 
-// checkFormChecks checks a form's checks across its fields and its fields
-// entered twice: only a form has them, each names fields it shows, and
-// each message is a full sentence.
+// checkFormChecks checks a form's or a task's checks across its fields
+// and its fields entered twice: only a form or a task has them, each names
+// fields it shows, and each message is a full sentence. shown is nil for a
+// task whose fields are not known, as its submit has no request body: then
+// each expression is still parsed and each message read, and what names a
+// field is left to the page's own error.
 func (c *checker) checkFormChecks(d *design, name string, pg *yaml.Node, kind string, shown map[string]*yaml.Node) {
 	for _, key := range []string{"checks", "enteredTwice"} {
-		if source.Child(pg, key) != nil && kind != "form" {
-			c.add(source.Key(pg, key), source.Pointer("pages", name, key), RuleFormField, "%s is a %s, and %s are checked when a form is sent; leave them out", name, kind, key)
+		if source.Child(pg, key) != nil && !sendsChecks(kind) {
+			c.add(source.Key(pg, key), source.Pointer("pages", name, key), RuleFormField, "%s is a %s, and %s are checked when a form or a task is sent; leave them out", name, kind, key)
 		}
 	}
-	if kind != "form" {
+	if !sendsChecks(kind) {
+		return
+	}
+	if shown == nil {
+		for _, p := range source.Pairs(source.Child(pg, "checks")) {
+			at := []string{"pages", name, "checks", p.Key.Value}
+			c.checkSyntax(source.Child(p.Value, "expression"), source.Pointer(append(at, "expression")...), "the check")
+			c.checkMessage(source.Child(p.Value, "message"), source.Pointer(append(at, "message")...))
+		}
 		return
 	}
 	env := expr.Env{}
@@ -271,16 +328,14 @@ func (c *checker) checkFormChecks(d *design, name string, pg *yaml.Node, kind st
 	for _, p := range source.Pairs(source.Child(pg, "checks")) {
 		at := []string{"pages", name, "checks", p.Key.Value}
 		c.checkCondition(source.Child(p.Value, "expression"), source.Pointer(append(at, "expression")...), "the check", env)
-		if m := source.Child(p.Value, "message"); m != nil && !sentence(m.Value) {
-			c.add(m, source.Pointer(append(at, "message")...), RuleFormField, "the message is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one")
-		}
+		c.checkMessage(source.Child(p.Value, "message"), source.Pointer(append(at, "message")...))
 		if f := source.Child(p.Value, "field"); f != nil && shown[f.Value] == nil {
-			c.add(f, source.Pointer(append(at, "field")...), RuleFormField, "%s is not a field the form %s shows%s", f.Value, name, suggest(f.Value, shown))
+			c.add(f, source.Pointer(append(at, "field")...), RuleFormField, "%s is not a field the %s %s shows%s", f.Value, kind, name, suggest(f.Value, shown))
 		}
 	}
 	for i, f := range source.Items(source.Child(pg, "enteredTwice")) {
 		if shown[f.Value] == nil {
-			c.add(f, source.Pointer("pages", name, "enteredTwice", fmt.Sprint(i)), RuleFormField, "%s is not a field the form %s shows, so it cannot be entered twice%s", f.Value, name, suggest(f.Value, shown))
+			c.add(f, source.Pointer("pages", name, "enteredTwice", fmt.Sprint(i)), RuleFormField, "%s is not a field the %s %s shows, so it cannot be entered twice%s", f.Value, kind, name, suggest(f.Value, shown))
 		}
 	}
 }
@@ -291,11 +346,11 @@ func (c *checker) checkFormChecks(d *design, name string, pg *yaml.Node, kind st
 // entered twice differently.
 func (d *design) elementCases(s *subject, pg *yaml.Node, open string) {
 	ent := d.entities[source.Str(source.Child(pg, "entity"))]
-	// Only a form has pickers, checks and fields entered twice; on another
-	// page they are errors, and give no case.
-	var pickers, checks, twice *yaml.Node
+	// Only a form has pickers; on another page they are errors, and give
+	// no case.
+	var pickers *yaml.Node
 	if source.Str(source.Child(pg, "kind")) == "form" {
-		pickers, checks, twice = source.Child(pg, "pickers"), source.Child(pg, "checks"), source.Child(pg, "enteredTwice")
+		pickers = source.Child(pg, "pickers")
 	}
 	for _, p := range source.Pairs(pickers) {
 		_, target := pickerRelation(ent, p.Key.Value)
@@ -313,19 +368,34 @@ func (d *design) elementCases(s *subject, pg *yaml.Node, open string) {
 			s.red(label+" without a reason", frequent, "...", "the action "+label+" is confirmed with no "+r, "it is not sent, and the "+r+" is asked for")
 		}
 	}
-	for _, p := range source.Pairs(checks) {
+	checkCases(s, pg)
+}
+
+// checkCases are the cases of a form's or a task's checks: a check across
+// fields broken in each way it can be, and a field entered twice
+// differently. On another page they are errors, and give no case.
+func checkCases(s *subject, pg *yaml.Node) {
+	kind := source.Str(source.Child(pg, "kind"))
+	if !sendsChecks(kind) {
+		return
+	}
+	sent := "the form is submitted"
+	if kind == "task" {
+		sent = "the page is submitted"
+	}
+	for _, p := range source.Pairs(source.Child(pg, "checks")) {
 		name, msg := p.Key.Value, source.Str(source.Child(p.Value, "message"))
 		rules := falsifiers(source.Str(source.Child(p.Value, "expression")))
 		if len(rules) < 2 {
-			s.red("violates "+name, frequent, "...", "the form is submitted breaking it", "it is not sent: "+msg)
+			s.red("violates "+name, frequent, "...", sent+" breaking it", "it is not sent: "+msg)
 			continue
 		}
 		for _, rule := range rules {
 			falsehood := strings.Join(rule, " is false and ") + " is false"
-			s.red("violates "+name+": "+falsehood, frequent, "...", "the form is submitted with "+falsehood, "it is not sent: "+msg)
+			s.red("violates "+name+": "+falsehood, frequent, "...", sent+" with "+falsehood, "it is not sent: "+msg)
 		}
 	}
-	for _, f := range source.Items(twice) {
-		s.red(f.Value+" entered twice differently", frequent, "...", "the form is submitted with two different entries of "+f.Value, "it is not sent, and says the two entries differ")
+	for _, f := range source.Items(source.Child(pg, "enteredTwice")) {
+		s.red(f.Value+" entered twice differently", frequent, "...", sent+" with two different entries of "+f.Value, "it is not sent, and says the two entries differ")
 	}
 }

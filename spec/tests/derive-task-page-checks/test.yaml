@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: derive
+level: system
+scenario: golden
+given: "a specification whose task page checks that the confirmation equals the new password, checks that two of its fields are given and has the new password entered twice, satisfying a requirement with a harm"
+when: "derive is run"
+then: "it writes, among the operation's and the requirement's drafts, a test for the confirmation check broken, one for each way the other check breaks and one for the password entered twice differently, lists them and exits 0"
+verifies: [SA-28, SA-42]

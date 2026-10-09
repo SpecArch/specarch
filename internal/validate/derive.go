@@ -693,6 +693,7 @@ func (d *design) pageSubject(p source.Pair) *subject {
 	if source.Str(source.Child(p.Value, "kind")) == "task" {
 		d.answerCases(s, p.Value)
 		d.stateCases(s, p.Value, open)
+		checkCases(s, p.Value)
 		return s
 	}
 	for _, m := range pathParam.FindAllStringSubmatch(source.Str(source.Child(p.Value, "route")), -1) {

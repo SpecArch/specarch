@@ -1,0 +1,87 @@
+specarch: "0.1"
+info: { title: Reset desk, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      email: { type: string, format: email, maxLength: 254 }
+    required: [id, email]
+    primaryKey: [id]
+permissions:
+  members.read: { description: See members. }
+  public: { description: Open to everyone. }
+roles:
+  desk: { description: The desk., permissions: [members.read] }
+paths:
+  /password-resets:
+    post:
+      operationId: resetPassword
+      summary: Set a new password
+      permission: public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code: { type: string, minLength: 1, maxLength: 200 }
+                newPassword: { type: string, minLength: 8, maxLength: 200, writeOnly: true }
+                confirmPassword: { type: string, minLength: 8, maxLength: 200, writeOnly: true }
+              required: [code, newPassword, confirmPassword]
+      responses:
+        "204": { description: The password is set. }
+  /sessions:
+    delete:
+      operationId: signOut
+      summary: Sign out
+      permission: public
+      responses:
+        "204": { description: Signed out. }
+  /members:
+    get:
+      operationId: listMembers
+      summary: The members
+      permission: members.read
+      responses:
+        "200":
+          description: The members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+pages:
+  reset-password:
+    kind: task
+    title: Set a new password
+    route: /reset-password
+    permission: public
+    submit: resetPassword
+    fields: [code, newPassword, confirmPassword]
+    checks:
+      confirmation-matches: { expression: confirmPassword == newPassword, message: The two passwords are not the same., field: confirmPassword }
+      remembered: { expression: remember == true, message: Tick remember., field: remember }
+      not-a-condition: { expression: newPassword, message: the password is checked }
+    enteredTwice: [code, newPasword]
+    onSubmitted:
+      "204": { navigate: members-list, message: Your password is set. }
+  sign-out:
+    kind: task
+    title: Sign out
+    route: /sign-out
+    permission: public
+    submit: signOut
+    fields: [code]
+    checks:
+      never: { expression: code == "", message: nothing is checked }
+  members-list:
+    kind: list
+    title: Members
+    route: /members
+    permission: members.read
+    entity: Member
+    source: listMembers
+    columns: [email]
+    checks:
+      email-given: { expression: email != "", message: An email address is given. }

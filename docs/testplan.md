@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 302 design tests, 117 golden and 185 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 305 design tests, 119 golden and 186 red, about 13 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 298 |
+| system | 301 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -130,6 +130,14 @@ Scenario: golden; level: system; verifies SA-28.
 - Given: the same specification with a must question that blocks the operation's path
 - When: derive is run
 - Then: it writes only the requirement's acceptance draft, names the operation's drafts it left out and the question on standard error, and exits 0
+
+#### derive-task-page-checks
+
+Scenario: golden; level: system; verifies SA-28, SA-42.
+
+- Given: a specification whose task page checks that the confirmation equals the new password, checks that two of its fields are given and has the new password entered twice, satisfying a requirement with a harm
+- When: derive is run
+- Then: it writes, among the operation's and the requirement's drafts, a test for the confirmation check broken, one for each way the other check breaks and one for the password entered twice differently, lists them and exits 0
 
 #### derive-usage-error
 
@@ -2231,6 +2239,22 @@ Scenario: red; level: system; covers exit 1.
 - When: validate is run
 - Then: it reports suite and exits 1
 
+#### validate-task-page-checks
+
+Scenario: red; level: system; covers exit 1; verifies SA-42.
+
+- Given: a task page whose check names a property its operation's body does not have, beside a field the page does not show, whose other check is not true or false with a message that is not a sentence, and which has a field entered twice that the page does not show; a task page that submits to an operation taking no body, with a check whose message is not a sentence; and a list with a check
+- When: validate is run
+- Then: it reports form_field five times, an expression error twice and the task without a body once, lists a case for each way the task's checks break and for the field entered twice, and exits 1
+
+#### validate-task-page-checks-valid
+
+Scenario: golden; level: system; verifies SA-42.
+
+- Given: a task page that checks that the confirmation equals the new password, checks that two of its fields are given and has the new password entered twice, with a test for each way its checks break
+- When: validate is run
+- Then: it reports nothing and exits 0
+
 #### validate-task-pages
 
 Scenario: red; level: system; covers exit 1; verifies SA-42.
@@ -2483,7 +2507,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-166 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+167 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2557,6 +2581,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-42 | acceptance 7 | golden | SA-42 names no harm |
 | requirement SA-42 | acceptance 8 | golden | SA-42 names no harm |
 | requirement SA-42 | acceptance 9 | golden | SA-42 names no harm |
+| requirement SA-42 | acceptance 10 | golden | SA-42 names no harm |
 | requirement SA-43 | acceptance 1 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 2 | golden | SA-43 names no harm |
 | requirement SA-43 | acceptance 3 | golden | SA-43 names no harm |

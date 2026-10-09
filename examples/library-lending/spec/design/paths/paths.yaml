@@ -44,6 +44,30 @@ paths:
         "200": { description: Signed in; the session starts. }
         "401": { description: The email address or the password is wrong., problem: sign-in-refused }
 
+  /password-resets:
+    post:
+      operationId: resetPassword
+      summary: Set a new password with a reset code
+      description: |
+        Sets the password of the member or librarian a reset code was
+        sent to. The code is used once and expires; the confirmation is
+        sent with the password, so the service checks it too.
+      permission: public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code: { type: string, minLength: 1, maxLength: 200, title: Reset code }
+                newPassword: { type: string, minLength: 8, maxLength: 200, title: New password, writeOnly: true }
+                confirmPassword: { type: string, minLength: 8, maxLength: 200, title: New password again, writeOnly: true }
+              required: [code, newPassword, confirmPassword]
+      responses:
+        "204": { description: The password is set; sign in with it. }
+        "409": { description: "The reset code is wrong, used or expired.", problem: reset-code-refused }
+
   /members:
     get:
       operationId: listMembers

@@ -1,0 +1,8 @@
+page: reset-password
+level: system
+scenario: red
+covers: ["violates code-and-password-given: newPassword != \"\" is false"]
+given: "a member who was sent a reset code"
+when: "the page is submitted with newPassword != \"\" is false"
+then: "it is not sent: Type the code and the new password."
+verifies: [DESK-2]

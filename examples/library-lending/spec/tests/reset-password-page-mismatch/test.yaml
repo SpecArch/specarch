@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: reset-password
+level: system
+scenario: red
+covers: [violates confirmation-matches]
+given: a member who was sent a reset code
+when: the page is submitted with a new password and a different one in confirmPassword
+then: "it is not sent, and shows beside confirmPassword: The two passwords are not the same."

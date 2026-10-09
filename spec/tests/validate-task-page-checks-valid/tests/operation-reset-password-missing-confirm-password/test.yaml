@@ -1,0 +1,7 @@
+operation: resetPassword
+level: system
+scenario: red
+covers: [missing confirmPassword]
+given: "a member who was sent a reset code"
+when: "resetPassword is called without confirmPassword"
+then: "it is refused"

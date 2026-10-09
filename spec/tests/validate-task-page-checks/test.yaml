@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a task page whose check names a property its operation's body does not have, beside a field the page does not show, whose other check is not true or false with a message that is not a sentence, and which has a field entered twice that the page does not show; a task page that submits to an operation taking no body, with a check whose message is not a sentence; and a list with a check"
+when: "validate is run"
+then: "it reports form_field five times, an expression error twice and the task without a body once, lists a case for each way the task's checks break and for the field entered twice, and exits 1"
+verifies: [SA-42]

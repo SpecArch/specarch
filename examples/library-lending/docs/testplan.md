@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 154 design tests, 44 golden and 109 red, about 39 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 160 design tests, 46 golden and 113 red, about 41 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.1.0 of the specification: 154 design tests, 44 golden and 109 red, abo
 | Level | Design tests |
 |---|---|
 | acceptance | 9 |
-| system | 145 |
+| system | 151 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1205,6 +1205,58 @@ Scenario: red; level: system; covers not found loanId.
 - When: requestFeeWaiver is called for that id
 - Then: it is refused as not found, and no request is made
 
+### Operation resetPassword
+
+#### reset-password-missing-field
+
+Scenario: red; level: system; covers missing code, missing newPassword, missing confirmPassword.
+
+- Given: any caller
+- When: resetPassword is called without code, again without newPassword and again without confirmPassword
+- Then: each is refused as invalid input
+
+#### reset-password-refused
+
+Scenario: red; level: system; covers response 409.
+
+- Given: a reset code that was used before
+- When: resetPassword is called with it
+- Then: it answers 409 with the problem reset-code-refused, and the password stays as it was
+
+#### reset-password-succeeds
+
+Scenario: golden; level: system.
+
+- Given: a member who was sent a reset code that is not used or expired
+- When: resetPassword is called with that code and the same new password twice
+- Then: it answers 204, and the member signs in with the new password
+
+### Page reset-password
+
+#### reset-password-page
+
+Scenario: golden; level: system.
+
+- Given: a member who was sent a reset code
+- When: the page reset-password is submitted with that code and the same new password twice
+- Then: it leads to the page sign-in, saying: Your password is set. Sign in with it.
+
+#### reset-password-page-mismatch
+
+Scenario: red; level: system; covers violates confirmation-matches.
+
+- Given: a member who was sent a reset code
+- When: the page is submitted with a new password and a different one in confirmPassword
+- Then: it is not sent, and shows beside confirmPassword: The two passwords are not the same.
+
+#### reset-password-page-refused
+
+Scenario: red; level: system; covers fails with reset-code-refused.
+
+- Given: a member whose reset code has expired
+- When: the page reset-password is submitted with that code
+- Then: it shows beside the code: The reset code is wrong, used or expired. Ask for a new one.
+
 ### Operation returnLoan
 
 #### return-already-closed
@@ -1384,7 +1436,7 @@ stateDiagram-v2
 
 ## 4. Derived cases left out
 
-54 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+66 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1395,6 +1447,18 @@ stateDiagram-v2
 | operation signIn | password longer than 200 characters | red | occasional case, and operation signIn satisfies no requirement with a harm |
 | operation signIn | password of 200 characters | golden | occasional case, and operation signIn satisfies no requirement with a harm |
 | operation signIn | response 401 | red | occasional case, and operation signIn satisfies no requirement with a harm |
+| operation resetPassword | code shorter than 1 character | red | occasional case, and operation resetPassword satisfies no requirement with a harm |
+| operation resetPassword | code of 1 character | golden | occasional case, and operation resetPassword satisfies no requirement with a harm |
+| operation resetPassword | code longer than 200 characters | red | occasional case, and operation resetPassword satisfies no requirement with a harm |
+| operation resetPassword | code of 200 characters | golden | occasional case, and operation resetPassword satisfies no requirement with a harm |
+| operation resetPassword | confirmPassword shorter than 8 characters | red | occasional case, and operation resetPassword satisfies no requirement with a harm |
+| operation resetPassword | confirmPassword of 8 characters | golden | occasional case, and operation resetPassword satisfies no requirement with a harm |
+| operation resetPassword | confirmPassword longer than 200 characters | red | occasional case, and operation resetPassword satisfies no requirement with a harm |
+| operation resetPassword | confirmPassword of 200 characters | golden | occasional case, and operation resetPassword satisfies no requirement with a harm |
+| operation resetPassword | newPassword shorter than 8 characters | red | occasional case, and operation resetPassword satisfies no requirement with a harm |
+| operation resetPassword | newPassword of 8 characters | golden | occasional case, and operation resetPassword satisfies no requirement with a harm |
+| operation resetPassword | newPassword longer than 200 characters | red | occasional case, and operation resetPassword satisfies no requirement with a harm |
+| operation resetPassword | newPassword of 200 characters | golden | occasional case, and operation resetPassword satisfies no requirement with a harm |
 | operation listMembers | deleted Member not listed | golden | occasional case, and operation listMembers satisfies no requirement with a harm |
 | operation listMembers | page beyond last | golden | occasional case, and operation listMembers satisfies no requirement with a harm |
 | operation listMembers | page size above 100 | red | occasional case, and operation listMembers satisfies no requirement with a harm |

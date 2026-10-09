@@ -1,0 +1,9 @@
+operation: resetPassword
+level: system
+scenario: red
+covers: [missing newPassword]
+given: "..."
+when: "resetPassword is called without newPassword"
+then: "it is refused"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

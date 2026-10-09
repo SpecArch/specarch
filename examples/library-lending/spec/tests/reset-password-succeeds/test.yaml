@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: resetPassword
+level: system
+scenario: golden
+given: a member who was sent a reset code that is not used or expired
+when: resetPassword is called with that code and the same new password twice
+then: it answers 204, and the member signs in with the new password
+expect: { status: 204 }

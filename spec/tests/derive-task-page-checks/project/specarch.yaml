@@ -1,0 +1,50 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [tests]
+stakeholders:
+  owner: { description: The product owner. }
+requirements:
+  DESK-2:
+    statement: A member shall set a new password only by typing it the same way twice.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A new password typed two ways is not set.]
+    harm: [privacy]
+permissions:
+  public: { description: Open to everyone. }
+roles:
+  desk: { description: The desk., permissions: [public] }
+paths:
+  /password-resets:
+    post:
+      operationId: resetPassword
+      summary: Set a new password
+      permission: public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code: { type: string, minLength: 1, maxLength: 200 }
+                newPassword: { type: string, minLength: 8, maxLength: 200, writeOnly: true }
+                confirmPassword: { type: string, minLength: 8, maxLength: 200, writeOnly: true }
+              required: [code, newPassword, confirmPassword]
+      responses:
+        "204": { description: The password is set. }
+pages:
+  reset-password:
+    kind: task
+    title: Set a new password
+    route: /reset-password
+    permission: public
+    submit: resetPassword
+    fields: [code, newPassword, confirmPassword]
+    checks:
+      confirmation-matches: { expression: confirmPassword == newPassword, message: The two passwords are not the same., field: confirmPassword }
+      code-and-password-given: { expression: 'code != "" && newPassword != ""', message: Type the code and the new password., field: code }
+    enteredTwice: [newPassword]
+    onSubmitted:
+      "204": { message: Your password is set. }
+    satisfies: [DESK-2]

@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 8 requirements, 4 entities, 14 HTTP operations, 3 channels, 1 dependency, 9 pages, 1 flow, 1 workflow, 1 algorithm, 154 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 8 requirements, 4 entities, 15 HTTP operations, 3 channels, 1 dependency, 10 pages, 1 flow, 1 workflow, 1 algorithm, 160 tests, 2 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -52,6 +52,7 @@ The interfaces the system offers, as its clients see them.
 |---|---|---|---|
 | GET /books | listBooks | Browse the catalogue | public |
 | POST /sessions | signIn | Sign in with an email address and a password | public |
+| POST /password-resets | resetPassword | Set a new password with a reset code | public |
 | GET /members | listMembers | List members | members.read |
 | POST /members | createMember | Register a new member | members.write |
 | GET /members/{memberId} | getMember | One member with their loans | members.read |
@@ -273,6 +274,7 @@ Every refusal is an RFC 9457 problem document of one of these types; each operat
 | loan-closed | 409 | The loan is already closed | The loan was returned or reported lost before. |
 | fee-ledger-unavailable | 503 | The fee ledger is unavailable | The fee ledger failed or did not answer in time, and the loan stays as it was. |
 | sign-in-refused | 401 | Sign-in refused | No one has the email address, or the password does not match it. |
+| reset-code-refused | 409 | Reset code refused | No one was sent the reset code, or it was used or has expired. |
 
 ### listBooks (GET /books)
 
@@ -300,6 +302,22 @@ sequenceDiagram
   participant S as Library Lending
   C->>S: POST /sessions
   S-->>C: 200 
+```
+
+### resetPassword (POST /password-resets)
+
+Sets the password of the member or librarian a reset code was
+sent to. The code is used once and expires; the confirmation is
+sent with the password, so the service checks it too.
+
+Refuses with 409 reset-code-refused.
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant S as Library Lending
+  C->>S: POST /password-resets
+  S-->>C: 204 
 ```
 
 ### listMembers (GET /members)
@@ -805,6 +823,7 @@ flowchart LR
   member_loans["Lend copies (form)"]
   member_view["Member (view)"]
   members_list["Members (list)"]
+  reset_password["Set a new password (task)"]
   sign_in["Sign in (task)"]
   op_requestFeeWaiver(["requestFeeWaiver"])
   fee_waiver_form -.->|"submit"| op_requestFeeWaiver
@@ -827,6 +846,9 @@ flowchart LR
   members_list -->|"New member"| member_form
   op_deactivateMember(["deactivateMember"])
   members_list -.->|"Deactivate"| op_deactivateMember
+  op_resetPassword(["resetPassword"])
+  reset_password -.->|"submit"| op_resetPassword
+  op_resetPassword -->|"204"| sign_in
   op_signIn(["signIn"])
   sign_in -.->|"submit"| op_signIn
   op_signIn -->|"200"| members_list
@@ -852,6 +874,7 @@ The menu, each entry shown to who may open its page:
 | member-loans | form | /members/{memberId}/loans | Member | loans.create | membershipEndsOn, outstandingFees; Loans, rows of loans: bookId, dueOn, at most 6, the loaded rows locked |
 | member-view | view | /members/{memberId} | Member | members.read | Member: cardNumber, fullName, email, tier; Membership: joinedOn, membershipEndsOn, outstandingFees |
 | members-list | list | /members | Member | members.read | cardNumber, fullName, email, tier, status, outstandingFees |
+| reset-password | task | /reset-password | none; submits to resetPassword | public | code, newPassword, confirmPassword |
 | sign-in | task | /sign-in | none; submits to signIn | public | email, password |
 
 The elements of each page that pick, offer, hide or check something:
@@ -861,6 +884,7 @@ The elements of each page that pick, offer, hide or check something:
 | loan-form | picker memberId | a Member, through the relation member, picked from listMembers, showing cardNumber, fullName |
 | loan-form | picker bookId | a Book, through the relation book, picked from listBooks, showing title, author, copiesAvailable |
 | members-list | action Deactivate | offered while `status == "active"`; its confirmation asks for a reason, sent as reason |
+| reset-password | check confirmation-matches | `confirmPassword == newPassword`, or it is not sent: The two passwords are not the same. (beside confirmPassword) |
 
 What each page shows when it is empty or fails; while it loads or submits, the stack draws its own:
 
@@ -879,6 +903,7 @@ What each page shows when it is empty or fails; while it loads or submits, the s
 | members-list | empty | No members yet. Register the first one. |
 | members-list | filtered empty | No member is in this tier. |
 | members-list | failed: member-not-found | This member is no longer on record, so nothing changed. |
+| reset-password | failed: reset-code-refused, beside code | The reset code is wrong, used or expired. Ask for a new one. |
 | sign-in | failed: sign-in-refused, beside password | The email address or the password is wrong. |
 
 ### Flow lend-a-copy
@@ -1140,6 +1165,12 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | request-fee-waiver-denied | operation requestFeeWaiver | system | red | a member, who does not hold fees.request | requestFeeWaiver is called for one of their own loans | it is refused as not allowed, and no request is made |
 | request-fee-waiver-denied-with-expired-session | operation requestFeeWaiver | system | red | a librarian whose session expired after half an hour without a request | requestFeeWaiver is called | it is refused as not signed in, and no request is made |
 | request-fee-waiver-unknown-loan | operation requestFeeWaiver | system | red | a librarian and no loan with a given id | requestFeeWaiver is called for that id | it is refused as not found, and no request is made |
+| reset-password-missing-field | operation resetPassword | system | red | any caller | resetPassword is called without code, again without newPassword and again without confirmPassword | each is refused as invalid input |
+| reset-password-page | page reset-password | system | golden | a member who was sent a reset code | the page reset-password is submitted with that code and the same new password twice | it leads to the page sign-in, saying: Your password is set. Sign in with it. |
+| reset-password-page-mismatch | page reset-password | system | red | a member who was sent a reset code | the page is submitted with a new password and a different one in confirmPassword | it is not sent, and shows beside confirmPassword: The two passwords are not the same. |
+| reset-password-page-refused | page reset-password | system | red | a member whose reset code has expired | the page reset-password is submitted with that code | it shows beside the code: The reset code is wrong, used or expired. Ask for a new one. |
+| reset-password-refused | operation resetPassword | system | red | a reset code that was used before | resetPassword is called with it | it answers 409 with the problem reset-code-refused, and the password stays as it was |
+| reset-password-succeeds | operation resetPassword | system | golden | a member who was sent a reset code that is not used or expired | resetPassword is called with that code and the same new password twice | it answers 204, and the member signs in with the new password |
 | return-already-closed | operation returnLoan | system | red | a loan already returned | returnLoan is called on it | it answers 409 and nothing changes |
 | return-denied | operation returnLoan | system | red | a caller holding only the member role | returnLoan is called | it is refused as not allowed |
 | return-event-not-delivered | operation returnLoan | system | red | the loan.lifecycle channel is unavailable | returnLoan is called | the loan stays open and the call fails |

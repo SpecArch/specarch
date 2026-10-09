@@ -991,8 +991,9 @@ edited inline or in a dialog is the stack's.
 
 A form picks a field that holds another record's key from a list of
 those records, says when a field is read-only or hidden, checks rules
-across its fields, and asks for a field twice; an action is offered only
-in some states and may ask for a reason:
+across its fields, and asks for a field twice; a task checks and asks
+twice as a form does; an action is offered only in some states and may
+ask for a reason:
 
     loan-form:
       kind: form
@@ -1028,14 +1029,25 @@ in some states and may ask for a reason:
   read-only already. A page is one mode: a form without `source`
   creates, a form with one edits, and a view shows; a field hidden in a
   mode is one that page does not list.
-- `checks` are a form's, keyed in kebab case, each an `expression` over
-  the fields it shows, a `message` in a full sentence and the `field` it
-  shows beside. `enteredTwice` names fields a person types twice; the
-  second entry is compared and never sent.
+- `checks` are a form's or a task's, keyed in kebab case, each an
+  `expression` over the fields it shows, a `message` in a full sentence
+  and the `field` it shows beside. `enteredTwice` names fields a person
+  types twice; the second entry is compared and never sent. On a task
+  the fields are the properties of the request body it sends, so a
+  confirmation the operation takes is checked against the password
+  before it is sent:
+
+      reset-password:
+        kind: task
+        submit: resetPassword
+        fields: [code, newPassword, confirmPassword]
+        checks:
+          confirmation-matches: { expression: confirmPassword == newPassword, message: The two passwords are not the same., field: confirmPassword }
 
 Each expression is in the subset under Expressions and gives true or
 false, never null. On a form that creates a record it names the fields
-the form shows, and elsewhere the entity's fields. The misuses are
+the form shows, on a task the properties of its request body it shows,
+and elsewhere the entity's fields. The misuses are
 `picker`, `action` and `form_field`; an expression that does not parse,
 names what it cannot or has the wrong type is an expression error. The
 techspec lists every element of every page.

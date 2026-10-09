@@ -1,0 +1,7 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+page: reset-password
+level: system
+scenario: golden
+given: a member who was sent a reset code
+when: the page reset-password is submitted with that code and the same new password twice
+then: "it leads to the page sign-in, saying: Your password is set. Sign in with it."

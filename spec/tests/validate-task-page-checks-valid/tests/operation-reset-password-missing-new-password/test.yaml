@@ -1,0 +1,7 @@
+operation: resetPassword
+level: system
+scenario: red
+covers: [missing newPassword]
+given: "a member who was sent a reset code"
+when: "resetPassword is called without newPassword"
+then: "it is refused"

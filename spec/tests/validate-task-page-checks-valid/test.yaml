@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a task page that checks that the confirmation equals the new password, checks that two of its fields are given and has the new password entered twice, with a test for each way its checks break"
+when: "validate is run"
+then: "it reports nothing and exits 0"
+verifies: [SA-42]

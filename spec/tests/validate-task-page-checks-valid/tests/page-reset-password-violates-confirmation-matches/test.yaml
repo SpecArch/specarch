@@ -1,0 +1,8 @@
+page: reset-password
+level: system
+scenario: red
+covers: [violates confirmation-matches]
+given: "a member who was sent a reset code"
+when: "the page is submitted breaking it"
+then: "it is not sent: The two passwords are not the same."
+verifies: [DESK-2]

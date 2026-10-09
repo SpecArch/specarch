@@ -1,0 +1,7 @@
+operation: resetPassword
+level: system
+scenario: golden
+given: "any caller"
+when: "resetPassword is called with values inside every limit"
+then: "it answers 204: The password is set."
+expect: { status: 204 }

@@ -1,0 +1,12 @@
+arguments: [derive, project]
+exitStatus: 0
+standardOutput: |
+  project/tests/operation-reset-password-succeeds/test.yaml
+  project/tests/operation-reset-password-missing-code/test.yaml
+  project/tests/operation-reset-password-missing-new-password/test.yaml
+  project/tests/operation-reset-password-missing-confirm-password/test.yaml
+  project/tests/page-reset-password-violates-confirmation-matches/test.yaml
+  project/tests/page-reset-password-violates-code-and-password-given-code-is-false/test.yaml
+  project/tests/page-reset-password-violates-code-and-password-given-new-password-is-false/test.yaml
+  project/tests/page-reset-password-new-password-entered-twice-differently/test.yaml
+  project/tests/desk-2-acceptance-1/test.yaml

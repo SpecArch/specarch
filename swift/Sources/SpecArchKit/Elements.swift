@@ -1,14 +1,20 @@
 import Foundation
 
 // The page elements of docs/conventions.md, Page elements: pickers, an
-// action's when and reason, a field's conditions, and a form's checks and
-// fields entered twice.
+// action's when and reason, a field's conditions, and a form's or a task's
+// checks and fields entered twice.
 
 /// Whether a page has a record before anything is entered: a list's rows, a
 /// view's record, or the record an edit form loads. A form without source
 /// creates one.
 func loadsRecord(_ pg: YNode) -> Bool {
     str(pg.child("kind")) != "form" || pg.child("source") != nil
+}
+
+/// Whether a page of the kind is sent with checks and fields entered
+/// twice: a form, or a task.
+func sendsChecks(_ kind: String) -> Bool {
+    kind == "form" || kind == "task"
 }
 
 /// The many-to-one relation of an entity whose via is the field, and its
@@ -43,10 +49,9 @@ extension Design {
     /// differently.
     func elementCases(_ s: Subject, _ pg: YNode, _ open: String) {
         let ent = entities[str(pg.child("entity"))]
-        // Only a form has pickers, checks and fields entered twice; on another
-        // page they are errors, and give no case.
-        let form = str(pg.child("kind")) == "form"
-        let pickers = form ? pg.child("pickers") : nil, checks = form ? pg.child("checks") : nil, twice = form ? pg.child("enteredTwice") : nil
+        // Only a form has pickers; on another page they are errors, and give
+        // no case.
+        let pickers = str(pg.child("kind")) == "form" ? pg.child("pickers") : nil
         for p in pairs(pickers) {
             let target = pickerRelation(ent, p.key.value).target
             if target.isEmpty { continue }
@@ -63,21 +68,44 @@ extension Design {
                 s.red(label + " without a reason", frequent, "...", "the action " + label + " is confirmed with no " + r, "it is not sent, and the " + r + " is asked for")
             }
         }
-        for p in pairs(checks) {
+        checkCases(s, pg)
+    }
+
+    /// The cases of a form's or a task's checks: a check across fields
+    /// broken in each way it can be, and a field entered twice differently.
+    /// On another page they are errors, and give no case.
+    func checkCases(_ s: Subject, _ pg: YNode) {
+        let kind = str(pg.child("kind"))
+        if !sendsChecks(kind) { return }
+        let sent = kind == "task" ? "the page is submitted" : "the form is submitted"
+        for p in pairs(pg.child("checks")) {
             let name = p.key.value, msg = str(p.value.child("message"))
             let rules = falsifiers(str(p.value.child("expression")))
             if rules.count < 2 {
-                s.red("violates " + name, frequent, "...", "the form is submitted breaking it", "it is not sent: " + msg)
+                s.red("violates " + name, frequent, "...", sent + " breaking it", "it is not sent: " + msg)
                 continue
             }
             for rule in rules {
                 let falsehood = rule.joined(separator: " is false and ") + " is false"
-                s.red("violates " + name + ": " + falsehood, frequent, "...", "the form is submitted with " + falsehood, "it is not sent: " + msg)
+                s.red("violates " + name + ": " + falsehood, frequent, "...", sent + " with " + falsehood, "it is not sent: " + msg)
             }
         }
-        for f in items(twice) {
-            s.red(f.value + " entered twice differently", frequent, "...", "the form is submitted with two different entries of " + f.value, "it is not sent, and says the two entries differ")
+        for f in items(pg.child("enteredTwice")) {
+            s.red(f.value + " entered twice differently", frequent, "...", sent + " with two different entries of " + f.value, "it is not sent, and says the two entries differ")
         }
+    }
+
+    /// The properties of the request body a task page sends that the page
+    /// shows, or nil when its submit is missing, names no operation or names
+    /// one that takes no body; the schema, the reference check and the task
+    /// page check report those.
+    func taskFields(_ pg: YNode) -> [String: YNode]? {
+        guard let op = operations[str(pg.child("submit"))]?.node else { return nil }
+        let (props, _) = requestFields(op)
+        if pairs(child(op.child("requestBody"), "content")).isEmpty { return nil }
+        var shown: [String: YNode] = [:]
+        for f in pageFields(pg) { if let n = props[f.value] { shown[f.value] = n } }
+        return shown
     }
 }
 
@@ -94,12 +122,27 @@ extension Checker {
             checkPickers(d, name, pg, kind, ent, shown)
             checkActionElements(d, name, pg, ent)
             checkFieldConditions(d, name, pg, kind, ent, shown)
-            checkFormChecks(d, name, pg, kind, shown)
+            checkFormChecks(d, name, pg, kind, kind == "task" ? d.taskFields(pg) : shown)
         }
     }
 
     /// Checks an expression that decides something on a page: it parses,
     /// names only what env holds, and gives true or false.
+    /// Reports an expression that does not parse, for one whose names cannot
+    /// be typed.
+    func checkSyntax(_ n: YNode?, _ ptr: String, _ what: String) {
+        guard let n, n.kind == .scalar else { return }
+        let (_, perrs) = parseExpr(n.value)
+        if !perrs.isEmpty { exprErrors(n, ptr, what, perrs) }
+    }
+
+    /// Reports a check's message that is not a full sentence.
+    func checkMessage(_ m: YNode?, _ ptr: String) {
+        if let m, !sentence(m.value) {
+            add(m, ptr, .formField, "the message is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one")
+        }
+    }
+
     func checkCondition(_ n: YNode?, _ ptr: String, _ what: String, _ env: ExprEnv) {
         guard let n, n.kind == .scalar else { return }
         let (tree, perrs) = parseExpr(n.value)
@@ -246,28 +289,37 @@ extension Checker {
         }
     }
 
-    /// Checks a form's checks across its fields and its fields entered
-    /// twice: only a form has them, each names fields it shows, and each
-    /// message is a full sentence.
-    func checkFormChecks(_ d: Design, _ name: String, _ pg: YNode, _ kind: String, _ shown: [String: YNode]) {
-        for key in ["checks", "enteredTwice"] where pg.child(key) != nil && kind != "form" {
-            add(pg.key(key), pointer("pages", name, key), .formField, "\(name) is a \(kind), and \(key) are checked when a form is sent; leave them out")
+    /// Checks a form's or a task's checks across its fields and its fields
+    /// entered twice: only a form or a task has them, each names fields it
+    /// shows, and each message is a full sentence. shown is nil for a task
+    /// whose fields are not known, as its submit has no request body: then
+    /// each expression is still parsed and each message read, and what names
+    /// a field is left to the page's own error.
+    func checkFormChecks(_ d: Design, _ name: String, _ pg: YNode, _ kind: String, _ shown: [String: YNode]?) {
+        for key in ["checks", "enteredTwice"] where pg.child(key) != nil && !sendsChecks(kind) {
+            add(pg.key(key), pointer("pages", name, key), .formField, "\(name) is a \(kind), and \(key) are checked when a form or a task is sent; leave them out")
         }
-        if kind != "form" { return }
+        if !sendsChecks(kind) { return }
+        guard let shown else {
+            for p in pairs(pg.child("checks")) {
+                let at = ["pages", name, "checks", p.key.value]
+                checkSyntax(p.value.child("expression"), pointer(at + ["expression"]), "the check")
+                checkMessage(p.value.child("message"), pointer(at + ["message"]))
+            }
+            return
+        }
         var env: ExprEnv = [:]
         for (n, f) in shown { env[n] = d.fieldType(f) }
         for p in pairs(pg.child("checks")) {
             let at = ["pages", name, "checks", p.key.value]
             checkCondition(p.value.child("expression"), pointer(at + ["expression"]), "the check", env)
-            if let m = p.value.child("message"), !sentence(m.value) {
-                add(m, pointer(at + ["message"]), .formField, "the message is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one")
-            }
+            checkMessage(p.value.child("message"), pointer(at + ["message"]))
             if let f = p.value.child("field"), shown[f.value] == nil {
-                add(f, pointer(at + ["field"]), .formField, "\(f.value) is not a field the form \(name) shows\(suggest(f.value, shown))")
+                add(f, pointer(at + ["field"]), .formField, "\(f.value) is not a field the \(kind) \(name) shows\(suggest(f.value, shown))")
             }
         }
         for (i, f) in items(pg.child("enteredTwice")).enumerated() where shown[f.value] == nil {
-            add(f, pointer("pages", name, "enteredTwice", "\(i)"), .formField, "\(f.value) is not a field the form \(name) shows, so it cannot be entered twice\(suggest(f.value, shown))")
+            add(f, pointer("pages", name, "enteredTwice", "\(i)"), .formField, "\(f.value) is not a field the \(kind) \(name) shows, so it cannot be entered twice\(suggest(f.value, shown))")
         }
     }
 }

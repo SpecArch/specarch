@@ -1969,7 +1969,7 @@
           "minProperties": 1
         },
         "checks": {
-          "description": "For a form: rules across its fields, checked before it is sent, keyed in kebab case.",
+          "description": "For a form or a task: rules across the fields it shows, checked before it is sent, keyed in kebab case. On a task the fields are properties of the request body it sends.",
           "type": "object",
           "propertyNames": {
             "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
@@ -1980,7 +1980,7 @@
           "minProperties": 1
         },
         "enteredTwice": {
-          "description": "For a form: fields a person types twice, so a mistake shows before it is sent. The second entry is compared and never sent.",
+          "description": "For a form or a task: fields a person types twice, so a mistake shows before it is sent. The second entry is compared and never sent.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/memberName"

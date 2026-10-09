@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: resetPassword
+level: system
+scenario: red
+covers: [missing code, missing newPassword, missing confirmPassword]
+given: any caller
+when: resetPassword is called without code, again without newPassword and again without confirmPassword
+then: each is refused as invalid input

@@ -1,0 +1,8 @@
+page: reset-password
+level: system
+scenario: red
+covers: [newPassword entered twice differently]
+given: "a member who was sent a reset code"
+when: "the page is submitted with two different entries of newPassword"
+then: "it is not sent, and says the two entries differ"
+verifies: [DESK-2]

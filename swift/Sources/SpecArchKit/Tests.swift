@@ -592,6 +592,7 @@ extension Design {
         if str(p.value.child("kind")) == "task" {
             answerCases(s, p.value)
             stateCases(s, p.value, open)
+            checkCases(s, p.value)
             return s
         }
         for param in pathParameters(str(p.value.child("route"))) {

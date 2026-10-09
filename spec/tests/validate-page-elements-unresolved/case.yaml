@@ -1,6 +1,6 @@
 arguments: [validate, .]
 exitStatus: 1
-standardOutput: |+
+standardOutput: |
   specarch.yaml:41: warning: /paths/~1members/get: test_case_missing: operation listMembers has no red scenario for "denied without members.read"; add under tests list-members-denied-without-members-read: { operation: listMembers, scenario: red, covers: [denied without members.read], given: "a caller without members.read", when: "listMembers is called", then: "it is refused as not allowed" }
   specarch.yaml:41: warning: /paths/~1members/get: test_golden_missing: operation listMembers has no golden scenario; add one under tests, for example list-members-succeeds: { operation: listMembers, scenario: golden, given: "a caller with members.read", when: "listMembers is called", then: "it answers 200: The members." }
   specarch.yaml:55: warning: /paths/~1members~1{memberId}/get: test_case_missing: operation getMember has no red scenario for "denied without members.read"; add under tests get-member-denied-without-members-read: { operation: getMember, scenario: red, covers: [denied without members.read], given: "a caller without members.read", when: "getMember is called", then: "it is refused as not allowed" }
@@ -59,8 +59,8 @@ standardOutput: |+
   specarch.yaml:145: warning: /pages/member-view: test_golden_missing: page member-view has no golden scenario; add one under tests, for example member-view-succeeds: { page: member-view, scenario: golden, given: "a caller with members.read", when: "the page member-view is opened for a record that exists", then: "it shows the page" }
   specarch.yaml:153: error: /pages/member-view/pickers: picker: member-view is a view, and a picker is how a form fills a field; leave pickers out
   specarch.yaml:156: error: /pages/member-view/fieldConditions/fullName/readOnly: form_field: member-view is a view, where every field is read-only; leave readOnly out
-  specarch.yaml:157: error: /pages/member-view/checks: form_field: member-view is a view, and checks are checked when a form is sent; leave them out
-  specarch.yaml:159: error: /pages/member-view/enteredTwice: form_field: member-view is a view, and enteredTwice are checked when a form is sent; leave them out
+  specarch.yaml:157: error: /pages/member-view/checks: form_field: member-view is a view, and checks are checked when a form or a task is sent; leave them out
+  specarch.yaml:159: error: /pages/member-view/enteredTwice: form_field: member-view is a view, and enteredTwice are checked when a form or a task is sent; leave them out
   specarch.yaml:160: warning: /pages/members-list: test_case_missing: page members-list has no red scenario for "Count without a reason"; add under tests members-list-count-without-a-reason: { page: members-list, scenario: red, covers: [Count without a reason], given: "...", when: "the action Count is confirmed with no count", then: "it is not sent, and the count is asked for" }
   specarch.yaml:160: warning: /pages/members-list: test_case_missing: page members-list has no red scenario for "Deactivate without a reason"; add under tests members-list-deactivate-without-a-reason: { page: members-list, scenario: red, covers: [Deactivate without a reason], given: "...", when: "the action Deactivate is confirmed with no reason", then: "it is not sent, and the reason is asked for" }
   specarch.yaml:160: warning: /pages/members-list: test_case_missing: page members-list has no red scenario for "Explain without a reason"; add under tests members-list-explain-without-a-reason: { page: members-list, scenario: red, covers: [Explain without a reason], given: "...", when: "the action Explain is confirmed with no why", then: "it is not sent, and the why is asked for" }

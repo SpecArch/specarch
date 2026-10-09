@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-064:
+    title: A task page checks rules across the request fields it shows, with the keys a form uses
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      A task page shows properties of the request body it sends rather
+      than fields of an entity. Setting a first password or resetting one
+      sends the password and its confirmation, and the page must say
+      that the two differ before anything is sent, as a form says that a
+      due date comes before the lending date.
+    decision: |
+      A task page may give checks and enteredTwice, as a form does. Their
+      expressions name the properties of the submit operation's request
+      body that the page shows, typed as the body declares them, and a
+      check's field and each field entered twice is one of those. The
+      rule is form_field, the messages are a form's, and the derived
+      cases are a form's: a check broken in each way it can be, and a
+      field entered twice differently. pickers and fieldConditions stay a
+      form's (and a view's): a task loads no record, so there is nothing
+      to pick from a relation or to make read-only by the record's state.
+    consequences: |
+      The same keys mean the same on both kinds of page, so the techspec
+      lists them alike and a UI generator that renders checks reads one
+      shape. A task whose submit is missing, names no operation or names
+      one that takes no request body has no fields to name; its checks are
+      still read, each expression parsed and each message checked, and
+      the error at submit stands for what the expressions name.
+    why: |
+      A second set of keys for a task would be two ways to say one thing,
+      which the Low IQ Tax forbids. The expressions name the body's
+      properties because those are what the page shows and sends; there
+      is no entity to name. A confirmation the operation takes is checked
+      on the page as well as by the service, since a check on the page is
+      what tells a person which field to correct before they lose what
+      they typed; enteredTwice is the way to ask twice for a field the
+      operation does not take twice.
+    satisfies: [SA-42]

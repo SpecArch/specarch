@@ -637,6 +637,54 @@ paths:
       x-specarch-permission: loans.create
       x-specarch-satisfies:
         - LIB-3
+  /password-resets:
+    post:
+      operationId: resetPassword
+      summary: Set a new password with a reset code
+      description: |
+        Sets the password of the member or librarian a reset code was
+        sent to. The code is used once and expires; the confirmation is
+        sent with the password, so the service checks it too.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  title: Reset code
+                  minLength: 1
+                  maxLength: 200
+                confirmPassword:
+                  type: string
+                  title: New password again
+                  minLength: 8
+                  maxLength: 200
+                  writeOnly: true
+                newPassword:
+                  type: string
+                  title: New password
+                  minLength: 8
+                  maxLength: 200
+                  writeOnly: true
+              required:
+                - code
+                - newPassword
+                - confirmPassword
+      responses:
+        "204":
+          description: The password is set; sign in with it.
+        "409":
+          description: The reset code is wrong, used or expired.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: reset-code-refused
+      security: []
+      x-specarch-permission: public
   /sessions:
     post:
       operationId: signIn
@@ -957,6 +1005,10 @@ components:
       status: 404
       title: No such member
       condition: No member has the id in the path.
+    reset-code-refused:
+      status: 409
+      title: Reset code refused
+      condition: No one was sent the reset code, or it was used or has expired.
     sign-in-refused:
       status: 401
       title: Sign-in refused

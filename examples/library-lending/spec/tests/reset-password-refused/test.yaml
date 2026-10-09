@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.1.schema.json
+operation: resetPassword
+level: system
+scenario: red
+covers: [response 409]
+given: a reset code that was used before
+when: resetPassword is called with it
+then: it answers 409 with the problem reset-code-refused, and the password stays as it was
+expect: { status: 409 }

@@ -1,0 +1,10 @@
+requirement: DESK-2
+level: acceptance
+scenario: golden
+covers: [acceptance 1]
+given: "..."
+when: "..."
+then: "A new password typed two ways is not set."
+verifies: [DESK-2]
+origin: inferred
+why: "Written by specarch derive: requirement DESK-2 is at stake in a requirement that names a harm, so its cases are written. A draft: complete the given, when and then, and remove what does not hold."

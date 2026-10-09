@@ -1,0 +1,10 @@
+page: reset-password
+level: system
+scenario: red
+covers: [newPassword entered twice differently]
+given: "..."
+when: "the page is submitted with two different entries of newPassword"
+then: "it is not sent, and says the two entries differ"
+verifies: [DESK-2]
+origin: inferred
+why: "Written by specarch derive: page reset-password is at stake in a requirement that names a harm, so its cases are written. A draft: complete the given, when and then, and remove what does not hold."

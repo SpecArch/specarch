@@ -240,21 +240,24 @@ func namesOutput(l loaded, target string) bool {
 }
 
 // outputEntry is where an output folder for a target would be named: the
-// targets of the specification's first implementation file, or that file,
-// or the root file when it has none.
+// targets of the first implementation file that has them, or the first
+// implementation file, or the root file when there is none.
 func outputEntry(l loaded) string {
 	if len(l.impls) == 0 {
 		return l.spec.RootFile + ":1"
 	}
-	i := l.impls[0]
-	if k := source.Key(source.Deref(i.Node), "targets"); k != nil {
-		return fmt.Sprintf("%s:%d", i.Path, k.Line)
+	for _, i := range l.impls {
+		if k := source.Key(i.Node, "targets"); k != nil {
+			return fmt.Sprintf("%s:%d", i.Path, k.Line)
+		}
 	}
-	return i.Path + ":1"
+	return l.impls[0].Path + ":1"
 }
 
 // outputFolder is --out, or the folder the implementation files name for
-// the target under targets; they must agree.
+// the target under targets; they must agree. document passes over a
+// specification that names none before it gets here (ADR-073); generate
+// still stops at it with exit 2.
 func outputFolder(l loaded, target, out string, stderr io.Writer) (string, int) {
 	if out != "" {
 		return filepath.Clean(out), 0

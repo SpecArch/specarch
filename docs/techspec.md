@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 55 requirements, 5 entities, 12 commands, 7 algorithms, 318 tests, 72 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 55 requirements, 5 entities, 12 commands, 7 algorithms, 319 tests, 72 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -4650,6 +4650,8 @@ expected here".
 
 **Note:** From JSON Schema, a media type for describing JSON documents, 2020-12, clause Core 4.2.1: An instance has one of six primitive types: null, boolean, object, array, number and string. <https://json-schema.org/specification>
 
+**Note:** From JSON Schema, a media type for describing JSON documents, 2020-12, clause Core 4.2.2: Two numbers are equal when their mathematical values are equal, so 1 and 1.0 are the same value. <https://json-schema.org/specification>
+
 **Note:** From JSON Schema, a media type for describing JSON documents, 2020-12, clause Validation 6.1.1: The type keyword's value integer matches any number with a zero fractional part. <https://json-schema.org/specification>
 
 ### ADR-073: A specification that names no output folder for a document has no such document, and is passed over with a warning
@@ -4678,7 +4680,8 @@ output folders still stop it with exit 2.
 Consequences: `document <target> --check spec examples` runs through for every
 target, warns for the lending desk at testplan, deployment and
 commissioning, and CI runs that loop as CONTRIBUTING.md gives it.
-generate keeps its own rule for an output folder.
+The problems target follows the same rule. generate keeps its own
+rule for an output folder.
 
 **Insight:** The targets an implementation file names are how a specification says which documents it has, so one that names none for a target has chosen not to have it; that is not an error in it, and it is no reason to stop the documents of the others. SpecArch reads what it is given and puts each problem at the entry rather than refusing the run (docs/principles.md), so the missing folder is a warning at the targets where a folder would be named. A run in which every specification is passed over has made nothing at all, and exit 0 there would read as a check that passed; it stays an error. Two folders that disagree leave the output's place ambiguous, which is an error, not a choice.
 
@@ -4729,6 +4732,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-pages-flowchart | command document | system | golden | a hand-written document with a flowchart pages marker | document techspec is run | the region holds the pages and the operation the Pay action runs, and it exits 0 |
 | document-permissions-table | command document | system | golden | a hand-written document with a permissions marker | document techspec is run | the region holds the table of permissions and roles, with public granted to everyone, and it exits 0 |
 | document-problems-lists | command document | system | red | a specification with an error at a requirement that cites a line of code beside it, a warning, and a must question that blocks two keys a requirement leaves out and cites the code | document problems is run | it prints the error, writes problems.txt with each problem on a file:line:column line with its id, the question at its entry followed by a note at each blocked entry and at each cited line, and problems.sarif with the same problems, the question as kind open and level none, and exits 1 |
+| document-problems-no-output-folder | command document | system | red | a specification whose implementation file names an output folder for requirements only, and no --out | document problems is run with --check | it warns at the file's targets, writes nothing and exits 2, since no specification given has a problems document |
 | document-problems-none | command document | system | golden | a specification with no error, no warning and no open question | document problems is run | it writes problems.txt saying there are no problems and problems.sarif with no results, and exits 0 |
 | document-sequence-diagram | command document | system | golden | a hand-written document with a sequenceDiagram payOrder marker | document techspec is run | the region holds the call, the event on order.events and the 200 answer, and it exits 0 |
 | document-state-diagram | command document | system | golden | a hand-written document with a stateDiagram Order marker | document techspec is run | the region holds the states of Order with a start and an end, and it exits 0 |

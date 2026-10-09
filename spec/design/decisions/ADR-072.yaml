@@ -39,5 +39,8 @@ decisions:
         clause: "Core 4.2.1"
         says: "An instance has one of six primitive types: null, boolean, object, array, number and string."
       - source: json-schema
+        clause: "Core 4.2.2"
+        says: "Two numbers are equal when their mathematical values are equal, so 1 and 1.0 are the same value."
+      - source: json-schema
         clause: "Validation 6.1.1"
         says: "The type keyword's value integer matches any number with a zero fractional part."

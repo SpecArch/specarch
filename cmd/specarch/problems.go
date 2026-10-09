@@ -23,6 +23,7 @@ func runProblems(paths []string, out string, check bool, stdout, stderr io.Write
 	}
 	var plan []planned
 	invalid := false
+	skipped := 0
 	for _, in := range inputs {
 		if in.root == "" {
 			name := in.implementation
@@ -48,6 +49,11 @@ func runProblems(paths []string, out string, check bool, stdout, stderr io.Write
 				l.impls = append(l.impls, generate.Implementation{Node: doc.Root, Path: impl.Path})
 			}
 		}
+		if out == "" && !namesOutput(l, "problems") {
+			fmt.Fprintf(stdout, "%s: warning: no output folder for problems; no implementation file's targets name problems and its output, so this specification has no problems document\n", outputEntry(l))
+			skipped++
+			continue
+		}
 		folder, status := outputFolder(l, "problems", out, stderr)
 		if status != 0 {
 			return status
@@ -65,6 +71,10 @@ func runProblems(paths []string, out string, check bool, stdout, stderr io.Write
 		plan = append(plan,
 			planned{filepath.Join(folder, problems.TextName), problems.Text(name, version, relSlash(folder, s.RootFile), ps)},
 			planned{filepath.Join(folder, problems.SARIFName), problems.SARIF(ps)})
+	}
+	if len(plan) == 0 && skipped > 0 {
+		fmt.Fprintln(stderr, "specarch: no output folder for problems in any specification given; give --out, or an implementation file whose targets name problems and its output")
+		return 2
 	}
 	if len(plan) == 0 {
 		fmt.Fprintf(stderr, "specarch document: no specification given; name a folder that holds %s\n", spec.RootFile)

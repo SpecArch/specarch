@@ -2,14 +2,14 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 318 design tests, 125 golden and 193 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 319 design tests, 125 golden and 194 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 314 |
+| system | 315 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -378,6 +378,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-51.
 - Given: a specification with an error at a requirement that cites a line of code beside it, a warning, and a must question that blocks two keys a requirement leaves out and cites the code
 - When: document problems is run
 - Then: it prints the error, writes problems.txt with each problem on a file:line:column line with its id, the question at its entry followed by a note at each blocked entry and at each cited line, and problems.sarif with the same problems, the question as kind open and level none, and exits 1
+
+#### document-problems-no-output-folder
+
+Scenario: red; level: system; covers exit 2.
+
+- Given: a specification whose implementation file names an output folder for requirements only, and no --out
+- When: document problems is run with --check
+- Then: it warns at the file's targets, writes nothing and exits 2, since no specification given has a problems document
 
 #### document-problems-none
 

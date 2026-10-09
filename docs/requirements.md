@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.6.0-dev of the specification: 5 stakeholders, 9 needs and 50 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.6.0-dev of the specification: 5 stakeholders, 9 needs and 51 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 ## 1. Purpose and scope
 
@@ -31,14 +31,14 @@ What the stakeholders said they need, before it was shaped into requirements, an
 
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
-| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6 |
+| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-49, SA-46, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-19 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14 |
-| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-46, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45 |
+| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-46, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-51 |
 | NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22 |
 
 ## 4. Requirements
@@ -95,6 +95,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-6 | interface | must | accepted | Every problem shall be reported, one line each, with file, line, YAML path and rule; the exit status is 0 when valid, 1 when invalid, 2 on a usage or read error. |
 | SA-9 | constraint | must | accepted | A specification and its implementations shall be separate files; a specification holds no stack-specific key and an implementation file adds no design. |
 | SA-10 | functional | must | accepted | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. |
+| SA-51 | interface | must | accepted | specarch shall list every problem of a specification, valid or not, in one problems file and its SARIF 2.1.0 form, each error, warning and open question with a stable id, file, line and column, JSON pointer, rule, a message saying how to fix it, and notes at the sources it came from and the entries it blocks, and every file specarch writes shall mark the entry a problem touches. |
 
 ### SA-31
 
@@ -815,6 +816,22 @@ Acceptance criteria:
 - An implementation written against an older version of its specification is reported as implements.
 - A pointer to an object the specification does not have is reported as design_ref.
 
+### SA-51
+
+specarch shall list every problem of a specification, valid or not, in one problems file and its SARIF 2.1.0 form, each error, warning and open question with a stable id, file, line and column, JSON pointer, rule, a message saying how to fix it, and notes at the sources it came from and the entries it blocks, and every file specarch writes shall mark the entry a problem touches.
+
+Kind: interface; priority: must; status: accepted; verified by test; refines NEED-1, NEED-8.
+
+Acceptance criteria:
+
+- specarch document problems on a specification with an error, a warning and a must question writes problems.txt with one line each in the form file:line:column: severity: pointer: rule: message [id], sorted by file and line, the question followed by a note at each source it cites and each entry it blocks, and exits 1.
+- The same run writes problems.sarif, a SARIF 2.1.0 log with the same results, the question as kind open and level none, and each id as a partial fingerprint; a second run writes the same bytes.
+- A specification with no problem gets a problems file that says so.
+
+**Insight:** People fix a specification the way they fix code, from a compiler's list of problems, one place at a time; a tool that refuses an invalid specification, or lists errors and questions in different places, hides what the author has to fix.
+
+**Note:** From Static Analysis Results Interchange Format (SARIF) Version 2.1.0, 2020, clause result: A result names its rule, its kind and level, its locations, and partial fingerprints that recognise it in a later run. <https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html>
+
 ## 5. Constraints
 
 | Constraint | Kind | Statement |
@@ -873,5 +890,6 @@ Every source a Note in this document cites.
 | protoc-plugins | Protocol buffers compiler plug-in protocol, plugin.proto | 2024 | The protocol buffers project | https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto |
 | rfc-9110 | RFC 9110, HTTP Semantics | 2022 | IETF | https://www.rfc-editor.org/rfc/rfc9110 |
 | rfc-9457 | RFC 9457, Problem Details for HTTP APIs | 2023 | IETF | https://www.rfc-editor.org/rfc/rfc9457 |
+| sarif | Static Analysis Results Interchange Format (SARIF) Version 2.1.0 | 2020 | OASIS | https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html |
 | semver | Semantic Versioning | 2.0.0 | The Semantic Versioning project | https://semver.org/spec/v2.0.0.html |
 

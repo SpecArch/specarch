@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 50 requirements, 3 entities, 12 commands, 7 algorithms, 305 tests, 63 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 51 requirements, 5 entities, 12 commands, 7 algorithms, 305 tests, 65 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -60,7 +60,7 @@ The interfaces the system offers, as its clients see them.
 | approve | Record that the documents were read and the specification is approved | public | 0: the approval was recorded; 1: refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current; 2: usage error, or a file that could not be read or written |
 | derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors, or a draft's name is taken by another draft or by a test of another subject; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, or there is no release record for the new version; 2: usage error, a path that could not be read, or a specification with errors |
-| document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder, or a file that could not be read or written |
+| document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (for the problems target, after its files are written), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder, or a file that could not be read or written |
 | extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a route table that lists a method and path pair twice, a permission table that lists a grant twice, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, or a file that is not BPMN 2.0 XML or holds no process; 2: usage error, a source this build does not offer, or a path that could not be read or written |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open; 1: at least one must or should question is open; 2: usage error, a path that could not be read, or a specification with errors |
 | generate | Write code or data from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads, the specification is not approved, the plug-in reported an error, or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder, or a file that could not be read or written |
@@ -76,6 +76,7 @@ The interfaces the system offers, as its clients see them.
 erDiagram
   Diagnostic }o--|| SpecFile : specFile
   GeneratedFile }o--|| SpecFile : source
+  ProblemNote }o--|| Problem : owner
   Diagnostic {
     string file PK, FK
     Severity severity
@@ -91,6 +92,24 @@ erDiagram
     string sourceVersion
     string metaModel
     bool markersOnly
+  }
+  Problem {
+    string id PK
+    ProblemSeverity severity
+    string file
+    int32 line
+    int32 column
+    string path
+    string rule
+    string message
+  }
+  ProblemNote {
+    string problem PK, FK
+    int32 position PK
+    string file
+    int32 line
+    int32 column
+    string message
   }
   SpecFile {
     string path PK
@@ -143,6 +162,47 @@ Primary key: path.
 |---|---|---|---|---|
 | source | many-to-one | SpecFile | sourceFile | restrict |
 
+### Problem
+
+One error, warning or open question of a specification, as the
+problems file lists it (ADR-065). Printed as one line:
+`file:line:column: severity: pointer: rule: message [id]`, followed
+by its notes.
+
+| Field | Type | Required | Limits | Description |
+|---|---|---|---|---|
+| id | string | yes | at least 1 character | A question's own id, such as `Q-4`; for an error or a warning `<rule>@<file>#<pointer>`, the file relative to the specification's folder, with `.2` and on after the rule for a second problem of one rule at one pointer. |
+| severity | ProblemSeverity | yes |   |   |
+| file | string | yes |   | The fragment the entry is in, relative to the folder the problems file is in. |
+| line | int32 | yes | at least 1 | The line of the entry, from 1. |
+| column | int32 | yes | at least 1 | The column of the node the pointer names when the problem is on its line, otherwise of the first character on the line that is not a space; from 1, in Unicode characters. |
+| path | string | yes |   | JSON pointer to the entry, such as `/entities/Loan/relations/member/target`; `/` for the whole file. |
+| rule | string | yes | at least 1 character | The Rule of an error or a warning, and `open_question` for a question. |
+| message | string | yes | at least 1 character | What is wrong and how to fix it, in one plain sentence; for a question, its priority and kind, the question, who decides and how it is answered. |
+
+Primary key: id.
+
+### ProblemNote
+
+A place that helps with a problem, printed after it as
+`file:line:column: note: text`: a source the entry or the question
+cites, or an entry a question blocks.
+
+| Field | Type | Required | Limits | Description |
+|---|---|---|---|---|
+| problem | string | yes | at least 1 character | The id of the problem it belongs to. |
+| position | int32 | yes | at least 1 | Its place among the problem's notes, from 1. |
+| file | string | yes |   | The cited file when the source's url is beside the specification and the clause is `path:line`, otherwise the fragment holding the citation or the blocked entry; relative to the folder the problems file is in. |
+| line | int32 | yes | at least 1 |   |
+| column | int32 | yes | at least 1 |   |
+| message | string | yes | at least 1 character | `source <key>, clause <clause>: <says>` for a citation; `blocks <pointer>` for a blocked entry, with the keys missing there. |
+
+Primary key: problem, position.
+
+| Relation | Kind | Target | Via | On delete |
+|---|---|---|---|---|
+| owner | many-to-one | Problem | problem | restrict |
+
 ### SpecFile
 
 One input given to a command, as the command read it; a specification is one input, whatever the number of files in its tree.
@@ -169,6 +229,7 @@ Primary key: path.
 | DocumentTarget | deployment | deployment guide, from the deployment stage and the implementation's deployments |
 | DocumentTarget | commissioning | commissioning test procedure and sign-off sheet |
 | DocumentTarget | questions | the open questions by stage, what each blocks and who decides, and which outputs are ready, drafts or waiting |
+| DocumentTarget | problems | problems.txt, every error, warning and open question one line each with its notes, and problems.sarif, the same as a SARIF 2.1.0 log; written for an invalid specification too |
 | DocumentTarget | changes | the change and defect register, open items first, from the records beside the specification |
 | DocumentTarget | releases | release notes, newest first, each release's changes and fixes grouped as added, changed, removed and fixed, from the records |
 | DocumentTarget | manual | user manual, from the pages and permissions |
@@ -178,6 +239,9 @@ Primary key: path.
 | GeneratorTarget | ui | page definitions for the target component library |
 | GeneratorTarget | tests | one test per design test and per worked example, in the implementation's framework |
 | GeneratorTarget | scripts | guarded operational scripts for data changes |
+| ProblemSeverity | error | a diagnostic that makes the specification invalid; SARIF kind fail, level error |
+| ProblemSeverity | warning | a diagnostic that leaves the specification valid; SARIF kind fail, level warning |
+| ProblemSeverity | question | an open question of any priority; SARIF kind open, level none |
 | Rule | file_kind | a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name |
 | Rule | yaml_syntax | the file is not well-formed YAML |
 | Rule | unquoted_date | a date written without quotes, which YAML reads as a timestamp |
@@ -443,7 +507,7 @@ sequenceDiagram
 ### Command document
 
 Validates its input first and writes nothing from an invalid
-specification. Then writes the document into the folder the target
+specification, except the problems document. Then writes the document into the folder the target
 owns, and nothing outside it, except the regions between
 `specarch:generate` markers in the hand-written `specarch.md` beside
 the root file. Every generated file starts with a header naming the
@@ -509,6 +573,29 @@ violates and its decision. The releases target writes `releases.md`:
 the releases newest first, each with what it includes grouped as
 added, changed, removed and fixed. Neither is ever a draft.
 
+The problems target writes `problems.txt` and `problems.sarif`
+(ADR-065), for an invalid specification too. `problems.txt` starts
+with a line naming the specification, its version and the counts of
+errors, warnings and open questions by priority, and a line naming
+the root file it was made from; then one line per problem,
+`file:line:column: severity: pointer: rule: message [id]`, sorted by
+file, line, column, pointer, rule and id, each followed by its notes,
+`file:line:column: note: text`. The problems are validate's errors
+and warnings and the open questions; a question is at its entry in
+the questions file, its notes are each source it cites and each
+entry it blocks, with the keys missing there, and the diagnostics it
+covers are not problems of their own. An error's or a warning's
+note is each citation of the nearest element above its entry that
+cites. Paths are relative to the folder the files are written in.
+`problems.sarif` is one SARIF 2.1.0 run of the same problems, in the
+same order, with `columnKind` unicodeCodePoints, locations relative
+to the base id PROBLEMSDIR, the id as the partial fingerprint
+`specarchId/v1`, the pointer as a logical location, the notes as
+related locations, a question's fields as properties, and the rules
+used listed under the tool. A specification that cannot be read at
+all, such as one whose root file does not parse, gets its
+problems too.
+
 In every document an element's why is an Insight and each citation
 a Note (ADR-015), and a document that cites sources ends with them.
 
@@ -525,7 +612,7 @@ a Note (ADR-015), and a document that cites sources ends with them.
 
 Reads `{paths}`: The specifications and their implementation files; `specarch.md`: The hand-written document beside each root file, when there is one; `records/ beside each specification's folder`: The change, defect and release records, for the changes and releases targets; `{out}`: The current output, with `--check`.
 
-Writes `{out}/<target>.md`: The document. Nothing is written with `--check`; `specarch.md`: Only the regions between markers. Nothing is written with `--check`.
+Writes `{out}/<target>.md`: The document. Nothing is written with `--check`; `specarch.md`: Only the regions between markers. Nothing is written with `--check`; `{out}/problems.txt`: The problems, for the problems target, written whether or not the specification is valid. Nothing is written with `--check`; `{out}/problems.sarif`: The same problems as a SARIF 2.1.0 log, for the problems target.
 
 Standard output: The diagnostics of an invalid specification and the errors of a
 marker, one line each. With `--check`, one line per file that differs
@@ -546,6 +633,8 @@ sequenceDiagram
   P->>P: checkStatus
   P->>F: write {out}/<target>.md
   P->>F: write specarch.md
+  P->>F: write {out}/problems.txt
+  P->>F: write {out}/problems.sarif
   P-->>U: exit status 0, 1, 2
 ```
 
@@ -4150,6 +4239,112 @@ the error at submit stands for what the expressions name.
 
 **Insight:** A second set of keys for a task would be two ways to say one thing, which the Low IQ Tax forbids. The expressions name the body's properties because those are what the page shows and sends; there is no entity to name. A confirmation the operation takes is checked on the page as well as by the service, since a check on the page is what tells a person which field to correct before they lose what they typed; enteredTwice is the way to ask twice for a field the operation does not take twice.
 
+### ADR-065: Every problem is one record, listed in one problems file with its SARIF form, and marked at the entry in every file SpecArch writes
+
+Status: accepted, 2026-10-09.
+
+Context: SpecArch is a compiler for specifications (docs/principles.md): it
+reads every definition and lists every problem where the author can
+find and fix it. The problems are spread today. validate prints
+errors and warnings, one line each with file, line, pointer and
+rule but no column and no id; open questions are listed by gaps and
+the questions document; the diagnostics a question covers are
+hidden behind it; extract's lines on what it could not hold go only
+to standard output; documents mark an element's open questions with
+an Open question paragraph, and code marks nothing. document and
+gaps refuse an invalid specification, so the list of problems is
+not written when it is needed most. The editor's Problems panel
+reads validate's line and takes its last colon before the severity
+as the line number.
+
+Decision: A problem is one record (the Problem entity) with a severity
+(error, warning or question), the file, line and column of the
+entry, its JSON pointer, a rule, a message that says how to fix it,
+a stable id, and notes at its sources and at the entries a question
+blocks. Errors and warnings are validate's diagnostics; questions
+are the open questions, with the diagnostics they cover as notes.
+A question's id is its own; an error's or a warning's is
+rule@file#pointer, file relative to the specification's folder,
+with .2 and on after the rule for a second problem of one rule at
+one pointer. Lines and columns count from 1, a column in Unicode
+characters.
+
+specarch document problems writes problems.txt, one line per
+problem in the GNU form file:line:column: severity: pointer: rule:
+message [id], each followed by its note lines, sorted by file and
+line, after two lines naming the file and the counts; and
+problems.sarif, the same problems as a SARIF 2.1.0 log. It writes
+both for an invalid specification too, then exits 1.
+
+Every file SpecArch writes marks each entry a problem touches with
+the problem's line in its own comment form, above the entry
+(docs/problems.md, section 5). Marks are written from the run's
+problems in the order of the problems file, and a run that writes a
+file writes its marks again, so a fixed problem loses its mark. In
+a YAML file only lines starting with "# specarch-problem:" are
+SpecArch's, and they are edited as text; the problems are read from
+the marked files, so their lines are the lines on disk.
+
+The pieces that exist are joined rather than duplicated: the Open
+question paragraph and the Draft notice are a document's marks,
+extract's lines on what it could not hold become could questions in
+its tree, and problems.sarif takes the place of the planned gaps
+--json. The steps are in docs/problems.md, section 6.
+
+Consequences: One file lists everything to fix or decide, and an editor or a CI
+log reader can jump through it as through a compiler's output. The
+SARIF log feeds the agent queue and any SARIF viewer without a
+format of SpecArch's own. A problem can be found from any output by
+its id. validate keeps printing its current line until the editor
+accepts a column and the severities question and note (step 2);
+then validate prints the new line in both builds (step 3), and
+every validate case is recorded again. Until step 3, a column that
+is not at the node the pointer names is the first character of the
+line rather than the column inside an expression. Writing marks
+into the files an author edits, and marking generated code while
+the approval gate refuses it, are ADR-066.
+
+**Insight:** People fix a specification as they fix code: from a compiler's list, one place at a time. The GNU line is the form GCC, Clang, the Go tools, editors and CI already parse, and keeping validate's order after the severity keeps the editor's parser close to what it is. SARIF 2.1.0 is the OASIS standard for analysis results; it already says how a result names its rule, how a result is recognised in the next run although its line moved (partial fingerprints, which the id fills), and how a tool says that it could not decide for lack of information (kind open, level none), which is what an open question is. Columns count Unicode characters because both YAML parsers do, and the log says so with columnKind rather than leaving SARIF's default of UTF-16 units to mislead. No SARIF fix is written, because a SARIF fix is an exact edit and the message is advice. The id is readable rather than a hash, since every part of it is a word the reader knows (the Low IQ Tax, rule 1), and it does not hold the line, which moves with every edit above it. The message is not split into a message and a fix: every rule already writes how to fix it in its message, and a second field would be a second place to say one thing.
+
+**Note:** From Static Analysis Results Interchange Format (SARIF) Version 2.1.0, 2020, clause result.kind, result.level, result.partialFingerprints, run.columnKind: A result's kind says whether it is a failure, with open for a result the tool lacked the information to decide; a result whose kind is not fail has level none; partialFingerprints identify a result across runs; a run's columnKind says how columns are counted, UTF-16 code units by default. <https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html>
+
+**Note:** From GNU Coding Standards, clause Formatting Error Messages: Error messages from compilers should look like sourcefile:lineno:column: message, with line and column numbers starting from 1. <https://www.gnu.org/prep/standards/>
+
+### ADR-066: Problem marks go into the fragments an author edits when document problems runs, and generated code is marked only where the approval gate lets it be written
+
+Status: proposed, 2026-10-09.
+
+Context: ADR-065 marks every entry a problem touches in every file SpecArch
+writes. Two kinds of file are not plainly outputs. The fragments an
+author writes by hand are the author's: validate only reads them,
+and an editor may hold unsaved changes to one. Generated code,
+SQL, OpenAPI, tests and UI are not written today while a must or
+should question blocks what they read, or while the version has no
+approval (ADR-017, ADR-019), so they have nothing to carry a mark
+while those problems stand.
+
+Decision: Hand-written fragments: specarch document problems writes the marks
+into every fragment of the specification, hand-written or not, with
+no option to turn it off; validate stays read-only and never
+writes a mark. The marks are comment lines that start with
+"# specarch-problem:", edited as text, so nothing else in the file
+changes.
+
+Generated code: the approval gate stays as it is. Generated code,
+SQL, OpenAPI, tests and UI carry the marks of the problems that do
+not stop generation: warnings and could questions, and must or
+should questions on what the target does not read. An error, or a
+must or should question on what the target reads, still stops
+generation, and the problems file lists it at the entry.
+
+Consequences: An author who runs document problems sees each problem above its
+entry in the file they edit, and the next run removes the marks of
+what they fixed. An editor that holds a fragment open reloads it
+after the run. Code never ships from a specification that is not
+approved, and a draft of code is not offered beside the gate.
+
+**Insight:** The owner asked for the marks in the fragments themselves, and a comment line is the one change to a YAML file that leaves its meaning, its formatting and its other comments as they were. A single command that writes them, rather than validate, keeps the check after every save free of writes, and a command without a switch is one mode fewer. The approval gate exists so that what reaches production was read and accepted by a person; a marked draft beside it would be code that skipped that reading, and a mark does not stop it being run.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -4547,6 +4742,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-6 | Every problem shall be reported, one line each, with file, line, YAML path and rule; the exit status is 0 when valid, 1 when invalid, 2 on a usage or read error. | interface | must | accepted | test | A run on a folder with three problems in two files prints three lines and exits 1. A run with no arguments prints how to use the command and exits 2. | NEED-1 |
 | SA-9 | A specification and its implementations shall be separate files; a specification holds no stack-specific key and an implementation file adds no design. | constraint | must | accepted | test | A stack-specific extension key in a specification is reported as stack_key. A design keyword in an implementation file is reported as design_key. | NEED-2 |
 | SA-10 | An implementation file's implements and pointers shall resolve in the specification it names, at the same version. | functional | must | accepted | test | An implementation written against an older version of its specification is reported as implements. A pointer to an object the specification does not have is reported as design_ref. | NEED-2 |
+| SA-51 | specarch shall list every problem of a specification, valid or not, in one problems file and its SARIF 2.1.0 form, each error, warning and open question with a stable id, file, line and column, JSON pointer, rule, a message saying how to fix it, and notes at the sources it came from and the entries it blocks, and every file specarch writes shall mark the entry a problem touches. | interface | must | accepted | test | specarch document problems on a specification with an error, a warning and a must question writes problems.txt with one line each in the form file:line:column: severity: pointer: rule: message [id], sorted by file and line, the question followed by a note at each source it cites and each entry it blocks, and exits 1. The same run writes problems.sarif, a SARIF 2.1.0 log with the same results, the question as kind open and level none, and each id as a partial fingerprint; a second run writes the same bytes. A specification with no problem gets a problems file that says so. | NEED-1, NEED-8 |
 
 **Insight on SA-31:** A test the specification implies is worth most when it runs; what differs between two projects in one language (how a caller signs in, how a record is stored, how a request is sent) is the harness, so the generated file needs nothing but it.
 
@@ -4650,6 +4846,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Note on SA-6:** From The go command, Go documentation, 1.26: The Go tools print one problem per line as file:line, which editors and CI already parse. <https://go.dev/doc/>
 
+**Insight on SA-51:** People fix a specification the way they fix code, from a compiler's list of problems, one place at a time; a tool that refuses an invalid specification, or lists errors and questions in different places, hides what the author has to fix.
+
+**Note on SA-51:** From Static Analysis Results Interchange Format (SARIF) Version 2.1.0, 2020, clause result: A result names its rule, its kind and level, its locations, and partial fingerprints that recognise it in a later run. <https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html>
+
 ### Traceability
 
 What satisfies and what verifies each requirement. An empty cell is a gap.
@@ -4706,6 +4906,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-48 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |
 | SA-49 | enums Rule; decisions ADR-062 | tests extract-openapi-snake-case; tests generate-openapi-wire-names; tests validate-wire-names |
 | SA-50 | enums Rule; decisions ADR-063 | tests generate-sql-value-object-fields; tests validate-value-object-fields; tests validate-value-object-fields-valid |
+| SA-51 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066 |   |
 
 ## Sources
 
@@ -4717,6 +4918,7 @@ Every source a Note in this document cites.
 | arc42 | arc42, the template for architecture documentation | 8.2 | Gernot Starke and Peter Hruschka | https://arc42.org/overview |
 | cel | Common Expression Language, language definition | 2024 | The CEL project | https://github.com/google/cel-spec/blob/master/doc/langdef.md |
 | ecma-262 | ECMA-262, ECMAScript language specification, the Number type | 2025 | Ecma International | https://tc39.es/ecma262/#sec-ecmascript-language-types-number-type |
+| gnu-coding-standards | GNU Coding Standards |   | The GNU Project | https://www.gnu.org/prep/standards/ |
 | go-tool | The go command, Go documentation | 1.26 | The Go project | https://go.dev/doc/ |
 | iec-62381 | IEC 62381, Automation systems in the process industry, Factory acceptance test (FAT), site acceptance test (SAT) and site integration test (SIT) | 2024 | IEC |   |
 | ieee-830 | IEEE Std 830-1998, IEEE Recommended Practice for Software Requirements Specifications | 1998 | IEEE |   |
@@ -4734,5 +4936,6 @@ Every source a Note in this document cites.
 | protoc-plugins | Protocol buffers compiler plug-in protocol, plugin.proto | 2024 | The protocol buffers project | https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto |
 | rfc-9110 | RFC 9110, HTTP Semantics | 2022 | IETF | https://www.rfc-editor.org/rfc/rfc9110 |
 | rfc-9457 | RFC 9457, Problem Details for HTTP APIs | 2023 | IETF | https://www.rfc-editor.org/rfc/rfc9457 |
+| sarif | Static Analysis Results Interchange Format (SARIF) Version 2.1.0 | 2020 | OASIS | https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html |
 | semver | Semantic Versioning | 2.0.0 | The Semantic Versioning project | https://semver.org/spec/v2.0.0.html |
 

@@ -4,7 +4,7 @@ commands:
     summary: Write a document from a specification
     description: |
       Validates its input first and writes nothing from an invalid
-      specification. Then writes the document into the folder the target
+      specification, except the problems document. Then writes the document into the folder the target
       owns, and nothing outside it, except the regions between
       `specarch:generate` markers in the hand-written `specarch.md` beside
       the root file. Every generated file starts with a header naming the
@@ -70,6 +70,29 @@ commands:
       the releases newest first, each with what it includes grouped as
       added, changed, removed and fixed. Neither is ever a draft.
 
+      The problems target writes `problems.txt` and `problems.sarif`
+      (ADR-065), for an invalid specification too. `problems.txt` starts
+      with a line naming the specification, its version and the counts of
+      errors, warnings and open questions by priority, and a line naming
+      the root file it was made from; then one line per problem,
+      `file:line:column: severity: pointer: rule: message [id]`, sorted by
+      file, line, column, pointer, rule and id, each followed by its notes,
+      `file:line:column: note: text`. The problems are validate's errors
+      and warnings and the open questions; a question is at its entry in
+      the questions file, its notes are each source it cites and each
+      entry it blocks, with the keys missing there, and the diagnostics it
+      covers are not problems of their own. An error's or a warning's
+      note is each citation of the nearest element above its entry that
+      cites. Paths are relative to the folder the files are written in.
+      `problems.sarif` is one SARIF 2.1.0 run of the same problems, in the
+      same order, with `columnKind` unicodeCodePoints, locations relative
+      to the base id PROBLEMSDIR, the id as the partial fingerprint
+      `specarchId/v1`, the pointer as a logical location, the notes as
+      related locations, a question's fields as properties, and the rules
+      used listed under the tool. A specification that cannot be read at
+      all, such as one whose root file does not parse, gets its
+      problems too.
+
       In every document an element's why is an Insight and each citation
       a Note (ADR-015), and a document that cites sources ends with them.
     permission: public
@@ -97,6 +120,8 @@ commands:
     writes:
       - { path: "{out}/<target>.md", description: "The document. Nothing is written with `--check`." }
       - { path: "specarch.md", description: "Only the regions between markers. Nothing is written with `--check`." }
+      - { path: "{out}/problems.txt", description: "The problems, for the problems target, written whether or not the specification is valid. Nothing is written with `--check`." }
+      - { path: "{out}/problems.sarif", description: "The same problems as a SARIF 2.1.0 log, for the problems target." }
     standardOutput: |
       The diagnostics of an invalid specification and the errors of a
       marker, one line each. With `--check`, one line per file that differs
@@ -104,10 +129,10 @@ commands:
     standardError: A usage message on a usage error, the reason a file cannot be read or written, and a one-line count at the end.
     exitCodes:
       "0": written, or with `--check` the output is current
-      "1": a specification has an error, a marker is wrong, or with `--check` the output differs
+      "1": a specification has an error (for the problems target, after its files are written), a marker is wrong, or with `--check` the output differs
       "2": usage error, a target this build does not offer, no output folder, or a file that could not be read or written
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22, SA-26]
+    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22, SA-26, SA-51]
     why: Documents are read by more people than the YAML, so they come first among the targets and are made from the specification rather than kept beside it.
     cites:
       - source: arc42

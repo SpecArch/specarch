@@ -2,20 +2,20 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 0.6.0-dev of the specification: 9 needs, 50 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.6.0-dev of the specification: 9 needs, 51 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 ## 1. Needs to requirements
 
 | Need | Status | Refined by |
 |---|---|---|
-| NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6 |
+| NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
 | NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-49, SA-46, SA-32, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-19 |
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-35, SA-47, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
 | NEED-6 | accepted | SA-15, SA-13 |
 | NEED-7 | accepted | SA-14 |
-| NEED-8 | accepted | SA-46, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45 |
+| NEED-8 | accepted | SA-46, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-51 |
 | NEED-9 | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22 |
 
 ## 2. Requirements to design and verification
@@ -72,8 +72,11 @@ Version 0.6.0-dev of the specification: 9 needs, 50 requirements, and 0 gaps. Ea
 | SA-48 | NEED-1 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |
 | SA-49 | NEED-2 | enums Rule; decisions ADR-062 | tests extract-openapi-snake-case; tests generate-openapi-wire-names; tests validate-wire-names |
 | SA-50 | NEED-1 | enums Rule; decisions ADR-063 | tests generate-sql-value-object-fields; tests validate-value-object-fields; tests validate-value-object-fields-valid |
+| SA-51 | NEED-1, NEED-8 | enums DocumentTarget; enums ProblemSeverity; entities Problem; entities ProblemNote; commands document; decisions ADR-065; decisions ADR-066 |   |
 
 ## 3. Gaps
 
-None: every need is refined, and every requirement has acceptance criteria, is satisfied once there is a design, and is verified once there are tests, checks or monitors.
+The work the specification still owes, the same gaps the validator warns about. Rejected needs and rejected or retired requirements are left out.
+
+- Requirements no test, check or monitor verifies: SA-51.
 

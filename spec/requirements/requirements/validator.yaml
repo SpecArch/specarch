@@ -86,3 +86,19 @@ requirements:
       - A pointer to an object the specification does not have is reported as design_ref.
     verification: test
     needs: [NEED-2]
+  SA-51:
+    statement: specarch shall list every problem of a specification, valid or not, in one problems file and its SARIF 2.1.0 form, each error, warning and open question with a stable id, file, line and column, JSON pointer, rule, a message saying how to fix it, and notes at the sources it came from and the entries it blocks, and every file specarch writes shall mark the entry a problem touches.
+    kind: interface
+    priority: must
+    status: accepted
+    acceptance:
+      - "specarch document problems on a specification with an error, a warning and a must question writes problems.txt with one line each in the form file:line:column: severity: pointer: rule: message [id], sorted by file and line, the question followed by a note at each source it cites and each entry it blocks, and exits 1."
+      - The same run writes problems.sarif, a SARIF 2.1.0 log with the same results, the question as kind open and level none, and each id as a partial fingerprint; a second run writes the same bytes.
+      - A specification with no problem gets a problems file that says so.
+    verification: test
+    needs: [NEED-1, NEED-8]
+    why: People fix a specification the way they fix code, from a compiler's list of problems, one place at a time; a tool that refuses an invalid specification, or lists errors and questions in different places, hides what the author has to fix.
+    cites:
+      - source: sarif
+        clause: result
+        says: "A result names its rule, its kind and level, its locations, and partial fingerprints that recognise it in a later run."

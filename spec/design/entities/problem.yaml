@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+entities:
+  Problem:
+    description: |
+      One error, warning or open question of a specification, as the
+      problems file lists it (ADR-065). Printed as one line:
+      `file:line:column: severity: pointer: rule: message [id]`, followed
+      by its notes.
+    type: object
+    properties:
+      id: { type: string, minLength: 1, description: "A question's own id, such as `Q-4`; for an error or a warning `<rule>@<file>#<pointer>`, the file relative to the specification's folder, with `.2` and on after the rule for a second problem of one rule at one pointer." }
+      severity: { $ref: "#/enums/ProblemSeverity" }
+      file: { type: string, description: "The fragment the entry is in, relative to the folder the problems file is in." }
+      line: { type: integer, format: int32, minimum: 1, description: "The line of the entry, from 1." }
+      column: { type: integer, format: int32, minimum: 1, description: "The column of the node the pointer names when the problem is on its line, otherwise of the first character on the line that is not a space; from 1, in Unicode characters." }
+      path: { type: string, description: "JSON pointer to the entry, such as `/entities/Loan/relations/member/target`; `/` for the whole file." }
+      rule: { type: string, minLength: 1, description: "The Rule of an error or a warning, and `open_question` for a question." }
+      message: { type: string, minLength: 1, description: "What is wrong and how to fix it, in one plain sentence; for a question, its priority and kind, the question, who decides and how it is answered." }
+    required: [id, severity, file, line, column, path, rule, message]
+    primaryKey: [id]
+    satisfies: [SA-51]
+  ProblemNote:
+    description: |
+      A place that helps with a problem, printed after it as
+      `file:line:column: note: text`: a source the entry or the question
+      cites, or an entry a question blocks.
+    type: object
+    properties:
+      problem: { type: string, minLength: 1, description: The id of the problem it belongs to. }
+      position: { type: integer, format: int32, minimum: 1, description: "Its place among the problem's notes, from 1." }
+      file: { type: string, description: "The cited file when the source's url is beside the specification and the clause is `path:line`, otherwise the fragment holding the citation or the blocked entry; relative to the folder the problems file is in." }
+      line: { type: integer, format: int32, minimum: 1 }
+      column: { type: integer, format: int32, minimum: 1 }
+      message: { type: string, minLength: 1, description: "`source <key>, clause <clause>: <says>` for a citation; `blocks <pointer>` for a blocked entry, with the keys missing there." }
+    required: [problem, position, file, line, column, message]
+    primaryKey: [problem, position]
+    relations:
+      owner: { target: Problem, kind: many-to-one, via: problem }
+    satisfies: [SA-51]

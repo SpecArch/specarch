@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-066:
+    title: Problem marks go into the fragments an author edits when document problems runs, and generated code is marked only where the approval gate lets it be written
+    status: proposed
+    date: "2026-10-09"
+    context: |
+      ADR-065 marks every entry a problem touches in every file SpecArch
+      writes. Two kinds of file are not plainly outputs. The fragments an
+      author writes by hand are the author's: validate only reads them,
+      and an editor may hold unsaved changes to one. Generated code,
+      SQL, OpenAPI, tests and UI are not written today while a must or
+      should question blocks what they read, or while the version has no
+      approval (ADR-017, ADR-019), so they have nothing to carry a mark
+      while those problems stand.
+    decision: |
+      Hand-written fragments: specarch document problems writes the marks
+      into every fragment of the specification, hand-written or not, with
+      no option to turn it off; validate stays read-only and never
+      writes a mark. The marks are comment lines that start with
+      "# specarch-problem:", edited as text, so nothing else in the file
+      changes.
+
+      Generated code: the approval gate stays as it is. Generated code,
+      SQL, OpenAPI, tests and UI carry the marks of the problems that do
+      not stop generation: warnings and could questions, and must or
+      should questions on what the target does not read. An error, or a
+      must or should question on what the target reads, still stops
+      generation, and the problems file lists it at the entry.
+    consequences: |
+      An author who runs document problems sees each problem above its
+      entry in the file they edit, and the next run removes the marks of
+      what they fixed. An editor that holds a fragment open reloads it
+      after the run. Code never ships from a specification that is not
+      approved, and a draft of code is not offered beside the gate.
+    why: |
+      The owner asked for the marks in the fragments themselves, and a
+      comment line is the one change to a YAML file that leaves its
+      meaning, its formatting and its other comments as they were. A
+      single command that writes them, rather than validate, keeps the
+      check after every save free of writes, and a command without a
+      switch is one mode fewer. The approval gate exists so that what
+      reaches production was read and accepted by a person; a marked
+      draft beside it would be code that skipped that reading, and a
+      mark does not stop it being run.
+    satisfies: [SA-51]

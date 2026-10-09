@@ -129,6 +129,17 @@ sources:
     edition: "1.26"
     author: The Go project
     url: https://go.dev/doc/
+  sarif:
+    kind: standard
+    title: Static Analysis Results Interchange Format (SARIF) Version 2.1.0
+    edition: "2020"
+    author: OASIS
+    url: https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html
+  gnu-coding-standards:
+    kind: document
+    title: GNU Coding Standards
+    author: The GNU Project
+    url: https://www.gnu.org/prep/standards/
   semver:
     kind: standard
     title: Semantic Versioning

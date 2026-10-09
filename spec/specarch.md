@@ -78,6 +78,7 @@ elements satisfy requirements, tests verify them (ADR-014).
 erDiagram
   Diagnostic }o--|| SpecFile : specFile
   GeneratedFile }o--|| SpecFile : source
+  ProblemNote }o--|| Problem : owner
   Diagnostic {
     string file PK, FK
     Severity severity
@@ -93,6 +94,24 @@ erDiagram
     string sourceVersion
     string metaModel
     bool markersOnly
+  }
+  Problem {
+    string id PK
+    ProblemSeverity severity
+    string file
+    int32 line
+    int32 column
+    string path
+    string rule
+    string message
+  }
+  ProblemNote {
+    string problem PK, FK
+    int32 position PK
+    string file
+    int32 line
+    int32 column
+    string message
   }
   SpecFile {
     string path PK

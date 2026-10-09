@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+enums:
+  ProblemSeverity:
+    type: string
+    enum: [error, warning, question]
+    valueDescriptions:
+      error: a diagnostic that makes the specification invalid; SARIF kind fail, level error
+      warning: a diagnostic that leaves the specification valid; SARIF kind fail, level warning
+      question: an open question of any priority; SARIF kind open, level none
+    satisfies: [SA-51]

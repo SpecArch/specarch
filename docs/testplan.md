@@ -2507,7 +2507,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-167 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+170 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -2678,6 +2678,9 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-9 | acceptance 2 | golden | SA-9 names no harm |
 | requirement SA-10 | acceptance 1 | golden | SA-10 names no harm |
 | requirement SA-10 | acceptance 2 | golden | SA-10 names no harm |
+| requirement SA-51 | acceptance 1 | golden | SA-51 names no harm |
+| requirement SA-51 | acceptance 2 | golden | SA-51 names no harm |
+| requirement SA-51 | acceptance 3 | golden | SA-51 names no harm |
 
 The checks run on the installed system before it is handed over are in the commissioning procedure.
 

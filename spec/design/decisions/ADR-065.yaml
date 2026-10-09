@@ -1,0 +1,95 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+decisions:
+  ADR-065:
+    title: Every problem is one record, listed in one problems file with its SARIF form, and marked at the entry in every file SpecArch writes
+    status: accepted
+    date: "2026-10-09"
+    context: |
+      SpecArch is a compiler for specifications (docs/principles.md): it
+      reads every definition and lists every problem where the author can
+      find and fix it. The problems are spread today. validate prints
+      errors and warnings, one line each with file, line, pointer and
+      rule but no column and no id; open questions are listed by gaps and
+      the questions document; the diagnostics a question covers are
+      hidden behind it; extract's lines on what it could not hold go only
+      to standard output; documents mark an element's open questions with
+      an Open question paragraph, and code marks nothing. document and
+      gaps refuse an invalid specification, so the list of problems is
+      not written when it is needed most. The editor's Problems panel
+      reads validate's line and takes its last colon before the severity
+      as the line number.
+    decision: |
+      A problem is one record (the Problem entity) with a severity
+      (error, warning or question), the file, line and column of the
+      entry, its JSON pointer, a rule, a message that says how to fix it,
+      a stable id, and notes at its sources and at the entries a question
+      blocks. Errors and warnings are validate's diagnostics; questions
+      are the open questions, with the diagnostics they cover as notes.
+      A question's id is its own; an error's or a warning's is
+      rule@file#pointer, file relative to the specification's folder,
+      with .2 and on after the rule for a second problem of one rule at
+      one pointer. Lines and columns count from 1, a column in Unicode
+      characters.
+
+      specarch document problems writes problems.txt, one line per
+      problem in the GNU form file:line:column: severity: pointer: rule:
+      message [id], each followed by its note lines, sorted by file and
+      line, after two lines naming the file and the counts; and
+      problems.sarif, the same problems as a SARIF 2.1.0 log. It writes
+      both for an invalid specification too, then exits 1.
+
+      Every file SpecArch writes marks each entry a problem touches with
+      the problem's line in its own comment form, above the entry
+      (docs/problems.md, section 5). Marks are written from the run's
+      problems in the order of the problems file, and a run that writes a
+      file writes its marks again, so a fixed problem loses its mark. In
+      a YAML file only lines starting with "# specarch-problem:" are
+      SpecArch's, and they are edited as text; the problems are read from
+      the marked files, so their lines are the lines on disk.
+
+      The pieces that exist are joined rather than duplicated: the Open
+      question paragraph and the Draft notice are a document's marks,
+      extract's lines on what it could not hold become could questions in
+      its tree, and problems.sarif takes the place of the planned gaps
+      --json. The steps are in docs/problems.md, section 6.
+    consequences: |
+      One file lists everything to fix or decide, and an editor or a CI
+      log reader can jump through it as through a compiler's output. The
+      SARIF log feeds the agent queue and any SARIF viewer without a
+      format of SpecArch's own. A problem can be found from any output by
+      its id. validate keeps printing its current line until the editor
+      accepts a column and the severities question and note (step 2);
+      then validate prints the new line in both builds (step 3), and
+      every validate case is recorded again. Until step 3, a column that
+      is not at the node the pointer names is the first character of the
+      line rather than the column inside an expression. Writing marks
+      into the files an author edits, and marking generated code while
+      the approval gate refuses it, are ADR-066.
+    why: |
+      People fix a specification as they fix code: from a compiler's
+      list, one place at a time. The GNU line is the form GCC, Clang, the
+      Go tools, editors and CI already parse, and keeping validate's
+      order after the severity keeps the editor's parser close to what it
+      is. SARIF 2.1.0 is the OASIS standard for analysis results; it
+      already says how a result names its rule, how a result is
+      recognised in the next run although its line moved (partial
+      fingerprints, which the id fills), and how a tool says that it
+      could not decide for lack of information (kind open, level none),
+      which is what an open question is. Columns count Unicode characters
+      because both YAML parsers do, and the log says so with columnKind
+      rather than leaving SARIF's default of UTF-16 units to mislead. No
+      SARIF fix is written, because a SARIF fix is an exact edit and the
+      message is advice. The id is readable rather than a hash, since
+      every part of it is a word the reader knows (the Low IQ Tax, rule
+      1), and it does not hold the line, which moves with every edit
+      above it. The message is not split into a message and a fix: every
+      rule already writes how to fix it in its message, and a second
+      field would be a second place to say one thing.
+    satisfies: [SA-51]
+    cites:
+      - source: sarif
+        clause: "result.kind, result.level, result.partialFingerprints, run.columnKind"
+        says: "A result's kind says whether it is a failure, with open for a result the tool lacked the information to decide; a result whose kind is not fail has level none; partialFingerprints identify a result across runs; a run's columnKind says how columns are counted, UTF-16 code units by default."
+      - source: gnu-coding-standards
+        clause: "Formatting Error Messages"
+        says: "Error messages from compilers should look like sourcefile:lineno:column: message, with line and column numbers starting from 1."

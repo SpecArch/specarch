@@ -118,8 +118,12 @@ var defaultFramework = map[string]string{"web": "plain-javascript", "iphone": "s
 // YAML file there is a layout problem.
 func (c *checker) projectIdioms() map[string]Idiom {
 	dir := filepath.Join(filepath.Dir(c.file), "idioms")
+	if info, err := os.Stat(dir); err != nil || !info.IsDir() {
+		return nil
+	}
 	entries, err := os.ReadDir(dir)
 	if err != nil {
+		c.addFile(dir, 1, "/", RuleLayout, "cannot read the folder (%s); the project's own idioms in it are left out until it can be read", spec.PlainIOError(err))
 		return nil
 	}
 	out := map[string]Idiom{}

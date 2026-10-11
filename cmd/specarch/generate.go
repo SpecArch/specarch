@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -153,6 +154,10 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 	}
 	var plan []planned
 	failed := false
+	runs, step := 0, 0
+	for i := range specs {
+		runs += len(groups[i])
+	}
 	for i, l := range specs {
 		for _, g := range groups[i] {
 			part := loaded{spec: l.spec, impls: g.impls, covered: l.covered}
@@ -160,7 +165,14 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 			if status != 0 {
 				return status
 			}
-			req := newPluginRequest(l, target, folder, g.impls)
+			step++
+			if runs > 1 {
+				fmt.Fprintf(stderr, "specarch generate: %d of %d: running %s for %s into %s\n", step, runs, g.name, l.spec.Dir, folder)
+			}
+			req, notes := newPluginRequest(l, target, folder, g.impls)
+			for _, n := range notes {
+				fmt.Fprintf(stderr, "specarch generate: %s\n", n)
+			}
 			req.Draft = drafts[i]
 			resp, status := runPlugin(g.exe, g.name, req, stderr)
 			if status != 0 {
@@ -353,9 +365,11 @@ func stackName(impl *yaml.Node) string {
 }
 
 // newPluginRequest is the request a plug-in gets for one specification and
-// the implementation files that reach it.
-func newPluginRequest(l loaded, target, folder string, impls []generate.Implementation) pluginRequest {
-	req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: l.spec.Value, Output: filepath.ToSlash(folder), Implementations: []pluginImplementation{}, Existing: existingFiles(folder), Problems: pluginProblems(l, folder)}
+// the implementation files that reach it, and the files it could not read
+// for it, each with why and what the plug-in is not told.
+func newPluginRequest(l loaded, target, folder string, impls []generate.Implementation) (pluginRequest, []string) {
+	existing, notes := existingFiles(folder)
+	req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: l.spec.Value, Output: filepath.ToSlash(folder), Implementations: []pluginImplementation{}, Existing: existing, Problems: pluginProblems(l, folder)}
 	for _, i := range impls {
 		settings := source.Child(source.Child(source.Child(i.Node, "targets"), target), "settings")
 		pi := pluginImplementation{File: filepath.ToSlash(i.Path), Content: source.ValueOf(i.Node), Idioms: []pluginIdiom{}}
@@ -372,43 +386,70 @@ func newPluginRequest(l loaded, target, folder string, impls []generate.Implemen
 				pid.Content = source.ValueOf(shipped[u.Name].Root)
 				if data, err := os.ReadFile(u.Override); err == nil {
 					pid.Override = source.Parse(data).Value
+				} else {
+					notes = append(notes, fmt.Sprintf("cannot read the override %s of idiom %s (%s), so %s gets the shipped idiom without it", u.Override, u.Name, spec.PlainIOError(err), target))
 				}
 			case "project":
-				if data, err := os.ReadFile(projectIdiomPath(i.Path, u.Name)); err == nil {
+				p := projectIdiomPath(i.Path, u.Name)
+				if data, err := os.ReadFile(p); err == nil {
 					pid.Content = source.Parse(data).Value
+				} else {
+					notes = append(notes, fmt.Sprintf("cannot read the project's idiom %s (%s), so %s gets idiom %s with no content", p, spec.PlainIOError(err), target, u.Name))
 				}
 			}
 			pi.Idioms = append(pi.Idioms, pid)
 		}
 		req.Implementations = append(req.Implementations, pi)
 	}
-	return req
+	return req, notes
 }
 
 // existingFiles lists the text files under an output folder, by their path
-// in it. A file that is not UTF-8, or larger than 4 MiB, is left out.
-func existingFiles(folder string) []pluginFile {
+// in it. A file that is not UTF-8, or larger than 4 MiB, is left out on
+// purpose. A file or folder that cannot be read is left out too, and named
+// in the notes with the reason, since the plug-in then does not know it is
+// there; an output folder that does not exist yet holds nothing.
+func existingFiles(folder string) ([]pluginFile, []string) {
 	out := []pluginFile{}
+	var notes []string
+	unread := func(p string, err error) {
+		notes = append(notes, fmt.Sprintf("cannot read %s (%s), so the plug-in is not told it is in the output folder", p, spec.PlainIOError(err)))
+	}
 	_ = filepath.WalkDir(folder, func(p string, e fs.DirEntry, err error) error {
-		if err != nil || e.IsDir() {
+		if err != nil {
+			if !(p == folder && errors.Is(err, fs.ErrNotExist)) {
+				unread(p, err)
+			}
+			return nil
+		}
+		if e.IsDir() {
 			return nil
 		}
 		info, err := e.Info()
-		if err != nil || !info.Mode().IsRegular() || info.Size() > 4<<20 {
+		if err != nil {
+			unread(p, err)
+			return nil
+		}
+		if !info.Mode().IsRegular() || info.Size() > 4<<20 {
 			return nil
 		}
 		data, err := os.ReadFile(p)
-		if err != nil || !utf8.Valid(data) {
+		if err != nil {
+			unread(p, err)
+			return nil
+		}
+		if !utf8.Valid(data) {
 			return nil
 		}
 		rel, err := filepath.Rel(folder, p)
 		if err != nil {
+			unread(p, err)
 			return nil
 		}
 		out = append(out, pluginFile{Path: filepath.ToSlash(rel), Content: string(data)})
 		return nil
 	})
-	return out
+	return out, notes
 }
 
 // projectIdiomPath is where the project's own idiom of a name sits, beside
@@ -482,15 +523,25 @@ func runPlugin(exe, name string, req pluginRequest, stderr io.Writer) (*pluginRe
 	cmd.Stdout = &out
 	cmd.Stderr = stderr
 	if err := cmd.Run(); err != nil {
-		fmt.Fprintf(stderr, "specarch generate: %s failed (%v); nothing was written\n", name, err)
+		fmt.Fprintf(stderr, "specarch generate: the plug-in %s (%s) stopped with %v while writing %s for %s; its own messages, if any, are above; nothing was written\n", name, exe, err, req.Target, req.Root)
 		return nil, 2
 	}
 	var resp pluginResponse
 	if err := json.Unmarshal(out.Bytes(), &resp); err != nil {
-		fmt.Fprintf(stderr, "specarch generate: %s did not answer with JSON holding files and diagnostics (%v); nothing was written\n", name, err)
+		fmt.Fprintf(stderr, "specarch generate: the plug-in %s (%s) did not answer with JSON holding files and diagnostics (%v); it wrote %s on standard output, starting: %s; nothing was written\n", name, exe, err, plural(out.Len(), "byte"), answerStart(out.Bytes()))
 		return nil, 2
 	}
 	return &resp, 0
+}
+
+// answerStart is the start of what a plug-in wrote, quoted, so a reply that
+// is not JSON (a usage text, a panic, a progress line) shows what it was.
+func answerStart(out []byte) string {
+	const most = 400
+	if len(out) <= most {
+		return fmt.Sprintf("%q", out)
+	}
+	return fmt.Sprintf("%q...", out[:most])
 }
 
 // placePlugin puts a plug-in's diagnostics in validate's line. A plug-in

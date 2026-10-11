@@ -173,7 +173,7 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		st.RecordsRel = relSlash(folder, l.spec.RecordsDir)
 		st.Marks = l.marks(folder)
 		if target == "html" {
-			st.Site = siteParts(l, folder)
+			st.Site = siteParts(l, folder, stderr)
 		}
 		text, _ := generate.Document(target, l.spec.Root, relSlash(folder, l.spec.RootFile), impls, st)
 		plan = append(plan, planned{filepath.Join(folder, generate.DocumentName(target)), text})

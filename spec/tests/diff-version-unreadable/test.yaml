@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: diff
+level: system
+scenario: red
+covers: [exit 1]
+given: "a new version whose info.version is next, not a semantic version"
+when: "diff is run"
+then: "it prints the schema error, lists the change, reports version naming the version it cannot read instead of a missing release record for 0.0.0, and exits 1"
+verifies: [SA-25]

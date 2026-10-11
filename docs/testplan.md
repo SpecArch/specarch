@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 390 design tests, 169 golden and 221 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 392 design tests, 169 golden and 223 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.6.0-dev of the specification: 390 design tests, 169 golden and 221 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 386 |
+| system | 388 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -261,6 +261,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-25.
 - Given: a new version that removes a value from a public enum, released as 1.0.1
 - When: diff is run
 - Then: it lists the enum as major and reports version, naming 2.0.0, and exits 1
+
+#### diff-version-unreadable
+
+Scenario: red; level: system; covers exit 1; verifies SA-25.
+
+- Given: a new version whose info.version is next, not a semantic version
+- When: diff is run
+- Then: it prints the schema error, lists the change, reports version naming the version it cannot read instead of a missing release record for 0.0.0, and exits 1
 
 ### Command document
 
@@ -2293,6 +2301,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-11.
 - Given: a file under design/entities/ that holds enums
 - When: validate is run
 - Then: it reports layout naming the folder the enums belong in and exits 1
+
+#### validate-layout-test-file-unreadable
+
+Scenario: red; level: system; covers exit 1; verifies SA-11.
+
+- Given: a test folder whose test.yaml is there but cannot be read, here because it is a folder
+- When: validate is run
+- Then: it reports layout at test.yaml with the reason the read failed, not that the file is missing, and exits 1
 
 #### validate-layout-test-without-file
 

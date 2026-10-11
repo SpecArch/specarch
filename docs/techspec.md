@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 60 requirements, 5 entities, 12 commands, 7 algorithms, 390 tests, 91 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 60 requirements, 5 entities, 12 commands, 7 algorithms, 392 tests, 91 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -486,7 +486,10 @@ Then it checks the release of the new version, read from the
 records beside the new folder: that its version steps from the old
 one by at least the largest impact (version), and that a change
 request or defect it includes names every element in the list
-(covered). Each failed check is one line starting `error:`; an
+(covered). A version that is not a semantic version fails the
+version check, naming the version and the folder, and the release
+is not checked further. Each failed check is one line starting
+`error:`; an
 element the records cannot be shown to name because the release
 includes an ID kept in a tracker is a line starting `warning:`.
 
@@ -699,7 +702,7 @@ marker, one line each; a warning for each specification with no
 output folder for the target. With `--check`, one line per file that
 differs or is missing.
 
-Standard error: A usage message on a usage error, the reason a file cannot be read or written, and a one-line count at the end.
+Standard error: A usage message on a usage error, the reason a file cannot be read or written, for html the reason a workflow diagram or screen preview could not be made, and a one-line count at the end.
 
 ```mermaid
 sequenceDiagram
@@ -1944,7 +1947,7 @@ warning of each specification passed over, and the diagnostics the
 plug-in answers with, one line each. With `--check`, one line per
 file that differs or is missing.
 
-Standard error: A usage message on a usage error, the reason a plug-in was not found or failed, the plug-in's own standard error, and a one-line count at the end.
+Standard error: A usage message on a usage error, the reason a plug-in was not found or failed (its path and exit status, or the start of an answer that is not JSON), each file the plug-in is not given because it cannot be read and why, one line per step when a run takes more than one plug-in or output folder (N of M), the plug-in's own standard error, and a one-line count at the end.
 
 ```mermaid
 sequenceDiagram
@@ -6938,6 +6941,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | diff-tracker-unknown | command diff | system | golden | a release that includes only TRK-4, an ID of a declared change-set | diff is run | the changed element is a covered warning, since the tracker may name it, and it exits 0 |
 | diff-usage-error | command diff | system | red | one folder | diff is run with only the old folder | it prints how to use it and exits 2 |
 | diff-version-step | command diff | system | red | a new version that removes a value from a public enum, released as 1.0.1 | diff is run | it lists the enum as major and reports version, naming 2.0.0, and exits 1 |
+| diff-version-unreadable | command diff | system | red | a new version whose info.version is next, not a semantic version | diff is run | it prints the schema error, lists the change, reports version naming the version it cannot read instead of a missing release record for 0.0.0, and exits 1 |
 | document-check-current | command document | system | golden | output that matches the design file | document techspec is run with --check | it writes nothing, prints nothing and exits 0 |
 | document-check-differs | command document | system | red | a generated file edited by hand | document techspec is run with --check | it names the file that differs, writes nothing and exits 1 |
 | document-check-invalid | command document | system | red | an invalid specification whose technical specification on disk is the one document writes for it | document techspec --check is run | it prints the error, finds the file current, writes nothing, and exits 1 because the specification has an error |
@@ -7190,6 +7194,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-layout-stack-mismatch | command validate | system | red | an implementation file under implementation/go/ whose name says swift | validate is run | it reports layout and exits 1 |
 | validate-layout-stage-not-listed | command validate | system | red | a design/ folder that stages in specarch.yaml does not list | validate is run | it reports layout at stages and exits 1 |
 | validate-layout-subfolder-section | command validate | system | red | a file under design/entities/ that holds enums | validate is run | it reports layout naming the folder the enums belong in and exits 1 |
+| validate-layout-test-file-unreadable | command validate | system | red | a test folder whose test.yaml is there but cannot be read, here because it is a folder | validate is run | it reports layout at test.yaml with the reason the read failed, not that the file is missing, and exits 1 |
 | validate-layout-test-without-file | command validate | system | red | a test folder that holds data but no test.yaml | validate is run | it reports layout at the folder and exits 1 |
 | validate-maker-checker | command validate | system | red | a form submitting to a workflow's trigger with no onSubmitted, and another whose onSubmitted has no message; a task page whose 202 event has no message; an inbox that checks another permission than its step's, one that lists another entity than the subject, one naming a step that is not an approval, one naming no workflow, and an inbox on a view; and a workflow that emits a message no channel declares | validate is run | it reports workflow eight times and emits once, and exits 1 |
 | validate-mapping-menu-entry | command validate | system | red | an implementation file in TypeScript with a mapping that marks the entry of a menu another stakeholder owns, and a mapping of a menu the specification lacks | validate is run | it accepts the menu entry's mapping and its ownedBy, reports design_ref at the mapping of the missing menu, and exits 1 |
@@ -7542,7 +7547,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-8 | entities GeneratedFile; commands document; commands generate; algorithms markersWellFormed | tests document-entity-diagram; tests document-two-implementations; tests document-writes-techspec |
 | SA-9 | enums DocumentKind; enums Rule; commands validate; decisions ADR-001; decisions ADR-002; decisions ADR-007 | tests validate-design-key; tests validate-stack-key |
 | SA-10 | enums Rule; commands validate | tests validate-deployment-environment-missing; tests validate-design-ref; tests validate-implements; tests validate-permission-checks; tests validate-setting; tests validate-tree-valid; tests validate-ui-components |
-| SA-11 | enums Rule; entities SpecFile; commands extract; commands validate; decisions ADR-010; decisions ADR-042; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057 | tests merge-documents-days; tests merge-openapi-placeholder; tests merge-openapi-unserved; tests validate-duplicate-name-across-files; tests validate-layout-folder-missing; tests validate-layout-not-a-stage; tests validate-layout-section-folder-in-root; tests validate-layout-section-in-root; tests validate-layout-section-in-wrong-stage; tests validate-layout-stack-mismatch; tests validate-layout-stage-not-listed; tests validate-layout-subfolder-section; tests validate-layout-test-without-file; tests validate-tree-valid; checks checks-the-examples |
+| SA-11 | enums Rule; entities SpecFile; commands extract; commands validate; decisions ADR-010; decisions ADR-042; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057 | tests merge-documents-days; tests merge-openapi-placeholder; tests merge-openapi-unserved; tests validate-duplicate-name-across-files; tests validate-layout-folder-missing; tests validate-layout-not-a-stage; tests validate-layout-section-folder-in-root; tests validate-layout-section-in-root; tests validate-layout-section-in-wrong-stage; tests validate-layout-stack-mismatch; tests validate-layout-stage-not-listed; tests validate-layout-subfolder-section; tests validate-layout-test-file-unreadable; tests validate-layout-test-without-file; tests validate-tree-valid; checks checks-the-examples |
 | SA-12 | enums Rule; commands validate; decisions ADR-011; decisions ADR-014; decisions ADR-052 | tests validate-deployment-valid; tests validate-monitor-environment; tests validate-monitor-not-declared; tests validate-monitor-valid; tests validate-need-rejected; tests validate-requirements-only; tests validate-secret-in-deployment; tests validate-secret-value; tests validate-traceability-warnings |
 | SA-13 | enums Rule; commands validate; decisions ADR-012 | tests document-citation-unknown-source; tests validate-cites; tests validate-source |
 | SA-14 | enums GeneratorTarget; commands generate; decisions ADR-013; decisions ADR-051 | tests generate-no-plugin; tests generate-plugin-path-outside; tests generate-with-plugin |
@@ -7556,7 +7561,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-22 | commands document; decisions ADR-020 | tests document-testplan-left-out; tests document-traceability-harm; tests document-writes-traceability |
 | SA-23 | enums Rule; commands validate | tests validate-change-applied; tests validate-change-decision; tests validate-commissioning-record; tests validate-defect-duplicate; tests validate-defect-test; tests validate-incident-link; tests validate-layout-records-in-spec; tests validate-record-name; tests validate-record-ref; tests validate-record-schema; tests validate-record-tracker; tests validate-records-valid |
 | SA-24 | enums Rule; commands validate; decisions ADR-061 | tests document-testplan-by-release; tests validate-release-bump; tests validate-release-contents; tests validate-release-version; tests validate-releases-valid; tests validate-requirement-release |
-| SA-25 | commands diff | tests diff-classifies-changes; tests diff-invalid-spec; tests diff-lists-changes; tests diff-no-release; tests diff-not-covered; tests diff-tracker-unknown; tests diff-usage-error; tests diff-version-step |
+| SA-25 | commands diff | tests diff-classifies-changes; tests diff-invalid-spec; tests diff-lists-changes; tests diff-no-release; tests diff-not-covered; tests diff-tracker-unknown; tests diff-usage-error; tests diff-version-step; tests diff-version-unreadable |
 | SA-26 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-releases |
 | SA-27 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
 | SA-28 | commands derive; decisions ADR-055 | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-name-taken; tests derive-page-elements; tests derive-page-named-after-operation; tests derive-root-tests; tests derive-skips-blocked; tests derive-task-page-checks; tests derive-usage-error; tests derive-writes-drafts |

@@ -137,8 +137,12 @@ extension Checker {
     func projectIdioms() -> [String: Idiom] {
         let dir = joinPath(dirPath(file), "idioms")
         var isDir: ObjCBool = false
-        guard FileManager.default.fileExists(atPath: dir, isDirectory: &isDir), isDir.boolValue,
-              let names = try? FileManager.default.contentsOfDirectory(atPath: dir).sorted(by: byteLess) else { return [:] }
+        guard FileManager.default.fileExists(atPath: dir, isDirectory: &isDir), isDir.boolValue else { return [:] }
+        let names: [String]
+        do { names = try FileManager.default.contentsOfDirectory(atPath: dir).sorted(by: byteLess) } catch {
+            addFile(dir, 1, "/", .layout, "cannot read the folder (\(plainIOError(error))); the project's own idioms in it are left out until it can be read")
+            return [:]
+        }
         var out: [String: Idiom] = [:]
         for name in names {
             let p = joinPath(dir, name)

@@ -369,8 +369,13 @@ final class Spec {
                 continue
             }
             let tf = joinPath(p, testFile)
-            guard let data = try? readFile(tf) else {
-                problem(p, 1, "/", "layout", "the test folder tests/\(e.name) has no \(testFile); add one with the test's subject, scenario, level, given, when and then")
+            let data: Data
+            do { data = try readFile(tf) } catch {
+                if isNoSuchFile(error) {
+                    problem(p, 1, "/", "layout", "the test folder tests/\(e.name) has no \(testFile); add one with the test's subject, scenario, level, given, when and then")
+                } else {
+                    problem(tf, 1, "/", "layout", "cannot read it (\(plainIOError(error))); the test tests/\(e.name) is left out until it can be read")
+                }
                 continue
             }
             let doc = parseYAML(String(decoding: data, as: UTF8.self))
@@ -390,7 +395,11 @@ final class Spec {
     /// entries are otherwise folders: it holds only questions. Returns
     /// whether the file was one.
     private func loadQuestionsFile(_ p: String, _ found: inout [String: YNode]) -> Bool {
-        guard let data = try? readFile(p) else { return false }
+        let data: Data
+        do { data = try readFile(p) } catch {
+            problem(p, 1, "/", "layout", "cannot read it (\(plainIOError(error))); a YAML file here holds only questions, and its questions are left out until it can be read")
+            return true
+        }
         let doc = parseYAML(String(decoding: data, as: UTF8.self))
         guard let docRoot = doc.root, docRoot.kind == .mapping else { return false }
         for pair in docRoot.pairs where pair.key.value != questionsSection { return false }

@@ -84,8 +84,9 @@ func runValidate(_ argsIn: [String], _ stdout: TextSink, _ stderr: TextSink) -> 
             all += checkSpec(s)
             open += openQuestions(s.root)
         case .implementation(let path):
-            guard let data = try? readFile(path) else {
-                stderr.write("specarch: cannot read \(path)\n")
+            let data: Data
+            do { data = try readFile(path) } catch {
+                stderr.write("specarch: cannot read \(path): \(plainIOError(error))\n")
                 ioError = true
                 continue
             }
@@ -107,9 +108,26 @@ func runValidate(_ argsIn: [String], _ stdout: TextSink, _ stderr: TextSink) -> 
 public func readFile(_ path: String) throws -> Data {
     var isDir: ObjCBool = false
     guard FileManager.default.fileExists(atPath: path, isDirectory: &isDir) else {
-        throw NSError(domain: NSPOSIXErrorDomain, code: Int(ENOENT), userInfo: [NSUnderlyingErrorKey: NSError(domain: NSPOSIXErrorDomain, code: Int(ENOENT))])
+        throw posixError(ENOENT)
     }
+    // Go's os.ReadFile reports a folder as "is a directory"; Data(contentsOf:)
+    // would give its own text, so the two builds say the same.
+    if isDir.boolValue { throw posixError(EISDIR) }
     return try Data(contentsOf: URL(fileURLWithPath: path))
+}
+
+func posixError(_ code: Int32) -> NSError {
+    NSError(domain: NSPOSIXErrorDomain, code: Int(code), userInfo: [NSUnderlyingErrorKey: NSError(domain: NSPOSIXErrorDomain, code: Int(code))])
+}
+
+/// Whether a read failed because the file is not there, as Go's
+/// errors.Is(err, fs.ErrNotExist) tells it.
+func isNoSuchFile(_ error: Error) -> Bool {
+    let ns = error as NSError
+    if let posix = ns.userInfo[NSUnderlyingErrorKey] as? NSError, posix.domain == NSPOSIXErrorDomain {
+        return posix.code == Int(ENOENT)
+    }
+    return ns.code == NSFileReadNoSuchFileError || ns.code == NSFileNoSuchFileError
 }
 
 /// One thing to check: a specification (its root folder), an

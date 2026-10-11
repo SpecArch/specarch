@@ -5,7 +5,9 @@
 package spec
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -432,7 +434,8 @@ func sectionFolder(key, stage string) string {
 func (s *Spec) loadQuestionsFile(p string, sections map[string]*yaml.Node) bool {
 	data, err := os.ReadFile(p)
 	if err != nil {
-		return false
+		s.problem(p, 1, "/", "layout", "cannot read it (%s); a YAML file here holds only questions, and its questions are left out until it can be read", plainIOError(err))
+		return true
 	}
 	doc := source.Parse(data)
 	if doc.Root == nil || doc.Root.Kind != yaml.MappingNode {
@@ -505,8 +508,12 @@ func (s *Spec) loadTests(folder string, sections map[string]*yaml.Node) {
 		}
 		tf := filepath.Join(p, TestFile)
 		data, err := os.ReadFile(tf)
-		if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
 			s.problem(p, 1, "/", "layout", "the test folder tests/%s has no %s; add one with the test's subject, scenario, level, given, when and then", e.Name(), TestFile)
+			continue
+		}
+		if err != nil {
+			s.problem(tf, 1, "/", "layout", "cannot read it (%s); the test tests/%s is left out until it can be read", plainIOError(err), e.Name())
 			continue
 		}
 		doc := source.Parse(data)

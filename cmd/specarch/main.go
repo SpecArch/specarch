@@ -132,7 +132,7 @@ func runValidate(args []string, stdout, stderr io.Writer) int {
 		case in.implementation != "":
 			data, err := os.ReadFile(in.implementation)
 			if err != nil {
-				fmt.Fprintf(stderr, "specarch: cannot read %s: %v\n", in.implementation, err)
+				fmt.Fprintf(stderr, "specarch: cannot read %s: %s\n", in.implementation, spec.PlainIOError(err))
 				ioError = true
 				continue
 			}
@@ -185,7 +185,7 @@ func collect(args []string, stderr io.Writer) ([]input, bool) {
 	for _, a := range args {
 		info, err := os.Stat(a)
 		if err != nil {
-			fmt.Fprintf(stderr, "specarch: cannot read %s: %v\n", a, err)
+			fmt.Fprintf(stderr, "specarch: cannot read %s: %s\n", a, spec.PlainIOError(err))
 			ioError = true
 			continue
 		}
@@ -202,7 +202,7 @@ func collect(args []string, stderr io.Writer) ([]input, bool) {
 		}
 		roots, impls, err := spec.Find(a)
 		if err != nil {
-			fmt.Fprintf(stderr, "specarch: cannot read %s: %v\n", a, err)
+			fmt.Fprintf(stderr, "specarch: cannot read %s: %s\n", a, spec.PlainIOError(err))
 			ioError = true
 			continue
 		}

@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  tests/item-saved/test.yaml:1:1: error: /: layout: cannot read it (is a directory); the test tests/item-saved is left out until it can be read [layout@tests/item-saved/test.yaml#/]

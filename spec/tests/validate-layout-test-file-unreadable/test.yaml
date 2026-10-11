@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.1.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a test folder whose test.yaml is there but cannot be read, here because it is a folder"
+when: "validate is run"
+then: "it reports layout at test.yaml with the reason the read failed, not that the file is missing, and exits 1"
+verifies: [SA-11]

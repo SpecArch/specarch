@@ -111,7 +111,7 @@ commands:
       warning of each specification passed over, and the diagnostics the
       plug-in answers with, one line each. With `--check`, one line per
       file that differs or is missing.
-    standardError: A usage message on a usage error, the reason a plug-in was not found or failed, the plug-in's own standard error, and a one-line count at the end.
+    standardError: A usage message on a usage error, the reason a plug-in was not found or failed (its path and exit status, or the start of an answer that is not JSON), each file the plug-in is not given because it cannot be read and why, one line per step when a run takes more than one plug-in or output folder (N of M), the plug-in's own standard error, and a one-line count at the end.
     exitCodes:
       "0": written, a draft included, or with `--check` the output is current
       "1": a specification has an error, an open question blocks what the target reads or the specification is not approved and `--unapproved` was not given, the plug-in reported an error (what it answered is written or checked), or with `--check` the output differs

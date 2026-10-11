@@ -1,0 +1,6 @@
+arguments: [diff, old/spec, new/spec]
+exitStatus: 1
+standardOutput: |
+  new/spec/specarch.yaml:2:31: error: /info/version: schema: "next" does not have the right form; it must be a semantic version, such as 1.2.0 [schema@specarch.yaml#/info/version]
+  patch changed #/requirements/CASE-1
+  error: version: the new version "next" in info.version of new/spec is not MAJOR.MINOR.PATCH with an optional -prerelease, so the release cannot be checked; write it as one, such as 1.4.0

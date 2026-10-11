@@ -19,7 +19,10 @@ commands:
       records beside the new folder: that its version steps from the old
       one by at least the largest impact (version), and that a change
       request or defect it includes names every element in the list
-      (covered). Each failed check is one line starting `error:`; an
+      (covered). A version that is not a semantic version fails the
+      version check, naming the version and the folder, and the release
+      is not checked further. Each failed check is one line starting
+      `error:`; an
       element the records cannot be shown to name because the release
       includes an ID kept in a tracker is a line starting `warning:`.
     permission: public

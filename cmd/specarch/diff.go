@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -41,10 +43,14 @@ func runDiff(args []string, stdout, stderr io.Writer) int {
 	for i, a := range args {
 		info, err := os.Stat(a)
 		if err != nil {
-			fmt.Fprintf(stderr, "specarch diff: cannot read %s: no such file or directory\n", a)
+			fmt.Fprintf(stderr, "specarch diff: cannot read %s: %s\n", a, spec.PlainIOError(err))
 			return 2
 		}
-		if _, err := os.Stat(filepath.Join(a, spec.RootFile)); err != nil || !info.IsDir() {
+		root := filepath.Join(a, spec.RootFile)
+		if _, err := os.Stat(root); err != nil && info.IsDir() && !errors.Is(err, fs.ErrNotExist) {
+			fmt.Fprintf(stderr, "specarch diff: cannot read %s: %s\n", root, spec.PlainIOError(err))
+			return 2
+		} else if err != nil || !info.IsDir() {
 			fmt.Fprintf(stderr, "specarch diff: %s is not a specification; name the folder that holds %s\n", a, spec.RootFile)
 			return 2
 		}
@@ -66,14 +72,25 @@ func runDiff(args []string, stdout, stderr io.Writer) int {
 	warnings := 0
 	oldText := infoVersion(oldSpec)
 	newText := infoVersion(newSpec)
-	oldV, _ := semver.Parse(oldText)
-	newV, _ := semver.Parse(newText)
+	oldV, oldOK := semver.Parse(oldText)
+	newV, newOK := semver.Parse(newText)
 	ver := newV.Core()
 	rs := readRecords(newSpec)
 	release := rs.find("release", ver)
-	if release == nil {
+	switch {
+	case !oldOK || !newOK:
+		for _, v := range []struct {
+			ok         bool
+			which, dir string
+			text       string
+		}{{oldOK, "old", oldSpec.Dir, oldText}, {newOK, "new", newSpec.Dir, newText}} {
+			if !v.ok {
+				problems = append(problems, fmt.Sprintf("error: version: the %s version %q in info.version of %s is not MAJOR.MINOR.PATCH with an optional -prerelease, so the release cannot be checked; write it as one, such as 1.4.0", v.which, v.text, v.dir))
+			}
+		}
+	case release == nil:
 		problems = append(problems, fmt.Sprintf("error: version: there is no records/releases/%s.yaml for the new version %s; add it with the changes and defects it includes", ver, newText))
-	} else {
+	default:
 		problems = append(problems, versionProblems(oldV, oldText, ver, changes)...)
 		cov, warn := coverageProblems(rs, release, ver, changes)
 		problems = append(problems, cov...)
@@ -82,13 +99,13 @@ func runDiff(args []string, stdout, stderr io.Writer) int {
 	for _, p := range problems {
 		fmt.Fprintln(stdout, p)
 	}
-	errors := len(problems) - warnings
-	fmt.Fprintf(stderr, "specarch diff: %s changed, %s, %s\n", plural(len(changes), "element"), plural(errors, "error"), plural(warnings, "warning"))
+	errorCount := len(problems) - warnings
+	fmt.Fprintf(stderr, "specarch diff: %s changed, %s, %s\n", plural(len(changes), "element"), plural(errorCount, "error"), plural(warnings, "warning"))
 	if invalid {
 		fmt.Fprintln(stderr, "specarch diff: the input has errors, so the comparison is of what could be read")
 		return 1
 	}
-	if errors > 0 {
+	if errorCount > 0 {
 		return 1
 	}
 	return 0

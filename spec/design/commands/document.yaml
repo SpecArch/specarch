@@ -196,7 +196,7 @@ commands:
       marker, one line each; a warning for each specification with no
       output folder for the target. With `--check`, one line per file that
       differs or is missing.
-    standardError: A usage message on a usage error, the reason a file cannot be read or written, and a one-line count at the end.
+    standardError: A usage message on a usage error, the reason a file cannot be read or written, for html the reason a workflow diagram or screen preview could not be made, and a one-line count at the end.
     exitCodes:
       "0": written, or with `--check` the output is current
       "1": a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs

@@ -1,0 +1,2 @@
+This folder stands where the test's test.yaml file belongs, so that reading
+test.yaml fails with an error other than a missing file.

@@ -153,7 +153,8 @@ reports all of them:
 9. Worked examples: inputs and expected values typed, formula evaluated
    with exact decimals (`workedExampleHolds`).
 10. Tests: every test's subject and cases exist; every case the design
-    implies has a test (warnings in 0.1).
+    implies has a test (errors in 0.2 for the tests derive writes, except
+    where an open question holds the subject up; warnings in 0.1).
 11. Traceability: every need is refined, every requirement has acceptance
     criteria, and once the later stage exists, every requirement is
     satisfied by a design element and verified by a test or check

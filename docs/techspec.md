@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.0-dev of the specification: 60 requirements, 5 entities, 12 commands, 7 algorithms, 398 tests, 91 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.0-dev of the specification: 61 requirements, 5 entities, 12 commands, 7 algorithms, 400 tests, 92 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -1881,7 +1881,22 @@ it is one, naming the questions that block what the target reads and
 the approval's state, and a draft exits 0 (ADR-066, ADR-086). Then
 writes the target into the folder it owns, and nothing outside it.
 With `--check` nothing is written: the output is made in memory and
-compared with what is on disk.
+compared with what is on disk. A generated file, one whose text has
+the line that starts the generated header, is compared byte for
+byte. A file with no such line was built by hand: it matches when it
+equals what the target writes without the header, the draft notice
+and the problem marks, and a match is named in a line of its own and
+not counted as differing. A file the plug-in marks as an object
+literal is, when it differs, read on both sides in the subset of
+TypeScript that is also JSON5 (ADR-093) and compared by value: the
+imports, the exported constant's name, the type it satisfies and the
+literal. A hand-built one with equal values matches; for any other,
+each differing value is printed below the file's line, by its path
+in the literal, with the value on disk and the one generated; any
+other file built by hand that differs names its first differing
+line, both ways. A file
+on disk outside the subset is not comparable, named with its line
+and what was found there, and counts as differing.
 
 A target this program does not build in is produced by a plug-in found
 on PATH. For each implementation file that names the target under
@@ -1912,9 +1927,12 @@ open questions in the order of its problems file, each with its
 specification it is marked at (empty for a problem outside it, such
 as in an implementation file) and, for a question, what it
 `blocks`, so the output marks each one at the entry it shows for it
-(docs/diagnostics.md). The plug-in answers on its standard output,
-as JSON, with `files` (each a `path` relative to the output folder and
-its `content`) and `diagnostics` (each with the validator's fields:
+(docs/diagnostics.md); and `check`, true when the run only compares,
+so a plug-in that refuses to write over a file built by hand answers
+its files for the comparison. The plug-in answers on its standard output,
+as JSON, with `files` (each a `path` relative to the output folder,
+its `content`, and `comparison: object-literal` for a file that is
+one object literal of data, which `--check` compares by value) and `diagnostics` (each with the validator's fields:
 file, line, severity, path, rule, message, and a column when it
 knows one), and exits 0. The program places each diagnostic at its
 entry: one at the root file, whose path leads to an entry of the
@@ -1960,7 +1978,10 @@ Writes `{out}/`: The files the target produces, as the plug-in answers them. Not
 Standard output: The diagnostics of an invalid specification, the output_folder
 warning of each specification passed over, and the diagnostics the
 plug-in answers with, one line each. With `--check`, one line per
-file that differs or is missing.
+file that differs, is missing or is not comparable, each differing
+value of an object literal on an indented line below it, and for
+any other file built by hand its first differing line, and one line
+per file built by hand that matches.
 
 Standard error: A usage message on a usage error, the reason a plug-in was not found or failed (its path and exit status, or the start of an answer that is not JSON), each file the plug-in is not given because it cannot be read and why, one line per step when a run takes more than one plug-in or output folder (N of M), the plug-in's own standard error, and a one-line count at the end.
 
@@ -2444,6 +2465,7 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | internal/genui | The list pages for the web in plain JavaScript, the events they raise, and the theme as CSS custom properties. |   |
 | cmd/specarch-gen-ui-typescript | The plug-in behind generate ui for an implementation file in TypeScript. Reads the request on standard input, answers the screens on standard output, and never touches the disk. | #/commands/generate |
 | internal/genuits | The task, list and form pages and the views for the web on Next.js and Carbon, with child rows, actions that run an operation after a confirmation and its reason, forms that start an approval and inboxes, each a schema of data and a thin page.tsx, a client file that hands on the hooks a project writes, the guard and the menu from one decision, the derived tests, the components that read the schemas, the strings in every language the settings name with the check that each key has an entry, the server routes that forward the operations the pages call with the session's token, and the theme over Carbon's through the design-tokens idiom, drawn through the ui-components idiom's names. |   |
+| internal/literal | Reads a TypeScript file holding one object literal of data in the subset of TypeScript that is also JSON5, refusing anything else with its line, and compares two such files by value, for generate --check on screens built by hand (ADR-093). |   |
 | internal/gendxlib | The Go file of a service on dxlib, its tables, handlers, seeds and tasks, read from the design through the dxlib dialect's names and types. |   |
 | cmd/specarch-gen-tests-go | The plug-in behind generate tests for a Go implementation file. Reads the request on standard input, answers the Go test file on standard output, and never touches the disk. | #/commands/generate |
 | cmd/specarch-gen-tests-swift | The plug-in behind generate tests for a Swift implementation file. Reads the request on standard input, answers the Swift Testing file on standard output, and never touches the disk. | #/commands/generate |
@@ -2541,6 +2563,7 @@ Stand-ins: None. Every test runs the real program on real files.
 | generated-tests | unit | tests of this implementation only | `go test ./internal/gentests` |
 | generated-screens | unit | tests of this implementation only | `go test ./internal/genuits` |
 | expressions | unit | tests of this implementation only | `go test ./internal/expr` |
+| object-literals | unit | tests of this implementation only | `go test ./internal/literal` |
 
 #### Idioms
 
@@ -6931,6 +6954,51 @@ as for every reader.
 
 **Insight:** parseString needs nothing but the file, so the dump is made from a commit with no pub get, and a package's types are known only by the names the code writes, which is what the idiom table keys on. Pinning the analyzer holds the facts to one parser, as SwiftSyntax and the TypeScript compiler are held; its tree is BSD-3-Clause and MIT and its SBOM scan is clean. A model is read from the class the generator reads, not the generator's output, because the output is generated and says so; the annotations are the statement. A field a form saves is named by the property its onSaved assigns, the one place the syntax ties a control to a model; a controller names a variable, not a property, so it is asked. A validator's empty or length test is a rule a page's field cannot hold, so it is a line for the entity's field, not a page key. A redirect is code, and only its question names it, since syntax cannot say whom it lets through. dart_frog's folder is its router, read like the other file-system routers, and its handler's comparisons say which methods it serves; what a default branch serves is asked. A check called in a switch case gives only that case's method its permission, which the branch of each call records. Every surface is read from one dump with no build, no device and no emulator, so a result shows early, and every guess is a question at its line.
 
+### ADR-093: generate --check compares a page's schema built by hand as a value in the object-literal subset, and a file built by hand without the generated header
+
+Status: accepted, 2026-10-11.
+
+Context: generate --check compares every file byte for byte. A project that
+brings screens built by hand wants to know, page by page, whether
+the generated schema and page match its own, and to see the
+difference without the noise of formatting (Q9 of
+docs/ui-nextjs-carbon.md). A file built by hand never carries the
+header, draft notice or problem marks every generated file starts
+with, so a byte comparison can never find it equal.
+
+Decision: A plug-in marks, in its answer, each file that is one object
+literal of data with comparison: object-literal; the Next.js
+generator marks every page.schema.ts. When such a file on disk
+differs, both sides are read in the subset of TypeScript that is
+also JSON5: line and block comments, import statements, one
+export const holding an object literal, optionally followed by
+satisfies and a type name; inside it objects, arrays, strings in
+double or single quotes, numbers, true, false and null, keys bare or
+quoted, trailing commas allowed. They are compared by value: the
+imports, the constant's name, the type it satisfies and the
+literal. A difference is printed one line per value, by its path in
+the literal. Anything else, such as an identifier, a function or a
+template string, makes the file not comparable, named with its
+line, never equal. A file on disk with no line that starts the
+generated header is built by hand: it matches when it equals what
+the target writes without its header, draft notice and problem
+marks, or, for an object literal, when the values are equal; a match
+prints a line and is not counted as differing. A generated file is
+compared byte for byte as before, and its value difference is
+printed below the line that says it differs.
+
+Consequences: A project points --out at its folder of hand-built pages and reads,
+file by file, which match and which values differ; a page it has
+not built is reported missing, as any missing file is. Reformatting
+a generated file is still reported, since generated output is
+byte-identical by rule. A plug-in that marks no file keeps the byte
+comparison everywhere, so the plain JavaScript generator and every
+other target are unchanged.
+
+**Insight:** JSON5 is the subset because it is the part of ECMAScript object literals that is plain data, with a specification of its own, so a value comparison has a definition both sides can be held to; a parser of all TypeScript would have to decide what an expression is worth, which is not data. Refusing what lies outside the subset keeps ambiguity an error (docs/principles.md): a file that cannot be read as data is never declared equal. The plug-in says which files are data, not their names, so specarch knows no stack's file layout. The header decides between a generated file and one built by hand, because it is the one thing every generated file has and no file written by hand does; dropping it only for files without it keeps the check that generated output is current exactly as strict.
+
+**Note:** From The JSON5 Data Interchange Format, 1.0.0: JSON5 extends JSON with the object-literal syntax of ECMAScript 5.1: unquoted keys, single-quoted strings, trailing commas and comments. <https://spec.json5.org/>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -7114,6 +7182,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-tests-value-objects | command generate | system | golden | a member whose address holds a location and whose phones are a list of schemas, and design tests that store a member with them, send them and expect them back; an implementation file in Go with a tests target; specarch-gen-tests-go built from this repository on PATH | generate tests is run with --unapproved | it writes each value object as an object value with its parts, a location inside an address with its own, and the phones as a list value with an object per item, each part with the type its schema gives, and exits 0 |
 | generate-ui | command generate | system | golden | a specification with a list page that filters by an enum, keeps one column on a compact screen, declares its empty, filtered empty and failed states, runs an operation on a row with a message and no confirmation, and a theme of two colours; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH | generate ui is run with --unapproved | it writes the page's HTML and module, events.js with the page's and the operation's events, and theme.css with the tokens as custom properties and the rules the target's token settings name, and exits 0 |
 | generate-ui-typescript | command generate | system | golden | a specification with two task pages, a list page that filters by an enum and by a date it may filter, searches, sorts two of its columns, keeps one on a compact screen, opens a page from its toolbar, a view from a row and the edit form from a row while it is active, and suspends a row while it is active after a confirmation that asks for the reason, a public list; a form that registers a member in two titled sections, with a text, an enum, a date, an integer, a boolean, a text without a maximum and a PIN typed twice, a branch picked from a list that searches, a field read-only while the status is inactive and one hidden while the newsletter is off, a check across two fields and an idempotency key; a form that loads a member and changes it, with a field always read-only and one read-only by an expression; a view that hides a field by an expression, opens the second form and suspends the member while active after a confirmation that asks for the reason; a form that loads a member answering a view with the rows of their visits and adds visits as rows, locked when loaded, at most five, with a field the rows' items do not take; a form that starts an approval, answered 202; the inbox of that approval's step, approving a request after a confirmation; a list read from an operation that answers every branch whole; two menus; and a theme with a dark mode, a print mode and a dimension; two implementation files in TypeScript in one folder, each with its ui target in nextjs-carbon, its own output and the session's operation in its settings, a hook for the registration's date and its sections as tabs in one and steps in the other, one owning the administration menu and the sign-in operation to another stakeholder, with server routes whose settings page the branches, a translation into en-GB whose file in the output folder keeps an entry no screen uses, and its theme's parts mapped to tokens with a space among them, and the other owning the branches page, calling the service directly and drawing lists through a library of its own by an override; and specarch-gen-ui-typescript built from this repository on PATH | generate ui is run with --unapproved | it runs the plug-in once per output folder; each writes the task pages, the list's schema and page behind the guard, the edit form among its row actions with its route filled from the row, with the derived test that it is refused without its permission, the public list with no such test, each form's and the view's schema and page behind the guard with its derived test, the visits' rows with the loaded ones read from the view's property and only the fields the items take sent, the approval's form with its event under 202, the inbox as a list with its row action, the registration's hook handed on by page.client.tsx from page.hooks.ts, application.ts with the session and the menu without the owned one, the menu's derived test, the components under screens, the texts in strings.ts with the en-GB translation in the first, language.ts, theme.scss with Carbon's themes and, in the first, the parts' colours in light and dark, and in the first a route.ts per path a page calls, the branches paged by their route, none for the owned sign-in, the routes' settings and their derived test; the second imports the list's component and schema type from the library and names its columns by the override; each warns that the field with no title is labelled by its name and that the print mode is left out, the first that the translation's unused entry and the space are left out, the second that the theme reaches no Carbon token, and exits 0 |
+| generate-ui-typescript-hand-built | command generate | system | golden | the specification and the two implementation files of generate-ui-typescript, and in each output folder the files that case writes as a project would build them by hand, with no generated header, draft notice or mark; the members list's schema written with single quotes, quoted keys, comments, a missing trailing comma and 25.0 for 25 | generate ui is run with --check and --unapproved | it runs the plug-in for each folder, names every file as built by hand and matching, the members list's schema as data, counts them, writes nothing, and exits 0 |
+| generate-ui-typescript-hand-built-differs | command generate | system | red | the same folders built by hand, with one column of the members list made sortable, the members page's route for the invitation changed, and the branches list's page size given by a name | generate ui is run with --check and --unapproved | it reports the members list's schema with that column's sortable as the one difference, the members page with its first differing line, and the branches list's schema as not comparable at the name's line, names every other file as matching, and exits 1 |
 | generate-ui-typescript-refused | command generate | system | red | the specification of the golden case, whose invitation page also shows a field of type integer, checks it with an expression that adds, and whose operation answers a 201 the page has no event for; a form that leaves out a field its request body requires and checks with an expression that calls int; a view that hides a decimal field by ordering it and offers an action that runs an operation and then opens another page; a list whose row opens a page after a confirmation; a form whose loaded child rows its source's answer does not carry, one whose loaded rows are not locked, and one whose request body has no array for its rows; a menu that holds a group inside a group and an entry that opens a page whose route takes a parameter; a first implementation file whose settings give a view a hook, a form a hook for a field it does not show and a layout that is not page, tabs or steps, name a translation whose file misses a key and drops a placeholder, and have the server routes page a list that pages itself and give another a page size above its maximum, and a second that names no session, the specification's own language as a translation, a routes path that is not a path, a service variable Next.js sends the browser and a token with no header; and specarch-gen-ui-typescript built from this repository on PATH | generate ui is run with --unapproved | it reports, for the first file, the page size, the two hooks, the layout, the list that pages itself, the dropped placeholder and the missing key under the settings; for the second, the routes path, the service variable, the token and the translation under the settings; for each file, the integer field at the page's field, the addition at the check's expression and the 201 at the page's onSubmitted, the required field left out at the form, the call at its check's expression, the decimal ordered at the view's condition and the page opened at its action's then, the confirmation of the row's action that opens a page at its confirm, with the list's menu texts then unused, the rows not carried at the first form's relation, the rows not locked at the second form's child rows and the missing array at the third form's relation, the inner group at its entry and the entry to the page with a parameter at its page; and for the second, each page that needs a permission no session can tell; as errors; writes the files it can as a draft, with these errors marked in application.ts, since none of the pages they are at is written, and exits 1 |
 | generate-ui-typescript-value-objects | command generate | system | golden | a specification whose member holds an optional address kept in columns with a location inside it, a required billing address kept as JSON, and a list of one to three phone numbers, each a number and whether it is a mobile; a form that adds a member in two titled sections, a form that loads a member and changes the address and the phone numbers with the name read-only, and a view of the member; one implementation file in TypeScript whose ui target is nextjs-carbon; and specarch-gen-ui-typescript built from this repository on PATH | generate ui is run with --unapproved | each form writes the address and the billing address as values, their parts in the order of their names with the location nested in each, required as the schema says and the value itself required for the billing address only, and the phone numbers as a list of values of at least one and at most three items; the view writes the parts of each value and marks the phone numbers a list; the components under screens draw them, and a part's text key is the field's with the path to it; it warns that the longitude, which has no title, is labelled by its name, naming its path, and exits 0 |
 | generate-ui-typescript-value-objects-refused | command generate | system | red | a specification whose member holds an address, a contact whose one part is a moment of format date-time, and a tree kept as JSON whose nodes hold a list of nodes; a list of members with the address as a column; a form that shows the address, the contact and the tree, asks for the address twice and edits visits as rows whose one field holds an address; an implementation file in TypeScript whose ui target is nextjs-carbon and whose settings give the address a hook; and specarch-gen-ui-typescript built from this repository on PATH | generate ui is run with --unapproved | it refuses, each at its entry, the value among a row's fields, the hook and the second entry on the address, the contact's part of format date-time by its path, the tree's children as the schema met again inside itself, and the address as a column; writes the files it can as a draft, with these errors marked in application.ts, and exits 1 |
@@ -7408,6 +7478,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-58 | specarch generate bpmn shall write, through a plug-in, each workflow of a specification as a BPMN 2.0 XML file with its diagram, and the diagram as SVG, that specarch extract workflows reads back to the same workflow, each problem marked at the element it concerns and a draft labelled as one. | functional | must | accepted | test | Each workflow is one process in a file of its own, in the sequential subset of ADR-054, with BPMN DI shapes and edges laid out by a fixed rule, so two runs write the same bytes. extract workflows reads a generated file back to the workflow's description, step names and kinds, approvers, deadlines, and refusal or escalation, and names its trigger and operations in the questions that merge fills; an approval that is the last step comes back as one. Each warning and open question at an element a file shows is marked as an XML comment before that element, in the BPMN file and in the SVG; a problem of one workflow is marked only in that workflow's files. Output generated with --unapproved from a specification no approval record covers says it is a draft, in the BPMN file and visibly in the SVG. | NEED-3, NEED-10 |
 | SA-59 | specarch generate shall mark every warning and open question at the entry each generated file shows for it, shall write a draft labelled as one in every file when --unapproved lets it past open questions or a missing approval, and shall write the rest of a target's output with an entry the target cannot express marked at that entry and exit 1. | functional | must | accepted | test | generate --unapproved on a specification with a must question that blocks an entity writes the target's files, each saying it is a draft and naming the question, and the entity's entry carries the question's mark. A warning at an operation is marked above its handler in Go, in x-specarch-marks on the operation in OpenAPI, and a warning at an entity above its table in SQL. A target that cannot express one entry writes the rest with an error mark at that entry, prints the error and exits 1; SQL writes no migration then, and an approved run over a migration a draft wrote is an error. generate without --out passes over a specification that names no output folder for the target with an output_folder warning and writes the others. | NEED-3, NEED-8 |
 | SA-60 | specarch document html shall write a specification as one HTML page that opens from the disk with no server and makes no request, with an overview first, every element under an anchor named by its pointer, and every problem linked to the entry it marks and marked at that entry. | functional | should | accepted | test | The page is one index.html with its styles, its script and its diagrams inside it, a Content-Security-Policy that allows no request, and the generated-from header after its doctype; two runs write the same bytes. Every element shown has an id equal to its pointer, with what an id or a fragment cannot hold percent-encoded, and no id appears twice. Each error, warning and open question is listed in the order of the problems file and links to the deepest element the page shows that holds its pointer, and that element shows a mark linking back; an element an open question blocks says so and links to the question. Entities are drawn as an SVG diagram with their fields and relations, each workflow as specarch generate bpmn draws it, and each page that specarch generate ui writes as its screen without scripts; a page with no screen says why. An invalid specification is written all the same, from what could be read, with its errors marked. | NEED-3, NEED-10 |
+| SA-61 | specarch generate --check shall compare a folder of pages built by hand with what the target writes, saying for each file whether it matches and, for a page's data, which values differ. | functional | should | accepted | test | A file the plug-in marks as an object literal is read on both sides in the subset of TypeScript that is also JSON5 and compared by value, so formatting, comments, quotes and trailing commas do not count; each differing value is named by its path, with the value on disk and the one generated. A file on disk outside the subset is reported as not comparable, with the line and what was found, and never as matching. A file built by hand, which has no generated header, matches when it equals what the target writes without its header, draft notice and problem marks; it says so in a line of its own and is not counted as differing. A generated file is still compared byte for byte. The library lending example's sign-in and second-factor schemas, written by hand before the generator, compare equal, and a list schema with one column changed is reported as that column. | NEED-2 |
 | SA-32 | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. | functional | must | accepted | test | An idiom key naming no idiom, an exclusion or override without why, an override naming an unknown part or defining one it does not list, rendering a stack that is not the file's, or changing a shipped contract statement is each reported under its rule in both builds; an override copied from an older version is warned about. A field that no row of the type rendering matches for a stack of the implementation file, such as a decimal wider than Oracle holds, is reported as idiom_contract. An override that replaces the Oracle text rows for MAX_STRING_SIZE = EXTENDED validates without a diagnostic. The shipped set holds the fifteen idioms of the first set and ui-components, each statement marked with what checks it, and every one passes the idiom schema and cites only the sources it declares. A ui target's framework, given or by its platform's default, is a stack of its implementation file, so specarch idioms lists ui-components for a TypeScript file whose ui target is nextjs-carbon and not for one on plain-javascript, and an override rendering nextjs-carbon in a file on plain-javascript is reported as idiom_stack in both builds. | NEED-2 |
 | SA-11 | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. | functional | must | accepted | test | A tree whose root lists its stages and holds each stage's files under that folder validates. A file in the wrong folder, a section in the wrong file, a listed stage without a folder, and a folder that is not a stage are each reported as layout. | NEED-4 |
 | SA-12 | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. | functional | must | accepted | test | A specification with only a requirements stage validates with no error. A requirement no design element satisfies, a requirement no test, check or monitor verifies, and a need no requirement refines are reported as warnings once the later stage exists. | NEED-5 |
@@ -7512,6 +7583,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-59:** The people who answer the questions judge a result faster from the code and screens than from documents, and a compiler that stops at the first gap hides every other one; a draft that says what it is, with each gap at its entry, shows both without letting unapproved code pass for approved.
 
 **Insight on SA-60:** Reviewers and testers read a specification long before it is finished and seldom read YAML; one page they can open anywhere, search, and link into by an element's id lets them name exactly what a remark is about, which is what takes it back into the specification.
+
+**Insight on SA-61:** Most screens of a project that comes to SpecArch were built by hand; before the generated ones replace them, the owner needs to see, page by page, where the specification and the built screen disagree, without the noise of formatting.
 
 **Insight on SA-32:** How a decimal, a text column or a missing value is held on a stack is decided once and read by every generator and every agent; without the table each implementation file restates it in prose, each a little differently.
 
@@ -7625,6 +7698,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-58 | commands generate; decisions ADR-085 | tests extract-workflows-reads-generated-bpmn; tests extract-workflows-reads-generated-last-approval; tests generate-bpmn; tests generate-bpmn-approved |
 | SA-59 | commands generate; decisions ADR-086 | tests generate-draft-open-questions; tests generate-skips-no-output-folder; tests generate-sql-refuses-draft-migration |
 | SA-60 | enums DocumentTarget; commands document; decisions ADR-088 | tests document-html-marks-problems; tests document-writes-html |
+| SA-61 | commands generate; decisions ADR-093 | tests generate-ui-typescript-hand-built; tests generate-ui-typescript-hand-built-differs |
 
 ## Sources
 
@@ -7649,6 +7723,7 @@ Every source a Note in this document cites.
 | iso-29119-4 | ISO/IEC/IEEE 29119-4, Software and systems engineering, Software testing, Part 4, Test techniques | 2021 | ISO, IEC and IEEE |   |
 | iso-29148 | ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering | 2018 | ISO, IEC and IEEE | https://www.iso.org/standard/72089.html |
 | json-schema | JSON Schema, a media type for describing JSON documents | 2020-12 | The JSON Schema project | https://json-schema.org/specification |
+| json5 | The JSON5 Data Interchange Format | 1.0.0 | The JSON5 project | https://spec.json5.org/ |
 | mil-std-961 | MIL-STD-961E, Defense and program-unique specifications format and content | 2003, with change 3 of 2020 | United States Department of Defense |   |
 | moscow | MoSCoW prioritisation, in the DSDM Agile Project Framework handbook | 2014 | Agile Business Consortium | https://www.agilebusiness.org/dsdm-project-framework/moscow-prioritisation.html |
 | openapi | OpenAPI Specification | 3.1.0 | OpenAPI Initiative | https://spec.openapis.org/oas/v3.1.0 |

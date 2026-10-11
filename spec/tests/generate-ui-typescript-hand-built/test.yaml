@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: generate
+level: system
+scenario: golden
+given: "the specification and the two implementation files of generate-ui-typescript, and in each output folder the files that case writes as a project would build them by hand, with no generated header, draft notice or mark; the members list's schema written with single quotes, quoted keys, comments, a missing trailing comma and 25.0 for 25"
+when: "generate ui is run with --check and --unapproved"
+then: "it runs the plug-in for each folder, names every file as built by hand and matching, the members list's schema as data, counts them, writes nothing, and exits 0"
+verifies: [SA-61]

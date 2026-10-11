@@ -38,6 +38,9 @@ type Request struct {
 	Draft string `json:"draft"`
 	// Problems are the problems to mark, in the order of the problems file.
 	Problems []mark.Problem `json:"problems"`
+	// Check is true when specarch only compares the output with the disk,
+	// so a file built by hand is compared rather than refused.
+	Check bool `json:"check"`
 }
 
 // Decode reads a request, keeping numbers as their text.
@@ -186,7 +189,7 @@ func Generate(r *Request) genui.Response {
 				continue
 			}
 			files = append(files,
-				genui.File{Path: folder + "/page.schema.ts", Content: header + schema},
+				genui.File{Path: folder + "/page.schema.ts", Content: header + schema, Comparison: "object-literal"},
 				genui.File{Path: folder + "/page.tsx", Content: header + page})
 			pageOf[folder+"/page.schema.ts"], pageOf[folder+"/page.tsx"] = pageName, pageName
 			drawn[pageName] = true
@@ -196,7 +199,7 @@ func Generate(r *Request) genui.Response {
 				continue
 			}
 			files = append(files,
-				genui.File{Path: folder + "/page.schema.ts", Content: header + schema},
+				genui.File{Path: folder + "/page.schema.ts", Content: header + schema, Comparison: "object-literal"},
 				genui.File{Path: folder + "/page.tsx", Content: header + page})
 			pageOf[folder+"/page.schema.ts"], pageOf[folder+"/page.tsx"] = pageName, pageName
 			drawn[pageName] = true
@@ -216,7 +219,7 @@ func Generate(r *Request) genui.Response {
 				continue
 			}
 			files = append(files,
-				genui.File{Path: folder + "/page.schema.ts", Content: header + out.schema},
+				genui.File{Path: folder + "/page.schema.ts", Content: header + out.schema, Comparison: "object-literal"},
 				genui.File{Path: folder + "/page.tsx", Content: header + out.page})
 			pageOf[folder+"/page.schema.ts"], pageOf[folder+"/page.tsx"] = pageName, pageName
 			if out.client != "" {
@@ -261,7 +264,7 @@ func Generate(r *Request) genui.Response {
 		files = append(files, genui.File{Path: "theme.scss", Content: header + theme})
 	}
 	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
-	if g.handWritten(files, r.Existing) {
+	if !r.Check && g.handWritten(files, r.Existing) {
 		return g.response(nil)
 	}
 	g.mark(r, files, header, pageOf, drawn)

@@ -80,7 +80,7 @@ func runProblems(paths []string, out string, check bool, stdout, stderr io.Write
 		}
 		for _, f := range fragments {
 			if f.Changed {
-				plan = append(plan, planned{f.Path, f.Content})
+				plan = append(plan, planned{path: f.Path, content: f.Content})
 			}
 		}
 		ps = moved.Problems(ps)
@@ -95,8 +95,8 @@ func runProblems(paths []string, out string, check bool, stdout, stderr io.Write
 			version = source.Str(source.Child(info, "version"))
 		}
 		plan = append(plan,
-			planned{filepath.Join(folder, problems.TextName), problems.Text(name, version, relSlash(folder, s.RootFile), ps)},
-			planned{filepath.Join(folder, problems.SARIFName), problems.SARIF(ps)})
+			planned{path: filepath.Join(folder, problems.TextName), content: problems.Text(name, version, relSlash(folder, s.RootFile), ps)},
+			planned{path: filepath.Join(folder, problems.SARIFName), content: problems.SARIF(ps)})
 	}
 	if len(plan) == 0 && skipped > 0 {
 		fmt.Fprintln(stderr, "specarch: no output folder for problems in any specification given; give --out, or an implementation file whose targets name problems and its output")

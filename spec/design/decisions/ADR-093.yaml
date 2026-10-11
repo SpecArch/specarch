@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-093:
+    title: generate --check compares a page's schema built by hand as a value in the object-literal subset, and a file built by hand without the generated header
+    status: accepted
+    date: "2026-10-11"
+    context: |
+      generate --check compares every file byte for byte. A project that
+      brings screens built by hand wants to know, page by page, whether
+      the generated schema and page match its own, and to see the
+      difference without the noise of formatting (Q9 of
+      docs/ui-nextjs-carbon.md). A file built by hand never carries the
+      header, draft notice or problem marks every generated file starts
+      with, so a byte comparison can never find it equal.
+    decision: |
+      A plug-in marks, in its answer, each file that is one object
+      literal of data with comparison: object-literal; the Next.js
+      generator marks every page.schema.ts. When such a file on disk
+      differs, both sides are read in the subset of TypeScript that is
+      also JSON5: line and block comments, import statements, one
+      export const holding an object literal, optionally followed by
+      satisfies and a type name; inside it objects, arrays, strings in
+      double or single quotes, numbers, true, false and null, keys bare or
+      quoted, trailing commas allowed. They are compared by value: the
+      imports, the constant's name, the type it satisfies and the
+      literal. A difference is printed one line per value, by its path in
+      the literal. Anything else, such as an identifier, a function or a
+      template string, makes the file not comparable, named with its
+      line, never equal. A file on disk with no line that starts the
+      generated header is built by hand: it matches when it equals what
+      the target writes without its header, draft notice and problem
+      marks, or, for an object literal, when the values are equal; a match
+      prints a line and is not counted as differing. A generated file is
+      compared byte for byte as before, and its value difference is
+      printed below the line that says it differs.
+    consequences: |
+      A project points --out at its folder of hand-built pages and reads,
+      file by file, which match and which values differ; a page it has
+      not built is reported missing, as any missing file is. Reformatting
+      a generated file is still reported, since generated output is
+      byte-identical by rule. A plug-in that marks no file keeps the byte
+      comparison everywhere, so the plain JavaScript generator and every
+      other target are unchanged.
+    why: |
+      JSON5 is the subset because it is the part of ECMAScript object
+      literals that is plain data, with a specification of its own, so a
+      value comparison has a definition both sides can be held to; a
+      parser of all TypeScript would have to decide what an expression is
+      worth, which is not data. Refusing what lies outside the subset
+      keeps ambiguity an error (docs/principles.md): a file that cannot be
+      read as data is never declared equal. The plug-in says which files
+      are data, not their names, so specarch knows no stack's file layout.
+      The header decides between a generated file and one built by hand,
+      because it is the one thing every generated file has and no file
+      written by hand does; dropping it only for files without it keeps
+      the check that generated output is current exactly as strict.
+    satisfies: [SA-61]
+    cites:
+      - source: json5
+        says: "JSON5 extends JSON with the object-literal syntax of ECMAScript 5.1: unquoted keys, single-quoted strings, trailing commas and comments."

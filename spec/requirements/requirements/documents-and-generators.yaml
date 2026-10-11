@@ -124,3 +124,16 @@ requirements:
     verification: test
     needs: [NEED-3, NEED-10]
     why: Reviewers and testers read a specification long before it is finished and seldom read YAML; one page they can open anywhere, search, and link into by an element's id lets them name exactly what a remark is about, which is what takes it back into the specification.
+  SA-61:
+    statement: specarch generate --check shall compare a folder of pages built by hand with what the target writes, saying for each file whether it matches and, for a page's data, which values differ.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - A file the plug-in marks as an object literal is read on both sides in the subset of TypeScript that is also JSON5 and compared by value, so formatting, comments, quotes and trailing commas do not count; each differing value is named by its path, with the value on disk and the one generated.
+      - A file on disk outside the subset is reported as not comparable, with the line and what was found, and never as matching.
+      - A file built by hand, which has no generated header, matches when it equals what the target writes without its header, draft notice and problem marks; it says so in a line of its own and is not counted as differing. A generated file is still compared byte for byte.
+      - The library lending example's sign-in and second-factor schemas, written by hand before the generator, compare equal, and a list schema with one column changed is reported as that column.
+    verification: test
+    needs: [NEED-2]
+    why: Most screens of a project that comes to SpecArch were built by hand; before the generated ones replace them, the owner needs to see, page by page, where the specification and the built screen disagree, without the noise of formatting.

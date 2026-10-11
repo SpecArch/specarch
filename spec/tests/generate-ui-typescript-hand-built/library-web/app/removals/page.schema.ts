@@ -1,0 +1,41 @@
+import type { DataPageSchema } from "@acme/screens/data";
+
+export const schema = {
+  title: "removals-inbox.title",
+  permission: "members.approve",
+  source: { operation: "listRemovals", path: "/removals" },
+  columnDefs: [
+    { field: "memberId", title: "removals-inbox.columns.memberId", sortable: false, compact: true },
+    { field: "why", title: "removals-inbox.columns.why", sortable: false, compact: true },
+  ],
+  filters: [],
+  search: false,
+  pageSize: 20,
+  pageSizes: [10, 20, 50],
+  actions: [],
+  rowActions: [
+    {
+      label: "removals-inbox.actions.approveRemoval.label",
+      operation: "approveRemoval",
+      method: "POST",
+      path: "/removals/{removalId}/approve",
+      parameters: { removalId: "id" },
+      permission: "members.approve",
+      confirm: "removals-inbox.actions.approveRemoval.confirm",
+      message: "removals-inbox.actions.approveRemoval.message",
+      failed: [],
+    },
+  ],
+  empty: "removals-inbox.empty",
+  filteredEmpty: "removals-inbox.filteredEmpty",
+  failed: [],
+  wire: {
+    page: "page",
+    pageSize: "pageSize",
+    sort: "sort",
+    search: "search",
+    items: "items",
+    totalItems: "totalItems",
+    totalPages: "totalPages",
+  },
+} satisfies DataPageSchema;

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.6.0-dev of the specification: 5 stakeholders, 10 needs and 60 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.6.0-dev of the specification: 5 stakeholders, 10 needs and 61 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -34,7 +34,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-46, SA-32, SA-9, SA-10 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-46, SA-61, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
@@ -84,6 +84,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-58 | functional | must | accepted | specarch generate bpmn shall write, through a plug-in, each workflow of a specification as a BPMN 2.0 XML file with its diagram, and the diagram as SVG, that specarch extract workflows reads back to the same workflow, each problem marked at the element it concerns and a draft labelled as one. |
 | SA-59 | functional | must | accepted | specarch generate shall mark every warning and open question at the entry each generated file shows for it, shall write a draft labelled as one in every file when --unapproved lets it past open questions or a missing approval, and shall write the rest of a target's output with an entry the target cannot express marked at that entry and exit 1. |
 | SA-60 | functional | should | accepted | specarch document html shall write a specification as one HTML page that opens from the disk with no server and makes no request, with an overview first, every element under an anchor named by its pointer, and every problem linked to the entry it marks and marked at that entry. |
+| SA-61 | functional | should | accepted | specarch generate --check shall compare a folder of pages built by hand with what the target writes, saying for each file whether it matches and, for a page's data, which values differ. |
 | SA-32 | functional | must | accepted | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. |
 | SA-11 | functional | must | accepted | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. |
 | SA-12 | functional | must | accepted | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. |
@@ -667,6 +668,21 @@ Acceptance criteria:
 - An invalid specification is written all the same, from what could be read, with its errors marked.
 
 **Insight:** Reviewers and testers read a specification long before it is finished and seldom read YAML; one page they can open anywhere, search, and link into by an element's id lets them name exactly what a remark is about, which is what takes it back into the specification.
+
+### SA-61
+
+specarch generate --check shall compare a folder of pages built by hand with what the target writes, saying for each file whether it matches and, for a page's data, which values differ.
+
+Kind: functional; priority: should; status: accepted; verified by test; refines NEED-2.
+
+Acceptance criteria:
+
+- A file the plug-in marks as an object literal is read on both sides in the subset of TypeScript that is also JSON5 and compared by value, so formatting, comments, quotes and trailing commas do not count; each differing value is named by its path, with the value on disk and the one generated.
+- A file on disk outside the subset is reported as not comparable, with the line and what was found, and never as matching.
+- A file built by hand, which has no generated header, matches when it equals what the target writes without its header, draft notice and problem marks; it says so in a line of its own and is not counted as differing. A generated file is still compared byte for byte.
+- The library lending example's sign-in and second-factor schemas, written by hand before the generator, compare equal, and a list schema with one column changed is reported as that column.
+
+**Insight:** Most screens of a project that comes to SpecArch were built by hand; before the generated ones replace them, the owner needs to see, page by page, where the specification and the built screen disagree, without the noise of formatting.
 
 ### SA-32
 

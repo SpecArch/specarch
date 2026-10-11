@@ -75,9 +75,11 @@ object:
 | `output` | the folder the files are for |
 | `draft` | the notice every file of a draft carries, from "Draft:" to "this file is not the approved output", naming the questions that block what the target reads and the approval's state; empty for the approved output |
 | `problems` | the specification's warnings and open questions in the order of its problems file, each with its `id`, `severity`, `rule`, `message`, the `pointer` into the merged specification it is marked at (empty for one outside it) and, for a question, what it `blocks`, so the output marks each one at its entry (`docs/diagnostics.md`, section 5); on a second run also the plug-in's own diagnostics, with `target: true` |
+| `check` | true when the run is `--check`, which writes nothing, so a plug-in that refuses to write over a file built by hand answers its files for the comparison |
 
 The plug-in answers on its standard output with one JSON object: `files`,
-each a `path` relative to the output folder and its `content`, and
+each a `path` relative to the output folder, its `content` and, for a file
+that is one object literal of data, `comparison: "object-literal"`, and
 `diagnostics`, each with the validator's fields (`file`, `line`,
 `severity`, `path`, `rule`, `message`), and exits 0. `specarch` prints the
 diagnostics, refuses a path outside the output folder, and writes or
@@ -89,6 +91,20 @@ them too; what that run answers is written, and an error makes the run
 exit 1 (rule 4). A plug-in that exits with another status, or answers with
 anything else, fails the run with status 2; its standard error is passed
 through. The request and answer structs are in `cmd/specarch/generate.go`.
+
+`--check` compares a generated file, one with the line that starts the
+generated header, byte for byte. A file with no such line was built by
+hand: it matches when it equals the output without its header, draft
+notice and problem marks, and the match is named on a line of its own
+rather than counted. A file marked `comparison: "object-literal"` is, when
+it differs, read on both sides in the subset of TypeScript that is also
+JSON5 and compared by value, and each differing value is printed below
+the file's line by its path in the literal, such as
+`columns[1].sortable: true on disk; generate writes false`. A file on disk
+outside that subset (an identifier, a function, a template string) is not
+comparable, named with its line, and counts as differing (ADR-093). So a
+project points `--out` at its folder of pages built by hand and reads,
+page by page, where they and the specification disagree.
 
 Every shipped plug-in marks the problems by one rule, `internal/mark`: a
 warning at the deepest entry its output shows that holds the warning's

@@ -28,7 +28,7 @@ steps. In short:
    with screens built by hand.
 
 Questions Q1 to Q10 at the end were the owner's, who answered each as
-recommended on 2026-10-09 (ADR-051). Steps 1 to 6 are built.
+recommended on 2026-10-09 (ADR-051). Steps 1 to 7 are built.
 
 ## Where SpecArch stands
 
@@ -151,6 +151,19 @@ project's, and the libraries it needs are the implementation file's
 fixed order, and no time beyond the header every generated file carries.
 The output passes `tsc --noEmit` under `strict` and the project's ESLint
 with no rule turned off.
+
+**Screens built by hand.** A project that comes with screens of its own
+points `generate --check` at their folder. The plug-in marks every
+`page.schema.ts` as an object literal, so a schema on disk is read in the
+subset of TypeScript that is also JSON5 and compared by value: quotes,
+comments, key order and trailing commas do not count, and each value that
+differs is printed by its path, such as `columns[2].sortable`. A file with
+no generated header is taken as built by hand and compared without the
+header, the draft notice and the marks; a match is named and not counted,
+any other file names its first differing line, and a schema holding a name
+or a function is reported as not comparable, never as equal (ADR-093).
+Under `--check` the plug-in answers its files even where the folder holds
+files it did not write, since nothing is written.
 
 **Validation without a form library.** A field's checks come from the
 entity's JSON Schema keywords and are written as plain TypeScript in the
@@ -336,11 +349,16 @@ needs Q1, Q4 and Q5; step 2 needs Q2, Q3, Q6, Q7 and Q10.
    forwards to the service through sixteen routes, tested against a stub
    of fetch, is shown in English and Indonesian, and builds with its theme
    in both modes; the `@acme/screens` one calls the service directly.
-7. **Comparing screens built by hand.** `generate --check` on a folder of
-   pages built by hand says per page whether the schema and the page
-   match, comparing values (Q9), and prints the difference. Waits for
-   nothing. Done when the reference screens of step 2 compare equal and a
-   changed column is reported as that column.
+7. **Built: comparing screens built by hand** (SA-61, ADR-093).
+   `generate --check` on a folder of pages built by hand says per file
+   whether the schema and the page match, comparing a schema's values
+   (Q9), and prints each differing value, or a page's first differing
+   line. Done: the sign-in and second-factor schemas of step 2, as written
+   by hand then, compare equal with the rest of the Carbon application
+   without its header, and a list schema with one column changed is
+   reported as that column (`TestStep2ReferenceComparesEqual`); the page
+   files of step 2 are compared in their current form, since step 6 made
+   `page.tsx` read the chosen language.
 
 The handoff that asked for this stays in the mailbox until step 7 is
 built and pushed.

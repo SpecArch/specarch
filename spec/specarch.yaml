@@ -186,3 +186,9 @@ sources:
     edition: "2025"
     author: Ecma International
     url: https://tc39.es/ecma262/#sec-ecmascript-language-types-number-type
+  json5:
+    kind: standard
+    title: The JSON5 Data Interchange Format
+    edition: "1.0.0"
+    author: The JSON5 project
+    url: https://spec.json5.org/

@@ -56,6 +56,9 @@ type Idiom struct {
 type File struct {
 	Path    string `json:"path"`
 	Content string `json:"content"`
+	// Comparison is "object-literal" for a file that is one object
+	// literal of data, which generate --check compares by value (ADR-093).
+	Comparison string `json:"comparison,omitempty"`
 }
 
 // Diagnostic is one problem the plug-in reports, in the validator's fields.

@@ -1,0 +1,23 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { application } from "../application.ts";
+import { visibleMenu } from "../screens/access.ts";
+
+test("the menu shows no entry to someone signed in without its page's permission", () => {
+  for (const group of application.menu) {
+    for (const item of group.items) {
+      if (item.permission === "public") {
+        continue;
+      }
+      const held = application.menu.flatMap((g) => g.items.map((i) => i.permission)).filter((p) => p !== item.permission);
+      const shown = visibleMenu(application.menu, { signedIn: true, permissions: held }).flatMap((g) => g.items);
+      assert.ok(!shown.some((entry) => entry.route === item.route && entry.permission === item.permission), item.route);
+    }
+  }
+});
+
+test("the menu shows every entry to someone who holds every page's permission", () => {
+  const held = application.menu.flatMap((g) => g.items.map((i) => i.permission));
+  const shown = visibleMenu(application.menu, { signedIn: true, permissions: held }).flatMap((g) => g.items);
+  assert.equal(shown.length, application.menu.flatMap((g) => g.items).length);
+});

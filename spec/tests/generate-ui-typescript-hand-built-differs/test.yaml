@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: generate
+level: system
+scenario: red
+covers: [exit 1]
+given: "the same folders built by hand, with one column of the members list made sortable, the members page's route for the invitation changed, and the branches list's page size given by a name"
+when: "generate ui is run with --check and --unapproved"
+then: "it reports the members list's schema with that column's sortable as the one difference, the members page with its first differing line, and the branches list's schema as not comparable at the name's line, names every other file as matching, and exits 1"
+verifies: [SA-61]

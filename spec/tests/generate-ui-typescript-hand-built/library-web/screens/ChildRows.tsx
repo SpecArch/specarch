@@ -1,0 +1,160 @@
+"use client";
+
+import {
+  Button,
+  FormGroup,
+  InlineNotification,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@carbon/react";
+import { Field } from "./Field";
+import { formProblems, locked, typed, type Fields, type Values } from "./rules";
+import type { ChildRowsSchema } from "./schema";
+import { say, type Texts } from "./texts";
+
+/** The rows of a relation on a form: those loaded with the record, and those added on it. */
+export interface RowsState {
+  readonly loaded: readonly Fields[];
+  readonly added: readonly Values[];
+}
+
+/** An added row with no value typed yet. */
+export function emptyRow(rows: ChildRowsSchema): Values {
+  return Object.fromEntries(rows.fields.map((field) => [field.name, field.type === "checkbox" ? "false" : ""]));
+}
+
+/** The rows a form starts with: the loaded ones, and as many empty rows as the request needs. */
+export function startRows(rows: ChildRowsSchema, record: Fields): RowsState {
+  const held = rows.loaded === undefined ? undefined : record[rows.loaded];
+  const loaded = Array.isArray(held) ? held.filter((row): row is Fields => typeof row === "object" && row !== null) : [];
+  const room = rows.maximum === undefined ? Infinity : rows.maximum - loaded.length;
+  const count = Math.max(0, Math.min(rows.minimum ?? 0, room));
+  return { loaded, added: Array.from({ length: count }, () => emptyRow(rows)) };
+}
+
+/** The key under which the problem of an added row's field is held. */
+export function rowKey(rows: ChildRowsSchema, index: number, field: string): string {
+  return rows.name + "." + index + "." + field;
+}
+
+/**
+ * What stops the rows being sent: too few rows added, more rows than the
+ * maximum, under the rows' name, and each added row's fields by their
+ * keywords, under the row's key.
+ */
+export function rowProblems(rows: ChildRowsSchema, state: RowsState, texts: Texts): Record<string, string> {
+  const problems: Record<string, string> = {};
+  if (rows.minimum !== undefined && state.added.length < rows.minimum) {
+    problems[rows.name] = say(texts, { text: "screens.rowsAtLeast", count: rows.minimum });
+  }
+  if (rows.maximum !== undefined && state.loaded.length + state.added.length > rows.maximum) {
+    problems[rows.name] = say(texts, { text: "screens.rowsAtMost", count: rows.maximum });
+  }
+  state.added.forEach((values, index) => {
+    for (const [field, problem] of Object.entries(formProblems(rows.fields, [], values, {}, texts))) {
+      problems[rowKey(rows, index, field)] = problem;
+    }
+  });
+  return problems;
+}
+
+/** The rows as the request's body takes them: each added row with the fields its items take. */
+export function rowsSent(rows: ChildRowsSchema, state: RowsState): readonly Record<string, unknown>[] {
+  return state.added.map((values) => {
+    const row: Record<string, unknown> = {};
+    for (const field of rows.fields) {
+      const value = typed(field, values[field.name] ?? "");
+      if (rows.sent.includes(field.name) && value !== null) {
+        row[field.name] = value;
+      }
+    }
+    return row;
+  });
+}
+
+function shown(value: unknown, texts: Texts): string {
+  if (value === null || value === undefined || value === "") {
+    return say(texts, "screens.none");
+  }
+  if (typeof value === "boolean") {
+    return say(texts, value ? "screens.yes" : "screens.no");
+  }
+  return String(value);
+}
+
+export interface ChildRowsProps {
+  readonly rows: ChildRowsSchema;
+  readonly state: RowsState;
+  readonly problems: Readonly<Record<string, string>>;
+  readonly texts: Texts;
+  readonly onChange: (added: readonly Values[]) => void;
+}
+
+/**
+ * The rows of a relation under a form: the loaded rows read-only in a
+ * table, and the rows added on the form, each drawn inline by its fields'
+ * parts with a button that removes it, up to the maximum. A field the
+ * request does not take is shown on the loaded rows only.
+ */
+export function ChildRows({ rows, state, problems, texts, onChange }: ChildRowsProps) {
+  const full = rows.maximum !== undefined && state.loaded.length + state.added.length >= rows.maximum;
+  const editable = rows.fields.filter((field) => rows.sent.includes(field.name));
+  return (
+    <FormGroup legendText={say(texts, rows.title)}>
+      <Stack gap={5}>
+        {problems[rows.name] !== undefined && (
+          <InlineNotification kind="error" role="alert" lowContrast hideCloseButton title={problems[rows.name]} />
+        )}
+        {state.loaded.length > 0 && (
+          <Table size="sm" aria-label={say(texts, rows.title)}>
+            <TableHead>
+              <TableRow>
+                {rows.fields.map((field) => (
+                  <TableHeader key={field.name}>{say(texts, field.label)}</TableHeader>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {state.loaded.map((row, index) => (
+                <TableRow key={index}>
+                  {rows.fields.map((field) => (
+                    <TableCell key={field.name}>{shown(row[field.name], texts)}</TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+        {state.added.map((values, index) => (
+          <Stack key={index} orientation="horizontal" gap={5}>
+            {editable.map((field) => (
+              <Field
+                key={field.name}
+                id={rowKey(rows, index, field.name)}
+                field={field}
+                value={values[field.name] ?? ""}
+                problem={problems[rowKey(rows, index, field.name)]}
+                texts={texts}
+                readOnly={locked(field, values)}
+                onChange={(value) => onChange(state.added.map((row, at) => (at === index ? { ...row, [field.name]: value } : row)))}
+              />
+            ))}
+            <Button kind="ghost" type="button" onClick={() => onChange(state.added.filter((_, at) => at !== index))}>
+              {say(texts, "screens.removeRow")}
+            </Button>
+          </Stack>
+        ))}
+        <div>
+          <Button kind="tertiary" type="button" disabled={full} onClick={() => onChange([...state.added, emptyRow(rows)])}>
+            {say(texts, "screens.addRow")}
+          </Button>
+        </div>
+      </Stack>
+    </FormGroup>
+  );
+}

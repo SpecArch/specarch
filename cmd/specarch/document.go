@@ -28,6 +28,9 @@ var (
 type planned struct {
 	path    string
 	content string
+	// comparison is "object-literal" for a file a plug-in marks as one
+	// object literal of data, which --check compares by value (ADR-093).
+	comparison string
 }
 
 // loaded is one validated specification with its implementation files
@@ -176,7 +179,7 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 			st.Site = siteParts(l, folder, stderr)
 		}
 		text, _ := generate.Document(target, l.spec.Root, relSlash(folder, l.spec.RootFile), impls, st)
-		plan = append(plan, planned{filepath.Join(folder, generate.DocumentName(target)), text})
+		plan = append(plan, planned{path: filepath.Join(folder, generate.DocumentName(target)), content: text})
 		if target != "techspec" {
 			continue
 		}
@@ -188,7 +191,7 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 				fmt.Fprintf(stdout, "%s:%d: error: %s\n", companion, e.Line, e.Message)
 				failed = true
 			}
-			plan = append(plan, planned{companion, rewritten})
+			plan = append(plan, planned{path: companion, content: rewritten})
 		} else if !os.IsNotExist(err) {
 			fmt.Fprintf(stderr, "specarch: cannot read %s: %v\n", companion, err)
 			return 2
@@ -360,7 +363,7 @@ func writePlan(verb string, plan []planned, stderr io.Writer) int {
 
 // checkPlan compares the plan with the disk, writing nothing.
 func checkPlan(verb string, plan []planned, stdout, stderr io.Writer) int {
-	differs := 0
+	differs, matched := 0, 0
 	for _, p := range plan {
 		old, err := os.ReadFile(p.path)
 		switch {
@@ -371,11 +374,22 @@ func checkPlan(verb string, plan []planned, stdout, stderr io.Writer) int {
 			fmt.Fprintf(stderr, "specarch: cannot read %s: %v\n", p.path, err)
 			return 2
 		case !bytes.Equal(old, []byte(p.content)):
-			fmt.Fprintf(stdout, "%s: differs from what %s writes; run specarch %s without --check\n", p.path, verb, verb)
+			if verb == "generate" {
+				if compareGenerated(p, old, stdout) {
+					matched++ // built by hand, and it matches
+					continue
+				}
+			} else {
+				fmt.Fprintf(stdout, "%s: differs from what %s writes; run specarch %s without --check\n", p.path, verb, verb)
+			}
 			differs++
 		}
 	}
-	fmt.Fprintf(stderr, "specarch %s --check: %s checked, %s differ\n", verb, plural(len(plan), "file"), plural(differs, "file"))
+	handBuilt := ""
+	if matched > 0 {
+		handBuilt = fmt.Sprintf(", and %d built by hand match", matched)
+	}
+	fmt.Fprintf(stderr, "specarch %s --check: %s checked, %s differ%s\n", verb, plural(len(plan), "file"), plural(differs, "file"), handBuilt)
 	if differs > 0 {
 		return 1
 	}

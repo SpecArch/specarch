@@ -1,0 +1,139 @@
+arguments: [generate, ui, --check, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:375:44: warning: /pages/invitation/fields/3: generator: nickname has no title, so its label is its name; give the property a title [generator@specarch.yaml#/pages/invitation/fields/3]
+  project/specarch.yaml:1:1: warning: /: generator: strings.en-GB.json has an entry for members-list.retired, which no screen uses; it is left out [generator.8db6760a@specarch.yaml#/]
+  project/specarch.yaml:541:5: warning: /theme/modes/print: generator: the mode print has no media query of its own on the web, and specarch-gen-ui-typescript writes the dark mode only; it is left out [generator@specarch.yaml#/theme/modes/print]
+  project/specarch.yaml:1:1: warning: /: generator: the ui target's settings.tokens gives space a token, and no token of the design-tokens idiom takes space on nextjs-carbon, whose own spacing and type scale apply; it is left out [generator.d2ca4afc@specarch.yaml#/]
+  project/specarch.yaml:375:44: warning: /pages/invitation/fields/3: generator: nickname has no title, so its label is its name; give the property a title [generator@specarch.yaml#/pages/invitation/fields/3]
+  project/specarch.yaml:541:5: warning: /theme/modes/print: generator: the mode print has no media query of its own on the web, and specarch-gen-ui-typescript writes the dark mode only; it is left out [generator@specarch.yaml#/theme/modes/print]
+  project/specarch.yaml:525:1: warning: /theme: generator: the theme's colours reach no token of nextjs-carbon, and its own look applies; map the parts to the theme's tokens under the ui target's settings.tokens [generator@specarch.yaml#/theme]
+  library-web/app/directory/page.schema.ts: built by hand, and matches what generate writes as data
+  library-web/app/directory/page.tsx: built by hand, and matches what generate writes but for its header
+  library-web/app/invitations/page.schema.ts: built by hand, and matches what generate writes as data
+  library-web/app/invitations/page.tsx: built by hand, and matches what generate writes but for its header
+  library-web/app/members/[memberId]/edit/page.schema.ts: built by hand, and matches what generate writes as data
+  library-web/app/members/[memberId]/edit/page.tsx: built by hand, and matches what generate writes but for its header
+  library-web/app/members/[memberId]/page.schema.ts: built by hand, and matches what generate writes as data
+  library-web/app/members/[memberId]/page.tsx: built by hand, and matches what generate writes but for its header
+  library-web/app/members/[memberId]/removal/page.schema.ts: built by hand, and matches what generate writes as data
+  library-web/app/members/[memberId]/removal/page.tsx: built by hand, and matches what generate writes but for its header
+  library-web/app/members/[memberId]/visits/page.schema.ts: built by hand, and matches what generate writes as data
+  library-web/app/members/[memberId]/visits/page.tsx: built by hand, and matches what generate writes but for its header
+  library-web/app/members/new/page.client.tsx: built by hand, and matches what generate writes but for its header
+  library-web/app/members/new/page.schema.ts: built by hand, and matches what generate writes as data
+  library-web/app/members/new/page.tsx: built by hand, and matches what generate writes but for its header
+  library-web/app/members/page.schema.ts: built by hand, and matches what generate writes as data
+  library-web/app/members/page.tsx: built by hand, and matches what generate writes but for its header
+  library-web/app/removals/page.schema.ts: built by hand, and matches what generate writes as data
+  library-web/app/removals/page.tsx: built by hand, and matches what generate writes but for its header
+  library-web/app/sign-in/page.schema.ts: built by hand, and matches what generate writes as data
+  library-web/app/sign-in/page.tsx: built by hand, and matches what generate writes but for its header
+  library-web/application.ts: built by hand, and matches what generate writes but for its header
+  library-web/language.ts: built by hand, and matches what generate writes but for its header
+  library-web/screens/ChildRows.tsx: built by hand, and matches what generate writes but for its header
+  library-web/screens/Confirm.tsx: built by hand, and matches what generate writes but for its header
+  library-web/screens/Field.tsx: built by hand, and matches what generate writes but for its header
+  library-web/screens/FormPage.tsx: built by hand, and matches what generate writes but for its header
+  library-web/screens/Guard.tsx: built by hand, and matches what generate writes but for its header
+  library-web/screens/LanguageChoice.tsx: built by hand, and matches what generate writes but for its header
+  library-web/screens/ListPage.tsx: built by hand, and matches what generate writes but for its header
+  library-web/screens/Lookup.tsx: built by hand, and matches what generate writes but for its header
+  library-web/screens/Menu.tsx: built by hand, and matches what generate writes but for its header
+  library-web/screens/Notice.tsx: built by hand, and matches what generate writes but for its header
+  library-web/screens/TaskPage.tsx: built by hand, and matches what generate writes but for its header
+  library-web/screens/ValueField.tsx: built by hand, and matches what generate writes but for its header
+  library-web/screens/ViewPage.tsx: built by hand, and matches what generate writes but for its header
+  library-web/screens/access.ts: built by hand, and matches what generate writes but for its header
+  library-web/screens/index.ts: built by hand, and matches what generate writes but for its header
+  library-web/screens/rules.ts: built by hand, and matches what generate writes but for its header
+  library-web/screens/schema.ts: built by hand, and matches what generate writes but for its header
+  library-web/screens/service.ts: built by hand, and matches what generate writes but for its header
+  library-web/screens/session.ts: built by hand, and matches what generate writes but for its header
+  library-web/screens/texts.ts: built by hand, and matches what generate writes but for its header
+  library-web/screens/values.ts: built by hand, and matches what generate writes but for its header
+  library-web/strings.ts: built by hand, and matches what generate writes but for its header
+  library-web/tests/member-edit.test.ts: built by hand, and matches what generate writes but for its header
+  library-web/tests/member-form.test.ts: built by hand, and matches what generate writes but for its header
+  library-web/tests/member-view.test.ts: built by hand, and matches what generate writes but for its header
+  library-web/tests/members-list.test.ts: built by hand, and matches what generate writes but for its header
+  library-web/tests/menu.test.ts: built by hand, and matches what generate writes but for its header
+  library-web/tests/removal-form.test.ts: built by hand, and matches what generate writes but for its header
+  library-web/tests/removals-inbox.test.ts: built by hand, and matches what generate writes but for its header
+  library-web/tests/visits-form.test.ts: built by hand, and matches what generate writes but for its header
+  library-web/theme.scss: built by hand, and matches what generate writes but for its header
+  web/app/api/branches/all/route.ts: built by hand, and matches what generate writes but for its header
+  web/app/api/branches/route.ts: built by hand, and matches what generate writes but for its header
+  web/app/api/directory/route.ts: built by hand, and matches what generate writes but for its header
+  web/app/api/invitations/route.ts: built by hand, and matches what generate writes but for its header
+  web/app/api/members/[memberId]/removals/route.ts: built by hand, and matches what generate writes but for its header
+  web/app/api/members/[memberId]/route.ts: built by hand, and matches what generate writes but for its header
+  web/app/api/members/[memberId]/suspend/route.ts: built by hand, and matches what generate writes but for its header
+  web/app/api/members/[memberId]/visits/route.ts: built by hand, and matches what generate writes but for its header
+  web/app/api/members/route.ts: built by hand, and matches what generate writes but for its header
+  web/app/api/removals/[removalId]/approve/route.ts: built by hand, and matches what generate writes but for its header
+  web/app/api/removals/route.ts: built by hand, and matches what generate writes but for its header
+  web/app/api/sessions/current/route.ts: built by hand, and matches what generate writes but for its header
+  web/app/branches/page.schema.ts: not comparable as data: line 10: the name defaultPageSize is a reference, not data; the subset holds only literals, so compare it by hand
+  web/app/branches/page.tsx: built by hand, and matches what generate writes but for its header
+  web/app/directory/page.schema.ts: built by hand, and matches what generate writes as data
+  web/app/directory/page.tsx: built by hand, and matches what generate writes but for its header
+  web/app/invitations/page.schema.ts: built by hand, and matches what generate writes as data
+  web/app/invitations/page.tsx: built by hand, and matches what generate writes but for its header
+  web/app/members/[memberId]/edit/page.schema.ts: built by hand, and matches what generate writes as data
+  web/app/members/[memberId]/edit/page.tsx: built by hand, and matches what generate writes but for its header
+  web/app/members/[memberId]/page.schema.ts: built by hand, and matches what generate writes as data
+  web/app/members/[memberId]/page.tsx: built by hand, and matches what generate writes but for its header
+  web/app/members/[memberId]/removal/page.schema.ts: built by hand, and matches what generate writes as data
+  web/app/members/[memberId]/removal/page.tsx: built by hand, and matches what generate writes but for its header
+  web/app/members/[memberId]/visits/page.schema.ts: built by hand, and matches what generate writes as data
+  web/app/members/[memberId]/visits/page.tsx: built by hand, and matches what generate writes but for its header
+  web/app/members/new/page.client.tsx: built by hand, and matches what generate writes but for its header
+  web/app/members/new/page.schema.ts: built by hand, and matches what generate writes as data
+  web/app/members/new/page.tsx: built by hand, and matches what generate writes but for its header
+  web/app/members/page.schema.ts: built by hand, and differs from what generate writes
+    columns[1].sortable: true on disk; generate writes false
+  web/app/members/page.tsx: built by hand, and differs from what generate writes
+    line 12: "  invitation: \"/members/invite\"," on disk; generate writes "  invitation: \"/invitations\","
+  web/app/removals/page.schema.ts: built by hand, and matches what generate writes as data
+  web/app/removals/page.tsx: built by hand, and matches what generate writes but for its header
+  web/app/sign-in/page.schema.ts: built by hand, and matches what generate writes as data
+  web/app/sign-in/page.tsx: built by hand, and matches what generate writes but for its header
+  web/application.ts: built by hand, and matches what generate writes but for its header
+  web/language.ts: built by hand, and matches what generate writes but for its header
+  web/screens/ChildRows.tsx: built by hand, and matches what generate writes but for its header
+  web/screens/Confirm.tsx: built by hand, and matches what generate writes but for its header
+  web/screens/Field.tsx: built by hand, and matches what generate writes but for its header
+  web/screens/FormPage.tsx: built by hand, and matches what generate writes but for its header
+  web/screens/Guard.tsx: built by hand, and matches what generate writes but for its header
+  web/screens/LanguageChoice.tsx: built by hand, and matches what generate writes but for its header
+  web/screens/ListPage.tsx: built by hand, and matches what generate writes but for its header
+  web/screens/Lookup.tsx: built by hand, and matches what generate writes but for its header
+  web/screens/Menu.tsx: built by hand, and matches what generate writes but for its header
+  web/screens/Notice.tsx: built by hand, and matches what generate writes but for its header
+  web/screens/TaskPage.tsx: built by hand, and matches what generate writes but for its header
+  web/screens/ValueField.tsx: built by hand, and matches what generate writes but for its header
+  web/screens/ViewPage.tsx: built by hand, and matches what generate writes but for its header
+  web/screens/access.ts: built by hand, and matches what generate writes but for its header
+  web/screens/index.ts: built by hand, and matches what generate writes but for its header
+  web/screens/rules.ts: built by hand, and matches what generate writes but for its header
+  web/screens/schema.ts: built by hand, and matches what generate writes but for its header
+  web/screens/service.ts: built by hand, and matches what generate writes but for its header
+  web/screens/session.ts: built by hand, and matches what generate writes but for its header
+  web/screens/texts.ts: built by hand, and matches what generate writes but for its header
+  web/screens/values.ts: built by hand, and matches what generate writes but for its header
+  web/server/forward.ts: built by hand, and matches what generate writes but for its header
+  web/server/settings.ts: built by hand, and matches what generate writes but for its header
+  web/strings.ts: built by hand, and matches what generate writes but for its header
+  web/tests/branch-list.test.ts: built by hand, and matches what generate writes but for its header
+  web/tests/member-edit.test.ts: built by hand, and matches what generate writes but for its header
+  web/tests/member-form.test.ts: built by hand, and matches what generate writes but for its header
+  web/tests/member-view.test.ts: built by hand, and matches what generate writes but for its header
+  web/tests/members-list.test.ts: built by hand, and matches what generate writes but for its header
+  web/tests/menu.test.ts: built by hand, and matches what generate writes but for its header
+  web/tests/removal-form.test.ts: built by hand, and matches what generate writes but for its header
+  web/tests/removals-inbox.test.ts: built by hand, and matches what generate writes but for its header
+  web/tests/server.test.ts: built by hand, and matches what generate writes but for its header
+  web/tests/visits-form.test.ts: built by hand, and matches what generate writes but for its header
+  web/theme.scss: built by hand, and matches what generate writes but for its header
+plugins: [ui-typescript]

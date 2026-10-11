@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.6.0-dev of the specification: 398 design tests, 172 golden and 226 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.6.0-dev of the specification: 400 design tests, 173 golden and 227 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.6.0-dev of the specification: 398 design tests, 172 golden and 226 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 394 |
+| system | 396 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -32,6 +32,7 @@ Framework: go test. Run: `go test ./...`.
 | generated-tests | unit | tests of this implementation only | `go test ./internal/gentests` |
 | generated-screens | unit | tests of this implementation only | `go test ./internal/genuits` |
 | expressions | unit | tests of this implementation only | `go test ./internal/expr` |
+| object-literals | unit | tests of this implementation only | `go test ./internal/literal` |
 
 ### Implementation: SpecArch toolchain in Swift
 
@@ -1477,6 +1478,22 @@ Scenario: golden; level: system; verifies SA-52, SA-53, SA-54, SA-55, SA-56.
 - Given: a specification with two task pages, a list page that filters by an enum and by a date it may filter, searches, sorts two of its columns, keeps one on a compact screen, opens a page from its toolbar, a view from a row and the edit form from a row while it is active, and suspends a row while it is active after a confirmation that asks for the reason, a public list; a form that registers a member in two titled sections, with a text, an enum, a date, an integer, a boolean, a text without a maximum and a PIN typed twice, a branch picked from a list that searches, a field read-only while the status is inactive and one hidden while the newsletter is off, a check across two fields and an idempotency key; a form that loads a member and changes it, with a field always read-only and one read-only by an expression; a view that hides a field by an expression, opens the second form and suspends the member while active after a confirmation that asks for the reason; a form that loads a member answering a view with the rows of their visits and adds visits as rows, locked when loaded, at most five, with a field the rows' items do not take; a form that starts an approval, answered 202; the inbox of that approval's step, approving a request after a confirmation; a list read from an operation that answers every branch whole; two menus; and a theme with a dark mode, a print mode and a dimension; two implementation files in TypeScript in one folder, each with its ui target in nextjs-carbon, its own output and the session's operation in its settings, a hook for the registration's date and its sections as tabs in one and steps in the other, one owning the administration menu and the sign-in operation to another stakeholder, with server routes whose settings page the branches, a translation into en-GB whose file in the output folder keeps an entry no screen uses, and its theme's parts mapped to tokens with a space among them, and the other owning the branches page, calling the service directly and drawing lists through a library of its own by an override; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
 - Then: it runs the plug-in once per output folder; each writes the task pages, the list's schema and page behind the guard, the edit form among its row actions with its route filled from the row, with the derived test that it is refused without its permission, the public list with no such test, each form's and the view's schema and page behind the guard with its derived test, the visits' rows with the loaded ones read from the view's property and only the fields the items take sent, the approval's form with its event under 202, the inbox as a list with its row action, the registration's hook handed on by page.client.tsx from page.hooks.ts, application.ts with the session and the menu without the owned one, the menu's derived test, the components under screens, the texts in strings.ts with the en-GB translation in the first, language.ts, theme.scss with Carbon's themes and, in the first, the parts' colours in light and dark, and in the first a route.ts per path a page calls, the branches paged by their route, none for the owned sign-in, the routes' settings and their derived test; the second imports the list's component and schema type from the library and names its columns by the override; each warns that the field with no title is labelled by its name and that the print mode is left out, the first that the translation's unused entry and the space are left out, the second that the theme reaches no Carbon token, and exits 0
+
+#### generate-ui-typescript-hand-built
+
+Scenario: golden; level: system; verifies SA-61.
+
+- Given: the specification and the two implementation files of generate-ui-typescript, and in each output folder the files that case writes as a project would build them by hand, with no generated header, draft notice or mark; the members list's schema written with single quotes, quoted keys, comments, a missing trailing comma and 25.0 for 25
+- When: generate ui is run with --check and --unapproved
+- Then: it runs the plug-in for each folder, names every file as built by hand and matching, the members list's schema as data, counts them, writes nothing, and exits 0
+
+#### generate-ui-typescript-hand-built-differs
+
+Scenario: red; level: system; covers exit 1; verifies SA-61.
+
+- Given: the same folders built by hand, with one column of the members list made sortable, the members page's route for the invitation changed, and the branches list's page size given by a name
+- When: generate ui is run with --check and --unapproved
+- Then: it reports the members list's schema with that column's sortable as the one difference, the members page with its first differing line, and the branches list's schema as not comparable at the name's line, names every other file as matching, and exits 1
 
 #### generate-ui-typescript-refused
 
@@ -3258,7 +3275,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-232 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+236 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -3417,6 +3434,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-60 | acceptance 3 | golden | SA-60 names no harm |
 | requirement SA-60 | acceptance 4 | golden | SA-60 names no harm |
 | requirement SA-60 | acceptance 5 | golden | SA-60 names no harm |
+| requirement SA-61 | acceptance 1 | golden | SA-61 names no harm |
+| requirement SA-61 | acceptance 2 | golden | SA-61 names no harm |
+| requirement SA-61 | acceptance 3 | golden | SA-61 names no harm |
+| requirement SA-61 | acceptance 4 | golden | SA-61 names no harm |
 | requirement SA-32 | acceptance 1 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 2 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 3 | golden | SA-32 names no harm |

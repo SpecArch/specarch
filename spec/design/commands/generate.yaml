@@ -19,7 +19,22 @@ commands:
       the approval's state, and a draft exits 0 (ADR-066, ADR-086). Then
       writes the target into the folder it owns, and nothing outside it.
       With `--check` nothing is written: the output is made in memory and
-      compared with what is on disk.
+      compared with what is on disk. A generated file, one whose text has
+      the line that starts the generated header, is compared byte for
+      byte. A file with no such line was built by hand: it matches when it
+      equals what the target writes without the header, the draft notice
+      and the problem marks, and a match is named in a line of its own and
+      not counted as differing. A file the plug-in marks as an object
+      literal is, when it differs, read on both sides in the subset of
+      TypeScript that is also JSON5 (ADR-093) and compared by value: the
+      imports, the exported constant's name, the type it satisfies and the
+      literal. A hand-built one with equal values matches; for any other,
+      each differing value is printed below the file's line, by its path
+      in the literal, with the value on disk and the one generated; any
+      other file built by hand that differs names its first differing
+      line, both ways. A file
+      on disk outside the subset is not comparable, named with its line
+      and what was found there, and counts as differing.
 
       A target this program does not build in is produced by a plug-in found
       on PATH. For each implementation file that names the target under
@@ -50,9 +65,12 @@ commands:
       specification it is marked at (empty for a problem outside it, such
       as in an implementation file) and, for a question, what it
       `blocks`, so the output marks each one at the entry it shows for it
-      (docs/diagnostics.md). The plug-in answers on its standard output,
-      as JSON, with `files` (each a `path` relative to the output folder and
-      its `content`) and `diagnostics` (each with the validator's fields:
+      (docs/diagnostics.md); and `check`, true when the run only compares,
+      so a plug-in that refuses to write over a file built by hand answers
+      its files for the comparison. The plug-in answers on its standard output,
+      as JSON, with `files` (each a `path` relative to the output folder,
+      its `content`, and `comparison: object-literal` for a file that is
+      one object literal of data, which `--check` compares by value) and `diagnostics` (each with the validator's fields:
       file, line, severity, path, rule, message, and a column when it
       knows one), and exits 0. The program places each diagnostic at its
       entry: one at the root file, whose path leads to an entry of the
@@ -110,14 +128,17 @@ commands:
       The diagnostics of an invalid specification, the output_folder
       warning of each specification passed over, and the diagnostics the
       plug-in answers with, one line each. With `--check`, one line per
-      file that differs or is missing.
+      file that differs, is missing or is not comparable, each differing
+      value of an object literal on an indented line below it, and for
+      any other file built by hand its first differing line, and one line
+      per file built by hand that matches.
     standardError: A usage message on a usage error, the reason a plug-in was not found or failed (its path and exit status, or the start of an answer that is not JSON), each file the plug-in is not given because it cannot be read and why, one line per step when a run takes more than one plug-in or output folder (N of M), the plug-in's own standard error, and a one-line count at the end.
     exitCodes:
       "0": written, a draft included, or with `--check` the output is current
       "1": a specification has an error, an open question blocks what the target reads or the specification is not approved and `--unapproved` was not given, the plug-in reported an error (what it answered is written or checked), or with `--check` the output differs
       "2": usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder in any specification given, or a file that could not be read or written
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-14, SA-20, SA-31, SA-46, SA-58, SA-59]
+    satisfies: [SA-7, SA-8, SA-14, SA-20, SA-31, SA-46, SA-58, SA-59, SA-61]
     why: |
       One program with verbs, and generators as plug-ins found on PATH, is
       the pattern of protoc, git and kubectl: one name to learn and install,

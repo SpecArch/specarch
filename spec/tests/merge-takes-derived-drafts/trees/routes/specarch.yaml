@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.2.schema.json
+specarch: "0.2"
+info:
+  title: Routes of code
+  version: 0.1.0
+  description: |
+    The routes the router built from code registers, as a route table printed them.
+  tracksOrigin: true
+stages: [requirements, design, tests]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: ec4d1d1d8727140a93c52c450e3351776ac2f953
+    url: ../../src
+    clauses:
+      - {clause: code, title: The routes the router built from here registers}
+    reading: printed

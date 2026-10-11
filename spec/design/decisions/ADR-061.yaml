@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
 decisions:
   ADR-061:
     title: A unique constraint may hold only where a condition does, an element may be switched on by a boolean setting, and a requirement may name its release

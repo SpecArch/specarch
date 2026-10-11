@@ -3,15 +3,18 @@
 let designSchemaJSON = #"""
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.1.schema.json",
-  "title": "SpecArch specification, meta-model 0.1",
+  "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.2.schema.json",
+  "title": "SpecArch specification, meta-model 0.2",
   "description": "A SpecArch specification describes one system through its whole life cycle: the sources it rests on, the requirements (stakeholders, needs, requirements, glossary, assumptions, constraints), the design (enums, entities, permissions, roles, session, endpoints, commands, channels, dependencies, pages, algorithms, decisions), the tests, the deployment (environments, configuration, release, rollback, migrations) and the commissioning (checks, sign-off). On disk it is a folder whose root file is specarch.yaml; each stage listed under 'stages' lives in a folder of that name, and a stage not listed may be written inside specarch.yaml itself. The validator merges the tree into one document that this schema describes. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
     "specarch": {
-      "description": "Meta-model version this file is written against.",
+      "description": "Meta-model version this file is written against. In 0.2 a derived case no test covers is an error; a 0.1 file is read until 1.0, with that case a warning and one warning that the file is on 0.1.",
       "type": "string",
-      "const": "0.1"
+      "enum": [
+        "0.1",
+        "0.2"
+      ]
     },
     "info": {
       "$ref": "#/$defs/info"

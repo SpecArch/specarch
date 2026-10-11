@@ -6,3 +6,6 @@ standardOutput: |
   joined: Q-2 of trees/workflows, on #/workflows/write-off/trigger, is left out; Workflows of examples/lending-desk/sources/workflows/write-off.bpmn names operation requestWriteOff, which Routes of examples/lending-desk/sources/code declares
   merged 5 elements, each an entry of a section or an operation: 1 in more than one tree, and 0 keys the trees disagree on
   wrote 9 questions: 9 from the trees, numbered again in the order the trees are given, and 0 the merge asked
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 3 draft tests for operation requestWriteOff, held up by Q-1, Q-2; the validator warns for them until the questions are answered
+  not derived: 5 draft tests for workflow write-off, held up by Q-5, Q-6, Q-7; the validator warns for them until the questions are answered

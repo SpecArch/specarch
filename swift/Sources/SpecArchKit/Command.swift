@@ -46,7 +46,7 @@ public func run(_ args: [String], stdout: TextSink, stderr: TextSink) -> Int32 {
             stderr.write("specarch version takes no arguments\n\n\(usage)")
             return 2
         }
-        stdout.write("specarch \(programVersion)\nspecifications: meta-model 0.1\nimplementation files: meta-model 0.1\n")
+        stdout.write("specarch \(programVersion)\nspecifications: meta-model 0.2, and 0.1 until 1.0\nimplementation files: meta-model 0.1\n")
         return 0
     case "document", "generate", "gaps", "approve", "extract", "merge", "diff", "derive", "idioms":
         stderr.write("specarch \(command): this build has no \(command) verb; the Go build of specarch has it\n")

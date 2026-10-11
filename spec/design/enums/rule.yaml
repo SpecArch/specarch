@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
 enums:
   Rule:
     type: string
@@ -111,6 +111,7 @@ enums:
       - value_object
       - wire_name
       - output_folder
+      - meta_model_version
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: an entry of the file, or the file as a whole, is not well-formed YAML; the entries that parse are still read (ADR-080)
@@ -156,9 +157,9 @@ enums:
       change_log: a description reads as a change log instead of the current truth (a warning)
       test_subject: a test is about an operation, command, page, constraint or transition that does not exist
       test_case: a test covers a case its subject does not have, or a red case in a golden test
-      test_golden_missing: a subject has no golden scenario (a warning in 0.1)
-      test_red_missing: a subject has no red scenario and no derived red case (a warning in 0.1)
-      test_case_missing: a chosen case derived from the design has no test; a case is chosen when its subject satisfies a requirement with `harm`, when it is a failing dependency, or when users get it wrong often (a warning in 0.1)
+      test_golden_missing: a subject has no golden scenario; an error in a 0.2 file when the design gives the subject's success, which `specarch derive` writes, unless an open must or should question holds the subject up, and a warning otherwise
+      test_red_missing: a subject has no red scenario and no derived red case (a warning, since there is no case to derive a test from)
+      test_case_missing: a chosen case derived from the design has no test; a case is chosen when its subject satisfies a requirement with `harm`, when it is a failing dependency, or when users get it wrong often; an error in a 0.2 file unless an open must or should question holds the subject up, and a warning otherwise
       test_data: a test's fixture, input or expect names what the design does not have, carries a value of the wrong type, holds a record a check constraint refuses, or says the same thing as a data folder beside it
       suite: an implementation's test suite names a design test or subject that does not exist
       layout: a file or a section is not where the tree layout puts it; the root file's `stages` and the folders disagree, a test folder has no `test.yaml`, or a folder is not a stage
@@ -216,5 +217,6 @@ enums:
       form_field: "a page's fieldConditions name a field it does not show, make a field read-only on a page that is not a form, or give readOnly and readOnlyWhen together; its checks or enteredTwice are on a page that is not a form or a task, or a check's field or a field entered twice is not one the page shows; or a check's message is not a full sentence"
       value_object: "a relation leads to a schema, a schema is named like an entity or a view, storage is on a field that holds no schema or inside a value or is columns on a list, or a value kept in columns is optional with no required part that is never null or holds a list of schemas, itself or a reference to an entity"
       wire_name: "the specification names its wire names (info.wireNames) and two properties of one object, an entity's, a view's with its entity's, or a body's, a parameter's or a message's, go on the wire under one name"
+      meta_model_version: "the file says `specarch: \"0.1\"`, which is read until 1.0; run `specarch derive` and change the line to \"0.2\" (a warning)"
       output_folder: "document or generate is given no --out, and no implementation file of a specification names an output folder for the target under targets, so that specification has no such output (a warning, ADR-073, ADR-086)"
     satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50]

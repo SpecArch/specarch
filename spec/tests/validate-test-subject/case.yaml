@@ -1,4 +1,5 @@
 arguments: [validate, .]
 exitStatus: 1
-standardOutput: |+
+standardOutput: |
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]
   specarch.yaml:4:18: error: /tests/publish-works: test_subject: test publish-works is about operation publishItem, which is not in the specification; name an operationId, command, page, job, flow, workflow, requirement with acceptance criteria, entity with a state machine, or an entity's constraint or transition that exists [test_subject@specarch.yaml#/tests/publish-works]

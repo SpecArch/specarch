@@ -12,3 +12,9 @@ standardOutput: |
   wrote 5 pages, 0 schemas, 0 enums, 0 operations, 0 dependencies, 0 settings and 19 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold
   not held: app/lib/router.dart:27: the route /files/*: the segment * is a pattern, which a path template cannot say; left out; could question Q-18
   not held: app/lib/screens/notes.dart:52: the field title must not be empty, as its validator checks; a page's field holds no rule, which its entity's field does; could question Q-19
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for page history, held up by Q-1, Q-2, Q-3; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for page note, held up by Q-1, Q-4, Q-5, Q-6; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page note-form, held up by Q-1, Q-10, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page notes, held up by Q-1, Q-11, Q-12, Q-13; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page settings, held up by Q-1, Q-14, Q-15; the validator warns for them until the questions are answered

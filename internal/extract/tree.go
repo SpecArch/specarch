@@ -10,10 +10,13 @@ import (
 	"strings"
 
 	"go.yaml.in/yaml/v3"
+
+	"github.com/SpecArch/specarch/internal/source"
+	"github.com/SpecArch/specarch/internal/spec"
 )
 
 // The schema line of every root file a reader writes.
-const schemaLine = "# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json\n"
+const schemaLine = "# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.2.schema.json\n"
 
 // Node builders. A tree is built from yaml.Node values, never from Go
 // maps, so its keys keep the order they were added in.
@@ -119,6 +122,39 @@ func (t *Tree) Write(out string) error {
 	return nil
 }
 
+// ListStage lists a stage among the root file's stages, in life-cycle
+// order, when it is not there yet.
+func (t *Tree) ListStage(stage string) {
+	root := t.files[spec.RootFile]
+	if root == nil {
+		return
+	}
+	have := map[string]bool{stage: true}
+	stages := source.Child(root, "stages")
+	for _, item := range source.Items(stages) {
+		have[item.Value] = true
+	}
+	var list []string
+	for _, s := range spec.Stages {
+		if have[s] {
+			list = append(list, s)
+		}
+	}
+	if stages == nil {
+		// The stages go after info, where a reader writes them.
+		n := value(list)
+		at := len(root.Content)
+		for i := 0; i+1 < len(root.Content); i += 2 {
+			if root.Content[i].Value == "info" {
+				at = i + 2
+			}
+		}
+		root.Content = append(root.Content[:at], append([]*yaml.Node{str("stages"), n}, root.Content[at:]...)...)
+		return
+	}
+	*stages = *value(list)
+}
+
 // Files is the tree's file names, sorted.
 func (t *Tree) Files() []string {
 	var names []string
@@ -146,7 +182,7 @@ func encode(n *yaml.Node) ([]byte, error) {
 // code source read.
 func rootFile(title, description string, stages []string, sources *yaml.Node) *yaml.Node {
 	info := mapping("title", title, "version", "0.1.0", "description", block(description), "tracksOrigin", true)
-	root := mapping("specarch", "0.1", "info", info)
+	root := mapping("specarch", "0.2", "info", info)
 	if len(stages) > 0 {
 		set(root, "stages", stages)
 	}

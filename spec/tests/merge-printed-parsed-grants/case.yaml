@@ -21,3 +21,5 @@ standardOutput: |
   question Q-16 (must): #/roles/desk-staff/permissions: loans.renew seeded, not granted by the running system
   question Q-17 (could): #/roles/desk-staff/permissions: loans.write granted by the running system, not seeded in the source read
   question Q-18 (must): #/roles/clerk: seeded in the source read, not in the permission table
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 2 draft tests for operation postLoansRead, held up by Q-7, Q-8; the validator warns for them until the questions are answered

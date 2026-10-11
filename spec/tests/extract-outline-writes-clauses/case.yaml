@@ -8,3 +8,4 @@ standardOutput: |
   commit dacdbcaeef5e4f16a8bf22d9ff1b14c201437ec0: the last change to flows
   counted 3 files: the tracked files under flows, each once
   generated: flows/bindings.ts:1 says it is generated from another source: // Generated from lend.yaml and return.yaml by flowgen. Do not edit.
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

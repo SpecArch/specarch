@@ -20,3 +20,14 @@ standardOutput: |
   not held: server/Sources/App/Items.swift:27: the route POST /api/v1/items: its handler create serves more than one route; the operation is named postApiV1Items; could question Q-50
   not held: server/Sources/App/Items.swift:29: the route GET /items/{itemId}: its handler show serves more than one route; the operation is named getItemsByItemId; could question Q-51
   not held: server/Sources/App/Items.swift:29: the route GET /api/v1/items/{itemId}: its handler show serves more than one route; the operation is named getApiV1ItemsByItemId; could question Q-52
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for operation postApiV1Items, held up by Q-1, Q-2, Q-3, Q-4, Q-6, Q-7, Q-8; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation getApiV1ItemsByItemId, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-2, Q-3, Q-4, Q-9; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation showShelf, held up by Q-1, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-20, Q-21, Q-22, Q-23, Q-24, Q-25, Q-26, Q-3, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 4 draft tests for operation updateShelf, held up by Q-1, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-20, Q-21, Q-22, Q-23, Q-24, Q-25, Q-26, Q-3, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation patchShelf, held up by Q-1, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-20, Q-21, Q-22, Q-23, Q-24, Q-25, Q-26, Q-3, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation deleteShelf, held up by Q-1, Q-14, Q-15, Q-16, Q-17, Q-18, Q-19, Q-2, Q-20, Q-21, Q-22, Q-23, Q-24, Q-25, Q-26, Q-3, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation getHealth, held up by Q-1, Q-2, Q-27, Q-28, Q-29, Q-3, Q-4; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation postItems, held up by Q-1, Q-2, Q-3, Q-30, Q-31, Q-32, Q-4; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation getItemsByItemId, held up by Q-1, Q-2, Q-3, Q-33, Q-34, Q-35, Q-36, Q-37, Q-4; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation status, held up by Q-1, Q-2, Q-3, Q-38, Q-39, Q-4, Q-40; the validator warns for them until the questions are answered

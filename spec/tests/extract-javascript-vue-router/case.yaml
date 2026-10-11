@@ -13,3 +13,7 @@ standardOutput: |
   screens: counted 4 routes: every route with a path and a component that vue-router's createRouter is given in a literal list
   clients: counted 1 call: every call of fetch, $fetch and useFetch, of axios and its get, post, put, patch, delete, head, options and request, and of an instance axios.create makes
   wrote 3 pages, 0 schemas, 0 enums, 0 operations, 0 dependencies, 0 settings and 8 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 2 draft tests for page about, held up by Q-1, Q-2; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for page shelf, held up by Q-1, Q-3; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page shelf-form, held up by Q-1, Q-4, Q-5; the validator warns for them until the questions are answered

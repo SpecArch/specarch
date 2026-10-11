@@ -10,3 +10,5 @@ standardOutput: |
   counted 1 process, 2 user tasks, 1 service task and 2 boundary events: the BPMN elements process, userTask, serviceTask and boundaryEvent in workflows/waiver.bpmn, each once
   wrote 1 workflow, 2 roles and 10 questions: one workflow per process, one role per potential owner, and one question per thing the file does not say or the subset does not hold
   not held: workflows/waiver.bpmn:79: BPMNDiagram is not in BPMN's semantic model (its namespace is http://www.omg.org/spec/BPMN/20100524/DI), such as diagram layout or a tool's extension; left out; could question Q-10
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 8 draft tests for workflow waiver, held up by Q-1, Q-2, Q-3, Q-4, Q-5; the validator warns for them until the questions are answered

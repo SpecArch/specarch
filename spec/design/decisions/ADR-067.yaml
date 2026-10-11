@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
 decisions:
   ADR-067:
     title: The TypeScript generator writes task pages first, each a schema of data a component reads, its checks as rules in that data, and returnTo handed on until sign-in is done

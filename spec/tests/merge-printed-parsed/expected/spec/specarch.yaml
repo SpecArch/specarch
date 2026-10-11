@@ -1,12 +1,12 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
-specarch: "0.1"
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.2.schema.json
+specarch: "0.2"
 info:
   title: Merge of 3 trees
   version: 0.1.0
   description: |
     The elements of these trees, merged in this order: desk; Routes of code; Go source of code. Every element cites where it was read; where the trees disagree, or the documents and the code do, a question asks which is right.
   tracksOrigin: true
-stages: [requirements, design]
+stages: [requirements, design, tests]
 sources:
   api:
     kind: code

@@ -12,1464 +12,13 @@
               "id": "open_question"
             },
             {
-              "id": "test_case_missing"
-            },
-            {
-              "id": "test_golden_missing"
+              "id": "requirement_unverified"
             }
           ]
         }
       },
       "columnKind": "unicodeCodePoints",
       "results": [
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation registerMember has no red scenario for \"denied without members.write\"; add under tests register-member-denied-without-members-write: { operation: registerMember, scenario: red, covers: [denied without members.write], given: \"a caller without members.write\", when: \"registerMember is called\", then: \"it is refused as not allowed\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 110,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1members/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.585bd96d@design/design.yaml#/paths/~1members/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 123,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 2.2: Desk staff register new members."
-              }
-            },
-            {
-              "id": 2,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 47,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:47: RegisterMember answers 201."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation registerMember has no red scenario for \"cardNumber not matching its pattern\"; add under tests register-member-card-number-not-matching-its-pattern: { operation: registerMember, scenario: red, covers: [cardNumber not matching its pattern], given: \"...\", when: \"registerMember is called with cardNumber in the wrong form\", then: \"it is refused\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 110,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1members/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.8225af9c@design/design.yaml#/paths/~1members/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 123,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 2.2: Desk staff register new members."
-              }
-            },
-            {
-              "id": 2,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 47,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:47: RegisterMember answers 201."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation registerMember has no red scenario for \"missing address.street\"; add under tests register-member-missing-address-street: { operation: registerMember, scenario: red, covers: [missing address.street], given: \"...\", when: \"registerMember is called with address without its street\", then: \"it is refused\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 110,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1members/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.c3528a16@design/design.yaml#/paths/~1members/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 123,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 2.2: Desk staff register new members."
-              }
-            },
-            {
-              "id": 2,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 47,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:47: RegisterMember answers 201."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation registerMember has no red scenario for \"missing address.city\"; add under tests register-member-missing-address-city: { operation: registerMember, scenario: red, covers: [missing address.city], given: \"...\", when: \"registerMember is called with address without its city\", then: \"it is refused\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 110,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1members/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.d50a0522@design/design.yaml#/paths/~1members/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 123,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 2.2: Desk staff register new members."
-              }
-            },
-            {
-              "id": 2,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 47,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:47: RegisterMember answers 201."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation registerMember has no red scenario for \"missing fullName\"; add under tests register-member-missing-full-name: { operation: registerMember, scenario: red, covers: [missing fullName], given: \"...\", when: \"registerMember is called without fullName\", then: \"it is refused\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 110,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1members/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.d8c1b4d0@design/design.yaml#/paths/~1members/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 123,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 2.2: Desk staff register new members."
-              }
-            },
-            {
-              "id": 2,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 47,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:47: RegisterMember answers 201."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation registerMember has no red scenario for \"missing cardNumber\"; add under tests register-member-missing-card-number: { operation: registerMember, scenario: red, covers: [missing cardNumber], given: \"...\", when: \"registerMember is called without cardNumber\", then: \"it is refused\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 110,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1members/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.f0ddd858@design/design.yaml#/paths/~1members/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 123,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 2.2: Desk staff register new members."
-              }
-            },
-            {
-              "id": 2,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 47,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:47: RegisterMember answers 201."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_golden_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation registerMember has no golden scenario; add one under tests, for example register-member-succeeds: { operation: registerMember, scenario: golden, given: \"a caller with members.write\", when: \"registerMember is called with values inside every limit\", then: \"it answers 201: The member is registered.\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 110,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1members/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_golden_missing@design/design.yaml#/paths/~1members/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 123,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 2.2: Desk staff register new members."
-              }
-            },
-            {
-              "id": 2,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 47,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:47: RegisterMember answers 201."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation lendBook has no red scenario for \"denied without loans.write\"; add under tests lend-book-denied-without-loans-write: { operation: lendBook, scenario: red, covers: [denied without loans.write], given: \"a caller without loans.write\", when: \"lendBook is called\", then: \"it is refused as not allowed\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 134,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1loans/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.2bfe73d3@design/design.yaml#/paths/~1loans/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 157,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode."
-              }
-            },
-            {
-              "id": 2,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 59,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation lendBook has no red scenario for \"not found cardNumber\"; add under tests lend-book-not-found-card-number: { operation: lendBook, scenario: red, covers: [not found cardNumber], given: \"no Member has that cardNumber\", when: \"lendBook is called with that cardNumber\", then: \"it is refused as not found\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 134,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1loans/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.2e91489b@design/design.yaml#/paths/~1loans/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 157,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode."
-              }
-            },
-            {
-              "id": 2,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 59,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation lendBook has no red scenario for \"missing barcode\"; add under tests lend-book-missing-barcode: { operation: lendBook, scenario: red, covers: [missing barcode], given: \"...\", when: \"lendBook is called without barcode\", then: \"it is refused\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 134,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1loans/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.68aaa23d@design/design.yaml#/paths/~1loans/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 157,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode."
-              }
-            },
-            {
-              "id": 2,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 59,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation lendBook has no red scenario for \"cardNumber not matching its pattern\"; add under tests lend-book-card-number-not-matching-its-pattern: { operation: lendBook, scenario: red, covers: [cardNumber not matching its pattern], given: \"...\", when: \"lendBook is called with cardNumber in the wrong form\", then: \"it is refused\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 134,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1loans/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.6ccbe6b8@design/design.yaml#/paths/~1loans/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 157,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode."
-              }
-            },
-            {
-              "id": 2,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 59,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation lendBook has no red scenario for \"missing cardNumber\"; add under tests lend-book-missing-card-number: { operation: lendBook, scenario: red, covers: [missing cardNumber], given: \"...\", when: \"lendBook is called without cardNumber\", then: \"it is refused\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 134,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1loans/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.e24ae930@design/design.yaml#/paths/~1loans/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 157,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode."
-              }
-            },
-            {
-              "id": 2,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 59,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation lendBook has no red scenario for \"not found barcode\"; add under tests lend-book-not-found-barcode: { operation: lendBook, scenario: red, covers: [not found barcode], given: \"no Book has that barcode\", when: \"lendBook is called with that barcode\", then: \"it is refused as not found\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 134,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1loans/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.fb83227a@design/design.yaml#/paths/~1loans/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 157,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode."
-              }
-            },
-            {
-              "id": 2,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 59,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_golden_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation lendBook has no golden scenario; add one under tests, for example lend-book-succeeds: { operation: lendBook, scenario: golden, given: \"a caller with loans.write\", when: \"lendBook is called with values inside every limit\", then: \"it answers 201: The loan.\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 134,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1loans/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_golden_missing@design/design.yaml#/paths/~1loans/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 157,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode."
-              }
-            },
-            {
-              "id": 2,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 59,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation returnBook has no red scenario for \"denied without loans.write\"; add under tests return-book-denied-without-loans-write: { operation: returnBook, scenario: red, covers: [denied without loans.write], given: \"a caller without loans.write\", when: \"returnBook is called\", then: \"it is refused as not allowed\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 166,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1loans~1{loanId}~1return/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.69b798fb@design/design.yaml#/paths/~1loans~1{loanId}~1return/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 174,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 5.1: Checking a book in closes the loan."
-              }
-            },
-            {
-              "id": 2,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 73,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:73: ReturnBook closes the loan and answers 200."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation returnBook has no red scenario for \"not found loanId\"; add under tests return-book-not-found-loan-id: { operation: returnBook, scenario: red, covers: [not found loanId], given: \"no record has that loanId\", when: \"returnBook is called with that loanId\", then: \"it is refused as not found\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 166,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1loans~1{loanId}~1return/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.e34b1cce@design/design.yaml#/paths/~1loans~1{loanId}~1return/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 174,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 5.1: Checking a book in closes the loan."
-              }
-            },
-            {
-              "id": 2,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 73,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:73: ReturnBook closes the loan and answers 200."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_golden_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation returnBook has no golden scenario; add one under tests, for example return-book-succeeds: { operation: returnBook, scenario: golden, given: \"a caller with loans.write\", when: \"returnBook is called with values inside every limit\", then: \"it answers 200: The loan is closed.\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 166,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1loans~1{loanId}~1return/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_golden_missing@design/design.yaml#/paths/~1loans~1{loanId}~1return/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 174,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 5.1: Checking a book in closes the loan."
-              }
-            },
-            {
-              "id": 2,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 73,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:73: ReturnBook closes the loan and answers 200."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation renewLoan has no red scenario for \"denied without loans.write\"; add under tests renew-loan-denied-without-loans-write: { operation: renewLoan, scenario: red, covers: [denied without loans.write], given: \"a caller without loans.write\", when: \"renewLoan is called\", then: \"it is refused as not allowed\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 183,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1loans~1{loanId}~1renew/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.b47830b9@design/design.yaml#/paths/~1loans~1{loanId}~1renew/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 192,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 4.1: A member may renew a loan once, for one more loan period, by asking at the desk before the due date."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation renewLoan has no red scenario for \"not found loanId\"; add under tests renew-loan-not-found-loan-id: { operation: renewLoan, scenario: red, covers: [not found loanId], given: \"no record has that loanId\", when: \"renewLoan is called with that loanId\", then: \"it is refused as not found\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 183,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1loans~1{loanId}~1renew/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.b53498e4@design/design.yaml#/paths/~1loans~1{loanId}~1renew/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 192,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 4.1: A member may renew a loan once, for one more loan period, by asking at the desk before the due date."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_golden_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation renewLoan has no golden scenario; add one under tests, for example renew-loan-succeeds: { operation: renewLoan, scenario: golden, given: \"a caller with loans.write\", when: \"renewLoan is called with values inside every limit\", then: \"it answers 200: The loan, with its new due date.\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 183,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1loans~1{loanId}~1renew/post",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_golden_missing@design/design.yaml#/paths/~1loans~1{loanId}~1renew/post"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 192,
-                  "startColumn": 11
-                }
-              },
-              "message": {
-                "text": "source desk-manual, clause 4.1: A member may renew a loan once, for one more loan period, by asking at the desk before the due date."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation listMemberLoans has no red scenario for \"not found cardNumber\"; add under tests list-member-loans-not-found-card-number: { operation: listMemberLoans, scenario: red, covers: [not found cardNumber], given: \"no record has that cardNumber\", when: \"listMemberLoans is called with that cardNumber\", then: \"it is refused as not found\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 201,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1members~1{cardNumber}~1loans/get",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.2ae43bc7@design/design.yaml#/paths/~1members~1{cardNumber}~1loans/get"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 91,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:91: ListMemberLoans answers 200 with the member's loans."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation listMemberLoans has no red scenario for \"cardNumber not matching its pattern\"; add under tests list-member-loans-card-number-not-matching-its-pattern: { operation: listMemberLoans, scenario: red, covers: [cardNumber not matching its pattern], given: \"...\", when: \"listMemberLoans is called with cardNumber in the wrong form\", then: \"it is refused\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 201,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1members~1{cardNumber}~1loans/get",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.856e2e15@design/design.yaml#/paths/~1members~1{cardNumber}~1loans/get"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 91,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:91: ListMemberLoans answers 200 with the member's loans."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_case_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation listMemberLoans has no red scenario for \"denied without loans.read\"; add under tests list-member-loans-denied-without-loans-read: { operation: listMemberLoans, scenario: red, covers: [denied without loans.read], given: \"a caller without loans.read\", when: \"listMemberLoans is called\", then: \"it is refused as not allowed\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 201,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1members~1{cardNumber}~1loans/get",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_case_missing.adf94778@design/design.yaml#/paths/~1members~1{cardNumber}~1loans/get"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 91,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:91: ListMemberLoans answers 200 with the member's loans."
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "test_golden_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "operation listMemberLoans has no golden scenario; add one under tests, for example list-member-loans-succeeds: { operation: listMemberLoans, scenario: golden, given: \"a caller with loans.read\", when: \"listMemberLoans is called with values inside every limit\", then: \"it answers 200: The member's loans.\" }"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/design/design.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 201,
-                  "startColumn": 7
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/paths/~1members~1{cardNumber}~1loans/get",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "test_golden_missing@design/design.yaml#/paths/~1members~1{cardNumber}~1loans/get"
-          },
-          "relatedLocations": [
-            {
-              "id": 1,
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../sources/code/lending/routes.go",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 91,
-                  "startColumn": 1
-                }
-              },
-              "message": {
-                "text": "source desk-code, clause lending/routes.go:91: ListMemberLoans answers 200 with the member's loans."
-              }
-            }
-          ]
-        },
         {
           "ruleId": "open_question",
           "kind": "open",
@@ -1703,6 +252,87 @@
           }
         },
         {
+          "ruleId": "requirement_unverified",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "no test, commissioning check or monitor verifies requirement LEND-4; add verifies: [LEND-4] to the test that shows it is met"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 53,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/requirements/LEND-4",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "requirement_unverified@requirements/requirements.yaml#/requirements/LEND-4"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 60,
+                  "startColumn": 9
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 3.3: The loan period is 21 days."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/model.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 8,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/model.go:8: LoanPeriod is 14 days."
+              }
+            },
+            {
+              "id": 3,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/migrations/001_init.sql",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 18,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14."
+              }
+            }
+          ]
+        },
+        {
           "ruleId": "open_question",
           "kind": "open",
           "level": "none",
@@ -1717,7 +347,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 91,
+                  "startLine": 92,
                   "startColumn": 3
                 }
               },
@@ -1741,7 +371,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 52,
+                  "startLine": 53,
                   "startColumn": 3
                 }
               },
@@ -1757,7 +387,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 100,
+                  "startLine": 101,
                   "startColumn": 9
                 }
               },
@@ -1826,7 +456,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 104,
+                  "startLine": 105,
                   "startColumn": 3
                 }
               },
@@ -1850,7 +480,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 79,
+                  "startLine": 80,
                   "startColumn": 3
                 }
               },
@@ -1887,7 +517,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 113,
+                  "startLine": 114,
                   "startColumn": 3
                 }
               },
@@ -1959,7 +589,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 52,
+                  "startLine": 53,
                   "startColumn": 3
                 }
               },
@@ -1975,7 +605,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 62,
+                  "startLine": 63,
                   "startColumn": 3
                 }
               },
@@ -1991,7 +621,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 70,
+                  "startLine": 71,
                   "startColumn": 3
                 }
               },
@@ -2007,7 +637,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 79,
+                  "startLine": 80,
                   "startColumn": 3
                 }
               },
@@ -2036,17 +666,17 @@
           "kind": "open",
           "level": "none",
           "message": {
-            "text": "(should, material) Which cases must the service be tested on, and with what data? Twenty-two cases follow from the design (run specarch validate to list them; specarch derive writes them as drafts). It blocks tests. Decided by desk-manager. Answer with a decision record that names Q-5 under answers."
+            "text": "(should, material) Which data must the service be tested with? specarch derive wrote the cases that follow from the design as draft tests under tests/; each says what it checks, and none names the members, books or loans it runs on. It blocks tests. Decided by desk-manager. Answer with a decision record that names Q-5 under answers."
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "../spec/specarch.yaml",
+                  "uri": "../spec/tests/questions.yaml",
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 55,
+                  "startLine": 4,
                   "startColumn": 3
                 }
               },

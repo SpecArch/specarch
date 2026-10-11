@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.2.schema.json
+operation: registerMember
+level: system
+scenario: red
+covers: [missing fullName]
+given: "..."
+when: "registerMember is called without fullName"
+then: "it is refused"
+verifies: [LEND-1]
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

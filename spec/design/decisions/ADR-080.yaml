@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
 decisions:
   ADR-080:
     title: A file that does not parse keeps every entry that parses, holds a broken entry by its name, and reports nothing else of it

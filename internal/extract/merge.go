@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
+	"github.com/SpecArch/specarch/internal/validate"
 )
 
 // The methods a path item holds, in the order the readers write them.
@@ -207,13 +209,16 @@ func checkTree(s *spec.Spec) (*mergeTree, error) {
 		return nil, refuse("%s does not track origin (info.tracksOrigin); merge takes the trees the readers write, in which every element says where it was read", s.Dir)
 	}
 	switch {
-	case source.Child(s.Root, "tests") != nil:
-		return nil, refuse("%s holds tests, which no reader writes; merge the trees the readers wrote, then derive the tests", s.Dir)
+	case source.Child(s.Root, "tests") != nil && notDerived(s.Root) != "":
+		return nil, refuse("%s holds %s; a reader's tree holds only the drafts specarch derive writes for it, which merge leaves out and derives again for the merged specification, so write that test in the merged specification", s.Dir, notDerived(s.Root))
 	case len(s.Implementations) > 0:
 		return nil, refuse("%s holds an implementation file, which no reader writes; merge the trees the readers wrote, then write the implementation file", s.Dir)
 	case len(s.Records) > 0:
 		return nil, refuse("%s has records beside it, which no reader writes; merge the trees the readers wrote", s.Dir)
 	}
+	// The drafts a reader's tree holds are derived from that tree alone;
+	// the merged specification has its own (ADR-055).
+	s.Root = withoutTests(s.Root)
 	dir, err := absolute(s.Dir)
 	if err != nil {
 		return nil, err
@@ -2094,4 +2099,40 @@ func deleteKey(m *yaml.Node, key string) {
 			return
 		}
 	}
+}
+
+// withoutTests is a root with its tests left out, sharing every other node.
+func withoutTests(root *yaml.Node) *yaml.Node {
+	out := &yaml.Node{Kind: root.Kind, Tag: root.Tag, Line: root.Line, Column: root.Column}
+	for i := 0; i+1 < len(root.Content); i += 2 {
+		if root.Content[i].Value != "tests" {
+			out.Content = append(out.Content, root.Content[i], root.Content[i+1])
+		}
+	}
+	return out
+}
+
+// notDerived names the first test of a tree that is not the draft
+// specarch derive writes for the tree without its tests, or "" when every
+// test is one. A test is compared by its values, so the problem marks
+// above its entries do not count.
+func notDerived(root *yaml.Node) string {
+	drafts := map[string]any{}
+	for _, dr := range validate.Drafts(withoutTests(root)) {
+		var v any
+		if yaml.Unmarshal([]byte(dr.Text), &v) == nil {
+			drafts[dr.Name] = v
+		}
+	}
+	for _, p := range source.Pairs(source.Child(root, "tests")) {
+		want, ok := drafts[p.Key.Value]
+		if !ok {
+			return fmt.Sprintf("test %s, which is not a draft specarch derive writes for it", p.Key.Value)
+		}
+		var have any
+		if err := p.Value.Decode(&have); err != nil || !reflect.DeepEqual(have, want) {
+			return fmt.Sprintf("test %s, which differs from the draft specarch derive writes for it", p.Key.Value)
+		}
+	}
+	return ""
 }

@@ -60,7 +60,7 @@ The schemas are compiled into the program, so validation needs nothing
 else. An editor that should check the YAML as it is typed points at the
 same commit:
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/<commit or tag>/schema/specarch-design-0.1.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/<commit or tag>/schema/specarch-design-0.2.schema.json
 
 ## 2. The folder
 
@@ -68,7 +68,7 @@ The specification lives in its own folder of the repository, such as
 `spec/`, beside the documents and code it is read from. Its root file
 declares the sources and says the specification tracks origin:
 
-    specarch: "0.1"
+    specarch: "0.2"
     info: { title: <system>, version: 0.1.0, tracksOrigin: true }
     stages: [requirements, design, implementation]
     sources:
@@ -341,9 +341,11 @@ questions, has every rule.
 
     specarch validate spec
 
-must report no errors. Warnings about missing tests are expected until the
-tests stage is written (`specarch derive spec` drafts them); every other
-warning is work. Then:
+must report no errors. A missing test is an error in 0.2: `specarch
+derive spec` drafts every one it can, and `specarch extract` and `specarch
+merge` have already drafted those of their trees. A test of a subject an
+open must or should question holds up stays a warning until the question
+is answered; every other warning is work. Then:
 
     specarch gaps spec
 

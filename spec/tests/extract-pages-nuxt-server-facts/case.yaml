@@ -15,3 +15,7 @@ standardOutput: |
   middleware: site/server/middleware/log.ts runs before every route, and calls no check the implementation file names
   validators: counted 1 validation schema: every module-level variable that holds an object schema or an enum of zod, yup or joi
   wrote 0 pages, 3 operations, 0 entities, 2 permissions and 9 questions: one page per file or folder the router serves a page from whose route the meta-model holds, 0 schemas read, one operation per route file whose name gives a method the meta-model holds, one entity and one permission per name a schema gives, one question per thing the files' places and the schemas do not say, and one per thing the meta-model cannot hold
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 2 draft tests for operation getApiLoans, held up by Q-1, Q-2, Q-6, Q-9; the validator warns for them until the questions are answered
+  not derived: 5 draft tests for operation postApiLoans, held up by Q-1, Q-2, Q-6, Q-9; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation getApiLoansById, held up by Q-3, Q-4, Q-5, Q-6, Q-9; the validator warns for them until the questions are answered

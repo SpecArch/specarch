@@ -1,0 +1,9 @@
+operation: lendBook
+level: system
+scenario: red
+covers: [cardNumber not matching its pattern]
+given: "..."
+when: "lendBook is called with cardNumber in the wrong form"
+then: "it is refused"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

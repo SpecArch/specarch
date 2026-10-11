@@ -12,3 +12,4 @@ standardOutput: |
   wrote 3 roles, 3 permissions and 9 questions: one role per name the table grants something the meta-model holds or asks about, one permission per name a role grants, one question per thing the permission table does not say and per gate, and one per thing the meta-model cannot hold
   not held: grant of public to auditor: public is open to everyone and granted by no role; left out; could question Q-8
   not held: grant of loans.write to "Branch_Manager": the role's name is not kebab-case, which a role name is; left out; could question Q-9
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

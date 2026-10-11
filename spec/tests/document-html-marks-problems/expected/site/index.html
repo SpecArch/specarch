@@ -109,7 +109,7 @@ ol.problems p{margin:2px 0}
 <li><a href="#open-questions">Open questions</a><ol>
 <li><a href="#/questions">Questions</a> <span class="count">3</span></li>
 </ol></li>
-<li><a href="#problems">Problems</a> <span class="count">4</span></li>
+<li><a href="#problems">Problems</a> <span class="count">5</span></li>
 </ol></nav>
 <main>
 <section class="group" id="overview">
@@ -118,7 +118,7 @@ ol.problems p{margin:2px 0}
 <p class="notice draft"><strong>Draft:</strong> 2 must or should questions hold up what this page shows (Q-1, Q-2); see <a href="#/questions">Open questions</a>.</p>
 <p class="notice"><strong>Approval:</strong> not approved: there is no records/approvals/1.0.0.yaml beside the specification</p>
 <p class="notice error"><strong>Invalid:</strong> the specification has 1 error; this page shows what could be read of it, and each error is marked at its entry.</p>
-<p><a href="#problems">1 error, 0 warnings and 3 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
+<p><a href="#problems">1 error, 1 warning and 3 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
 <table class="counts"><thead><tr><th scope="col">Section</th><th scope="col">Elements</th></tr></thead><tbody>
 <tr><td><a href="#/stakeholders">Stakeholders</a></td><td>1</td></tr>
 <tr><td><a href="#/requirements">Requirements</a></td><td>1</td></tr>
@@ -383,6 +383,10 @@ ol.problems p{margin:2px 0}
 <p class="problem-note"><code>../project/requirements/all.yaml:4:3: note: blocks #/requirements/CASE-1/priority, which is not given yet</code></p>
 <p class="problem-note"><code>../project/requirements/all.yaml:4:3: note: blocks #/requirements/CASE-1/acceptance, which is not given yet</code></p>
 <p>Marked at <a href="#/questions/Q-1">/questions/Q-1</a>.</p>
+</li>
+<li class="warning" data-search id="problem-meta_model_version@specarch.yaml%23/specarch">
+<p><code>../project/specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: &#34;0.2&#34; [meta_model_version@specarch.yaml#/specarch]</code></p>
+<p>At <code>/specarch</code>, which this page does not show.</p>
 </li>
 </ol>
 </section>

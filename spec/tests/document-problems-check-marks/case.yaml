@@ -9,5 +9,6 @@ standardOutput: |
   project/design/design.yaml: differs from what document writes; run specarch document without --check
   project/requirements/broken.yaml: differs from what document writes; run specarch document without --check
   project/requirements/requirements.yaml: differs from what document writes; run specarch document without --check
+  project/specarch.yaml: differs from what document writes; run specarch document without --check
   docs/problems.txt: differs from what document writes; run specarch document without --check
   docs/problems.sarif: differs from what document writes; run specarch document without --check

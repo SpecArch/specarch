@@ -7,3 +7,4 @@ standardOutput: |
   merged 5 elements, each an entry of a section or an operation: 0 in more than one tree, and 0 keys the trees disagree on
   wrote 1 question: 0 from the trees, numbered again in the order the trees are given, and 1 the merge asked
   question Q-1 (must): #/requirements/HANDBOOK-1/statement: the document says 21 days, the check loans_loan_period of Loans says 14
+  derived 4 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

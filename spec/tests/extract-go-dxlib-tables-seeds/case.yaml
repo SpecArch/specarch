@@ -23,3 +23,6 @@ standardOutput: |
   not held: api/endpoints.go:13: the endpoint POST /branches/list: dxlib names it branches_list from its URI, which is not camelCase, as an operationId is; it is named postBranchesList; could question Q-38
   not held: api/endpoints.go:9: the endpoint POST /loans/list: dxlib names it loans_list from its URI, which is not camelCase, as an operationId is; it is named postLoansList; could question Q-39
   not held: seed/seed.go:25: grant of LOANS.READ to "Branch_Manager": the role's name is not kebab-case, which a role name is; left out; could question Q-40
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 2 draft tests for operation postBranchesList, held up by Q-15, Q-22, Q-23; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation postLoansList, held up by Q-24, Q-25; the validator warns for them until the questions are answered

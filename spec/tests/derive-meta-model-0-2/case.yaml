@@ -1,0 +1,5 @@
+arguments: [derive, project]
+exitStatus: 0
+standardOutput: |
+  project/tests/list-stock-denied-without-items-read/test.yaml
+  project/tests/item-1-acceptance-1/test.yaml

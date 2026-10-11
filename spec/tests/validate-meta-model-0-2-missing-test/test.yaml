@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification that says specarch 0.2, with an operation and a requirement no test covers, and an operation a must question holds up"
+when: "validate is run"
+then: "it reports the missing golden test and red case of the operation and the requirement's acceptance case as errors, nothing for the operation the question holds up, and exits 1"
+verifies: [SA-1, SA-21]

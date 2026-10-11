@@ -11,3 +11,4 @@ standardOutput: |
   not held: a code block at line 40: code in a document is not read as a commitment; could question Q-6
   not held: field fee of Loans, at line 21, of type "money": the meta-model holds no type for it; left out; could question Q-7
   not held: the table at line 36, headed Day | Hours: only a table whose first column is Field, and whose others are Type, Required, Sensitivity or Description, is read; could question Q-8
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

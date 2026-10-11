@@ -15,3 +15,9 @@ standardOutput: |
   wrote 5 pages, 0 schemas, 0 enums, 0 operations, 0 dependencies, 0 settings and 21 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold
   not held: web/src/locales/fr.json: the message catalogue web/src/locales/fr.json is of the locale fr, and the meta-model holds one language, en; left out; could question Q-20
   not held: web/src/router.tsx:18: the route /files/*: the segment * matches anything after it, and a path parameter holds one segment; left out; could question Q-21
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for page admin, held up by Q-1, Q-2, Q-3, Q-4, Q-5, Q-6; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page new-visit, held up by Q-1, Q-2, Q-3, Q-4, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for page visitor, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-2, Q-3, Q-4; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page visits-root, held up by Q-1, Q-14, Q-15, Q-16, Q-2, Q-3, Q-4; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page visits-visits, held up by Q-1, Q-17, Q-18, Q-19, Q-2, Q-3, Q-4; the validator warns for them until the questions are answered

@@ -2,5 +2,5 @@ arguments: [version]
 exitStatus: 0
 standardOutput: |
   specarch 0.5.0
-  specifications: meta-model 0.1
+  specifications: meta-model 0.2, and 0.1 until 1.0
   implementation files: meta-model 0.1

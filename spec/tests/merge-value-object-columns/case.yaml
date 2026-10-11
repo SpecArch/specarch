@@ -8,3 +8,4 @@ standardOutput: |
   read back: Q-2 of trees/code, on #/entities/Members/constraints/members_address/message, is left out; the check members_address is the one Members.address writes, which Desk interface gives
   merged 4 elements, each an entry of a section or an operation: 2 in more than one tree, and 0 keys the trees disagree on
   wrote 0 questions: 0 from the trees, numbered again in the order the trees are given, and 0 the merge asked
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

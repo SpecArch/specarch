@@ -16,3 +16,5 @@ standardOutput: |
   merged 11 elements, each an entry of a section or an operation: 5 in more than one tree, and 0 keys the trees disagree on
   wrote 7 questions: 6 from the trees, numbered again in the order the trees are given, and 1 the merge asked
   question Q-7 (must): #/paths/~1loans~1{loanId}~1renew/post: not built yet
+  derived 17 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 2 draft tests for operation renewLoan, held up by Q-1; the validator warns for them until the question is answered

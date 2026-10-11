@@ -1,4 +1,5 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]
   specarch.yaml:7:19: error: /sources/interface/givenOutside: schema: this is a string, but a boolean is expected here [schema@specarch.yaml#/sources/interface/givenOutside]

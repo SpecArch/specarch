@@ -11,3 +11,4 @@ standardOutput: |
   question Q-4 (should): #/entities/Members/properties/addressPostcode: undocumented, from code
   question Q-5 (should): #/entities/Members/properties/createdAt: undocumented, from code
   question Q-6 (should): #/entities/Members/properties/createdBy: undocumented, from code
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

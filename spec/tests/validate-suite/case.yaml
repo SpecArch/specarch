@@ -2,3 +2,4 @@ arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
   case.go.specarch-implementation.yaml:9:92: error: /testing/suites/design/designTests/0: suite: create-item-succeeds is not a test of the specification; there are none in the specification [suite@case.go.specarch-implementation.yaml#/testing/suites/design/designTests/0]
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]

@@ -98,7 +98,7 @@ func libraryLending(t *testing.T, change func(content map[string]any)) (*Request
 	}
 	out := t.TempDir()
 	req := map[string]any{
-		"specarch":      "0.1",
+		"specarch":      "0.2",
 		"target":        "tests",
 		"root":          filepath.ToSlash(s.RootFile),
 		"specification": s.Value,

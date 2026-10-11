@@ -17,3 +17,13 @@ standardOutput: |
   wrote 3 pages, 6 operations, 1 entity, 2 permissions and 23 questions: one page per file or folder the router serves a page from whose route the meta-model holds, 1 schema read, one operation per route file whose name gives a method the meta-model holds, one entity and one permission per name a schema gives, one question per thing the files' places and the schemas do not say, and one per thing the meta-model cannot hold
   not held: site/app/api/loans/route.ts:19: site/app/api/loans/route.ts serves HEAD /api/loans, a method the meta-model holds no operation for, which holds GET, POST, PUT, PATCH and DELETE; left out; could question Q-22
   not held: site/app/loans/[loanId]/page.tsx:1: generateStaticParams gives loanId the values "l-1" and "l-2", and a page holds no values of its route's parameters; could question Q-23
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for operation getApiLoans, held up by Q-1, Q-10, Q-11, Q-12, Q-19, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 7 draft tests for operation postApiLoans, held up by Q-1, Q-10, Q-11, Q-12, Q-19, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation deleteApiLoans, held up by Q-1, Q-10, Q-11, Q-12, Q-19, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation getApiLoansByLoanId, held up by Q-1, Q-13, Q-14, Q-15, Q-16, Q-19; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation patchApiLoansByLoanId, held up by Q-1, Q-13, Q-14, Q-15, Q-16, Q-19; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation createLoan, held up by Q-1, Q-17, Q-18, Q-19; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for page loans, held up by Q-2; the validator warns for them until the question is answered
+  not derived: 3 draft tests for page loans-by-loan-id, held up by Q-3; the validator warns for them until the question is answered
+  not derived: 2 draft tests for page loans-new, held up by Q-4; the validator warns for them until the question is answered

@@ -1,10 +1,12 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
 commands:
   derive:
     summary: Write a draft test for every derived case no test covers
     description: |
       Validates its input first and writes nothing from an invalid
-      specification. Then, for every subject without a golden test, writes
+      specification. In a 0.2 file the errors for a test it would write
+      (`test_case_missing`, `test_golden_missing`) are what it is run to
+      settle, so they do not stop it; any other error does. Then, for every subject without a golden test, writes
       its success test, and for every chosen derived case no test covers,
       writes a test: a folder `tests/<name>/test.yaml` named as the
       validator suggests, with the subject, the scenario, the level,
@@ -47,7 +49,7 @@ commands:
     standardError: A usage message on a usage error, the reason on an unreadable path, each test left out, kept or not written with the reason, and the count written.
     exitCodes:
       "0": the tests were written, or there was nothing to write
-      "1": a specification has errors, or a draft's name is taken by another draft or by a test of another subject
+      "1": a specification has errors other than the missing tests it writes, or a draft's name is taken by another draft or by a test of another subject
       "2": usage error, a path that could not be read or written, or a specification that keeps its tests in the root file
     satisfies: [SA-28]
     why: |
@@ -58,4 +60,6 @@ commands:
       when it is shared, so the names of a specification without a shared
       one stay short; writing one of two drafts of a name would leave the
       other unwritten with nothing said, so a name that is still shared is
-      an error at each draft.
+      an error at each draft. The missing-test errors of a 0.2 file do
+      not stop it, because a command that refused the errors it exists to
+      settle could never be run on the file that needs it (ADR-055).

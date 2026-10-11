@@ -1,6 +1,7 @@
 arguments: [validate, .]
 exitStatus: 1
-standardOutput: |+
+standardOutput: |
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]
   specarch.yaml:22:7: warning: /paths/~1members/get: test_case_missing: operation listMembers has no red scenario for "denied without members.read"; add under tests list-members-denied-without-members-read: { operation: listMembers, scenario: red, covers: [denied without members.read], given: "a caller without members.read", when: "listMembers is called", then: "it is refused as not allowed" } [test_case_missing@specarch.yaml#/paths/~1members/get]
   specarch.yaml:22:7: warning: /paths/~1members/get: test_golden_missing: operation listMembers has no golden scenario; add one under tests, for example list-members-succeeds: { operation: listMembers, scenario: golden, given: "a caller with members.read", when: "listMembers is called", then: "it answers 200: The members." } [test_golden_missing@specarch.yaml#/paths/~1members/get]
   specarch.yaml:32:7: warning: /paths/~1members/post: test_case_missing: operation createMember has no red scenario for "denied without members.write"; add under tests create-member-denied-without-members-write: { operation: createMember, scenario: red, covers: [denied without members.write], given: "a caller without members.write", when: "createMember is called", then: "it is refused as not allowed" } [test_case_missing.3ec83019@specarch.yaml#/paths/~1members/post]

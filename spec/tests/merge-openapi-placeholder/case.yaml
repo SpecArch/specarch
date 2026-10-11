@@ -12,3 +12,10 @@ standardOutput: |
   question Q-15 (must): #/paths/~1members~1{cardNumber}~1loans/get: undocumented, from code
   question Q-16 (must): #/paths/~1health/get: not built yet
   question Q-17 (must): #/paths/~1hello/get: not built yet
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 2 draft tests for operation lendBook, held up by Q-1, Q-12; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation returnBook, held up by Q-13, Q-2, Q-3; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation registerMember, held up by Q-14, Q-4; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation listMemberLoans, held up by Q-15, Q-5, Q-6; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation getHealth, held up by Q-10, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for operation sayHello, held up by Q-11; the validator warns for them until the question is answered

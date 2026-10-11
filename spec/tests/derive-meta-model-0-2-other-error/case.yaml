@@ -1,0 +1,4 @@
+arguments: [derive, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:41:19: error: /paths/~1stock/get/permission: permission_undeclared: operation listStock needs permission items.view, which is not declared; add it under permissions; use one of items.create, items.read [permission_undeclared@specarch.yaml#/paths/~1stock/get/permission]

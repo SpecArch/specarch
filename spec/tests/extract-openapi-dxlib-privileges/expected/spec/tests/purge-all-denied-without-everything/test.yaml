@@ -1,0 +1,9 @@
+operation: purgeAll
+level: system
+scenario: red
+covers: [denied without everything]
+given: "a caller without everything"
+when: "purgeAll is called"
+then: "it is refused as not allowed"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

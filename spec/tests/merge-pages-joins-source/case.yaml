@@ -8,3 +8,7 @@ standardOutput: |
   asked twice: Q-8 of trees/pages, on #/permissions/loans.read, is left out; Q-4 of trees/router asks it
   merged 7 elements, each an entry of a section or an operation: 2 in more than one tree, and 0 keys the trees disagree on
   wrote 9 questions: 9 from the trees, numbered again in the order the trees are given, and 0 the merge asked
+  derived 3 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 3 draft tests for operation listMemberLoans, held up by Q-1, Q-2; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page loans-new, held up by Q-5, Q-6; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page root, held up by Q-7, Q-8; the validator warns for them until the questions are answered

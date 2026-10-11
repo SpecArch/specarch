@@ -73,7 +73,7 @@ func generateFrom(t *testing.T, fixture string, change func(specification map[st
 		}
 	}
 	change(s.Value.(map[string]any))
-	data, err := json.Marshal(map[string]any{"specarch": "0.1", "target": "go-dxlib", "root": filepath.ToSlash(s.RootFile),
+	data, err := json.Marshal(map[string]any{"specarch": "0.2", "target": "go-dxlib", "root": filepath.ToSlash(s.RootFile),
 		"specification": s.Value, "output": filepath.Join(fixture, "..", "testdata"),
 		"implementations": []any{map[string]any{"file": impl.Path, "content": content, "settings": settings, "idioms": idioms}}})
 	if err != nil {

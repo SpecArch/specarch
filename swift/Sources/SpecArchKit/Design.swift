@@ -214,6 +214,7 @@ extension Checker {
         checkAccess(d)
         checkSeparationOfDuties(d)
         checkExpressions(d)
+        checkMetaModelVersion(d)
         checkTests(d)
         checkTestData(d)
         checkDeploymentStage(d)

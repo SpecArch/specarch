@@ -14,3 +14,9 @@ standardOutput: |
   not held: pages/loans.vue: it wraps the pages of the folder loans, a nested route whose index page is the page at its route; the meta-model has no page that holds others; left out; could question Q-14
   not held: pages/search/[[term]].vue: the segment [[term]] is an optional parameter, which serves the route with and without it, and a page's route holds each parameter it has; left out; could question Q-15
   not held: pages/help.vue: pages/help.tsx already serves the page at /help, and a route has one page; left out; could question Q-16
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for page help, held up by Q-1, Q-11, Q-2; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page loans, held up by Q-11, Q-3, Q-4; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for page loans-by-loan-id, held up by Q-11, Q-5, Q-6; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page profile, held up by Q-11, Q-7, Q-8; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page root, held up by Q-10, Q-11, Q-9; the validator warns for them until the questions are answered

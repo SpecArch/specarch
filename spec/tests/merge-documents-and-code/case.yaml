@@ -13,3 +13,6 @@ standardOutput: |
   question Q-6 (must): #/paths/~1health/get: undocumented, from code
   question Q-7 (must): #/entities/Members/properties/email: not built yet
   question Q-8 (must): #/entities/Fines: not built yet
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 3 draft tests for operation listMemberLoans, held up by Q-4; the validator warns for them until the question is answered
+  not derived: 2 draft tests for operation health, held up by Q-6; the validator warns for them until the question is answered

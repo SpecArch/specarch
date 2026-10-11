@@ -35,7 +35,7 @@ import (
 )
 
 // designFile is the design schema, under schema/.
-const designFile = "specarch-design-0.1.schema.json"
+const designFile = "specarch-design-0.2.schema.json"
 
 // Trees are the repository's own specifications whose fragments carry a
 // hint line.
@@ -204,10 +204,12 @@ func Schemas(design []byte) (map[string][]byte, error) {
 	}
 	props := d.get("properties")
 	defs := d.get("$defs")
-	version, _ := props.get("specarch").get("const").string()
+	// The design schema reads every version it accepts; its file name says
+	// the newest, which the fragments are written for.
+	version := strings.TrimSuffix(strings.TrimPrefix(designFile, "specarch-design-"), ".schema.json")
 	id, _ := d.get("$id").string()
-	if props == nil || defs == nil || version == "" || !strings.HasSuffix(id, "/"+designFile) {
-		return nil, fmt.Errorf("%s: no properties, $defs, specarch const or $id naming it", designFile)
+	if props == nil || defs == nil || props.get("specarch") == nil || !strings.HasSuffix(id, "/"+designFile) {
+		return nil, fmt.Errorf("%s: no properties, $defs, specarch or $id naming it", designFile)
 	}
 	base := strings.TrimSuffix(id, designFile)
 	out := map[string][]byte{}

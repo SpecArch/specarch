@@ -157,6 +157,12 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "specarch extract %s: cannot write %s: %v\n", source, out, err)
 		return 2
 	}
+	derived, err := deriveInto(out, res.Tree)
+	if err != nil {
+		fmt.Fprintf(stderr, "specarch extract %s: cannot write the derived tests into %s: %v\n", source, out, err)
+		return 2
+	}
+	res.Lines = append(res.Lines, derived...)
 	if err := markWritten(out, nil); err != nil {
 		fmt.Fprintf(stderr, "specarch extract %s: cannot mark the problems in %s: %v\n", source, out, err)
 		return 2

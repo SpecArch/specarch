@@ -1,0 +1,18 @@
+permissions:
+  loans.write:
+    description: Changes a loan.
+    origin: stated
+    cites:
+      - {source: code, clause: code POST /loans/close, says: POST /loans/close checks loans.write.}
+paths:
+  /loans/close:
+    post:
+      operationId: closeLoan
+      summary: Close a loan
+      permission: loans.write
+      responses:
+        "200":
+          description: Closed.
+      origin: stated
+      cites:
+        - {source: code, clause: code POST /loans/close, says: POST /loans/close checks loans.write; its handler is CloseLoan.}

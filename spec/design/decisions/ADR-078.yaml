@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
 decisions:
   ADR-078:
     title: A required part of a value is a derived case, test values carry their parts, go-dxlib reads a value into a struct and stores it as its storage says, and a name over the dialect's limit is refused

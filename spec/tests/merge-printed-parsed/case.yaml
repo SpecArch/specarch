@@ -15,3 +15,5 @@ standardOutput: |
   question Q-8 (must): #/paths/~1loans~1close/post/operationId: the trees disagree
   question Q-9 (could): #/paths/~1loans~1report/post: registered by the running system, not found in the source read
   question Q-10 (must): #/paths/~1loans~1purge/post: declared in the source read, not registered by the running system
+  derived 2 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 2 draft tests for operation postLoansPurge, held up by Q-10, Q-5; the validator warns for them until the questions are answered

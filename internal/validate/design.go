@@ -204,6 +204,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkAccess(d)
 	c.checkSeparationOfDuties(d)
 	c.checkExpressions(d)
+	c.checkMetaModelVersion(d)
 	c.checkTests(d)
 	c.checkTestData(d)
 	c.checkDeploymentStage(d)

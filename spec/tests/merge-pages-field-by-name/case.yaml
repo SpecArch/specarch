@@ -6,3 +6,8 @@ standardOutput: |
   answered: Q-6 of trees/pages, on #/entities/Loans/primaryKey, #/entities/Loans/properties/barcode, #/entities/Loans/properties/dueOn, #/entities/Loans/properties/loanedOn, #/entities/Loans/properties/returnedOn, is left out; Database of examples/lending-desk/sources/code/migrations gives it
   merged 10 elements, each an entry of a section or an operation: 2 in more than one tree, and 0 keys the trees disagree on
   wrote 8 questions: 8 from the trees, numbered again in the order the trees are given, and 0 the merge asked
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for page loans-new, held up by Q-2, Q-3; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for page members-by-card-number-loans, held up by Q-4; the validator warns for them until the question is answered
+  not derived: 1 draft test for page root, held up by Q-5, Q-6; the validator warns for them until the questions are answered
+  not derived: 1 draft test for Loans constraint loans_loan_period, held up by Q-1; the validator warns for them until the question is answered

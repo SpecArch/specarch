@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
 commands:
   extract:
     summary: Write a specification from existing code or documents
@@ -1037,6 +1037,15 @@ commands:
         git configuration.
       - A file whose text says it is generated from another source and must
         not be edited is reported, so that the other source is read too.
+      - The tree says `specarch: "0.2"` and carries the tests `specarch
+        derive` writes for it: each draft whose subject no open must or
+        should question holds up and whose name is free goes under
+        `tests/<name>/test.yaml`, and `tests` is listed among the stages
+        when one is written. A draft is derived from what the reader read
+        and nothing else, so its given, when and then are the
+        derivation's words for a reviewer to complete; a subject a question
+        holds up gets none, and the validator warns for it until the
+        question is answered (ADR-055).
     permission: public
     arguments:
       - name: source
@@ -1065,7 +1074,7 @@ commands:
     reads:
       - { path: "{paths}", description: The surface being read. }
     writes:
-      - { path: "{out}/", description: "The as-built specification tree, each problem validate finds in it and each open question marked above its entry with a `# specarch-problem:` line, as document problems marks a fragment (ADR-066)." }
+      - { path: "{out}/", description: "The as-built specification tree, with the draft tests derive writes for it under tests/, each problem validate finds in it and each open question marked above its entry with a `# specarch-problem:` line, as document problems marks a fragment (ADR-066)." }
     standardOutput: |
       One line naming the commit read and the paths it was the last change
       to; one line per count, saying what was counted and how; one line per
@@ -1078,8 +1087,11 @@ commands:
       pages with --facts, one line naming the checks the implementation file
       names; for pages with --facts, one line naming the dump, one per
       middleware file saying what it covers and checks, and one counting
-      the server actions; and one line per file that says it is
-      generated from another source.
+      the server actions; one line per file that says it is
+      generated from another source; and the derivation's lines: one
+      counting the draft tests written, one per subject whose drafts an
+      open question holds up, naming the questions, and one per draft not
+      written because its name is taken.
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written

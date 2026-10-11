@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
 decisions:
   ADR-063:
     title: An entity's field may hold a schema, kept in columns of the entity's row named after the field and the part, or as one JSON value with storage json, and a list of schemas only as JSON

@@ -108,19 +108,31 @@ func (c *checker) checkTests(d *design) {
 		}
 	}
 
+	// In a 0.2 file a test specarch derive writes and nobody has is an
+	// error, except for a subject an open must or should question holds
+	// up, whose test derive leaves out too (ADR-055).
+	strict := source.Str(source.Child(d.root, "specarch")) == "0.2"
+	blocking := blockingQuestions(d.root)
 	for _, s := range subjects {
 		cv := cov[s]
+		missing := c.warn
+		if strict && len(blockedBy(blocking, s.path)) == 0 {
+			missing = c.add
+		}
 		// A requirement's or a state machine's cases are all golden and
 		// each is asked for on its own, so neither needs a scenario of each
 		// kind.
 		whole := s.kind == "requirement" || s.kind == "flow"
 		if !cv.golden && !whole {
 			success := s.success
-			if success.scenario == "" {
+			report := c.warn
+			if success.scenario != "" {
+				report = missing // derive writes the success the design gives
+			} else {
 				success = derivedCase{scenario: "golden", given: "...", when: "...", then: "it succeeds"}
 			}
 			success.name = "" // any golden test of the subject is its success case
-			c.warn(s.node, s.path, RuleTestGoldenMissing, "%s has no golden scenario; add one under tests, for example %s", s.label,
+			report(s.node, s.path, RuleTestGoldenMissing, "%s has no golden scenario; add one under tests, for example %s", s.label,
 				skeleton(s, success, s.name+"-succeeds"))
 		}
 		hasRedCase := false
@@ -133,7 +145,7 @@ func (c *checker) checkTests(d *design) {
 				continue
 			}
 			seen[dc.name] = true
-			c.warn(s.node, s.path, RuleTestCaseMissing, "%s has no %s scenario for %q; add under tests %s", s.label, dc.scenario, dc.name,
+			missing(s.node, s.path, RuleTestCaseMissing, "%s has no %s scenario for %q; add under tests %s", s.label, dc.scenario, dc.name,
 				skeleton(s, dc, testName(s, dc)))
 		}
 		if !cv.red && !hasRedCase && !whole {
@@ -141,6 +153,16 @@ func (c *checker) checkTests(d *design) {
 				skeleton(s, derivedCase{scenario: "red", given: "...", when: "...", then: "it is refused"}, s.name+"-refused"))
 		}
 	}
+}
+
+// checkMetaModelVersion warns once in a file written against 0.1, which
+// is read until 1.0 (ADR-055).
+func (c *checker) checkMetaModelVersion(d *design) {
+	v := source.Child(d.root, "specarch")
+	if source.Str(v) != "0.1" {
+		return
+	}
+	c.warn(v, "/specarch", RuleMetaModelVersion, "the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: \"0.2\"")
 }
 
 func listCases(s *subject) string {

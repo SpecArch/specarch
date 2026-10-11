@@ -42,3 +42,12 @@ standardOutput: |
   not held: operation POST /tagLoan: the extension x-dxlib-endpoint-type, whose meaning the document's own tools define; left out; could question Q-41
   not held: operation POST /tagLoan: The document gives it the security mutualTLS. A security scheme says how a caller proves who it is, and dxlib's privileges what it may do, so the security is not its permission; left out; could question Q-42
   not held: components.securitySchemes: a security scheme is not a permission; named in each operation's permission question, or, for an operation in dxlib's dialect, in a line of its own, and left out; could question Q-43
+  derived 14 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for operation auditLoan, held up by Q-1; the validator warns for them until the question is answered
+  not derived: 1 draft test for operation cancelLoan, held up by Q-2; the validator warns for them until the question is answered
+  not derived: 1 draft test for operation health, held up by Q-3; the validator warns for them until the question is answered
+  not derived: 1 draft test for operation listBooks, held up by Q-4; the validator warns for them until the question is answered
+  not derived: 1 draft test for operation renewLoan, held up by Q-5; the validator warns for them until the question is answered
+  not derived: 1 draft test for operation runReport, held up by Q-6; the validator warns for them until the question is answered
+  not derived: 1 draft test for operation runReportNow, held up by Q-7; the validator warns for them until the question is answered
+  not derived: 1 draft test for operation tagLoan, held up by Q-8; the validator warns for them until the question is answered

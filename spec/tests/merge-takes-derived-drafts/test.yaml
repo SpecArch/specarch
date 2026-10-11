@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: merge
+level: system
+scenario: golden
+given: "three trees on 0.2, two of which hold the drafts specarch derive writes for them"
+when: "merge is run on the three trees"
+then: "it leaves the trees' drafts out, writes the same merged specification as from the trees without them, with the drafts derived for it, and exits 0"
+verifies: [SA-11, SA-28]

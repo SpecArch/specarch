@@ -12,6 +12,9 @@
               "id": "change_log"
             },
             {
+              "id": "meta_model_version"
+            },
+            {
               "id": "need"
             },
             {
@@ -22,6 +25,37 @@
       },
       "columnKind": "unicodeCodePoints",
       "results": [
+        {
+          "ruleId": "meta_model_version",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: \"0.2\""
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/specarch.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 2,
+                  "startColumn": 11
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/specarch",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "meta_model_version@specarch.yaml#/specarch"
+          }
+        },
         {
           "ruleId": "need",
           "kind": "fail",
@@ -37,7 +71,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 24,
+                  "startLine": 25,
                   "startColumn": 13
                 }
               },
@@ -86,7 +120,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 37,
+                  "startLine": 38,
                   "startColumn": 10
                 }
               },
@@ -110,7 +144,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 35,
+                  "startLine": 36,
                   "startColumn": 13
                 }
               },
@@ -135,7 +169,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 40,
+                  "startLine": 41,
                   "startColumn": 3
                 }
               },
@@ -159,7 +193,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 11,
+                  "startLine": 12,
                   "startColumn": 3
                 }
               },
@@ -175,7 +209,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 11,
+                  "startLine": 12,
                   "startColumn": 3
                 }
               },

@@ -9,3 +9,5 @@ standardOutput: |
   router: the pages of Nuxt, since package.json names neither next nor nuxt among its dependencies; the folder holds .vue files, which only Nuxt serves
   counted 1 page file: the tracked files under pages with the extension .vue, .tsx, .ts, .jsx, .js or .mjs, each once
   wrote 1 page, 0 operations, 0 entities, 0 permissions and 3 questions: one page per file or folder the router serves a page from whose route the meta-model holds, 0 schemas read, one operation per route file whose name gives a method the meta-model holds, one entity and one permission per name a schema gives, one question per thing the files' places and the schemas do not say, and one per thing the meta-model cannot hold
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for page root, held up by Q-1, Q-2, Q-3; the validator warns for them until the questions are answered

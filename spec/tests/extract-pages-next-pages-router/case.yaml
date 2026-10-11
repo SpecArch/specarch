@@ -16,3 +16,8 @@ standardOutput: |
   not held: pages/docs/[...slug].tsx: the segment [...slug] is a catch-all segment, and a page's route holds one whole parameter per segment; left out; could question Q-16
   not held: pages/terms.mdx: a file the router serves only when its configuration adds the extension .mdx, which the files do not say; left out; could question Q-17
   not held: pages/about/index.tsx: pages/about.tsx already serves the page at /about, and a route has one page; left out; could question Q-18
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for page about, held up by Q-1, Q-11, Q-2; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page loans, held up by Q-11, Q-3, Q-4; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for page loans-by-loan-id, held up by Q-11, Q-5, Q-6; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page root, held up by Q-11, Q-7, Q-8; the validator warns for them until the questions are answered

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
 decisions:
   ADR-077:
     title: Merge reads a value object back from the columns generate sql would write for it, or from a JSON column, only where a tree names the field, and asks where none does

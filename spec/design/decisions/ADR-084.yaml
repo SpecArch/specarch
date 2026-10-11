@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
 decisions:
   ADR-084:
     title: extract pages reads the Pages Router of Next.js, Nuxt's pages and server, route files and middleware by their place, and asks for every method and check their content decides

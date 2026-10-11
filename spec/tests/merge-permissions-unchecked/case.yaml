@@ -6,3 +6,8 @@ standardOutput: |
   unchecked: the permission fines.waive, which desk-staff grants, is checked by no operation, command or page; it is left from code that was removed, or guards something the routes do not show
   merged 10 elements, each an entry of a section or an operation: 4 in more than one tree, and 0 keys the trees disagree on
   wrote 10 questions: 10 from the trees, numbered again in the order the trees are given, and 0 the merge asked
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 2 draft tests for operation lendBook, held up by Q-1; the validator warns for them until the question is answered
+  not derived: 3 draft tests for operation returnBook, held up by Q-2, Q-3; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation registerMember, held up by Q-4; the validator warns for them until the question is answered
+  not derived: 3 draft tests for operation listMemberLoans, held up by Q-5, Q-6; the validator warns for them until the questions are answered

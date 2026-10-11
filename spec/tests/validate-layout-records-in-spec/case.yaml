@@ -2,3 +2,4 @@ arguments: [validate, project]
 exitStatus: 1
 standardOutput: |
   project/specarch.yaml:1:1: error: /: layout: the folder records/ is not a stage; records live in records/ beside the specification's folder, not inside it, so move it up one level [layout@specarch.yaml#/]
+  project/specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]

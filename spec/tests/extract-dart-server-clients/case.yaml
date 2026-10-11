@@ -15,3 +15,9 @@ standardOutput: |
   settings: counted 3 reads: every fromEnvironment and every read of Platform.environment
   wrote 0 pages, 0 schemas, 0 enums, 5 operations, 3 dependencies, 3 settings and 27 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold
   not held: svc/lib/server.dart:12: the route GET /api/files/<path|.*>: the parameter <path|.*> has a pattern, which a path template cannot say; left out; could question Q-27
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 2 draft tests for operation list, held up by Q-1, Q-2, Q-3, Q-4, Q-5, Q-6; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation create, held up by Q-1, Q-2, Q-3, Q-4, Q-5, Q-6; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation getApiNotesByNoteId, held up by Q-1, Q-10, Q-2, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation getNotesById, held up by Q-1, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-2; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation deleteNotesById, held up by Q-1, Q-11, Q-12, Q-13, Q-14, Q-15, Q-16, Q-2; the validator warns for them until the questions are answered

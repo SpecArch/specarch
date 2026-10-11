@@ -4,7 +4,9 @@
 
 Version 1.0.0 of the specification: 1 requirement, 2 entities, 2 HTTP operations, 1 channel and 1 page. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
-**Problems:** 11 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 12 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]
 
 ## 1. Introduction and goals
 

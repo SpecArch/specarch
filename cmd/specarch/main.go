@@ -98,7 +98,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 
 func runVersion(stdout io.Writer) int {
 	fmt.Fprintf(stdout, "specarch %s\n", version)
-	fmt.Fprintln(stdout, "specifications: meta-model 0.1")
+	fmt.Fprintln(stdout, "specifications: meta-model 0.2, and 0.1 until 1.0")
 	fmt.Fprintln(stdout, "implementation files: meta-model 0.1")
 	return 0
 }

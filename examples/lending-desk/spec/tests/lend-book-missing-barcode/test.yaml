@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-0.2.schema.json
+operation: lendBook
+level: system
+scenario: red
+covers: [missing barcode]
+given: "..."
+when: "lendBook is called without barcode"
+then: "it is refused"
+verifies: [LEND-2, LEND-3]
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

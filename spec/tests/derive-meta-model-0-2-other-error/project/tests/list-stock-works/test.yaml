@@ -1,0 +1,6 @@
+operation: listStock
+level: system
+scenario: golden
+given: a clerk and two items in stock
+when: listStock is called
+then: it answers 200 with both items

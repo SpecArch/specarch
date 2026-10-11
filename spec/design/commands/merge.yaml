@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
 commands:
   merge:
     summary: Merge the partial specifications the readers wrote into one
@@ -8,8 +8,14 @@ commands:
       specification that holds every element of them, following
       `docs/from-sources.md`, section 3.2. Each tree is checked on its own
       first: a tree that does not track origin, that validate reports an
-      error in, or that holds tests, implementation files or records is
-      refused.
+      error in, that holds implementation files or records, or that holds
+      a test other than the drafts specarch derive writes for that tree is
+      refused. A test is one of those drafts when its name and values are
+      those of the draft derive writes for the tree without its tests; the
+      problem marks above its entries do not count. The drafts are left
+      out, since they are derived from one tree alone, and the derivation
+      runs again into the merged specification, as extract runs it
+      (ADR-055).
 
       - The same element in two trees (an entry of a section by its name,
         an operation by its path and method, a field by its entity and
@@ -195,12 +201,13 @@ commands:
       question whose name is joined to the operation another tree
       declares; one line per
       placeholder source; one line per permission granted and checked by
-      nothing; and one line per
-      question the merge asked, naming what it blocks and why.
+      nothing; one line per
+      question the merge asked, naming what it blocks and why; and the
+      lines of the derivation, as extract prints them.
     standardError: A usage message on a usage error, and the reason a tree could not be merged.
     exitCodes:
       "0": the merged specification was written
-      "1": "a tree could not be merged: it does not track origin, validate reports an error in it, it holds tests, implementation files or records, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at"
+      "1": "a tree could not be merged: it does not track origin, validate reports an error in it, it holds implementation files or records or a test that is not the draft derive writes for it, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at"
       "2": usage error, fewer than two trees, or a folder that could not be read or written
     satisfies: [SA-45]
     why: The readers write one tree per surface so that each is checked on its own; the comparison between surfaces, and between the documents and the code, is made once, here, where a disagreement becomes a question rather than a choice.

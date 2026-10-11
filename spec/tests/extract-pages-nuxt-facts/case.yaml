@@ -17,3 +17,7 @@ standardOutput: |
   wrote 3 pages, 0 operations, 0 entities, 1 permission and 12 questions: one page per file or folder the router serves a page from whose route the meta-model holds, 0 schemas read, one operation per route file whose name gives a method the meta-model holds, one entity and one permission per name a schema gives, one question per thing the files' places and the schemas do not say, and one per thing the meta-model cannot hold
   not held: site/pages/loans/index.vue:16: definePageMeta gives the layout "desk", and a page holds no layout; could question Q-11
   not held: site/pages/loans/index.vue:16: definePageMeta gives keepalive, which the reader does not read, since no implementation file key maps a page's metadata; could question Q-12
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for page loans, held up by Q-1, Q-10, Q-3, Q-4; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page loans-new, held up by Q-10, Q-2, Q-5, Q-6; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for page members-by-id, held up by Q-10, Q-7; the validator warns for them until the questions are answered

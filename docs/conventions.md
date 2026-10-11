@@ -61,7 +61,7 @@ file's pointers use.
 
 The first line of the root file is the editor hint:
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.2.schema.json
 
 For an implementation file:
 
@@ -72,14 +72,14 @@ folder, which holds only some of its sections, has a schema of its own:
 
 | File | Its schema |
 |---|---|
-| a file under `requirements/`, `design/`, `deployment/`, `commissioning/` or `operation/` | `specarch-fragment-<stage>-0.1.schema.json`, that stage's sections and `questions` |
-| `tests/<name>/test.yaml` | `specarch-fragment-test-0.1.schema.json`, one test |
-| a file directly under `tests/` or `implementation/` | `specarch-fragment-questions-0.1.schema.json`, only `questions` |
+| a file under `requirements/`, `design/`, `deployment/`, `commissioning/` or `operation/` | `specarch-fragment-<stage>-0.2.schema.json`, that stage's sections and `questions` |
+| `tests/<name>/test.yaml` | `specarch-fragment-test-0.2.schema.json`, one test |
+| a file directly under `tests/` or `implementation/` | `specarch-fragment-questions-0.2.schema.json`, only `questions` |
 
 A fragment's hint names the same commit or tag as the root file's, here
 for a file under `design/entities/`:
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/<commit or tag>/schema/specarch-fragment-design-0.1.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/<commit or tag>/schema/specarch-fragment-design-0.2.schema.json
 
 Each is written from the design schema by `tools/fragment-schemas`, which
 copies the stage's sections and the definitions they reach, so a keyword
@@ -93,7 +93,7 @@ editor checks each file as it is written; `specarch validate` checks the
 whole tree.
 
 The specifications in this repository name the schemas by a path relative
-to the file (`../../../schema/specarch-fragment-design-0.1.schema.json`),
+to the file (`../../../schema/specarch-fragment-design-0.2.schema.json`),
 because they are written against the schemas beside them rather than a
 released tag; `go run ./tools/fragment-schemas` writes those lines too.
 
@@ -1513,9 +1513,19 @@ a harm, the traceability matrices have a Harm column.
 One test may cover several cases when they are one scenario (a lookup that
 answers 404 covers `not found memberId` and `response 404`). A case that
 does not apply is covered by a test with `notApplicable` and a written
-reason instead of given, when and then. In 0.1 a missing scenario is a
-warning, so a specification can be written before its tests; it is meant to
-become an error in the next version.
+reason instead of given, when and then. In a file that says
+`specarch: "0.2"` a test `specarch derive` would write and nobody has is an
+error: a chosen case no test covers (`test_case_missing`), and a subject
+with no golden test when the design gives its success
+(`test_golden_missing`). A subject an open must or should question holds
+up keeps a warning, since derive leaves its tests out too until the
+question is answered, and so does a subject with no red scenario and no
+derived red case (`test_red_missing`), which has no case to write. Derive
+runs past these errors, since they are what it settles, and `specarch
+extract` and `specarch merge` run it into every tree they write. A file
+that says `specarch: "0.1"` is read until 1.0: its missing tests are
+warnings, and it gets one warning at the `specarch` line
+(`meta_model_version`) until it is moved to 0.2 (ADR-055).
 
 An implementation file's suite names the design tests it runs, by name
 (`designTests`) or by subject (`designTestsOf: [{ command: validate }]`),

@@ -17,3 +17,7 @@ standardOutput: |
   not held: api/endpoints.go:17: the endpoint POST /loans/list: dxlib names it post_loans_list from its URI, which is not camelCase, as an operationId is; it is named postLoansList; could question Q-29
   not held: api/endpoints.go:38: the endpoint POST /loans/renew: dxlib names it loans_renew from its URI, which is not camelCase, as an operationId is; it is named postLoansRenew; could question Q-30
   not held: api/endpoints.go:21: the endpoint GET /loans/{id}: dxlib names it loans_id from its URI, which is not camelCase, as an operationId is; it is named getLoansById; could question Q-31
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 2 draft tests for operation postLoansList, held up by Q-1, Q-10, Q-11, Q-12, Q-13, Q-2, Q-24, Q-3, Q-4; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation postLoansRenew, held up by Q-1, Q-10, Q-11, Q-14, Q-15, Q-16, Q-2, Q-3, Q-4, Q-5, Q-6, Q-7, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation getLoansById, held up by Q-1, Q-10, Q-11, Q-17, Q-18, Q-19, Q-2, Q-20, Q-21, Q-3, Q-4; the validator warns for them until the questions are answered

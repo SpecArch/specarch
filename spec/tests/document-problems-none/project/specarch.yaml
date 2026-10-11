@@ -1,4 +1,4 @@
-specarch: "0.1"
+specarch: "0.2"
 info: { title: Case, version: 1.0.0 }
 
 sources:

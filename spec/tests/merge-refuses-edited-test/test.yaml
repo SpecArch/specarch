@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: merge
+level: system
+scenario: red
+covers: [exit 1]
+given: "the same trees, with one draft's then edited by hand"
+when: "merge is run on the three trees"
+then: "it names the tree and the test that differs from its draft, says to write that test in the merged specification, writes nothing, and exits 1"
+verifies: [SA-11]

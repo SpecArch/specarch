@@ -25,3 +25,4 @@ standardOutput: |
   not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:11: Shelf.createdAt has the default "today", which is not a value its field's type takes as written; left out; could question Q-31
   not held: app/Store.xcdatamodeld/Store 2.xcdatamodel/contents:23: the Core Data entity Book: its name is not a PascalCase name, or another model has it; left out; could question Q-32
   not held: app/Store.xcdatamodeld/Store.xcdatamodel/contents: a version of the Core Data model Store.xcdatamodeld other than its current one, Store 2.xcdatamodel; left out; could question Q-33
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

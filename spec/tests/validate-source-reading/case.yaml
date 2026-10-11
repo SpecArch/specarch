@@ -1,5 +1,6 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]
   specarch.yaml:6:82: error: /sources/manual/reading: schema: this key is not allowed here; remove it [schema@specarch.yaml#/sources/manual/reading]
   specarch.yaml:7:73: error: /sources/notes/reading: schema: guessed is not allowed here; use one of parsed, printed [schema@specarch.yaml#/sources/notes/reading]

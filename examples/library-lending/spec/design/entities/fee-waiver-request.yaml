@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.1.schema.json
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.2.schema.json
 entities:
   FeeWaiverRequest:
     description: A librarian's request to waive the late fee of a loan, held while it waits for a supervisor.

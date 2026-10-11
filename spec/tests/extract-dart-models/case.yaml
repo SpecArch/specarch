@@ -16,3 +16,4 @@ standardOutput: |
   not held: app/lib/note.dart:25: Note.extra: the type Map<String, String>, a map or a set, which a field does not hold; left out; could question Q-6
   not held: app/lib/note.dart:27: Note.dirty is left out of its JSON by its @JsonKey; left out; could question Q-7
   not held: app/lib/note.dart:11: Mood.happy is "Very Happy" on the wire, and an enum's values are snake_case words; left out; could question Q-8
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

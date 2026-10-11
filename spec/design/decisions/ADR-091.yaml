@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
 decisions:
   ADR-091:
     title: Vue single-file components are split by @vue/compiler-sfc in the JavaScript reader, keeping each line where it is, and a project's UI library components are mapped under bindings.ui.components

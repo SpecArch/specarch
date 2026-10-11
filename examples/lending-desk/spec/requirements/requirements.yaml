@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../../schema/specarch-fragment-requirements-0.1.schema.json
+# yaml-language-server: $schema=../../../../schema/specarch-fragment-requirements-0.2.schema.json
 stakeholders:
   desk-staff:
     description: Staff at the lending desk, who register members, lend books and take them back.
@@ -49,6 +49,7 @@ requirements:
     cites:
       - { source: desk-manual, clause: "3.2", says: "A member may have at most five books on loan at a time." }
       - { source: desk-code, clause: "lending/model.go:11", says: "MaxOpenLoans is 5; LendBook answers 409 at the limit." }
+  # specarch-problem: warning: requirement_unverified: no test, commissioning check or monitor verifies requirement LEND-4; add verifies: [LEND-4] to the test that shows it is met [requirement_unverified@requirements/requirements.yaml#/requirements/LEND-4]
   LEND-4:
     kind: functional
     priority: must

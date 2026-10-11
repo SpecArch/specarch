@@ -334,7 +334,7 @@ and a history entry. Steps 1 to 10 are additions to the 0.1 schema.
     and both examples validates in an editor against its stage's schema
     and CI fails when the design schema changes without the fragments'
     schemas.
-11. Meta-model 0.2. The design schema becomes `specarch-design-0.2`, with
+11. Built. Meta-model 0.2. The design schema becomes `specarch-design-0.2`, with
     `specarch` accepting `"0.1"` and `"0.2"`. In a 0.2 file a derived case
     no test covers is an error, except for a subject an open must or should
     question holds up, which stays a warning because `specarch derive`

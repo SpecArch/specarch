@@ -232,6 +232,12 @@ func loadSpecs(paths []string, verb string, stdout, stderr io.Writer) ([]loaded,
 // an invalid one too, with its errors printed, for the commands that work
 // on what can be read (ADR-065). invalid says whether one had errors.
 func readSpecs(paths []string, verb string, stdout, stderr io.Writer) (specs []loaded, invalid bool, status int) {
+	return readSpecsSettling(paths, verb, stdout, stderr, nil)
+}
+
+// readSpecsSettling is readSpecs for a command that settles some errors
+// itself: an error settles says yes to is neither printed nor counted.
+func readSpecsSettling(paths []string, verb string, stdout, stderr io.Writer, settles func(validate.Diagnostic) bool) (specs []loaded, invalid bool, status int) {
 	inputs, ioError := collect(paths, stderr)
 	if ioError {
 		return nil, false, 2
@@ -247,13 +253,11 @@ func readSpecs(paths []string, verb string, stdout, stderr io.Writer) (specs []l
 		}
 		s := spec.Load(in.root)
 		diags, covered := validate.CheckSpecCovered(s)
-		if validate.Errors(diags) > 0 {
-			for _, d := range diags {
-				if d.Severity == validate.Error {
-					fmt.Fprintln(stdout, d.String())
-				}
+		for _, d := range diags {
+			if d.Severity == validate.Error && (settles == nil || !settles(d)) {
+				fmt.Fprintln(stdout, d.String())
+				invalid = true
 			}
-			invalid = true
 		}
 		l := loaded{spec: s, diags: diags, covered: covered}
 		for _, impl := range s.Implementations {

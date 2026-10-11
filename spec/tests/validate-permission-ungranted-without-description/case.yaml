@@ -1,4 +1,5 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]
   specarch.yaml:6:15: error: /permissions/items.read: permission_ungranted: no role grants items.read, so nobody can use what it guards; add it to a role, or use public if it is meant for everyone [permission_ungranted@specarch.yaml#/permissions/items.read]

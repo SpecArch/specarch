@@ -31,7 +31,7 @@ func request(t *testing.T, dialect string, existing ...File) *Request {
 	}
 	content := source.ValueOf(root).(map[string]any)
 	content["targets"].(map[string]any)["sql"].(map[string]any)["dialect"] = dialect
-	data, err := json.Marshal(map[string]any{"specarch": "0.1", "target": "sql", "root": filepath.ToSlash(s.RootFile),
+	data, err := json.Marshal(map[string]any{"specarch": "0.2", "target": "sql", "root": filepath.ToSlash(s.RootFile),
 		"specification": s.Value, "output": "../../examples/library-lending/migrations",
 		"implementations": []any{map[string]any{"file": impl.Path, "content": content, "idioms": idioms}},
 		"existing":        existing})

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: derive
+level: system
+scenario: golden
+given: "a specification that says specarch 0.2, whose only errors are the tests derive writes, with a must question holding up one operation"
+when: "derive is run"
+then: "it writes the drafts of the operation and the requirement no test covers, leaves out the held-up operation's drafts, and exits 0"
+verifies: [SA-28]

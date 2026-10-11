@@ -17,3 +17,4 @@ standardOutput: |
   not held: app/Shelf.entitlements: the entitlements the system grants the app, com.apple.security.app-sandbox, com.apple.security.network.client, are not settings the app reads; left out; could question Q-16
   not held: app/Widget-Info.plist: it is not a property list in XML, such as a binary one, so its keys are not read; could question Q-17
   not held: app/Config/Debug.xcconfig: the build settings Info.plist does not take, OTHER_LDFLAGS, configure the build and not the running app; left out; could question Q-18
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

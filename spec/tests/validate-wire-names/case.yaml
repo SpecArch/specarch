@@ -1,6 +1,7 @@
 arguments: [validate, .]
 exitStatus: 1
-standardOutput: |+
+standardOutput: |
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]
   specarch.yaml:10:15: error: /entities/Member/properties/userID: wire_name: userId and userID both go on the wire as user_id (info.wireNames: snake_case); rename one [wire_name@specarch.yaml#/entities/Member/properties/userID]
   specarch.yaml:16:24: error: /entities/Member/properties/address/properties/httpURLPath: wire_name: httpUrlPath and httpURLPath both go on the wire as http_url_path (info.wireNames: snake_case); rename one [wire_name@specarch.yaml#/entities/Member/properties/address/properties/httpURLPath]
   specarch.yaml:24:22: error: /entities/Member/properties/tags/items/properties/tagNAME: wire_name: tagName and tagNAME both go on the wire as tag_name (info.wireNames: snake_case); rename one [wire_name@specarch.yaml#/entities/Member/properties/tags/items/properties/tagNAME]

@@ -6,7 +6,9 @@ Version 0.1.0 of the specification: 1 workflow. The chapters follow arc42, and a
 
 **Draft:** 6 open questions concern this document (Q-1, Q-2, Q-3, Q-4, Q-5, Q-6); see the open questions document, or run specarch gaps.
 
-**Problems:** 5 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 6 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]
 
 ## 1. Introduction and goals
 

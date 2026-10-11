@@ -1,0 +1,33 @@
+questions:
+  Q-1:
+    question: 'What does each permission allow: loans.read, loans.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.read/description', '#/permissions/loans.write/description']
+    decidedBy: system-owner
+    why: dxlib's document names the privilege an endpoint checks and not what it is for.
+  Q-2:
+    question: 'Which role grants each permission: loans.read, loans.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.read', '#/permissions/loans.write']
+    decidedBy: system-owner
+    why: dxlib's document names the privilege an endpoint checks and not who holds it.
+  Q-3:
+    question: 'Not held: operation POST /loans/close: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1loans~1close/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: api, clause: /paths/~1loans~1close/post, says: 'Not held: operation POST /loans/close: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out.'}
+  Q-4:
+    question: 'Not held: operation POST /loans/report: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1loans~1report/post']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: api, clause: /paths/~1loans~1report/post, says: 'Not held: operation POST /loans/report: the extension x-dxlib-endpoint-type, whose meaning the document''s own tools define; left out.'}

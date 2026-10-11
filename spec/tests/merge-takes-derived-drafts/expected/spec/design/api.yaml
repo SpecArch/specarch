@@ -1,0 +1,37 @@
+permissions:
+  loans.read:
+    origin: stated
+    cites:
+      - {source: api, clause: /paths/~1loans~1report/post, says: POST /loans/report checks loans.read in x-dxlib-privileges.}
+  loans.write:
+    origin: stated
+    cites:
+      - {source: api, clause: /paths/~1loans~1close/post, says: POST /loans/close checks loans.write in x-dxlib-privileges.}
+      - {source: code, clause: code POST /loans/close, says: POST /loans/close checks loans.write.}
+      - {source: code, clause: 'code/endpoints.go:7', says: POST /loans/close and POST /loans/purge check loans.write in its privileges.}
+    description: Changes a loan.
+paths:
+  /loans/close:
+    post:
+      summary: Close a loan
+      responses:
+        "200":
+          description: Closed.
+      origin: stated
+      cites:
+        - {source: api, clause: /paths/~1loans~1close/post, says: 'POST /loans/close: Close a loan.'}
+        - {source: code, clause: code POST /loans/close, says: POST /loans/close checks loans.write; its handler is CloseLoan.}
+        - {source: code, clause: 'code/endpoints.go:7', says: 'NewEndPoint registers POST /loans/close; its handler is CloseLoan, it has no middleware, and it checks loans.write.'}
+        - {source: code, clause: 'code/endpoints.go:14', says: The handler of POST /loans/close reads no parameter by name.}
+      permission: loans.write
+  /loans/report:
+    post:
+      operationId: reportLoans
+      summary: Report the loans
+      responses:
+        "200":
+          description: The report.
+      origin: stated
+      cites:
+        - {source: api, clause: /paths/~1loans~1report/post, says: 'POST /loans/report: Report the loans.'}
+      permission: loans.read

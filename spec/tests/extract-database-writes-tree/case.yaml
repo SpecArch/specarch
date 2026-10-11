@@ -14,3 +14,7 @@ standardOutput: |
   not held: column public.copies.shelved_at: its default now() is not a value the meta-model can hold; could question Q-6
   not held: index copies_title of public.copies, CREATE INDEX copies_title ON public.copies USING btree (title): the meta-model has no index; could question Q-7
   not held: view public.lent_copies: a view is not read from the catalogue; describe it under views by hand; could question Q-8
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for Branches constraint branches_fine_not_negative, held up by Q-1; the validator warns for them until the question is answered
+  not derived: 1 draft test for Branches constraint branches_name_unique, held up by Q-1; the validator warns for them until the question is answered
+  not derived: 1 draft test for Copies constraint copies_title_not_empty, held up by Q-2; the validator warns for them until the question is answered

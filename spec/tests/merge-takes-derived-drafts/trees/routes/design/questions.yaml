@@ -1,0 +1,8 @@
+questions:
+  Q-1:
+    question: Which role grants loans.write?
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/loans.write']
+    decidedBy: system-owner
+    why: A route table names the permission a route checks and not who holds it.

@@ -14,3 +14,13 @@ standardOutput: |
   wrote 9 pages, 1 entity, 1 schema, 0 enums, 0 operations, 0 dependencies, 0 settings and 25 questions: one per element the source declares through an idiom the reader knows, one question per thing the source does not say, and one per thing the meta-model cannot hold
   not held: app/Item.swift:9: Item.place holds the schema Place, and an entity refers to an entity or an enum, never to a schema; left out; could question Q-24
   not held: app/ItemDetailView.swift:11: ItemDetailView binds TextField to $item.place.city, a property of a property, and a page's field is one of its entity's; left out; could question Q-25
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for page about, held up by Q-2, Q-3, Q-4, Q-5; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page history, held up by Q-2, Q-3, Q-6, Q-7; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page home, held up by Q-2, Q-3, Q-8, Q-9; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page item-detail, held up by Q-10, Q-11, Q-2, Q-3; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page item-form, held up by Q-12, Q-13, Q-2, Q-3; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page notes, held up by Q-14, Q-15, Q-2, Q-3; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page search, held up by Q-16, Q-17, Q-2, Q-3; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page share, held up by Q-18, Q-19, Q-2, Q-3; the validator warns for them until the questions are answered
+  not derived: 1 draft test for page shelf-list, held up by Q-2, Q-20, Q-21, Q-22, Q-3; the validator warns for them until the questions are answered

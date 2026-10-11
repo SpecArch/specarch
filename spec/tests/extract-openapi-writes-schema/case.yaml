@@ -9,3 +9,5 @@ standardOutput: |
   schema Hold, property terms: it is optional and Terms has no required part that is never null, which the design does not keep in columns; written with storage json, the one storage it allows
   counted 1 path and 4 component schemas: every key of paths and of components.schemas
   wrote 1 operation on 1 path, 1 entity, 3 schemas, 0 enums and 2 questions: one operation per get, post, put, patch or delete, one entity per object schema an operation creates or a path with a parameter answers, one schema per other object schema, one enum per string enum, one question per thing the document does not say, and one per thing the meta-model cannot hold
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 2 draft tests for operation placeHold, held up by Q-1; the validator warns for them until the question is answered

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.1.schema.json
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
 decisions:
   ADR-076:
     title: A dxlib service's endpoints and privileges are read from the OpenAPI document dxlib emits, and the Go reader reads from its source only what dxlib cannot emit

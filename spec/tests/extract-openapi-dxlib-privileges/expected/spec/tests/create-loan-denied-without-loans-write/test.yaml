@@ -1,0 +1,9 @@
+operation: createLoan
+level: system
+scenario: red
+covers: [denied without loans.write]
+given: "a caller without loans.write"
+when: "createLoan is called"
+then: "it is refused as not allowed"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

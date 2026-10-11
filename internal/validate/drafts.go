@@ -72,6 +72,12 @@ func Drafts(root *yaml.Node) []Draft {
 	return out
 }
 
+// DeriveWrites says whether a diagnostic is a missing test that specarch
+// derive writes, an error in a 0.2 file that derive is run to settle.
+func DeriveWrites(d Diagnostic) bool {
+	return d.Rule == RuleTestCaseMissing || d.Rule == RuleTestGoldenMissing
+}
+
 // markCollisions marks every draft that cannot be written under its name:
 // one whose name another draft has too, whichever comes first, and one
 // whose name is a test of another subject. Writing one of two drafts of a

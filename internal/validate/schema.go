@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	designSchemaID         = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.1.schema.json"
+	designSchemaID         = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.2.schema.json"
 	implementationSchemaID = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-0.1.schema.json"
 	recordSchemaID         = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-record-0.1.schema.json"
 	idiomSchemaID          = "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json"

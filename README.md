@@ -89,7 +89,7 @@ commissioning runs and approvals). The same schema gives editors
 validation and completion through `yaml-language-server`: put this on the
 first line of a root file and most editors pick it up.
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.5.0/schema/specarch-design-0.1.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-0.2.schema.json
 
 ## The rules SpecArch serves
 
@@ -119,11 +119,11 @@ a defect in the roadmap, not an accepted state.
 
 | Path | Holds |
 |---|---|
-| `schema/specarch-design-0.1.schema.json` | the meta-model of a specification, JSON Schema 2020-12 |
+| `schema/specarch-design-0.2.schema.json` | the meta-model of a specification, JSON Schema 2020-12; it reads files on 0.2 and on 0.1 |
 | `schema/specarch-implementation-0.1.schema.json` | the meta-model of implementation files |
 | `schema/specarch-record-0.1.schema.json` | the records beside a specification |
 | `schema/specarch-idiom-0.1.schema.json` | the meta-model of an idiom, shipped or a project's |
-| `schema/specarch-fragment-*-0.1.schema.json` | one schema per kind of file under a stage folder, written from the design schema by `tools/fragment-schemas` (`docs/conventions.md`, The tree) |
+| `schema/specarch-fragment-*-0.2.schema.json` | one schema per kind of file under a stage folder, written from the design schema by `tools/fragment-schemas` (`docs/conventions.md`, The tree) |
 | `idioms/` | the idioms SpecArch ships, one folder per concern, embedded into the program: fifteen, each a stack-neutral contract and its Go rendering, such as `type-rendering` (what each field type becomes in Go and in PostgreSQL, SQL Server, Oracle and MariaDB), `paginated-list`, `request-validation` and `error-response`; `ui-components`, what draws each page and field on Next.js with Carbon; and `design-tokens`, which Carbon token takes each colour of the theme |
 | `spec/` | SpecArch's own specification: every stage, the design of the `specarch` command, its Go and Swift implementation files, and in `spec/tests/` the conformance suite every implementation of `specarch` must pass |
 | `docs/techspec.md` | SpecArch's technical specification, generated from `spec/` |
@@ -303,7 +303,8 @@ answers with. `docs/generators.md` has the protocol.
 
 ## Status
 
-Version 0.1 of the meta-model, October 2026. The two schemas, the tree
+Version 0.2 of the meta-model, October 2026; a file written against 0.1
+is read until 1.0, with its missing tests as warnings. The two schemas, the tree
 layout and the seven stages, one example, SpecArch's own specification, the
 validator in Go and in Swift, seven documents, open questions with the
 gaps report, and the approval gate on generation exist; the manual, the

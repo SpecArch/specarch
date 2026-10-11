@@ -823,6 +823,13 @@ private func listCases(_ s: Subject) -> String {
 }
 
 extension Checker {
+    /// Warns once in a file written against 0.1, which is read until 1.0
+    /// (ADR-055).
+    func checkMetaModelVersion(_ d: Design) {
+        guard let v = d.root.child("specarch"), str(v) == "0.1" else { return }
+        warn(v, "/specarch", .metaModelVersion, "the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: \"0.2\"")
+    }
+
     func checkTests(_ d: Design) {
         let subjects = d.subjects()
         var byKey: [String: Subject] = [:]
@@ -864,14 +871,22 @@ extension Checker {
             }
         }
 
+        // In a 0.2 file a test specarch derive writes and nobody has is an
+        // error, except for a subject an open must or should question holds
+        // up, whose test derive leaves out too (ADR-055).
+        let strict = str(d.root.child("specarch")) == "0.2"
+        let blocking = blockingQuestions(d.root)
         for s in subjects {
             let id = ObjectIdentifier(s)
+            let missing: (YNode?, String, Rule, String) -> Void = strict && !heldUp(blocking, s.path) ? add : warn
             if !golden.contains(id) && !s.whole {
                 // Any golden test of the subject is its success case, so the
-                // skeleton names no case.
+                // skeleton names no case. Derive writes the success the
+                // design gives.
+                let report = s.success != nil ? missing : warn
                 var success = s.success ?? DerivedCase(name: "", scenario: "golden", given: "...", when: "...", then: "it succeeds", frequency: "")
                 success.name = ""
-                warn(s.node, s.path, .testGoldenMissing, "\(s.label) has no golden scenario; add one under tests, for example " +
+                report(s.node, s.path, .testGoldenMissing, "\(s.label) has no golden scenario; add one under tests, for example " +
                      skeleton(s, success, s.name + "-succeeds"))
             }
             var hasRedCase = false
@@ -880,7 +895,7 @@ extension Checker {
                 if dc.scenario == "red" { hasRedCase = true }
                 if covered[id, default: []].contains(dc.name) || seen.contains(dc.name) || !s.chosen(dc.name) { continue }
                 seen.insert(dc.name)
-                warn(s.node, s.path, .testCaseMissing, "\(s.label) has no \(dc.scenario) scenario for \(quote(dc.name)); add under tests " + skeleton(s, dc, testName(s, dc)))
+                missing(s.node, s.path, .testCaseMissing, "\(s.label) has no \(dc.scenario) scenario for \(quote(dc.name)); add under tests " + skeleton(s, dc, testName(s, dc)))
             }
             if !red.contains(id) && !hasRedCase && !s.whole {
                 warn(s.node, s.path, .testRedMissing, "\(s.label) has no red scenario; add one under tests, for example " +
@@ -961,3 +976,34 @@ private func unwrap(_ expr: String) -> String? {
     return trimSpace(String(decoding: b[1..<(b.count - 1)], as: UTF8.self))
 }
 
+/// The blocks of every must or should question, as specarch derive reads
+/// them to leave out the tests of a subject they hold up.
+func blockingQuestions(_ root: YNode) -> [Block] {
+    var out: [Block] = []
+    for q in pairs(root.child("questions")) {
+        let p = str(q.value.child("priority"))
+        if p != "must" && p != "should" { continue }
+        for item in items(q.value.child("blocks")) {
+            if let b = parseBlock(item.value) { out.append(b) }
+        }
+    }
+    return out
+}
+
+/// Whether a block holds up the element at a pointer: it blocks its stage,
+/// its section, or the element or a part of it.
+func heldUp(_ blocks: [Block], _ ptr: String) -> Bool {
+    let first = ptr.dropFirst().split(separator: "/", omittingEmptySubsequences: false).first.map(String.init) ?? ""
+    let section = unescapeToken(first)
+    for b in blocks {
+        if b.isPointer {
+            let e = b.element
+            if ptr == e || ptr.hasPrefix(e + "/") || e.hasPrefix(ptr + "/") { return true }
+        } else if !b.section.isEmpty {
+            if b.section == section { return true }
+        } else if sections[section] == b.stage {
+            return true
+        }
+    }
+    return false
+}

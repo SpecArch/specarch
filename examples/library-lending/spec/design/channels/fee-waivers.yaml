@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.1.schema.json
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-0.2.schema.json
 channels:
   fee.waivers:
     description: The end of each request to waive a late fee, approved or refused, for the librarian who asked.

@@ -111,7 +111,7 @@ jobs:
           for run in one two; do go run ./cmd/specarch extract pages --out "$RUNNER_TEMP/pages-$run" examples/lending-desk/sources/web/app > "$RUNNER_TEMP/pages-$run.txt" || exit 1; done
           diff -r "$RUNNER_TEMP/pages-one" "$RUNNER_TEMP/pages-two" && cmp "$RUNNER_TEMP/pages-one.txt" "$RUNNER_TEMP/pages-two.txt"
           go run ./cmd/specarch validate "$RUNNER_TEMP/pages-one"
-          grep -q 'wrote 3 pages, 1 entity, 1 permission' "$RUNNER_TEMP/pages-one.txt"
+          grep -q 'wrote 3 pages, 0 operations, 1 entity, 1 permission' "$RUNNER_TEMP/pages-one.txt"
           grep -q 'columns: \[barcode, loanedOn, dueOn, returnedOn\]' "$RUNNER_TEMP/pages-one/design/pages.yaml"
           for run in one two; do go run ./cmd/specarch merge --out "$RUNNER_TEMP/paged-$run" "$RUNNER_TEMP/one" "$RUNNER_TEMP/pages-one" > "$RUNNER_TEMP/paged-$run.txt" || exit 1; done
           diff -r "$RUNNER_TEMP/paged-one" "$RUNNER_TEMP/paged-two" && cmp "$RUNNER_TEMP/paged-one.txt" "$RUNNER_TEMP/paged-two.txt"

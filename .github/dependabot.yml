@@ -1,0 +1,21 @@
+# Dependabot keeps the pinned action SHAs in .github/workflows and the Go
+# modules in go.mod current.
+#
+# A Dependabot pull request is made on GitHub, so it never passes through
+# the local pre-commit hook that runs the dependency scan (dep-scan: the
+# SBOM, the vulnerability and licence checks). Never merge one as it is.
+# Each bump is taken into main through a work item of its own that applies
+# it locally, runs the SBOM scan (syft, grype or osv-scanner, govulncheck)
+# and the licence check, and records the result in the commit message and
+# in the Go implementation file's libraries; the pull request is then
+# closed.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly

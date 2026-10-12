@@ -3,6 +3,11 @@ name: ci
 on:
   push:
     branches: [main]
+  # The trigger stays pull_request, never pull_request_target. Under
+  # pull_request a pull request from a fork runs with a read-only token and
+  # no secrets; pull_request_target runs in this repository's context, with
+  # its secrets and a writable token, so a job that builds the pull
+  # request's code (as this one does) would hand both to that code.
   pull_request:
 
 permissions:

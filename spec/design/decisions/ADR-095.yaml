@@ -2,7 +2,7 @@
 decisions:
   ADR-095:
     title: The caller is a declared record, caller.<property> is the one field access an expression may use, and a role's rows rule limits an entity's rows after PostgreSQL's row security policies, with a record outside the rows not found
-    status: proposed
+    status: accepted
     date: "2026-10-13"
     context: |
       A member sees only their own loans, and a tenant's staff see only

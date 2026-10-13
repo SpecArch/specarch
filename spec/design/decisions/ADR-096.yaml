@@ -2,7 +2,7 @@
 decisions:
   ADR-096:
     title: Machine callers are clients that hold roles with a proof per request after RFC 9421, an operation says callers clients, and nobody is a reserved permission for a route closed on purpose
-    status: proposed
+    status: accepted
     date: "2026-10-13"
     context: |
       An identity service serves routes open only to named machine

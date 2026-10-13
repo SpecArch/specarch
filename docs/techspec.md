@@ -7001,7 +7001,7 @@ other target are unchanged.
 
 ### ADR-094: Meta-model 0.3 is built around the caller in five steps, and the version moves with the first, which reserves the name caller
 
-Status: proposed, 2026-10-13.
+Status: accepted, 2026-10-13.
 
 Context: Specifying a running identity service from its sources found three
 things the meta-model cannot say: a route open only to named
@@ -7044,7 +7044,7 @@ whatever comes after.
 
 ### ADR-095: The caller is a declared record, caller.<property> is the one field access an expression may use, and a role's rows rule limits an entity's rows after PostgreSQL's row security policies, with a record outside the rows not found
 
-Status: proposed, 2026-10-13.
+Status: accepted, 2026-10-13.
 
 Context: A member sees only their own loans, and a tenant's staff see only
 their organisation's records. The meta-model names the permission a
@@ -7088,7 +7088,7 @@ lack needs no null test to be fail-closed.
 
 ### ADR-096: Machine callers are clients that hold roles with a proof per request after RFC 9421, an operation says callers clients, and nobody is a reserved permission for a route closed on purpose
 
-Status: proposed, 2026-10-13.
+Status: accepted, 2026-10-13.
 
 Context: An identity service serves routes open only to named machine
 clients by client identity, routes that also require a signed
@@ -7129,7 +7129,7 @@ signs with is a secret and is never in a specification.
 
 ### ADR-097: Tokens are declared formats with a lifetime, a signature algorithm, claims as properties under the one wire-name rule, and checks over the claims, after RFC 7519, RFC 7518 and RFC 8725, and a claim fills the caller property of its name
 
-Status: proposed, 2026-10-13.
+Status: accepted, 2026-10-13.
 
 Context: An identity service issues access, refresh, step-up, delegated and
 machine tokens, each with its own claims and lifetime, and the

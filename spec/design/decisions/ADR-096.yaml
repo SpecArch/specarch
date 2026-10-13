@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-096:
+    title: Machine callers are clients that hold roles with a proof per request after RFC 9421, an operation says callers clients, and nobody is a reserved permission for a route closed on purpose
+    status: proposed
+    date: "2026-10-13"
+    context: |
+      An identity service serves routes open only to named machine
+      clients by client identity, routes that also require a signed
+      request header, and a route deliberately closed to everyone. Each
+      had to be written as a permission with prose, which loses the
+      default-deny caller list and the signature, and the closed route
+      needed a placeholder role because a permission no role grants is a
+      fail-closed error.
+    decision: |
+      clients is an object of the design stage keyed by kebab-case name:
+      a program that calls the system, with the roles it holds and a
+      proof, how it proves its identity on each request: signedRequest
+      with an algorithm RFC 9421 registers and the covered components it
+      signs, mutualTls, or a token format. An operation or command may
+      say callers clients, which refuses every person's session and
+      admits only a declared client holding a granting role; left out,
+      it admits people and refuses clients. The validator refuses a
+      callers clients operation whose permission no client's role grants,
+      a proof with an unregistered algorithm or a covered component that
+      is not a request part, and a client naming an undeclared role. The
+      permission nobody is reserved beside public: a route with it is
+      served and refuses every caller, no role is asked to grant it, and
+      nobody with enabledBy is an error. Derived cases: refused for a
+      signed-in person, refused with a bad signature, refused for every
+      caller.
+    consequences: |
+      A machine route's caller list is the clients whose roles grant its
+      permission, read from the specification, and the signature it
+      needs is on the client. A route closed by intent and a permission
+      forgotten in the roles are told apart by the word, so the
+      fail-closed error keeps its meaning. A route both people and
+      clients call is two operations with one handler. The key a client
+      signs with is a secret and is never in a specification.
+    why: |
+      A client holds roles rather than being named on the operation so
+      that what may be done is said once, through permissions, and the
+      fail-closed rule stays one rule; the default-deny list the handoff
+      asked for is then the clients holding a granting role, with
+      callers clients keeping people out. RFC 9421 is taken for the
+      signed request because it is the published form of signing named
+      parts of an HTTP message, with a registry of algorithms and the
+      covered-component names, so a specification does not invent a
+      signature scheme; the algorithm is design because the client
+      cannot sign without knowing it, the interface boundary's test. A
+      closed route is written with a reserved permission rather than a
+      switch on the operation because public already says the open end
+      of the same scale, and a second keyword would be a second way to
+      say who may call. It stays served, in the OpenAPI document and the
+      techspec, because a client that still calls it should get the
+      declared problem document and not a 404 that looks like a wrong
+      path.
+    cites:
+      - source: rfc-9421
+        says: "A signature covers named components of an HTTP message, such as @method, @path and a header field, using an algorithm from the HTTP Signature Algorithms registry."
+    satisfies: [SA-5]

@@ -1,0 +1,63 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-097:
+    title: Tokens are declared formats with a lifetime, a signature algorithm, claims as properties under the one wire-name rule, and checks over the claims, after RFC 7519, RFC 7518 and RFC 8725, and a claim fills the caller property of its name
+    status: proposed
+    date: "2026-10-13"
+    context: |
+      An identity service issues access, refresh, step-up, delegated and
+      machine tokens, each with its own claims and lifetime, and the
+      claims were only in prose, so a requirement such as the actor
+      claim never equals the subject could not be checked against the
+      binding. The caller's properties need a declared source.
+    decision: |
+      tokens is an object of the design stage keyed by camelCase name.
+      Each has a format, jwt or opaque; a lifetime; for a JWT a
+      signature naming an algorithm of RFC 7518, with none refused;
+      claims as JSON Schema properties, camelCase like every property
+      and on the wire as info.wireNames says, the registered claims of
+      RFC 7519 written as the RFC names them and carrying its types
+      without being retyped; and checks, bool expressions over the
+      claims, each a derived red case wherever the token is accepted. A
+      claim fills the caller property of the same name, null when the
+      token carried has no such claim; a claim and a caller property of
+      one name and different types are refused. Exactly one token is the
+      default, which every operation accepts unless it names another
+      with token; an operation naming an undeclared token, two defaults
+      and a check over an undeclared claim are refused. Every operation
+      accepting a token derives denied with expired <token>. generate
+      openapi writes the bearer scheme the default token gives. A
+      specification with a session and no tokens writes none of this,
+      and the session fills the caller's properties at sign-in.
+    consequences: |
+      A claim's rule is checked where the token is accepted, and the
+      caller's properties have a declared origin per token without a
+      mapping between the two. Refresh, step-up and machine tokens are
+      formats like any other, told apart by lifetime, claims and the
+      operations that accept them; a token exchange is an operation
+      whose response is the token. The signing key is a secret and is
+      never in a specification.
+    why: |
+      RFC 7519 defines the claims and their meanings, and its registered
+      names are single lower-case words, so the one wire-name rule of
+      info.wireNames (ADR-062), covers a token as it covers every
+      body: a name per claim would be the second way to say a wire name
+      that 0.2 refused. RFC 7518 names the algorithms
+      and RFC 8725 says a verifier must refuse none and pin what it
+      accepts, so none is refused at validation rather than left to each
+      verifier. The algorithm is design and not stack because the
+      verifier is often another service, the interface boundary's test.
+      A claim fills the property of its name rather than through a
+      mapping, because a mapping would be a second place to name the
+      same fact and most claims are the property. One default token
+      rather than a token on every operation, because a service accepts
+      one token nearly everywhere and the exceptions are what is worth
+      writing. The expired case follows the session's, so that a
+      specification with tokens and one with a session derive the same
+      shape of red case.
+    cites:
+      - source: rfc-7519
+        says: "A JWT carries claims as a JSON object; the registered claim names iss, sub, aud, exp, nbf, iat and jti have defined meanings and types."
+      - source: rfc-8725
+        says: "Verifiers must reject the none algorithm and must only accept the algorithms they are configured for."
+    satisfies: [SA-3, SA-5, SA-29]

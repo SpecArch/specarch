@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-095:
+    title: The caller is a declared record, caller.<property> is the one field access an expression may use, and a role's rows rule limits an entity's rows after PostgreSQL's row security policies, with a record outside the rows not found
+    status: proposed
+    date: "2026-10-13"
+    context: |
+      A member sees only their own loans, and a tenant's staff see only
+      their organisation's records. The meta-model names the permission a
+      caller must hold and the roles that grant it, and nothing about the
+      caller beyond that, so the rule could only be written in words. The
+      expression subset refuses field access with a dot, lists and
+      macros, so that every name in a rule is a column of the one record
+      the rule is about (docs/conventions.md, Expressions).
+    decision: |
+      caller is an object of the design stage with the properties of a
+      value object. In an expression, caller.<property> names one of
+      them, checked against the declared properties and typed as a field;
+      a dot anywhere else, an undeclared property, and a field, property
+      or input named caller are refused. A nullable property compares as
+      false when it is null. A role's rows maps an entity to one bool
+      expression over the entity's fields and the caller; a holder reads
+      and changes only the rows it holds for, an entity with no rule is
+      reached whole, and a caller with several roles reaches the union.
+      A list shows only the rows, a read by key outside them answers not
+      found, a write that would leave them is refused, and a job acting
+      as the role sees the rows only; each is a derived case. generate
+      sql writes a policy per rule on PostgreSQL and marks the entry on
+      an engine without row security; generate openapi is unchanged. The
+      roles a caller holds and the client they come through are not
+      properties.
+    consequences: |
+      The library's member rule is a rule the validator checks and the
+      techspec's matrix shows, and its derived cases are tests. A tenant
+      scope is the rule written on each entity that carries the
+      organisation's key. How the caller's values reach the query is the
+      implementation file's. A rule comparing a property the caller may
+      lack needs no null test to be fail-closed.
+    why: |
+      CEL has field access because its values are messages, and SpecArch
+      refused it so that a generator renders every name without a join
+      and the validator types every name against a declared field. The
+      caller is one more declared record, so caller.<property> keeps
+      both guarantees, and CEL's own form is taken rather than a prefix
+      on flat names, which would be a second naming idiom. The rule sits
+      on the role because it says who reaches which rows, as PostgreSQL's
+      CREATE POLICY is granted TO a role, and its permissive policies,
+      combined with OR, are the one widely used model for several roles
+      on one table; the permission stays what may be done. Not found
+      rather than forbidden for a record outside the rows, because
+      answering forbidden tells the caller the record exists, which the
+      OWASP Authorization Cheat Sheet and the object-level authorisation
+      failure of the OWASP API Security Top 10 warn against. The engine
+      without row security gets a mark and not a silent drop, because a
+      rule dropped is a rule the specification claims and the schema does
+      not keep. Roles and clients stay out of expressions because no rule
+      needs them and taking them would bring sets into the language.
+    cites:
+      - source: cel
+        says: "Field selection with a dot reads a field of a message or a key of a map."
+      - source: postgresql-row-security
+        says: "A policy is granted to roles, permissive policies on one table are combined with OR, USING filters the rows read and WITH CHECK refuses rows a change would create or leave outside the policy."
+      - source: owasp-authorization
+        says: "Deny by default, enforce authorisation on every record a caller names, and do not reveal through the answer whether a record the caller may not reach exists."
+    satisfies: [SA-3, SA-5]

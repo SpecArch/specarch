@@ -192,3 +192,32 @@ sources:
     edition: "1.0.0"
     author: The JSON5 project
     url: https://spec.json5.org/
+  rfc-7519:
+    kind: standard
+    title: RFC 7519, JSON Web Token (JWT)
+    edition: "2015"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc7519
+  rfc-8725:
+    kind: standard
+    title: RFC 8725, JSON Web Token Best Current Practices
+    edition: "2020"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc8725
+  rfc-9421:
+    kind: standard
+    title: RFC 9421, HTTP Message Signatures
+    edition: "2024"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc9421
+  postgresql-row-security:
+    kind: document
+    title: PostgreSQL documentation, Row Security Policies and CREATE POLICY
+    edition: "17"
+    author: The PostgreSQL Global Development Group
+    url: https://www.postgresql.org/docs/17/ddl-rowsecurity.html
+  owasp-authorization:
+    kind: document
+    title: OWASP Authorization Cheat Sheet
+    author: OWASP
+    url: https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html

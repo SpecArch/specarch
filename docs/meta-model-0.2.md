@@ -254,7 +254,7 @@ maintain by hand.
 | Candidate | Why it waits |
 |---|---|
 | `guard` | Built. The only open point, a postcondition, is checked by the guarded operational scripts after the change (`docs/generators.md`), so it is the scripts generator's work, which no longer waits on the meta-model. |
-| row-level permissions, gates by client identity or a signed header, token formats | Each needs the caller as something an expression can name: who is asking, through which client, with which claims. They are designed together in 0.3, around that one concept. The four-eyes rule of a workflow needs no expression, so it does not wait. |
+| row-level permissions, gates by client identity or a signed header, token formats | Each needs the caller as something an expression can name: who is asking, through which client, with which claims. They are designed together in `docs/meta-model-0.3.md`, around that one concept. The four-eyes rule of a workflow needs no expression, so it does not wait. |
 | golden tests of a designed but unbuilt command | Already settled: each extract step brings its own golden tests, `extract-not-offered` covers the sources not read yet, and `spec/` validates with no warning. |
 | a fixed expression grammar | The expression subset is fixed by its table in `docs/conventions.md` and by the conformance cases both builds pass. A grammar written beside them would be a second definition to keep equal, and the conformance suite is the one both builds are held to. |
 | interfaces beyond HTTP, messaging and the command line | No project being specified uses gRPC, file exchange or a serial protocol. The menu-bar application on the roadmap will show what a menu-bar interface needs when it is extracted. |

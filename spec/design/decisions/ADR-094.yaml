@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-094:
+    title: Meta-model 0.3 is built around the caller in five steps, and the version moves with the first, which reserves the name caller
+    status: proposed
+    date: "2026-10-13"
+    context: |
+      Specifying a running identity service from its sources found three
+      things the meta-model cannot say: a route open only to named
+      machine clients or closed to everyone, a signed request as a gate,
+      and the claims and lifetimes of the tokens the service issues. The
+      library example carries a fourth in words, in its member role's
+      why: a member sees only loans whose memberId is their own. 0.2 left
+      all four out together because each needs the caller as something
+      an expression can name (ADR-052).
+    decision: |
+      docs/meta-model-0.3.md is the plan. The caller is one declared
+      record, and a role's rows rule, machine clients with a proof and
+      the gates callers and nobody, and token formats are built on it in
+      five steps: the caller and rows in both validator builds, row
+      security in generate sql, clients and gates, tokens, then the
+      readers. Step 1 reserves the name caller wherever an expression's
+      names come from, which refuses a 0.2 file that has a field,
+      property or input of that name once it says 0.3, so the version
+      moves with step 1 and the trees in this repository move with it; a
+      file that stays on 0.2 is read with the meta_model_version warning
+      until 1.0. Every later keyword is an addition. Left out of 0.3:
+      seed data per profile, which two extractions and merge compare;
+      data held in a cache and tables kept but unused, which are the
+      implementation file's; more than one deliverable per
+      specification, which is a second implementation file; the roles or
+      the client in an expression; a route both people and clients call;
+      a shorthand for a tenant scope; and rows rules on a view's own
+      fields.
+    consequences: |
+      A rule that names the caller can be written as soon as step 1
+      lands, and the library's member rule moves from a why into the
+      role. The migration of this repository's trees is one version line
+      per root file, since none has a field named caller. A 0.2 file
+      keeps validating with one warning. The three concepts share one
+      name and one expression form, so a generator that learns to render
+      caller.<property> once renders it for rows, token checks and
+      whatever comes after.
+    why: |
+      Semantic Versioning moves a version for what breaks its users, and
+      the reserved name is the only change here that makes a valid file
+      invalid, as the missing-test rule was in 0.2. It comes first rather
+      than last because every other step writes caller.<property>, and a
+      step that adds an expression form no file may yet use would be
+      building on a version that does not exist. The migration is cheap
+      enough to run first: a version line, not a derived test per
+      subject. The concepts stay together for the reason ADR-052 gave:
+      designing the caller three times would give three ways to name it.
+      Each candidate left out is left out with the reason the plan
+      records, and each is taken only when a real system asks, which is
+      the roadmap's rule for the meta-model.
+    satisfies: [SA-1, SA-3, SA-5]

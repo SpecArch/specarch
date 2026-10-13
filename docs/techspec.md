@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.0-dev of the specification: 61 requirements, 5 entities, 12 commands, 7 algorithms, 400 tests, 92 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.0-dev of the specification: 61 requirements, 5 entities, 12 commands, 7 algorithms, 400 tests, 96 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -6999,6 +6999,177 @@ other target are unchanged.
 
 **Note:** From The JSON5 Data Interchange Format, 1.0.0: JSON5 extends JSON with the object-literal syntax of ECMAScript 5.1: unquoted keys, single-quoted strings, trailing commas and comments. <https://spec.json5.org/>
 
+### ADR-094: Meta-model 0.3 is built around the caller in five steps, and the version moves with the first, which reserves the name caller
+
+Status: proposed, 2026-10-13.
+
+Context: Specifying a running identity service from its sources found three
+things the meta-model cannot say: a route open only to named
+machine clients or closed to everyone, a signed request as a gate,
+and the claims and lifetimes of the tokens the service issues. The
+library example carries a fourth in words, in its member role's
+why: a member sees only loans whose memberId is their own. 0.2 left
+all four out together because each needs the caller as something
+an expression can name (ADR-052).
+
+Decision: docs/meta-model-0.3.md is the plan. The caller is one declared
+record, and a role's rows rule, machine clients with a proof and
+the gates callers and nobody, and token formats are built on it in
+five steps: the caller and rows in both validator builds, row
+security in generate sql, clients and gates, tokens, then the
+readers. Step 1 reserves the name caller wherever an expression's
+names come from, which refuses a 0.2 file that has a field,
+property or input of that name once it says 0.3, so the version
+moves with step 1 and the trees in this repository move with it; a
+file that stays on 0.2 is read with the meta_model_version warning
+until 1.0. Every later keyword is an addition. Left out of 0.3:
+seed data per profile, which two extractions and merge compare;
+data held in a cache and tables kept but unused, which are the
+implementation file's; more than one deliverable per
+specification, which is a second implementation file; the roles or
+the client in an expression; a route both people and clients call;
+a shorthand for a tenant scope; and rows rules on a view's own
+fields.
+
+Consequences: A rule that names the caller can be written as soon as step 1
+lands, and the library's member rule moves from a why into the
+role. The migration of this repository's trees is one version line
+per root file, since none has a field named caller. A 0.2 file
+keeps validating with one warning. The three concepts share one
+name and one expression form, so a generator that learns to render
+caller.<property> once renders it for rows, token checks and
+whatever comes after.
+
+**Insight:** Semantic Versioning moves a version for what breaks its users, and the reserved name is the only change here that makes a valid file invalid, as the missing-test rule was in 0.2. It comes first rather than last because every other step writes caller.<property>, and a step that adds an expression form no file may yet use would be building on a version that does not exist. The migration is cheap enough to run first: a version line, not a derived test per subject. The concepts stay together for the reason ADR-052 gave: designing the caller three times would give three ways to name it. Each candidate left out is left out with the reason the plan records, and each is taken only when a real system asks, which is the roadmap's rule for the meta-model.
+
+### ADR-095: The caller is a declared record, caller.<property> is the one field access an expression may use, and a role's rows rule limits an entity's rows after PostgreSQL's row security policies, with a record outside the rows not found
+
+Status: proposed, 2026-10-13.
+
+Context: A member sees only their own loans, and a tenant's staff see only
+their organisation's records. The meta-model names the permission a
+caller must hold and the roles that grant it, and nothing about the
+caller beyond that, so the rule could only be written in words. The
+expression subset refuses field access with a dot, lists and
+macros, so that every name in a rule is a column of the one record
+the rule is about (docs/conventions.md, Expressions).
+
+Decision: caller is an object of the design stage with the properties of a
+value object. In an expression, caller.<property> names one of
+them, checked against the declared properties and typed as a field;
+a dot anywhere else, an undeclared property, and a field, property
+or input named caller are refused. A nullable property compares as
+false when it is null. A role's rows maps an entity to one bool
+expression over the entity's fields and the caller; a holder reads
+and changes only the rows it holds for, an entity with no rule is
+reached whole, and a caller with several roles reaches the union.
+A list shows only the rows, a read by key outside them answers not
+found, a write that would leave them is refused, and a job acting
+as the role sees the rows only; each is a derived case. generate
+sql writes a policy per rule on PostgreSQL and marks the entry on
+an engine without row security; generate openapi is unchanged. The
+roles a caller holds and the client they come through are not
+properties.
+
+Consequences: The library's member rule is a rule the validator checks and the
+techspec's matrix shows, and its derived cases are tests. A tenant
+scope is the rule written on each entity that carries the
+organisation's key. How the caller's values reach the query is the
+implementation file's. A rule comparing a property the caller may
+lack needs no null test to be fail-closed.
+
+**Insight:** CEL has field access because its values are messages, and SpecArch refused it so that a generator renders every name without a join and the validator types every name against a declared field. The caller is one more declared record, so caller.<property> keeps both guarantees, and CEL's own form is taken rather than a prefix on flat names, which would be a second naming idiom. The rule sits on the role because it says who reaches which rows, as PostgreSQL's CREATE POLICY is granted TO a role, and its permissive policies, combined with OR, are the one widely used model for several roles on one table; the permission stays what may be done. Not found rather than forbidden for a record outside the rows, because answering forbidden tells the caller the record exists, which the OWASP Authorization Cheat Sheet and the object-level authorisation failure of the OWASP API Security Top 10 warn against. The engine without row security gets a mark and not a silent drop, because a rule dropped is a rule the specification claims and the schema does not keep. Roles and clients stay out of expressions because no rule needs them and taking them would bring sets into the language.
+
+**Note:** From Common Expression Language, language definition, 2024: Field selection with a dot reads a field of a message or a key of a map. <https://github.com/google/cel-spec/blob/master/doc/langdef.md>
+
+**Note:** From PostgreSQL documentation, Row Security Policies and CREATE POLICY, 17: A policy is granted to roles, permissive policies on one table are combined with OR, USING filters the rows read and WITH CHECK refuses rows a change would create or leave outside the policy. <https://www.postgresql.org/docs/17/ddl-rowsecurity.html>
+
+**Note:** From OWASP Authorization Cheat Sheet: Deny by default, enforce authorisation on every record a caller names, and do not reveal through the answer whether a record the caller may not reach exists. <https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html>
+
+### ADR-096: Machine callers are clients that hold roles with a proof per request after RFC 9421, an operation says callers clients, and nobody is a reserved permission for a route closed on purpose
+
+Status: proposed, 2026-10-13.
+
+Context: An identity service serves routes open only to named machine
+clients by client identity, routes that also require a signed
+request header, and a route deliberately closed to everyone. Each
+had to be written as a permission with prose, which loses the
+default-deny caller list and the signature, and the closed route
+needed a placeholder role because a permission no role grants is a
+fail-closed error.
+
+Decision: clients is an object of the design stage keyed by kebab-case name:
+a program that calls the system, with the roles it holds and a
+proof, how it proves its identity on each request: signedRequest
+with an algorithm RFC 9421 registers and the covered components it
+signs, mutualTls, or a token format. An operation or command may
+say callers clients, which refuses every person's session and
+admits only a declared client holding a granting role; left out,
+it admits people and refuses clients. The validator refuses a
+callers clients operation whose permission no client's role grants,
+a proof with an unregistered algorithm or a covered component that
+is not a request part, and a client naming an undeclared role. The
+permission nobody is reserved beside public: a route with it is
+served and refuses every caller, no role is asked to grant it, and
+nobody with enabledBy is an error. Derived cases: refused for a
+signed-in person, refused with a bad signature, refused for every
+caller.
+
+Consequences: A machine route's caller list is the clients whose roles grant its
+permission, read from the specification, and the signature it
+needs is on the client. A route closed by intent and a permission
+forgotten in the roles are told apart by the word, so the
+fail-closed error keeps its meaning. A route both people and
+clients call is two operations with one handler. The key a client
+signs with is a secret and is never in a specification.
+
+**Insight:** A client holds roles rather than being named on the operation so that what may be done is said once, through permissions, and the fail-closed rule stays one rule; the default-deny list the handoff asked for is then the clients holding a granting role, with callers clients keeping people out. RFC 9421 is taken for the signed request because it is the published form of signing named parts of an HTTP message, with a registry of algorithms and the covered-component names, so a specification does not invent a signature scheme; the algorithm is design because the client cannot sign without knowing it, the interface boundary's test. A closed route is written with a reserved permission rather than a switch on the operation because public already says the open end of the same scale, and a second keyword would be a second way to say who may call. It stays served, in the OpenAPI document and the techspec, because a client that still calls it should get the declared problem document and not a 404 that looks like a wrong path.
+
+**Note:** From RFC 9421, HTTP Message Signatures, 2024: A signature covers named components of an HTTP message, such as @method, @path and a header field, using an algorithm from the HTTP Signature Algorithms registry. <https://www.rfc-editor.org/rfc/rfc9421>
+
+### ADR-097: Tokens are declared formats with a lifetime, a signature algorithm, claims as properties under the one wire-name rule, and checks over the claims, after RFC 7519, RFC 7518 and RFC 8725, and a claim fills the caller property of its name
+
+Status: proposed, 2026-10-13.
+
+Context: An identity service issues access, refresh, step-up, delegated and
+machine tokens, each with its own claims and lifetime, and the
+claims were only in prose, so a requirement such as the actor
+claim never equals the subject could not be checked against the
+binding. The caller's properties need a declared source.
+
+Decision: tokens is an object of the design stage keyed by camelCase name.
+Each has a format, jwt or opaque; a lifetime; for a JWT a
+signature naming an algorithm of RFC 7518, with none refused;
+claims as JSON Schema properties, camelCase like every property
+and on the wire as info.wireNames says, the registered claims of
+RFC 7519 written as the RFC names them and carrying its types
+without being retyped; and checks, bool expressions over the
+claims, each a derived red case wherever the token is accepted. A
+claim fills the caller property of the same name, null when the
+token carried has no such claim; a claim and a caller property of
+one name and different types are refused. Exactly one token is the
+default, which every operation accepts unless it names another
+with token; an operation naming an undeclared token, two defaults
+and a check over an undeclared claim are refused. Every operation
+accepting a token derives denied with expired <token>. generate
+openapi writes the bearer scheme the default token gives. A
+specification with a session and no tokens writes none of this,
+and the session fills the caller's properties at sign-in.
+
+Consequences: A claim's rule is checked where the token is accepted, and the
+caller's properties have a declared origin per token without a
+mapping between the two. Refresh, step-up and machine tokens are
+formats like any other, told apart by lifetime, claims and the
+operations that accept them; a token exchange is an operation
+whose response is the token. The signing key is a secret and is
+never in a specification.
+
+**Insight:** RFC 7519 defines the claims and their meanings, and its registered names are single lower-case words, so the one wire-name rule of info.wireNames (ADR-062), covers a token as it covers every body: a name per claim would be the second way to say a wire name that 0.2 refused. RFC 7518 names the algorithms and RFC 8725 says a verifier must refuse none and pin what it accepts, so none is refused at validation rather than left to each verifier. The algorithm is design and not stack because the verifier is often another service, the interface boundary's test. A claim fills the property of its name rather than through a mapping, because a mapping would be a second place to name the same fact and most claims are the property. One default token rather than a token on every operation, because a service accepts one token nearly everywhere and the exceptions are what is worth writing. The expired case follows the session's, so that a specification with tokens and one with a session derive the same shape of red case.
+
+**Note:** From RFC 7519, JSON Web Token (JWT), 2015: A JWT carries claims as a JSON object; the registered claim names iss, sub, aud, exp, nbf, iat and jti have defined meanings and types. <https://www.rfc-editor.org/rfc/rfc7519>
+
+**Note:** From RFC 8725, JSON Web Token Best Current Practices, 2020: Verifiers must reject the none algorithm and must only accept the algorithms they are configured for. <https://www.rfc-editor.org/rfc/rfc8725>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -7638,11 +7809,11 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 
 | Requirement | Satisfied by | Verified by |
 |---|---|---|
-| SA-1 | enums DocumentKind; entities SpecFile; commands validate; decisions ADR-003; decisions ADR-006; decisions ADR-007; decisions ADR-009; decisions ADR-052; decisions ADR-055; decisions ADR-060; decisions ADR-063; decisions ADR-072 | tests validate-meta-model-0-1-missing-test; tests validate-meta-model-0-2-missing-test; tests validate-schema-name-form; tests validate-schema-untyped-integer; tests validate-valid-design; checks checks-the-examples; monitors main-stays-green |
+| SA-1 | enums DocumentKind; entities SpecFile; commands validate; decisions ADR-003; decisions ADR-006; decisions ADR-007; decisions ADR-009; decisions ADR-052; decisions ADR-055; decisions ADR-060; decisions ADR-063; decisions ADR-072; decisions ADR-094 | tests validate-meta-model-0-1-missing-test; tests validate-meta-model-0-2-missing-test; tests validate-schema-name-form; tests validate-schema-untyped-integer; tests validate-valid-design; checks checks-the-examples; monitors main-stays-green |
 | SA-2 | enums Rule; commands validate; algorithms referenceResolves; decisions ADR-061 | tests validate-duplicate-name-across-files; tests validate-enabled-by; tests validate-environment; tests validate-need; tests validate-ref-type; tests validate-relation-target; tests validate-requirement-set; tests validate-stakeholder |
-| SA-3 | enums Rule; commands validate; decisions ADR-004; decisions ADR-047; decisions ADR-061 | tests validate-expression-date-days; tests validate-expression-date-number; tests validate-expression-in-stage-file; tests validate-expression-syntax; tests validate-expression-type; tests validate-unique-where |
+| SA-3 | enums Rule; commands validate; decisions ADR-004; decisions ADR-047; decisions ADR-061; decisions ADR-094; decisions ADR-095; decisions ADR-097 | tests validate-expression-date-days; tests validate-expression-date-number; tests validate-expression-in-stage-file; tests validate-expression-syntax; tests validate-expression-type; tests validate-unique-where |
 | SA-4 | enums Rule; commands validate; algorithms workedExampleHolds; decisions ADR-004 | tests validate-example-mismatch |
-| SA-5 | enums Rule; commands validate; algorithms permissionGranted; algorithms separationOfDuties; decisions ADR-006; decisions ADR-053; decisions ADR-054 | tests validate-permission-undeclared; tests validate-permission-ungranted; tests validate-permission-ungranted-without-description; tests validate-question-covers-problem; tests validate-question-covers-ungranted; tests validate-schema-operation-without-permission; tests validate-separation-of-duties |
+| SA-5 | enums Rule; commands validate; algorithms permissionGranted; algorithms separationOfDuties; decisions ADR-006; decisions ADR-053; decisions ADR-054; decisions ADR-094; decisions ADR-095; decisions ADR-096; decisions ADR-097 | tests validate-permission-undeclared; tests validate-permission-ungranted; tests validate-permission-ungranted-without-description; tests validate-question-covers-problem; tests validate-question-covers-ungranted; tests validate-schema-operation-without-permission; tests validate-separation-of-duties |
 | SA-6 | enums Rule; enums Severity; entities Diagnostic; commands validate; algorithms exitStatus; decisions ADR-005; decisions ADR-008 | tests validate-usage-error; tests validate-yaml-syntax; tests version-prints-versions; checks installs-and-answers |
 | SA-7 | enums DocumentTarget; enums GeneratorTarget; entities GeneratedFile; commands document; commands generate; algorithms checkStatus; decisions ADR-013; decisions ADR-073 | tests document-check-differs; tests document-check-invalid; tests document-two-implementations; tests document-writes-techspec; tests generate-plugin-path-outside; tests generate-with-plugin; checks checks-the-examples; monitors main-stays-green |
 | SA-8 | entities GeneratedFile; commands document; commands generate; algorithms markersWellFormed | tests document-entity-diagram; tests document-two-implementations; tests document-writes-techspec |
@@ -7666,7 +7837,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-26 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-releases |
 | SA-27 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
 | SA-28 | commands derive; decisions ADR-055 | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-meta-model-0-2; tests derive-meta-model-0-2-other-error; tests derive-name-taken; tests derive-page-elements; tests derive-page-named-after-operation; tests derive-root-tests; tests derive-skips-blocked; tests derive-task-page-checks; tests derive-usage-error; tests derive-writes-drafts; tests merge-takes-derived-drafts |
-| SA-29 | enums Rule; commands validate; decisions ADR-021 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
+| SA-29 | enums Rule; commands validate; decisions ADR-021; decisions ADR-097 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
 | SA-30 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests gaps-outline-not-read; tests validate-mapping-origin |
 | SA-31 | commands generate; decisions ADR-041; decisions ADR-078 | tests generate-stack-fallback; tests generate-stack-plugin; tests generate-tests-dart; tests generate-tests-framework-refused; tests generate-tests-go; tests generate-tests-swift; tests generate-tests-value-objects |
 | SA-32 | commands idioms; commands idioms diff; decisions ADR-023; decisions ADR-028 | tests idioms-diff; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-lists-ui-framework; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems; tests validate-idiom-stack-framework |
@@ -7727,11 +7898,16 @@ Every source a Note in this document cites.
 | mil-std-961 | MIL-STD-961E, Defense and program-unique specifications format and content | 2003, with change 3 of 2020 | United States Department of Defense |   |
 | moscow | MoSCoW prioritisation, in the DSDM Agile Project Framework handbook | 2014 | Agile Business Consortium | https://www.agilebusiness.org/dsdm-project-framework/moscow-prioritisation.html |
 | openapi | OpenAPI Specification | 3.1.0 | OpenAPI Initiative | https://spec.openapis.org/oas/v3.1.0 |
+| owasp-authorization | OWASP Authorization Cheat Sheet |   | OWASP | https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html |
 | owasp-session-management | OWASP Session Management Cheat Sheet |   | OWASP | https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html |
+| postgresql-row-security | PostgreSQL documentation, Row Security Policies and CREATE POLICY | 17 | The PostgreSQL Global Development Group | https://www.postgresql.org/docs/17/ddl-rowsecurity.html |
 | protoc-plugins | Protocol buffers compiler plug-in protocol, plugin.proto | 2024 | The protocol buffers project | https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto |
 | rfc-3986 | RFC 3986, Uniform Resource Identifier (URI): Generic Syntax | 2005 | IETF | https://www.rfc-editor.org/rfc/rfc3986 |
 | rfc-6901 | RFC 6901, JavaScript Object Notation (JSON) Pointer | 2013 | IETF | https://www.rfc-editor.org/rfc/rfc6901 |
+| rfc-7519 | RFC 7519, JSON Web Token (JWT) | 2015 | IETF | https://www.rfc-editor.org/rfc/rfc7519 |
+| rfc-8725 | RFC 8725, JSON Web Token Best Current Practices | 2020 | IETF | https://www.rfc-editor.org/rfc/rfc8725 |
 | rfc-9110 | RFC 9110, HTTP Semantics | 2022 | IETF | https://www.rfc-editor.org/rfc/rfc9110 |
+| rfc-9421 | RFC 9421, HTTP Message Signatures | 2024 | IETF | https://www.rfc-editor.org/rfc/rfc9421 |
 | rfc-9457 | RFC 9457, Problem Details for HTTP APIs | 2023 | IETF | https://www.rfc-editor.org/rfc/rfc9457 |
 | sarif | Static Analysis Results Interchange Format (SARIF) Version 2.1.0 | 2020 | OASIS | https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html |
 | semver | Semantic Versioning | 2.0.0 | The Semantic Versioning project | https://semver.org/spec/v2.0.0.html |

@@ -217,12 +217,14 @@ on an operation, and menus; and the concepts the red paths of
 `docs/test-generation.md` needed, `dependencies` with a time limit per
 call, `idempotencyKey`, `validity` on an entity and `session`.
 
-Waiting for 0.3, around the caller as something an expression can name:
-row-level permissions (a member sees only their own loans), gates by
-client identity or a signed request, and token formats. Not planned until
-a project asks: interfaces beyond HTTP, messaging and the command line;
-sets and lists in the expression language; seed data per profile; more
-than one deliverable per specification.
+Meta-model 0.3 is the caller as something an expression can name, and
+what rests on it: the rows a role reaches (a member sees only their own
+loans), machine clients and the gates on a route that are not a
+permission, and token formats. `docs/meta-model-0.3.md` is the plan: what
+is taken, what waits and why, and five steps, each with what done looks
+like. Not planned until a project asks: interfaces beyond HTTP, messaging
+and the command line; sets and lists in the expression language; seed
+data per profile; more than one deliverable per specification.
 
 ## 6. Changes, defects, releases and operation
 

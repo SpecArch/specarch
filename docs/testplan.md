@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 448 design tests, 200 golden and 248 red, about 15 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 449 design tests, 200 golden and 249 red, about 15 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 448 design tests, 200 golden and 248 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 444 |
+| system | 445 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1998,6 +1998,14 @@ Scenario: red; level: system; verifies SA-45.
 - Given: the tree of an OpenAPI document whose POST /v1/things and PUT /v1/things/{id} take request bodies that refer to the schemas CreateThingRequest and UpdateThingRequest, and the tree of the Go source whose handlers decode them into structs written in place: the first with name as an integer where the schema says string, with a question on its width, and the second with a property extra the schema does not list
 - When: merge is run on the two trees
 - Then: the first request body's schema is left out with a must question that names the property whose type differs, the Go tree's width question moves up to that position, the second keeps its reference with a should question naming the property only the code writes, and the merged specification validates with no error; it exits 0
+
+#### merge-schema-reference-field-differs
+
+Scenario: red; level: system; verifies SA-45.
+
+- Given: an interface tree whose entity Members holds a required field address that refers to the schema Address, and a database tree whose Members has address as a string column
+- When: merge is run on the two trees
+- Then: the field is left out of Members and of its required list, a must question names that Address is an object and the column a string, and the merged specification validates with no error; it exits 0
 
 #### merge-source-differs
 

@@ -765,6 +765,18 @@ func (m *merger) removeDisputed() {
 		steps := m.disputes[k]
 		parent := m.walk(steps[:len(steps)-1])
 		deleteKey(parent, steps[len(steps)-1].key)
+		// A field of an entity left out whole, as one a reference and a
+		// shape in place disagree on is (ADR-117), leaves its entity's
+		// required list too: a list may only name the fields the entity
+		// has.
+		if len(steps) == 4 && steps[0].key == "entities" && steps[2].key == "properties" {
+			entity := m.entries["entities/"+steps[1].key]
+			required := source.Child(entity, "required")
+			dropItem(required, steps[3].key)
+			if required != nil && len(required.Content) == 0 {
+				deleteKey(entity, "required")
+			}
+		}
 	}
 }
 

@@ -398,18 +398,22 @@ right answer and no more.
 A documented plug-in reader was asked for, or a neutral format a
 project printer writes. The format is taken, the pattern of the route
 table (ADR-044) and the permission table (ADR-050): SpecArch defines
-the workflow table, `workflowTable: 1`, the folder and the commit, and
-every workflow as its name, description, trigger (the operation's name,
-or null, and the form's fields with their types), its steps in order
-(an approval with its roles, deadline and what happens on the deadline,
-or an operation by name) and how it ends. The project's printer reads
+the workflow table (ADR-118), `workflowTable: 1`, the folder and the
+commit, and every workflow as its name, its file, its description, its
+trigger (the operation's name, or null, and the form's fields with
+their types), its steps in order (an approval with its approvers,
+deadline, `onDeadline` and `escalateTo`, an operation step by its
+operation's name, or a step of kind `other` the subset does not hold)
+and how it ends, the messages it emits. The project's printer reads
 what the engine loads, which answers the two-folders question by
 construction, since the printer runs the seeding script's own choice.
 `extract workflows --table` reads it into the 0.2 workflow object with
 the questions the BPMN reader asks: the trigger's and each step's
 operation left out with a `must` question carrying the name under
 `names`, which `merge` fills from the router's tree; the approval's
-permission and the subject asked for. A plug-in that writes elements
+permission and the subject asked for; the form's fields and the
+messages emitted, which a 0.2 workflow has no key for, are each a line
+and a `could` question. A plug-in that writes elements
 would put extract's rules in a second place and is the one thing the
 readers' test forbids; a plug-in reader protocol waits until a format
 appears that a printer cannot flatten.

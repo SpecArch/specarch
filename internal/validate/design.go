@@ -171,6 +171,7 @@ func distance(a, b string) int {
 
 func (c *checker) checkDesign(d *design) {
 	c.checkRefs(d)
+	c.checkReferences(d)
 	c.checkIntegers()
 	c.checkRequirementLinks(d.root, nil, d)
 	c.checkCitations(d.root, nil, d)
@@ -414,6 +415,15 @@ func (c *checker) checkRelation(d *design, entity string, fields map[string]*yam
 	base := []string{"entities", entity, "relations", p.Key.Value}
 	targetNode := source.Child(p.Value, "target")
 	target := source.Str(targetNode)
+	if isCross(target) {
+		// Another specification's entity: the reference is checked
+		// there; only the field this entity keeps is checked here.
+		kind := source.Str(source.Child(p.Value, "kind"))
+		if via := source.Child(p.Value, "via"); via != nil && (kind == "many-to-one" || kind == "one-to-one") && fields[via.Value] == nil {
+			c.add(via, source.Pointer(append(base, "via")...), RuleRelationVia, "%s is not a field of %s; for this kind of relation, via names the field on %s that holds the key%s", via.Value, entity, entity, suggest(via.Value, fields))
+		}
+		return
+	}
 	if target != "" && d.entities[target] == nil && d.schemas[target] != nil {
 		c.add(targetNode, source.Pointer(append(base, "target")...), RuleValueObject,
 			"%s is a schema, a value with no identity, and a relation leads to a record; give %s a key and make it an entity, or hold its fields in %s", target, target, entity)
@@ -608,6 +618,9 @@ func (c *checker) checkPages(d *design) {
 		ent := source.Str(entNode)
 		if source.Str(source.Child(pg, "kind")) == "task" {
 			c.checkTaskPage(d, name, pg)
+		} else if isCross(ent) {
+			// A list of another specification: its fields are checked
+			// with the reference.
 		} else if ent != "" && d.entities[ent] == nil {
 			c.add(entNode, source.Pointer(append(base, "entity")...), RuleRefType, "%s is not an entity of the specification%s", ent, suggest(ent, d.entities))
 		} else if ent != "" {
@@ -621,7 +634,7 @@ func (c *checker) checkPages(d *design) {
 		}
 		for _, key := range []string{"source", "submit"} {
 			n := source.Child(pg, key)
-			if id := source.Str(n); id != "" && d.operations[id].node == nil {
+			if id := source.Str(n); id != "" && !isCross(id) && d.operations[id].node == nil {
 				c.add(n, source.Pointer(append(base, key)...), RuleOperation, "%s is not an operationId of the specification%s", id, suggest(id, opNames))
 			}
 		}

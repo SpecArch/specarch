@@ -299,6 +299,7 @@ requirements:
       - Two roles that map to one wire name are refused as wire_name at the second, the same in both builds.
       - specarch extract permissions and extract go read a source whose roles are all in upper snake case into kebab-case roles and info.roleNames, and leave out with a line, as before, a role of a source that names roles both ways and a name that does not come back the same.
       - specarch generate go-dxlib writes each role's name id in the wire form, and the techspec names each role's wire form.
+      - specarch merge asks a must question, and leaves info.roleNames out, when one tree whose roles grant permissions says upper_snake and another says nothing of it.
     verification: test
     needs: [NEED-2]
     why: A system whose token's roles claim and permission tables write DESK_SUPERVISOR came out of extract permissions with no role at all, and a specification that wrote its roles in upper case would break the one naming rule every role and its generated names follow.
@@ -315,3 +316,18 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: A system checked by pattern rows names no permission anywhere, and a role with a `*` row beside a `get` row came out of a printer with two names and nothing saying one covers the other; the matrix a reviewer reads has to show what each role reaches.
+  SA-65:
+    statement: A specification shall be able to name an element of another specification through a dependency, and specarch validate shall check such a reference against that specification when it is given in the same run, and count it as unresolved, not as an error, when it is not.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - info.name gives a specification its name; a dependency's specification and version name another specification and the info.version its references were written against, each only with the other.
+      - <dependency>#/<pointer> stands in a field's $ref (an entity, enum, view or schema), a many-to-one or one-to-one relation's target and a list page's entity (an entity), and a picker's source, a list page's source and an entry of calls (an operation as #/paths/<path>/<method>).
+      - A reference through a name that is not a dependency, through a dependency with no specification, in a one-to-many or many-to-many relation, on a page that is not a list, or whose page or picker reads one specification's list for another's entity is refused as reference at the entry, the same in both builds.
+      - Given the other specification in the same run, an element it does not have, a list that does not list the entity, a column, filter or picked field the entity does not have, and a dependency whose version is not the other's info.version are refused as reference at the entry, the same in both builds.
+      - A reference whose specification is not given, or whose element is blocked there by a must question, is counted in validate's summary as unresolved and listed in gaps and the questions document, and validate exits 0 for it.
+      - specarch generate sql writes the column of a relation to another specification's entity with no foreign key, and the techspec names each reference with the specification and version it points at.
+    verification: test
+    needs: [NEED-2]
+    why: An estate of modules owned by different teams is specified one module at a time, and a module keeps another's customer number, picks from another's list and calls another's operations; with $ref reaching only its own specification, those links were prose, and nothing checked them when the two specifications met.

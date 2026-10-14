@@ -1,0 +1,11 @@
+arguments: [merge, --out, spec, trees/upper, trees/named]
+exitStatus: 0
+standardOutput: |
+  tree trees/upper: Permissions of access, on the code, printed side: 8 elements and 5 questions
+  tree trees/named: Lending desk grants, on the code side: 6 elements and 2 questions
+  asked twice: Q-1 of trees/named, on #/roles/desk-staff/description, is left out; Q-1 of trees/upper asks it
+  merged 10 elements, each an entry of a section or an operation: 4 in more than one tree, and 1 key the trees disagree on
+  wrote 8 questions: 6 from the trees, numbered again in the order the trees are given, and 2 the merge asked
+  question Q-7 (must): #/roles/desk-staff/permissions: the trees disagree
+  question Q-8 (must): info.roleNames: the trees disagree
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

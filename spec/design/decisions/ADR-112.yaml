@@ -1,0 +1,112 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-112:
+    title: A specification names an element of another through a dependency as <dependency>#/<pointer>, resolved when that specification is given in the same run and counted as unresolved otherwise; and merge asks when two trees disagree on how roles go on the wire
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      Point 2 of docs/estate.md, build item 5, and the owner's decision 2
+      there: a reference is <dependency>#/<pointer> through dependencies,
+      in $ref's own URI form. An estate of modules owned by different teams
+      is specified one module at a time, and a module keeps another's
+      customer number, picks from another's list and calls another's
+      operations; $ref reached only the same specification, and calls
+      named a system, not an element of it. The plan named a dependency's
+      specification as the key the umbrella lists it under, which is build
+      item 6, while this item has to resolve two specifications given
+      together without one. The dispatcher added the open point of
+      ADR-099: merge took info.roleNames from whichever tree stated it and
+      asked nothing when another tree read its roles as named.
+    decision: |
+      info gains name, the specification's name in kebab case. A
+      dependency gains specification, another specification's info.name,
+      and version, the info.version its references were written against,
+      each only with the other. A reference is the dependency's name, #,
+      and a JSON pointer into that specification; it stands in a field's
+      $ref (an entity, enum, view or schema), a many-to-one or one-to-one
+      relation's target and a list page's entity (an entity), and a
+      picker's source, a list page's source and an entry of calls (an
+      operation, as #/paths/<path>/<method> with the path's slashes
+      written ~1). A bare calls entry names the system, as before, and is
+      not a reference.
+      validate, gaps, document and generate read every specification they
+      are given before checking any. Given the specification alone, the
+      validator refuses, as reference at the entry, a name that is not a
+      dependency, a dependency with no specification, a one-to-many or
+      many-to-many relation to another specification's entity, another
+      specification's list on a page that is not a list, and a page or
+      picker whose entity and list are not of one dependency; every other
+      reference is counted in the summary line as unresolved, listed in
+      gaps and the questions document with where it stands, and the
+      specification validates with no error for it. Given the specification
+      the dependency names in the same run, each reference resolves there:
+      an element it does not have, a list that does not list the entity it
+      is read for, a column, filter, shown or filled field the entity does
+      not have, and a dependency whose version is not the other's
+      info.version are reference errors at the entry; a reference to an
+      element a must question blocks there waits on that question, named in
+      gaps. Two specifications given under one name make every reference to
+      the name an error.
+      Generators read one specification. generate sql writes the column a
+      relation to another specification's entity keeps, typed as its own
+      via field, with no foreign key and a comment naming the
+      specification, version and dependency, and a later migration adds or
+      drops no foreign key for it. A field typed by another specification's
+      element is refused as reference at the field by every code target
+      that would write it (sql only for entities and views), and the UI
+      targets refuse a list page or picker reading another specification's
+      list; the idiom contract does not ask a row for such a field. The
+      techspec names each reference with the specification and version.
+      merge leaves info.roleNames out and asks one must question blocking
+      roles when two trees whose roles grant permissions differ: one says
+      upper_snake and another says nothing of it. info.wireNames is taken
+      as before.
+    why: |
+      The name is on the specification, not only in the umbrella, because
+      two modules given to one run have to find each other without an
+      umbrella, and a folder's name is not the module's (a module's
+      specification sits in a folder named spec); the umbrella's key is
+      then checked equal to info.name, so it is one name said once and
+      checked where it is repeated, as version is. The pointer form is
+      JSON Schema's own (a $ref is a URI reference, RFC 3986 section 4.1,
+      whose fragment is a JSON pointer, RFC 6901), which the rule for new
+      keywords asks for, with the dependency's name standing for the
+      document: a dependency already is the other system and carries its
+      time limit, so the reference adds no second registry. An operation
+      is named by its path and method rather than its operationId because
+      a pointer is a path into the document, and an operationId is a name
+      the other team may change without moving the operation.
+      Only to-one relations may cross, because their key is a field this
+      module keeps; a one-to-many relation's via is in the other module's
+      table and a many-to-many's join is in neither, so neither could be
+      checked or generated across two databases. A page of another
+      module's records is a list because a form or view loads and writes
+      one record through this module's own operations.
+      An unresolved reference is a counted gap and not an error by the
+      compiler test: one module alone is readable and validates, and the
+      error comes only where the other specification contradicts it, at
+      the entry. A reference to a blocked element waits on the question
+      rather than resolving, so the answer there is what unblocks it here.
+      Generators refuse at the entry rather than guess: a column typed by
+      a schema this run has not read would be a type made up, and inlining
+      the schema needs the other specification, which arrives with
+      generation over the estate (build item 6). The SQL column needs no
+      foreign key across databases, which is the design the plan asked for.
+      roleNames: a tree whose roles grant permissions was read from where a
+      permission check reads them, so its silence on roleNames says the
+      roles go on the wire as named; two such trees that differ are a
+      disagreement, and a disagreement is a question, never a pick. A
+      tree's silence on wireNames does not say the names go as written,
+      since most readers (the database, documents, a router) never see a
+      body, so it stays as it was.
+      Acceptance test: a module is shown on its own, with its references
+      listed as gaps, and two modules' consistency is checked by giving
+      both in one run, before the umbrella exists.
+    consequences: |
+      A module validates alone, with its references counted and listed,
+      and is checked against another by naming both. A specification with
+      no reference validates, documents and generates byte for byte as
+      before. Until estate generation, a module whose fields are typed by
+      another's schema gets no OpenAPI document or Go code for them; its
+      SQL and documents are written.
+    satisfies: [SA-65, SA-62]

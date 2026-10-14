@@ -65,6 +65,15 @@ type State struct {
 	// Site is what the html target shows that other generators make, and
 	// the problems it lists.
 	Site *SiteParts
+	// References are the references into other specifications that the
+	// run could not resolve, in document order.
+	References []Reference
+}
+
+// Reference is one reference into another specification that waits: the
+// specification is not given, or the element is blocked there.
+type Reference struct {
+	Path, Text, Specification, Version, Waits string
 }
 
 // LeftOut is one derived case the test plan lists as left out.
@@ -345,6 +354,21 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 			d.blank()
 			d.explain(q.node)
 		}
+	}
+
+	if state != nil && len(state.References) > 0 {
+		d.section("References to other specifications")
+		says := "1 reference names an element of another specification and is not resolved in this run"
+		if n := len(state.References); n != 1 {
+			says = fmt.Sprintf("%d references name elements of other specifications and are not resolved in this run", n)
+		}
+		d.para(says + ": the specification named is not given with this one, or the element is blocked there by a must question. Give the other specification in the same run to check them; until then they are gaps, not errors.")
+		d.line("| At | Reference | Specification | Waits on |")
+		d.line("|---|---|---|---|")
+		for _, r := range state.References {
+			d.line("| %s | %s | %s %s | %s |", cell(r.Path), cell(r.Text), r.Specification, r.Version, cell(r.Waits))
+		}
+		d.blank()
 	}
 
 	d.coverage(root, impls)

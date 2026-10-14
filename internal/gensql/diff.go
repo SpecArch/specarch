@@ -225,12 +225,12 @@ func (g *gen) diffEntity(s *steps, name string, prev, cur, prevEnums, curEnums m
 	var fks []string
 	prel, crel := relationsByVia(prev), relationsByVia(cur)
 	for _, via := range sortedKeys(prel) {
-		if crel[via] == nil || !reflect.DeepEqual(prel[via], crel[via]) {
+		if (crel[via] == nil || !reflect.DeepEqual(prel[via], crel[via])) && !elsewhere(obj0(prel[via])) {
 			s.add(g.dropForeignKey(tn, "fk_"+tn+"_"+snake(via)))
 		}
 	}
 	for _, via := range sortedKeys(crel) {
-		if prel[via] == nil || !reflect.DeepEqual(prel[via], crel[via]) {
+		if (prel[via] == nil || !reflect.DeepEqual(prel[via], crel[via])) && !elsewhere(obj0(crel[via])) {
 			fks = append(fks, g.foreignKey(tn, obj0(crel[via])))
 		}
 	}
@@ -446,4 +446,11 @@ func (g *gen) dropForeignKey(t, name string) string {
 		return "ALTER TABLE " + t + " DROP FOREIGN KEY " + name
 	}
 	return "ALTER TABLE " + t + " DROP CONSTRAINT " + name
+}
+
+// elsewhere says whether a relation leads to another specification's
+// entity, whose table is in another database, so it has no foreign key.
+func elsewhere(rel map[string]any) bool {
+	dep, _, ok := strings.Cut(text(rel["target"]), "#")
+	return ok && dep != ""
 }

@@ -22,6 +22,7 @@ const (
 	RuleRefType                Rule = "ref_type"
 	RuleRelationTarget         Rule = "relation_target"
 	RuleRelationVia            Rule = "relation_via"
+	RuleReference              Rule = "reference"
 	RuleField                  Rule = "field"
 	RuleStateField             Rule = "state_field"
 	RuleStateValue             Rule = "state_value"
@@ -134,6 +135,7 @@ var Rules = []Rule{
 	RuleRefType,
 	RuleRelationTarget,
 	RuleRelationVia,
+	RuleReference,
 	RuleField,
 	RuleStateField,
 	RuleStateValue,

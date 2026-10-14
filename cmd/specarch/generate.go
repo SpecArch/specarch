@@ -152,6 +152,19 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 		}
 		groups[i] = g
 	}
+	// A value typed by another specification's element cannot be written
+	// from this one alone; each is refused at its entry (ADR-112).
+	refused := false
+	for _, l := range specs {
+		for _, d := range validate.GeneratorReferences(l.spec, target) {
+			fmt.Fprintln(stdout, d.String())
+			refused = true
+		}
+	}
+	if refused {
+		fmt.Fprintf(stderr, "specarch generate: %s cannot be written while it reads another specification's elements, so nothing was produced\n", target)
+		return 1
+	}
 	drafts := make([]string, len(specs))
 	for i, l := range specs {
 		draft, status := gate(l, target, set["unapproved"], stderr)

@@ -40,6 +40,9 @@ type loaded struct {
 	impls   []generate.Implementation
 	diags   []validate.Diagnostic // the errors and warnings validate keeps
 	covered []validate.Diagnostic
+	// unresolved are the references into other specifications the run
+	// could not resolve.
+	unresolved []validate.Reference
 }
 
 // marks are the errors and warnings of the specification as the documents
@@ -84,6 +87,9 @@ func (l loaded) state() *generate.State {
 	}
 	st.StatePaths = validate.StatePaths(l.spec.Root)
 	st.Places = l.namedPlaces()
+	for _, r := range l.unresolved {
+		st.References = append(st.References, generate.Reference{Path: r.Path, Text: r.Text, Specification: r.Specification, Version: r.Version, Waits: r.Waits})
+	}
 	for _, c := range validate.LeftOutCases(l.spec.Root) {
 		st.LeftOut = append(st.LeftOut, generate.LeftOut{Subject: c.Subject, Case: c.Case, Scenario: c.Scenario, Reason: c.Reason})
 	}
@@ -245,6 +251,7 @@ func readSpecsSettling(paths []string, verb string, stdout, stderr io.Writer, se
 	if ioError {
 		return nil, false, 2
 	}
+	var all []*spec.Spec
 	for _, in := range inputs {
 		if in.root == "" {
 			name := in.implementation
@@ -254,15 +261,18 @@ func readSpecsSettling(paths []string, verb string, stdout, stderr io.Writer, se
 			fmt.Fprintf(stderr, "specarch %s: %s is not a specification; name the folder that holds %s\n", verb, name, spec.RootFile)
 			return nil, false, 2
 		}
-		s := spec.Load(in.root)
-		diags, covered := validate.CheckSpecCovered(s)
+		all = append(all, spec.Load(in.root))
+	}
+	given := validate.NewGiven(all)
+	for _, s := range all {
+		diags, covered := validate.CheckSpecCovered(s, given)
 		for _, d := range diags {
 			if d.Severity == validate.Error && (settles == nil || !settles(d)) {
 				fmt.Fprintln(stdout, d.String())
 				invalid = true
 			}
 		}
-		l := loaded{spec: s, diags: diags, covered: covered}
+		l := loaded{spec: s, diags: diags, covered: covered, unresolved: validate.References(s, given)}
 		for _, impl := range s.Implementations {
 			doc := source.Parse(impl.Data)
 			if doc.Root == nil {

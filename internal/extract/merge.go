@@ -57,24 +57,28 @@ type mergeStep struct {
 }
 
 type merger struct {
-	trees      []*mergeTree
-	out        string
-	res        *Result
-	files      map[string]*yaml.Node  // the merged files by path, each a mapping of sections
-	entries    map[string]*yaml.Node  // section/name -> the merged entry
-	elements   map[string]*element    // pointer -> element
-	order      []string               // the elements' pointers in the order they were met
-	disputes   map[string][]mergeStep // path string -> the path of a key the trees disagree on
-	disputeOrd []string               // the disputes in the order they were found
-	sources    map[string]*yaml.Node  // the merged sources
-	sourceKeys []string               // in the order they were met
-	given      map[string]bool        // the source keys marked givenOutside
-	questions  []*yaml.Node           // the merged questions' values, numbered in order
-	qfiles     []string               // the file of each question
-	stages     map[string]bool        // the stages written
-	voAsk      []voAsk                // the questions about value objects, asked after the disputes
-	gatesAsked map[string]bool        // the checks whose gate questions are joined
-	readBack   map[string]*readBack   // a pointer read back as a value object -> what answers the questions on it
+	// roleNamesDisputed is set when two trees that read roles as a
+	// permission check reads them say different things of their wire
+	// names: the merge then leaves info.roleNames out and asks.
+	roleNamesDisputed bool
+	trees             []*mergeTree
+	out               string
+	res               *Result
+	files             map[string]*yaml.Node  // the merged files by path, each a mapping of sections
+	entries           map[string]*yaml.Node  // section/name -> the merged entry
+	elements          map[string]*element    // pointer -> element
+	order             []string               // the elements' pointers in the order they were met
+	disputes          map[string][]mergeStep // path string -> the path of a key the trees disagree on
+	disputeOrd        []string               // the disputes in the order they were found
+	sources           map[string]*yaml.Node  // the merged sources
+	sourceKeys        []string               // in the order they were met
+	given             map[string]bool        // the source keys marked givenOutside
+	questions         []*yaml.Node           // the merged questions' values, numbered in order
+	qfiles            []string               // the file of each question
+	stages            map[string]bool        // the stages written
+	voAsk             []voAsk                // the questions about value objects, asked after the disputes
+	gatesAsked        map[string]bool        // the checks whose gate questions are joined
+	readBack          map[string]*readBack   // a pointer read back as a value object -> what answers the questions on it
 
 	vocabularies []*vocabulary.Vocabulary // given with --vocabulary
 	dayWords     map[string]*dayWords     // language tag in lower case -> its matchers, nil for one with no vocabulary
@@ -109,6 +113,7 @@ func Merge(specs []*spec.Spec, out string, vocabularies []*vocabulary.Vocabulary
 	asked += m.sideQuestions()
 	asked += m.quantityQuestions()
 	asked += m.readingQuestions()
+	asked += m.roleNamesQuestion()
 	m.placeholders()
 	m.unchecked()
 	return m.write(asked)
@@ -2006,7 +2011,7 @@ func (m *merger) write(asked int) (*Result, error) {
 	// them written in upper snake case; a tree that names the rule names it
 	// for the merge (ADR-099).
 	for _, t := range m.trees {
-		if r := source.Str(source.Child(source.Child(t.s.Root, "info"), "roleNames")); r != "" {
+		if r := source.Str(source.Child(source.Child(t.s.Root, "info"), "roleNames")); r != "" && !m.roleNamesDisputed {
 			set(child(root, "info"), "roleNames", r)
 			break
 		}
@@ -2166,4 +2171,71 @@ func notDerived(root *yaml.Node) string {
 		}
 	}
 	return ""
+}
+
+// roleNamesQuestion asks one must question when the trees disagree on how
+// roles go on the wire. A tree speaks of it when one of its roles grants
+// permissions, as the readers of a permission check write them: with
+// info.roleNames when it found the roles in upper snake case, and without
+// it when it found them as the specification names them. A tree with no
+// such role says nothing, so it disagrees with none.
+func (m *merger) roleNamesQuestion() int {
+	var values, options []string
+	cites := &yaml.Node{Kind: yaml.SequenceNode}
+	for _, t := range m.trees {
+		grants := false
+		for _, r := range source.Pairs(source.Child(t.s.Root, "roles")) {
+			grants = grants || len(source.Items(source.Child(r.Value, "permissions"))) > 0
+		}
+		if !grants {
+			continue
+		}
+		v := "each role as it is named"
+		if r := source.Str(source.Child(source.Child(t.s.Root, "info"), "roleNames")); r != "" {
+			v = "info.roleNames " + r
+		}
+		found := false
+		for i, have := range values {
+			if have == v {
+				found = true
+				options[i] += "; " + t.title
+			}
+		}
+		if !found {
+			values = append(values, v)
+			options = append(options, t.title)
+		}
+		for _, r := range source.Pairs(source.Child(t.s.Root, "roles")) {
+			for _, c := range source.Items(source.Child(r.Value, "cites")) {
+				if !containsNode(cites, c) {
+					cites.Content = append(cites.Content, copyNode(c))
+				}
+			}
+			break
+		}
+	}
+	if len(values) < 2 {
+		return 0
+	}
+	m.roleNamesDisputed = true
+	var said, opts []string
+	for i, v := range values {
+		said = append(said, fmt.Sprintf("%s says %s", options[i], v))
+		opts = append(opts, fmt.Sprintf("%s, as %s has it", v, options[i]))
+	}
+	q := mapping(
+		"question", fmt.Sprintf("How do the roles go on the wire: %s?", strings.Join(values, " or ")),
+		"kind", "decision",
+		"priority", "must",
+		"blocks", []string{"roles"},
+		"decidedBy", owner,
+		"options", opts,
+		"why", fmt.Sprintf("The sources disagree: %s. A token's roles claim and the tables a permission check reads write each role one way, so the merge leaves info.roleNames out rather than choose between them.", strings.Join(said, ", and ")),
+	)
+	if len(cites.Content) > 0 {
+		set(q, "cites", cites)
+	}
+	m.addQuestion(q, questionFile(q))
+	m.res.say("question Q-%d (must): info.roleNames: the trees disagree", len(m.questions))
+	return 1
 }

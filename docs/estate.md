@@ -30,7 +30,7 @@ facts in a format SpecArch defines, never a reader of its own.
 | Point | Standing |
 |---|---|
 | 1. a dump committed outside the code's repository | built, item 1 (ADR-098): `repository` in every dump, read at the gitlink's commit |
-| 2. references between specifications; an umbrella specification | planned, items 5 and 6 |
+| 2. references between specifications; an umbrella specification | references built, item 5 (ADR-112): `info.name`, `specification` and `version` on a dependency, `<dependency>#/<pointer>`, resolved when the other specification is given in the same run and counted as unresolved otherwise; the umbrella planned, item 6 |
 | 3. documents in another language | built, item 4 (ADR-105): a vocabulary per language, English shipped, `--language` and `--vocabulary` on extract documents and `--vocabulary` on merge, `language` on a source, the row-number column skipped |
 | 4. role names on the wire | built, item 2 (ADR-099): `info.roleNames: upper_snake`, read by both readers of grants |
 | 5. authorisation by path pattern | built, item 3 (ADR-100): `implies` on a permission, counted by every check of a role's grants, and `rules` in the permission table, read with the route table by `extract permissions --routes`; a permission defined by a pattern is declined |
@@ -132,8 +132,8 @@ dependencies:
     version: 2.4.0
 ```
 
-`specification` is the other specification's name, the kebab-case key
-the umbrella lists it under; `version` is the `info.version` the
+`specification` is the other specification's name, its `info.name` in
+kebab case, which the umbrella lists it under; `version` is the `info.version` the
 reference was written against. A relation whose `target` is
 `customerRegistry#/entities/Customer`, a picker or a list page whose
 `source` is `customerRegistry#/paths/~1customers/get`, a field whose
@@ -164,15 +164,17 @@ listed and not found, a version that differs and a cycle of references
 through `calls` are errors at the module's entry. Nothing of a module is
 copied into the umbrella: it lists and pins.
 
-Generators treat a reference as they treat an owned element (ADR-046):
-`generate sql` writes the column that keeps the other module's key with
-the type the referenced key has, and no foreign key, since the table is
-in another database; `generate openapi` writes the referenced schema
-inline as the other specification gives it, marked `x-specarch-ref`
-with the specification and version; the UI generators read a picker's
-remote list through the dependency's base URL, which the implementation
-file maps as it maps every dependency. The techspec names each reference
-with the module and version it points at.
+Generators read one specification at a time: `generate sql` writes the
+column that keeps the other module's key with the type of its own `via`
+field, and no foreign key, since the table is in another database, with
+a comment naming the specification and version. A field typed by the
+other specification's element, and for the UI a page or picker reading
+its list, cannot be written from one specification alone, so each code
+target refuses it at the field as `reference`; writing the referenced
+schema inline, marked `x-specarch-ref`, and a picker's remote list
+through the dependency's base URL wait for generation across the
+estate, where the other specification is read too. The techspec names
+each reference with the module and version it points at.
 
 Compiler test: a reference the validator cannot resolve is a counted,
 listed gap and not an error, so a module alone is readable; an error
@@ -606,7 +608,7 @@ step 1. Only item 7's meta-model half touches 0.3.
    second vocabulary gives the same elements the English one does, a
    file with a word in two lists is refused, and the English run is
    byte-identical with today's.
-5. References between specifications. `specification` and `version` on
+5. Built (ADR-112). References between specifications. `specification` and `version` on
    a dependency, `<name>#/<pointer>` wherever a `$ref`, a `target`, a
    `source` or `calls` may stand, the `reference` rule in both builds,
    the unresolved count in the summary and the list in `gaps`, the
@@ -616,8 +618,9 @@ step 1. Only item 7's meta-model half touches 0.3.
    builds, and `generate sql` writes the column with no foreign key.
   
 6. The umbrella. The `specarch-estate` root with `modules`, `validate`,
-   `gaps` and `document techspec` on it, the version check and the
-   cycle check. `examples/` gains a two-module estate, the lending desk
+   `gaps` and `document techspec` on it, the version check, the check
+   that each module's key is its `info.name`, and the cycle check.
+   `examples/` gains a two-module estate, the lending desk
    and a small catalogue service it references. Done when the example
    validates as an estate, a version that differs and a module not
    found are errors at the module, and the techspec draws the module

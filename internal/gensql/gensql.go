@@ -180,14 +180,18 @@ func Generate(r *Request) Response {
 	}
 	var b strings.Builder
 	b.WriteString(g.header(r))
-	var fks []string
+	var fks, elsewhere []string
 	for _, t := range tables {
 		b.WriteString("\n")
 		b.WriteString(t.create(g.dialect))
 		fks = append(fks, t.foreignKeys...)
+		elsewhere = append(elsewhere, t.elsewhere...)
 	}
 	for _, fk := range fks {
 		b.WriteString("\n" + fk + ";\n")
+	}
+	if len(elsewhere) > 0 {
+		b.WriteString("\n" + strings.Join(elsewhere, "\n") + "\n")
 	}
 	views := g.createViews()
 	if len(g.diags) > 0 {
@@ -407,6 +411,7 @@ type table struct {
 	constraints []string
 	indexes     []string // statements after the table, such as a filtered unique index
 	foreignKeys []string // statements after every table
+	elsewhere   []string // comments after every table: a column that keeps another specification's key
 }
 
 func (t table) create(dialect string) string {
@@ -518,9 +523,21 @@ func (g *gen) table(entity string, e map[string]any) table {
 	rels := obj0(e["relations"])
 	for _, rn := range sortedKeys(rels) {
 		rel := obj0(rels[rn])
-		if kind := text(rel["kind"]); kind == "many-to-one" || kind == "one-to-one" {
-			t.foreignKeys = append(t.foreignKeys, g.foreignKey(t.name, rel))
+		kind := text(rel["kind"])
+		if kind != "many-to-one" && kind != "one-to-one" {
+			continue
 		}
+		// A relation to another specification's entity keeps its key in
+		// this table, and the other table is in another database, so the
+		// column has no foreign key (ADR-112).
+		if elsewhere(rel) {
+			dep, ptr, _ := strings.Cut(text(rel["target"]), "#")
+			d := obj0(obj0(g.spec["dependencies"])[dep])
+			t.elsewhere = append(t.elsewhere, fmt.Sprintf("-- %s.%s keeps the key of %s in %s %s, through the dependency %s, with no foreign key: that table is in another database.",
+				t.name, snake(text(rel["via"])), strings.TrimPrefix(ptr, "/entities/"), text(d["specification"]), text(d["version"]), dep))
+			continue
+		}
+		t.foreignKeys = append(t.foreignKeys, g.foreignKey(t.name, rel))
 	}
 	return t
 }

@@ -163,13 +163,29 @@ func (c *checker) checkPickers(d *design, name string, pg *yaml.Node, kind strin
 			c.add(p.Key, source.Pointer(at...), RulePicker, "no many-to-one relation of %s holds %s, so there is no record to pick; add the relation with via: %s, or leave the picker out", entName, field, field)
 			continue
 		}
+		srcNode := source.Child(pk, "source")
+		src := source.Str(srcNode)
+		if isCross(src) {
+			// The reference check reads the other specification's fields;
+			// the form's own are checked here.
+			for _, kv := range source.Pairs(source.Child(pk, "fills")) {
+				if kv.Key.Value == field || shown[kv.Key.Value] == nil {
+					c.add(kv.Key, source.Pointer(append(at, "fills", kv.Key.Value)...), RulePicker, "%s is not another field the form %s shows, so the picker cannot fill it", kv.Key.Value, name)
+				}
+			}
+			continue
+		}
+		if isCross(target) {
+			if srcNode != nil {
+				c.add(srcNode, source.Pointer(append(at, "source")...), RulePicker, "%s is an entity of another specification, so its records are listed there; name that specification's list as %s#/paths/<path>/get", target, callDependency(target))
+			}
+			continue
+		}
 		targetEnt := d.entities[target]
 		if targetEnt == nil {
 			continue // the relation check reports it
 		}
 		targetFields := fieldsOf(targetEnt)
-		srcNode := source.Child(pk, "source")
-		src := source.Str(srcNode)
 		o, ok := d.operations[src]
 		switch {
 		case srcNode == nil:

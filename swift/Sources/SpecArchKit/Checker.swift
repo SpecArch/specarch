@@ -22,14 +22,14 @@ typealias Loader = (String) -> Spec
 /// Runs every check on a specification and on the implementation files
 /// inside it, and returns the diagnostics to report, sorted. What an open
 /// question covers is left out; checkSpecCovered returns it too.
-func checkSpec(_ s: Spec) -> [Diagnostic] {
-    checkSpecCovered(s).kept
+func checkSpec(_ s: Spec, _ given: Given = [:]) -> [Diagnostic] {
+    checkSpecCovered(s, given).kept
 }
 
 /// Runs every check and returns the diagnostics to report and, apart, the
 /// ones an open must question covers (see covered), both sorted.
-func checkSpecCovered(_ s: Spec) -> (kept: [Diagnostic], covered: [Diagnostic]) {
-    var all = checkSpecAll(s)
+func checkSpecCovered(_ s: Spec, _ given: Given = [:]) -> (kept: [Diagnostic], covered: [Diagnostic]) {
+    var all = checkSpecAll(s, given)
     let placer = Placer(spec: s)
     guard let root = s.root else {
         placer.place(&all)
@@ -44,8 +44,9 @@ func checkSpecCovered(_ s: Spec) -> (kept: [Diagnostic], covered: [Diagnostic]) 
     return (kept, covered)
 }
 
-private func checkSpecAll(_ s: Spec) -> [Diagnostic] {
+private func checkSpecAll(_ s: Spec, _ given: Given) -> [Diagnostic] {
     let c = Checker(file: s.rootPath, files: s.files)
+    c.given = given
     for p in s.problems {
         c.addFile(p.file, p.line, p.path, Rule(rawValue: p.rule)!, p.message)
     }
@@ -160,6 +161,7 @@ final class Checker {
     var root: YNode!
     var diags: [Diagnostic] = []
     let text = Placer(dir: "") // the lines of the files read, for an expression's column
+    var given: Given = [:]     // the specifications given with this one, by name
 
     init(file: String, files: [ObjectIdentifier: String] = [:]) {
         self.file = file

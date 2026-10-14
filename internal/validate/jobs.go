@@ -35,8 +35,8 @@ func (c *checker) checkJobs(d *design) {
 			}
 		}
 		for i, e := range source.Items(source.Child(j.Value, "calls")) {
-			if d.dependencies[e.Value] == nil {
-				c.add(e, source.Pointer("jobs", name, "calls", fmt.Sprint(i)), RuleDependency, "%s is not a dependency of the specification; declare it under dependencies with its timeout%s", e.Value, suggest(e.Value, d.dependencies))
+			if dep := callDependency(e.Value); d.dependencies[dep] == nil {
+				c.add(e, source.Pointer("jobs", name, "calls", fmt.Sprint(i)), RuleDependency, "%s is not a dependency of the specification; declare it under dependencies with its timeout%s", dep, suggest(dep, d.dependencies))
 			}
 		}
 	}
@@ -73,13 +73,13 @@ func (d *design) jobSubject(p source.Pair) *subject {
 	s.success = golden("...", run, "it completes")
 	s.cases = append(s.cases, derivedCase{name: "runs twice", scenario: "golden", given: "the job " + name + " has run", when: again,
 		then: "nothing changes a second time", frequency: rare, critical: true})
-	for _, e := range source.Items(source.Child(p.Value, "calls")) {
-		dep := d.dependencies[e.Value]
+	for _, name := range calledDependencies(p.Value) {
+		dep := d.dependencies[name]
 		if dep == nil {
 			continue
 		}
-		s.byNature("dependency fails "+e.Value, e.Value+" answers with an error", run, "...")
-		s.byNature("dependency times out "+e.Value, e.Value+" does not answer within "+source.Str(source.Child(dep, "timeout")), run, "...")
+		s.byNature("dependency fails "+name, name+" answers with an error", run, "...")
+		s.byNature("dependency times out "+name, name+" does not answer within "+source.Str(source.Child(dep, "timeout")), run, "...")
 	}
 	if r := source.Child(p.Value, "retries"); r != nil {
 		limit := source.Str(source.Child(r, "limit"))

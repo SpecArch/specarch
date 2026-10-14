@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.0-dev of the specification: 64 requirements, 5 entities, 12 commands, 7 algorithms, 422 tests, 106 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.0-dev of the specification: 65 requirements, 5 entities, 12 commands, 7 algorithms, 429 tests, 107 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -260,6 +260,7 @@ Primary key: path.
 | Rule | ref_type | a `$ref` names an entity or enum the specification does not have |
 | Rule | relation_target | a relation's target is not an entity of the specification |
 | Rule | relation_via | a relation's `via` is not the field or join entity its kind needs |
+| Rule | reference | a reference into another specification (`<dependency>#/<pointer>`) names no dependency, a dependency with no `specification`, stands where it may not (a one-to-many or many-to-many relation, a page that is not a list, a picker or list page whose entity and list are not of one dependency), or, when that specification is given, names an element it does not have, a list that does not list the entity, or a field the entity does not have; or a dependency's `version` is not the given specification's `info.version` |
 | Rule | field | a name that must be a field of an entity is not one (required, primaryKey, unique fields, page columns, fields and filters) |
 | Rule | state_field | the `stateField` is not a field whose type is an enum |
 | Rule | state_value | a transition's `from` or `to` is not a value of the state field's enum |
@@ -580,8 +581,11 @@ order a release reaches them, each step with a Result column, and
 the sign-off sheet.
 
 The questions target writes `questions.md`: the open questions by
-stage with what each blocks and who decides, and which outputs are
-ready, drafts or waiting; the same text `gaps` prints. When the
+stage with what each blocks and who decides, the references into
+other specifications that are not resolved, and which outputs are
+ready, drafts or waiting; the same text `gaps` prints. Every
+specification given in one run is read before any is checked, so a
+reference into another one given with it resolves there. When the
 specification has errors, it lists them after its summary as
 problem lines; a document whose sections hold an error is a draft,
 and code generation waits on every error. Every other
@@ -1912,7 +1916,11 @@ life-cycle order and within a stage by priority then ID, each with
 who decides, what it blocks (and for a blocked element, which keys
 are missing there), the name it gives for the key it blocks with
 the file and line of the element that leaves the key out, its
-options, its Insight and Notes; then, when
+options, its Insight and Notes; then the references into other
+specifications that are not resolved, each with where it stands,
+the specification and version it names, and what it waits on (the
+specification not given, or the must question that blocks the
+element there); then, when
 a source lists its clauses, the coverage: per such source, the
 elements each clause produced, how many clauses produced nothing,
 and the citations outside the listed clauses; then the outputs, one row per document target and per code target the
@@ -2257,6 +2265,15 @@ runs again into the merged specification, as extract runs it
   not granted:" blocking the role's permissions and the permission,
   and one only the table holds a could question that starts
   "Granted, seeded nowhere the reader follows:".
+- A tree whose roles grant permissions says how its roles go on the
+  wire: with info.roleNames when its reader found them in upper
+  snake case, and without it when it found them as named. Where two
+  such trees say different things, the merge leaves info.roleNames
+  out and asks one must question blocking roles, naming each way
+  and the trees that say it (ADR-112). A tree with no role that
+  grants a permission says nothing of it. info.wireNames is taken
+  from the tree that names it, as before: a tree whose reader saw
+  no wire leaves it out without saying the names go as written.
 - Every reader asks about a check that lets every request through
   while a setting is empty in the same words, "The check <check>
   runs only when the setting <setting> is present." (or "is true."
@@ -2384,6 +2401,16 @@ Every specification is checked against the meta-model and against the
 rules JSON Schema cannot express. It reports every problem in every
 file, not only the first.
 
+Every specification found is read before any is checked, so that a
+reference into another specification (`<dependency>#/<pointer>`,
+through a dependency with `specification` and `version`) resolves in
+the one whose `info.name` the dependency names, when it is given in
+the same run: its element is checked as a local one is, and the
+dependency's version against that specification's `info.version`.
+A reference whose specification is not given, or whose element is
+blocked there by a must question, is not an error: it is counted as
+unresolved, and `gaps` lists it (ADR-106).
+
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
 | `<paths>` | string, one or more | yes | Folders and files. A folder is searched for specifications and for implementation files outside one. |
@@ -2392,7 +2419,7 @@ Reads `{paths}`: Root files, the files under their stage folders, and implementa
 
 Standard output: One line per diagnostic, `file:line:column: severity: /yaml/path: rule: message [id]`, sorted by file, then line, column, path, rule, message and id.
 
-Standard error: A usage message on a usage error, the reason on an unreadable path, and a one-line count at the end, with the number of open questions when there are any.
+Standard error: A usage message on a usage error, the reason on an unreadable path, and a one-line count at the end, with the number of open questions and of unresolved references when there are any.
 
 ```mermaid
 sequenceDiagram
@@ -7856,6 +7883,76 @@ domain and an access token with act for one that leaves it.
 
 **Note:** From WIMSE Workload Credentials, an Internet-Draft of the IETF WIMSE working group (draft-ietf-wimse-workload-creds-02), 02, 2 July 2026: A Workload Identity Token carries the workload identifier as sub and a cnf claim with the workload's public key; the workload must prove possession of the matching private key, so it is not a bearer token. <https://datatracker.ietf.org/doc/draft-ietf-wimse-workload-creds/>
 
+### ADR-112: A specification names an element of another through a dependency as <dependency>#/<pointer>, resolved when that specification is given in the same run and counted as unresolved otherwise; and merge asks when two trees disagree on how roles go on the wire
+
+Status: accepted, 2026-10-14.
+
+Context: Point 2 of docs/estate.md, build item 5, and the owner's decision 2
+there: a reference is <dependency>#/<pointer> through dependencies,
+in $ref's own URI form. An estate of modules owned by different teams
+is specified one module at a time, and a module keeps another's
+customer number, picks from another's list and calls another's
+operations; $ref reached only the same specification, and calls
+named a system, not an element of it. The plan named a dependency's
+specification as the key the umbrella lists it under, which is build
+item 6, while this item has to resolve two specifications given
+together without one. The dispatcher added the open point of
+ADR-099: merge took info.roleNames from whichever tree stated it and
+asked nothing when another tree read its roles as named.
+
+Decision: info gains name, the specification's name in kebab case. A
+dependency gains specification, another specification's info.name,
+and version, the info.version its references were written against,
+each only with the other. A reference is the dependency's name, #,
+and a JSON pointer into that specification; it stands in a field's
+$ref (an entity, enum, view or schema), a many-to-one or one-to-one
+relation's target and a list page's entity (an entity), and a
+picker's source, a list page's source and an entry of calls (an
+operation, as #/paths/<path>/<method> with the path's slashes
+written ~1). A bare calls entry names the system, as before, and is
+not a reference.
+validate, gaps, document and generate read every specification they
+are given before checking any. Given the specification alone, the
+validator refuses, as reference at the entry, a name that is not a
+dependency, a dependency with no specification, a one-to-many or
+many-to-many relation to another specification's entity, another
+specification's list on a page that is not a list, and a page or
+picker whose entity and list are not of one dependency; every other
+reference is counted in the summary line as unresolved, listed in
+gaps and the questions document with where it stands, and the
+specification validates with no error for it. Given the specification
+the dependency names in the same run, each reference resolves there:
+an element it does not have, a list that does not list the entity it
+is read for, a column, filter, shown or filled field the entity does
+not have, and a dependency whose version is not the other's
+info.version are reference errors at the entry; a reference to an
+element a must question blocks there waits on that question, named in
+gaps. Two specifications given under one name make every reference to
+the name an error.
+Generators read one specification. generate sql writes the column a
+relation to another specification's entity keeps, typed as its own
+via field, with no foreign key and a comment naming the
+specification, version and dependency, and a later migration adds or
+drops no foreign key for it. A field typed by another specification's
+element is refused as reference at the field by every code target
+that would write it (sql only for entities and views), and the UI
+targets refuse a list page or picker reading another specification's
+list; the idiom contract does not ask a row for such a field. The
+techspec names each reference with the specification and version.
+merge leaves info.roleNames out and asks one must question blocking
+roles when two trees whose roles grant permissions differ: one says
+upper_snake and another says nothing of it. info.wireNames is taken
+as before.
+
+Consequences: A module validates alone, with its references counted and listed,
+and is checked against another by naming both. A specification with
+no reference validates, documents and generates byte for byte as
+before. Until estate generation, a module whose fields are typed by
+another's schema gets no OpenAPI document or Go code for them; its
+SQL and documents are written.
+
+**Insight:** The name is on the specification, not only in the umbrella, because two modules given to one run have to find each other without an umbrella, and a folder's name is not the module's (a module's specification sits in a folder named spec); the umbrella's key is then checked equal to info.name, so it is one name said once and checked where it is repeated, as version is. The pointer form is JSON Schema's own (a $ref is a URI reference, RFC 3986 section 4.1, whose fragment is a JSON pointer, RFC 6901), which the rule for new keywords asks for, with the dependency's name standing for the document: a dependency already is the other system and carries its time limit, so the reference adds no second registry. An operation is named by its path and method rather than its operationId because a pointer is a path into the document, and an operationId is a name the other team may change without moving the operation. Only to-one relations may cross, because their key is a field this module keeps; a one-to-many relation's via is in the other module's table and a many-to-many's join is in neither, so neither could be checked or generated across two databases. A page of another module's records is a list because a form or view loads and writes one record through this module's own operations. An unresolved reference is a counted gap and not an error by the compiler test: one module alone is readable and validates, and the error comes only where the other specification contradicts it, at the entry. A reference to a blocked element waits on the question rather than resolving, so the answer there is what unblocks it here. Generators refuse at the entry rather than guess: a column typed by a schema this run has not read would be a type made up, and inlining the schema needs the other specification, which arrives with generation over the estate (build item 6). The SQL column needs no foreign key across databases, which is the design the plan asked for. roleNames: a tree whose roles grant permissions was read from where a permission check reads them, so its silence on roleNames says the roles go on the wire as named; two such trees that differ are a disagreement, and a disagreement is a question, never a pick. A tree's silence on wireNames does not say the names go as written, since most readers (the database, documents, a router) never see a body, so it stays as it was. Acceptance test: a module is shown on its own, with its references listed as gaps, and two modules' consistency is checked by giving both in one run, before the umbrella exists.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -8016,6 +8113,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | gaps-names-question | command gaps | system | red | the tree extract workflows wrote for a BPMN file, whose workflow leaves out its trigger and its service task's operation, each with a must question that names the operation | gaps is run | each of those questions lists the name it gives and the file and line of the element that leaves the key out, and it exits 1 |
 | gaps-none | command gaps | system | golden | a specification without open questions and without an approval | gaps is run | it prints that there is no open question, that every document is ready and that code generation waits on the approval, and exits 0 |
 | gaps-outline-not-read | command gaps | system | golden | the tree extract outline wrote for a folder of workflow definitions: one source whose clauses are the folder's files, and no element | gaps is run | it lists every file of the source as producing nothing, so the files show as not read, and exits 0 |
+| gaps-references-blocked | command gaps | system | golden | a specification whose field is typed by another specification's schema, given with that specification, where a must question blocks the schema | gaps is run on both | it lists the reference as waiting on that question, the other references resolved, and exits 1 for the open must question |
+| gaps-references-unresolved | command gaps | system | golden | a specification whose references name another specification, given alone | gaps is run | it lists each reference with where it stands, the specification and version it names and that the specification is not given, reports no error, and exits 0 |
 | gaps-usage-error | command gaps | system | red | no folder | gaps is run without arguments | it prints how to use it and exits 2 |
 | generate-bpmn | command generate | system | golden | a specification with no approval record, a workflow of two approvals, the first escalating to the second after a day, and an operation step, warnings at the workflow and its operations, and a could question on the second approval's deadline; specarch-gen-bpmn built from this repository on PATH | generate bpmn is run with --unapproved | it writes waiver.bpmn, BPMN 2.0 with its diagram, and waiver.svg, both labelled as a draft, with each warning marked before the element it concerns and the question before the deadline's timer, and exits 0 |
 | generate-bpmn-approved | command generate | system | golden | an approved specification with a write-off workflow, an approval then an operation step, a reinstatement workflow whose one step is an approval, and a workflow of one operation step whose description holds & and angle brackets; specarch-gen-bpmn built from this repository on PATH | generate bpmn is run | it writes one BPMN file and one SVG per workflow, with no draft label, each marking only its own workflow's warnings, the last approval's gateway ending the request approved or, by its default flow, refused, the operation-only workflow with no refused end and its description escaped, and exits 0 |
@@ -8029,6 +8128,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-openapi-dxlib-ref-siblings-refused | command generate | system | red | a specification whose field names an enum by $ref and narrows it with an enum beside it, and an implementation file whose openapi target has the dxlib dialect; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it reports at the field that the enum beside the $ref cannot be carried in the dxlib dialect, writes the document as a draft with that error in x-specarch-marks on the field, and exits 1 |
 | generate-openapi-owned | command generate | system | golden | a specification whose Author entity and the operation that reads one author the implementation file marks as owned by the catalogue team, another operation that answers an Author, and specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes openapi.yaml with no Author schema and no path for the owned operation, the other operation still referring to the Author schema, and exits 0 |
 | generate-openapi-ref-siblings | command generate | system | golden | a specification whose fields and response name an enum or an entity by $ref with keywords beside it: a description, a default, deprecated, a title, a sensitivity and readOnly, and an implementation file in Go with an openapi target; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes openapi.yaml with every keyword beside its $ref, JSON Schema's as they are and SpecArch's as extensions, and exits 0 |
+| generate-openapi-reference-refused | command generate | system | red | a specification with a field typed by another specification's schema through a dependency, an implementation file whose openapi target names an output, and specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it reports reference at the field, since generate reads one specification and cannot type the field, writes nothing, and exits 1 |
 | generate-openapi-view-ref-path | command generate | system | golden | a view of loans with a path through the loan's member to the member's address, a field that is not required and names a value object by $ref, and an implementation file in Go with an openapi target; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes the view's address as the read-only $ref with no type and no description beside it, warns at the path that the document does not say it may have no value, writes the document, and exits 0 |
 | generate-openapi-wire-names | command generate | system | golden | a specification whose wire names are snake_case, with an audited entity of names of two words, a nested object with an acronym, and a list of the entity filtered and sorted by such names, and an implementation file in Go with an openapi target; specarch-gen-openapi built from this repository on PATH | generate openapi is run with --unapproved | it writes openapi.yaml with every property, required list, audit field, filter, sort value, paging parameter and envelope field in snake_case, the path parameter as the specification names it, and exits 0 |
 | generate-plugin-path-outside | command generate | system | red | a plug-in that answers a path outside the output folder | generate escape is run | it refuses the path, writes nothing and exits 2 |
@@ -8041,6 +8141,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-sql-identifier-length | command generate | system | red | a member whose correspondence address, kept in columns, holds courier instructions with a part whose column name passes the 64 characters MariaDB takes, and an implementation file whose sql target is MariaDB; specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it reports the column at the field that holds the value, with its length and the limit, writes nothing, and exits 1 |
 | generate-sql-owned | command generate | system | golden | a specification whose Author entity the implementation file marks as owned by the catalogue team, a Book entity with a foreign key to it and a view that joins it, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes no table for Author, the books table with its foreign key to authors and the view joining authors, and a snapshot that keeps Author's shape and lists it under owned, and exits 0 |
 | generate-sql-owned-handed-over | command generate | system | golden | an output folder whose migrations created the authors and books tables, a specification that now marks Author as owned by the catalogue team and adds a field to Author and one to Book, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0002_expand.sql with the new column of books and the view made again, no statement about authors and no drop, and a snapshot that lists Author under owned, and exits 0 |
+| generate-sql-reference | command generate | system | golden | a specification whose entity keeps the key of another specification's entity, through a many-to-one relation whose target is a reference through a dependency, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes the table with the column that keeps the key and no foreign key, a comment naming the other specification, its version and the dependency, and snapshot.yaml beside it, and exits 0 |
 | generate-sql-refuses-draft-migration | command generate | system | red | an approved specification whose migrations folder holds a migration a draft wrote, and specarch-gen-sql on PATH | generate sql is run | it reports that the migration was written by a draft and the approved schema starts in a new folder, writes nothing and exits 1 |
 | generate-sql-value-object | command generate | system | golden | a specification with an entity and a schema that a response refers to, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0001_expand.sql with the entity's table and nothing for the schema, and snapshot.yaml beside it, and exits 0 |
 | generate-sql-value-object-fields | command generate | system | golden | an entity whose fields hold schemas: a required and an optional address in columns, with an optional location inside each, preferences stored as json and a list of phones, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes each address as columns named after the field and the part, NOT NULL only where every level is required, a check that an optional value is wholly absent or has its required parts, and preferences and phones as one JSONB column each, and exits 0 |
@@ -8083,6 +8184,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | merge-printed-parsed | command merge | system | golden | a tree extract openapi wrote from a document wholly in dxlib's dialect, a code source with reading: printed, holding two operations; a route tree printed from the code repository, reading: printed, holding one of them; and a tree extract go wrote from that repository's source, reading: parsed, holding that operation under another operationId and one operation no printed tree has | merge is run on the three trees | it joins the operation all give into one with every citation and asks a must question on the operationId they disagree on; it leaves out the parsed tree's question whether the running system registers the joined operation, which the printed trees answer, and its question on the operation only it declares, which it asks again as a must question citing the source's line; it asks a could question on the operation only the printed trees have, citing the document; it keeps reading on the document's source and leaves it out of the repository's source, which one tree read printed and another parsed; and exits 0 |
 | merge-printed-parsed-grants | command merge | system | golden | a tree extract permissions wrote from a permission table, reading: printed, whose role desk-staff grants loans.read and loans.write, whose role auditor no seed grants, and which declares the gates RequireDeskKey and RequireAudit; a catalogue tree, reading: printed, holding desk.loans and desk.members; and a tree extract go wrote, reading: parsed, whose seeds grant desk-staff loans.read and loans.renew and grant a role clerk the table does not hold, which declares desk.loans and desk.fines, and which finds the gates RequireDeskKey and RequireChecks in its middlewares | merge is run on the three trees | it gives desk-staff the grants the permission table holds, with every citation, asks a must question on loans.renew, seeded and not granted, blocking the permission too, and a could question on loans.write, granted and not seeded; a must question on the role clerk only the seed has and a could question on auditor only the table has; it leaves out the parsed tree's questions whether the database holds desk.loans and whether the running system grants desk-staff, which the printed trees answer, and asks a must question on desk.fines only the source declares and a could question on desk.members only the catalogue holds; it asks the gate on RequireDeskKey once with both citations, the gate on RequireChecks as a must question saying the permission table does not declare it, and adds a could question to the gate on RequireAudit, which the source read does not show; and exits 0 |
 | merge-refuses-edited-test | command merge | system | red | the same trees, with one draft's then edited by hand | merge is run on the three trees | it names the tree and the test that differs from its draft, says to write that test in the merged specification, writes nothing, and exits 1 |
+| merge-role-names-disagree | command merge | system | red | the tree of a permission table whose roles are written in upper snake case, with info.roleNames upper_snake, and the tree of another permission table whose roles are written as they are named | merge is run on the two trees | it asks one must question on the roles naming both ways and the tree that says each, leaves info.roleNames out of the merged specification, and exits 0 |
 | merge-source-differs | command merge | system | red | two trees that both declare the source code, at two different urls | merge is run on the two trees | it refuses them, naming the source and what differs, writes nothing and exits 1 |
 | merge-takes-derived-drafts | command merge | system | golden | three trees on 0.2, two of which hold the drafts specarch derive writes for them | merge is run on the three trees | it leaves the trees' drafts out, writes the same merged specification as from the trees without them, with the drafts derived for it, and exits 0 |
 | merge-tree-invalid | command merge | system | red | two trees, the second of which has an entity without its properties, which validate reports | merge is run on the two trees | it refuses the second tree, saying validate reports errors in it, writes nothing and exits 1 |
@@ -8209,6 +8311,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-record-tracker | command validate | system | golden | sources of kind change-set and defect-set with prefix TRK, and a release that includes TRK-4 and a defect that became TRK-9 | validate is run | both IDs resolve to the tracker, it prints nothing and exits 0 |
 | validate-records-valid | command validate | system | golden | a specification with records of every kind beside its folder, each naming only what exists, and a fixed defect whose test is about the command it violates | validate is run on the specification's folder | it prints nothing and exits 0 |
 | validate-ref-type | command validate | system | red | a field whose $ref names an enum that does not exist | validate is run | it reports ref_type and exits 1 |
+| validate-references | command validate | system | golden | a specification whose dependency names another specification and its version, with a field typed by its schema, a relation to its entity, a list page and a picker reading its list and a call of its operation, and that other specification beside it | validate is run on both | every reference resolves in the other specification and none is reported, and it exits 0 |
+| validate-references-wrong | command validate | system | red | a specification given with the one its dependency names, whose dependency names another version, with a misspelt schema, a reference through a dependency with no specification and through no dependency, a one-to-many relation to the other's entity, a call of an operation the other does not have, a column, a picked field and a filled field the other's entity does not have, a form field the picker fills that the form does not show, and a view page reading the other's list | validate is run on both | it reports reference at each of them, relation_via and picker for what is this specification's own, the same in both builds, and exits 1 |
 | validate-relation-target | command validate | system | red | a relation whose target is misspelt | validate is run | it reports relation_target and exits 1 |
 | validate-relation-via | command validate | system | red | a many-to-one relation whose via field does not exist | validate is run | it reports relation_via and exits 1 |
 | validate-release-bump | command validate | system | red | 0.1.1 after 0.1.0 with a major change, and 1.0.1 after 1.0.0 with a minor change | validate is run | it reports release_bump at both, naming 0.2.0 and 1.1.0, and exits 1 |
@@ -8347,8 +8451,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-48 | A specification shall declare a value object under schemas, data passed around but not stored and with no identity, which a request body, a response, a message, another schema and an entity's field may refer to and a relation may not, and specarch validate shall check every use of one. | functional | should | accepted | test | A schema is an object with properties and a required list, and nothing only a stored record has; a request body, a response, a message's payload and another schema's property may refer to it as '#/schemas/Name', and a derived case reads a body's required properties through it. A relation whose target is a schema, a schema named like an entity or a view, and a required name that is not one of the schema's properties are refused (value_object, field); a reference to a schema the specification lacks is refused (ref_type). specarch generate sql writes nothing for a schema, and specarch generate openapi writes it under components.schemas. specarch extract openapi writes a component schema it finds no key for as a schema, with no question about its key. | NEED-1 |
 | SA-49 | A specification shall be able to say, once for the whole interface, that its properties go on the wire in snake_case while it names them in camelCase, and specarch validate shall refuse two properties of one object that would go on the wire under one name. | functional | should | accepted | test | info.wireNames snake_case maps every property of every entity, view, body, parameter schema and message payload by one rule, and a parameter's own name is written as it is on the wire. Two properties of one object that map to one wire name, a view's added field and its entity's included, are refused as wire_name, the same in both builds. specarch extract openapi reads a document whose property names are snake_case into camelCase names and info.wireNames, and leaves out with a line a name that does not come back the same. specarch generate openapi writes the wire names back, the names of the paginated-list idiom included. | NEED-2 |
 | SA-50 | An entity's field shall be able to hold a value object, one schema or a list of them, stored in columns of the entity's row or as one JSON value as the field's storage says, and specarch validate shall refuse a value object that cannot be stored that way. | functional | should | accepted | test | A field refers to a schema, or holds a list whose items refer to one; storage columns, the default for one value, keeps each part in a column named after the field and the part, and storage json, the only storage for a list, keeps the value in one JSON column. Storage on a field that holds no schema or inside a value, columns on a list, an optional value in columns whose schema has no required part that is never null, and a list of schemas, a cycle or a reference to an entity inside a value in columns are refused as value_object, the same in both builds. specarch generate sql writes a value in columns as one column per part, NOT NULL only where every value above the part is required, with a check that an optional value is wholly absent or has its required parts, and a value in json as the dialect's JSON column, on every dialect it writes; a part added to a schema is a column added by the next migration. specarch validate derives a red case missing <field>.<part> for every required part a value a request body holds can lack, at any depth and for each item of a list, the same in both builds; a part's mistakes key ranks it. The test generators give a value object its parts and a list its items, each typed by its schema, and compare a value got part by part and item by item. specarch generate go-dxlib reads a value into a Go struct and a list into a slice, refuses a value without a required part, writes it into its columns or as JSON as its storage says, and answers a created or read record with the value gathered back. specarch generate sql refuses a table, column, constraint or index name longer than the dialect takes, at the field it comes from. | NEED-1 |
-| SA-62 | A specification shall be able to say, once for the whole system, that its roles go on the wire in upper snake case while it names them in kebab-case, and specarch validate shall refuse two roles that would go on the wire under one name. | functional | should | accepted | test | info.roleNames upper_snake maps every role by one rule, each hyphen an underscore and each letter in upper case, the same function in the validator, the readers and the generators. Two roles that map to one wire name are refused as wire_name at the second, the same in both builds. specarch extract permissions and extract go read a source whose roles are all in upper snake case into kebab-case roles and info.roleNames, and leave out with a line, as before, a role of a source that names roles both ways and a name that does not come back the same. specarch generate go-dxlib writes each role's name id in the wire form, and the techspec names each role's wire form. | NEED-2 |
+| SA-62 | A specification shall be able to say, once for the whole system, that its roles go on the wire in upper snake case while it names them in kebab-case, and specarch validate shall refuse two roles that would go on the wire under one name. | functional | should | accepted | test | info.roleNames upper_snake maps every role by one rule, each hyphen an underscore and each letter in upper case, the same function in the validator, the readers and the generators. Two roles that map to one wire name are refused as wire_name at the second, the same in both builds. specarch extract permissions and extract go read a source whose roles are all in upper snake case into kebab-case roles and info.roleNames, and leave out with a line, as before, a role of a source that names roles both ways and a name that does not come back the same. specarch generate go-dxlib writes each role's name id in the wire form, and the techspec names each role's wire form. specarch merge asks a must question, and leaves info.roleNames out, when one tree whose roles grant permissions says upper_snake and another says nothing of it. | NEED-2 |
 | SA-63 | A permission shall be able to imply other permissions, and every check of what a role grants shall count what its permissions imply; specarch extract permissions shall read a permission table's pattern rules into permissions named by a fixed rule, with the implications pattern inclusion gives, and each route's one permission. | functional | must | accepted | test | implies on a permission lists permissions a holder holds too, transitively; an undeclared name, public implied or implying, and a cycle are refused as implies at the entry, the same in both builds. The grants check, separation of duties, workflow approvals, pickers, flows, the derived red case's caller, the merge's unchecked line, the techspec's matrix and the generated grants count what a role's permissions imply. A permission table's rules (a role, a pattern, the methods or *, and the matcher) become one permission per distinct pattern and method pair, named from the pattern's literal words and the method, each implying the ones its pattern and methods cover, and each role granted the permissions of its rows. Given the route table with --routes, each route's permission is the matching one every other match implies; a route two permissions match with neither implying the other and a route no rule reaches are must questions at the operation, and a permission no route reaches is a could question. | NEED-2 |
+| SA-65 | A specification shall be able to name an element of another specification through a dependency, and specarch validate shall check such a reference against that specification when it is given in the same run, and count it as unresolved, not as an error, when it is not. | functional | must | accepted | test | info.name gives a specification its name; a dependency's specification and version name another specification and the info.version its references were written against, each only with the other. <dependency>#/<pointer> stands in a field's $ref (an entity, enum, view or schema), a many-to-one or one-to-one relation's target and a list page's entity (an entity), and a picker's source, a list page's source and an entry of calls (an operation as A reference through a name that is not a dependency, through a dependency with no specification, in a one-to-many or many-to-many relation, on a page that is not a list, or whose page or picker reads one specification's list for another's entity is refused as reference at the entry, the same in both builds. Given the other specification in the same run, an element it does not have, a list that does not list the entity, a column, filter or picked field the entity does not have, and a dependency whose version is not the other's info.version are refused as reference at the entry, the same in both builds. A reference whose specification is not given, or whose element is blocked there by a must question, is counted in validate's summary as unresolved and listed in gaps and the questions document, and validate exits 0 for it. specarch generate sql writes the column of a relation to another specification's entity with no foreign key, and the techspec names each reference with the specification and version it points at. | NEED-2 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -8453,6 +8558,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-62:** A system whose token's roles claim and permission tables write DESK_SUPERVISOR came out of extract permissions with no role at all, and a specification that wrote its roles in upper case would break the one naming rule every role and its generated names follow.
 
 **Insight on SA-63:** A system checked by pattern rows names no permission anywhere, and a role with a `*` row beside a `get` row came out of a printer with two names and nothing saying one covers the other; the matrix a reviewer reads has to show what each role reaches.
+
+**Insight on SA-65:** An estate of modules owned by different teams is specified one module at a time, and a module keeps another's customer number, picks from another's list and calls another's operations; with $ref reaching only its own specification, those links were prose, and nothing checked them when the two specifications met.
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
@@ -8587,9 +8694,10 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-59 | commands generate; decisions ADR-086 | tests generate-draft-open-questions; tests generate-skips-no-output-folder; tests generate-sql-refuses-draft-migration |
 | SA-60 | enums DocumentTarget; commands document; decisions ADR-088 | tests document-html-marks-problems; tests document-writes-html |
 | SA-61 | commands generate; decisions ADR-093 | tests generate-ui-typescript-hand-built; tests generate-ui-typescript-hand-built-differs |
-| SA-62 | enums Rule; decisions ADR-099 | tests document-techspec-role-names; tests extract-go-dxlib-upper-snake-roles; tests extract-permissions-mixed-role-names; tests extract-permissions-upper-snake-roles; tests validate-role-names |
+| SA-62 | enums Rule; decisions ADR-099; decisions ADR-112 | tests document-techspec-role-names; tests extract-go-dxlib-upper-snake-roles; tests extract-permissions-mixed-role-names; tests extract-permissions-upper-snake-roles; tests merge-role-names-disagree; tests validate-role-names |
 | SA-63 | enums Rule; commands extract; decisions ADR-100 | tests document-techspec-implies; tests extract-permissions-pattern-rules; tests validate-implies |
 | SA-64 | commands extract; commands merge; decisions ADR-105 | tests extract-documents-language-not-shipped; tests extract-documents-vocabulary; tests extract-documents-vocabulary-word-twice; tests merge-documents-days-vocabulary; tests merge-documents-language-not-given; tests validate-schema-language-tag |
+| SA-65 | commands gaps; commands validate; decisions ADR-112 | tests gaps-references-blocked; tests gaps-references-unresolved; tests generate-openapi-reference-refused; tests generate-sql-reference; tests validate-references; tests validate-references-wrong |
 
 ## Sources
 

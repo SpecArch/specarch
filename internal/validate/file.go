@@ -46,16 +46,16 @@ type Loader func(dir string) *spec.Spec
 // CheckSpec runs every check on a specification and on the implementation
 // files inside it, and returns the diagnostics to report, sorted. What an
 // open question covers is left out; CheckSpecCovered returns it too.
-func CheckSpec(s *spec.Spec) []Diagnostic {
-	kept, _ := CheckSpecCovered(s)
+func CheckSpec(s *spec.Spec, given ...Given) []Diagnostic {
+	kept, _ := CheckSpecCovered(s, given...)
 	return kept
 }
 
 // CheckSpecCovered runs every check and returns the diagnostics to report
 // and, apart, the ones an open must question covers (see Covered), both
 // sorted.
-func CheckSpecCovered(s *spec.Spec) (kept, covered []Diagnostic) {
-	all := checkSpecAll(s)
+func CheckSpecCovered(s *spec.Spec, given ...Given) (kept, covered []Diagnostic) {
+	all := checkSpecAll(s, given...)
 	p := SpecPlacer(s)
 	if s.Root == nil {
 		p.Place(all)
@@ -76,8 +76,11 @@ func SpecPlacer(s *spec.Spec) *Placer {
 	return &Placer{Root: s.Root, Files: s.Files, RootFile: s.RootFile, Dir: s.Dir}
 }
 
-func checkSpecAll(s *spec.Spec) []Diagnostic {
+func checkSpecAll(s *spec.Spec, given ...Given) []Diagnostic {
 	c := &checker{file: s.RootFile, files: s.Files}
+	for _, g := range given {
+		c.given = g
+	}
 	for _, p := range s.Problems {
 		c.addFile(p.File, p.Line, p.Path, Rule(p.Rule), "%s", p.Message)
 	}
@@ -231,6 +234,7 @@ type checker struct {
 	root  *yaml.Node
 	diags []Diagnostic
 	text  Placer // the lines of the files read, for an expression's column
+	given Given  // the specifications given with this one, by name
 }
 
 func (c *checker) fileOf(n *yaml.Node) string {

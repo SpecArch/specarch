@@ -75,14 +75,27 @@ func runValidate(_ argsIn: [String], _ stdout: TextSink, _ stderr: TextSink) -> 
     }
     let (inputs, collectError) = collect(args, stderr)
     var ioError = collectError
+    // Every specification is read before any is checked, so that a
+    // reference into another one given in the same run resolves there.
+    var loaded: [String: Spec] = [:]
+    var specs: [Spec] = []
+    for input in inputs {
+        if case .root(let dir) = input {
+            let s = Spec(dir: dir)
+            loaded[dir] = s
+            specs.append(s)
+        }
+    }
+    let given = makeGiven(specs)
     var all: [Diagnostic] = []
-    var open = 0
+    var open = 0, unresolved = 0
     for input in inputs {
         switch input {
         case .root(let dir):
-            let s = Spec(dir: dir)
-            all += checkSpec(s)
+            let s = loaded[dir]!
+            all += checkSpec(s, given)
             open += openQuestions(s.root)
+            unresolved += unresolvedReferences(s, given).count
         case .implementation(let path):
             let data: Data
             do { data = try readFile(path) } catch {
@@ -98,7 +111,8 @@ func runValidate(_ argsIn: [String], _ stdout: TextSink, _ stderr: TextSink) -> 
     sortDiagnostics(&all)
     for d in all { stdout.write(d.description + "\n") }
     let errors = errorCount(all)
-    let questions = open > 0 ? ", " + plural(open, "open question") : ""
+    var questions = open > 0 ? ", " + plural(open, "open question") : ""
+    if unresolved > 0 { questions += ", " + plural(unresolved, "unresolved reference") }
     stderr.write("specarch: \(plural(inputs.count, "input")) checked: \(plural(errors, "error")), \(plural(all.count - errors, "warning"))\(questions)\n")
     if ioError { return 2 }
     return errors > 0 ? 1 : 0

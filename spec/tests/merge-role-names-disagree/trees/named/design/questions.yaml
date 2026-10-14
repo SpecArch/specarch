@@ -1,0 +1,15 @@
+questions:
+  Q-1:
+    question: 'What is each role for, and who holds it: desk-staff?'
+    kind: decision
+    priority: must
+    blocks: ['#/roles/desk-staff/description']
+    decidedBy: system-owner
+    why: A permission table names a role and what it grants, not who holds it.
+  Q-2:
+    question: 'What does each permission allow: fines.waive, loans.read, loans.write, members.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/fines.waive/description', '#/permissions/loans.read/description', '#/permissions/loans.write/description', '#/permissions/members.write/description']
+    decidedBy: system-owner
+    why: A permission table names the permissions a role grants and not what they are for.

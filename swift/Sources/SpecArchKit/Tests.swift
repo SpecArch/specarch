@@ -375,10 +375,10 @@ extension Design {
                 s.byNature("dependency fails " + ch, ch + " cannot take the message", call, "...")
             }
         }
-        for e in items(o.node.child("calls")) {
-            guard let dep = dependencies[e.value] else { continue }
-            s.byNature("dependency fails " + e.value, e.value + " answers with an error", call, failureResponse(o.node, "502", "503"))
-            s.byNature("dependency times out " + e.value, e.value + " does not answer within " + str(dep.child("timeout")), call, failureResponse(o.node, "504", "503"))
+        for name in calledDependencies(o.node) {
+            guard let dep = dependencies[name] else { continue }
+            s.byNature("dependency fails " + name, name + " answers with an error", call, failureResponse(o.node, "502", "503"))
+            s.byNature("dependency times out " + name, name + " does not answer within " + str(dep.child("timeout")), call, failureResponse(o.node, "504", "503"))
         }
         let key = str(o.node.child("idempotencyKey"))
         if !key.isEmpty {
@@ -595,10 +595,10 @@ extension Design {
         s.success = golden("...", run, "it completes")
         s.cases.append(DerivedCase(name: "runs twice", scenario: "golden", given: "the job " + name + " has run", when: again,
                                    then: "nothing changes a second time", frequency: rare, critical: true))
-        for e in items(p.value.child("calls")) {
-            guard let dep = dependencies[e.value] else { continue }
-            s.byNature("dependency fails " + e.value, e.value + " answers with an error", run, "...")
-            s.byNature("dependency times out " + e.value, e.value + " does not answer within " + str(dep.child("timeout")), run, "...")
+        for name in calledDependencies(p.value) {
+            guard let dep = dependencies[name] else { continue }
+            s.byNature("dependency fails " + name, name + " answers with an error", run, "...")
+            s.byNature("dependency times out " + name, name + " does not answer within " + str(dep.child("timeout")), run, "...")
         }
         if let r = p.value.child("retries") {
             let limit = str(r.child("limit"))
@@ -1010,4 +1010,16 @@ func heldUp(_ blocks: [Block], _ ptr: String) -> Bool {
         }
     }
     return false
+}
+
+/// The dependencies an operation or job calls, each once, in the order of
+/// its calls: an entry naming one of a dependency's operations counts as
+/// the dependency.
+func calledDependencies(_ n: YNode) -> [String] {
+    var out: [String] = []
+    for e in items(n.child("calls")) {
+        let name = callDependency(e.value)
+        if !out.contains(name) { out.append(name) }
+    }
+    return out
 }

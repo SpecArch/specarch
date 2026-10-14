@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: merge
+level: system
+scenario: red
+given: "the tree of a permission table whose roles are written in upper snake case, with info.roleNames upper_snake, and the tree of another permission table whose roles are written as they are named"
+when: "merge is run on the two trees"
+then: "it asks one must question on the roles naming both ways and the tree that says each, leaves info.roleNames out of the merged specification, and exits 0"
+verifies: [SA-62]

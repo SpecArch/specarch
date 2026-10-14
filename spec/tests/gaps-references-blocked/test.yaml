@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: gaps
+level: system
+scenario: golden
+given: "a specification whose field is typed by another specification's schema, given with that specification, where a must question blocks the schema"
+when: "gaps is run on both"
+then: "it lists the reference as waiting on that question, the other references resolved, and exits 1 for the open must question"
+verifies: [SA-65]

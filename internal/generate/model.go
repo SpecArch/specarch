@@ -63,6 +63,9 @@ func findOperation(root *yaml.Node, id string) *operation {
 // concrete type, or the enum or entity it refers to.
 func typeLabel(f *yaml.Node) string {
 	if ref := str(f, "$ref"); ref != "" {
+		if !strings.HasPrefix(ref, "#") {
+			return ref // another specification's, named as written
+		}
 		return ref[strings.LastIndex(ref, "/")+1:]
 	}
 	base := str(f, "type")
@@ -207,4 +210,36 @@ func impliedBy(root *yaml.Node) func(string) []string {
 // roleHolds is every permission a role grants, with the ones they imply.
 func roleHolds(root, role *yaml.Node) map[string]bool {
 	return implies.Holds(strs(role, "permissions"), impliedBy(root))
+}
+
+// referenceText is a name as the documents write it: a reference into
+// another specification with that specification and the version the
+// dependency names, any other name as it is.
+func referenceText(root *yaml.Node, name string) string {
+	if of := referenceOf(root, name); of != "" {
+		return name + " (" + of + ")"
+	}
+	return name
+}
+
+// referenceOf is the specification and version a reference into another
+// specification names, or "".
+func referenceOf(root *yaml.Node, name string) string {
+	dep, _, ok := strings.Cut(name, "#")
+	if !ok || dep == "" {
+		return ""
+	}
+	d := get(get(root, "dependencies"), dep)
+	if str(d, "specification") == "" {
+		return ""
+	}
+	return str(d, "specification") + " " + str(d, "version")
+}
+
+// calledDependency is the dependency a calls entry names.
+func calledDependency(c string) string {
+	if dep, _, ok := strings.Cut(c, "#"); ok && dep != "" {
+		return dep
+	}
+	return c
 }

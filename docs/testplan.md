@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 422 design tests, 187 golden and 235 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 429 design tests, 191 golden and 238 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 422 design tests, 187 golden and 235 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 418 |
+| system | 425 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1293,6 +1293,22 @@ Scenario: golden; level: system; verifies SA-30, SA-44.
 - When: gaps is run
 - Then: it lists every file of the source as producing nothing, so the files show as not read, and exits 0
 
+#### gaps-references-blocked
+
+Scenario: golden; level: system; verifies SA-65.
+
+- Given: a specification whose field is typed by another specification's schema, given with that specification, where a must question blocks the schema
+- When: gaps is run on both
+- Then: it lists the reference as waiting on that question, the other references resolved, and exits 1 for the open must question
+
+#### gaps-references-unresolved
+
+Scenario: golden; level: system; verifies SA-65.
+
+- Given: a specification whose references name another specification, given alone
+- When: gaps is run
+- Then: it lists each reference with where it stands, the specification and version it names and that the specification is not given, reports no error, and exits 0
+
 #### gaps-usage-error
 
 Scenario: red; level: system; covers usage error, exit 2.
@@ -1399,6 +1415,14 @@ Scenario: golden; level: system; verifies SA-36.
 - When: generate openapi is run with --unapproved
 - Then: it writes openapi.yaml with every keyword beside its $ref, JSON Schema's as they are and SpecArch's as extensions, and exits 0
 
+#### generate-openapi-reference-refused
+
+Scenario: red; level: system; covers exit 1; verifies SA-65.
+
+- Given: a specification with a field typed by another specification's schema through a dependency, an implementation file whose openapi target names an output, and specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved
+- Then: it reports reference at the field, since generate reads one specification and cannot type the field, writes nothing, and exits 1
+
 #### generate-openapi-view-ref-path
 
 Scenario: golden; level: system; verifies SA-36.
@@ -1494,6 +1518,14 @@ Scenario: golden; level: system; verifies SA-46.
 - Given: an output folder whose migrations created the authors and books tables, a specification that now marks Author as owned by the catalogue team and adds a field to Author and one to Book, and specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved
 - Then: it writes 0002_expand.sql with the new column of books and the view made again, no statement about authors and no drop, and a snapshot that lists Author under owned, and exits 0
+
+#### generate-sql-reference
+
+Scenario: golden; level: system; verifies SA-65.
+
+- Given: a specification whose entity keeps the key of another specification's entity, through a many-to-one relation whose target is a reference through a dependency, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved
+- Then: it writes the table with the column that keeps the key and no foreign key, a comment naming the other specification, its version and the dependency, and snapshot.yaml beside it, and exits 0
 
 #### generate-sql-refuses-draft-migration
 
@@ -1836,6 +1868,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-11.
 - Given: the same trees, with one draft's then edited by hand
 - When: merge is run on the three trees
 - Then: it names the tree and the test that differs from its draft, says to write that test in the merged specification, writes nothing, and exits 1
+
+#### merge-role-names-disagree
+
+Scenario: red; level: system; verifies SA-62.
+
+- Given: the tree of a permission table whose roles are written in upper snake case, with info.roleNames upper_snake, and the tree of another permission table whose roles are written as they are named
+- When: merge is run on the two trees
+- Then: it asks one must question on the roles naming both ways and the tree that says each, leaves info.roleNames out of the merged specification, and exits 0
 
 #### merge-source-differs
 
@@ -2847,6 +2887,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-2.
 - When: validate is run
 - Then: it reports ref_type and exits 1
 
+#### validate-references
+
+Scenario: golden; level: system; verifies SA-65.
+
+- Given: a specification whose dependency names another specification and its version, with a field typed by its schema, a relation to its entity, a list page and a picker reading its list and a call of its operation, and that other specification beside it
+- When: validate is run on both
+- Then: every reference resolves in the other specification and none is reported, and it exits 0
+
+#### validate-references-wrong
+
+Scenario: red; level: system; covers exit 1; verifies SA-65.
+
+- Given: a specification given with the one its dependency names, whose dependency names another version, with a misspelt schema, a reference through a dependency with no specification and through no dependency, a one-to-many relation to the other's entity, a call of an operation the other does not have, a column, a picked field and a filled field the other's entity does not have, a form field the picker fills that the form does not show, and a view page reading the other's list
+- When: validate is run on both
+- Then: it reports reference at each of them, relation_via and picker for what is this specification's own, the same in both builds, and exits 1
+
 #### validate-relation-target
 
 Scenario: red; level: system; covers exit 1; verifies SA-2.
@@ -3451,7 +3507,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-249 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+256 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -3583,10 +3639,17 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-62 | acceptance 2 | golden | SA-62 names no harm |
 | requirement SA-62 | acceptance 3 | golden | SA-62 names no harm |
 | requirement SA-62 | acceptance 4 | golden | SA-62 names no harm |
+| requirement SA-62 | acceptance 5 | golden | SA-62 names no harm |
 | requirement SA-63 | acceptance 1 | golden | SA-63 names no harm |
 | requirement SA-63 | acceptance 2 | golden | SA-63 names no harm |
 | requirement SA-63 | acceptance 3 | golden | SA-63 names no harm |
 | requirement SA-63 | acceptance 4 | golden | SA-63 names no harm |
+| requirement SA-65 | acceptance 1 | golden | SA-65 names no harm |
+| requirement SA-65 | acceptance 2 | golden | SA-65 names no harm |
+| requirement SA-65 | acceptance 3 | golden | SA-65 names no harm |
+| requirement SA-65 | acceptance 4 | golden | SA-65 names no harm |
+| requirement SA-65 | acceptance 5 | golden | SA-65 names no harm |
+| requirement SA-65 | acceptance 6 | golden | SA-65 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

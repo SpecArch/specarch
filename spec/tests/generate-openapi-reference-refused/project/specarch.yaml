@@ -1,0 +1,50 @@
+specarch: "0.1"
+info: { title: Loans, version: 1.0.0, name: loans }
+stages: [implementation]
+permissions:
+  public: { description: Open to everyone. }
+dependencies:
+  customerRegistry:
+    description: The registry of customers, whose numbers the loans keep.
+    timeout: PT2S
+    specification: customer-registry
+    version: 2.4.0
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      customerId: { type: string, format: uuid }
+      address: { $ref: "customerRegistry#/schemas/Address" }
+    required: [id, customerId]
+    primaryKey: [id]
+    relations:
+      customer: { target: "customerRegistry#/entities/Customer", kind: many-to-one, via: customerId }
+paths:
+  /loans:
+    post:
+      operationId: createLoan
+      summary: Create a loan
+      permission: public
+      responses:
+        "201": { description: The loan. }
+      calls: ["customerRegistry#/paths/~1customers/get"]
+pages:
+  customers:
+    kind: list
+    title: Customers
+    route: /customers
+    permission: public
+    entity: "customerRegistry#/entities/Customer"
+    source: "customerRegistry#/paths/~1customers/get"
+    columns: [fullName]
+  new-loan:
+    kind: form
+    title: New loan
+    route: /loans/new
+    permission: public
+    entity: Loan
+    submit: createLoan
+    fields: [customerId]
+    pickers:
+      customerId: { source: "customerRegistry#/paths/~1customers/get", shows: [fullName] }

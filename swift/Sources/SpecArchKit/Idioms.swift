@@ -305,6 +305,7 @@ extension Checker {
             for f in pairs(e.value.child("properties")) {
                 let fp = pointer(["entities", e.key.value, "properties", f.key.value])
                 if blocked.under(fp) || !(blocked.keys[fp] ?? []).isEmpty { continue }
+                if isCross(str(f.value.child("$ref"))) { continue } // typed by another specification; generate refuses it
                 let field = FieldShape(f.value)
                 if !rows.contains(where: { field.matches($0, claimed) }) {
                     add(at, ptr, .idiomContract, "\(i.name) \(i.version) has no \(stack) row in its \(part) part for #/entities/\(e.key.value)/properties/\(f.key.value) (\(field.description)); add one in an override of the part, or exclude the idiom with the reason")

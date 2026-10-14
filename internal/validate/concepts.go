@@ -46,8 +46,8 @@ func (c *checker) checkTimeout(n *yaml.Node, ptr string, rule Rule, what string)
 // checkCalls checks that every dependency an operation calls is declared.
 func (c *checker) checkCalls(d *design, o operation) {
 	for i, e := range source.Items(source.Child(o.node, "calls")) {
-		if d.dependencies[e.Value] == nil {
-			c.add(e, o.pointer("calls", fmt.Sprint(i)), RuleDependency, "%s is not a dependency of the specification; declare it under dependencies with its timeout%s", e.Value, suggest(e.Value, d.dependencies))
+		if dep := callDependency(e.Value); d.dependencies[dep] == nil {
+			c.add(e, o.pointer("calls", fmt.Sprint(i)), RuleDependency, "%s is not a dependency of the specification; declare it under dependencies with its timeout%s", dep, suggest(dep, d.dependencies))
 		}
 	}
 }

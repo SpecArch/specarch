@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification whose entity keeps the key of another specification's entity, through a many-to-one relation whose target is a reference through a dependency, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH"
+when: "generate sql is run with --unapproved"
+then: "it writes the table with the column that keeps the key and no foreign key, a comment naming the other specification, its version and the dependency, and snapshot.yaml beside it, and exits 0"
+verifies: [SA-65]

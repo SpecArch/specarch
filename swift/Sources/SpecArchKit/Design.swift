@@ -181,6 +181,7 @@ let stackKeyPattern = try! NSRegularExpression(pattern: "^x-(oapi-codegen|ogen|o
 extension Checker {
     func checkDesign(_ d: Design) {
         checkRefs(d)
+        checkReferences(d)
         checkIntegers()
         checkRequirementLinks(d.root, [], d)
         checkCitations(d.root, [], d)
@@ -467,6 +468,15 @@ extension Checker {
         let base = ["entities", entity, "relations", p.key.value]
         let targetNode = p.value.child("target")
         let target = str(targetNode)
+        if isCross(target) {
+            // Another specification's entity: the reference is checked
+            // there; only the field this entity keeps is checked here.
+            let kind = str(p.value.child("kind"))
+            if let via = p.value.child("via"), kind == "many-to-one" || kind == "one-to-one", fields[via.value] == nil {
+                add(via, pointer(base + ["via"]), .relationVia, "\(via.value) is not a field of \(entity); for this kind of relation, via names the field on \(entity) that holds the key\(suggest(via.value, fields))")
+            }
+            return
+        }
         if !target.isEmpty && d.entities[target] == nil && d.schemas[target] != nil {
             add(targetNode, pointer(base + ["target"]), .valueObject, "\(target) is a schema, a value with no identity, and a relation leads to a record; give \(target) a key and make it an entity, or hold its fields in \(entity)")
             return
@@ -600,6 +610,9 @@ extension Checker {
             let ent = str(entNode)
             if str(pg.child("kind")) == "task" {
                 checkTaskPage(d, name, pg)
+            } else if isCross(ent) {
+                // A list of another specification: its fields are checked
+                // with the reference.
             } else if !ent.isEmpty && d.entities[ent] == nil {
                 add(entNode, pointer(base + ["entity"]), .refType, "\(ent) is not an entity of the specification\(suggest(ent, d.entities))")
             } else if !ent.isEmpty {
@@ -614,7 +627,7 @@ extension Checker {
             for key in ["source", "submit"] {
                 let n = pg.child(key)
                 let id = str(n)
-                if !id.isEmpty && d.operations[id] == nil {
+                if !id.isEmpty && !isCross(id) && d.operations[id] == nil {
                     add(n, pointer(base + [key]), .operation, "\(id) is not an operationId of the specification\(suggest(id, opNames))")
                 }
             }

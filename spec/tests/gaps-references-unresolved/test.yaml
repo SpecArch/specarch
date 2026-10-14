@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: gaps
+level: system
+scenario: golden
+given: "a specification whose references name another specification, given alone"
+when: "gaps is run"
+then: "it lists each reference with where it stands, the specification and version it names and that the specification is not given, reports no error, and exits 0"
+verifies: [SA-65]

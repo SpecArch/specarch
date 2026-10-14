@@ -1,0 +1,47 @@
+permissions:
+  loans.approve:
+    origin: stated
+    cites:
+      - {source: code, clause: access role DESK_SUPERVISOR, says: DESK_SUPERVISOR grants loans.approve.}
+  loans.read:
+    origin: stated
+    cites:
+      - {source: code, clause: access role AUDITOR, says: 'AUDITOR, DESK_STAFF, DESK_SUPERVISOR and LEVEL_2_CLERK grant loans.read.'}
+      - {source: desk, clause: examples/lending-desk/sources/code role desk-staff, says: desk-staff grants loans.read.}
+  # specarch-problem: error: permission_ungranted: no role grants loans.write, so nobody can use what it guards; add it to a role, or use public if it is meant for everyone [permission_ungranted@design/roles.yaml#/permissions/loans.write]
+  loans.write:
+    origin: stated
+    cites:
+      - {source: code, clause: access role DESK_STAFF, says: DESK_STAFF grants loans.write.}
+      - {source: desk, clause: examples/lending-desk/sources/code role desk-staff, says: desk-staff grants loans.write.}
+  # specarch-problem: error: permission_ungranted: no role grants fines.waive, so nobody can use what it guards; add it to a role, or use public if it is meant for everyone [permission_ungranted@design/roles.yaml#/permissions/fines.waive]
+  fines.waive:
+    origin: stated
+    cites:
+      - {source: desk, clause: examples/lending-desk/sources/code role desk-staff, says: desk-staff grants fines.waive.}
+  # specarch-problem: error: permission_ungranted: no role grants members.write, so nobody can use what it guards; add it to a role, or use public if it is meant for everyone [permission_ungranted@design/roles.yaml#/permissions/members.write]
+  members.write:
+    origin: stated
+    cites:
+      - {source: desk, clause: examples/lending-desk/sources/code role desk-staff, says: desk-staff grants members.write.}
+roles:
+  auditor:
+    permissions: [loans.read]
+    origin: stated
+    cites:
+      - {source: code, clause: access role AUDITOR, says: AUDITOR grants loans.read and public.}
+  desk-staff:
+    origin: stated
+    cites:
+      - {source: code, clause: access role DESK_STAFF, says: DESK_STAFF grants loans.read and loans.write.}
+      - {source: desk, clause: examples/lending-desk/sources/code role desk-staff, says: 'desk-staff grants fines.waive, loans.read, loans.write and members.write.'}
+  desk-supervisor:
+    permissions: [loans.approve, loans.read]
+    origin: stated
+    cites:
+      - {source: code, clause: access role DESK_SUPERVISOR, says: DESK_SUPERVISOR grants loans.approve and loans.read.}
+  level-2-clerk:
+    permissions: [loans.read]
+    origin: stated
+    cites:
+      - {source: code, clause: access role LEVEL_2_CLERK, says: LEVEL_2_CLERK grants loans.read.}

@@ -1,0 +1,5 @@
+arguments: [generate, openapi, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:18:24: error: /entities/Loan/properties/address/$ref: reference: generate openapi reads one specification, and this value is typed by customerRegistry#/schemas/Address, of customer-registry, which it does not read; give the value its own type here, or keep it out of what openapi writes [reference@specarch.yaml#/entities/Loan/properties/address/$ref]
+plugins: [openapi]

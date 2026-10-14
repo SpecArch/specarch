@@ -387,6 +387,9 @@ func (c *checker) checkRows(i Idiom, part, stack string, r *yaml.Node, root *yam
 			if fp := source.Pointer("entities", e.Key.Value, "properties", f.Key.Value); b.under(fp) || len(b.keys[fp]) > 0 {
 				continue
 			}
+			if isCross(source.Str(source.Child(f.Value, "$ref"))) {
+				continue // typed by another specification; generate refuses it
+			}
 			field, _ := source.ValueOf(f.Value).(map[string]any)
 			shape := typerows.ShapeOf(field)
 			if _, ok := typerows.Match(shape, rows); !ok {

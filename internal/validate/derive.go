@@ -430,13 +430,13 @@ func (d *design) operationSubject(o operation) *subject {
 			s.byNature("dependency fails "+ch, ch+" cannot take the message", call, "...")
 		}
 	}
-	for _, e := range source.Items(source.Child(o.node, "calls")) {
-		dep := d.dependencies[e.Value]
+	for _, name := range calledDependencies(o.node) {
+		dep := d.dependencies[name]
 		if dep == nil {
 			continue
 		}
-		s.byNature("dependency fails "+e.Value, e.Value+" answers with an error", call, failureResponse(o.node, "502", "503"))
-		s.byNature("dependency times out "+e.Value, e.Value+" does not answer within "+source.Str(source.Child(dep, "timeout")), call, failureResponse(o.node, "504", "503"))
+		s.byNature("dependency fails "+name, name+" answers with an error", call, failureResponse(o.node, "502", "503"))
+		s.byNature("dependency times out "+name, name+" does not answer within "+source.Str(source.Child(dep, "timeout")), call, failureResponse(o.node, "504", "503"))
 	}
 	if key := source.Str(source.Child(o.node, "idempotencyKey")); key != "" {
 		schema := source.Child(headerParameter(o, key), "schema")
@@ -1017,4 +1017,19 @@ func unwrap(expr string) (string, bool) {
 		}
 	}
 	return strings.TrimSpace(expr[1 : len(expr)-1]), true
+}
+
+// calledDependencies are the dependencies an operation or job calls, each
+// once, in the order of its calls: an entry naming one of a dependency's
+// operations counts as the dependency.
+func calledDependencies(n *yaml.Node) []string {
+	var out []string
+	seen := map[string]bool{}
+	for _, e := range source.Items(source.Child(n, "calls")) {
+		if name := callDependency(e.Value); !seen[name] {
+			seen[name] = true
+			out = append(out, name)
+		}
+	}
+	return out
 }

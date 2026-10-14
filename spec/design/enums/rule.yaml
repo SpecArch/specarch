@@ -16,6 +16,7 @@ enums:
       - ref_type
       - relation_target
       - relation_via
+      - reference
       - field
       - state_field
       - state_value
@@ -125,6 +126,7 @@ enums:
       ref_type: a `$ref` names an entity or enum the specification does not have
       relation_target: a relation's target is not an entity of the specification
       relation_via: a relation's `via` is not the field or join entity its kind needs
+      reference: "a reference into another specification (`<dependency>#/<pointer>`) names no dependency, a dependency with no `specification`, stands where it may not (a one-to-many or many-to-many relation, a page that is not a list, a picker or list page whose entity and list are not of one dependency), or, when that specification is given, names an element it does not have, a list that does not list the entity, or a field the entity does not have; or a dependency's `version` is not the given specification's `info.version`"
       field: a name that must be a field of an entity is not one (required, primaryKey, unique fields, page columns, fields and filters)
       state_field: the `stateField` is not a field whose type is an enum
       state_value: a transition's `from` or `to` is not a value of the state field's enum

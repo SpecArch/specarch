@@ -1,0 +1,58 @@
+arguments: [gaps, loans, customers]
+exitStatus: 1
+standardOutput: |+
+  # Loans: open questions
+
+  Version 1.0.0 of the specification has no open question: nothing it says waits on a decision or on material from a stakeholder.
+
+  ## 1. References to other specifications
+
+  1 reference names an element of another specification and is not resolved in this run: the specification named is not given with this one, or the element is blocked there by a must question. Give the other specification in the same run to check them; until then they are gaps, not errors.
+
+  | At | Reference | Specification | Waits on |
+  |---|---|---|---|
+  | /entities/Loan/properties/address/$ref | customerRegistry#/schemas/Address | customer-registry 2.4.0 | /schemas/Address is blocked in customer-registry by the must question Q-1 |
+
+  ## 2. Outputs
+
+  What can be made from the specification now. A document is a draft while a must or should question blocks what it reads, or an error is in it; code generation waits for those questions, for every error to be fixed, and for the approval.
+
+  | Output | State | Waits on |
+  |---|---|---|
+  | techspec document | ready | |
+  | requirements document | ready | |
+  | testplan document | ready | |
+  | traceability document | ready | |
+  | deployment document | ready | |
+  | commissioning document | ready | |
+  | html document | ready | |
+  | code generation | waits | not approved: there is no records/approvals/1.0.0.yaml beside the specification |
+
+  # Customer registry: open questions
+
+  Version 2.4.0 of the specification: 1 open question (1 must, 0 should, 0 could). A must question holds up everything that reads what it blocks; a should question holds up code generation and approval until the stakeholder confirms what was inferred; a could question holds up nothing. Each is answered by the stakeholder named, with a decision record that names the question under answers; the question is then removed.
+
+  ## 1. Design
+
+  ### Q-1 (must, decision)
+
+  Which parts of an address does the registry keep, beyond the street?
+
+  - Decided by: registry-owner
+  - Blocks: #/schemas/Address
+
+  ## 2. Outputs
+
+  What can be made from the specification now. A document is a draft while a must or should question blocks what it reads, or an error is in it; code generation waits for those questions, for every error to be fixed, and for the approval.
+
+  | Output | State | Waits on |
+  |---|---|---|
+  | techspec document | draft | Q-1 |
+  | requirements document | ready | |
+  | testplan document | ready | |
+  | traceability document | ready | |
+  | deployment document | ready | |
+  | commissioning document | ready | |
+  | html document | draft | Q-1 |
+  | code generation | waits | Q-1; not approved: there is no records/approvals/2.4.0.yaml beside the specification |
+

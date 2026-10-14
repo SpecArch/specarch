@@ -181,6 +181,20 @@ extension Checker {
                 add(p.key, pointer(at), .picker, "no many-to-one relation of \(entName) holds \(field), so there is no record to pick; add the relation with via: \(field), or leave the picker out")
                 continue
             }
+            if let srcNode = pk.child("source"), isCross(srcNode.value) {
+                // The reference check reads the other specification's
+                // fields; the form's own are checked here.
+                for kv in pairs(pk.child("fills")) where kv.key.value == field || shown[kv.key.value] == nil {
+                    add(kv.key, pointer(at + ["fills", kv.key.value]), .picker, "\(kv.key.value) is not another field the form \(name) shows, so the picker cannot fill it")
+                }
+                continue
+            }
+            if isCross(target) {
+                if let srcNode = pk.child("source") {
+                    add(srcNode, pointer(at + ["source"]), .picker, "\(target) is an entity of another specification, so its records are listed there; name that specification's list as \(callDependency(target))#/paths/<path>/get")
+                }
+                continue
+            }
             guard let targetEnt = d.entities[target] else { continue } // the relation check reports it
             let targetFields = fieldsOf(targetEnt)
             if let srcNode = pk.child("source") {

@@ -56,8 +56,11 @@ commands:
       the sign-off sheet.
 
       The questions target writes `questions.md`: the open questions by
-      stage with what each blocks and who decides, and which outputs are
-      ready, drafts or waiting; the same text `gaps` prints. When the
+      stage with what each blocks and who decides, the references into
+      other specifications that are not resolved, and which outputs are
+      ready, drafts or waiting; the same text `gaps` prints. Every
+      specification given in one run is read before any is checked, so a
+      reference into another one given with it resolves there. When the
       specification has errors, it lists them after its summary as
       problem lines; a document whose sections hold an error is a draft,
       and code generation waits on every error. Every other

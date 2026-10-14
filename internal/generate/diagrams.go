@@ -34,7 +34,7 @@ func entityDiagram(root *yaml.Node) string {
 	}
 	for _, e := range entities {
 		for _, r := range pairs(e.Value, "relations") {
-			target, via := str(r.Value, "target"), str(r.Value, "via")
+			target, via := erName(str(r.Value, "target")), str(r.Value, "via")
 			var line string
 			switch str(r.Value, "kind") {
 			case "one-to-many":
@@ -74,7 +74,7 @@ func entityDiagram(root *yaml.Node) string {
 			case fk[f.Key.Value]:
 				keys = " FK"
 			}
-			fmt.Fprintf(&b, "    %s %s%s\n", mermaidID(strings.ReplaceAll(typeLabel(f.Value), "list of ", "list_")), f.Key.Value, keys)
+			fmt.Fprintf(&b, "    %s %s%s\n", mermaidID(strings.ReplaceAll(erName(typeLabel(f.Value)), "list of ", "list_")), f.Key.Value, keys)
 		}
 		b.WriteString("  }\n")
 	}
@@ -158,11 +158,11 @@ func operationSequence(root *yaml.Node, o operation) string {
 	}
 	calls := strs(o.node, "calls")
 	for i, dep := range calls {
-		fmt.Fprintf(&b, "  participant D%d as %s\n", i+1, dep)
+		fmt.Fprintf(&b, "  participant D%d as %s\n", i+1, callLabel(dep))
 	}
 	fmt.Fprintf(&b, "  C->>S: %s %s\n", strings.ToUpper(o.method), o.path)
 	for i, dep := range calls {
-		fmt.Fprintf(&b, "  S->>D%d: call, within %s\n", i+1, str(get(get(root, "dependencies"), dep), "timeout"))
+		fmt.Fprintf(&b, "  S->>D%d: call, within %s\n", i+1, str(get(get(root, "dependencies"), calledDependency(dep)), "timeout"))
 		fmt.Fprintf(&b, "  D%d-->>S: answer\n", i+1)
 	}
 	if alg := str(o.node, "algorithm"); alg != "" {
@@ -450,4 +450,28 @@ func workflowFlowchart(d *doc, name string, w *yaml.Node) string {
 		fmt.Fprintf(&b, "  s%d -->|\"%s passes\"| %s\n", i, mermaidText(d.known(st, "deadline", "the deadline", "workflows", name, "steps", fmt.Sprint(i))), late)
 	}
 	return fence(b.String())
+}
+
+// erName is a relation's target as the entity diagram names it: another
+// specification's entity as the dependency and the entity's name, since a
+// diagram's name holds no # or /.
+func erName(target string) string {
+	if dep, ptr, ok := strings.Cut(target, "#"); ok && dep != "" {
+		return dep + "_" + ptr[strings.LastIndex(ptr, "/")+1:]
+	}
+	return target
+}
+
+// callLabel is a calls entry as a sequence diagram names it: the
+// dependency, and for one of its operations the method and the path.
+func callLabel(c string) string {
+	dep, ptr, ok := strings.Cut(c, "#")
+	if !ok || dep == "" {
+		return c
+	}
+	tokens := strings.Split(strings.TrimPrefix(ptr, "/"), "/")
+	if len(tokens) != 3 || tokens[0] != "paths" {
+		return dep
+	}
+	return dep + " " + strings.ToUpper(tokens[2]) + " " + strings.NewReplacer("~1", "/", "~0", "~").Replace(tokens[1])
 }

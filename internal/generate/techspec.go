@@ -261,12 +261,16 @@ func context(d *doc, root *yaml.Node) {
 			var callers []string
 			for _, o := range ops {
 				for _, c := range strs(o.node, "calls") {
-					if c == dep.Key.Value {
+					if calledDependency(c) == dep.Key.Value && !contains(callers, o.id) {
 						callers = append(callers, o.id)
 					}
 				}
 			}
-			d.line("| %s | %s | %s | %s |", dep.Key.Value, str(dep.Value, "timeout"), cell(strings.Join(callers, ", ")), cell(str(dep.Value, "description")))
+			description := str(dep.Value, "description")
+			if sp := str(dep.Value, "specification"); sp != "" {
+				description = fmt.Sprintf("Specified on its own as %s; the references were written against version %s. %s", sp, str(dep.Value, "version"), description)
+			}
+			d.line("| %s | %s | %s | %s |", dep.Key.Value, str(dep.Value, "timeout"), cell(strings.Join(callers, ", ")), cell(description))
 		}
 		d.blank()
 		d.explainRows(rowsOf(deps))
@@ -323,7 +327,7 @@ func buildingBlocks(d *doc, root *yaml.Node) {
 				if onDelete == "" {
 					onDelete = "restrict"
 				}
-				d.line("| %s | %s | %s | %s | %s |", r.Key.Value, str(r.Value, "kind"), str(r.Value, "target"), str(r.Value, "via"), onDelete)
+				d.line("| %s | %s | %s | %s | %s |", r.Key.Value, str(r.Value, "kind"), cell(referenceText(root, str(r.Value, "target"))), str(r.Value, "via"), onDelete)
 			}
 			d.blank()
 			d.explainRows(pairRows(e.Value, "relations"))
@@ -482,7 +486,7 @@ func operationDetails(d *doc, root *yaml.Node, op *yaml.Node) {
 	if calls := strs(op, "calls"); len(calls) > 0 {
 		var parts []string
 		for _, c := range calls {
-			parts = append(parts, fmt.Sprintf("%s (within %s)", c, str(get(get(root, "dependencies"), c), "timeout")))
+			parts = append(parts, callText(root, c))
 		}
 		d.para("Calls " + strings.Join(parts, ", ") + ".")
 	}
@@ -1038,7 +1042,7 @@ func jobDetails(d *doc, root *yaml.Node, j *yaml.Node) {
 	if calls := strs(j, "calls"); len(calls) > 0 {
 		var parts []string
 		for _, c := range calls {
-			parts = append(parts, fmt.Sprintf("%s (within %s)", c, str(get(get(root, "dependencies"), c), "timeout")))
+			parts = append(parts, callText(root, c))
 		}
 		text += " Calls " + joinAnd(parts) + "."
 	}
@@ -1391,10 +1395,10 @@ func elementRows(root *yaml.Node, pages []source.Pair) []string {
 		name, pg := p.Key.Value, p.Value
 		ent := get(get(root, "entities"), str(pg, "entity"))
 		for _, pk := range pairs(pg, "pickers") {
-			text := "picked from " + str(pk.Value, "source")
+			text := "picked from " + referenceText(root, str(pk.Value, "source"))
 			for _, r := range pairs(ent, "relations") {
 				if str(r.Value, "kind") == "many-to-one" && str(r.Value, "via") == pk.Key.Value {
-					text = "a " + str(r.Value, "target") + ", through the relation " + r.Key.Value + ", " + text
+					text = "a " + referenceText(root, str(r.Value, "target")) + ", through the relation " + r.Key.Value + ", " + text
 				}
 			}
 			text += ", showing " + strings.Join(strs(pk.Value, "shows"), ", ")
@@ -1444,4 +1448,14 @@ func elementRows(root *yaml.Node, pages []source.Pair) []string {
 		}
 	}
 	return rows
+}
+
+// callText is a calls entry with its time limit, and for an operation of
+// another specification the specification and version.
+func callText(root *yaml.Node, c string) string {
+	within := "within " + str(get(get(root, "dependencies"), calledDependency(c)), "timeout")
+	if of := referenceOf(root, c); of != "" {
+		within = of + ", " + within
+	}
+	return fmt.Sprintf("%s (%s)", c, within)
 }

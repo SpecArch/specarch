@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification given with the one its dependency names, whose dependency names another version, with a misspelt schema, a reference through a dependency with no specification and through no dependency, a one-to-many relation to the other's entity, a call of an operation the other does not have, a column, a picked field and a filled field the other's entity does not have, a form field the picker fills that the form does not show, and a view page reading the other's list"
+when: "validate is run on both"
+then: "it reports reference at each of them, relation_via and picker for what is this specification's own, the same in both builds, and exits 1"
+verifies: [SA-65]

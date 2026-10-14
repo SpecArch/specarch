@@ -123,15 +123,28 @@ func runValidate(args []string, stdout, stderr io.Writer) int {
 		}
 	}
 	inputs, ioError := collect(args, stderr)
+	// Every specification is read before any is checked, so that a
+	// reference into another one given in the same run resolves there.
+	loaded := map[string]*spec.Spec{}
+	var specs []*spec.Spec
+	for _, in := range inputs {
+		if in.root != "" {
+			s := spec.Load(in.root)
+			loaded[in.root] = s
+			specs = append(specs, s)
+		}
+	}
+	given := validate.NewGiven(specs)
 	var all []validate.Diagnostic
-	open := 0
+	open, unresolved := 0, 0
 	for _, in := range inputs {
 		switch {
 		case in.root != "":
-			s := spec.Load(in.root)
-			all = append(all, validate.CheckSpec(s)...)
+			s := loaded[in.root]
+			all = append(all, validate.CheckSpec(s, given)...)
 			must, should, could := validate.Questions(s.Root)
 			open += must + should + could
+			unresolved += len(validate.References(s, given))
 		case in.implementation != "":
 			data, err := os.ReadFile(in.implementation)
 			if err != nil {
@@ -152,6 +165,9 @@ func runValidate(args []string, stdout, stderr io.Writer) int {
 	questions := ""
 	if open > 0 {
 		questions = ", " + plural(open, "open question")
+	}
+	if unresolved > 0 {
+		questions += ", " + plural(unresolved, "unresolved reference")
 	}
 	fmt.Fprintf(stderr, "specarch: %s checked: %s, %s%s\n", plural(len(inputs), "input"), plural(errors, "error"), plural(len(all)-errors, "warning"), questions)
 	switch {

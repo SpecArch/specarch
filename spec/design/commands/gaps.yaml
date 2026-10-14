@@ -13,7 +13,11 @@ commands:
       who decides, what it blocks (and for a blocked element, which keys
       are missing there), the name it gives for the key it blocks with
       the file and line of the element that leaves the key out, its
-      options, its Insight and Notes; then, when
+      options, its Insight and Notes; then the references into other
+      specifications that are not resolved, each with where it stands,
+      the specification and version it names, and what it waits on (the
+      specification not given, or the must question that blocks the
+      element there); then, when
       a source lists its clauses, the coverage: per such source, the
       elements each clause produced, how many clauses produced nothing,
       and the citations outside the listed clauses; then the outputs, one row per document target and per code target the
@@ -36,7 +40,7 @@ commands:
       "0": no must or should question is open and no specification has an error
       "1": at least one must or should question is open, or a specification has an error
       "2": usage error, or a path that could not be read
-    satisfies: [SA-19, SA-30]
+    satisfies: [SA-19, SA-30, SA-65]
     why: |
       The owner and the agent run validate after every edit, so validate
       counts the open questions and lists none; this verb is the list, with

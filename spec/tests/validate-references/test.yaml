@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a specification whose dependency names another specification and its version, with a field typed by its schema, a relation to its entity, a list page and a picker reading its list and a call of its operation, and that other specification beside it"
+when: "validate is run on both"
+then: "every reference resolves in the other specification and none is reported, and it exits 0"
+verifies: [SA-65]

@@ -38,6 +38,9 @@ extension Design {
                 return (nil, cur + "." + hop + " is " + kind + ", which leads to many records; a path follows only many-to-one and one-to-one relations, so the view keeps one row per record; count it instead")
             }
             cur = str(r.child("target"))
+            if isCross(cur) {
+                return (nil, cur + " is an entity of another specification, kept in another database, so a view cannot read its fields through " + hop + "; read them from that specification's interface")
+            }
             if entities[cur] == nil { return (nil, "") } // the relation's own check reports the target
         }
         let last = hops.last ?? ""

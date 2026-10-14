@@ -62,8 +62,9 @@ extension Checker {
 
     /// Checks that every dependency an operation calls is declared.
     func checkCalls(_ d: Design, _ o: Operation) {
-        for (i, e) in items(o.node.child("calls")).enumerated() where d.dependencies[e.value] == nil {
-            add(e, o.pointer("calls", "\(i)"), .dependency, "\(e.value) is not a dependency of the specification; declare it under dependencies with its timeout\(suggest(e.value, d.dependencies))")
+        for (i, e) in items(o.node.child("calls")).enumerated() where d.dependencies[callDependency(e.value)] == nil {
+            let dep = callDependency(e.value)
+            add(e, o.pointer("calls", "\(i)"), .dependency, "\(dep) is not a dependency of the specification; declare it under dependencies with its timeout\(suggest(dep, d.dependencies))")
         }
     }
 

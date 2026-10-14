@@ -585,9 +585,19 @@ let designSchemaJSON = #"""
       "type": "string"
     },
     "schemaRef": {
-      "description": "A JSON pointer into the specification, such as '#/entities/Member', '#/enums/LoanStatus', '#/views/LoanRow' or '#/schemas/Diagnostic'. The pointer names the object wherever its file is in the tree.",
+      "description": "A JSON pointer into the specification, such as '#/entities/Member', '#/enums/LoanStatus', '#/views/LoanRow' or '#/schemas/Diagnostic', or into another specification through a dependency that names it, the dependency's name before the #, such as 'customerRegistry#/schemas/Address'. The pointer names the object wherever its file is in the tree.",
       "type": "string",
-      "pattern": "^#/(entities|enums|views|schemas)/[A-Z][A-Za-z0-9]*$"
+      "pattern": "^([a-z][A-Za-z0-9]*)?#/(entities|enums|views|schemas)/[A-Z][A-Za-z0-9]*$"
+    },
+    "entityTarget": {
+      "description": "SpecArch keyword. An entity of the specification by its name, such as Loan, or an entity of another specification through a dependency that names it, such as customerRegistry#/entities/Customer.",
+      "type": "string",
+      "pattern": "^([a-z][A-Za-z0-9]*#/entities/)?[A-Z][A-Za-z0-9]*$"
+    },
+    "operationRef": {
+      "description": "SpecArch keyword. A name of the specification, such as listMembers, or an operation of another specification through a dependency that names it: the dependency's name, #/paths/, the path with each / written ~1 and each ~ written ~0, and the method, such as customerRegistry#/paths/~1customers/get.",
+      "type": "string",
+      "pattern": "^[a-z][A-Za-z0-9]*(#/paths/~1[^/]*/(get|post|put|patch|delete))?$"
     },
     "info": {
       "description": "OpenAPI keyword. What the system is. Only in specarch.yaml.",
@@ -601,6 +611,11 @@ let designSchemaJSON = #"""
           "description": "Version of the specification, semantic versioning.",
           "type": "string",
           "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+        },
+        "name": {
+          "description": "SpecArch keyword. The specification's name in kebab case, such as customer-registry: what another specification's dependency gives as its specification, and the key an estate lists it under. Left out, no other specification can name it.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
         },
         "description": {
           "$ref": "#/$defs/markdown"
@@ -1693,8 +1708,8 @@ let designSchemaJSON = #"""
           "$ref": "#/$defs/markdown"
         },
         "target": {
-          "description": "The entity this relation points at.",
-          "$ref": "#/$defs/typeName"
+          "description": "The entity this relation points at, of this specification or, for many-to-one and one-to-one, of another through a dependency.",
+          "$ref": "#/$defs/entityTarget"
         },
         "kind": {
           "type": "string",
@@ -2277,10 +2292,10 @@ let designSchemaJSON = #"""
           "uniqueItems": true
         },
         "calls": {
-          "description": "SpecArch keyword. The dependencies this operation calls, by their names under 'dependencies'.",
+          "description": "SpecArch keyword. The dependencies this operation calls, by their names under 'dependencies'. An entry may name one operation of a dependency that is another specification, as customerRegistry#/paths/~1customers/get.",
           "type": "array",
           "items": {
-            "$ref": "#/$defs/memberName"
+            "$ref": "#/$defs/operationRef"
           },
           "uniqueItems": true
         },
@@ -2550,6 +2565,16 @@ let designSchemaJSON = #"""
           "description": "The time limit of one call: after it, the call is given up and the operation answers as it does when the dependency fails.",
           "$ref": "#/$defs/duration"
         },
+        "specification": {
+          "description": "SpecArch keyword. When the dependency is a system specified on its own: that specification's name, its info.name. Its elements are then named from this specification as <dependency>#/<pointer>, in a $ref, a relation's target, a picker's or a list page's source, and calls.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "version": {
+          "description": "SpecArch keyword. The info.version of the other specification that the references were written against; the validator compares it when that specification is given.",
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+        },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
         },
@@ -2578,7 +2603,15 @@ let designSchemaJSON = #"""
       "patternProperties": {
         "^x-": {}
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "dependentRequired": {
+        "specification": [
+          "version"
+        ],
+        "version": [
+          "specification"
+        ]
+      }
     },
     "page": {
       "description": "SpecArch keyword. A screen of one of four kinds: a list, a form or a view of an entity's records, or a task that submits to an operation without loading a record. Generators map it onto the target project's component library.",
@@ -2606,16 +2639,16 @@ let designSchemaJSON = #"""
           "pattern": "^/"
         },
         "entity": {
-          "description": "The entity whose records a list, form or view shows. A task page shows none and leaves it out.",
-          "$ref": "#/$defs/typeName"
+          "description": "The entity whose records a list, form or view shows. A task page shows none and leaves it out. A list page whose source is a list of another specification names that list's entity the same way, as customerRegistry#/entities/Customer.",
+          "$ref": "#/$defs/entityTarget"
         },
         "permission": {
           "description": "Fail-closed, like an operation.",
           "$ref": "#/$defs/permissionName"
         },
         "source": {
-          "description": "operationId that loads the page's data. Required for list and view; a form that creates a new row has nothing to load and leaves it out, a form that edits an existing row names the operation that loads it.",
-          "$ref": "#/$defs/memberName"
+          "description": "operationId that loads the page's data. Required for list and view; a form that creates a new row has nothing to load and leaves it out, a form that edits an existing row names the operation that loads it. A list page may name a list of another specification through a dependency, as customerRegistry#/paths/~1customers/get, with its entity named the same way.",
+          "$ref": "#/$defs/operationRef"
         },
         "submit": {
           "description": "For a form or a task: operationId that receives it. A task's fields are properties of its request body.",
@@ -3342,8 +3375,8 @@ let designSchemaJSON = #"""
       "type": "object",
       "properties": {
         "source": {
-          "description": "operationId of the list the record is picked from, an operation whose listOf names the relation's target.",
-          "$ref": "#/$defs/memberName"
+          "description": "operationId of the list the record is picked from, an operation whose listOf names the relation's target; or such an operation of another specification through a dependency, as customerRegistry#/paths/~1customers/get.",
+          "$ref": "#/$defs/operationRef"
         },
         "shows": {
           "description": "The fields of the picked record a person reads to choose it, in order.",
@@ -5072,10 +5105,10 @@ let designSchemaJSON = #"""
           "uniqueItems": true
         },
         "calls": {
-          "description": "The dependencies the job calls.",
+          "description": "The dependencies the job calls. An entry may name one operation of a dependency that is another specification, as customerRegistry#/paths/~1customers/get.",
           "type": "array",
           "items": {
-            "$ref": "#/$defs/memberName"
+            "$ref": "#/$defs/operationRef"
           },
           "uniqueItems": true
         },

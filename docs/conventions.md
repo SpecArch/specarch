@@ -458,7 +458,7 @@ redefined.
 | Keyword | Origin | Notes |
 |---|---|---|
 | `info`, `paths`, `parameters`, `requestBody`, `responses`, `content`, `operationId`, `summary`, `deprecated` | OpenAPI 3 | bounded subset: `in` is path, query or header; no callbacks, links or servers |
-| `type`, `title`, `properties`, `required`, `enum`, `const`, `format`, `default`, `examples`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`, `minLength`, `maxLength`, `pattern`, `items`, `minItems`, `maxItems`, `uniqueItems`, `readOnly`, `writeOnly`, `$ref` | JSON Schema 2020-12 | `$ref` is restricted to `#/entities/X`, `#/enums/X`, `#/views/X` and `#/schemas/X`; nullability is written `type: [string, "null"]` as JSON Schema does |
+| `type`, `title`, `properties`, `required`, `enum`, `const`, `format`, `default`, `examples`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`, `minLength`, `maxLength`, `pattern`, `items`, `minItems`, `maxItems`, `uniqueItems`, `readOnly`, `writeOnly`, `$ref` | JSON Schema 2020-12 | `$ref` is restricted to `#/entities/X`, `#/enums/X`, `#/views/X` and `#/schemas/X`, of this specification or, as `<dependency>#/...`, of another one a dependency names (References between specifications); nullability is written `type: [string, "null"]` as JSON Schema does |
 | `channels`, `messages`, `payload` | AsyncAPI | one level: channel, messages, payload; no servers, bindings or operations objects |
 | `x-*` | OpenAPI convention | allowed in every object, ignored by validation |
 | `stages`, `sources`, `givenOutside` | SpecArch | the root file's list of stage folders and its registry of cited sources, each marked when it was given to parties outside |
@@ -478,6 +478,7 @@ redefined.
 | `separationOfDuties`, `cardinality` | ANSI INCITS 359 (RBAC), static separation of duty | a set and a number no holder may reach; stated over permissions, not roles, because the specification declares the duties and the roles that grant them |
 | `session`, `idleTimeout`, `absoluteTimeout` | SpecArch, after the OWASP Session Management Cheat Sheet | how a signed-in session ends; the two timeouts are the cheat sheet's |
 | `dependencies`, `timeout`, `calls` | SpecArch | external systems an operation calls, each with a time limit per call |
+| `specification`, `version` (on a dependency), `name` (in `info`) | SpecArch, after JSON Schema's `$ref` as a URI reference | a dependency that is another specification, named by its `info.name` and pinned to its `info.version`; its elements are named `<dependency>#/<pointer>` |
 | `idempotencyKey` | SpecArch, after RFC 9110 9.2.2 and the IETF Idempotency-Key header draft | a header that tells a repeated request from a new one, on a method that is not idempotent by itself |
 | `validity`, `from`, `until` | SpecArch | the fields that bound when a record is current |
 | `guard`, `precondition`, `recordsChanged` | SpecArch | what is checked together with a data change |
@@ -610,6 +611,64 @@ calls a dependency gets two derived red cases, `dependency fails <name>`
 and `dependency times out <name>`, both critical whatever the operation's
 harm, because they are the cases nobody exercises by hand; the expected
 outcome is the operation's 502, 503 or 504 response when it declares one.
+
+### References between specifications
+
+A module of an estate is specified on its own, and still keeps another
+module's key, picks from its list and calls its operations. The other
+module is a dependency that names its specification and the version the
+references were written against, and the other specification gives itself
+that name in `info`:
+
+    # the registry's specarch.yaml
+    info: { title: Customer registry, version: 2.4.0, name: customer-registry }
+
+    # the loans module
+    dependencies:
+      customerRegistry:
+        description: The registry of customers, whose numbers the loans keep.
+        timeout: PT2S
+        specification: customer-registry
+        version: 2.4.0
+
+An element of it is then named in `$ref`'s own form, a URI reference: the
+dependency's name, `#`, and a pointer into that specification
+(ADR-112). It stands where a name of this specification would:
+
+| Where | Form | Example |
+|---|---|---|
+| a field's `$ref` | `<dependency>#/entities/X`, `#/enums/X`, `#/views/X` or `#/schemas/X` | `customerRegistry#/schemas/Address` |
+| a many-to-one or one-to-one relation's `target`, a list page's `entity` | `<dependency>#/entities/X` | `customerRegistry#/entities/Customer` |
+| a picker's `source`, a list page's `source`, a `calls` entry | `<dependency>#/paths/<path>/<method>`, the path with each `/` written `~1` | `customerRegistry#/paths/~1customers/get` |
+
+A one-to-many or many-to-many relation cannot lead to another
+specification's entity: its `via` would be in the other module's tables. A
+page that shows another specification's records is a list, with its entity
+and its list of one dependency, and a picker of a relation to another
+specification's entity picks from that specification's list.
+
+Given the specification alone, `validate` checks what it can (the
+dependency is declared with `specification`, the reference stands where it
+may) and counts every reference as unresolved in its summary line, beside
+the open questions; `gaps` lists them. That is a gap, not an error: one
+team validates its module with no errors. Given the other specification in
+the same run (`specarch validate loans/spec registry/spec`), each
+reference resolves there and is checked as a local name is: the element
+exists, a list lists the entity it is read for, the columns, filters and
+picked fields are fields of that entity, and the dependency's `version` is
+the other's `info.version`. Each wrong one is the error `reference` at the
+entry. A reference to an element a must question blocks there waits on
+that question, and `gaps` names it.
+
+Generators read one specification at a time. `generate sql` writes the
+column a relation to another specification keeps, with the type its own
+`via` field has and no foreign key, since that table is in another
+database, and a comment naming the specification and version. A field
+typed by another specification's element cannot be typed from this one
+alone, so every code target that would write it refuses it as `reference`
+at the field; the UI targets refuse a list page or picker that reads
+another specification's list for the same reason. The techspec names
+each reference with the specification and version it points at.
 
 ### Idempotency
 

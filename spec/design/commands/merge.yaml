@@ -111,6 +111,15 @@ commands:
         not granted:" blocking the role's permissions and the permission,
         and one only the table holds a could question that starts
         "Granted, seeded nowhere the reader follows:".
+      - A tree whose roles grant permissions says how its roles go on the
+        wire: with info.roleNames when its reader found them in upper
+        snake case, and without it when it found them as named. Where two
+        such trees say different things, the merge leaves info.roleNames
+        out and asks one must question blocking roles, naming each way
+        and the trees that say it (ADR-112). A tree with no role that
+        grants a permission says nothing of it. info.wireNames is taken
+        from the tree that names it, as before: a tree whose reader saw
+        no wire leaves it out without saying the names go as written.
       - Every reader asks about a check that lets every request through
         while a setting is empty in the same words, "The check <check>
         runs only when the setting <setting> is present." (or "is true."

@@ -75,6 +75,7 @@ func Show(aepr *api.DXAPIEndPointRequest) (err error) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	res.Tree.anchorBlocks()
 	paths, err := encode(res.Tree.files["design/paths.yaml"])
 	if err != nil {
 		t.Fatal(err)
@@ -126,6 +127,7 @@ func goRouterOperations(t *testing.T, files map[string]string) (string, string) 
 	if err != nil {
 		t.Fatal(err)
 	}
+	res.Tree.anchorBlocks()
 	paths, err := encode(res.Tree.files["design/paths.yaml"])
 	if err != nil {
 		t.Fatal(err)
@@ -247,5 +249,129 @@ func main() { _ = startCommand().Execute() }
 	}
 	if strings.Contains(questions, "found no call that passes it one") {
 		t.Errorf("the router passed from the closure was not followed:\n%s", questions)
+	}
+}
+
+// TestGoBodyIntoStructWrittenInPlace reads a body a handler decodes into a
+// variable declared with a struct type in place, by the rules a named
+// struct is read by: json tags, a nested struct in place, a pointer and a
+// slice; and anchors every question's pointer in the tree it writes, so
+// that a body of a type outside the module blocks the operation's missing
+// requestBody, a map is an object whose shape the question asks, blocking
+// the written property, and an interface as a struct's only field blocks
+// the object's missing properties, never a key below one the tree does
+// not have.
+func TestGoBodyIntoStructWrittenInPlace(t *testing.T) {
+	paths, questions := goRouterOperations(t, map[string]string{
+		"go.mod": "module example.com/svc\n\ngo 1.26\n",
+		"cmd/main.go": `package main
+
+import (
+	"github.com/gin-gonic/gin"
+
+	"example.com/svc"
+)
+
+func main() {
+	r := gin.New()
+	server := svc.NewServer()
+	server.Routes(r)
+	_ = r.Run(":8080")
+}
+`,
+		"server.go": `package svc
+
+import (
+	"github.com/gin-gonic/gin"
+	"example.com/other/pb"
+)
+
+type Server struct{}
+
+func NewServer() *Server { return &Server{} }
+
+func (s *Server) Routes(r *gin.Engine) {
+	r.POST("/items", s.Create)
+	r.PUT("/items", s.Replace)
+	r.POST("/imports", s.Import)
+	r.POST("/policies", s.Upsert)
+	r.POST("/tags", s.Tag)
+}
+
+func (s *Server) Create(c *gin.Context) {
+	var req struct {
+		Name string ` + "`json:\"name\"`" + `
+		Size *struct {
+			Width int32 ` + "`json:\"width\"`" + `
+		} ` + "`json:\"size\"`" + `
+		Tags []struct {
+			Label string ` + "`json:\"label\"`" + `
+		} ` + "`json:\"tags\"`" + `
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		return
+	}
+}
+
+func (s *Server) Replace(c *gin.Context) {
+	var body struct {
+		Name string ` + "`json:\"name\"`" + `
+	}
+	if err := c.BindJSON(&body); err != nil {
+		return
+	}
+}
+
+func (s *Server) Import(c *gin.Context) {
+	var req pb.Item
+	_ = c.ShouldBindJSON(&req)
+}
+
+type upsertRequest struct {
+	Policy map[string]any ` + "`json:\"policy\"`" + `
+}
+
+func (s *Server) Upsert(c *gin.Context) {
+	var req upsertRequest
+	_ = c.ShouldBindJSON(&req)
+}
+
+func (s *Server) Tag(c *gin.Context) {
+	var req struct {
+		Data any ` + "`json:\"data\"`" + `
+	}
+	_ = c.ShouldBindJSON(&req)
+}
+`,
+	})
+	if strings.Count(paths, "name:\n                  type: string") != 2 {
+		t.Errorf("want the property name on POST /items and PUT /items:\n%s", paths)
+	}
+	for _, want := range []string{
+		"size:\n                  type: [object, \"null\"]\n                  properties:\n                    width:\n                      type: integer\n                      format: int32",
+		"tags:\n                  type: array\n                  items:\n                    type: object\n                    properties:\n                      label:\n                        type: string",
+	} {
+		if strings.Count(paths, want) != 1 {
+			t.Errorf("the paths fragment does not hold %q once:\n%s", want, paths)
+		}
+	}
+	if strings.Count(paths, "requestBody:") != 4 {
+		t.Errorf("want a requestBody on POST /items, PUT /items, POST /policies and POST /tags:\n%s", paths)
+	}
+	if want := "policy:\n                  type: object\n"; !strings.Contains(paths, want) {
+		t.Errorf("the map property is not written as an object:\n%s", paths)
+	}
+	for _, want := range []string{
+		"blocks: ['#/paths/~1imports/post/requestBody']",
+		"blocks: ['#/paths/~1policies/post/requestBody/content/application~1json/schema/properties/policy']",
+		"blocks: ['#/paths/~1tags/post/requestBody/content/application~1json/schema/properties']",
+		"it is a map, map[string]any, whose keys",
+	} {
+		if !strings.Contains(questions, want) {
+			t.Errorf("the questions fragment does not hold %q:\n%s", want, questions)
+		}
+	}
+	if strings.Contains(questions, "/requestBody/content/application~1json/schema'") {
+		t.Errorf("a question blocks a schema the tree does not have:\n%s", questions)
 	}
 }

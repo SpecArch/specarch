@@ -97,9 +97,11 @@ func (t *Tree) put(path string, n *yaml.Node) { t.files[path] = n }
 
 // Write writes the tree into out, creating the folder. It writes only its
 // own files; it never removes one. Before writing, every source's outline
-// is completed with the clauses the tree cites of it.
+// is completed with the clauses the tree cites of it, and every
+// question's pointer is anchored in the tree.
 func (t *Tree) Write(out string) error {
 	t.completeOutlines()
+	t.anchorBlocks()
 	names := make([]string, 0, len(t.files))
 	for name := range t.files {
 		names = append(names, name)
@@ -208,6 +210,78 @@ func (t *Tree) completeOutlines() {
 			clauses.Content = append(clauses.Content, flow(mapping("clause", clause, "title", title)))
 		}
 	}
+}
+
+// anchorBlocks makes every pointer a question of the tree blocks one that
+// exists in the tree: a reader asks its question at the place an element
+// would have had, and then leaves the element out, so the pointer is cut
+// to the deepest element that exists and at most one missing key under it,
+// the one the question is about, as the validator's question_block rule
+// allows; a pointer whose element is not written blocks its section.
+// Nothing else in the tree is a licence for a pointer that resolves to
+// nothing, and validate refuses the tree for it.
+func (t *Tree) anchorBlocks() {
+	for _, file := range t.files {
+		questions := child(file, "questions")
+		if questions == nil || questions.Kind != yaml.MappingNode {
+			continue
+		}
+		for i := 1; i < len(questions.Content); i += 2 {
+			blocks := child(questions.Content[i], "blocks")
+			if blocks == nil || blocks.Kind != yaml.SequenceNode {
+				continue
+			}
+			var kept []*yaml.Node
+			seen := map[string]bool{}
+			for _, b := range blocks.Content {
+				if b.Kind == yaml.ScalarNode {
+					b.Value = t.anchor(b.Value)
+				}
+				if b.Kind == yaml.ScalarNode && seen[b.Value] {
+					continue
+				}
+				seen[b.Value] = true
+				kept = append(kept, b)
+			}
+			blocks.Content = kept
+		}
+	}
+}
+
+// anchor is the pointer cut to what the tree has, or the text as it is
+// when it is a stage, a section, not a pointer, or resolves already.
+func (t *Tree) anchor(text string) string {
+	b, ok := spec.ParseBlock(text)
+	if !ok || !b.IsPointer() {
+		return text
+	}
+	n := t.element(b.Tokens[0], b.Tokens[1])
+	if n == nil {
+		return b.Tokens[0]
+	}
+	reached := 2
+	for _, token := range b.Tokens[2:] {
+		next := source.Child(n, token)
+		if next == nil {
+			break
+		}
+		n, reached = next, reached+1
+	}
+	if reached == len(b.Tokens) {
+		return text
+	}
+	return "#" + source.Pointer(b.Tokens[:reached+1]...)
+}
+
+// element is the element of a section the tree writes, in whichever of
+// its files holds it: a section may be spread over files, one per element.
+func (t *Tree) element(section, name string) *yaml.Node {
+	for _, file := range t.files {
+		if e := source.Child(child(file, section), name); e != nil {
+			return e
+		}
+	}
+	return nil
 }
 
 // ListStage lists a stage among the root file's stages, in life-cycle

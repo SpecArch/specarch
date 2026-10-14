@@ -536,16 +536,18 @@ commands:
         name a should question; and for the body it decodes
         (`json.NewDecoder(request.Body).Decode`, gin's `ShouldBindJSON`,
         `BindJSON`, `ShouldBind` and `Bind`, echo's `Bind`) into a
-        variable of a struct the module declares, written as the request
+        variable of a struct the module declares or of a struct type
+        written in place at the variable, written as the request
         body's object by encoding/json's rules: the `json` tag's name,
         `-` left out, a pointer nullable, a slice an array, `time.Time` a
-        date-time, a struct of the module in place, with
-        `info.wireNames: snake_case` when the tagged names are
-        snake_case. A field with no json tag goes on the wire by its Go
+        date-time, a struct of the module and a struct type written in
+        place both an object in place, with `info.wireNames: snake_case`
+        when the tagged names are snake_case. A field with no json tag goes on the wire by its Go
         name, which is neither camelCase nor snake_case, and prints a
-        line; a map, an interface, an embedded struct and a type outside
-        the module are should questions, and the width of an `int` or a
-        64-bit integer a must question. The tags of
+        line; a map is an object, written, whose shape is a should
+        question blocking it; an interface, an embedded struct and a
+        type outside the module are should questions, and the width of
+        an `int` or a 64-bit integer a must question. The tags of
         go-playground/validator (`validate`, read when the module imports
         it) and of gin (`binding`) give `required`, lengths, items,
         bounds, `oneof` as an enum, the formats `email`, `uuid`, `uri`,
@@ -1018,6 +1020,16 @@ commands:
         description, which no route table holds, and a role's
         description, which no permission table holds. A tree with a question also declares
         the stakeholder `system-owner`, inferred, for the question to name.
+      - A question's pointer resolves in the tree the reader writes: the
+        reader asks at the place an element would have had and may then
+        leave the element out, so as the tree is written each pointer
+        is cut to the deepest element the tree has and at most one
+        missing key under it, the one the question is about, or to its
+        section when the element itself is not written; two blocks of
+        one question cut to one pointer are one. The tree `merge`
+        writes is written the same way. A tree a reader writes passes
+        `validate` on its own, with no error, since `merge` checks each
+        tree before it merges it.
       - What a reader cannot hold, which it prints a line for, is also a
         could question in the tree, so that it is a problem like any
         other and reaches the problems file (ADR-065): a decision for

@@ -249,8 +249,32 @@ func TestConformance(t *testing.T) {
 					t.Errorf("%s is missing after the run", name)
 				}
 			}
+			if out := extractOut(c); out != "" {
+				// A tree a reader writes passes validate on its own, with
+				// no error: merge checks each tree before it merges it, and
+				// a question's pointer never points below a key the tree
+				// does not have.
+				var vout, verr bytes.Buffer
+				if status := run([]string{"validate", out}, &vout, &verr); status != 0 {
+					t.Errorf("validate %s exits %d on the tree the case writes; every tree a reader writes passes validate on its own\n%s%s", out, status, vout.String(), verr.String())
+				}
+			}
 		})
 	}
+}
+
+// extractOut is the folder an extract case writes its tree into, or ""
+// for a case of another command or one that writes no tree.
+func extractOut(c conformanceCase) string {
+	if len(c.Arguments) == 0 || c.Arguments[0] != "extract" || c.ExitStatus != 0 {
+		return ""
+	}
+	for i, a := range c.Arguments {
+		if a == "--out" && i+1 < len(c.Arguments) {
+			return c.Arguments[i+1]
+		}
+	}
+	return ""
 }
 
 // readTree reads every file under dir, keyed by its slash path, leaving out

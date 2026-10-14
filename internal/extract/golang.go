@@ -1269,6 +1269,17 @@ func exprText(e ast.Expr) string {
 		return "*" + exprText(e.X)
 	case *ast.ParenExpr:
 		return exprText(e.X)
+	case *ast.StructType:
+		return "a struct type"
+	case *ast.MapType:
+		return "map[" + exprText(e.Key) + "]" + exprText(e.Value)
+	case *ast.ArrayType:
+		if e.Len != nil {
+			return "[...]" + exprText(e.Elt)
+		}
+		return "[]" + exprText(e.Elt)
+	case *ast.InterfaceType:
+		return "interface{}"
 	case nil:
 		return "nothing"
 	}

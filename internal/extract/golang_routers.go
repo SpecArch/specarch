@@ -2066,14 +2066,21 @@ func (g *goReader) bodiesSnake(routes []*goRoute) bool {
 			}
 			break
 		}
-		ts, tf := g.structOf(f, e)
-		if ts == nil || seen[ts] {
-			return
-		}
-		seen[ts] = true
-		stt, ok := ts.Type.(*ast.StructType)
-		if !ok {
-			return
+		var stt *ast.StructType
+		tf := f
+		if inPlace, ok := e.(*ast.StructType); ok {
+			stt = inPlace
+		} else {
+			ts, found := g.structOf(f, e)
+			if ts == nil || seen[ts] {
+				return
+			}
+			seen[ts] = true
+			stt, _ = ts.Type.(*ast.StructType)
+			tf = found
+			if stt == nil {
+				return
+			}
 		}
 		for _, fl := range stt.Fields.List {
 			for _, n := range fl.Names {
@@ -2146,7 +2153,12 @@ func (g *goReader) fieldSchema(f *goFile, e ast.Expr, at, where string, snake bo
 		}
 		return mapping("type", "array", "items", items)
 	case *ast.MapType:
-		return ask("it is a map, whose keys and values JSON writes as an object of any properties", "A map has no fixed properties, and the meta-model names each property of an object.")
+		// A map is an object on the wire whose properties the source does
+		// not name, so the object is written and its shape is the
+		// question, blocking the object it is about.
+		g.question("should", fmt.Sprintf("%s: it is a map, %s, whose keys and values JSON writes as an object of any properties. Which shape does it take?", where, exprText(t)),
+			[]string{at}, "A map has no fixed properties, and the meta-model names each property of an object.", g.at(clause, where+": it is a map, "+exprText(t)+"."))
+		return mapping("type", "object")
 	case *ast.InterfaceType:
 		return ask("it is an interface, which holds any JSON value", "An interface says nothing of the value's shape.")
 	case *ast.Ident:
@@ -2176,6 +2188,10 @@ func (g *goReader) fieldSchema(f *goFile, e ast.Expr, at, where string, snake bo
 		if exprText(t) == f.importName("time")+".Time" {
 			return mapping("type", "string", "format", "date-time")
 		}
+	case *ast.StructType:
+		// A struct type written in place, as in var req struct{...}: it
+		// has no name and cannot hold itself, so seen stays as it is.
+		return g.structSchema(f, t, "", at, where, snake, seen, clause)
 	}
 	ts, tf := g.structOf(f, e)
 	if ts == nil {
@@ -2190,12 +2206,30 @@ func (g *goReader) fieldSchema(f *goFile, e ast.Expr, at, where string, snake bo
 	}
 	seen = copySeen(seen)
 	seen[ts] = true
+	return g.structSchema(tf, stt, ts.Name.Name, at, where, snake, seen, clause)
+}
+
+// structSchema is the object a struct's fields give on the wire. owner is
+// the struct's name, or "" for a struct type written in place.
+func (g *goReader) structSchema(tf *goFile, stt *ast.StructType, owner string, at, where string, snake bool, seen map[*ast.TypeSpec]bool, clause string) *yaml.Node {
+	field := func(name string) string {
+		if owner == "" {
+			return "the field " + name + " of the struct written in place"
+		}
+		return owner + "." + name
+	}
+	embeds := func(typ string) string {
+		if owner == "" {
+			return "the struct written in place embeds " + typ
+		}
+		return owner + " embeds " + typ
+	}
 	props := mapping()
 	var required []string
 	for _, fl := range stt.Fields.List {
 		if len(fl.Names) == 0 {
-			g.question("should", fmt.Sprintf("%s: %s embeds %s, whose fields encoding/json writes as its own. Which of them does the body take?", where, ts.Name.Name, exprText(fl.Type)),
-				[]string{at + "/properties"}, "The reader writes a struct's own fields, and an embedded struct's may be promoted or hidden by Go's rules.", g.at(g.clause(tf, fl.Pos()), ts.Name.Name+" embeds "+exprText(fl.Type)+"."))
+			g.question("should", fmt.Sprintf("%s: %s, whose fields encoding/json writes as its own. Which of them does the body take?", where, embeds(exprText(fl.Type))),
+				[]string{at + "/properties"}, "The reader writes a struct's own fields, and an embedded struct's may be promoted or hidden by Go's rules.", g.at(g.clause(tf, fl.Pos()), embeds(exprText(fl.Type))+"."))
 			continue
 		}
 		for _, n := range fl.Names {
@@ -2210,17 +2244,17 @@ func (g *goReader) fieldSchema(f *goFile, e ast.Expr, at, where string, snake bo
 			name := wire
 			switch {
 			case !tagged && !memberNameWord.MatchString(wire):
-				g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: %s.%s has no json tag, so encoding/json writes it as %s, which is neither camelCase nor snake_case; left out", fclause, ts.Name.Name, n.Name, wire), clause: fclause, blocks: []string{at + "/properties"}})
+				g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: %s has no json tag, so encoding/json writes it as %s, which is neither camelCase nor snake_case; left out", fclause, field(n.Name), wire), clause: fclause, blocks: []string{at + "/properties"}})
 				continue
 			case snake:
 				c, ok := wireCamel(wire)
 				if !ok {
-					g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: %s.%s: its name %s does not go back to itself under info.wireNames snake_case; left out", fclause, ts.Name.Name, n.Name, wire), clause: fclause, blocks: []string{at + "/properties"}})
+					g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: %s: its name %s does not go back to itself under info.wireNames snake_case; left out", fclause, field(n.Name), wire), clause: fclause, blocks: []string{at + "/properties"}})
 					continue
 				}
 				name = c
 			case !memberNameWord.MatchString(wire):
-				g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: %s.%s: its name %s is not camelCase, and the bodies' other names are; a specification names its properties on the wire one way (info.wireNames); left out", fclause, ts.Name.Name, n.Name, wire), clause: fclause, blocks: []string{at + "/properties"}})
+				g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: %s: its name %s is not camelCase, and the bodies' other names are; a specification names its properties on the wire one way (info.wireNames); left out", fclause, field(n.Name), wire), clause: fclause, blocks: []string{at + "/properties"}})
 				continue
 			}
 			pat := at + "/properties/" + name

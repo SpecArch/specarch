@@ -79,6 +79,8 @@ paths:
                 channel:
                   type: string
                   enum: [desk, kiosk, web]
+                extra:
+                  type: object
                 contactEmail:
                   type: string
                   format: email

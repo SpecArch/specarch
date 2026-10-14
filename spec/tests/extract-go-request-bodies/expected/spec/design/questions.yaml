@@ -1,0 +1,197 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) shelf/server.go:24: no implementation file names the project's permission check, so the reader does not know which permission POST /imports checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'shelf/server.go:24: no implementation file names the project''s permission check, so the reader does not know which permission POST /imports checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1imports/post/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  # specarch-problem: question: open_question: (should, decision) POST /imports, request body: pb.Item is a type the reader does not find in the module's files. Which shape does it take? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: 'POST /imports, request body: pb.Item is a type the reader does not find in the module''s files. Which shape does it take?'
+    kind: decision
+    priority: should
+    blocks: ['#/paths/~1imports/post/requestBody']
+    decidedBy: system-owner
+    why: A type declared outside the files read is not known by syntax.
+    cites:
+      - {source: code, clause: 'shelf/server.go:72', says: 'POST /imports, request body: pb.Item is a type the reader does not find in the module''s files.'}
+  # specarch-problem: question: open_question: (must, decision) What does POST /imports do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: What does POST /imports do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1imports/post/summary', '#/paths/~1imports/post/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /imports? It is declared at shelf/server.go:24, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: Does the running system register POST /imports? It is declared at shelf/server.go:24, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1imports/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'shelf/server.go:24', says: Registers POST /imports.}
+  # specarch-problem: question: open_question: (must, decision) shelf/server.go:22: no implementation file names the project's permission check, so the reader does not know which permission POST /items checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: 'shelf/server.go:22: no implementation file names the project''s permission check, so the reader does not know which permission POST /items checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items/post/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  # specarch-problem: question: open_question: (should, decision) POST /items, request body, property extra: it is a map, map[string]string, whose keys and values JSON writes as an object of any properties. Which shape does it take? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: 'POST /items, request body, property extra: it is a map, map[string]string, whose keys and values JSON writes as an object of any properties. Which shape does it take?'
+    kind: decision
+    priority: should
+    blocks: ['#/paths/~1items/post/requestBody/content/application~1json/schema/properties/extra']
+    decidedBy: system-owner
+    why: A map has no fixed properties, and the meta-model names each property of an object.
+    cites:
+      - {source: code, clause: 'shelf/server.go:47', says: 'POST /items, request body, property extra: it is a map, map[string]string.'}
+  # specarch-problem: question: open_question: (must, decision) What does POST /items do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: What does POST /items do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items/post/summary', '#/paths/~1items/post/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /items? It is declared at shelf/server.go:22, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: Does the running system register POST /items? It is declared at shelf/server.go:22, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'shelf/server.go:22', says: Registers POST /items.}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /items/{id} take: id? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: 'What values does each path parameter of /items/{id} take: id?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items~1{id}/parameters/0/schema']
+    decidedBy: system-owner
+    why: A path names its parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) shelf/server.go:23: no implementation file names the project's permission check, so the reader does not know which permission PUT /items/{id} checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: 'shelf/server.go:23: no implementation file names the project''s permission check, so the reader does not know which permission PUT /items/{id} checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items~1{id}/put/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  # specarch-problem: question: open_question: (must, decision) What does PUT /items/{id} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  Q-11:
+    question: What does PUT /items/{id} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items~1{id}/put/summary', '#/paths/~1items~1{id}/put/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register PUT /items/{id}? It is declared at shelf/server.go:23, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+  Q-12:
+    question: Does the running system register PUT /items/{id}? It is declared at shelf/server.go:23, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items~1{id}/put']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'shelf/server.go:23', says: 'Registers PUT /items/{id}.'}
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /items/{id}/policy take: id? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+  Q-13:
+    question: 'What values does each path parameter of /items/{id}/policy take: id?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items~1{id}~1policy/parameters/0/schema']
+    decidedBy: system-owner
+    why: A path names its parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) shelf/server.go:25: no implementation file names the project's permission check, so the reader does not know which permission POST /items/{id}/policy checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
+  Q-14:
+    question: 'shelf/server.go:25: no implementation file names the project''s permission check, so the reader does not know which permission POST /items/{id}/policy checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items~1{id}~1policy/post/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  # specarch-problem: question: open_question: (should, decision) POST /items/{id}/policy, request body, property policy: it is a map, map[string]any, whose keys and values JSON writes as an object of any properties. Which shape does it take? Decided by system-owner. Answer with a decision record that names Q-15 under answers. [Q-15]
+  Q-15:
+    question: 'POST /items/{id}/policy, request body, property policy: it is a map, map[string]any, whose keys and values JSON writes as an object of any properties. Which shape does it take?'
+    kind: decision
+    priority: should
+    blocks: ['#/paths/~1items~1{id}~1policy/post/requestBody/content/application~1json/schema/properties/policy']
+    decidedBy: system-owner
+    why: A map has no fixed properties, and the meta-model names each property of an object.
+    cites:
+      - {source: code, clause: 'shelf/server.go:80', says: 'POST /items/{id}/policy, request body, property policy: it is a map, map[string]any.'}
+  # specarch-problem: question: open_question: (must, decision) What does POST /items/{id}/policy do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-16 under answers. [Q-16]
+  Q-16:
+    question: What does POST /items/{id}/policy do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items~1{id}~1policy/post/summary', '#/paths/~1items~1{id}~1policy/post/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /items/{id}/policy? It is declared at shelf/server.go:25, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-17 under answers. [Q-17]
+  Q-17:
+    question: Does the running system register POST /items/{id}/policy? It is declared at shelf/server.go:25, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1items~1{id}~1policy/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'shelf/server.go:25', says: 'Registers POST /items/{id}/policy.'}
+  # specarch-problem: question: open_question: (must, decision) shelf/server.go:26: no implementation file names the project's permission check, so the reader does not know which permission POST /tags checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-18 under answers. [Q-18]
+  Q-18:
+    question: 'shelf/server.go:26: no implementation file names the project''s permission check, so the reader does not know which permission POST /tags checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1tags/post/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.
+  # specarch-problem: question: open_question: (should, decision) POST /tags, request body, property data: it is Go's any, which the meta-model has no type for. Which shape does it take? Decided by system-owner. Answer with a decision record that names Q-19 under answers. [Q-19]
+  Q-19:
+    question: 'POST /tags, request body, property data: it is Go''s any, which the meta-model has no type for. Which shape does it take?'
+    kind: decision
+    priority: should
+    blocks: ['#/paths/~1tags/post/requestBody/content/application~1json/schema/properties']
+    decidedBy: system-owner
+    why: The meta-model's numbers are integers of a stated width and doubles.
+    cites:
+      - {source: code, clause: 'shelf/server.go:96', says: 'POST /tags, request body, property data: it is Go''s any, which the meta-model has no type for.'}
+  # specarch-problem: question: open_question: (must, decision) What does POST /tags do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-20 under answers. [Q-20]
+  Q-20:
+    question: What does POST /tags do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1tags/post/summary', '#/paths/~1tags/post/responses']
+    decidedBy: system-owner
+    why: The source registers a handler and does not say what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) Does the running system register POST /tags? It is declared at shelf/server.go:26, and no list the running system printed was read with it. Decided by system-owner. Answer with a decision record that names Q-21 under answers. [Q-21]
+  Q-21:
+    question: Does the running system register POST /tags? It is declared at shelf/server.go:26, and no list the running system printed was read with it.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1tags/post']
+    decidedBy: system-owner
+    why: Syntax shows a declaration and not what runs; a route table the running system prints says what it registers, and merging it answers this.
+    cites:
+      - {source: code, clause: 'shelf/server.go:26', says: Registers POST /tags.}
+  # specarch-problem: question: open_question: (could, decision) Not held: shelf/server.go:48: the field Count of the struct written in place has no json tag, so encoding/json writes it as Count, which is neither camelCase nor snake_case; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
+  Q-22:
+    question: 'Not held: shelf/server.go:48: the field Count of the struct written in place has no json tag, so encoding/json writes it as Count, which is neither camelCase nor snake_case; left out. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1items/post/requestBody/content/application~1json/schema/properties']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'shelf/server.go:48', says: 'Not held: the field Count of the struct written in place has no json tag, so encoding/json writes it as Count, which is neither camelCase nor snake_case; left out.'}

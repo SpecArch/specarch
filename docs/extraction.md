@@ -74,6 +74,15 @@ Every reader shares these rules:
   reader knows the line), so it reaches the problems file with every other
   problem. A thing a `must` question already asks for gets no second
   question; its line names that question.
+- Every pointer a question blocks resolves in the tree the reader writes.
+  A reader asks at the place an element would have had and may then leave
+  the element out, so each pointer is cut, as the tree is written, to the
+  deepest element the tree has and at most one missing key under it, the
+  one the question is about: a body whose type the reader cannot find
+  blocks the operation's missing `requestBody`, not a schema under it.
+  A tree a reader writes passes `validate` on its own, with no error,
+  since `merge` checks each tree before merging it; the conformance suite
+  runs `validate` on every extract case's output.
 - A code source is one repository, and its `edition` is the full hash
   of the commit the reader read, which the reader prints. It is the
   newest of the commits that last changed each path read, so a commit
@@ -435,7 +444,8 @@ changes `extract.yaml` first.
     recorder is one. Each route registered with literal values outside
     a loop or a condition is an operation named as extract router names
     one; handlers give the path parameters they read, the JSON body they
-    decode into a struct of the module, by encoding/json's rules, with
+    decode into a struct of the module or a struct type written in place
+    at the variable, by encoding/json's rules, with
     go-playground/validator's and gin's tag rules that have a keyword,
     and the dependencies their client calls name by host; flags are
     settings. The implementation file names the project's checks under

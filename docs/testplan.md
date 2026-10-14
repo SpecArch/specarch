@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 412 design tests, 181 golden and 231 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 413 design tests, 182 golden and 231 red, about 14 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 412 design tests, 181 golden and 231 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 408 |
+| system | 409 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -793,7 +793,15 @@ Scenario: golden; level: system; verifies SA-44.
 
 - Given: a repository holding a Go module on chi whose server registers routes through a field of its struct, an implementation file whose bindings.http.permissionChecks name a check that wraps a handler, one used as middleware, one called in a handler and one named without its permission argument; routes checked by each, one by three permissions, one by a permission that is not a literal and one by none; a check that lets every request through while a setting is empty; handlers that decode a JSON body into a struct of the module with snake_case json tags and go-playground/validator tags (required, len, max, min, oneof, email, numeric, alphanum, dive and a rule with no keyword), a pointer, a list of structs, a time, an int, an int64, a map, an unexported field, a field left out with -, a struct that embeds another and a field with no json tag; a client call with a literal URL in a handler, one outside any handler, one with a computed URL and one with a relative URL; a path parameter read by a computed name; and flags declared with literal names
 - When: extract go is run on the module with the implementation file
-- Then: it writes each operation with the one permission the named checks give it, declared with the check that reads it first; asks a must question for the three permissions, the computed one, the operation with none, the check named in part, the gate on the setting in the words extract permissions uses, the width of the int and of the int64, and each dependency's description and time limit; writes each body as an object of the struct's fields in camelCase, with info.wireNames snake_case, nullable for the pointer, the validator's rules as required, lengths, items, bounds, an enum, a format and patterns, and asks a should question for the map, the embedded struct, the computed parameter name, the computed and relative URLs and the dependency called outside a handler; prints a line and asks a could question for dive, the rule with no keyword and the field with no json tag; declares each system called with a literal URL as a dependency named after its host, listed under calls of the operation whose handler calls it; writes each flag and each environment variable read as a setting; and exits 0
+- Then: it writes each operation with the one permission the named checks give it, declared with the check that reads it first; asks a must question for the three permissions, the computed one, the operation with none, the check named in part, the gate on the setting in the words extract permissions uses, the width of the int and of the int64, and each dependency's description and time limit; writes each body as an object of the struct's fields in camelCase, with info.wireNames snake_case, nullable for the pointer, the validator's rules as required, lengths, items, bounds, an enum, a format and patterns, writes the map as an object whose shape is a should question blocking it, and asks a should question for the embedded struct, the computed parameter name, the computed and relative URLs and the dependency called outside a handler; prints a line and asks a could question for dive, the rule with no keyword and the field with no json tag; declares each system called with a literal URL as a dependency named after its host, listed under calls of the operation whose handler calls it; writes each flag and each environment variable read as a setting; and exits 0
+
+#### extract-go-request-bodies
+
+Scenario: golden; level: system; verifies SA-44.
+
+- Given: a repository holding a Go module on gin whose engine registers routes through a method of a server made in place; handlers that decode a JSON body into a variable declared with a struct type written in place, with json tags, a binding tag, a nested struct written in place, a pointer to one, a slice of them, a named struct of the module, a map of strings and a field with no json tag; one that names its variable body and binds with BindJSON; one that decodes into a type of another module; one into a named struct whose only field is a map of any value; and one into a struct whose only field is an interface; with no implementation file
+- When: extract go is run on the module
+- Then: it writes each operation with the body its handler decodes as an object of the struct's fields by encoding/json's rules, whether the struct is named or written in place, the nested struct in place, the pointer nullable, the slice an array of objects, each map an object whose shape is a should question naming the Go type and blocking the written property, and the binding tag's required; asks a should question for the type of another module, blocking the operation's missing requestBody, and for the interface, blocking the object's missing properties, so that no question points below a key the tree does not have and the tree passes validate on its own; prints a line and asks a could question for the field with no json tag; asks a must question for each operation's permission, summary and responses, each path parameter's values and whether the running system registers it; and exits 0
 
 #### extract-go-routers
 

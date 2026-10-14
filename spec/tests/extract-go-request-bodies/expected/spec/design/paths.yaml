@@ -1,0 +1,90 @@
+paths:
+  /imports:
+    post:
+      operationId: importItems
+      origin: stated
+      cites:
+        - {source: code, clause: 'shelf/server.go:24', says: Registers POST /imports on a gin router; its handler is s.importItems.}
+        - {source: code, clause: 'shelf/server.go:70', says: The handler of POST /imports reads no path parameter by name and decodes its body into req.}
+  /items:
+    post:
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                size:
+                  type: [object, "null"]
+                  properties:
+                    width:
+                      type: integer
+                      format: int32
+                tags:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      label:
+                        type: string
+                note:
+                  type: object
+                  properties:
+                    text:
+                      type: string
+                extra:
+                  type: object
+              required: [name]
+      origin: stated
+      cites:
+        - {source: code, clause: 'shelf/server.go:22', says: Registers POST /items on a gin router; its handler is s.create.}
+        - {source: code, clause: 'shelf/server.go:37', says: The handler of POST /items reads no path parameter by name and decodes its body into req.}
+  /items/{id}:
+    parameters:
+      - {name: id, in: path, required: true}
+    put:
+      operationId: replace
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      origin: stated
+      cites:
+        - {source: code, clause: 'shelf/server.go:23', says: 'Registers PUT /items/{id} on a gin router; its handler is s.replace.'}
+        - {source: code, clause: 'shelf/server.go:58', says: 'The handler of PUT /items/{id} reads the path parameter id and decodes its body into body.'}
+  /items/{id}/policy:
+    parameters:
+      - {name: id, in: path, required: true}
+    post:
+      operationId: upsert
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                policy:
+                  type: object
+      origin: stated
+      cites:
+        - {source: code, clause: 'shelf/server.go:25', says: 'Registers POST /items/{id}/policy on a gin router; its handler is s.upsert.'}
+        - {source: code, clause: 'shelf/server.go:84', says: 'The handler of POST /items/{id}/policy reads the path parameter id and decodes its body into req.'}
+  /tags:
+    post:
+      operationId: tag
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      origin: stated
+      cites:
+        - {source: code, clause: 'shelf/server.go:26', says: Registers POST /tags on a gin router; its handler is s.tag.}
+        - {source: code, clause: 'shelf/server.go:94', says: The handler of POST /tags reads no path parameter by name and decodes its body into req.}

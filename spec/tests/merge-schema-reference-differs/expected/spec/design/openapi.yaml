@@ -1,0 +1,64 @@
+schemas:
+  CreateThingRequest:
+    type: object
+    properties:
+      code: {type: string, maxLength: 20}
+      name: {type: string}
+    required: [code]
+    origin: stated
+    cites:
+      - {source: openapi, clause: /components/schemas/CreateThingRequest, says: 'The schema CreateThingRequest, with the properties code and name.'}
+  UpdateThingRequest:
+    type: object
+    properties:
+      code: {type: string, maxLength: 20}
+      name: {type: string}
+    required: [code, name]
+    origin: stated
+    cites:
+      - {source: openapi, clause: /components/schemas/UpdateThingRequest, says: 'The schema UpdateThingRequest, with the properties code and name.'}
+paths:
+  /v1/things:
+    # specarch-problem: warning: test_golden_missing: operation createThing has no golden scenario; add one under tests, for example create-thing-succeeds: { operation: createThing, scenario: golden, given: "any caller", when: "createThing is called with values inside every limit", then: "it answers 201: The thing, created." } [test_golden_missing@design/openapi.yaml#/paths/~1v1~1things/post]
+    # specarch-problem: warning: test_red_missing: operation createThing has no red scenario; add one under tests, for example create-thing-refused: { operation: createThing, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/openapi.yaml#/paths/~1v1~1things/post]
+    post:
+      operationId: createThing
+      summary: Create a thing
+      requestBody:
+        required: true
+        content:
+          application/json: {}
+      responses:
+        "201":
+          description: The thing, created.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1v1~1things/post, says: 'POST /v1/things: Create a thing.'}
+        - {source: code, clause: 'api/server.go:20', says: Registers POST /v1/things on a gin router; its handler is createThing.}
+        - {source: code, clause: 'api/server.go:25', says: The handler of POST /v1/things reads no path parameter by name and decodes its body into req.}
+  /v1/things/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: {type: string}
+    # specarch-problem: warning: test_case_missing: operation updateThing has no red scenario for "not found id"; add under tests update-thing-not-found-id: { operation: updateThing, scenario: red, covers: [not found id], given: "no record has that id", when: "updateThing is called with that id", then: "it is refused as not found" } [test_case_missing.de9a90a7@design/openapi.yaml#/paths/~1v1~1things~1{id}/put]
+    # specarch-problem: warning: test_case_missing: operation updateThing has no red scenario for "missing name"; add under tests update-thing-missing-name: { operation: updateThing, scenario: red, covers: [missing name], given: "...", when: "updateThing is called without name", then: "it is refused" } [test_case_missing.e7a0c3d1@design/openapi.yaml#/paths/~1v1~1things~1{id}/put]
+    # specarch-problem: warning: test_case_missing: operation updateThing has no red scenario for "missing code"; add under tests update-thing-missing-code: { operation: updateThing, scenario: red, covers: [missing code], given: "...", when: "updateThing is called without code", then: "it is refused" } [test_case_missing.fc21d131@design/openapi.yaml#/paths/~1v1~1things~1{id}/put]
+    # specarch-problem: warning: test_golden_missing: operation updateThing has no golden scenario; add one under tests, for example update-thing-succeeds: { operation: updateThing, scenario: golden, given: "any caller", when: "updateThing is called with values inside every limit", then: "it answers 204: The thing, replaced." } [test_golden_missing@design/openapi.yaml#/paths/~1v1~1things~1{id}/put]
+    put:
+      operationId: updateThing
+      summary: Replace a thing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/schemas/UpdateThingRequest'}
+      responses:
+        "204":
+          description: The thing, replaced.
+      origin: stated
+      cites:
+        - {source: openapi, clause: '/paths/~1v1~1things~1{id}/put', says: 'PUT /v1/things/{id}: Replace a thing.'}
+        - {source: code, clause: 'api/server.go:21', says: 'Registers PUT /v1/things/{id} on a gin router; its handler is updateThing.'}
+        - {source: code, clause: 'api/server.go:34', says: 'The handler of PUT /v1/things/{id} reads the path parameter id and decodes its body into req.'}

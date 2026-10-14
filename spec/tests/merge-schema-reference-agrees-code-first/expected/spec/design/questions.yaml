@@ -1,0 +1,9 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) api/server.go:14: no implementation file names the project's permission check, so the reader does not know which permission POST /v1/things checks. Which permission does it check, or is it meant to be open to everyone (public)? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'api/server.go:14: no implementation file names the project''s permission check, so the reader does not know which permission POST /v1/things checks. Which permission does it check, or is it meant to be open to everyone (public)?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1v1~1things/post/permission']
+    decidedBy: system-owner
+    why: A check is a call the project writes its own way; the implementation file names it (bindings.http.permissionChecks), and without it no permission is read.

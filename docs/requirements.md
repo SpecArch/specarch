@@ -956,6 +956,7 @@ Acceptance criteria:
 
 - The database and router trees of one repository, read at different commits, merge into one specification with one code source at the newer commit, which validate accepts with no errors and gaps reads, and a second run writes the same bytes.
 - Two trees that give the same key of the same element different values merge into the element without that key and a must question citing both.
+- A request body one tree gives as a reference to a named schema and another as a shape written in place merges into the reference when the shapes agree in all both say, into the element without the schema and a must question naming the difference when a key both give differs, and into the reference with a should question when only the properties listed differ; the merged specification validates with no error in either order.
 - An element only the code has, merged with a documents tree that speaks of its section, is written inferred, starting its why with "Undocumented, from code.", with a question that is must for an operation, a permission, a role, a personal or credential field, or a source given outside, and should otherwise.
 - A tree validate reports an error in, and a source two trees declare differently, are each refused with status 1.
 - A question that names the operation a workflow's trigger refers to is left out as joined, and the trigger written, when another tree declares that operation; a name no tree declares keeps its question.

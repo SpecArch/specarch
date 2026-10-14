@@ -1,0 +1,11 @@
+schemas:
+  CreateThingRequest:
+    type: object
+    properties:
+      code: {type: string, maxLength: 20}
+      name: {type: string}
+      quantity: {type: integer, format: int32}
+    required: [code]
+    origin: stated
+    cites:
+      - {source: openapi, clause: /components/schemas/CreateThingRequest, says: 'The schema CreateThingRequest, with the properties code, name and quantity.'}

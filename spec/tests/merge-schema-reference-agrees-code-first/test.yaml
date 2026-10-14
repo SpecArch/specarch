@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: merge
+level: system
+scenario: golden
+given: "the same two trees as merge-schema-reference-agrees: an OpenAPI document that refers to the schema CreateThingRequest for a request body, and the Go source that writes the body's shape in place"
+when: "merge is run on the two trees, the Go source's first"
+then: "the request body keeps the reference whichever tree came first, the Go tree's width question is answered by the schema's format, and the merged specification validates with no error; it exits 0"
+verifies: [SA-45]

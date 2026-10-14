@@ -1,0 +1,31 @@
+schemas:
+  CreateThingRequest:
+    type: object
+    properties:
+      code: {type: string, maxLength: 20}
+      name: {type: string}
+      quantity: {type: integer, format: int32}
+    required: [code]
+    origin: stated
+    cites:
+      - {source: openapi, clause: /components/schemas/CreateThingRequest, says: 'The schema CreateThingRequest, with the properties code, name and quantity.'}
+paths:
+  /v1/things:
+    # specarch-problem: warning: test_case_missing: operation createThing has no red scenario for "missing code"; add under tests create-thing-missing-code: { operation: createThing, scenario: red, covers: [missing code], given: "...", when: "createThing is called without code", then: "it is refused" } [test_case_missing@design/openapi.yaml#/paths/~1v1~1things/post]
+    # specarch-problem: warning: test_golden_missing: operation createThing has no golden scenario; add one under tests, for example create-thing-succeeds: { operation: createThing, scenario: golden, given: "any caller", when: "createThing is called with values inside every limit", then: "it answers 201: The thing, created." } [test_golden_missing@design/openapi.yaml#/paths/~1v1~1things/post]
+    post:
+      operationId: createThing
+      summary: Create a thing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/schemas/CreateThingRequest'}
+      responses:
+        "201":
+          description: The thing, created.
+      origin: stated
+      cites:
+        - {source: openapi, clause: /paths/~1v1~1things/post, says: 'POST /v1/things: Create a thing.'}
+        - {source: code, clause: 'api/server.go:14', says: Registers POST /v1/things on a gin router; its handler is createThing.}
+        - {source: code, clause: 'api/server.go:18', says: The handler of POST /v1/things reads no path parameter by name and decodes its body into req.}

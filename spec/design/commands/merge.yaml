@@ -27,6 +27,21 @@ commands:
         one requires and the other does not is left out of `required`,
         with a must question on that field that blocks the entity's
         `required`.
+      - A position where one tree refers to a named schema, entity or
+        enum and another writes the shape in place is settled once every
+        tree is in (ADR-117). The named shape and the one written in place
+        are compared on what both say: the keys that say what a value is,
+        `required` and `enum` as sets, the items, and each property both
+        list, through a property that is a reference on one side. Where
+        nothing both say differs, the reference is kept and a line names
+        the trees that refer and the trees that write; where a key both
+        give differs, the key is left out and the must question above
+        names each difference; where only the properties listed differ,
+        the reference is kept and a should question at the position names
+        the properties each side lists and the other does not. A tree's
+        question at that position is answered by the trees that refer;
+        one below it follows the reference to the named entry, or moves
+        up to the position where the key is left out.
       - An entity's field holding a schema in columns is written out as
         `specarch generate sql` writes it, every part's column and the
         check that an optional value is wholly absent or has its required
@@ -214,7 +229,9 @@ commands:
       has one, and what it holds; one line per
       source joined from several trees, naming the edition taken; one line
       counting the elements written and those found in more than one
-      tree; one line per source whose language has no vocabulary, saying
+      tree; one line per position where a reference and a shape written
+      in place meet, saying whether the reference is kept or the key left
+      out; one line per source whose language has no vocabulary, saying
       its requirements' days are not compared; one line per field read back from its columns, and one per
       question that what was read back answers; one line per requirement joined to a check that gives the
       same number of days; one line per question of a tree that another

@@ -84,6 +84,8 @@ type merger struct {
 	vocabularies []*vocabulary.Vocabulary // given with --vocabulary
 	dayWords     map[string]*dayWords     // language tag in lower case -> its matchers, nil for one with no vocabulary
 	notCompared  map[string]bool          // the sources said to be in a language with no vocabulary
+
+	refs references // the positions where one tree refers to a named shape and another writes it in place
 }
 
 // Merge merges the trees, each a specification that tracks origin and that
@@ -106,10 +108,12 @@ func Merge(specs []*spec.Spec, out string, vocabularies []*vocabulary.Vocabulary
 	for i, t := range m.trees {
 		m.mergeTree(i, t)
 	}
+	m.resolveReferences()
 	m.readValueObjects()
 	m.removeDisputed()
 	m.treeQuestions()
 	asked := m.disputeQuestions()
+	asked += m.referenceQuestions()
 	asked += m.valueObjectQuestions()
 	asked += m.sideQuestions()
 	asked += m.quantityQuestions()
@@ -663,6 +667,16 @@ func (m *merger) mergeNode(acc, add *yaml.Node, at []mergeStep) {
 		case a == nil:
 			set(acc, k, copyNode(p.Value))
 		case a.Kind == yaml.MappingNode && p.Value.Kind == yaml.MappingNode:
+			// A reference and a shape written in place share no key, so
+			// they are not joined key by key: the position is resolved
+			// once every tree is in (resolveReferences). An entity's field
+			// one tree gives as an object and another as a schema is the
+			// schema kept as JSON (jsonField), not such a position.
+			entityField := len(here) == 4 && here[0].key == "entities" && here[2].key == "properties"
+			if twoForms(a, p.Value) && !(entityField && (anyObject(a) || anyObject(p.Value))) {
+				m.recordReference(here)
+				continue
+			}
 			m.mergeNode(a, p.Value, here)
 		case a.Kind == yaml.SequenceNode && p.Value.Kind == yaml.SequenceNode && namedItems(a) && namedItems(p.Value):
 			for _, item := range source.Items(p.Value) {
@@ -893,9 +907,12 @@ func (m *merger) treeQuestions() {
 					answered = false
 					continue
 				}
-				steps := treeSteps(t.s.Root, parsed.Tokens)
+				steps := m.movedSteps(treeSteps(t.s.Root, parsed.Tokens))
 				b.Value = m.pointerOf(steps)
 				by := m.giversOf(ti, steps)
+				if len(by) == 0 {
+					by = m.answeredByReference(ti, steps)
+				}
 				answered = answered && len(by) > 0
 				for _, g := range by {
 					if !contains(givers, g) {
@@ -1448,6 +1465,10 @@ func (m *merger) disputeQuestions() int {
 			said = append(said, fmt.Sprintf("%s says %s", options[i], v))
 			opts = append(opts, fmt.Sprintf("%s, as %s has it", v, options[i]))
 		}
+		why := fmt.Sprintf("The sources disagree: %s. The merge leaves the key out rather than choose between them.", strings.Join(said, ", and "))
+		if differ := m.refs.disputed[k]; differ != "" {
+			why = fmt.Sprintf("The sources disagree on the shape: %s. The merge leaves the key out rather than choose between them.", differ)
+		}
 		q := mapping(
 			"question", fmt.Sprintf("Which is right for %s: %s?", ptr, strings.Join(values, " or ")),
 			"kind", "decision",
@@ -1455,7 +1476,7 @@ func (m *merger) disputeQuestions() int {
 			"blocks", []string{ptr},
 			"decidedBy", owner,
 			"options", opts,
-			"why", fmt.Sprintf("The sources disagree: %s. The merge leaves the key out rather than choose between them.", strings.Join(said, ", and ")),
+			"why", why,
 		)
 		if len(cites.Content) > 0 {
 			set(q, "cites", cites)

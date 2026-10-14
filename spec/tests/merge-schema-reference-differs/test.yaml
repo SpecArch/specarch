@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: merge
+level: system
+scenario: red
+given: "the tree of an OpenAPI document whose POST /v1/things and PUT /v1/things/{id} take request bodies that refer to the schemas CreateThingRequest and UpdateThingRequest, and the tree of the Go source whose handlers decode them into structs written in place: the first with name as an integer where the schema says string, with a question on its width, and the second with a property extra the schema does not list"
+when: "merge is run on the two trees"
+then: "the first request body's schema is left out with a must question that names the property whose type differs, the Go tree's width question moves up to that position, the second keeps its reference with a should question naming the property only the code writes, and the merged specification validates with no error; it exits 0"
+verifies: [SA-45]

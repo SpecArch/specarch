@@ -1,0 +1,13 @@
+# The desk's queries, written by hand for sqlc: the schema is the
+# migrations, and every query file is in queries/. specarch generate sqlc
+# writes the ones the specification derives; CI compares them with these
+# by generate --check and compiles both with tools/sqlc/compile-queries.sh.
+version: "2"
+sql:
+  - engine: postgresql
+    schema: migrations
+    queries: queries
+    gen:
+      go:
+        package: store
+        out: store

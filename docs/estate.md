@@ -12,7 +12,7 @@ errors, approved, and then documents and code generated. One module was
 specified by hand on 0.4.0; a pilot of `specarch extract` and `merge` on
 a second ran on 0.6.0 and asked for twelve things. This file is the
 answer: where each stands, how the planned ones are built and in which
-order, and what the owner decides first.
+order, and what the owner decided.
 
 Three tests are applied to every point. The compiler test
 (`docs/principles.md`): does it keep an incomplete or wrong definition
@@ -34,9 +34,9 @@ facts in a format SpecArch defines, never a reader of its own.
 | 3. documents in another language | planned, item 4 |
 | 4. role names on the wire | planned, item 2 |
 | 5. authorisation by path pattern | planned, item 3: pattern rules in the permission table and `implies` on a permission; a permission defined by a pattern is declined |
-| 6. a check bypassed for one kind of caller | planned as a gate kind in the permission table, item 7; whether a route may serve people and clients both is the owner's question 3 |
+| 6. a check bypassed for one kind of caller | planned as a gate kind in the permission table, item 7; whether a route may serve people and clients both is decision 3: left out of 0.3 |
 | 7. the schema file's name; the facts dump from the installed binary | planned, item 8 |
-| 8. workflow definitions that are not BPMN | planned as a printed workflow table, item 9; a plug-in reader waits |
+| 8. workflow definitions that are not BPMN | planned as a printed workflow table, item 9, since the estate's format is custom; a standard format gets a plug-in reader (decision 5) |
 | 9. audience, requirements held elsewhere, material questions, partial answers, row citations | planned, items 10 and 11; a row citation is shipped in 0.6.0 as a clause that carries the row's identifier |
 | 10. `--given-outside`, two routes for one list, generated defaults, indexes, a source key from capitals | planned, items 4 and 12; an index goes to the implementation file; the source key from capitals is on main already, after 0.6.0 |
 | 11. generation targets | shipped: the OpenAPI document and SQL migrations (0.4.0), the Next.js UI with task pages and a private component library through an idiom override (0.6.0); declined: Go server interfaces, which the stack's OpenAPI code generator makes from the document; planned later: sqlc queries, item 13 |
@@ -333,13 +333,14 @@ machine route is `callers: clients`, and a route both people and clients
 call is in the left-out table because no system asked for one
 (`docs/meta-model-0.3.md`). This system has one on every guarded route,
 by accident or by design, which is exactly what the question asks the
-owners. Whether 0.3 reopens that row, with a `callers: all` that the
-validator reports as every client reaching the operation, is the
-owner's question 3; until then the gate's question is the record. The
-meta-model side of the calling service, and the three inputs beside it
-(the application a person signed in through, the delegation chain and
-the audience per hop), are designed in `docs/caller-context.md`, which
-recommends `callers: all` for question 3.
+owners. 0.3 keeps that row left out rather than adding a `callers: all`
+that the validator would report as every client reaching the operation
+(decision 3); the gate's question is the record. The meta-model side of
+the calling service, and the three inputs beside it (the application a
+person signed in through, the delegation chain and the audience per
+hop), are designed in `docs/caller-context.md`, which recommends
+`callers: all`; that recommendation is for the owner to weigh against
+decision 3.
 
 ### 7. The schema file's name, and the facts dump from the installed binary
 
@@ -488,7 +489,7 @@ stage blocked, a count and the first identifiers rather than every one.
   compares them, and `extract database` writes them, which is the first
   thing a reader writes into an implementation fragment: `--implementation-out`
   on the database reader, a fragment holding the mappings it knows. The
-  owner's question 6 is whether a reader may write one.
+  by decision 6 a reader may write one.
 
 ## Needed for the later phases
 
@@ -549,7 +550,7 @@ after the gates' rule. Item 14.
 | Asked | Why not |
 |---|---|
 | a permission defined by a path pattern and methods | overlapping rows give one operation several permissions, where it has exactly one and an ambiguity is an error; a permission that follows a pattern reaches a route added later without anyone writing it (point 5) |
-| a plug-in reader for a workflow format | extract's rules stay in one place; a printer writes a workflow table and the reader reads it (point 8) |
+| a plug-in reader for a custom workflow format | extract's rules stay in one place; a printer writes a workflow table and the reader reads it (point 8); a standard format gets a reader (decision 5) |
 | a shipped vocabulary per language before a project supplies one | the words are a project's to check; English is shipped and the format documented (point 3) |
 | `release` naming a release with no record | the record is one file with `status: planned`; the rule protects against a release named nowhere (point 9) |
 | a per-file acknowledgement of the version warning | the warning is the one signal to migrate and is filtered by its id (point 9) |
@@ -612,8 +613,8 @@ step 1. Only item 7's meta-model half touches 0.3.
    found are errors at the module, and the techspec draws the module
    map.
 7. The caller-kind gate. `bypassedFor` in the permission table's gates,
-   the question in both readers, and, after the owner's answer to
-   question 3, the 0.3 plan amended or its left-out row confirmed.
+   the question in both readers, and the 0.3 plan's left-out row
+   confirmed (decision 3).
    Done when the permission-table case with a bypassed check asks at
    every guarded operation. The 0.3 decision is recorded with the
    amendment, if any.
@@ -645,8 +646,7 @@ step 1. Only item 7's meta-model half touches 0.3.
     reader's naming, `bindings.http.listRoutes` in the OpenAPI
     generator; `generatedDefault` in the schema, the idiom rows, the SQL
     generator and the readers; `mappings.<entity>.indexes` and
-    `--implementation-out` on the database reader, after the owner's
-    question 6. Done when the lending desk's catalogue reads its
+    `--implementation-out` on the database reader (decision 6). Done when the lending desk's catalogue reads its
     identifier default and indexes with no `could` line for them and
     `generate sql --check` passes.
 13. sqlc queries, `specarch-gen-sqlc`, checked against a real project's
@@ -654,43 +654,35 @@ step 1. Only item 7's meta-model half touches 0.3.
 14. `specarch check` with the shrinking allowlist, run in the lending
     desk's CI.
 
-## For the owner to decide
+## The owner's decisions
 
-The recommendation is first in each.
+Decided on 2026-10-14.
 
 1. **Pattern rows become `implies` on permissions, one per distinct
-   pattern and method pair, named by the fixed rule**, or one
+   pattern and method pair, named by the fixed rule**, rather than one
    permission per route named after its operation with the grants
-   computed and no `implies`. Recommended: `implies`. It gives a matrix
-   a person reads, few permissions with meaningful names, and the
-   implication is a fact the client depends on; a permission per route
-   gives one per endpoint and a change for every route added.
+   computed. It gives a matrix a person reads, few permissions with
+   meaningful names, and the implication is a fact the client depends
+   on; a permission per route gives one per endpoint and a change for
+   every route added.
 2. **A reference is `<dependency>#/<pointer>` through `dependencies`**,
-   or a new keyword beside `$ref`. Recommended: through `$ref`'s own URI
-   form, because the rule for new keywords says to take the standard's,
-   and a dependency already is the other system.
+   in `$ref`'s own URI form rather than a new keyword beside `$ref`,
+   because the rule for new keywords says to take the standard's, and a
+   dependency already is the other system.
 3. **A route both people and clients call stays left out of 0.3, and
-   the bypassed check is the gate's question**, or 0.3 gains
-   `callers: all` reported as every client reaching the operation.
-   Recommended: stay left out until the owners of such a system answer
-   the gate's question; what they answer decides whether it is a design
-   or a defect.
-4. **The JavaScript reader is embedded and installed once into a
-   per-user cache by `specarch facts`**, or shipped as a release
-   tarball with its packages for the person to unpack. Recommended: the
-   cache, since the binary knows the pinned version and `npm ci` against
-   the embedded lock file pins every byte; the tarball adds a download
-   and a checksum the person checks by hand.
-5. **A workflow table the project's printer writes**, or a plug-in
-   reader protocol. Recommended: the table, the pattern every printed
-   surface follows.
+   the bypassed check is the gate's question**, rather than 0.3 gaining
+   `callers: all`; what the owners of such a system answer to the gate's
+   question decides whether it is a design or a defect. The caller's
+   context as a whole is designed on its own, outside this plan.
+4. **The readers are inside the binary**: build item 8.
+5. **A standard workflow format gets a reader (a plug-in); a custom
+   one gets a workflow table its project's printer writes.** The
+   estate's workflow definitions are custom JSON, so build item 9 is
+   the table.
 6. **A reader may write an implementation fragment** (the database
-   reader's indexes under `mappings`), or indexes stay a `could` line
-   until the implementation file is written by hand. Recommended: the
-   fragment, under `--implementation-out`, since the mapping is as
-   mechanical as the entity and the procedure of `docs/from-sources.md`
-   section 3.4 writes it from the code anyway.
-7. **`ownedBy` on a requirement in the requirements stage**, or a
-   `status` value for a requirement held elsewhere. Recommended:
-   `ownedBy`, one word for one meaning; `status` keeps 29148's life
-   cycle.
+   reader's indexes under `mappings`, with `--implementation-out`),
+   since the mapping is as mechanical as the entity and the procedure
+   of `docs/from-sources.md` section 3.4 writes it from the code anyway.
+7. **`ownedBy` on a requirement in the requirements stage**, rather
+   than a `status` value for a requirement held elsewhere: one word for
+   one meaning, and `status` keeps 29148's life cycle.

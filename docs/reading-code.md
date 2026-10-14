@@ -56,9 +56,11 @@ version, the folder read, the commit that last changed it, and every fact
 as its kind, file, line, column and literal values, sorted by file, line
 and column. `tools/code-facts/dump-<language>.sh` runs it in a committed
 folder, refuses changes not committed, and adds the version, the path and
-the commit. The dump is committed beside the code, is stale once that
-folder changes, and is refused when another parser version made it than
-the release pins. `specarch extract` turns facts into elements, so the
+the commit. The dump is committed beside the code, or in a repository
+that holds the code's as a submodule, when it also names that
+submodule's folder as `repository` and is read at the commit the
+gitlink pins (ADR-098). It is stale once that folder changes, and is
+refused when another parser version made it than the release pins. `specarch extract` turns facts into elements, so the
 rules of extract live in one place, in Go. Go itself needs no dump: the
 standard library's parser runs inside `specarch`.
 

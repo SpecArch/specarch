@@ -5,3 +5,4 @@ status: released
 date: "2026-10-14"
 specificationVersion: 0.6.1
 implementations: { go: 0.1.0, swift: 0.1.0 }
+commit: 5656b4e8c54be2b4ce0fd77ab5dffdad656482ad

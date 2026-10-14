@@ -226,6 +226,16 @@ like. Not planned until a project asks: interfaces beyond HTTP, messaging
 and the command line; sets and lists in the expression language; seed
 data per profile; more than one deliverable per specification.
 
+An estate of many modules, each specified on its own by a team that may
+only read the code, asked for what `docs/estate.md` designs: a dump
+committed outside the code's repository, references between
+specifications and an umbrella that lists the modules, documents in
+another language, role names on the wire, authorisation by path pattern
+through `implies`, a gate by caller kind, a printed workflow table, an
+element's audience and a requirement held elsewhere, with fourteen items
+in order and the owner's questions. Every keyword in it is an addition,
+so none waits for 0.3.
+
 ## 6. Changes, defects, releases and operation
 
 The life after commissioning, designed in `docs/maintenance.md`: change

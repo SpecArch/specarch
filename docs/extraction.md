@@ -521,6 +521,13 @@ changes `extract.yaml` first.
     dart_frog routes with the project's named check, and the settings
     `fromEnvironment` and `Platform.environment` give.
 
+An estate of many modules, read from an umbrella repository by a team
+that may not commit to the code, asked for dumps committed outside the
+code's repository, a workflow table for definitions that are not BPMN, a
+gate by caller kind in the permission table and vocabularies for
+documents in another language; `docs/estate.md` is the design and the
+order of the items.
+
 ## What goes wrong
 
 Each of these was met in practice.

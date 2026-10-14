@@ -64,10 +64,11 @@ repository from the root of the repository holding the dump, a
 submodule's folder in the usual case. With it the reader checks:
 
 - the dump file itself is committed, in its own repository B, as today;
-- `repository` is a folder in B that is a git repository root and is a
-  gitlink of B (`git ls-tree HEAD -- <repository>` gives mode 160000),
-  or, when the folder is a plain checkout rather than a submodule, its
-  `HEAD`; the commit B records is the reference commit of A;
+- `repository` is a folder in B that is a git repository root and a
+  gitlink of B (`git ls-tree HEAD -- <repository>` gives mode 160000);
+  the commit B records there is the reference commit of A. A folder that
+  is a plain checkout and no gitlink is refused with that reason, since
+  nothing in B then pins which commit of A was read;
 - `commit` is in A's history, A is not a shallow clone, and `path` has
   not changed in A between `commit` and the reference commit
   (`git -C A log -1 --format=%H <reference> -- <path>` equals `commit`);
@@ -509,8 +510,10 @@ stage blocked, a count and the first identifiers rather than every one.
   an override of the `ui-components` idiom naming its package under
   `import`, and a project whose schema shape the idiom's names cannot
   say installs its own plug-in ahead of the shipped one. Of the earlier
-  UI request, `docs/ui-nextjs-carbon.md` is the plan and every step of
-  it is built; left out there: rows in a dialog and a page that follows
+  UI request, `docs/ui-nextjs-carbon.md` is the plan and all seven of
+  its steps are built, the idiom, task forms, lists, forms and views,
+  child rows and approvals, server routes with strings and theme, and
+  the comparison with screens built by hand; left out there: rows in a dialog and a page that follows
   an approval to its end (ADR-071). Point 7 adds the schema file's
   name.
 
@@ -546,7 +549,7 @@ after the gates' rule. Item 14.
 ## Building
 
 Each item changes `spec/` first, adds its conformance cases, writes its
-decision record, and appends to `history/`; an item that touches the
+decision record, numbered when it lands, and appends to `history/`; an item that touches the
 validator is made in both builds with the same output. Items 1 to 6
 answer the must-have points and go first; every keyword among them is
 an addition that breaks no 0.2 file, so none waits for meta-model 0.3
@@ -559,13 +562,13 @@ step 1. Only item 7's meta-model half touches 0.3.
    Done when a dump committed in the outer repository reads the inner
    one's code at the gitlink's commit, byte for byte with the dump
    committed inside, a stale gitlink is refused naming both commits, and
-   a dump without the key reads as today. ADR-098.
+   a dump without the key reads as today.
 2. `info.roleNames: upper_snake`. The key in the design schema, the
    `wire_name` rule for roles in both builds, the two readers mapping
    and writing it, the generators and the techspec writing the wire
    form. Done when the permission-table case with upper-snake roles
    gives every role, two roles mapping to one wire name are refused in
-   both builds, and the techspec shows the wire form. ADR-099.
+   both builds, and the techspec shows the wire form.
 3. `implies` and pattern rules. `implies` in the design schema with the
    `implies` rule (cycle, undeclared) in both builds, expansion in the
    grants check, separation of duties and the techspec matrix; `rules`
@@ -574,14 +577,14 @@ step 1. Only item 7's meta-model half touches 0.3.
    questions for an ambiguous route, a closed route and a dead rule.
    Done when a conformance case with a `*` row beside a `get` row gives
    two permissions with the implication, each route its one permission,
-   and the lending desk's matrix is unchanged. ADR-100.
+   and the lending desk's matrix is unchanged.
 4. Documents in another language, and the small reader points. The
    vocabulary format and the English file, `language` on a source,
    `--language` and `--vocabulary`, the row-number column, the capitals
    source key, `--given-outside`. Done when a conformance document in a
    second vocabulary gives the same elements the English one does, a
    file with a word in two lists is refused, and the English run is
-   byte-identical with today's. ADR-101.
+   byte-identical with today's.
 5. References between specifications. `specification` and `version` on
    a dependency, `<name>#/<pointer>` wherever a `$ref`, a `target`, a
    `source` or `calls` may stand, the `reference` rule in both builds,
@@ -590,14 +593,14 @@ step 1. Only item 7's meta-model half touches 0.3.
    validates with its references counted, two modules given together
    resolve them, a wrong pointer is an error at the entry in both
    builds, and `generate sql` writes the column with no foreign key.
-   ADR-102.
+  
 6. The umbrella. The `specarch-estate` root with `modules`, `validate`,
    `gaps` and `document techspec` on it, the version check and the
    cycle check. `examples/` gains a two-module estate, the lending desk
    and a small catalogue service it references. Done when the example
    validates as an estate, a version that differs and a module not
    found are errors at the module, and the techspec draws the module
-   map. ADR-103.
+   map.
 7. The caller-kind gate. `bypassedFor` in the permission table's gates,
    the question in both readers, and, after the owner's answer to
    question 3, the 0.3 plan amended or its left-out row confirmed.
@@ -611,23 +614,23 @@ step 1. Only item 7's meta-model half touches 0.3.
    folder is dumped by the installed binary with no checkout and
    `extract pages --facts` reads it byte for byte as today's dump, and a
    page whose schema is `_schema.ts` is read through the binding.
-   ADR-104.
+  
 9. The workflow table. The format, `extract workflows --table`, and a
    conformance case whose table gives the write-off workflow the BPMN
    case gives. Done when both readings merge into one workflow with
-   both citations. ADR-105.
+   both citations.
 10. `audience`, `ownedBy` on a requirement, `fulfilledBy`. The keys in
     the schemas, the `audience` dependency rule and the owned
     requirement's exemptions in both builds, `document --audience`, the
     traceability heading. Done when an external document leaves the
     internal elements out and counts them, an everyone element
     depending on an internal one is refused in both builds, and an
-    owned requirement draws no satisfied or verified warning. ADR-106.
+    owned requirement draws no satisfied or verified warning.
 11. Questions in the outputs. Material questions grouped, `opens` on a
     decision with its rule, the chain in `gaps`, the per-stage count,
     `citation_clause`. Done when the lending desk's `gaps` and
     `questions` show the groups and a misspelt clause warns in both
-    builds. ADR-107.
+    builds.
 12. The list twin, `generatedDefault`, indexes in the mapping. The router
     reader's naming, `bindings.http.listRoutes` in the OpenAPI
     generator; `generatedDefault` in the schema, the idiom rows, the SQL
@@ -635,11 +638,11 @@ step 1. Only item 7's meta-model half touches 0.3.
     `--implementation-out` on the database reader, after the owner's
     question 6. Done when the lending desk's catalogue reads its
     identifier default and indexes with no `could` line for them and
-    `generate sql --check` passes. ADR-108.
+    `generate sql --check` passes.
 13. sqlc queries, `specarch-gen-sqlc`, checked against a real project's
-    first hand-written query file. ADR-109.
+    first hand-written query file.
 14. `specarch check` with the shrinking allowlist, run in the lending
-    desk's CI. ADR-110.
+    desk's CI.
 
 ## For the owner to decide
 

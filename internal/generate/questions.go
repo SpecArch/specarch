@@ -317,8 +317,11 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 			var blocks []string
 			for _, item := range items(q.node, "blocks") {
 				text := item.Value
-				if b, ok := spec.ParseBlock(text); ok && state != nil {
-					if missing := state.Missing[b.Element()]; len(missing) > 0 && b.Key() == "" {
+				if b, ok := spec.ParseBlock(text); ok && b.IsPointer() && state != nil {
+					// The keys the validator found missing at the blocked
+					// element, at any depth; a pointer to a key that is
+					// not there names it already.
+					if missing := state.Missing[source.Pointer(b.Tokens...)]; len(missing) > 0 {
 						text += fmt.Sprintf(" (%s missing)", joinAnd(missing))
 					}
 				}

@@ -11,7 +11,9 @@
 #
 # - trees/<reader>: the tree each reader wrote, and <reader>.txt its
 #   standard output: manual (extract documents), openapi, database,
-#   router, go, permissions, pages and workflows. The go reader reads the
+#   router, go, permissions, pages and workflows. The database reader
+#   writes the mappings of its tables and their indexes into
+#   trees/database-mappings.yaml, an implementation fragment. The go reader reads the
 #   service's source, with the permission check its implementation file
 #   names, and merges with the route table its printer wrote. The pages
 #   reader reads the web folder's code through its code-facts dump,
@@ -63,7 +65,8 @@ read_surface() {
 }
 
 read_surface manual documents "$sources/manual.md"
-read_surface database database "$sources/catalogue/catalogue.json"
+$specarch extract database --implementation-out trees/database-mappings.yaml \
+	--out trees/database "$sources/catalogue/catalogue.json" >database.txt
 read_surface router router "$sources/routes/routes.json"
 $specarch extract go --implementation "$here/spec/implementation/go/lending-desk.go.specarch-implementation.yaml" \
 	--out trees/go "$sources/code" >go.txt

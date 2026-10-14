@@ -1,0 +1,18 @@
+arguments: [extract, database, --out, spec, service/catalogue.json]
+repository:
+  folder: service
+  commits:
+    - [migrations]
+    - [catalogue.json]
+exitStatus: 0
+standardOutput: |
+  commit c80efd0318f7f739705ab3c4ba9a53d07a93810c: the last change to migrations, as the dump catalogue.json names it
+  counted 1 table, 6 columns, 1 constraint (0 foreign keys, 0 unique keys, 0 checks), 4 indexes besides those of keys, 0 views and 0 enum types: every entry of the dump's lists, which hold every schema but pg_catalog, information_schema and pg_toast
+  wrote 1 entity and 6 questions: one per table whose name an entity can hold, one per thing the catalogue does not say, and one per thing the meta-model cannot hold
+  not held: column public.notes.edited_at: its default now() is neither a value the meta-model can hold nor an expression the type-rendering idiom names for a generated default (CURRENT_TIMESTAMP for currentTime, gen_random_uuid() for identifier); could question Q-1
+  not held: column public.notes.label: its default md5((random())::text) is neither a value the meta-model can hold nor an expression the type-rendering idiom names for a generated default (CURRENT_TIMESTAMP for currentTime, gen_random_uuid() for identifier); could question Q-2
+  not held: index ix_notes_author_id_written_at of public.notes, CREATE INDEX ix_notes_author_id_written_at ON public.notes USING btree (author_id, written_at): an index is physical design, which an implementation file holds under the entity's mapping; run specarch extract database with --implementation-out to write it there; could question Q-3
+  not held: index notes_by_shelf of public.notes, CREATE INDEX notes_by_shelf ON public.notes USING btree (shelf): an index is physical design, which an implementation file holds under the entity's mapping; run specarch extract database with --implementation-out to write it there; could question Q-4
+  not held: index notes_recent of public.notes, CREATE INDEX notes_recent ON public.notes USING btree (written_at DESC): an index under a mapping holds plain fields, and this one has an expression, a condition, an order, included columns or a method other than btree; could question Q-5
+  not held: index notes_shelf_lower of public.notes, CREATE INDEX notes_shelf_lower ON public.notes USING btree (lower((shelf)::text)): an index under a mapping holds plain fields, and this one has an expression, a condition, an order, included columns or a method other than btree; could question Q-6
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

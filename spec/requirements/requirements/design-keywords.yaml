@@ -384,3 +384,17 @@ requirements:
     verification: test
     needs: [NEED-8]
     why: A question that asks for a document is answered by sending it, not by deciding, and a list that puts it among the decisions asks the wrong thing of the wrong person; a split answer written in prose loses where the open half came from; and a list of every question in one cell cannot be read once a specification has many.
+  SA-70:
+    statement: specarch shall carry a column default the database computes, a table's plain indexes and a list served two ways from the sources into the specification and back into the generated SQL and OpenAPI, with no question for any of them.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - A field's generatedDefault, identifier or currentTime, is written by generate sql as the expression the type-rendering idiom names for the dialect; a dialect with none for it is an error at the field. A default beside generatedDefault, or generatedDefault on a field of another format, is refused by the schema in both builds.
+      - specarch extract database writes generatedDefault where the catalogue's default is the expression the idiom names for PostgreSQL, and keeps the could question for any other expression.
+      - An entity's mapping lists the plain indexes of its table under indexes; generate sql writes each, and the next migration creates an index added and drops one removed. A field an index names that the entity lacks, or indexes under a mapping that is not an entity's, is refused as field in both builds.
+      - specarch extract database writes each plain index of the catalogue into the implementation fragment that --implementation-out names, with no question for it; an index the mapping cannot hold stays a could question.
+      - specarch extract router reads a handler that serves a GET on a path and a POST on that path with a literal last segment as two operations named after the handler, the POST's with Post added, each citing both routes, with no question about the name. With bindings.http.listRoutes, generate openapi writes that POST twin of each list operation served by GET.
+    verification: test
+    needs: [NEED-2, NEED-8]
+    why: Read from an estate's sources, each generated key, each index and each list route was a could question on every table or route, so most of the questions an owner read were noise; and what a reader read but no generator wrote back would be lost the first time the schema or the API was generated.

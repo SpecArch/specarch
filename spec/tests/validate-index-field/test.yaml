@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an implementation file whose mapping of the Note entity lists an index of shelf and writenAt, a misspelling of writtenAt, and whose mapping of an enum lists an index"
+when: "validate is run"
+then: "it reports field at writenAt with writtenAt suggested, and at the enum's indexes, which are a table's, and exits 1, the same in both builds"
+verifies: [SA-70]

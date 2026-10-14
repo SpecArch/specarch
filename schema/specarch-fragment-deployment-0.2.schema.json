@@ -249,6 +249,14 @@
           ]
         },
         "default": {},
+        "generatedDefault": {
+          "description": "SpecArch keyword. A default the database computes for each new record, from a closed set every stack shares: identifier, a new random UUID, on a field of format uuid; currentTime, the instant the record is written, on a field of format date-time. The type-rendering idiom's defaults part names the expression of each dialect. A field has default or generatedDefault, not both.",
+          "type": "string",
+          "enum": [
+            "identifier",
+            "currentTime"
+          ]
+        },
         "examples": {
           "type": "array",
           "minItems": 1
@@ -535,6 +543,66 @@
               "precision",
               "scale"
             ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "generatedDefault"
+            ]
+          },
+          "then": {
+            "properties": {
+              "default": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "generatedDefault": {
+                "const": "identifier"
+              }
+            },
+            "required": [
+              "generatedDefault"
+            ]
+          },
+          "then": {
+            "required": [
+              "format"
+            ],
+            "properties": {
+              "format": {
+                "enum": [
+                  "uuid"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "generatedDefault": {
+                "const": "currentTime"
+              }
+            },
+            "required": [
+              "generatedDefault"
+            ]
+          },
+          "then": {
+            "required": [
+              "format"
+            ],
+            "properties": {
+              "format": {
+                "enum": [
+                  "date-time"
+                ]
+              }
+            }
           }
         }
       ]

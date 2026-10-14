@@ -11,6 +11,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/idioms"
 	"github.com/SpecArch/specarch/internal/expr"
 )
 
@@ -91,8 +92,11 @@ var fullHash = regexp.MustCompile(`^([0-9a-f]{40}|[0-9a-f]{64})$`)
 var plainName = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_]*$`)
 var constraintName = regexp.MustCompile(`^[a-z][a-z0-9]*(_[a-z0-9]+)*$`)
 
-// Database reads a catalogue dump into entities, one per table.
-func Database(dumpPath, out, key string) (*Result, error) {
+// Database reads a catalogue dump into entities, one per table. With
+// fragment, the mappings it knows, each table and its plain indexes, go
+// into Result.Implementation, the implementation fragment
+// --implementation-out names (ADR-121).
+func Database(dumpPath, out, key string, fragment bool) (*Result, error) {
 	data, err := os.ReadFile(dumpPath)
 	if err != nil {
 		return nil, err
@@ -110,7 +114,10 @@ func Database(dumpPath, out, key string) (*Result, error) {
 	}
 	res := &Result{Tree: newTree()}
 	res.say("commit %s: the last change to %s, as the dump %s names it", r.Commit, c.Path, dumpName)
-	d := &dbReader{c: &c, key: key, clause: c.Path, res: res, enums: map[string][]string{}, entities: map[string]string{}}
+	d := &dbReader{c: &c, key: key, clause: c.Path, res: res, enums: map[string][]string{}, entities: map[string]string{}, generated: generatedDefaults()}
+	if fragment {
+		d.mappings = &yaml.Node{Kind: yaml.MappingNode}
+	}
 	for _, e := range c.Enums {
 		d.enums[e.Name] = e.Values
 		d.enums[e.Schema+"."+e.Name] = e.Values
@@ -135,7 +142,38 @@ func Database(dumpPath, out, key string) (*Result, error) {
 	}
 	description := fmt.Sprintf("The tables of the database that the migrations in %s make, read from the catalogue dump %s, made at commit %s. Every entity cites its table; what the catalogue does not say is a question, and so is what the meta-model cannot hold.\n", c.Path, dumpName, r.Commit)
 	res.Tree.put("specarch.yaml", rootFile("Database of "+c.Path, description, stages, mapping(key, src)))
+	if fragment {
+		res.Implementation = mapping("mappings", d.mappings)
+		res.ImplementationNote = fmt.Sprintf("The mappings specarch extract database read from the catalogue dump %s, made at commit %s: the table of each entity and its plain indexes. They go under mappings in an implementation file of the specification; each cites the source %s.", dumpName, r.Commit, key)
+		res.say("wrote %s into the implementation fragment, with %s", plural(len(d.mappings.Content)/2, "mapping"), plural(d.indexes, "index"))
+	}
 	return res, nil
+}
+
+// generatedDefaults are the expressions the shipped type-rendering idiom
+// names for PostgreSQL's generated defaults, each with its name.
+func generatedDefaults() map[string]string {
+	out := map[string]string{}
+	data, err := idioms.Shipped.ReadFile("type-rendering/type-rendering.specarch-idiom.yaml")
+	if err != nil {
+		return out
+	}
+	var doc struct {
+		Parts map[string]struct {
+			Stack map[string]struct {
+				Names map[string]string `yaml:"names"`
+			} `yaml:"stack"`
+		} `yaml:"parts"`
+	}
+	if yaml.Unmarshal(data, &doc) != nil {
+		return out
+	}
+	for _, name := range []string{"identifier", "currentTime"} {
+		if e := doc.Parts["defaults"].Stack["postgresql"].Names[name]; e != "" {
+			out[e] = name
+		}
+	}
+	return out
 }
 
 type dbReader struct {
@@ -148,6 +186,9 @@ type dbReader struct {
 	questions   *yaml.Node
 	nextID      int
 	notHeld     []notHeld
+	generated   map[string]string // the generatedDefault of each expression the idiom names
+	mappings    *yaml.Node        // the implementation fragment's mappings, or nil
+	indexes     int               // the indexes written into it
 }
 
 // gap records what the meta-model cannot hold, at the table or view the
@@ -324,15 +365,47 @@ func (d *dbReader) table(t dumpTable, name string) {
 			d.gap(qualified, at, "exclusion constraint %s of %s, %s: the meta-model has no exclusion constraint", k.Name, qualified, k.Definition)
 		}
 	}
+	var indexes []*yaml.Node
+	var indexSays []string
 	for _, ix := range t.Indexes {
 		if ix.BacksConstraint {
 			continue
 		}
-		what := "the meta-model has no index"
-		if ix.Unique {
-			what = "a unique index without a constraint; the meta-model says uniqueness only as a unique constraint"
+		cols, plain := plainIndexColumns(ix.Definition, qualified)
+		names, held := fieldNames(cols, fields)
+		switch {
+		case ix.Unique:
+			d.gap(qualified, at, "index %s of %s, %s: a unique index without a constraint; the meta-model says uniqueness only as a unique constraint", ix.Name, qualified, ix.Definition)
+		case !plain:
+			d.gap(qualified, at, "index %s of %s, %s: an index under a mapping holds plain fields, and this one has an expression, a condition, an order, included columns or a method other than btree", ix.Name, qualified, ix.Definition)
+		case !held:
+			d.gap(qualified, at, "index %s of %s, %s: a column of it is left out", ix.Name, qualified, ix.Definition)
+		case d.mappings == nil:
+			d.gap(qualified, at, "index %s of %s, %s: an index is physical design, which an implementation file holds under the entity's mapping; run specarch extract database with --implementation-out to write it there", ix.Name, qualified, ix.Definition)
+		default:
+			n := flow(mapping("fields", names))
+			if t.Schema != "public" || ix.Name != "ix_"+t.Name+"_"+strings.Join(cols, "_") {
+				set(n, "name", ix.Name)
+			}
+			indexes = append(indexes, n)
+			indexSays = append(indexSays, ix.Definition)
 		}
-		d.gap(qualified, at, "index %s of %s, %s: %s", ix.Name, qualified, ix.Definition, what)
+	}
+	if d.mappings != nil {
+		target := "table " + t.Name
+		if t.Schema != "public" {
+			target = "table " + qualified
+		}
+		m := mapping("target", target)
+		says := fmt.Sprintf("Table %s.", qualified)
+		if len(indexes) > 0 {
+			set(m, "indexes", indexes)
+			says = fmt.Sprintf("Table %s: %s.", qualified, strings.Join(indexSays, "; "))
+			d.indexes += len(indexes)
+		}
+		set(m, "origin", "stated")
+		set(m, "cites", []*yaml.Node{citation(d.key, d.clause+" "+qualified, says)})
+		set(d.mappings, "#/entities/"+name, m)
 	}
 	for _, k := range checks {
 		if !constraintName.MatchString(k.Name) {
@@ -389,6 +462,25 @@ func (d *dbReader) table(t dumpTable, name string) {
 		)
 	}
 	d.entityFiles["design/entities/"+kebab(name)+".yaml"] = mapping("entities", mapping(name, entity))
+}
+
+var indexDefinition = regexp.MustCompile(`^CREATE INDEX ([a-z_][a-z0-9_$]*) ON ([a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*) USING btree \(([^()]*)\)$`)
+
+// plainIndexColumns are the columns of an index the catalogue prints as a
+// btree of plain columns of the table, with no expression, condition,
+// order or included column; ok is false for any other.
+func plainIndexColumns(def, table string) ([]string, bool) {
+	m := indexDefinition.FindStringSubmatch(def)
+	if m == nil || m[2] != table {
+		return nil, false
+	}
+	cols := strings.Split(m[3], ", ")
+	for _, c := range cols {
+		if !plainName.MatchString(c) {
+			return nil, false
+		}
+	}
+	return cols, true
 }
 
 // sortPairs puts a mapping's keys in the order of their names.
@@ -563,15 +655,42 @@ func (d *dbReader) column(t dumpTable, col dumpColumn) *field {
 		set(n, "readOnly", true)
 	case col.Default != nil && nextval.MatchString(*col.Default):
 		set(n, "readOnly", true)
+	case col.Default != nil && d.generated[*col.Default] != "" && generatedFits(d.generated[*col.Default], n):
+		set(n, "generatedDefault", d.generated[*col.Default])
 	case col.Default != nil:
-		if v := defaultValue(*col.Default, f); v != nil {
+		switch v := defaultValue(*col.Default, f); {
+		case v != nil:
 			set(n, "default", v)
-		} else {
-			d.gap(table, at, "column %s: its default %s is not a value the meta-model can hold", qualified, *col.Default)
+		case d.generated[*col.Default] != "":
+			name := d.generated[*col.Default]
+			d.gap(table, at, "column %s: its default %s is the generated default %s, which only a field of format %s takes", qualified, *col.Default, name, map[string]string{"identifier": "uuid", "currentTime": "date-time"}[name])
+		default:
+			d.gap(table, at, "column %s: its default %s is neither a value the meta-model can hold nor an expression the type-rendering idiom names for a generated default (%s)", qualified, *col.Default, d.generatedList())
 		}
 	}
 	f.node = n
 	return f
+}
+
+// generatedList names each expression the idiom names, with its generated
+// default.
+func (d *dbReader) generatedList() string {
+	var out []string
+	for e, name := range d.generated {
+		out = append(out, e+" for "+name)
+	}
+	sort.Strings(out)
+	return strings.Join(out, ", ")
+}
+
+// generatedFits says whether a field can take the generated default: an
+// identifier is a uuid, the current time a date-time.
+func generatedFits(name string, n *yaml.Node) bool {
+	format := ""
+	if f := child(n, "format"); f != nil {
+		format = f.Value
+	}
+	return (name == "identifier" && format == "uuid") || (name == "currentTime" && format == "date-time")
 }
 
 func deref(s *string) string {

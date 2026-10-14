@@ -51,6 +51,11 @@ type route struct {
 	permission string   // "" when the route checks none, or none the meta-model can name
 	printed    *string  // the permission as the route table names it
 	id         string   // the operationId
+	// twin is the other route of a list served two ways by one handler: a
+	// GET on a path and a POST on that path with a literal segment added
+	// (ADR-121); first is set on the GET.
+	twin  *route
+	first bool
 }
 
 // Router reads a route table into operations, one per method and path
@@ -269,6 +274,13 @@ func (rd *routeReader) read(dumpName string) error {
 			}
 			set(op, "origin", "stated")
 			cites := []*yaml.Node{citation(rd.key, rd.clause(rt), fmt.Sprintf("%s %s %s; its handler is %s.", rt.Method, rt.Path, checks, rt.Handler))}
+			if tw := rt.twin; tw != nil {
+				twChecks := "checks no permission"
+				if tw.printed != nil {
+					twChecks = "checks " + *tw.printed
+				}
+				cites = append(cites, citation(rd.key, rd.clause(tw), fmt.Sprintf("%s %s %s; its handler is %s, which serves %s %s too.", tw.Method, tw.Path, twChecks, tw.Handler, rt.Method, rt.Path)))
+			}
 			if ruleCite != nil {
 				cites = append(cites, ruleCite)
 			}
@@ -276,11 +288,23 @@ func (rd *routeReader) read(dumpName string) error {
 			set(item, rt.key, op)
 			opAt := at + "/" + rt.key
 			rd.written = append(rd.written, writtenRoute{opAt, rt.printed})
-			rd.question(
-				fmt.Sprintf("What does %s %s do, and what does it answer?", rt.Method, rt.Path),
-				[]string{opAt + "/summary", opAt + "/responses"},
-				"A route table names the handler and not what it does or the responses it gives.",
-			)
+			switch tw := rt.twin; {
+			case tw == nil:
+				rd.question(
+					fmt.Sprintf("What does %s %s do, and what does it answer?", rt.Method, rt.Path),
+					[]string{opAt + "/summary", opAt + "/responses"},
+					"A route table names the handler and not what it does or the responses it gives.",
+				)
+			case rt.first:
+				// One question for both routes of the list, since one
+				// handler serves them.
+				twAt := "#/paths/" + escapeToken(tw.Path) + "/" + tw.key
+				rd.question(
+					fmt.Sprintf("What does %s %s do, and what does it answer? Its handler serves %s %s too, the same list with its parameters in a body.", rt.Method, rt.Path, tw.Method, tw.Path),
+					[]string{opAt + "/summary", opAt + "/responses", twAt + "/summary", twAt + "/responses"},
+					"A route table names the handler and not what it does or the responses it gives.",
+				)
+			}
 			switch {
 			case rt.permission == "" && ruleQuestion != "":
 				rd.question(ruleQuestion, []string{opAt + "/permission"}, ruleWhy)
@@ -344,14 +368,22 @@ func (rd *routeReader) read(dumpName string) error {
 // that cannot be an operationId, gets the method and the path's words.
 func (rd *routeReader) operationIDs() {
 	count := map[string]int{}
+	byHandler := map[string][]*route{}
 	for _, rt := range rd.routes {
 		if handlerName.MatchString(rt.Handler) {
 			count[rt.Handler]++
+			byHandler[rt.Handler] = append(byHandler[rt.Handler], rt)
 		}
 	}
+	for _, rts := range byHandler {
+		listTwins(rts)
+	}
 	for _, rt := range rd.routes {
-		if handlerName.MatchString(rt.Handler) && count[rt.Handler] == 1 {
+		if handlerName.MatchString(rt.Handler) && (count[rt.Handler] == 1 || rt.twin != nil) {
 			rt.id = strings.ToLower(rt.Handler[:1]) + rt.Handler[1:]
+			if rt.twin != nil && !rt.first {
+				rt.id += pascal(rt.key)
+			}
 			continue
 		}
 		id := methodPathName(rt.key, rt.Path)
@@ -362,6 +394,27 @@ func (rd *routeReader) operationIDs() {
 		rd.gap(rt.Method, rt.Path, "#/paths/"+escapeToken(rt.Path)+"/"+rt.key, "", "route %s %s: its handler %s %s; the operation is named %s", rt.Method, rt.Path, rt.Handler, why, id)
 		rt.id = id
 	}
+}
+
+// listTwins marks the two routes of one handler that serve a list two
+// ways, a GET on a path and a POST on that path with one literal segment
+// added, as each other's twin (ADR-121).
+func listTwins(rts []*route) {
+	if len(rts) != 2 {
+		return
+	}
+	get, post := rts[0], rts[1]
+	if get.key != "get" {
+		get, post = post, get
+	}
+	if get.key != "get" || post.key != "post" {
+		return
+	}
+	segment, ok := strings.CutPrefix(post.Path, strings.TrimSuffix(get.Path, "/")+"/")
+	if !ok || strings.Contains(segment, "/") || routeSegment.MatchString(segment) || !plainSegment.MatchString(segment) {
+		return
+	}
+	get.twin, post.twin, get.first = post, get, true
 }
 
 // methodPathName names an operation by its method key and its path's

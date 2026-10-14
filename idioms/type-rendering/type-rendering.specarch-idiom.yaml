@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: type-rendering
-version: 1.2.0
+version: 1.3.0
 concern: type-rendering
 stacks: [go, postgresql, sqlserver, oracle, mariadb, any]
 reads: [entities]
@@ -43,6 +43,27 @@ sources:
     title: nchar and nvarchar (Transact-SQL)
     author: Microsoft
     url: https://learn.microsoft.com/en-us/sql/t-sql/data-types/nchar-and-nvarchar-transact-sql
+  postgresql-uuid-functions:
+    kind: standard
+    title: PostgreSQL Documentation, UUID Functions
+    edition: "17"
+    author: The PostgreSQL Global Development Group
+    url: https://www.postgresql.org/docs/17/functions-uuid.html
+  sqlserver-newid:
+    kind: standard
+    title: NEWID (Transact-SQL)
+    author: Microsoft
+    url: https://learn.microsoft.com/en-us/sql/t-sql/functions/newid-transact-sql
+  mariadb-uuid:
+    kind: standard
+    title: MariaDB Server Documentation, UUID
+    author: MariaDB
+    url: https://mariadb.com/kb/en/uuid/
+  mariadb-create-table:
+    kind: standard
+    title: MariaDB Server Documentation, CREATE TABLE, DEFAULT Column Option
+    author: MariaDB
+    url: https://mariadb.com/kb/en/create-table/#default-column-option
   ieee-754:
     kind: standard
     title: IEEE Standard for Floating-Point Arithmetic, IEEE 754
@@ -243,17 +264,36 @@ parts:
           - { type: object, render: JSON }
 
   defaults:
-    description: The literals a column default is written with on each dialect.
+    description: |
+      The literals a column default is written with on each dialect, and the
+      expression of each generatedDefault of the design: identifier, a new
+      random UUID, and currentTime, the instant the record is written. A
+      reader of a catalogue writes generatedDefault only where the
+      catalogue's expression is the one named here; any other expression
+      stays a question.
     stack:
       postgresql:
-        names: { "true": "true", "false": "false", now: CURRENT_TIMESTAMP }
+        names: { "true": "true", "false": "false", identifier: gen_random_uuid(), currentTime: CURRENT_TIMESTAMP }
+        cites:
+          - { source: postgresql-uuid-functions, says: "gen_random_uuid () returns uuid: generates a version 4 (random) UUID." }
       sqlserver:
-        names: { "true": "1", "false": "0", now: SYSDATETIMEOFFSET() }
+        names: { "true": "1", "false": "0", identifier: NEWID(), currentTime: SYSDATETIMEOFFSET() }
+        cites:
+          - { source: sqlserver-newid, says: "NEWID creates a unique value of type uniqueidentifier." }
       oracle:
-        names: { "true": "1", "false": "0", now: SYSTIMESTAMP }
-        why: Oracle refuses DEFAULT after NOT NULL, so a generator writes the default first, as dxlib does.
+        names: { "true": "1", "false": "0", currentTime: SYSTIMESTAMP }
+        why: |
+          Oracle refuses DEFAULT after NOT NULL, so a generator writes the
+          default first, as dxlib does. It has no identifier: a uuid is
+          VARCHAR2(36 CHAR) here, and SYS_GUID gives 16 raw bytes that are
+          not a version 4 UUID, so a project names its own expression in an
+          override of this part.
       mariadb:
-        names: { "true": "true", "false": "false", now: CURRENT_TIMESTAMP }
+        names: { "true": "true", "false": "false", identifier: (UUID()), currentTime: CURRENT_TIMESTAMP }
+        why: UUID gives the 36-character text form a uuid's CHAR(36) column holds; an expression default is written in parentheses.
+        cites:
+          - { source: mariadb-uuid, says: "UUID returns a Universally Unique Identifier as a string of five hexadecimal numbers, aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee." }
+          - { source: mariadb-create-table, says: "The DEFAULT clause takes an expression or a function." }
 
   money:
     description: How a money amount is declared, so that every stack holds it exactly.

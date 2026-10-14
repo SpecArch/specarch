@@ -422,7 +422,9 @@ In SQL, a table is the entity's name in snake case (`LoanStatus` is
 (`dueOn` is `due_on`). A primary key is `pk_<table>`, the check of a
 type-rendering row `ck_<table>_<column>`, a foreign key
 `fk_<table>_<column>`, and a declared unique or check constraint keeps its
-own name. Identifiers are written unquoted and in lower case.
+own name. A plain index under a mapping's `indexes` is
+`ix_<table>_<column>_<column>`, its columns in its order, unless it names
+its own. Identifiers are written unquoted and in lower case.
 
 ### Types
 
@@ -484,6 +486,7 @@ redefined.
 | `release` (of a requirement) | SpecArch | the release a requirement is meant for, by the version of its release record, as a change or a defect names the release it shipped in |
 | `fulfilledBy` | SpecArch, after JSON Schema's `$ref` as a URI reference | beside `ownedBy` on a requirement, the requirement of another specification that fulfils it, `<dependency>#/requirements/<id>` (ADR-119) |
 | `audience` | SpecArch | `internal` on an element for the people who build and run the system only; left out, it is for everyone, and `document --audience external` leaves the internal elements out and counts them (ADR-119) |
+| `generatedDefault` | SpecArch | a default the database computes, which `default` cannot hold since it is no value: `identifier`, a new random UUID, on a field of format `uuid`, or `currentTime`, the instant the record is written, on a `date-time`; never beside `default`. The type-rendering idiom names each dialect's expression (ADR-121) |
 | `precision`, `scale` | SpecArch | decimal size; JSON Schema has no decimal type, so `format: decimal` on a string carries them |
 | `valueDescriptions` | SpecArch | per-value meaning of an enum |
 | `commands`, `arguments`, `options`, `reads`, `writes`, `standardOutput`, `standardError`, `exitCodes`, `repeatable` | SpecArch | command-line interfaces; no standard describes one |
@@ -528,6 +531,8 @@ redefined.
 | `stack`, `targets`, `deployments`, `environment` (of a deployment) | SpecArch | in implementation files: the stack, the output folders per target, and where the system really runs |
 | `ownedBy` | SpecArch | the stakeholder that owns what someone else builds: on a requirement, the one whose component fulfils it, so nothing here satisfies or verifies it (ADR-119); in implementation files, on a mapping, the one that owns an element the project describes but does not generate |
 | `permissionChecks`, `package`, `function`, `permissionArgument` | SpecArch | in implementation files: on a binding, the project's own permission checks, which `specarch extract` reads routes' permissions through (ADR-081) |
+| `indexes` | SpecArch | in implementation files: on an entity's mapping, the plain indexes of its table, each its `fields` and, when the database already names it otherwise, its `name`; an index is physical design, so it stays out of the design file, and a unique index is the entity's unique constraint (ADR-121) |
+| `listRoutes`, `postSegment` | SpecArch | in implementation files: on the http binding, that every list is served two ways, by GET and by POST at its path with `postSegment` added, its parameters in a body; `generate openapi` writes the POST twin of each list (ADR-121) |
 | `bypassedFor` | SpecArch | in implementation files: on a permission check, the kind of caller it lets through whatever its roles grant, `client`, which `specarch extract go` asks about at every operation the check guards (ADR-114) |
 | `schemaFile` | SpecArch | in implementation files: on the ui binding, the name of the file beside a page's file that holds its schema, by the project's convention, which `specarch extract pages` reads and `specarch-gen-ui-typescript` writes; `page.schema.ts` when left out (ADR-115) |
 | `components`, `component`, `binds`, `nameProperty` | SpecArch | in implementation files: on the ui binding, the components of the project's UI library that bind a field or name a column, which `specarch extract` reads a screen's fields and columns through (ADR-091) |

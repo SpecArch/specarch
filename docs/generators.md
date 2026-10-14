@@ -208,7 +208,12 @@ no scheme. A response that names a problem type answers
 type in `x-specarch-problem`; the catalogue is `x-specarch-problems`. A
 list takes the names of the paginated-list idiom that applies: query
 parameters on a GET, properties of an inline request body on another
-method, and the answer wrapped in the idiom's envelope. A view is a
+method, and the answer wrapped in the idiom's envelope. When the
+implementation file's http binding says under `listRoutes` that every list
+is served two ways, each list served by GET gains its POST twin at its
+path with `postSegment` added, named after it with `Post`, its list's
+parameters in the body (ADR-121); the dxlib dialect, which serves every
+operation as one POST, refuses the setting. A view is a
 read-only schema of its own, marked `x-specarch-view` with the entity it
 reads from: that entity's fields and the ones the view adds, each added
 one read-only. A path has the type of the field it ends in, with null
@@ -317,14 +322,20 @@ row that matches the field gives its type, and the row's check becomes a
 check constraint. Names follow `docs/conventions.md`. The audit,
 soft-delete and encrypted-column idioms give their columns, an encrypted
 field looked up by hash gains the hash column its keys use, and a key or
-unique text column needs a `maxLength` of at most 255. The first migration
+unique text column needs a `maxLength` of at most 255. A field's
+`generatedDefault` is the expression the idiom's `defaults` part names for
+the dialect, and a dialect with none for it is refused at the field, as
+Oracle is for `identifier` until an override names one. Each plain index
+the entity's mapping lists under `indexes` is a `CREATE INDEX` after its
+table; an index holds no data, so the next migration creates an index
+added and drops one removed in its expand file. The first migration
 is `0001_expand.sql`, with `snapshot.yaml` beside it; a run on an
 unchanged schema writes only the snapshot again, so `generate --check`
 passes until the schema changes. A change is written as the next
 `NNNN_expand.sql`, and what can lose data as the next `NNNN_contract.sql`,
 which the `sql` target's settings must allow with `destructive: true`;
 a change the differ cannot tell from a rewrite (a new type, a new key, a
-new default, a new required column without a default) is refused with
+new default or generated default, a new required column without either) is refused with
 what to do by hand.
 
 Each view becomes a SQL view, created after the tables and their foreign

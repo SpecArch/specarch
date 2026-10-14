@@ -38,7 +38,7 @@ facts in a format SpecArch defines, never a reader of its own.
 | 7. the schema file's name; the facts dump from the installed binary | built, item 8: `bindings.ui.schemaFile`, read by `extract pages` and written by `specarch-gen-ui-typescript` (ADR-115); `specarch facts` for JavaScript, Swift and Dart, the JavaScript reader inside the binary on typescript-go with no Node (ADR-116) |
 | 8. workflow definitions that are not BPMN | built, item 9 (ADR-118): the workflow table, `workflowTable: 1`, printed by the project's printer through `tools/workflows/dump-workflows.sh` and read by `extract workflows --table` with the BPMN reader's questions at the same keys, so `merge` joins the two readings of one workflow; a standard format gets a reader of its own (decision 5) |
 | 9. audience, requirements held elsewhere, material questions, partial answers, row citations | audience and requirements held elsewhere built, item 10 (ADR-119): `audience: internal` on any element named by a key, the error `audience` where an element for everyone names an internal one, `document --audience external --out` leaving the internal elements out and counting them, and `ownedBy` with `fulfilledBy` on a requirement, exempt from the satisfied and verified warnings and listed under Requirements held elsewhere; the material questions in a group of their own, `opens` on a decision with the rule `question_opened` and the chain in `gaps`, and the outputs table counting questions per stage built, item 11 (ADR-120); a row citation is shipped in 0.6.0 as a clause that carries the row's identifier |
-| 10. `--given-outside`, two routes for one list, generated defaults, indexes, a source key from capitals | `--given-outside` built, item 4 (ADR-105); the rest planned, item 12; an index goes to the implementation file; the source key from capitals is on main already, after 0.6.0 |
+| 10. `--given-outside`, two routes for one list, generated defaults, indexes, a source key from capitals | `--given-outside` built, item 4 (ADR-105); two routes for one list, generated defaults and indexes built, item 12 (ADR-121), an index in the implementation file; the source key from capitals is on main already, after 0.6.0 |
 | 11. generation targets | shipped: the OpenAPI document and SQL migrations (0.4.0), the Next.js UI with task pages and a private component library through an idiom override (0.6.0); declined: Go server interfaces, which the stack's OpenAPI code generator makes from the document; planned later: sqlc queries, item 13 |
 | 12. output a CI gate compares with the code | planned later, item 14, on the readers and `merge` |
 
@@ -495,27 +495,27 @@ stage blocked, a count and the first identifiers rather than every one.
 - A handler that serves a GET on a path and a POST on that path with a
   literal last segment (`/items` and `/items/query`), the standard list
   contract of this estate, is two operations in OpenAPI and stays two;
-  what goes is the noise: `extract router` names them after the handler
-  with the method, cites both and asks no question, and the
-  implementation file may say under `bindings.http.listRoutes` that
-  every list is served both ways, so `generate openapi` writes the twin
-  for each `listOf` operation. The convention is HTTP's, so it is the
-  implementation file's.
-- A column default the database computes (`gen_random_uuid()`, `now()`)
-  is not a value, so `default` cannot hold it; today each is a `could`
-  line. A field gains `generatedDefault`, a closed set the stacks
-  share, `identifier` and `currentTime`; the type-rendering idiom maps
-  each to the dialect's expression, `generate sql` writes it, and the
-  readers write it where the catalogue's expression is one the idiom
-  names. The list stays closed: an expression the idiom does not name
-  is still a `could` line.
+  what goes is the noise: `extract router` names them after the handler,
+  the POST's with `Post` added, cites both on each and asks no question
+  about their names, and the implementation file may say under
+  `bindings.http.listRoutes` that every list is served both ways, so
+  `generate openapi` writes the twin for each `listOf` operation. The
+  convention is HTTP's, so it is the implementation file's (ADR-121).
+- A column default the database computes (`gen_random_uuid()`,
+  `CURRENT_TIMESTAMP`) is not a value, so `default` cannot hold it. A
+  field says `generatedDefault`, a closed set the stacks share,
+  `identifier` and `currentTime`; the type-rendering idiom maps each to
+  the dialect's expression, `generate sql` writes it, and the database
+  reader writes it where the catalogue's expression is one the idiom
+  names. The list stays closed: an expression the idiom does not name,
+  such as `now()`, is still a `could` line.
 - A plain index is physical design, the implementation file's, as
-  `docs/sync-gates.md` already says. `mappings.<entity>.indexes` lists
-  each as its fields, the SQL generator writes them, the database gate
-  compares them, and `extract database` writes them, which is the first
-  thing a reader writes into an implementation fragment: `--implementation-out`
-  on the database reader, a fragment holding the mappings it knows. The
-  by decision 6 a reader may write one.
+  `docs/sync-gates.md` says. `mappings.<entity>.indexes` lists each as
+  its fields, the SQL generator writes them, the database gate compares
+  them, and `extract database` writes them, which is the first thing a
+  reader writes into an implementation fragment: `--implementation-out`
+  on the database reader, a fragment holding the mappings it knows. By
+  decision 6 a reader may write one.
 
 ## Needed for the later phases
 
@@ -670,7 +670,7 @@ step 1. Only item 7's meta-model half touches 0.3.
     the clause check shipped in 0.6.2 as `source_clause`. Done when the lending desk's `gaps` and
     `questions` show the groups and a misspelt clause warns in both
     builds.
-12. The list twin, `generatedDefault`, indexes in the mapping. The router
+12. Built (ADR-121). The list twin, `generatedDefault`, indexes in the mapping. The router
     reader's naming, `bindings.http.listRoutes` in the OpenAPI
     generator; `generatedDefault` in the schema, the idiom rows, the SQL
     generator and the readers; `mappings.<entity>.indexes` and

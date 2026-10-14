@@ -24,9 +24,9 @@ Is the loan period 21 days, as the manual says, or 14 days, as the service does?
 
 **Note:** From Lending desk manual, 2025, clause 3.3: The loan period is 21 days. <../sources/manual.md>
 
-**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/model.go:8: LoanPeriod is 14 days. <../sources/code>
+**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/model.go:8: LoanPeriod is 14 days. <../sources/code>
 
-**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14. <../sources/code>
+**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14. <../sources/code>
 
 ### Q-3 (must, decision)
 
@@ -65,7 +65,7 @@ Does the desk read the book records through the catalogue service's operations, 
 
 **Note:** From Lending desk manual, 2025, clause 3.4: The catalogue team keeps the book records; the desk reads them and never edits them. <../sources/manual.md>
 
-**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause migrations/001_init.sql:6: CREATE TABLE books. <../sources/code>
+**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause migrations/001_init.sql:6: CREATE TABLE books. <../sources/code>
 
 ## 3. Implementation
 
@@ -83,7 +83,7 @@ The manual has a phone number for each member, which is personal, and the databa
 
 **Note:** From Lending desk manual, 2025, clause 2: The desk keeps a member's phone number, which is personal. <../sources/manual.md>
 
-**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause migrations/001_init.sql:1: members has card_number and full_name only. <../sources/code>
+**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause migrations/001_init.sql:1: members has card_number and full_name only. <../sources/code>
 
 ### Q-7 (must, decision)
 
@@ -98,9 +98,9 @@ The service serves GET /members/{cardNumber}, which answers a member's card numb
 
 **Insight:** Undocumented, from code, and it answers a personal field to a caller who shows no permission, which is how an open endpoint is usually found. An operation's permission cannot be left out of the design, so the route waits here rather than as a guess.
 
-**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:43: GET /members/{cardNumber} checks no permission. <../sources/code>
+**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:43: GET /members/{cardNumber} checks no permission. <../sources/code>
 
-**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:97: ShowMember answers one member's card number and full name. <../sources/code>
+**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:97: ShowMember answers one member's card number and full name. <../sources/code>
 
 ### Q-4 (should, decision)
 
@@ -116,7 +116,7 @@ Renewing a loan is in the manual but not in the service. Build it as the manual 
 
 **Note:** From Lending desk manual, 2025, clause 4.1: A member may renew a loan once. <../sources/manual.md>
 
-**Note:** From The lending desk service, 925255a195f90e385f7bf9bbea8d4e8f7aa5031d, clause lending/routes.go:36: Register registers no renew route. <../sources/code>
+**Note:** From The lending desk service, 2510c1a3de2f89e3b99131c45e4560ae1639ad20, clause lending/routes.go:36: Register registers no renew route. <../sources/code>
 
 ## 4. Material to provide
 
@@ -155,7 +155,7 @@ What each source's sections produced: the elements that cite a clause, or the cl
 
 ### The lending desk service (desk-code)
 
-1 clause of 7 produced nothing.
+1 clause of 8 produced nothing.
 
 | Clause | Title | Produced |
 |---|---|---|
@@ -165,6 +165,7 @@ What each source's sections produced: the elements that cite a clause, or the cl
 | migrations/001_init.sql | The tables | #/entities/Book, #/entities/Loan, #/entities/Member, #/questions/Q-1, #/questions/Q-6, #/questions/Q-8, #/requirements/LEND-4, mapping of #/entities/Book, mapping of #/entities/Loan, mapping of #/entities/Member |
 | migrations/002_roles.sql | The roles tables | nothing |
 | migrations/003_member_address.sql | The member's address | #/schemas/Address |
+| migrations/004_loan_reference.sql | The loan's reference and the loans' indexes | #/entities/Loan, mapping of #/entities/Loan |
 | seeds/001_roles.sql | The seed of the roles tables | #/roles/desk-staff, mapping of #/roles/desk-staff |
 
 ## 6. Outputs
@@ -189,6 +190,6 @@ Every source a Note in this document cites.
 
 | Source | Title | Edition | Author | Where to read it |
 |---|---|---|---|---|
-| desk-code | The lending desk service | 925255a195f90e385f7bf9bbea8d4e8f7aa5031d | The desk team | ../sources/code |
+| desk-code | The lending desk service | 2510c1a3de2f89e3b99131c45e4560ae1639ad20 | The desk team | ../sources/code |
 | desk-manual | Lending desk manual | 2025 | The desk team | ../sources/manual.md |
 

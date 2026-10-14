@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 465 design tests, 207 golden and 258 red, about 15 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 474 design tests, 213 golden and 261 red, about 15 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 465 design tests, 207 golden and 258 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 461 |
+| system | 470 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -763,6 +763,22 @@ Scenario: golden; level: system; verifies SA-44.
 - When: extract dart is run on the dump with the implementation file
 - Then: it writes one operation per route under its mount, named after its handler or by its method and path, with the permission the check names; one operation per method the dart_frog handler switches on, its permission from its case's check; a dependency per host the clients call; and the settings with their types and defaults; asks a must question on each route's summary and responses, its parameters' values, whether the running system registers it and its permission where no check gives one, naming the middleware that calls none, on the methods of the index route and on the other methods the default branch serves; a should question on the relative path and the interpolated value; prints a line for the parameter with a pattern; and exits 0
 
+#### extract-database-generated-default
+
+Scenario: golden; level: system; verifies SA-70.
+
+- Given: a repository holding a catalogue dump whose notes table has a uuid key defaulting to gen_random_uuid(), a time defaulting to CURRENT_TIMESTAMP, one defaulting to now() and a text defaulting to another expression, two plain indexes, one in descending order and one of an expression
+- When: extract database is run on the dump without --implementation-out
+- Then: it writes generatedDefault identifier and currentTime on the first two fields, a could question for now() and the other expression naming the expressions the idiom names, one for each plain index saying it goes to an implementation file through --implementation-out, and one for each other index, and exits 0
+
+#### extract-database-implementation-out
+
+Scenario: golden; level: system; verifies SA-70.
+
+- Given: the catalogue dump of extract-database-generated-default
+- When: extract database is run on it with --implementation-out naming a new file
+- Then: it writes the generated defaults as without it, writes the fragment with a comment naming the dump, the notes table's mapping and its two plain indexes, the one named as the conventions derive with no name and the other with its own, citing the catalogue, asks no question for them, keeps the could questions for the descending and the expression index, counts the mapping and the indexes it wrote, and exits 0
+
 #### extract-database-json-column
 
 Scenario: golden; level: system; verifies SA-44, SA-50.
@@ -1219,6 +1235,14 @@ Scenario: golden; level: system; verifies SA-44.
 - When: extract router is run on the route table in the outer repository
 - Then: it writes the tree, the commit line and the counts of the case where the route table is committed beside the code, byte for byte: the code source's edition is the code's commit and its url the code repository's folder, and no commit of the outer repository appears; it exits 0
 
+#### extract-router-list-twin
+
+Scenario: golden; level: system; verifies SA-70.
+
+- Given: a repository holding a route table whose ListCopies handler serves GET /copies and POST /copies/query, and whose SaveCopy handler serves a PUT and a PATCH
+- When: extract router is run on the table
+- Then: it writes the GET as listCopies and the POST as listCopiesPost, each citing both routes, asks one must question for what the two do, asks no could question about their names, still names the PUT and the PATCH by method and path with a could question each, and exits 0
+
 #### extract-router-route-twice
 
 Scenario: red; level: system; covers exit 1; verifies SA-44.
@@ -1577,6 +1601,14 @@ Scenario: red; level: system; verifies SA-39.
 - When: generate openapi is run with --unapproved
 - Then: it reports at the field that the enum beside the $ref cannot be carried in the dxlib dialect, writes the document as a draft with that error in x-specarch-marks on the field, and exits 1
 
+#### generate-openapi-list-twin
+
+Scenario: golden; level: system; verifies SA-70.
+
+- Given: the specification of generate-openapi, whose listBooks lists books by GET /books, with an implementation file whose http binding says under listRoutes that every list is served by POST too, at the segment query; specarch-gen-openapi built from this repository on PATH
+- When: generate openapi is run with --unapproved
+- Then: it writes GET /books as before and POST /books/query as listBooksPost, with the search, filter, sort and page in a JSON body and the same paged answer, and exits 0
+
 #### generate-openapi-owned
 
 Scenario: golden; level: system; verifies SA-46.
@@ -1673,6 +1705,22 @@ Scenario: golden; level: system; verifies SA-38.
 - When: generate sql is run with --unapproved
 - Then: it writes 0002_expand.sql, which adds the subtitle column, leaves 0001_expand.sql as it was, writes the snapshot again, and exits 0
 
+#### generate-sql-generated-default
+
+Scenario: golden; level: system; verifies SA-70.
+
+- Given: a specification whose Note entity has an identifier the database generates and a time it writes, and whose implementation file lists two indexes of its table, one with a name of its own; specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved
+- Then: it writes the id column with DEFAULT gen_random_uuid() and written_at with DEFAULT CURRENT_TIMESTAMP, both NOT NULL, CREATE INDEX ix_notes_author_id_written_at and notes_by_shelf after the table, and a snapshot that keeps generatedDefault and lists both indexes, and exits 0
+
+#### generate-sql-generated-default-refused
+
+Scenario: red; level: system; verifies SA-70.
+
+- Given: the specification of generate-sql-generated-default with its sql target on Oracle, for which type-rendering names no expression of a generated identifier; specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved
+- Then: it writes nothing, reports at the id field's generatedDefault that type-rendering names no oracle expression for identifier and that an override of its defaults part can add one, and exits 1
+
 #### generate-sql-identifier-length
 
 Scenario: red; level: system; verifies SA-50.
@@ -1680,6 +1728,14 @@ Scenario: red; level: system; verifies SA-50.
 - Given: a member whose correspondence address, kept in columns, holds courier instructions with a part whose column name passes the 64 characters MariaDB takes, and an implementation file whose sql target is MariaDB; specarch-gen-sql built from this repository on PATH
 - When: generate sql is run with --unapproved
 - Then: it reports the column at the field that holds the value, with its length and the limit, writes nothing, and exits 1
+
+#### generate-sql-index-changed
+
+Scenario: golden; level: system; verifies SA-70.
+
+- Given: the specification of generate-sql-generated-default with its first migration and snapshot in the output folder, and its implementation file now listing an index of shelf and writtenAt in place of notes_by_shelf; specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved
+- Then: it writes 0002_expand.sql, which drops notes_by_shelf and creates ix_notes_shelf_written_at, leaves the index that did not change alone, writes the snapshot again, and exits 0
 
 #### generate-sql-owned
 
@@ -1899,7 +1955,7 @@ Scenario: golden; level: system; verifies SA-32.
 
 - Given: a specification with one implementation file in Go with an Oracle sql target, whose override of type-rendering replaces its types part, with the reason
 - When: idioms is run
-- Then: it prints the file's path and type-rendering as overridden by the file, copied from 1.2.0, replacing types, with the reason, and exits 0
+- Then: it prints the file's path and type-rendering as overridden by the file, copied from 1.3.0, replacing types, with the reason, and exits 0
 
 #### idioms-lists-ui-framework
 
@@ -2617,6 +2673,14 @@ Scenario: red; level: system; covers exit 1.
 - When: validate is run on it
 - Then: it reports file_kind naming the folder to run on and exits 1
 
+#### validate-generated-default
+
+Scenario: red; level: system; covers exit 1; verifies SA-70.
+
+- Given: a specification whose Note entity has an identifier the database generates on a uuid field, the current time on a date field, an identifier on a text field with no format, and a field with both a default and a generated default
+- When: validate is run
+- Then: it reports schema for the date field's format, the text field's missing format and the field with both, accepts the uuid field, and exits 1, the same in both builds
+
 #### validate-guard
 
 Scenario: red; level: system; covers exit 1; verifies SA-29.
@@ -2680,6 +2744,14 @@ Scenario: golden; level: system; verifies SA-23.
 - Given: a resolved incident that names no defect and no change and gives no noChange reason
 - When: validate is run
 - Then: it warns with incident_link and exits 0, since the record is still valid
+
+#### validate-index-field
+
+Scenario: red; level: system; covers exit 1; verifies SA-70.
+
+- Given: an implementation file whose mapping of the Note entity lists an index of shelf and writenAt, a misspelling of writtenAt, and whose mapping of an enum lists an index
+- When: validate is run
+- Then: it reports field at writenAt with writtenAt suggested, and at the enum's indexes, which are a table's, and exits 1, the same in both builds
 
 #### validate-interface-problems
 
@@ -3797,7 +3869,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-274 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+279 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -3957,6 +4029,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-69 | acceptance 2 | golden | SA-69 names no harm |
 | requirement SA-69 | acceptance 3 | golden | SA-69 names no harm |
 | requirement SA-69 | acceptance 4 | golden | SA-69 names no harm |
+| requirement SA-70 | acceptance 1 | golden | SA-70 names no harm |
+| requirement SA-70 | acceptance 2 | golden | SA-70 names no harm |
+| requirement SA-70 | acceptance 3 | golden | SA-70 names no harm |
+| requirement SA-70 | acceptance 4 | golden | SA-70 names no harm |
+| requirement SA-70 | acceptance 5 | golden | SA-70 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

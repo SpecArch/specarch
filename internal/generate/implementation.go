@@ -227,6 +227,18 @@ func implementation(d *doc, impl *yaml.Node, idioms []IdiomUse) {
 				// generated nowhere (ADR-046).
 				notes = strings.TrimSpace("Owned by " + by + ", not generated. " + notes)
 			}
+			if ixs := items(m.Value, "indexes"); len(ixs) > 0 {
+				// The plain indexes of the table (ADR-121).
+				var named []string
+				for _, ix := range ixs {
+					one := strings.Join(strs(ix, "fields"), ", ")
+					if n := str(ix, "name"); n != "" {
+						one = n + " (" + one + ")"
+					}
+					named = append(named, one)
+				}
+				notes = strings.TrimSpace(notes + " Indexed by " + strings.Join(named, "; ") + ".")
+			}
 			d.line("| %s | %s | %s |", m.Key.Value, cell(str(m.Value, "target")), cell(notes))
 		}
 		d.blank()

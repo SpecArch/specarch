@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.7.0-dev of the specification: 5 stakeholders, 10 needs and 69 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.7.0-dev of the specification: 5 stakeholders, 10 needs and 70 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -34,13 +34,13 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-46, SA-61, SA-32, SA-9, SA-10 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-46, SA-61, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14 |
-| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-46, SA-59, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-51 |
+| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-51 |
 | NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22 |
 | NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-58, SA-60, SA-57 |
 
@@ -81,6 +81,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-67 | functional | must | accepted | Every element of a specification shall be able to say that it is internal, for the people who build and run the system only, and specarch document shall write a document for everyone without the internal elements, saying how many it left out in each section. |
 | SA-68 | functional | must | accepted | A requirement shall be able to name the stakeholder whose component fulfils it, and the requirement of another specification that does, and the validator shall then ask no element to satisfy it and no test to verify it. |
 | SA-69 | functional | must | accepted | specarch gaps and the questions document shall set the material a stakeholder must provide apart from the decisions a stakeholder must take, show a decision that answered a question only in part with the questions it opened, and show per stage what holds each output up. |
+| SA-70 | functional | should | accepted | specarch shall carry a column default the database computes, a table's plain indexes and a list served two ways from the sources into the specification and back into the generated SQL and OpenAPI, with no question for any of them. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -648,6 +649,22 @@ Acceptance criteria:
 - The outputs table gives, per stage, how many questions hold an output up and the first of them, rather than every one.
 
 **Insight:** A question that asks for a document is answered by sending it, not by deciding, and a list that puts it among the decisions asks the wrong thing of the wrong person; a split answer written in prose loses where the open half came from; and a list of every question in one cell cannot be read once a specification has many.
+
+### SA-70
+
+specarch shall carry a column default the database computes, a table's plain indexes and a list served two ways from the sources into the specification and back into the generated SQL and OpenAPI, with no question for any of them.
+
+Kind: functional; priority: should; status: accepted; verified by test; refines NEED-2, NEED-8.
+
+Acceptance criteria:
+
+- A field's generatedDefault, identifier or currentTime, is written by generate sql as the expression the type-rendering idiom names for the dialect; a dialect with none for it is an error at the field. A default beside generatedDefault, or generatedDefault on a field of another format, is refused by the schema in both builds.
+- specarch extract database writes generatedDefault where the catalogue's default is the expression the idiom names for PostgreSQL, and keeps the could question for any other expression.
+- An entity's mapping lists the plain indexes of its table under indexes; generate sql writes each, and the next migration creates an index added and drops one removed. A field an index names that the entity lacks, or indexes under a mapping that is not an entity's, is refused as field in both builds.
+- specarch extract database writes each plain index of the catalogue into the implementation fragment that --implementation-out names, with no question for it; an index the mapping cannot hold stays a could question.
+- specarch extract router reads a handler that serves a GET on a path and a POST on that path with a literal last segment as two operations named after the handler, the POST's with Post added, each citing both routes, with no question about the name. With bindings.http.listRoutes, generate openapi writes that POST twin of each list operation served by GET.
+
+**Insight:** Read from an estate's sources, each generated key, each index and each list route was a could question on every table or route, so most of the questions an owner read were noise; and what a reader read but no generator wrote back would be lost the first time the schema or the API was generated.
 
 ### SA-7
 

@@ -102,6 +102,7 @@ func (c *checker) checkImplementation(s *spec.Spec, load Loader) {
 		if by := source.Child(p.Value, "ownedBy"); by != nil && by.Value != "" && d.stakeholders[by.Value] == nil {
 			c.add(by, source.Pointer("mappings", p.Key.Value, "ownedBy"), RuleStakeholder, "%s is not a stakeholder of the specification%s", by.Value, suggest(by.Value, d.stakeholders))
 		}
+		c.checkIndexes(d, p.Key.Value, source.Child(p.Value, "indexes"))
 	}
 	decisions := map[string]*yaml.Node{}
 	for k, v := range d.decisions {
@@ -122,6 +123,25 @@ func (c *checker) checkImplementation(s *spec.Spec, load Loader) {
 	c.checkDeployments(d)
 	c.checkSuites(d, rel)
 	c.checkIdioms(s)
+}
+
+// checkIndexes checks a mapping's indexes are on an entity and hold its
+// fields (ADR-121).
+func (c *checker) checkIndexes(d *design, key string, indexes *yaml.Node) {
+	if indexes == nil {
+		return
+	}
+	name, ok := strings.CutPrefix(key, "#/entities/")
+	entity := d.entities[name]
+	if !ok || entity == nil {
+		c.add(indexes, source.Pointer("mappings", key, "indexes"), RuleField,
+			"indexes are a table's, and %s is not an entity of the specification; put them on the mapping of the entity whose table holds them", key)
+		return
+	}
+	fields := fieldsOf(entity)
+	for i, ix := range source.Items(indexes) {
+		c.checkFieldList(source.Child(ix, "fields"), []string{"mappings", key, "indexes", fmt.Sprint(i), "fields"}, fields, name, "part of an index")
+	}
 }
 
 // checkDeployments checks each deployment names an environment of the

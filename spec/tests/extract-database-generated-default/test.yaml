@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a catalogue dump whose notes table has a uuid key defaulting to gen_random_uuid(), a time defaulting to CURRENT_TIMESTAMP, one defaulting to now() and a text defaulting to another expression, two plain indexes, one in descending order and one of an expression"
+when: "extract database is run on the dump without --implementation-out"
+then: "it writes generatedDefault identifier and currentTime on the first two fields, a could question for now() and the other expression naming the expressions the idiom names, one for each plain index saying it goes to an implementation file through --implementation-out, and one for each other index, and exits 0"
+verifies: [SA-70]

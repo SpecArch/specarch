@@ -1,0 +1,6 @@
+arguments: [validate, project]
+exitStatus: 1
+standardOutput: |
+  project/implementation/go/case.go.specarch-implementation.yaml:9:25: error: /mappings/#~1entities~1Note/indexes/0/fields/1: field: writenAt is not a field of Note, so it cannot be part of an index; did you mean writtenAt? [field@implementation/go/case.go.specarch-implementation.yaml#/mappings/#~1entities~1Note/indexes/0/fields/1]
+  project/implementation/go/case.go.specarch-implementation.yaml:13:7: error: /mappings/#~1enums~1Shelf/indexes: field: indexes are a table's, and #/enums/Shelf is not an entity of the specification; put them on the mapping of the entity whose table holds them [field@implementation/go/case.go.specarch-implementation.yaml#/mappings/#~1enums~1Shelf/indexes]
+  project/specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, which is read until 1.0, and its missing tests are warnings; run specarch derive to write the tests 0.2 asks for, then change the line to specarch: "0.2" [meta_model_version@specarch.yaml#/specarch]

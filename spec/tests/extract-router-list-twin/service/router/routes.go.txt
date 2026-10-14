@@ -1,0 +1,13 @@
+package router
+
+// Routes registers the shelf service's routes. A list is served two ways:
+// GET with its parameters in the query, and POST to /query with them in a
+// body, for a filter too long for a URL.
+func Routes(r Router) {
+	r.Get("/copies", Require("copies.read", ListCopies))
+	r.Post("/copies/query", Require("copies.read", ListCopies))
+	r.Post("/copies", Require("copies.write", AddCopy))
+	r.Get("/copies/{copyId}", Require("copies.read", GetCopy))
+	r.Put("/copies/{copyId}", Require("copies.write", SaveCopy))
+	r.Patch("/copies/{copyId}", Require("copies.write", SaveCopy))
+}

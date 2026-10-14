@@ -1,0 +1,13 @@
+# The mappings specarch extract database read from the catalogue dump
+# catalogue.json, made at commit c80efd0318f7f739705ab3c4ba9a53d07a93810c: the
+# table of each entity and its plain indexes. They go under mappings in an
+# implementation file of the specification; each cites the source code.
+mappings:
+  '#/entities/Notes':
+    target: table notes
+    indexes:
+      - {fields: [authorId, writtenAt]}
+      - {fields: [shelf], name: notes_by_shelf}
+    origin: stated
+    cites:
+      - {source: code, clause: migrations public.notes, says: 'Table public.notes: CREATE INDEX ix_notes_author_id_written_at ON public.notes USING btree (author_id, written_at); CREATE INDEX notes_by_shelf ON public.notes USING btree (shelf).'}

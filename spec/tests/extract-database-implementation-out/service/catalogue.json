@@ -1,0 +1,123 @@
+{
+    "path": "migrations",
+    "enums": [
+    ],
+    "views": [
+    ],
+    "commit": "c80efd0318f7f739705ab3c4ba9a53d07a93810c",
+    "tables": [
+        {
+            "name": "notes",
+            "schema": "public",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "uuid",
+                    "comment": null,
+                    "default": "gen_random_uuid()",
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "author_id",
+                    "type": "uuid",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "shelf",
+                    "type": "character varying(40)",
+                    "comment": null,
+                    "default": null,
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "written_at",
+                    "type": "timestamp with time zone",
+                    "comment": null,
+                    "default": "CURRENT_TIMESTAMP",
+                    "notNull": true,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "edited_at",
+                    "type": "timestamp with time zone",
+                    "comment": null,
+                    "default": "now()",
+                    "notNull": false,
+                    "identity": null,
+                    "generated": null
+                },
+                {
+                    "name": "label",
+                    "type": "text",
+                    "comment": null,
+                    "default": "md5((random())::text)",
+                    "notNull": false,
+                    "identity": null,
+                    "generated": null
+                }
+            ],
+            "comment": null,
+            "indexes": [
+                {
+                    "name": "ix_notes_author_id_written_at",
+                    "unique": false,
+                    "primary": false,
+                    "definition": "CREATE INDEX ix_notes_author_id_written_at ON public.notes USING btree (author_id, written_at)",
+                    "backsConstraint": false
+                },
+                {
+                    "name": "notes_by_shelf",
+                    "unique": false,
+                    "primary": false,
+                    "definition": "CREATE INDEX notes_by_shelf ON public.notes USING btree (shelf)",
+                    "backsConstraint": false
+                },
+                {
+                    "name": "notes_pkey",
+                    "unique": true,
+                    "primary": true,
+                    "definition": "CREATE UNIQUE INDEX notes_pkey ON public.notes USING btree (id)",
+                    "backsConstraint": true
+                },
+                {
+                    "name": "notes_recent",
+                    "unique": false,
+                    "primary": false,
+                    "definition": "CREATE INDEX notes_recent ON public.notes USING btree (written_at DESC)",
+                    "backsConstraint": false
+                },
+                {
+                    "name": "notes_shelf_lower",
+                    "unique": false,
+                    "primary": false,
+                    "definition": "CREATE INDEX notes_shelf_lower ON public.notes USING btree (lower((shelf)::text))",
+                    "backsConstraint": false
+                }
+            ],
+            "constraints": [
+                {
+                    "kind": "primary",
+                    "name": "notes_pkey",
+                    "columns": [
+                        "id"
+                    ],
+                    "onDelete": null,
+                    "definition": "PRIMARY KEY (id)",
+                    "referencesTable": null,
+                    "referencesSchema": null,
+                    "referencesColumns": null
+                }
+            ]
+        }
+    ],
+    "catalogue": "postgresql"
+}

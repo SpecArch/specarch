@@ -130,6 +130,7 @@ extension Checker {
             if let by = p.value.child("ownedBy"), !by.value.isEmpty, d.stakeholders[by.value] == nil {
                 add(by, pointer("mappings", p.key.value, "ownedBy"), .stakeholder, "\(by.value) is not a stakeholder of the specification\(suggest(by.value, d.stakeholders))")
             }
+            checkIndexes(d, p.key.value, p.value.child("indexes"))
         }
         var decisions = d.decisions
         for p in pairs(root.child("decisions")) { decisions[p.key.value] = p.value }
@@ -143,6 +144,22 @@ extension Checker {
         checkDeployments(d)
         checkSuites(d)
         checkIdioms(s)
+    }
+
+    /// Checks a mapping's indexes are on an entity and hold its fields
+    /// (ADR-121).
+    func checkIndexes(_ d: Design, _ key: String, _ indexes: YNode?) {
+        guard let indexes else { return }
+        let name = key.hasPrefix("#/entities/") ? String(key.dropFirst("#/entities/".count)) : ""
+        guard !name.isEmpty, let entity = d.entities[name] else {
+            add(indexes, pointer("mappings", key, "indexes"), .field,
+                "indexes are a table's, and \(key) is not an entity of the specification; put them on the mapping of the entity whose table holds them")
+            return
+        }
+        let fields = fieldsOf(entity)
+        for (i, ix) in items(indexes).enumerated() {
+            checkFieldList(ix.child("fields"), ["mappings", key, "indexes", "\(i)", "fields"], fields, name, "part of an index")
+        }
     }
 
     /// Checks each deployment names an environment of the specification

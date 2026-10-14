@@ -36,10 +36,13 @@ rules the migration emitter uses, so the two sides meet without a mapping
 table.
 
 Compare only what can be derived exactly. A column's type and nullability, a
-key, a unique index and a check constraint's name are exact. The text of a
-check expression is not, since the database normalises it, so that
-comparison is a report. An index the spec does not know about is a report
-too, until the meta-model has a word for it.
+key, a unique index and a check constraint's name are exact, and so are a
+generated default the type-rendering idiom names and a plain index the
+implementation file lists under the entity's mapping, its name and its
+columns in order (ADR-121). The text of a check expression is not, since
+the database normalises it, so that comparison is a report, and so is an
+index that is not plain: one of an expression, with a condition or an
+order, which no mapping holds.
 
 ## 3. Generated output against the generator
 

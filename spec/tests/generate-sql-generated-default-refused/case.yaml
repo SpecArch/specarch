@@ -1,0 +1,5 @@
+arguments: [generate, sql, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:10:59: error: /entities/Note/properties/id/generatedDefault: generator: type-rendering 1.3.0 names no oracle expression for the generated default identifier; add one in an override of its defaults part [generator@specarch.yaml#/entities/Note/properties/id/generatedDefault]
+plugins: [sql]

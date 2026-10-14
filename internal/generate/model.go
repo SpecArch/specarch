@@ -141,6 +141,12 @@ func limits(f *yaml.Node) string {
 	if str(f, "readOnly") == "true" {
 		out = append(out, "set by the system")
 	}
+	switch str(f, "generatedDefault") {
+	case "identifier":
+		out = append(out, "a new UUID the database draws unless one is given")
+	case "currentTime":
+		out = append(out, "the time it is written unless one is given")
+	}
 	if v := str(f, "mistakes"); v != "" {
 		out = append(out, "users get it wrong "+map[string]string{"frequent": "often", "rare": "rarely"}[v])
 	}

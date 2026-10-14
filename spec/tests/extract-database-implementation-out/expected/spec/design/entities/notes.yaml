@@ -1,0 +1,15 @@
+entities:
+  Notes:
+    type: object
+    properties:
+      id: {type: string, format: uuid, generatedDefault: identifier}
+      authorId: {type: string, format: uuid}
+      shelf: {type: string, maxLength: 40}
+      writtenAt: {type: string, format: date-time, generatedDefault: currentTime}
+      editedAt: {type: [string, "null"], format: date-time}
+      label: {type: [string, "null"]}
+    required: [id, authorId, shelf, writtenAt]
+    primaryKey: [id]
+    origin: stated
+    cites:
+      - {source: code, clause: migrations public.notes, says: 'Table public.notes: id uuid not null default gen_random_uuid(), author_id uuid not null, shelf character varying(40) not null, written_at timestamp with time zone not null default CURRENT_TIMESTAMP, edited_at timestamp with time zone default now(), label text default md5((random())::text). notes_pkey PRIMARY KEY (id).'}

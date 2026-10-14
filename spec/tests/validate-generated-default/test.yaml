@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification whose Note entity has an identifier the database generates on a uuid field, the current time on a date field, an identifier on a text field with no format, and a field with both a default and a generated default"
+when: "validate is run"
+then: "it reports schema for the date field's format, the text field's missing format and the field with both, accepts the uuid field, and exits 1, the same in both builds"
+verifies: [SA-70]

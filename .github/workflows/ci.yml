@@ -39,11 +39,18 @@ jobs:
       - name: The fragment schemas and every fragment's hint line are current with the design schema
         # go test checks it too; this step names what to run when it fails.
         run: go run ./tools/fragment-schemas -check
-      - name: The lending desk's database extracts the same twice and validates
+      - name: The lending desk's database extracts the same twice and validates, its generated reference and its indexes with no question
+        # The loans table's reference defaults to gen_random_uuid(), which
+        # type-rendering names for identifier; its two plain indexes go
+        # into the implementation fragment --implementation-out names.
         run: |
-          for run in one two; do go run ./cmd/specarch extract database --out "$RUNNER_TEMP/$run" examples/lending-desk/sources/catalogue/catalogue.json > "$RUNNER_TEMP/$run.txt" || exit 1; done
-          diff -r "$RUNNER_TEMP/one" "$RUNNER_TEMP/two" && cmp "$RUNNER_TEMP/one.txt" "$RUNNER_TEMP/two.txt"
+          for run in one two; do go run ./cmd/specarch extract database --implementation-out "$RUNNER_TEMP/$run-mappings.yaml" --out "$RUNNER_TEMP/$run" examples/lending-desk/sources/catalogue/catalogue.json > "$RUNNER_TEMP/$run.txt" || exit 1; done
+          diff -r "$RUNNER_TEMP/one" "$RUNNER_TEMP/two" && cmp "$RUNNER_TEMP/one.txt" "$RUNNER_TEMP/two.txt" && cmp "$RUNNER_TEMP/one-mappings.yaml" "$RUNNER_TEMP/two-mappings.yaml"
           go run ./cmd/specarch validate "$RUNNER_TEMP/one"
+          grep -qF 'reference: {type: string, format: uuid, generatedDefault: identifier}' "$RUNNER_TEMP/one/design/entities/loans.yaml"
+          grep -qF -- '- {fields: [cardNumber]}' "$RUNNER_TEMP/one-mappings.yaml"
+          grep -qF -- '- {fields: [dueOn, returnedOn], name: loans_falling_due}' "$RUNNER_TEMP/one-mappings.yaml"
+          if grep -qE 'reference|index' "$RUNNER_TEMP/one/design/questions.yaml"; then echo "a question was asked about the reference or an index"; exit 1; fi
       - name: The lending desk's routes extract the same twice and validate
         run: |
           for run in one two; do go run ./cmd/specarch extract router --out "$RUNNER_TEMP/routes-$run" examples/lending-desk/sources/routes/routes.json > "$RUNNER_TEMP/routes-$run.txt" || exit 1; done
@@ -148,6 +155,13 @@ jobs:
             go run ./cmd/specarch generate openapi --unapproved --out "$RUNNER_TEMP/owned-$run/openapi" examples/lending-desk || exit 1
           done
           diff -r "$RUNNER_TEMP/owned-one" "$RUNNER_TEMP/owned-two"
+          # The loans table's generated reference and the two indexes its
+          # mapping lists, under the names its own migration gives them,
+          # and generate --check passing on what it wrote.
+          grep -q 'reference UUID DEFAULT gen_random_uuid() NOT NULL' "$RUNNER_TEMP/owned-one/sql/0001_expand.sql"
+          grep -q '^CREATE INDEX ix_loans_card_number ON loans (card_number);$' "$RUNNER_TEMP/owned-one/sql/0001_expand.sql"
+          grep -q '^CREATE INDEX loans_falling_due ON loans (due_on, returned_on);$' "$RUNNER_TEMP/owned-one/sql/0001_expand.sql"
+          go run ./cmd/specarch generate sql --check --unapproved --out "$RUNNER_TEMP/owned-one/sql" examples/lending-desk
           if grep -q 'CREATE TABLE books' "$RUNNER_TEMP/owned-one/sql/0001_expand.sql"; then echo "books was generated"; exit 1; fi
           grep -q 'CREATE TABLE loans' "$RUNNER_TEMP/owned-one/sql/0001_expand.sql"
           grep -q 'REFERENCES books (barcode)' "$RUNNER_TEMP/owned-one/sql/0001_expand.sql"

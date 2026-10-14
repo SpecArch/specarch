@@ -39,7 +39,7 @@ sources:
   desk-code:
     kind: code
     title: The lending desk service
-    edition: 925255a195f90e385f7bf9bbea8d4e8f7aa5031d
+    edition: 2510c1a3de2f89e3b99131c45e4560ae1639ad20
     author: The desk team
     url: ../sources/code
     clauses:
@@ -49,5 +49,6 @@ sources:
       - { clause: migrations/001_init.sql, title: The tables }
       - { clause: migrations/002_roles.sql, title: The roles tables }
       - { clause: migrations/003_member_address.sql, title: The member's address }
+      - { clause: migrations/004_loan_reference.sql, title: The loan's reference and the loans' indexes }
       - { clause: seeds/001_roles.sql, title: The seed of the roles tables }
 

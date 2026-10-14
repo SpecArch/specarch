@@ -1,0 +1,118 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-121:
+    title: A field may say generatedDefault, an entity's mapping lists its table's plain indexes, the database reader writes them into an implementation fragment, and a list served two ways is two operations named after one handler
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      Point 10 of docs/estate.md, build item 12. Three things a database
+      or a router of an estate says, and the specification could not, were
+      a could question at every table or route read from the sources. A
+      column default the database computes, gen_random_uuid() or
+      CURRENT_TIMESTAMP, is no value, so default could not hold it. A plain
+      index had no word, and docs/sync-gates.md already put it in the
+      implementation file as physical design. And the standard list
+      contract of the estate serves each list by GET on its path and by
+      POST on that path with a literal segment added, so one handler
+      served two routes and the router reader named both by method and
+      path with a could question each. The owner decided (decision 6 of
+      docs/estate.md) that a reader may write an implementation fragment.
+    decision: |
+      A field gains generatedDefault, a SpecArch keyword with a closed set
+      every stack shares: identifier, a new random UUID, on a field of
+      format uuid, and currentTime, the instant the record is written, on
+      a field of format date-time. The schema refuses it beside default and
+      on a field of another format, so both builds refuse it alike. The
+      type-rendering idiom, version 1.3.0, names each dialect's expression
+      in its defaults part, which held an unused now and holds currentTime
+      in its place: gen_random_uuid() and CURRENT_TIMESTAMP on PostgreSQL,
+      NEWID() and SYSDATETIMEOFFSET() on SQL Server, (UUID()) and
+      CURRENT_TIMESTAMP on MariaDB, SYSTIMESTAMP on Oracle, which has no
+      identifier. generate sql writes the expression as the column's
+      default and refuses a dialect that names none at the field; the
+      snapshot keeps it, and a change of it is refused as a change of
+      default is. extract database writes generatedDefault where the
+      catalogue's default is the expression the idiom names for PostgreSQL
+      on a field of the format it fits; any other expression stays a could
+      question, which now names the expressions the idiom names.
+
+      An entity's mapping in an implementation file lists under indexes
+      the plain indexes of its table, each its fields in order and, when
+      the database names it otherwise, its name; the derived name is
+      ix_<table>_<columns>. The validator refuses, as field in both builds,
+      a field the entity lacks and indexes under a mapping that is not an
+      entity's. generate sql writes each as CREATE INDEX after its table,
+      keeps them in the snapshot only when there are any, and a next
+      migration drops an index removed or changed and creates one added,
+      both in the expand file. extract database, given
+      --implementation-out and a new file's name, writes there an
+      implementation fragment: a file holding only mappings, every table's
+      as its target and its plain btree indexes, each citing the
+      catalogue. Without the option, a plain index is a could question
+      that names it; an index of an expression, with a condition, an order
+      or another method, and a unique index without a constraint, stay
+      could questions.
+
+      extract router reads a handler that serves exactly a GET on a path
+      and a POST on that path with one literal segment added as one list
+      served two ways: the GET is named after the handler, the POST after
+      it with Post added, each cites both routes, one must question asks
+      what the two do, and no could question asks about their names. The
+      http binding of an implementation file may say under listRoutes,
+      with postSegment, that every list is served so; generate openapi
+      then writes the POST twin of each list operation served by GET,
+      named after it with Post added, its list's parameters in a JSON body
+      and the same paged answer, and refuses a twin the specification also
+      declares. The dxlib dialect, which serves every operation as one
+      POST, refuses listRoutes.
+    why: |
+      A generated default is the database's and the stacks share the two
+      that matter, so a closed set names them once and the idiom, which
+      already holds each dialect's literals, says how each writes them;
+      an open expression would be stack-specific text in the design, and
+      the list stays closed as estate.md asks. Oracle's SYS_GUID gives 16
+      raw bytes that are no version 4 UUID and do not fit the
+      VARCHAR2(36 CHAR) a uuid is on Oracle, so the idiom leaves it out
+      and the generator says so at the field, which is the compiler test:
+      read, never dropped, marked where it is. now was in the defaults
+      part and read by nothing; one word for one meaning keeps
+      currentTime only. Changing a part moves the idiom's version, so
+      every snapshot and every migration header written from now names
+      1.3.0.
+      An index is physical design, as docs/sync-gates.md says and SQL's
+      own standard agrees by leaving indexes out of ISO SQL, so it goes
+      in the implementation file and not the design; its fields are the
+      design's names, so a rename is caught by the validator. Its name is
+      kept only when it differs from the derived one, so the database gate
+      can compare names exactly. Creating and dropping an index loses no
+      data, so neither needs destructive: true.
+      The fragment holds only mappings because a catalogue does not say
+      the stack's language, which a whole implementation file requires,
+      and writing a guess would invent what the source does not say. It is
+      written to a new file only, so a fragment edited by hand is never
+      written over.
+      The twin keeps HTTP's own model, two operations, and only takes the
+      noise away; the names follow the single-route rule for the GET, so a
+      design that names its list after its handler meets the reader's
+      tree, and the POST's name is what generate openapi derives, so the
+      two meet in merge. The convention is HTTP's, so it is the
+      implementation file's binding, not the design's.
+      The compiler test holds: nothing read before is refused, and what
+      the meta-model still cannot hold is a could question at its entry.
+      The acceptance test holds: an index or a generated key asked for at
+      a review is one line in the implementation file or one keyword on a
+      field, and the questions an owner reads from an estate are fewer
+      and each one real.
+    consequences: |
+      The design schema gains generatedDefault, the implementation schema
+      indexes on a mapping and listRoutes on a binding; the fragment
+      schemas and the Swift build's embedded schemas and idioms follow.
+      type-rendering moves to 1.3.0, so every generated migration header
+      and snapshot names it, and the library lending example's snapshot
+      is written again with no new migration. extract database gains
+      --implementation-out. The go, swift, javascript and dart readers
+      still name a handler that serves two routes by method and path with
+      a could question; they take the twin when a project that needs it
+      comes. The database gate, still to be built, compares a generated
+      default and a plain index exactly.
+    satisfies: [SA-70]

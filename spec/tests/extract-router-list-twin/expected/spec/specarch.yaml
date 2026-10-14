@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.2/schema/specarch-design-0.2.schema.json
+specarch: "0.2"
+info:
+  title: Routes of router
+  version: 0.1.0
+  description: |
+    The routes the router built from router registers, read from the route table routes.json, made at commit 64471c2956e115d0e8a1e1037f94b510cd727968. Every operation cites its route; what the route table does not say is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 64471c2956e115d0e8a1e1037f94b510cd727968
+    url: ../service
+    clauses:
+      - {clause: router, title: The routes the router built from here registers}
+    reading: printed

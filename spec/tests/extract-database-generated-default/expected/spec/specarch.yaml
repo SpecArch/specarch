@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.2/schema/specarch-design-0.2.schema.json
+specarch: "0.2"
+info:
+  title: Database of migrations
+  version: 0.1.0
+  description: |
+    The tables of the database that the migrations in migrations make, read from the catalogue dump catalogue.json, made at commit c80efd0318f7f739705ab3c4ba9a53d07a93810c. Every entity cites its table; what the catalogue does not say is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: c80efd0318f7f739705ab3c4ba9a53d07a93810c
+    url: ../service
+    clauses:
+      - {clause: migrations, title: The database catalogue after every migration here is applied}
+    reading: printed

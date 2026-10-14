@@ -1,0 +1,12 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+entities:
+  Note:
+    type: object
+    properties:
+      id: { type: string, format: uuid, generatedDefault: identifier }
+      writtenOn: { type: string, format: date, generatedDefault: currentTime }
+      label: { type: string, maxLength: 40, generatedDefault: identifier }
+      shelvedAt: { type: string, format: date-time, default: "2026-01-01T00:00:00Z", generatedDefault: currentTime }
+    required: [id, writtenOn, label, shelvedAt]
+    primaryKey: [id]

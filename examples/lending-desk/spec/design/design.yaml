@@ -41,7 +41,8 @@ entities:
       loanedOn: { type: string, format: date, readOnly: true }
       dueOn: { type: string, format: date, readOnly: true }
       returnedOn: { type: [string, "null"], format: date, readOnly: true }
-    required: [id, cardNumber, barcode, loanedOn, dueOn]
+      reference: { type: string, format: uuid, generatedDefault: identifier, readOnly: true, description: "What the slip prints, so a loan can be found without its key; the database draws it." }
+    required: [id, cardNumber, barcode, loanedOn, dueOn, reference]
     primaryKey: [id]
     relations:
       member: { target: Member, kind: many-to-one, via: cardNumber, onDelete: restrict }
@@ -52,6 +53,7 @@ entities:
       - { source: desk-manual, clause: "3.3", says: "The due date is printed on the slip." }
       - { source: desk-code, clause: "lending/model.go:35", says: "Loan has ID, CardNumber, Barcode, LoanedOn, DueOn and ReturnedOn, which is empty until the book is back." }
       - { source: desk-code, clause: "migrations/001_init.sql:11", says: "loans references members and books; returned_on may be null." }
+      - { source: desk-code, clause: "migrations/004_loan_reference.sql:4", says: "loans gets reference, a UUID that defaults to gen_random_uuid()." }
 
 schemas:
   Address:

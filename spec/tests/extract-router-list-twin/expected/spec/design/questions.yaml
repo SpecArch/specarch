@@ -1,0 +1,85 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) What does GET /copies do, and what does it answer? Its handler serves POST /copies/query too, the same list with its parameters in a body. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: What does GET /copies do, and what does it answer? Its handler serves POST /copies/query too, the same list with its parameters in a body.
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1copies/get/summary', '#/paths/~1copies/get/responses', '#/paths/~1copies~1query/post/summary', '#/paths/~1copies~1query/post/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What does POST /copies do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: What does POST /copies do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1copies/post/summary', '#/paths/~1copies/post/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What values does each path parameter of /copies/{copyId} take: copyId? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'What values does each path parameter of /copies/{copyId} take: copyId?'
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1copies~1{copyId}/parameters/0/schema']
+    decidedBy: system-owner
+    why: A route table names a path's parameters and not the values they take.
+  # specarch-problem: question: open_question: (must, decision) What does GET /copies/{copyId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: What does GET /copies/{copyId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1copies~1{copyId}/get/summary', '#/paths/~1copies~1{copyId}/get/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What does PUT /copies/{copyId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: What does PUT /copies/{copyId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1copies~1{copyId}/put/summary', '#/paths/~1copies~1{copyId}/put/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What does PATCH /copies/{copyId} do, and what does it answer? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: What does PATCH /copies/{copyId} do, and what does it answer?
+    kind: decision
+    priority: must
+    blocks: ['#/paths/~1copies~1{copyId}/patch/summary', '#/paths/~1copies~1{copyId}/patch/responses']
+    decidedBy: system-owner
+    why: A route table names the handler and not what it does or the responses it gives.
+  # specarch-problem: question: open_question: (must, decision) What does each permission allow: copies.read, copies.write? Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: 'What does each permission allow: copies.read, copies.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/copies.read/description', '#/permissions/copies.write/description']
+    decidedBy: system-owner
+    why: A route table names the permission a route checks and not what it is for.
+  # specarch-problem: question: open_question: (must, decision) Which role grants each permission: copies.read, copies.write? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: 'Which role grants each permission: copies.read, copies.write?'
+    kind: decision
+    priority: must
+    blocks: ['#/permissions/copies.read', '#/permissions/copies.write']
+    decidedBy: system-owner
+    why: A route table names the permission a route checks and not who holds it.
+  # specarch-problem: question: open_question: (could, decision) Not held: route PUT /copies/{copyId}: its handler SaveCopy serves more than one route; the operation is named putCopiesByCopyId. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: 'Not held: route PUT /copies/{copyId}: its handler SaveCopy serves more than one route; the operation is named putCopiesByCopyId. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1copies~1{copyId}/put']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'router PUT /copies/{copyId}', says: 'Not held: route PUT /copies/{copyId}: its handler SaveCopy serves more than one route; the operation is named putCopiesByCopyId.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: route PATCH /copies/{copyId}: its handler SaveCopy serves more than one route; the operation is named patchCopiesByCopyId. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: 'Not held: route PATCH /copies/{copyId}: its handler SaveCopy serves more than one route; the operation is named patchCopiesByCopyId. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/paths/~1copies~1{copyId}/patch']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'router PATCH /copies/{copyId}', says: 'Not held: route PATCH /copies/{copyId}: its handler SaveCopy serves more than one route; the operation is named patchCopiesByCopyId.'}

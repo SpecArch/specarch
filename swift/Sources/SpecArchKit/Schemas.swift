@@ -1332,6 +1332,14 @@ let designSchemaJSON = #"""
           ]
         },
         "default": {},
+        "generatedDefault": {
+          "description": "SpecArch keyword. A default the database computes for each new record, from a closed set every stack shares: identifier, a new random UUID, on a field of format uuid; currentTime, the instant the record is written, on a field of format date-time. The type-rendering idiom's defaults part names the expression of each dialect. A field has default or generatedDefault, not both.",
+          "type": "string",
+          "enum": [
+            "identifier",
+            "currentTime"
+          ]
+        },
         "examples": {
           "type": "array",
           "minItems": 1
@@ -1618,6 +1626,66 @@ let designSchemaJSON = #"""
               "precision",
               "scale"
             ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "generatedDefault"
+            ]
+          },
+          "then": {
+            "properties": {
+              "default": false
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "generatedDefault": {
+                "const": "identifier"
+              }
+            },
+            "required": [
+              "generatedDefault"
+            ]
+          },
+          "then": {
+            "required": [
+              "format"
+            ],
+            "properties": {
+              "format": {
+                "enum": [
+                  "uuid"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "generatedDefault": {
+                "const": "currentTime"
+              }
+            },
+            "required": [
+              "generatedDefault"
+            ]
+          },
+          "then": {
+            "required": [
+              "format"
+            ],
+            "properties": {
+              "format": {
+                "enum": [
+                  "date-time"
+                ]
+              }
+            }
           }
         }
       ]
@@ -5897,6 +5965,35 @@ let implementationSchemaJSON = #"""
           "type": "string",
           "minLength": 1
         },
+        "indexes": {
+          "description": "SpecArch keyword. On an entity's mapping: the plain indexes of its table, physical design that leaves the design file alone. Each is its fields, in the order the index holds them; specarch-gen-sql writes it as CREATE INDEX, named ix_<table>_<columns> unless name gives the name, and specarch extract database writes it from a catalogue's plain index (ADR-121). A unique index is a unique constraint of the entity, not an index here.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "fields": {
+                "description": "The entity's fields the index holds, in its order.",
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][A-Za-z0-9]*$"
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "name": {
+                "description": "The index's name, when it is not the one the conventions derive, such as the name a database already gives it.",
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+              }
+            },
+            "required": [
+              "fields"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
         "description": {
           "$ref": "#/$defs/markdown"
         },
@@ -6010,6 +6107,21 @@ let implementationSchemaJSON = #"""
             "additionalProperties": false
           },
           "minItems": 1
+        },
+        "listRoutes": {
+          "description": "SpecArch keyword. That every list is served two ways: an operation with listOf served by GET on a path is served by POST too, on that path with the literal segment named here added, its search, filter, sort and page in a JSON body, so a long filter fits. specarch generate openapi writes that twin for each such operation, named after it with Post added, and specarch extract router reads a handler that serves both routes as the two operations without a question (ADR-121). Read for the http binding.",
+          "type": "object",
+          "properties": {
+            "postSegment": {
+              "description": "The literal last segment of the POST route, such as query for /items/query.",
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]*$"
+            }
+          },
+          "required": [
+            "postSegment"
+          ],
+          "additionalProperties": false
         },
         "why": {
           "$ref": "#/$defs/why"
@@ -8656,7 +8768,7 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-0.1.schema.json
 specarchIdiom: "0.1"
 name: type-rendering
-version: 1.2.0
+version: 1.3.0
 concern: type-rendering
 stacks: [go, postgresql, sqlserver, oracle, mariadb, any]
 reads: [entities]
@@ -8698,6 +8810,27 @@ sources:
     title: nchar and nvarchar (Transact-SQL)
     author: Microsoft
     url: https://learn.microsoft.com/en-us/sql/t-sql/data-types/nchar-and-nvarchar-transact-sql
+  postgresql-uuid-functions:
+    kind: standard
+    title: PostgreSQL Documentation, UUID Functions
+    edition: "17"
+    author: The PostgreSQL Global Development Group
+    url: https://www.postgresql.org/docs/17/functions-uuid.html
+  sqlserver-newid:
+    kind: standard
+    title: NEWID (Transact-SQL)
+    author: Microsoft
+    url: https://learn.microsoft.com/en-us/sql/t-sql/functions/newid-transact-sql
+  mariadb-uuid:
+    kind: standard
+    title: MariaDB Server Documentation, UUID
+    author: MariaDB
+    url: https://mariadb.com/kb/en/uuid/
+  mariadb-create-table:
+    kind: standard
+    title: MariaDB Server Documentation, CREATE TABLE, DEFAULT Column Option
+    author: MariaDB
+    url: https://mariadb.com/kb/en/create-table/#default-column-option
   ieee-754:
     kind: standard
     title: IEEE Standard for Floating-Point Arithmetic, IEEE 754
@@ -8898,17 +9031,36 @@ parts:
           - { type: object, render: JSON }
 
   defaults:
-    description: The literals a column default is written with on each dialect.
+    description: |
+      The literals a column default is written with on each dialect, and the
+      expression of each generatedDefault of the design: identifier, a new
+      random UUID, and currentTime, the instant the record is written. A
+      reader of a catalogue writes generatedDefault only where the
+      catalogue's expression is the one named here; any other expression
+      stays a question.
     stack:
       postgresql:
-        names: { "true": "true", "false": "false", now: CURRENT_TIMESTAMP }
+        names: { "true": "true", "false": "false", identifier: gen_random_uuid(), currentTime: CURRENT_TIMESTAMP }
+        cites:
+          - { source: postgresql-uuid-functions, says: "gen_random_uuid () returns uuid: generates a version 4 (random) UUID." }
       sqlserver:
-        names: { "true": "1", "false": "0", now: SYSDATETIMEOFFSET() }
+        names: { "true": "1", "false": "0", identifier: NEWID(), currentTime: SYSDATETIMEOFFSET() }
+        cites:
+          - { source: sqlserver-newid, says: "NEWID creates a unique value of type uniqueidentifier." }
       oracle:
-        names: { "true": "1", "false": "0", now: SYSTIMESTAMP }
-        why: Oracle refuses DEFAULT after NOT NULL, so a generator writes the default first, as dxlib does.
+        names: { "true": "1", "false": "0", currentTime: SYSTIMESTAMP }
+        why: |
+          Oracle refuses DEFAULT after NOT NULL, so a generator writes the
+          default first, as dxlib does. It has no identifier: a uuid is
+          VARCHAR2(36 CHAR) here, and SYS_GUID gives 16 raw bytes that are
+          not a version 4 UUID, so a project names its own expression in an
+          override of this part.
       mariadb:
-        names: { "true": "true", "false": "false", now: CURRENT_TIMESTAMP }
+        names: { "true": "true", "false": "false", identifier: (UUID()), currentTime: CURRENT_TIMESTAMP }
+        why: UUID gives the 36-character text form a uuid's CHAR(36) column holds; an expression default is written in parentheses.
+        cites:
+          - { source: mariadb-uuid, says: "UUID returns a Universally Unique Identifier as a string of five hexadecimal numbers, aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee." }
+          - { source: mariadb-create-table, says: "The DEFAULT clause takes an expression or a function." }
 
   money:
     description: How a money amount is declared, so that every stack holds it exactly.

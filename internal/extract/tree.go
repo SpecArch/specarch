@@ -126,6 +126,44 @@ func (t *Tree) Write(out string) error {
 	return nil
 }
 
+// WriteFragment writes an implementation fragment a reader wrote, with the
+// note as its first comment.
+func WriteFragment(path string, n *yaml.Node, note string) error {
+	text, err := encode(n)
+	if err != nil {
+		return err
+	}
+	var b bytes.Buffer
+	for _, line := range wrap(note, 76) {
+		b.WriteString("# " + line + "\n")
+	}
+	b.Write(text)
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(path, b.Bytes(), 0o644)
+}
+
+// wrap breaks a text into lines of at most width characters, at spaces.
+func wrap(text string, width int) []string {
+	var lines []string
+	line := ""
+	for _, w := range strings.Fields(text) {
+		if line != "" && len(line)+1+len(w) > width {
+			lines = append(lines, line)
+			line = ""
+		}
+		if line != "" {
+			line += " "
+		}
+		line += w
+	}
+	if line != "" {
+		lines = append(lines, line)
+	}
+	return lines
+}
+
 // completeOutlines adds to every source that lists its clauses each clause
 // the tree cites of it that falls under none listed, so the outline holds
 // everything the reader looked at: a file it set aside with a question, a

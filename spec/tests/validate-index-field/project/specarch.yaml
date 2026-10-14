@@ -1,0 +1,14 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+enums:
+  Shelf: { type: string, enum: [main, reserve] }
+entities:
+  Note:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      shelf: { $ref: "#/enums/Shelf" }
+      writtenAt: { type: string, format: date-time }
+    required: [id, shelf, writtenAt]
+    primaryKey: [id]

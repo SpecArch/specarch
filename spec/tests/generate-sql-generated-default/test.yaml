@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification whose Note entity has an identifier the database generates and a time it writes, and whose implementation file lists two indexes of its table, one with a name of its own; specarch-gen-sql built from this repository on PATH"
+when: "generate sql is run with --unapproved"
+then: "it writes the id column with DEFAULT gen_random_uuid() and written_at with DEFAULT CURRENT_TIMESTAMP, both NOT NULL, CREATE INDEX ix_notes_author_id_written_at and notes_by_shelf after the table, and a snapshot that keeps generatedDefault and lists both indexes, and exits 0"
+verifies: [SA-70]

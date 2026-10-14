@@ -371,6 +371,35 @@
           "type": "string",
           "minLength": 1
         },
+        "indexes": {
+          "description": "SpecArch keyword. On an entity's mapping: the plain indexes of its table, physical design that leaves the design file alone. Each is its fields, in the order the index holds them; specarch-gen-sql writes it as CREATE INDEX, named ix_<table>_<columns> unless name gives the name, and specarch extract database writes it from a catalogue's plain index (ADR-121). A unique index is a unique constraint of the entity, not an index here.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "fields": {
+                "description": "The entity's fields the index holds, in its order.",
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][A-Za-z0-9]*$"
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "name": {
+                "description": "The index's name, when it is not the one the conventions derive, such as the name a database already gives it.",
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+              }
+            },
+            "required": [
+              "fields"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
         "description": {
           "$ref": "#/$defs/markdown"
         },
@@ -484,6 +513,21 @@
             "additionalProperties": false
           },
           "minItems": 1
+        },
+        "listRoutes": {
+          "description": "SpecArch keyword. That every list is served two ways: an operation with listOf served by GET on a path is served by POST too, on that path with the literal segment named here added, its search, filter, sort and page in a JSON body, so a long filter fits. specarch generate openapi writes that twin for each such operation, named after it with Post added, and specarch extract router reads a handler that serves both routes as the two operations without a question (ADR-121). Read for the http binding.",
+          "type": "object",
+          "properties": {
+            "postSegment": {
+              "description": "The literal last segment of the POST route, such as query for /items/query.",
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]*$"
+            }
+          },
+          "required": [
+            "postSegment"
+          ],
+          "additionalProperties": false
         },
         "why": {
           "$ref": "#/$defs/why"

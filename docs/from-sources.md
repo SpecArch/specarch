@@ -319,6 +319,12 @@ mapping carries `origin: stated` and cites the line it was read from:
         cites:
           - { source: desk-code, clause: "lending/routes.go:17", says: "The route." }
 
+`specarch extract database --implementation-out <file>` writes the
+mappings of the tables it read into an implementation fragment, each
+table's target and its plain indexes under `indexes`, citing the
+catalogue (ADR-121); they are copied into the implementation file as they
+are, with the source key the file's specification uses.
+
 An element of the design that no mapping names is not built, and has the
 question of section 3.2 saying so.
 

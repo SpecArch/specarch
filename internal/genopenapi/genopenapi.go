@@ -111,6 +111,9 @@ type gen struct {
 	owned     ownership.Owned // elements another stakeholder owns, which the document leaves out
 	wireNames string          // the specification's info.wireNames, or ""
 	at        map[string]*yaml.Node
+	// listSegment is the literal segment bindings.http.listRoutes adds to
+	// a list's path for its POST twin, or "" (ADR-121).
+	listSegment string
 }
 
 // wire is a property's name on the wire, by the specification's
@@ -140,9 +143,15 @@ func Generate(r *Request) Response {
 		if g.idioms == nil && len(impl.Idioms) > 0 {
 			g.idioms = impl.Idioms
 		}
+		if seg := text(obj(obj(obj(impl.Content["bindings"])["http"])["listRoutes"])["postSegment"]); seg != "" && g.listSegment == "" {
+			g.listSegment = seg
+		}
 	}
 	for _, impl := range r.Implementations {
 		if text(obj(obj(impl.Content["targets"])[r.Target])["dialect"]) == "dxlib" {
+			if g.listSegment != "" {
+				return Response{Files: []File{}, Diagnostics: []Diagnostic{g.problem("/", "the implementation file names bindings.http.listRoutes, which the standard dialect writes as a POST twin of each list; the dxlib dialect serves every operation, a list too, as one POST with its parameters in a body, so take listRoutes out, or generate the standard dialect")}}
+			}
 			return g.generateDxlib(r)
 		}
 	}
@@ -191,18 +200,45 @@ func relRoot(root, output string) string {
 	return filepath.ToSlash(rel)
 }
 
-// paths writes every path item and its operations.
+// paths writes every path item and its operations, and with
+// bindings.http.listRoutes the POST twin of each list served by GET.
 func (g *gen) paths() *yaml.Node {
 	out := mapping()
 	paths := obj(g.spec["paths"])
-	for _, p := range sortedKeys(paths) {
+	keys := map[string]any{}
+	for p := range paths {
+		keys[p] = true
+	}
+	twins := map[string]string{} // the twin's path, by the list's
+	if g.listSegment != "" {
+		for p, item := range paths {
+			if get, ok := obj(item)["get"].(map[string]any); ok && get["listOf"] != nil && !g.owned.Covers(ownership.Operation(p, "get")) {
+				tp := strings.TrimSuffix(p, "/") + "/" + g.listSegment
+				twins[tp] = p
+				keys[tp] = true
+			}
+		}
+	}
+	for _, p := range sortedKeys(keys) {
 		item := obj(paths[p])
+		if from, ok := twins[p]; ok && item == nil {
+			// The twin's path takes the list's path parameters.
+			item = map[string]any{"parameters": obj(paths[from])["parameters"]}
+		}
 		node := mapping()
 		if params := list(item["parameters"]); len(params) > 0 {
 			add(node, "parameters", g.parameters(params))
 		}
 		ops, owned := 0, 0
 		for _, method := range []string{"get", "put", "post", "delete", "patch"} {
+			if from, ok := twins[p]; ok && method == "post" {
+				if item["post"] != nil {
+					g.diags = append(g.diags, g.problem("/paths/"+mark.Escape(p)+"/post", "POST %s is the twin bindings.http.listRoutes gives the list GET %s, and the specification declares it too; take the operation out, or listRoutes", p, from))
+					continue
+				}
+				add(node, "post", g.operation(p, "post", listTwin(obj(obj(paths[from])["get"]))))
+				continue
+			}
 			if op, ok := item[method].(map[string]any); ok {
 				ops++
 				if g.owned.Covers(ownership.Operation(p, method)) {
@@ -218,6 +254,19 @@ func (g *gen) paths() *yaml.Node {
 		add(out, p, node)
 	}
 	return out
+}
+
+// listTwin is the POST twin of a list operation: the same operation named
+// with Post added, its list's parameters going into a body.
+func listTwin(get map[string]any) map[string]any {
+	twin := map[string]any{}
+	for k, v := range get {
+		twin[k] = v
+	}
+	if id := text(get["operationId"]); id != "" {
+		twin["operationId"] = id + "Post"
+	}
+	return twin
 }
 
 // operation writes one operation.

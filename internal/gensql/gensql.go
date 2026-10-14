@@ -323,6 +323,24 @@ func (g *gen) snapshot() string {
 	if len(owned) > 0 {
 		s["owned"] = sortedKeys(owned)
 	}
+	// The plain indexes of each table, only when there are any, so a
+	// schema without any keeps its snapshot.
+	indexes := map[string]any{}
+	for name, e := range obj0(g.spec["entities"]) {
+		if g.owned.Covers(ownership.Entity("entities", name)) {
+			continue
+		}
+		if ixs := g.plainIndexes(name, g.tableName(name), obj0(obj0(e)["properties"])); len(ixs) > 0 {
+			var kept []any
+			for _, ix := range ixs {
+				kept = append(kept, map[string]any{"name": ix.Name, "columns": ix.Columns})
+			}
+			indexes["#/entities/"+name] = kept
+		}
+	}
+	if len(indexes) > 0 {
+		s["indexes"] = indexes
+	}
 	var b bytes.Buffer
 	enc := yaml.NewEncoder(&b)
 	enc.SetIndent(2)
@@ -335,7 +353,7 @@ func (g *gen) snapshot() string {
 // fieldKeys are the keys of a field the schema is made from; true keeps a
 // key's value whole, a map keeps the listed keys of each entry.
 var fieldKeys = map[string]any{"$ref": true, "type": true, "format": true, "enum": true, "maxLength": true,
-	"precision": true, "scale": true, "default": true, "atRest": true, "lookup": true, "items": true, "storage": true}
+	"precision": true, "scale": true, "default": true, "generatedDefault": true, "atRest": true, "lookup": true, "items": true, "storage": true}
 
 var entityKeys = map[string]any{
 	"required": true, "primaryKey": true, "audited": true, "deletion": true,
@@ -520,6 +538,9 @@ func (g *gen) table(entity string, e map[string]any) table {
 		}
 	}
 	g.addConstraints(&t, at, props, cols, pk, obj0(e["constraints"]))
+	for _, ix := range g.plainIndexes(entity, t.name, props) {
+		t.indexes = append(t.indexes, ix.create(t.name))
+	}
 	rels := obj0(e["relations"])
 	for _, rn := range sortedKeys(rels) {
 		rel := obj0(rels[rn])
@@ -540,6 +561,48 @@ func (g *gen) table(entity string, e map[string]any) table {
 		t.foreignKeys = append(t.foreignKeys, g.foreignKey(t.name, rel))
 	}
 	return t
+}
+
+// plainIndex is one index of an entity's mapping, as its table holds it.
+type plainIndex struct {
+	Name    string   `yaml:"name"`
+	Columns []string `yaml:"columns"`
+}
+
+func (ix plainIndex) create(table string) string {
+	return fmt.Sprintf("CREATE INDEX %s ON %s (%s)", ix.Name, table, strings.Join(ix.Columns, ", "))
+}
+
+// plainIndexes are the indexes the entity's mapping lists, each named
+// ix_<table>_<columns> unless the mapping names it (ADR-121).
+func (g *gen) plainIndexes(entity, tableName string, props map[string]any) []plainIndex {
+	var out []plainIndex
+	at := "/entities/" + entity
+	for i, ix := range list(obj0(obj0(g.impl.Content["mappings"])["#/entities/"+entity])["indexes"]) {
+		var cols []string
+		ok := true
+		for _, f := range texts(list(obj0(ix)["fields"])) {
+			field := obj0(props[f])
+			switch {
+			case props[f] == nil:
+				g.problem(at, "index %d of the mapping of %s holds %s, which is not one column of %s (a field that holds a schema is kept in several, or in one JSON column); index a field of one column", i+1, entity, f, tableName)
+				ok = false
+			case !keyable(field):
+				g.problem(at+"/properties/"+f, "index %d of the mapping of %s holds %s, and not every engine can index it: a list, an object, or text with no maxLength of at most 255; give it a maxLength, or take it out of the index", i+1, entity, f)
+				ok = false
+			}
+			cols = append(cols, snake(f))
+		}
+		if !ok || len(cols) == 0 {
+			continue
+		}
+		name := text(obj0(ix)["name"])
+		if name == "" {
+			name = "ix_" + tableName + "_" + strings.Join(cols, "_")
+		}
+		out = append(out, plainIndex{name, cols})
+	}
+	return out
 }
 
 // fixedFormats are the string formats whose width the format itself fixes.
@@ -759,6 +822,12 @@ func (g *gen) fieldColumn(tableName, at, f string, field map[string]any, require
 	def := ""
 	if v, ok := field["default"]; ok {
 		def = g.literal(v)
+	}
+	if gd := text(field["generatedDefault"]); gd != "" {
+		if def = g.defaults[gd]; def == "" {
+			g.problem(at+"/properties/"+f+"/generatedDefault", "type-rendering %s names no %s expression for the generated default %s; add one in an override of its defaults part", g.version, g.dialect, gd)
+			return fc, false
+		}
 	}
 	var check string
 	if text(field["atRest"]) == "encrypted" {

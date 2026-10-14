@@ -17,6 +17,10 @@ import (
 type Result struct {
 	Tree  *Tree
 	Lines []string
+	// Implementation is the implementation fragment a reader wrote, or
+	// nil, and ImplementationNote the comment above it.
+	Implementation     *yaml.Node
+	ImplementationNote string
 }
 
 func (res *Result) say(format string, args ...any) {

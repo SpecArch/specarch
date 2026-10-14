@@ -175,7 +175,10 @@ Steps, in order:
    prints the routes with a printer of its own, which builds the router
    as the server does; `tools/routes/dump-routes.sh` runs it in a
    committed folder and adds the version, the path and the commit. An
-   operation is named after its handler; its summary, its responses, its
+   operation is named after its handler, and a handler that serves a
+   list two ways, a GET on a path and a POST on that path with a literal
+   segment added, gives two operations, the POST's name with `Post`
+   added, each citing both routes (ADR-121); its summary, its responses, its
    path parameters' values and its permission's description are must
    questions, and so is a route that checks no permission. HEAD,
    OPTIONS and a path with a wildcard print a line. The lending desk's

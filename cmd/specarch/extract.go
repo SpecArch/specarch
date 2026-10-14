@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"regexp"
 	"strings"
 
@@ -27,7 +28,7 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	source := args[0]
-	out, key, implementation, facts, routes, language, vocabularyPath := "", "", "", "", "", "", ""
+	out, key, implementation, implementationOut, facts, routes, language, vocabularyPath := "", "", "", "", "", "", "", ""
 	givenOutside, table := false, false
 	var paths []string
 	rest := args[1:]
@@ -41,7 +42,7 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 			givenOutside = true
 		case a == "--table":
 			table = true
-		case a == "--out" || a == "--source-key" || a == "--implementation" || a == "--facts" || a == "--routes" || a == "--language" || a == "--vocabulary":
+		case a == "--out" || a == "--source-key" || a == "--implementation" || a == "--implementation-out" || a == "--facts" || a == "--routes" || a == "--language" || a == "--vocabulary":
 			if i+1 >= len(rest) {
 				fmt.Fprintf(stderr, "specarch extract: %s needs a value\n\n%s", a, usage)
 				return 2
@@ -59,6 +60,8 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 				language = rest[i+1]
 			case "--vocabulary":
 				vocabularyPath = rest[i+1]
+			case "--implementation-out":
+				implementationOut = rest[i+1]
 			default:
 				implementation = rest[i+1]
 			}
@@ -136,6 +139,15 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case implementation != "" && source != "go" && source != "swift" && source != "javascript" && source != "dart" && source != "pages":
 		fmt.Fprintf(stderr, "specarch extract %s takes no --implementation; only go, swift, javascript, dart and pages read the permission checks an implementation file names, and pages the name of its schema file\n", source)
 		return 2
+	case implementationOut != "" && source != "database":
+		fmt.Fprintf(stderr, "specarch extract %s takes no --implementation-out; only database writes an implementation fragment, the mappings of its tables and their indexes\n", source)
+		return 2
+	case implementationOut != "" && !strings.HasSuffix(implementationOut, ".yaml"):
+		fmt.Fprintf(stderr, "specarch extract database: --implementation-out %s is not a YAML file's name; name a new file ending in .yaml\n", implementationOut)
+		return 2
+	case implementationOut != "" && exists(implementationOut):
+		fmt.Fprintf(stderr, "specarch extract database: --implementation-out %s exists; name a new file, so a fragment edited by hand is never written over\n", implementationOut)
+		return 2
 	case source == "openapi" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract openapi reads one OpenAPI document, and was given %d paths; one source is written per document file\n", len(paths))
 		return 2
@@ -156,7 +168,7 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case "outline":
 		res, err = extract.Outline(paths, out, key)
 	case "database":
-		res, err = extract.Database(paths[0], out, key)
+		res, err = extract.Database(paths[0], out, key, implementationOut != "")
 	case "router":
 		res, err = extract.Router(paths[0], out, key)
 	case "documents":
@@ -195,6 +207,12 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "specarch extract %s: cannot write %s: %v\n", source, out, err)
 		return 2
 	}
+	if res.Implementation != nil {
+		if err := extract.WriteFragment(implementationOut, res.Implementation, res.ImplementationNote); err != nil {
+			fmt.Fprintf(stderr, "specarch extract %s: cannot write the implementation fragment %s: %v\n", source, implementationOut, err)
+			return 2
+		}
+	}
 	derived, err := deriveInto(out, res.Tree)
 	if err != nil {
 		fmt.Fprintf(stderr, "specarch extract %s: cannot write the derived tests into %s: %v\n", source, out, err)
@@ -209,6 +227,12 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stdout, line)
 	}
 	return 0
+}
+
+// exists says whether a path names something on the disk.
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
 }
 
 // documentVocabulary is the vocabulary --language and --vocabulary name:

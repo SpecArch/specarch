@@ -131,7 +131,7 @@ enums:
       relation_via: a relation's `via` is not the field or join entity its kind needs
       reference: "a reference into another specification (`<dependency>#/<pointer>`) names no dependency, a dependency with no `specification`, stands where it may not (a one-to-many or many-to-many relation, a page that is not a list, a picker or list page whose entity and list are not of one dependency), or, when that specification is given, names an element it does not have, a list that does not list the entity, or a field the entity does not have; or a dependency's `version` is not the given specification's `info.version`; or a requirement's `fulfilledBy` names a requirement the given specification does not have"
       module: "an estate's module is not at its `location`, its specification's `info.version` is not the version the estate lists, its `info.name` is not the key the estate lists it under, or its operations' `calls` reach back to it through the other modules"
-      field: a name that must be a field of an entity is not one (required, primaryKey, unique fields, page columns, fields and filters)
+      field: a name that must be a field of an entity is not one (required, primaryKey, unique fields, page columns, fields and filters, an index's fields under its mapping), or indexes are under a mapping that is not an entity's
       state_field: the `stateField` is not a field whose type is an enum
       state_value: a transition's `from` or `to` is not a value of the state field's enum
       trigger: a transition's trigger is not an operation, command, channel message or algorithm

@@ -1,0 +1,4 @@
+arguments: [generate, sql, --unapproved, project]
+exitStatus: 0
+standardOutput: ""
+plugins: [sql]

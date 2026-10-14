@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: golden
+given: "the catalogue dump of extract-database-generated-default"
+when: "extract database is run on it with --implementation-out naming a new file"
+then: "it writes the generated defaults as without it, writes the fragment with a comment naming the dump, the notes table's mapping and its two plain indexes, the one named as the conventions derive with no name and the other with its own, citing the catalogue, asks no question for them, keeps the could questions for the descending and the expression index, counts the mapping and the indexes it wrote, and exits 0"
+verifies: [SA-70]

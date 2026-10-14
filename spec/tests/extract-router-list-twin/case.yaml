@@ -1,0 +1,20 @@
+arguments: [extract, router, --out, spec, service/routes.json]
+repository:
+  folder: service
+  commits:
+    - [router]
+    - [routes.json]
+exitStatus: 0
+standardOutput: |
+  commit 64471c2956e115d0e8a1e1037f94b510cd727968: the last change to router, as the route table routes.json names it
+  counted 6 routes (0 with no permission): every entry of the route table's list, which holds every route the router registered
+  wrote 6 operations on 3 paths, 2 permissions and 10 questions: one operation per method and path pair the meta-model holds, one permission per name a route checks, one question per thing the route table does not say, and one per thing the meta-model cannot hold
+  not held: route PUT /copies/{copyId}: its handler SaveCopy serves more than one route; the operation is named putCopiesByCopyId; could question Q-9
+  not held: route PATCH /copies/{copyId}: its handler SaveCopy serves more than one route; the operation is named patchCopiesByCopyId; could question Q-10
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 2 draft tests for operation listCopies, held up by Q-1, Q-2; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation addCopy, held up by Q-1, Q-2; the validator warns for them until the questions are answered
+  not derived: 2 draft tests for operation listCopiesPost, held up by Q-1; the validator warns for them until the question is answered
+  not derived: 3 draft tests for operation getCopy, held up by Q-3, Q-4, Q-5, Q-6; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation putCopiesByCopyId, held up by Q-3, Q-4, Q-5, Q-6; the validator warns for them until the questions are answered
+  not derived: 3 draft tests for operation patchCopiesByCopyId, held up by Q-3, Q-4, Q-5, Q-6; the validator warns for them until the questions are answered

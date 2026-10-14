@@ -43,9 +43,13 @@ mappings:
       - { source: desk-manual, clause: "3.4", says: "The catalogue team keeps the book records; the desk reads them and never edits them." }
   "#/entities/Loan":
     target: table loans, type lending.Loan
+    indexes:
+      - fields: [cardNumber]
+      - { fields: [dueOn, returnedOn], name: loans_falling_due }
     origin: stated
     cites:
       - { source: desk-code, clause: "migrations/001_init.sql:11", says: "CREATE TABLE loans." }
+      - { source: desk-code, clause: "migrations/004_loan_reference.sql:7", says: "CREATE INDEX ix_loans_card_number ON loans (card_number); CREATE INDEX loans_falling_due ON loans (due_on, returned_on)." }
       - { source: desk-code, clause: "lending/model.go:35", says: "type Loan." }
   "#/roles/desk-staff":
     target: table role_permissions, filled by seeds/001_roles.sql

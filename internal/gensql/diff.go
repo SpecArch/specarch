@@ -71,6 +71,7 @@ func (g *gen) diff(prevText string) *steps {
 		}
 		expand, contract := len(s.expand), len(s.contract)
 		fks = append(fks, g.diffEntity(s, name, obj0(pe[name]), e, obj0(prev["enums"]), obj0(cur["enums"]))...)
+		g.diffIndexes(s, name, list(obj0(prev["indexes"])["#/entities/"+name]), list(obj0(cur["indexes"])["#/entities/"+name]))
 		// The marks of an entity and its fields go above the first
 		// statement that changes its table.
 		switch {
@@ -158,7 +159,7 @@ func (g *gen) diffEntity(s *steps, name string, prev, cur, prevEnums, curEnums m
 		if !ok {
 			continue
 		}
-		if !fc.nullable && field["default"] == nil {
+		if !fc.nullable && field["default"] == nil && field["generatedDefault"] == nil {
 			g.cannot(at+"/properties/"+f, "%s is a new required column of a table that may hold rows; add it nullable and backfill it, or give it a default", f)
 			continue
 		}
@@ -253,7 +254,7 @@ func (g *gen) diffField(s *steps, tn, at, f string, prev, specField map[string]a
 		g.cannot(at+"/properties/"+f, "the type of %s changed; a column that changes its type is a migration a person writes, in an expand and a contract step", f)
 		return
 	}
-	if !same("default") {
+	if !same("default", "generatedDefault") {
 		g.cannot(at+"/properties/"+f, "the default of %s changed, which this version does not write; change it by hand in a migration of its own", f)
 		return
 	}
@@ -439,6 +440,39 @@ func (g *gen) dropConstraint(t, name, kind string, filtered bool) string {
 		return "ALTER TABLE " + t + " DROP INDEX " + name
 	}
 	return "ALTER TABLE " + t + " DROP CONSTRAINT " + name
+}
+
+// diffIndexes drops the plain indexes of a table that are gone or changed
+// and creates the new ones, after its columns; an index holds no data, so
+// both are expand steps (ADR-121).
+func (g *gen) diffIndexes(s *steps, name string, prev, cur []any) {
+	tn := g.tableName(name)
+	key := func(ix any) string { return fmt.Sprint(obj0(ix)["name"], obj0(ix)["columns"]) }
+	had, has := map[string]bool{}, map[string]bool{}
+	for _, ix := range prev {
+		had[key(ix)] = true
+	}
+	for _, ix := range cur {
+		has[key(ix)] = true
+	}
+	for _, ix := range prev {
+		if !has[key(ix)] {
+			s.add(g.dropIndex(tn, text(obj0(ix)["name"])))
+		}
+	}
+	for _, ix := range cur {
+		if !had[key(ix)] {
+			s.add(plainIndex{text(obj0(ix)["name"]), texts(list(obj0(ix)["columns"]))}.create(tn))
+		}
+	}
+}
+
+// dropIndex drops a plain index: SQL Server and MariaDB name its table.
+func (g *gen) dropIndex(t, name string) string {
+	if g.dialect == "sqlserver" || g.dialect == "mariadb" {
+		return "DROP INDEX " + name + " ON " + t
+	}
+	return "DROP INDEX " + name
 }
 
 func (g *gen) dropForeignKey(t, name string) string {

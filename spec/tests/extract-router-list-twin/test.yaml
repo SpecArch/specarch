@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a route table whose ListCopies handler serves GET /copies and POST /copies/query, and whose SaveCopy handler serves a PUT and a PATCH"
+when: "extract router is run on the table"
+then: "it writes the GET as listCopies and the POST as listCopiesPost, each citing both routes, asks one must question for what the two do, asks no could question about their names, still names the PUT and the PATCH by method and path with a could question each, and exits 0"
+verifies: [SA-70]

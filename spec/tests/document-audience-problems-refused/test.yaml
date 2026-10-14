@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: document
+level: system
+scenario: red
+covers: [usage error]
+given: "--audience external for the problems target"
+when: "document is run"
+then: "it prints the usage error saying the problems file holds every element and exits 2"
+verifies: [SA-67]

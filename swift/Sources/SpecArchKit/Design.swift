@@ -182,6 +182,7 @@ extension Checker {
     func checkDesign(_ d: Design) {
         checkRefs(d)
         checkReferences(d)
+        checkAudience(d)
         checkIntegers()
         checkRequirementLinks(d.root, [], d)
         checkCitations(d.root, [], d)
@@ -337,6 +338,10 @@ extension Checker {
             }
         }
         for (name, req) in d.requirements {
+            if let by = req.child("ownedBy"), !by.value.isEmpty, d.stakeholders[by.value] == nil {
+                add(by, pointer("requirements", name, "ownedBy"), .stakeholder,
+                    "\(by.value) is not a stakeholder of the specification\(suggest(by.value, d.stakeholders))")
+            }
             for (i, n) in items(req.child("needs")).enumerated() where !n.value.isEmpty && d.needs[n.value] == nil {
                 add(n, pointer("requirements", name, "needs", "\(i)"), .need,
                     "\(n.value) is not a need of the specification\(suggest(n.value, d.needs))")
@@ -382,8 +387,10 @@ extension Checker {
     /// Reports what the stages a specification covers leave open: a need no
     /// requirement refines, a requirement without acceptance criteria, a
     /// requirement nothing satisfies once there is a design, and a
-    /// requirement nothing verifies once there are tests, checks or monitors. All are
-    /// warnings.
+    /// requirement nothing verifies once there are tests, checks or monitors. A
+    /// requirement another stakeholder owns (ownedBy) is fulfilled by that
+    /// stakeholder's component, so nothing here satisfies or verifies it. All
+    /// are warnings.
     func checkTraceability(_ d: Design) {
         var satisfied = Set<String>(), verified = Set<String>()
         walk(d.root, []) { n, _ in
@@ -417,6 +424,7 @@ extension Checker {
             if p.value.child("acceptance") == nil {
                 warn(p.key, ptr, .acceptanceMissing, "requirement \(id) has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion")
             }
+            if !str(p.value.child("ownedBy")).isEmpty { continue }
             if hasDesign && !satisfied.contains(id) {
                 warn(p.key, ptr, .requirementUnsatisfied, "no design element satisfies requirement \(id); add satisfies: [\(id)] to the entity, operation, command, page, algorithm or decision that meets it")
             }

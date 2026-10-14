@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an internal need, enum and entity, named by a requirement, an entity's field, a relation and a page that are for everyone, and by an internal relation and an internal operation"
+when: "validate is run"
+then: "it reports the error audience at each name an element for everyone gives, and none inside the internal elements, and exits 1"
+verifies: [SA-67]

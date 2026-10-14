@@ -139,7 +139,18 @@ func (l loaded) namedPlaces() map[string]string {
 // algorithm: 2 for a usage or read error, 1 for invalid input, a marker
 // error or, with --check, a difference, 0 otherwise.
 func runDocument(args []string, stdout, stderr io.Writer) int {
+	everyone, args, msg := audienceArg(args)
+	if msg != "" {
+		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
+		return 2
+	}
 	target, out, check, paths, _, msg := parseTargetArgs("document", documentTargets, nil, args)
+	if msg == "" && everyone && target == "problems" {
+		msg = "specarch document problems has no --audience: the problems file and the marks are for the people who fix the specification, so they hold every element"
+	}
+	if msg == "" && everyone && out == "" {
+		msg = "specarch document --audience external needs --out: the folder the implementation files name holds the documents with every element, and a document for everyone is written beside them, not over them"
+	}
 	if msg != "" {
 		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
 		return 2
@@ -189,9 +200,13 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		if target == "html" {
 			st.Site = siteParts(l, folder, stderr)
 		}
-		text, _ := generate.Document(target, l.spec.Root, relSlash(folder, l.spec.RootFile), impls, st)
+		root := l.spec.Root
+		if everyone {
+			root = forEveryone(root, st)
+		}
+		text, _ := generate.Document(target, root, relSlash(folder, l.spec.RootFile), impls, st)
 		plan = append(plan, planned{path: filepath.Join(folder, generate.DocumentName(target)), content: text})
-		if target != "techspec" {
+		if target != "techspec" || everyone {
 			continue
 		}
 
@@ -226,6 +241,80 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	return status
+}
+
+// audienceArg takes --audience out of the arguments: everyone is true for
+// --audience external, the one audience a document is written for apart
+// from the people who build the system (ADR-119).
+func audienceArg(args []string) (everyone bool, rest []string, msg string) {
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		value, ok := "", false
+		switch {
+		case a == "--":
+			return everyone, append(rest, args[i:]...), ""
+		case a == "--audience":
+			if i+1 >= len(args) {
+				return false, nil, "--audience needs a value: external"
+			}
+			value, ok = args[i+1], true
+			i++
+		case strings.HasPrefix(a, "--audience="):
+			value, ok = strings.TrimPrefix(a, "--audience="), true
+		}
+		if !ok {
+			rest = append(rest, a)
+			continue
+		}
+		if value != "external" {
+			return false, nil, fmt.Sprintf("--audience has no value %q: external is the one value, for a document for everyone; without --audience a document holds every element and marks the internal ones", value)
+		}
+		everyone = true
+	}
+	return everyone, rest, ""
+}
+
+// forEveryone is the specification a document for everyone reads, with
+// the state cut to it: the marks, the references that wait, the keys a
+// question covers, the state machines' paths and the derived cases left
+// out, none of them about an element left out.
+func forEveryone(root *yaml.Node, st *generate.State) *yaml.Node {
+	root, w := generate.ForEveryone(root)
+	st.Withheld = w
+	var marks []generate.Mark
+	for _, m := range st.Marks {
+		if !w.Covers(m.Pointer) {
+			marks = append(marks, m)
+		}
+	}
+	st.Marks = marks
+	var refs []generate.Reference
+	for _, r := range st.References {
+		if !w.Covers(r.Path) {
+			refs = append(refs, r)
+		}
+	}
+	st.References = refs
+	for ptr := range st.Missing {
+		if w.Covers(ptr) {
+			delete(st.Missing, ptr)
+		}
+	}
+	if st.Site != nil {
+		var listed []generate.Listed
+		for _, p := range st.Site.Problems {
+			if !w.Covers(p.Pointer) {
+				listed = append(listed, p)
+			}
+		}
+		st.Site.Problems = listed
+	}
+	st.StatePaths = validate.StatePaths(root)
+	st.LeftOut = nil
+	for _, c := range validate.LeftOutCases(root) {
+		st.LeftOut = append(st.LeftOut, generate.LeftOut{Subject: c.Subject, Case: c.Case, Scenario: c.Scenario, Reason: c.Reason})
+	}
+	return root
 }
 
 // loadSpecs reads and validates every specification under paths. An

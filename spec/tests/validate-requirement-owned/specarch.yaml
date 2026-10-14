@@ -1,0 +1,44 @@
+specarch: "0.1"
+info: { title: Owned, version: 1.0.0 }
+stakeholders:
+  clerk: { description: Staff at the till. }
+  card-issuer: { description: The team that runs the card service. }
+needs:
+  NEED-1: { statement: Members must pay by card., stakeholders: [clerk], status: accepted }
+requirements:
+  OW-1:
+    statement: A member shall be able to pay a fine by card.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A card payment of a fine is accepted or declined within five seconds.]
+    needs: [NEED-1]
+    ownedBy: card-issuer
+  OW-2:
+    statement: A declined card shall be named in the receipt.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance: [The receipt of a declined payment names the card's last four digits.]
+    needs: [NEED-1]
+    ownedBy: card-team
+  OW-3:
+    statement: A fine shall be shown with its amount.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [The fine's page shows its amount.]
+    needs: [NEED-1]
+    fulfilledBy: "cards#/requirements/CI-1"
+entities:
+  Fine:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      amount: { type: integer, format: int32, minimum: 0 }
+    primaryKey: [id]
+    constraints:
+      fine_amount_set: { kind: check, expression: amount >= 0, message: A fine has an amount. }
+tests:
+  fine-saved: { entity: Fine, constraint: fine_amount_set, level: system, scenario: golden, given: a fine with an amount, when: it is saved, then: it is saved }
+  fine-negative: { entity: Fine, constraint: fine_amount_set, level: system, scenario: red, covers: [violates fine_amount_set], given: a fine with a negative amount, when: it is saved, then: it is refused }

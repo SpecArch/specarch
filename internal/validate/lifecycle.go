@@ -21,6 +21,10 @@ func (c *checker) checkRequirementsStage(d *design) {
 		}
 	}
 	for name, req := range d.requirements {
+		if by := source.Child(req, "ownedBy"); by != nil && by.Value != "" && d.stakeholders[by.Value] == nil {
+			c.add(by, source.Pointer("requirements", name, "ownedBy"), RuleStakeholder,
+				"%s is not a stakeholder of the specification%s", by.Value, suggest(by.Value, d.stakeholders))
+		}
 		for i, n := range source.Items(source.Child(req, "needs")) {
 			if n.Value != "" && d.needs[n.Value] == nil {
 				c.add(n, source.Pointer("requirements", name, "needs", fmt.Sprint(i)), RuleNeed,
@@ -68,8 +72,10 @@ func (c *checker) checkDeploymentStage(d *design) {
 // checkTraceability reports what the stages a specification covers leave
 // open: a need no requirement refines, a requirement without acceptance
 // criteria, a requirement nothing satisfies once there is a design, and a
-// requirement nothing verifies once there are tests, checks or monitors. All are
-// warnings.
+// requirement nothing verifies once there are tests, checks or monitors. A
+// requirement another stakeholder owns (ownedBy) is fulfilled by that
+// stakeholder's component, so nothing here satisfies or verifies it. All
+// are warnings.
 func (c *checker) checkTraceability(d *design) {
 	satisfied := map[string]bool{}
 	verified := map[string]bool{}
@@ -117,6 +123,9 @@ func (c *checker) checkTraceability(d *design) {
 		}
 		if source.Child(p.Value, "acceptance") == nil {
 			c.warn(p.Key, ptr, RuleAcceptanceMissing, "requirement %s has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion", id)
+		}
+		if source.Str(source.Child(p.Value, "ownedBy")) != "" {
+			continue
 		}
 		if hasDesign && !satisfied[id] {
 			c.warn(p.Key, ptr, RuleRequirementUnsatisfied, "no design element satisfies requirement %s; add satisfies: [%s] to the entity, operation, command, page, algorithm or decision that meets it", id, id)

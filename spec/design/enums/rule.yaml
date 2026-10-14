@@ -116,6 +116,7 @@ enums:
       - wire_name
       - output_folder
       - meta_model_version
+      - audience
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: an entry of the file, or the file as a whole, is not well-formed YAML; the entries that parse are still read (ADR-080)
@@ -127,7 +128,7 @@ enums:
       ref_type: a `$ref` names an entity or enum the specification does not have
       relation_target: a relation's target is not an entity of the specification
       relation_via: a relation's `via` is not the field or join entity its kind needs
-      reference: "a reference into another specification (`<dependency>#/<pointer>`) names no dependency, a dependency with no `specification`, stands where it may not (a one-to-many or many-to-many relation, a page that is not a list, a picker or list page whose entity and list are not of one dependency), or, when that specification is given, names an element it does not have, a list that does not list the entity, or a field the entity does not have; or a dependency's `version` is not the given specification's `info.version`"
+      reference: "a reference into another specification (`<dependency>#/<pointer>`) names no dependency, a dependency with no `specification`, stands where it may not (a one-to-many or many-to-many relation, a page that is not a list, a picker or list page whose entity and list are not of one dependency), or, when that specification is given, names an element it does not have, a list that does not list the entity, or a field the entity does not have; or a dependency's `version` is not the given specification's `info.version`; or a requirement's `fulfilledBy` names a requirement the given specification does not have"
       module: "an estate's module is not at its `location`, its specification's `info.version` is not the version the estate lists, its `info.name` is not the key the estate lists it under, or its operations' `calls` reach back to it through the other modules"
       field: a name that must be a field of an entity is not one (required, primaryKey, unique fields, page columns, fields and filters)
       state_field: the `stateField` is not a field whose type is an enum
@@ -171,7 +172,7 @@ enums:
       suite: an implementation's test suite names a design test or subject that does not exist
       layout: a file or a section is not where the tree layout puts it; the root file's `stages` and the folders disagree, a test folder has no `test.yaml`, or a folder is not a stage
       need: a requirement's `needs` names a need that does not exist
-      stakeholder: a need's `stakeholders`, a question's `decidedBy` or a mapping's `ownedBy` names a stakeholder that does not exist
+      stakeholder: a need's `stakeholders`, a question's `decidedBy`, a requirement's `ownedBy` or a mapping's `ownedBy` names a stakeholder that does not exist
       source: a citation names a source that is not declared under `sources`
       source_clause: a citation of a source that lists its `clauses` names no clause, or one that is neither a listed clause nor a part of one, such as section 3.3.1 under 3.3 or file.go:14 under file.go (a warning)
       environment: a check, an environment's `promotesTo` or an implementation's deployment names an environment that does not exist, or a deployment names none when the specification declares them
@@ -191,8 +192,8 @@ enums:
       release_version: info.version is neither the newest released version nor a later pre-release of a planned release, or a release's specificationVersion is not its version
       need_unrefined: no requirement refines a need whose status is not rejected (a warning)
       acceptance_missing: a requirement has no acceptance criteria (a warning)
-      requirement_unsatisfied: the specification has a design and no element of it satisfies a requirement (a warning)
-      requirement_unverified: the specification has tests, checks or monitors and none verifies a requirement (a warning)
+      requirement_unsatisfied: the specification has a design and no element of it satisfies a requirement that no other stakeholder owns (`ownedBy`) (a warning)
+      requirement_unverified: the specification has tests, checks or monitors and none verifies a requirement that no other stakeholder owns (`ownedBy`) (a warning)
       question_block: a question's `blocks` entry is neither a stage, a section, nor a pointer to an element of the specification or to one missing key of it, or a question with `names` does not block exactly one key the specification leaves out
       question_stage: a question blocks more than one stage, or sits in a file of another stage than the one it blocks
       question_answered: an accepted decision answers a question that is still in the specification
@@ -227,4 +228,5 @@ enums:
       wire_name: "the specification names its wire names (info.wireNames) and two properties of one object, an entity's, a view's with its entity's, or a body's, a parameter's or a message's, go on the wire under one name; or it names its roles' wire names (info.roleNames) and two roles go on the wire under one name"
       meta_model_version: "the file says `specarch: \"0.1\"`, which is read until 1.0; run `specarch derive` and change the line to \"0.2\" (a warning)"
       output_folder: "document or generate is given no --out, and no implementation file of a specification names an output folder for the target under targets, so that specification has no such output (a warning, ADR-073, ADR-086)"
-    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63]
+      audience: "an element for everyone (no `audience`) names an element whose audience is internal through a `$ref`, a relation's `target`, a page's `entity` or a requirement's `needs`, so a document for everyone would name what it may not show (ADR-119)"
+    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68]

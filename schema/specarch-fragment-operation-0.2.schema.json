@@ -107,6 +107,13 @@
       "type": "string",
       "pattern": "^ADR-[0-9]{3,}$"
     },
+    "audience": {
+      "description": "SpecArch keyword. Who the element is for. internal: only the people who build and run the system, such as a note from inside the team or a requirement written as a proposal below the promises; specarch document --audience external leaves the element out and counts it, and every other document marks it. Left out, the element is for everyone. An element for everyone may not name an internal one through a $ref, a relation's target, a page's entity or a requirement's needs, since a document for everyone would then name what it may not show.",
+      "type": "string",
+      "enum": [
+        "internal"
+      ]
+    },
     "question": {
       "description": "SpecArch keyword. One open question: something the sources do not say and a stakeholder must decide or provide. ISO/IEC/IEEE 29148:2018 (5.2.6) says a complete set of requirements holds no 'to be defined' clause and that resolving them is iterative within a time set by risk; IEEE Std 830-1998 (4.3.3) says such an item carries why it is open, what must be done, who is responsible and by when. A question is the one licence for an element to be incomplete: a required key may be missing exactly where a must question says it is unknown.",
       "type": "object",
@@ -224,6 +231,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [

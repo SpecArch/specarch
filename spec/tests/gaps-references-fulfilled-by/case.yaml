@@ -1,0 +1,31 @@
+arguments: [gaps, loans]
+exitStatus: 0
+standardOutput: |+
+  # Loans: open questions
+
+  Version 1.0.0 of the specification has no open question: nothing it says waits on a decision or on material from a stakeholder.
+
+  ## 1. References to other specifications
+
+  2 references name elements of other specifications and are not resolved in this run: the specification named is not given with this one, or the element is blocked there by a must question. Give the other specification in the same run to check them; until then they are gaps, not errors.
+
+  | At | Reference | Specification | Waits on |
+  |---|---|---|---|
+  | /requirements/LN-1/fulfilledBy | cards#/requirements/CI-1 | card-service 1.0.0 | card-service is not given |
+  | /requirements/LN-2/fulfilledBy | cards#/requirements/CI-9 | card-service 1.0.0 | card-service is not given |
+
+  ## 2. Outputs
+
+  What can be made from the specification now. A document is a draft while a must or should question blocks what it reads, or an error is in it; code generation waits for those questions, for every error to be fixed, and for the approval.
+
+  | Output | State | Waits on |
+  |---|---|---|
+  | techspec document | ready | |
+  | requirements document | ready | |
+  | testplan document | ready | |
+  | traceability document | ready | |
+  | deployment document | ready | |
+  | commissioning document | ready | |
+  | html document | ready | |
+  | code generation | waits | not approved: there is no records/approvals/1.0.0.yaml beside the specification |
+

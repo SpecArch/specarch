@@ -37,7 +37,7 @@ facts in a format SpecArch defines, never a reader of its own.
 | 6. a check bypassed for one kind of caller | built, item 7 (ADR-114): `bypassedFor: client` on a gate of the permission table and on a check the implementation file names, one `must` question at every operation the check guards, joined by `merge`; a route that serves people and clients both lists them in `callers` (`docs/caller-context.md`, ADR-110) |
 | 7. the schema file's name; the facts dump from the installed binary | built, item 8: `bindings.ui.schemaFile`, read by `extract pages` and written by `specarch-gen-ui-typescript` (ADR-115); `specarch facts` for JavaScript, Swift and Dart, the JavaScript reader inside the binary on typescript-go with no Node (ADR-116) |
 | 8. workflow definitions that are not BPMN | built, item 9 (ADR-118): the workflow table, `workflowTable: 1`, printed by the project's printer through `tools/workflows/dump-workflows.sh` and read by `extract workflows --table` with the BPMN reader's questions at the same keys, so `merge` joins the two readings of one workflow; a standard format gets a reader of its own (decision 5) |
-| 9. audience, requirements held elsewhere, material questions, partial answers, row citations | planned, items 10 and 11; a row citation is shipped in 0.6.0 as a clause that carries the row's identifier |
+| 9. audience, requirements held elsewhere, material questions, partial answers, row citations | audience and requirements held elsewhere built, item 10 (ADR-119): `audience: internal` on any element named by a key, the error `audience` where an element for everyone names an internal one, `document --audience external --out` leaving the internal elements out and counting them, and `ownedBy` with `fulfilledBy` on a requirement, exempt from the satisfied and verified warnings and listed under Requirements held elsewhere; the material questions and partial answers planned, item 11; a row citation is shipped in 0.6.0 as a clause that carries the row's identifier |
 | 10. `--given-outside`, two routes for one list, generated defaults, indexes, a source key from capitals | `--given-outside` built, item 4 (ADR-105); the rest planned, item 12; an index goes to the implementation file; the source key from capitals is on main already, after 0.6.0 |
 | 11. generation targets | shipped: the OpenAPI document and SQL migrations (0.4.0), the Next.js UI with task pages and a private component library through an idiom override (0.6.0); declined: Go server interfaces, which the stack's OpenAPI code generator makes from the document; planned later: sqlc queries, item 13 |
 | 12. output a CI gate compares with the code | planned later, item 14, on the readers and `merge` |
@@ -421,18 +421,22 @@ appears that a printer cannot flatten.
 ### 9. Audience, requirements held elsewhere, material questions, partial answers, row citations
 
 **Audience.** An element from an internal note must never reach the
-customer's documents; today it is an extension key and a rule read by
-people. `audience: internal` on any element says so; left out, an
-element is for everyone. `specarch document --audience external` leaves
-internal elements out and says in the document's summary how many it
-left out, in each section; without the flag a document holds everything
-and marks each internal element. A requirement written as a proposal
-below the promises uses the same key. The keyword earns its place with
-one check: an element for everyone may not depend on an internal one (a
-relation to an internal entity, an operation whose body refers to an
-internal schema, a requirement an internal requirement refines), which
-is the error `audience` at the entry, because the external document
-would otherwise name what it may not show. The key is SpecArch's, with
+customer's documents, and an extension key with a rule read by people
+does not keep it out. `audience: internal` on any element named by a key
+says so; left out, an element is for everyone. `specarch document
+--audience external --out <folder>` leaves internal elements out, with
+the links, open questions and problems that concern only them, and says
+in the document's summary how many it left out, in each section; without
+the flag a document holds everything and marks each internal element. A
+requirement written as a proposal below the promises uses the same key.
+The keyword earns its place with one check: an element for everyone may
+not depend on an internal one (a `$ref` to an internal entity, enum,
+view or schema, such as an operation's body, a relation's target or a
+page's entity that is internal, a requirement that refines an internal
+need), which is the error `audience` at the name, because the external
+document would otherwise name what it may not show. A `satisfies` or
+`verifies` entry naming an internal requirement only traces, and the
+external document drops it with the requirement. The key is SpecArch's, with
 its row in the origin table; no standard of the stages has one.
 
 **Requirements held elsewhere.** A promise in the customer's documents
@@ -443,8 +447,9 @@ already has for what someone else builds (ADR-046), naming the
 stakeholder whose component fulfils it; with a reference (point 2),
 `fulfilledBy: <dependency>#/requirements/<id>` names the element in that
 specification, and the umbrella checks it. The validator asks no
-`satisfies`, no test and no design element for it, traceability lists it
-under its own heading with the owner, and coverage counts it as read.
+`satisfies`, no test and no design element for it (it still asks for
+acceptance criteria), traceability lists it under its own heading with
+the owner, and coverage counts it as read through its citations.
 `ownedBy` moves from the implementation file into the requirements
 stage for this one use because which component fulfils a promise is a
 fact about the requirement, not about a stack.
@@ -654,7 +659,7 @@ step 1. Only item 7's meta-model half touches 0.3.
    conformance case whose table gives the write-off workflow the BPMN
    case gives. Done when both readings merge into one workflow with
    both citations.
-10. `audience`, `ownedBy` on a requirement, `fulfilledBy`. The keys in
+10. Built (ADR-119). `audience`, `ownedBy` on a requirement, `fulfilledBy`. The keys in
     the schemas, the `audience` dependency rule and the owned
     requirement's exemptions in both builds, `document --audience`, the
     traceability heading. Done when an external document leaves the

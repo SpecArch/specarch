@@ -471,6 +471,8 @@ redefined.
 | `where` (of a unique constraint) | SpecArch, after PostgreSQL's partial index and SQL Server's filtered index | the records a unique constraint holds among; ISO SQL leaves indexes out, so no standard names it |
 | `enabledBy` | SpecArch | the boolean setting that switches an operation, command or page on |
 | `release` (of a requirement) | SpecArch | the release a requirement is meant for, by the version of its release record, as a change or a defect names the release it shipped in |
+| `fulfilledBy` | SpecArch, after JSON Schema's `$ref` as a URI reference | beside `ownedBy` on a requirement, the requirement of another specification that fulfils it, `<dependency>#/requirements/<id>` (ADR-119) |
+| `audience` | SpecArch | `internal` on an element for the people who build and run the system only; left out, it is for everyone, and `document --audience external` leaves the internal elements out and counts them (ADR-119) |
 | `precision`, `scale` | SpecArch | decimal size; JSON Schema has no decimal type, so `format: decimal` on a string carries them |
 | `valueDescriptions` | SpecArch | per-value meaning of an enum |
 | `commands`, `arguments`, `options`, `reads`, `writes`, `standardOutput`, `standardError`, `exitCodes`, `repeatable` | SpecArch | command-line interfaces; no standard describes one |
@@ -512,7 +514,7 @@ redefined.
 | `monitors`, `objective` | SpecArch, after ISO/IEC/IEEE 12207 6.4.12 | the operation stage: what is watched on the live system |
 | `testing`, `suites`, `designTests`, `designTestsOf`, `implementationOnly` | SpecArch | in implementation files: how one stack runs the design tests |
 | `stack`, `targets`, `deployments`, `environment` (of a deployment) | SpecArch | in implementation files: the stack, the output folders per target, and where the system really runs |
-| `ownedBy` | SpecArch | in implementation files: on a mapping, the stakeholder that owns an element the project describes but does not generate |
+| `ownedBy` | SpecArch | the stakeholder that owns what someone else builds: on a requirement, the one whose component fulfils it, so nothing here satisfies or verifies it (ADR-119); in implementation files, on a mapping, the one that owns an element the project describes but does not generate |
 | `permissionChecks`, `package`, `function`, `permissionArgument` | SpecArch | in implementation files: on a binding, the project's own permission checks, which `specarch extract` reads routes' permissions through (ADR-081) |
 | `bypassedFor` | SpecArch | in implementation files: on a permission check, the kind of caller it lets through whatever its roles grant, `client`, which `specarch extract go` asks about at every operation the check guards (ADR-114) |
 | `schemaFile` | SpecArch | in implementation files: on the ui binding, the name of the file beside a page's file that holds its schema, by the project's convention, which `specarch extract pages` reads and `specarch-gen-ui-typescript` writes; `page.schema.ts` when left out (ADR-115) |
@@ -539,6 +541,32 @@ its status is rejected (`need_unrefined`), a requirement without acceptance crit
 specification has a design (`requirement_unsatisfied`), and a requirement
 nothing verifies once it has tests, checks or monitors (`requirement_unverified`).
 Chapter 13 of the techspec is the matrix.
+
+A requirement another stakeholder's component fulfils is held elsewhere
+(ADR-119): it carries `ownedBy`, a stakeholder of the specification
+(`stakeholder`), and may name the requirement of another specification that
+fulfils it, `fulfilledBy: <dependency>#/requirements/<id>`, which is checked
+as any reference into another specification once that one is given in the
+same run (`reference`), and counted as unresolved otherwise. Nothing here
+need satisfy or verify it, so it draws neither `requirement_unsatisfied`
+nor `requirement_unverified`; it still needs acceptance criteria. The
+traceability document lists it under Requirements held elsewhere.
+
+### Audience
+
+An element written for the people who build and run the system only, such
+as a note from inside the team or a requirement written as a proposal below
+the promises, says `audience: internal` (ADR-119); left out, an element is
+for everyone. The key goes on any element named by a key, and an element
+inside an internal one is internal with it. An element for everyone may not
+name an internal one through a `$ref`, a relation's `target`, a page's
+`entity` or a requirement's `needs` (`audience`), since a document for
+everyone would then name what it may not show. `specarch document
+--audience external --out <folder>` writes a document for everyone: the
+internal elements are left out, with the links, open questions and problems
+that concern only them, and its summary counts what it left out in each
+section. Without the flag, a document holds everything and marks each
+internal element.
 
 ### Access control is fail-closed
 

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 0.7.0-dev of the specification: 5 stakeholders, 10 needs and 66 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 0.7.0-dev of the specification: 5 stakeholders, 10 needs and 68 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -35,9 +35,9 @@ What the stakeholders said they need, before it was shaped into requirements, an
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51 |
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-46, SA-61, SA-32, SA-9, SA-10 |
-| NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19 |
+| NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-19 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
-| NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
+| NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-12, SA-23, SA-24, SA-25 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-46, SA-59, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-51 |
@@ -78,6 +78,8 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-63 | functional | must | accepted | A permission shall be able to imply other permissions, and every check of what a role grants shall count what its permissions imply; specarch extract permissions shall read a permission table's pattern rules into permissions named by a fixed rule, with the implications pattern inclusion gives, and each route's one permission. |
 | SA-65 | functional | must | accepted | A specification shall be able to name an element of another specification through a dependency, and specarch validate shall check such a reference against that specification when it is given in the same run, and count it as unresolved, not as an error, when it is not. |
 | SA-66 | functional | must | accepted | An estate file shall list the specifications of an estate's modules by name, each with its folder and the version the estate holds, and specarch validate, gaps and document techspec shall read every module through it and check each against its entry. |
+| SA-67 | functional | must | accepted | Every element of a specification shall be able to say that it is internal, for the people who build and run the system only, and specarch document shall write a document for everyone without the internal elements, saying how many it left out in each section. |
+| SA-68 | functional | must | accepted | A requirement shall be able to name the stakeholder whose component fulfils it, and the requirement of another specification that does, and the validator shall then ask no element to satisfy it and no test to verify it. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -600,6 +602,36 @@ Acceptance criteria:
 - document techspec on an estate writes estate.md, the module map with the references between the modules drawn as a flowchart.
 
 **Insight:** An estate's consistency is checked where the estate is, in one run over every module, and the umbrella that does it lists and pins the modules rather than copying them, so each team's specification stays the one truth of its module.
+
+### SA-67
+
+Every element of a specification shall be able to say that it is internal, for the people who build and run the system only, and specarch document shall write a document for everyone without the internal elements, saying how many it left out in each section.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-3.
+
+Acceptance criteria:
+
+- audience internal is accepted on every element named by a key; left out, an element is for everyone.
+- An element for everyone that names an internal element through a $ref, a relation's target, a page's entity or a requirement's needs is refused as audience at that name, the same in both builds; an element inside an internal one is internal with it.
+- document --audience external writes every document but problems without the internal elements, the errors at them, the open questions that block only them and the links that name them, and its summary says how many elements it left out in each section.
+- Every document written without --audience marks each internal element it shows.
+
+**Insight:** A note from inside the team must never reach the customer's documents, and a rule read by people does not keep it out; one key on the element and one check of what names it do.
+
+### SA-68
+
+A requirement shall be able to name the stakeholder whose component fulfils it, and the requirement of another specification that does, and the validator shall then ask no element to satisfy it and no test to verify it.
+
+Kind: functional; priority: must; status: accepted; verified by test; refines NEED-5.
+
+Acceptance criteria:
+
+- ownedBy on a requirement names a stakeholder of the specification, or is refused as stakeholder.
+- A requirement with ownedBy draws neither requirement_unsatisfied nor requirement_unverified, in both builds.
+- fulfilledBy, written <dependency>#/requirements/<id> beside ownedBy, is checked as a reference into the other specification when it is given in the same run, and is counted as unresolved otherwise.
+- The traceability document lists the requirements held elsewhere under a heading of their own, with the stakeholder and the requirement that fulfils each, and leaves them out of its gaps.
+
+**Insight:** A promise in the customer's documents that another component keeps belongs in the specification, and without a form for it the validator asks for what satisfies and verifies it here, or the promise is left out and its trace is lost.
 
 ### SA-7
 

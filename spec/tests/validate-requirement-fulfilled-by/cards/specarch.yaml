@@ -1,0 +1,15 @@
+specarch: "0.1"
+info: { title: Card service, version: 1.0.0, name: card-service }
+requirements:
+  CI-1:
+    statement: The card service shall accept or decline a payment within five seconds.
+    kind: quality
+    priority: must
+    status: accepted
+    acceptance: [Ninety-nine payments in a hundred are answered within five seconds.]
+  CI-2:
+    statement: The card service shall answer a declined payment with the card's last four digits.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance: [A declined payment's answer holds the card's last four digits.]

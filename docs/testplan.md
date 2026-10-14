@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 454 design tests, 203 golden and 251 red, about 15 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 463 design tests, 206 golden and 257 red, about 15 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 454 design tests, 203 golden and 251 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 450 |
+| system | 459 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -288,6 +288,46 @@ Scenario: red; level: system; covers exit 1; verifies SA-25.
 - Then: it prints the schema error, lists the change, reports version naming the version it cannot read instead of a missing release record for 0.0.0, and exits 1
 
 ### Command document
+
+#### document-audience-external
+
+Scenario: golden; level: system; verifies SA-67, SA-68.
+
+- Given: an internal need, an internal requirement an entity for everyone satisfies, an internal entity with the open question that blocks only it, and a requirement another stakeholder owns
+- When: document techspec is run with --audience external
+- Then: it writes techspec.md without the internal need, requirement and entity, the link to the internal requirement or the question, says in its summary that it left out one element in each of needs, requirements and entities, lists the owned requirement as held elsewhere, and exits 0
+
+#### document-audience-marked
+
+Scenario: golden; level: system; verifies SA-67, SA-68.
+
+- Given: an internal need, an internal requirement an entity for everyone satisfies, an internal entity, and a requirement another stakeholder owns
+- When: document traceability is run without --audience
+- Then: it writes traceability.md with every element, the internal need and requirement marked internal, the owned requirement under Requirements held elsewhere with its owner and out of the gaps, and exits 0
+
+#### document-audience-needs-out
+
+Scenario: red; level: system; covers usage error; verifies SA-67.
+
+- Given: --audience external with no --out
+- When: document is run
+- Then: it prints the usage error saying a document for everyone is written beside the full documents, not over them, and exits 2
+
+#### document-audience-problems-refused
+
+Scenario: red; level: system; covers usage error; verifies SA-67.
+
+- Given: --audience external for the problems target
+- When: document is run
+- Then: it prints the usage error saying the problems file holds every element and exits 2
+
+#### document-audience-value-refused
+
+Scenario: red; level: system; covers usage error; verifies SA-67.
+
+- Given: --audience internal, a value it does not have
+- When: document is run
+- Then: it prints the usage error naming external as the one value and exits 2 without reading the folder
 
 #### document-check-current
 
@@ -1423,6 +1463,14 @@ Scenario: golden; level: system; verifies SA-65.
 - When: gaps is run on both
 - Then: it lists the reference as waiting on that question, the other references resolved, and exits 1 for the open must question
 
+#### gaps-references-fulfilled-by
+
+Scenario: golden; level: system; verifies SA-68.
+
+- Given: two requirements another stakeholder owns, each fulfilled by a requirement of a specification that is not given
+- When: gaps is run on the specification alone
+- Then: it lists both fulfilledBy references as not resolved, waiting on the specification they name, and exits 0
+
 #### gaps-references-unresolved
 
 Scenario: golden; level: system; verifies SA-65.
@@ -2128,6 +2176,14 @@ Scenario: red; level: system; covers exit 1.
 - Given: an operation that names an algorithm that does not exist
 - When: validate is run
 - Then: it reports algorithm and exits 1
+
+#### validate-audience
+
+Scenario: red; level: system; covers exit 1; verifies SA-67.
+
+- Given: an internal need, enum and entity, named by a requirement, an entity's field, a relation and a page that are for everyone, and by an internal relation and an internal operation
+- When: validate is run
+- Then: it reports the error audience at each name an element for everyone gives, and none inside the internal elements, and exits 1
 
 #### validate-change-applied
 
@@ -3153,6 +3209,22 @@ Scenario: red; level: system; covers exit 1.
 - When: validate is run
 - Then: it reports requirement and exits 1
 
+#### validate-requirement-fulfilled-by
+
+Scenario: red; level: system; covers exit 1; verifies SA-68.
+
+- Given: two requirements another stakeholder owns, each fulfilled by a requirement of a specification given in the same run, one that it has and one that it does not
+- When: validate is run on both specifications
+- Then: the requirement it has resolves, the one it does not have is refused as reference with the requirements it has suggested, and it exits 1
+
+#### validate-requirement-owned
+
+Scenario: red; level: system; covers exit 1; verifies SA-68.
+
+- Given: a design and a test that satisfy and verify no requirement, a requirement another stakeholder owns, one owned by a name that is not a stakeholder, and one with fulfilledBy and no ownedBy
+- When: validate is run
+- Then: the owned requirement draws no requirement_unsatisfied or requirement_unverified warning, the unknown owner is refused as stakeholder, fulfilledBy without ownedBy is refused by the schema, and it exits 1
+
 #### validate-requirement-release
 
 Scenario: red; level: system; covers exit 1; verifies SA-24.
@@ -3709,7 +3781,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-262 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+270 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -3857,6 +3929,14 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-66 | acceptance 3 | golden | SA-66 names no harm |
 | requirement SA-66 | acceptance 4 | golden | SA-66 names no harm |
 | requirement SA-66 | acceptance 5 | golden | SA-66 names no harm |
+| requirement SA-67 | acceptance 1 | golden | SA-67 names no harm |
+| requirement SA-67 | acceptance 2 | golden | SA-67 names no harm |
+| requirement SA-67 | acceptance 3 | golden | SA-67 names no harm |
+| requirement SA-67 | acceptance 4 | golden | SA-67 names no harm |
+| requirement SA-68 | acceptance 1 | golden | SA-68 names no harm |
+| requirement SA-68 | acceptance 2 | golden | SA-68 names no harm |
+| requirement SA-68 | acceptance 3 | golden | SA-68 names no harm |
+| requirement SA-68 | acceptance 4 | golden | SA-68 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

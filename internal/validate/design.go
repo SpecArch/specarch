@@ -172,6 +172,7 @@ func distance(a, b string) int {
 func (c *checker) checkDesign(d *design) {
 	c.checkRefs(d)
 	c.checkReferences(d)
+	c.checkAudience(d)
 	c.checkIntegers()
 	c.checkRequirementLinks(d.root, nil, d)
 	c.checkCitations(d.root, nil, d)

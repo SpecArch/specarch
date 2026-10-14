@@ -1,0 +1,63 @@
+specarch: "0.1"
+info: { title: Audience, version: 1.0.0 }
+stakeholders:
+  clerk: { description: Staff at the till. }
+needs:
+  NEED-1: { statement: Loans must be traced to the member., stakeholders: [clerk], status: accepted, audience: internal }
+requirements:
+  AU-1:
+    statement: A loan shall name its member.
+    kind: functional
+    priority: must
+    status: accepted
+    needs: [NEED-1]
+enums:
+  RiskBand:
+    type: string
+    enum: [low, high]
+    audience: internal
+entities:
+  ReviewNote:
+    type: object
+    audience: internal
+    properties:
+      id: { type: string, format: uuid }
+      loanId: { type: string, format: uuid }
+      band: { $ref: "#/enums/RiskBand" }
+    primaryKey: [id]
+    relations:
+      loan: { target: Loan, kind: many-to-one, via: loanId }
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      band: { $ref: "#/enums/RiskBand" }
+      noteId: { type: string, format: uuid }
+    primaryKey: [id]
+    relations:
+      note: { target: ReviewNote, kind: many-to-one, via: noteId }
+      reviewedNote: { target: ReviewNote, kind: many-to-one, via: noteId, audience: internal }
+permissions:
+  public: { description: Open to everyone. }
+paths:
+  /notes/{id}:
+    get:
+      operationId: getNote
+      summary: Read a review note
+      permission: public
+      audience: internal
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: The note.
+          content: { application/json: { schema: { $ref: "#/entities/ReviewNote" } } }
+pages:
+  notes:
+    kind: view
+    title: Note
+    route: /notes/{id}
+    permission: public
+    entity: ReviewNote
+    source: getNote
+    fields: [id]

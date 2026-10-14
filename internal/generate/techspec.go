@@ -72,6 +72,7 @@ type doc struct {
 	pointerOf map[*yaml.Node]string // every mapping's pointer, to find the questions about it
 	marks     []Mark                // the errors and warnings, for Problem paragraphs
 	placing   *placing              // where the marks stand, while the document is written twice
+	withheld  *Withheld             // for a document for everyone, what it left out
 }
 
 // section starts the next numbered section of a document whose sections
@@ -88,7 +89,7 @@ func (d *doc) section(title string) {
 func newDoc(target string, root *yaml.Node, relRoot string, impls []Implementation, state *State) *doc {
 	d := &doc{sources: get(root, "sources"), decisions: get(root, "decisions"), questions: questionsOf(root), pointerOf: pointers(root)}
 	if state != nil {
-		d.marks, d.placing = state.Marks, state.placing
+		d.marks, d.placing, d.withheld = state.Marks, state.placing, state.Withheld
 	}
 	from := fmt.Sprintf("%s, version %s", relRoot, str(get(root, "info"), "version"))
 	for _, i := range impls {
@@ -935,10 +936,20 @@ func requirements(d *doc, root *yaml.Node, impls []Implementation) {
 	for k := range verified {
 		ids[k] = true
 	}
+	var held []string
+	for _, r := range reqs {
+		if h := heldElsewhere(r.Value); h != "" {
+			delete(ids, r.Key.Value)
+			held = append(held, r.Key.Value+", "+h)
+		}
+	}
 	for _, k := range sortedLinks(ids) {
 		d.line("| %s |%s %s | %s |", k, harm.cell(k), cell(strings.Join(unique(satisfied[k]), "; ")), cell(strings.Join(unique(verified[k]), "; ")))
 	}
 	d.blank()
+	if len(held) > 0 {
+		d.para("Held elsewhere, fulfilled by another stakeholder's component and so no gap here: " + strings.Join(held, "; ") + ".")
+	}
 }
 
 // childLabel builds a reader's name for a nested object: "entities Loan".

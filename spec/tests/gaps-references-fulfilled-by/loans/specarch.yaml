@@ -1,0 +1,28 @@
+specarch: "0.1"
+info: { title: Loans, version: 1.0.0, name: loans }
+stakeholders:
+  clerk: { description: Staff at the till. }
+  card-issuer: { description: The team that runs the card service. }
+requirements:
+  LN-1:
+    statement: A member shall be able to pay a fine by card.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A card payment of a fine is accepted or declined within five seconds.]
+    ownedBy: card-issuer
+    fulfilledBy: "cards#/requirements/CI-1"
+  LN-2:
+    statement: A declined card shall be named in the receipt.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance: [The receipt of a declined payment names the card's last four digits.]
+    ownedBy: card-issuer
+    fulfilledBy: "cards#/requirements/CI-9"
+dependencies:
+  cards:
+    description: The card service, which takes the payments.
+    timeout: PT5S
+    specification: card-service
+    version: 1.0.0

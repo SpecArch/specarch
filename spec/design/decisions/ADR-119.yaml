@@ -1,0 +1,91 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-0.2.schema.json
+decisions:
+  ADR-119:
+    title: An element says it is internal with audience, document --audience external leaves it out and counts it, and a requirement another stakeholder's component fulfils carries ownedBy and fulfilledBy
+    status: accepted
+    date: "2026-10-14"
+    context: |
+      Point 9 of docs/estate.md, build item 10. An estate's specification
+      holds what its team writes for itself beside what it promises the
+      customer: a note from inside the team, a requirement written as a
+      proposal below the promises. Today an extension key and a rule read
+      by people keep such an element out of the customer's documents, and
+      nothing checks it. A promise in the customer's documents that
+      another component keeps has no form either: written as a
+      requirement, the validator asks what here satisfies and verifies
+      it; left out, its trace is lost. The owner decided on 2026-10-14
+      (decision 7 of docs/estate.md) that such a requirement carries
+      ownedBy, the word SpecArch already has for what someone else builds
+      (ADR-046), rather than a status value.
+    decision: |
+      audience, a SpecArch keyword with the one value internal, may be
+      written on every element named by a key: an entry of a section of
+      named elements, the session, release, rollback and sign-off, an
+      operation, an entity's relation or unique constraint, and a
+      channel's message; left out, the element is for everyone. An
+      element inside an internal one is internal with it.
+      The validator, in both builds, reports the error audience where an
+      element for everyone names an internal element of the
+      specification at one of four places: a $ref, a relation's target,
+      a page's entity and a requirement's needs. Other names an element
+      gives (the permission an operation requires, a role a workflow
+      names, a satisfies or verifies entry) are not checked.
+      specarch document --audience external writes a document for
+      everyone: every internal element is left out with what is inside
+      it, and so are the satisfies, verifies and needs entries that name
+      an internal requirement or need, the open questions whose every
+      pointer is at or under an internal element, and the errors,
+      warnings and waiting references at one; the summary says how many
+      elements it left out in each section. It needs --out, writes no
+      region of specarch.md, and is refused for the problems target.
+      Without the flag every document holds every element and marks the
+      internal ones.
+      A requirement may carry ownedBy, a stakeholder of the
+      specification, and beside it fulfilledBy,
+      <dependency>#/requirements/<id>, the requirement of another
+      specification that fulfils it. The validator checks ownedBy as it
+      checks a mapping's, resolves fulfilledBy as any reference into
+      another specification (ADR-112), and warns neither
+      requirement_unsatisfied nor requirement_unverified for it; it still
+      warns acceptance_missing. The traceability document lists such a
+      requirement under Requirements held elsewhere and out of its gaps.
+    why: |
+      One key with one value, because left out already says everyone:
+      a second value would be a second way to say it. The four places
+      the check reads are the names that make one element part of
+      another's definition, so the external document could not show the
+      element for everyone without the internal one; a satisfies or
+      verifies entry only traces, and the external document drops the
+      entry with the requirement, so an element for everyone may still
+      satisfy an internal proposal. The compiler test holds: an element
+      that breaks the rule is read and marked at the name, never left
+      unread, and a document for everyone leaves out only what the
+      specification says is internal, counting it, so the reader knows
+      the document is not the whole.
+      --out is required with --audience external because both documents
+      are kept, and the folder the implementation files name is the full
+      one's; writing the external one there would make --check of the
+      full one fail. The problems target is refused because the problems
+      file marks the YAML files themselves, which are the team's.
+      ownedBy rather than a status value, as decision 7 says: status
+      keeps the life cycle of ISO/IEC/IEEE 29148 (proposed, accepted,
+      rejected, retired), and who fulfils a requirement is another fact.
+      acceptance_missing stays, since the other component's promise is
+      still accepted by its criteria. fulfilledBy is a reference so the
+      umbrella checks it when the other specification is given, and gaps
+      counts it while it is not.
+      Acceptance test: the first document a customer reads is written
+      from the same specification as the team's, with the internal part
+      left out and counted, and a change a customer asks for in a promise
+      another component keeps names the stakeholder who keeps it.
+    consequences: |
+      The schema gains audience on 36 element definitions and ownedBy and
+      fulfilledBy on a requirement, with fulfilledBy requiring ownedBy;
+      the fragment schemas and the Swift build's embedded schemas follow.
+      The rule enum gains audience. The origin table of
+      docs/conventions.md gains audience and fulfilledBy, and ownedBy
+      names both its uses. An element of another specification is not
+      checked for its audience; that waits on the caller context
+      (docs/caller-context.md), which designs who may see what across
+      specifications.
+    satisfies: [SA-67, SA-68]

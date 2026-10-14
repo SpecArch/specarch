@@ -37,6 +37,9 @@ func (d *doc) annotate(label string, n *yaml.Node) {
 	if label != "" {
 		on = " on " + label
 	}
+	if str(n, "audience") == "internal" {
+		d.para(fmt.Sprintf("**Audience%s:** internal, left out of a document for everyone.", on))
+	}
 	if o := d.origin(n); o != "" {
 		if label != "" {
 			o = strings.Replace(o, "**Origin:**", "**Origin"+on+":**", 1)
@@ -51,6 +54,30 @@ func (d *doc) annotate(label string, n *yaml.Node) {
 	for _, c := range items(n, "cites") {
 		d.para(fmt.Sprintf("**Note%s:** %s", on, d.citation(c)))
 	}
+}
+
+// markInternal is an element's name in a table cell, followed by
+// "(internal)" when its audience is internal, since a table row cannot
+// hold the Audience paragraph.
+func markInternal(name string, n *yaml.Node) string {
+	if str(n, "audience") == "internal" {
+		return cell(name) + " (internal)"
+	}
+	return cell(name)
+}
+
+// heldElsewhere says who fulfils a requirement another stakeholder owns:
+// "owned by <stakeholder>", and ", fulfilled by <reference>" when it names
+// the requirement that does; "" for a requirement this system fulfils.
+func heldElsewhere(r *yaml.Node) string {
+	owner := str(r, "ownedBy")
+	if owner == "" {
+		return ""
+	}
+	if by := str(r, "fulfilledBy"); by != "" {
+		return "owned by " + owner + ", fulfilled by " + by
+	}
+	return "owned by " + owner
 }
 
 // citation is a Note's text: from the source's title and edition, the

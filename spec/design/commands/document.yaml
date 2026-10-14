@@ -175,6 +175,28 @@ commands:
 
       In every document an element's why is an Insight and each citation
       a Note (ADR-015), and a document that cites sources ends with them.
+
+      An element whose audience is internal is marked in every document:
+      an Audience paragraph at its own heading or after the table that
+      holds it, `(internal)` after its name in a traceability row, and
+      its `audience` key on its card in the html page. With `--audience
+      external` a document is written for everyone (ADR-119): every
+      internal element is left out with what is inside it, and so are the
+      satisfies, verifies and needs entries that name an internal
+      requirement or need, the open questions whose every pointer is at or
+      under an internal element, and the errors, warnings and references
+      at one; the summary says how many elements were left out in each
+      section. It needs `--out`, since the folder the implementation files
+      name holds the documents with every element, writes no region of
+      `specarch.md`, and is refused for the problems target, whose files
+      are for the people who fix the specification.
+
+      A requirement another stakeholder owns (`ownedBy`) is held
+      elsewhere: the traceability target lists it under Requirements held
+      elsewhere with the stakeholder and the requirement that fulfils it,
+      and out of the matrix and the gaps; the techspec names it after its
+      traceability table, the requirements target among its attributes,
+      and the html page in place of what satisfies and verifies it.
     permission: public
     arguments:
       - name: target
@@ -192,6 +214,9 @@ commands:
       check:
         description: Make the output in memory and fail when the files on disk differ. Writes nothing.
         schema: { type: boolean, default: false }
+      audience:
+        description: external writes a document for everyone, without the internal elements (ADR-119). Needs --out; not for the problems target.
+        schema: { type: string, enum: [external] }
     reads:
       - { path: "{paths}", description: The specifications and their implementation files. }
       - { path: "specarch.md", description: "The hand-written document beside each root file, when there is one." }
@@ -213,9 +238,9 @@ commands:
     exitCodes:
       "0": written, or with `--check` the output is current
       "1": a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs
-      "2": usage error, a target this build does not offer, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written
+      "2": usage error, a target this build does not offer, --audience with a value other than external, without --out or for the problems target, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22, SA-26, SA-51, SA-60, SA-66]
+    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22, SA-26, SA-51, SA-60, SA-66, SA-67, SA-68]
     why: Documents are read by more people than the YAML, so they come first among the targets and are made from the specification rather than kept beside it.
     cites:
       - source: arc42

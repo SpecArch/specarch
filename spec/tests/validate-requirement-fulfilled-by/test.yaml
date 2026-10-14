@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "two requirements another stakeholder owns, each fulfilled by a requirement of a specification given in the same run, one that it has and one that it does not"
+when: "validate is run on both specifications"
+then: "the requirement it has resolves, the one it does not have is refused as reference with the requirements it has suggested, and it exits 1"
+verifies: [SA-68]

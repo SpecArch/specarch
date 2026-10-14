@@ -76,6 +76,37 @@ var singleSections = map[string]bool{"release": true, "rollback": true, "signoff
 // rootOnly are the keys that live only in the root file.
 var rootOnly = map[string]bool{"specarch": true, "info": true, "stages": true, "sources": true}
 
+// keyedElements are the sections whose entries are each an element that
+// may carry audience (ADR-119).
+var keyedElements = map[string]bool{
+	"stakeholders": true, "needs": true, "requirements": true, "glossary": true, "assumptions": true, "constraints": true,
+	"enums": true, "entities": true, "views": true, "schemas": true, "permissions": true, "roles": true, "separationOfDuties": true,
+	"commands": true, "channels": true, "dependencies": true, "jobs": true, "workflows": true, "errors": true, "pages": true, "flows": true,
+	"algorithms": true, "tests": true, "decisions": true,
+	"environments": true, "configuration": true, "migrations": true, "checks": true, "monitors": true,
+}
+
+// IsElement reports whether the path of the merged document names an
+// element that may carry audience: an entry of a section of named
+// elements, the session, release, rollback or sign-off, an operation, an
+// entity's relation or unique constraint, or a channel's message.
+func IsElement(path []string) bool {
+	switch len(path) {
+	case 1:
+		return path[0] == "session" || path[0] == "release" || path[0] == "rollback" || path[0] == "signoff"
+	case 2:
+		return keyedElements[path[0]]
+	case 3:
+		switch path[2] {
+		case "get", "post", "put", "patch", "delete":
+			return path[0] == "paths"
+		}
+	case 4:
+		return path[0] == "entities" && (path[2] == "relations" || path[2] == "constraints") || path[0] == "channels" && path[2] == "messages"
+	}
+	return false
+}
+
 // SectionsOf lists the sections of a stage, in order.
 func SectionsOf(stage string) []string {
 	var out []string

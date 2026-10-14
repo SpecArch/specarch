@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: document
+level: system
+scenario: golden
+given: "an internal need, an internal requirement an entity for everyone satisfies, an internal entity, and a requirement another stakeholder owns"
+when: "document traceability is run without --audience"
+then: "it writes traceability.md with every element, the internal need and requirement marked internal, the owned requirement under Requirements held elsewhere with its owner and out of the gaps, and exits 0"
+verifies: [SA-67, SA-68]

@@ -139,6 +139,9 @@ func Requirements(root *yaml.Node, relRoot string, impls []Implementation, state
 			if h := strs(r.Value, "harm"); len(h) > 0 {
 				attrs = append(attrs, "harm if not met: "+strings.Join(h, ", "))
 			}
+			if held := heldElsewhere(r.Value); held != "" {
+				attrs = append(attrs, held)
+			}
 			if len(attrs) > 0 {
 				d.para(strings.Join(attrs, "; ") + ".")
 			}
@@ -436,6 +439,7 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation, state
 	}
 	hasTests := len(pairs(root, "tests")) > 0 || len(pairs(root, "checks")) > 0 || len(pairs(root, "monitors")) > 0
 	var unrefined, noAcceptance, unsatisfied, unverified []string
+	var held []sourcePair
 	for _, n := range needs {
 		if str(n.Value, "status") != "rejected" && len(refinedBy[n.Key.Value]) == 0 {
 			unrefined = append(unrefined, n.Key.Value)
@@ -448,6 +452,10 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation, state
 		}
 		if get(r.Value, "acceptance") == nil {
 			noAcceptance = append(noAcceptance, id)
+		}
+		if heldElsewhere(r.Value) != "" {
+			held = append(held, r)
+			continue
 		}
 		if hasDesign && len(satisfied[id]) == 0 {
 			unsatisfied = append(unsatisfied, id)
@@ -462,7 +470,11 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation, state
 	d.blank()
 	summary := fmt.Sprintf("Version %s of the specification: %s, %s, and %s.", str(info, "version"),
 		countText(len(needs), "need", "needs"), countText(len(reqs), "requirement", "requirements"), countText(gaps, "gap", "gaps"))
-	d.para(summary + " Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.")
+	summary += " Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks"
+	if len(held) > 0 {
+		summary += fmt.Sprintf("; %s held elsewhere, fulfilled by another stakeholder's component", countText(len(held), "requirement is", "requirements are"))
+	}
+	d.para(summary + ".")
 	d.draftNotice("traceability")
 
 	if len(needs) > 0 {
@@ -470,7 +482,7 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation, state
 		d.line("| Need | Status | Refined by |")
 		d.line("|---|---|---|")
 		for _, n := range needs {
-			d.line("| %s | %s | %s |", n.Key.Value, cell(str(n.Value, "status")), cell(strings.Join(refinedBy[n.Key.Value], ", ")))
+			d.line("| %s | %s | %s |", markInternal(n.Key.Value, n.Value), cell(str(n.Value, "status")), cell(strings.Join(refinedBy[n.Key.Value], ", ")))
 		}
 		d.blank()
 	}
@@ -491,16 +503,34 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation, state
 	for k := range verified {
 		ids[k] = true
 	}
+	for _, r := range held {
+		delete(ids, r.Key.Value)
+	}
 	for _, k := range sortedLinks(ids) {
-		d.line("| %s |%s %s | %s | %s |", k, harm.cell(k), cell(strings.Join(strs(reqNode[k], "needs"), ", ")), cell(strings.Join(unique(satisfied[k]), "; ")), cell(strings.Join(unique(verified[k]), "; ")))
+		d.line("| %s |%s %s | %s | %s |", markInternal(k, reqNode[k]), harm.cell(k), cell(strings.Join(strs(reqNode[k], "needs"), ", ")), cell(strings.Join(unique(satisfied[k]), "; ")), cell(strings.Join(unique(verified[k]), "; ")))
 	}
 	d.blank()
+
+	if len(held) > 0 {
+		d.section("Requirements held elsewhere")
+		d.para("The promises another stakeholder's component keeps: nothing in this specification satisfies or verifies them, so they are no gap here.")
+		d.line("| Requirement | Needs | Owned by | Fulfilled by |")
+		d.line("|---|---|---|---|")
+		for _, r := range held {
+			d.line("| %s | %s | %s | %s |", markInternal(r.Key.Value, r.Value), cell(strings.Join(strs(r.Value, "needs"), ", ")), cell(str(r.Value, "ownedBy")), cell(str(r.Value, "fulfilledBy")))
+		}
+		d.blank()
+	}
 
 	d.section("Gaps")
 	if gaps == 0 {
 		d.para("None: every need is refined, and every requirement has acceptance criteria, is satisfied once there is a design, and is verified once there are tests, checks or monitors.")
 	} else {
-		d.para("The work the specification still owes, the same gaps the validator warns about. Rejected needs and rejected or retired requirements are left out.")
+		leftOut := "Rejected needs and rejected or retired requirements are left out."
+		if len(held) > 0 {
+			leftOut = "Rejected needs, rejected or retired requirements and the satisfaction and verification of the requirements held elsewhere are left out."
+		}
+		d.para("The work the specification still owes, the same gaps the validator warns about. " + leftOut)
 		for _, g := range []struct {
 			ids  []string
 			what string

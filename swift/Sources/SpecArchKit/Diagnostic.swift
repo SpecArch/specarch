@@ -113,6 +113,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case wireName = "wire_name"
     case outputFolder = "output_folder"
     case metaModelVersion = "meta_model_version"
+    case audience = "audience"
 }
 
 /// Whether a diagnostic makes the file invalid.

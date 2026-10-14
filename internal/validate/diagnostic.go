@@ -122,6 +122,7 @@ const (
 	RuleWireName               Rule = "wire_name"
 	RuleOutputFolder           Rule = "output_folder"
 	RuleMetaModelVersion       Rule = "meta_model_version"
+	RuleAudience               Rule = "audience"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -236,6 +237,7 @@ var Rules = []Rule{
 	RuleWireName,
 	RuleOutputFolder,
 	RuleMetaModelVersion,
+	RuleAudience,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.7.0-dev of the specification: 66 requirements, 5 entities, 13 commands, 7 algorithms, 454 tests, 113 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.7.0-dev of the specification: 68 requirements, 5 entities, 13 commands, 7 algorithms, 463 tests, 114 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -62,7 +62,7 @@ The interfaces the system offers, as its clients see them.
 | approve | Record that the documents were read and the specification is approved | public | 0: the approval was recorded; 1: refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current; 2: usage error, or a file that could not be read or written |
 | derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors other than the missing tests it writes, or a draft's name is taken by another draft or by a test of another subject; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, there is no release record for the new version, or a specification has errors; 2: usage error, or a path that could not be read |
-| document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written |
+| document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, --audience with a value other than external, without --out or for the problems target, no output folder in any specification given, the implementation files of one naming different output folders, or a file that could not be read or written |
 | extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, a workflow table that does not parse, is stale, lacks a key of the format or holds another, names a step kind other than approval, operation or other, lists a workflow twice or gives a workflow, a step or a form field no name, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, --facts given to a source other than pages, --routes given to a source other than permissions, --language, --vocabulary or --given-outside given to a source other than documents, --table given to a source other than workflows, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written |
 | facts | Write the code-facts dump extract reads of a committed folder | public | 0: the dump was written; 1: the folder could not be read as committed code: it is in no git repository, it has changes not committed or files not tracked, no commit has changed it, the dump file is in a repository that does not hold the code's, or the reader's toolchain failed to build or to run it; 2: usage error, a language this build does not read, a folder that does not exist, a dump file whose folder does not exist or that could not be written, or a submodule folder with a quote or a backslash |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open and no specification has an error; 1: at least one must or should question is open, or a specification or an estate has an error; 2: usage error, or a path that could not be read |
@@ -261,7 +261,7 @@ Primary key: path.
 | Rule | ref_type | a `$ref` names an entity or enum the specification does not have |
 | Rule | relation_target | a relation's target is not an entity of the specification |
 | Rule | relation_via | a relation's `via` is not the field or join entity its kind needs |
-| Rule | reference | a reference into another specification (`<dependency>#/<pointer>`) names no dependency, a dependency with no `specification`, stands where it may not (a one-to-many or many-to-many relation, a page that is not a list, a picker or list page whose entity and list are not of one dependency), or, when that specification is given, names an element it does not have, a list that does not list the entity, or a field the entity does not have; or a dependency's `version` is not the given specification's `info.version` |
+| Rule | reference | a reference into another specification (`<dependency>#/<pointer>`) names no dependency, a dependency with no `specification`, stands where it may not (a one-to-many or many-to-many relation, a page that is not a list, a picker or list page whose entity and list are not of one dependency), or, when that specification is given, names an element it does not have, a list that does not list the entity, or a field the entity does not have; or a dependency's `version` is not the given specification's `info.version`; or a requirement's `fulfilledBy` names a requirement the given specification does not have |
 | Rule | module | an estate's module is not at its `location`, its specification's `info.version` is not the version the estate lists, its `info.name` is not the key the estate lists it under, or its operations' `calls` reach back to it through the other modules |
 | Rule | field | a name that must be a field of an entity is not one (required, primaryKey, unique fields, page columns, fields and filters) |
 | Rule | state_field | the `stateField` is not a field whose type is an enum |
@@ -305,7 +305,7 @@ Primary key: path.
 | Rule | test_data | a test's fixture, input or expect names what the design does not have, carries a value of the wrong type, holds a record a check constraint refuses, or says the same thing as a data folder beside it |
 | Rule | layout | a file or a section is not where the tree layout puts it; the root file's `stages` and the folders disagree, a test folder has no `test.yaml`, or a folder is not a stage |
 | Rule | need | a requirement's `needs` names a need that does not exist |
-| Rule | stakeholder | a need's `stakeholders`, a question's `decidedBy` or a mapping's `ownedBy` names a stakeholder that does not exist |
+| Rule | stakeholder | a need's `stakeholders`, a question's `decidedBy`, a requirement's `ownedBy` or a mapping's `ownedBy` names a stakeholder that does not exist |
 | Rule | source | a citation names a source that is not declared under `sources` |
 | Rule | source_clause | a citation of a source that lists its `clauses` names no clause, or one that is neither a listed clause nor a part of one, such as section 3.3.1 under 3.3 or file.go:14 under file.go (a warning) |
 | Rule | environment | a check, an environment's `promotesTo` or an implementation's deployment names an environment that does not exist, or a deployment names none when the specification declares them |
@@ -325,8 +325,8 @@ Primary key: path.
 | Rule | release_version | info.version is neither the newest released version nor a later pre-release of a planned release, or a release's specificationVersion is not its version |
 | Rule | need_unrefined | no requirement refines a need whose status is not rejected (a warning) |
 | Rule | acceptance_missing | a requirement has no acceptance criteria (a warning) |
-| Rule | requirement_unsatisfied | the specification has a design and no element of it satisfies a requirement (a warning) |
-| Rule | requirement_unverified | the specification has tests, checks or monitors and none verifies a requirement (a warning) |
+| Rule | requirement_unsatisfied | the specification has a design and no element of it satisfies a requirement that no other stakeholder owns (`ownedBy`) (a warning) |
+| Rule | requirement_unverified | the specification has tests, checks or monitors and none verifies a requirement that no other stakeholder owns (`ownedBy`) (a warning) |
 | Rule | question_block | a question's `blocks` entry is neither a stage, a section, nor a pointer to an element of the specification or to one missing key of it, or a question with `names` does not block exactly one key the specification leaves out |
 | Rule | question_stage | a question blocks more than one stage, or sits in a file of another stage than the one it blocks |
 | Rule | question_answered | an accepted decision answers a question that is still in the specification |
@@ -361,6 +361,7 @@ Primary key: path.
 | Rule | wire_name | the specification names its wire names (info.wireNames) and two properties of one object, an entity's, a view's with its entity's, or a body's, a parameter's or a message's, go on the wire under one name; or it names its roles' wire names (info.roleNames) and two roles go on the wire under one name |
 | Rule | output_folder | document or generate is given no --out, and no implementation file of a specification names an output folder for the target under targets, so that specification has no such output (a warning, ADR-073, ADR-086) |
 | Rule | meta_model_version | the file says `specarch: "0.1"`, which is read until 1.0; run `specarch derive` and change the line to "0.2" (a warning) |
+| Rule | audience | an element for everyone (no `audience`) names an element whose audience is internal through a `$ref`, a relation's `target`, a page's `entity` or a requirement's `needs`, so a document for everyone would name what it may not show (ADR-119) |
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
@@ -703,6 +704,28 @@ button to switch.
 In every document an element's why is an Insight and each citation
 a Note (ADR-015), and a document that cites sources ends with them.
 
+An element whose audience is internal is marked in every document:
+an Audience paragraph at its own heading or after the table that
+holds it, `(internal)` after its name in a traceability row, and
+its `audience` key on its card in the html page. With `--audience
+external` a document is written for everyone (ADR-119): every
+internal element is left out with what is inside it, and so are the
+satisfies, verifies and needs entries that name an internal
+requirement or need, the open questions whose every pointer is at or
+under an internal element, and the errors, warnings and references
+at one; the summary says how many elements were left out in each
+section. It needs `--out`, since the folder the implementation files
+name holds the documents with every element, writes no region of
+`specarch.md`, and is refused for the problems target, whose files
+are for the people who fix the specification.
+
+A requirement another stakeholder owns (`ownedBy`) is held
+elsewhere: the traceability target lists it under Requirements held
+elsewhere with the stakeholder and the requirement that fulfils it,
+and out of the matrix and the gaps; the techspec names it after its
+traceability table, the requirements target among its attributes,
+and the html page in place of what satisfies and verifies it.
+
 **Insight:** Documents are read by more people than the YAML, so they come first among the targets and are made from the specification rather than kept beside it.
 
 **Note:** From arc42, the template for architecture documentation, 8.2: The twelve chapters of an architecture document, from introduction and goals to glossary. <https://arc42.org/overview>
@@ -713,6 +736,7 @@ a Note (ADR-015), and a document that cites sources ends with them.
 | `<paths>` | string, one or more | yes | Folders holding specifications, searched as validate searches them. |
 | `--out` | string |   | The folder the target owns. Without it, the folder the implementation files' `targets` name for the target, relative to each implementation file; they must agree. |
 | `--check` | bool |   | Make the output in memory and fail when the files on disk differ. Writes nothing. |
+| `--audience` | string |   | external writes a document for everyone, without the internal elements (ADR-119). Needs --out; not for the problems target. |
 
 Reads `{paths}`: The specifications and their implementation files; `specarch.md`: The hand-written document beside each root file, when there is one; `records/ beside each specification's folder`: The change, defect and release records, for the changes and releases targets; `{out}`: The current output, with `--check`.
 
@@ -2786,9 +2810,9 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | internal/diff | Compares two merged specifications element by element, finds the public interface, and classifies each difference by the version step it needs. |   |
 | internal/approval | The approval record beside a specification, its digest of the specification's files, and where a version's approval stands against the files now. |   |
 | internal/expr | The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals. |   |
-| internal/generate | The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents; questions writes the open questions and what they hold up, the text gaps prints; html writes the whole specification as one page, with the entity diagram as SVG and the workflows and screens made in memory with internal/genbpmn and internal/genui. Every one renders why as an Insight, each citation as a Note, an element's origin as an Origin line and the open questions about it as Open question paragraphs. | #/algorithms/markersWellFormed |
+| internal/generate | The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents; questions writes the open questions and what they hold up, the text gaps prints; html writes the whole specification as one page, with the entity diagram as SVG and the workflows and screens made in memory with internal/genbpmn and internal/genui. Every one renders why as an Insight, each citation as a Note, an element's origin as an Origin line and the open questions about it as Open question paragraphs, and marks an internal element; ForEveryone cuts the specification to what a document for everyone shows, counting what it left out. | #/algorithms/markersWellFormed |
 | internal/problems | The problems of a specification, valid or not, gathered from validate's diagnostics and the open questions into one list with ids, columns and notes, written as problems.txt and as a SARIF 2.1.0 log, and marked above their entries in the YAML files of the specification. | #/entities/Problem, #/entities/ProblemNote, #/enums/ProblemSeverity |
-| internal/validate | Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases with the rank of each and the cases left out, the life-cycle links and traceability warnings, the open questions and what they cover, origin, implementation references, and the records beside the specification. | #/entities/Diagnostic, #/enums/Rule, #/enums/Severity, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
+| internal/validate | Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases with the rank of each and the cases left out, the life-cycle links and traceability warnings with the requirements another stakeholder owns exempt, the audience of what an element for everyone names, the open questions and what they cover, origin, implementation references, and the records beside the specification. | #/entities/Diagnostic, #/enums/Rule, #/enums/Severity, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
 
 #### Mappings
 
@@ -8467,6 +8491,67 @@ subset.
 
 **Insight:** A table the project prints rather than a reader of the project's format, because the readers' test keeps extract's rules in one place: a plug-in that writes elements would be a second place for them, and a format of one project is not a standard whose rules SpecArch can learn once. The printer loads the definitions as the engine does, so the two-folders question is answered by construction: the folder the engine does not load is never read, and the commit names what was loaded. The same questions at the same keys as the BPMN reader, because merge leaves out a question another tree asks at the same key, so the two readings of one workflow merge into one workflow with both citations and each question once, and a disagreement between them is a must question at the key, as for any two trees. The keys of a step are the 0.2 workflow step's own (approvers, deadline, onDeadline, escalateTo, operation), one word for one meaning. Every key written and null allowed, as the route table writes a permission null, because a key left out is ambiguous between a printer that cannot say and one that forgot; null says the first, and the reader asks for it. Kind other, rather than refusing a step the subset does not hold, because the compiler test keeps an incomplete definition readable: the steps before it are written, and the rest is a must question at the workflow. The form and the messages are kept as could questions rather than written in a key of the reader's own, because the 0.2 workflow has no key for either and a tree a reader writes validates on its own; a reviewer who reads the question writes the request body or the channel where the specification holds them. Acceptance test: the first techspec of a module whose workflows are in its own format shows each workflow with its steps, approvers and deadlines, merged with the routes' tree, and a change a reviewer asks for in a workflow is a change to its definition, printed again.
 
+### ADR-119: An element says it is internal with audience, document --audience external leaves it out and counts it, and a requirement another stakeholder's component fulfils carries ownedBy and fulfilledBy
+
+Status: accepted, 2026-10-14.
+
+Context: Point 9 of docs/estate.md, build item 10. An estate's specification
+holds what its team writes for itself beside what it promises the
+customer: a note from inside the team, a requirement written as a
+proposal below the promises. Today an extension key and a rule read
+by people keep such an element out of the customer's documents, and
+nothing checks it. A promise in the customer's documents that
+another component keeps has no form either: written as a
+requirement, the validator asks what here satisfies and verifies
+it; left out, its trace is lost. The owner decided on 2026-10-14
+(decision 7 of docs/estate.md) that such a requirement carries
+ownedBy, the word SpecArch already has for what someone else builds
+(ADR-046), rather than a status value.
+
+Decision: audience, a SpecArch keyword with the one value internal, may be
+written on every element named by a key: an entry of a section of
+named elements, the session, release, rollback and sign-off, an
+operation, an entity's relation or unique constraint, and a
+channel's message; left out, the element is for everyone. An
+element inside an internal one is internal with it.
+The validator, in both builds, reports the error audience where an
+element for everyone names an internal element of the
+specification at one of four places: a $ref, a relation's target,
+a page's entity and a requirement's needs. Other names an element
+gives (the permission an operation requires, a role a workflow
+names, a satisfies or verifies entry) are not checked.
+specarch document --audience external writes a document for
+everyone: every internal element is left out with what is inside
+it, and so are the satisfies, verifies and needs entries that name
+an internal requirement or need, the open questions whose every
+pointer is at or under an internal element, and the errors,
+warnings and waiting references at one; the summary says how many
+elements it left out in each section. It needs --out, writes no
+region of specarch.md, and is refused for the problems target.
+Without the flag every document holds every element and marks the
+internal ones.
+A requirement may carry ownedBy, a stakeholder of the
+specification, and beside it fulfilledBy,
+<dependency>#/requirements/<id>, the requirement of another
+specification that fulfils it. The validator checks ownedBy as it
+checks a mapping's, resolves fulfilledBy as any reference into
+another specification (ADR-112), and warns neither
+requirement_unsatisfied nor requirement_unverified for it; it still
+warns acceptance_missing. The traceability document lists such a
+requirement under Requirements held elsewhere and out of its gaps.
+
+Consequences: The schema gains audience on 36 element definitions and ownedBy and
+fulfilledBy on a requirement, with fulfilledBy requiring ownedBy;
+the fragment schemas and the Swift build's embedded schemas follow.
+The rule enum gains audience. The origin table of
+docs/conventions.md gains audience and fulfilledBy, and ownedBy
+names both its uses. An element of another specification is not
+checked for its audience; that waits on the caller context
+(docs/caller-context.md), which designs who may see what across
+specifications.
+
+**Insight:** One key with one value, because left out already says everyone: a second value would be a second way to say it. The four places the check reads are the names that make one element part of another's definition, so the external document could not show the element for everyone without the internal one; a satisfies or verifies entry only traces, and the external document drops the entry with the requirement, so an element for everyone may still satisfy an internal proposal. The compiler test holds: an element that breaks the rule is read and marked at the name, never left unread, and a document for everyone leaves out only what the specification says is internal, counting it, so the reader knows the document is not the whole. --out is required with --audience external because both documents are kept, and the folder the implementation files name is the full one's; writing the external one there would make --check of the full one fail. The problems target is refused because the problems file marks the YAML files themselves, which are the team's. ownedBy rather than a status value, as decision 7 says: status keeps the life cycle of ISO/IEC/IEEE 29148 (proposed, accepted, rejected, retired), and who fulfils a requirement is another fact. acceptance_missing stays, since the other component's promise is still accepted by its criteria. fulfilledBy is a reference so the umbrella checks it when the other specification is given, and gaps counts it while it is not. Acceptance test: the first document a customer reads is written from the same specification as the team's, with the internal part left out and counted, and a change a customer asks for in a promise another component keeps names the stakeholder who keeps it.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -8502,6 +8587,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | diff-usage-error | command diff | system | red | one folder | diff is run with only the old folder | it prints how to use it and exits 2 |
 | diff-version-step | command diff | system | red | a new version that removes a value from a public enum, released as 1.0.1 | diff is run | it lists the enum as major and reports version, naming 2.0.0, and exits 1 |
 | diff-version-unreadable | command diff | system | red | a new version whose info.version is next, not a semantic version | diff is run | it prints the schema error, lists the change, reports version naming the version it cannot read instead of a missing release record for 0.0.0, and exits 1 |
+| document-audience-external | command document | system | golden | an internal need, an internal requirement an entity for everyone satisfies, an internal entity with the open question that blocks only it, and a requirement another stakeholder owns | document techspec is run with --audience external | it writes techspec.md without the internal need, requirement and entity, the link to the internal requirement or the question, says in its summary that it left out one element in each of needs, requirements and entities, lists the owned requirement as held elsewhere, and exits 0 |
+| document-audience-marked | command document | system | golden | an internal need, an internal requirement an entity for everyone satisfies, an internal entity, and a requirement another stakeholder owns | document traceability is run without --audience | it writes traceability.md with every element, the internal need and requirement marked internal, the owned requirement under Requirements held elsewhere with its owner and out of the gaps, and exits 0 |
+| document-audience-needs-out | command document | system | red | --audience external with no --out | document is run | it prints the usage error saying a document for everyone is written beside the full documents, not over them, and exits 2 |
+| document-audience-problems-refused | command document | system | red | --audience external for the problems target | document is run | it prints the usage error saying the problems file holds every element and exits 2 |
+| document-audience-value-refused | command document | system | red | --audience internal, a value it does not have | document is run | it prints the usage error naming external as the one value and exits 2 without reading the folder |
 | document-check-current | command document | system | golden | output that matches the design file | document techspec is run with --check | it writes nothing, prints nothing and exits 0 |
 | document-check-differs | command document | system | red | a generated file edited by hand | document techspec is run with --check | it names the file that differs, writes nothing and exits 1 |
 | document-check-invalid | command document | system | red | an invalid specification whose technical specification on disk is the one document writes for it | document techspec --check is run | it prints the error, finds the file current, writes nothing, and exits 1 because the specification has an error |
@@ -8643,6 +8733,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | gaps-none | command gaps | system | golden | a specification without open questions and without an approval | gaps is run | it prints that there is no open question, that every document is ready and that code generation waits on the approval, and exits 0 |
 | gaps-outline-not-read | command gaps | system | golden | the tree extract outline wrote for a folder of workflow definitions: one source whose clauses are the folder's files, and no element | gaps is run | it lists every file of the source as producing nothing, so the files show as not read, and exits 0 |
 | gaps-references-blocked | command gaps | system | golden | a specification whose field is typed by another specification's schema, given with that specification, where a must question blocks the schema | gaps is run on both | it lists the reference as waiting on that question, the other references resolved, and exits 1 for the open must question |
+| gaps-references-fulfilled-by | command gaps | system | golden | two requirements another stakeholder owns, each fulfilled by a requirement of a specification that is not given | gaps is run on the specification alone | it lists both fulfilledBy references as not resolved, waiting on the specification they name, and exits 0 |
 | gaps-references-unresolved | command gaps | system | golden | a specification whose references name another specification, given alone | gaps is run | it lists each reference with where it stands, the specification and version it names and that the specification is not given, reports no error, and exits 0 |
 | gaps-usage-error | command gaps | system | red | no folder | gaps is run without arguments | it prints how to use it and exits 2 |
 | generate-bpmn | command generate | system | golden | a specification with no approval record, a workflow of two approvals, the first escalating to the second after a day, and an operation step, warnings at the workflow and its operations, and a could question on the second approval's deadline; specarch-gen-bpmn built from this repository on PATH | generate bpmn is run with --unapproved | it writes waiver.bpmn, BPMN 2.0 with its diagram, and waiver.svg, both labelled as a draft, with each warning marked before the element it concerns and the question before the deadline's timer, and exits 0 |
@@ -8730,6 +8821,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | merge-workflows-table-and-bpmn | command merge | system | golden | the tree extract workflows wrote of a BPMN file defining the write-off workflow, and the tree extract workflows --table wrote of the workflow table of the same workflow in an engine's own format, both read from one repository at one commit | merge is run on the two trees | it writes one workflow write-off whose description and steps both trees give alike, citing the BPMN file and the table's definition file, role desk-supervisor citing both, the source's clauses joined, each question the table's tree asks again at the same key left out as asked twice, the could question for the form kept, and exits 0 |
 | validate-accessibility | command validate | system | red | a specification that names WCAG 2.2 at level AA, whose pages show or filter by a field with a title and two without one, and a page with two actions of the same label | validate is run | it reports accessibility for each field without a title, naming the pages that show it or filter by it, and for the second action, and exits 1 |
 | validate-algorithm | command validate | system | red | an operation that names an algorithm that does not exist | validate is run | it reports algorithm and exits 1 |
+| validate-audience | command validate | system | red | an internal need, enum and entity, named by a requirement, an entity's field, a relation and a page that are for everyone, and by an internal relation and an internal operation | validate is run | it reports the error audience at each name an element for everyone gives, and none inside the internal elements, and exits 1 |
 | validate-change-applied | command validate | system | red | an implemented change whose addition is missing and whose removal is still there, and an approved change that changes a missing requirement and adds a test that already exists | validate is run | it reports change_applied errors for the first and the missing requirement, a change_applied warning for the test, and exits 1 |
 | validate-change-decision | command validate | system | red | an approved change without a decision, and a rejected change whose decision's outcome is approved | validate is run | it reports change_decision for each and exits 1 |
 | validate-change-log-warning | command validate | system | golden | a description that says how the file changed | validate is run | it warns with change_log and exits 0, since the file is still valid |
@@ -8858,6 +8950,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-release-version | command validate | system | red | info.version 1.1.0-dev with no planned release 1.1.0, and a release whose specificationVersion is not its version | validate is run | it reports release_version at info.version and at the specificationVersion, and exits 1 |
 | validate-releases-valid | command validate | system | golden | releases 0.1.0 and 0.2.0, the second with a major change, a planned 1.0.0, and info.version 1.0.0-dev | validate is run | the minor step is enough before 1.0.0, the pre-release matches the planned release, it prints nothing and exits 0 |
 | validate-requirement | command validate | system | red | a satisfies link to a requirement the specification does not have | validate is run | it reports requirement and exits 1 |
+| validate-requirement-fulfilled-by | command validate | system | red | two requirements another stakeholder owns, each fulfilled by a requirement of a specification given in the same run, one that it has and one that it does not | validate is run on both specifications | the requirement it has resolves, the one it does not have is refused as reference with the requirements it has suggested, and it exits 1 |
+| validate-requirement-owned | command validate | system | red | a design and a test that satisfy and verify no requirement, a requirement another stakeholder owns, one owned by a name that is not a stakeholder, and one with fulfilledBy and no ownedBy | validate is run | the owned requirement draws no requirement_unsatisfied or requirement_unverified warning, the unknown owner is refused as stakeholder, fulfilledBy without ownedBy is refused by the schema, and it exits 1 |
 | validate-requirement-release | command validate | system | red | requirements meant for a released release, a planned one, a withdrawn one, a version with no release record, and a version that is not major.minor.patch | validate is run | it reports record_ref for the withdrawn release and the missing one, schema for the malformed version, accepts the released and the planned one, and exits 1 |
 | validate-requirement-set | command validate | system | golden | a source of kind requirement-set with prefix JIRA, and an entity that satisfies JIRA-12 | validate is run | the link resolves to the set, it prints nothing and exits 0 |
 | validate-requirements-only | command validate | system | golden | a specification with stakeholders, a need and a requirement that refines it, and no other stage | validate is run | it prints nothing and exits 0 |
@@ -8994,6 +9088,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-63 | A permission shall be able to imply other permissions, and every check of what a role grants shall count what its permissions imply; specarch extract permissions shall read a permission table's pattern rules into permissions named by a fixed rule, with the implications pattern inclusion gives, and each route's one permission. | functional | must | accepted | test | implies on a permission lists permissions a holder holds too, transitively; an undeclared name, public implied or implying, and a cycle are refused as implies at the entry, the same in both builds. The grants check, separation of duties, workflow approvals, pickers, flows, the derived red case's caller, the merge's unchecked line, the techspec's matrix and the generated grants count what a role's permissions imply. A permission table's rules (a role, a pattern, the methods or *, and the matcher) become one permission per distinct pattern and method pair, named from the pattern's literal words and the method, each implying the ones its pattern and methods cover, and each role granted the permissions of its rows. Given the route table with --routes, each route's permission is the matching one every other match implies; a route two permissions match with neither implying the other and a route no rule reaches are must questions at the operation, and a permission no route reaches is a could question. | NEED-2 |
 | SA-65 | A specification shall be able to name an element of another specification through a dependency, and specarch validate shall check such a reference against that specification when it is given in the same run, and count it as unresolved, not as an error, when it is not. | functional | must | accepted | test | info.name gives a specification its name; a dependency's specification and version name another specification and the info.version its references were written against, each only with the other. <dependency>#/<pointer> stands in a field's $ref (an entity, enum, view or schema), a many-to-one or one-to-one relation's target and a list page's entity (an entity), and a picker's source, a list page's source and an entry of calls (an operation as A reference through a name that is not a dependency, through a dependency with no specification, in a one-to-many or many-to-many relation, on a page that is not a list, or whose page or picker reads one specification's list for another's entity is refused as reference at the entry, the same in both builds. Given the other specification in the same run, an element it does not have, a list that does not list the entity, a column, filter or picked field the entity does not have, and a dependency whose version is not the other's info.version are refused as reference at the entry, the same in both builds. A reference whose specification is not given, or whose element is blocked there by a must question, is counted in validate's summary as unresolved and listed in gaps and the questions document, and validate exits 0 for it. specarch generate sql writes the column of a relation to another specification's entity with no foreign key, and the techspec names each reference with the specification and version it points at. | NEED-2 |
 | SA-66 | An estate file shall list the specifications of an estate's modules by name, each with its folder and the version the estate holds, and specarch validate, gaps and document techspec shall read every module through it and check each against its entry. | functional | must | accepted | test | specarch-estate.yaml holds specarchEstate, info and modules, each module keyed by its specification's info.name with its location, a folder relative to the file, and its version; it holds nothing of a module. Naming an estate, or a folder that holds one, to validate, gaps or document brings every module's specification into the run once, so the references between modules resolve as when each is named. A module whose folder holds no specification, whose info.name is not its key or is missing, whose info.version is not the version listed, or whose operations' calls come back to it through the other modules is refused as module at the module's entry, the same in both builds. gaps prints the estate's problems before the modules' open questions documents, and exits 1 when the estate has an error. document techspec on an estate writes estate.md, the module map with the references between the modules drawn as a flowchart. | NEED-2 |
+| SA-67 | Every element of a specification shall be able to say that it is internal, for the people who build and run the system only, and specarch document shall write a document for everyone without the internal elements, saying how many it left out in each section. | functional | must | accepted | test | audience internal is accepted on every element named by a key; left out, an element is for everyone. An element for everyone that names an internal element through a $ref, a relation's target, a page's entity or a requirement's needs is refused as audience at that name, the same in both builds; an element inside an internal one is internal with it. document --audience external writes every document but problems without the internal elements, the errors at them, the open questions that block only them and the links that name them, and its summary says how many elements it left out in each section. Every document written without --audience marks each internal element it shows. | NEED-3 |
+| SA-68 | A requirement shall be able to name the stakeholder whose component fulfils it, and the requirement of another specification that does, and the validator shall then ask no element to satisfy it and no test to verify it. | functional | must | accepted | test | ownedBy on a requirement names a stakeholder of the specification, or is refused as stakeholder. A requirement with ownedBy draws neither requirement_unsatisfied nor requirement_unverified, in both builds. fulfilledBy, written <dependency>#/requirements/<id> beside ownedBy, is checked as a reference into the other specification when it is given in the same run, and is counted as unresolved otherwise. The traceability document lists the requirements held elsewhere under a heading of their own, with the stakeholder and the requirement that fulfils each, and leaves them out of its gaps. | NEED-5 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -9102,6 +9198,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-65:** An estate of modules owned by different teams is specified one module at a time, and a module keeps another's customer number, picks from another's list and calls another's operations; with $ref reaching only its own specification, those links were prose, and nothing checked them when the two specifications met.
 
 **Insight on SA-66:** An estate's consistency is checked where the estate is, in one run over every module, and the umbrella that does it lists and pins the modules rather than copying them, so each team's specification stays the one truth of its module.
+
+**Insight on SA-67:** A note from inside the team must never reach the customer's documents, and a rule read by people does not keep it out; one key on the element and one check of what names it do.
+
+**Insight on SA-68:** A promise in the customer's documents that another component keeps belongs in the specification, and without a form for it the validator asks for what satisfies and verifies it here, or the promise is left out and its trace is lost.
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
@@ -9241,6 +9341,8 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-64 | commands extract; commands merge; decisions ADR-105 | tests extract-documents-language-not-shipped; tests extract-documents-vocabulary; tests extract-documents-vocabulary-word-twice; tests merge-documents-days-vocabulary; tests merge-documents-language-not-given; tests validate-schema-language-tag |
 | SA-65 | commands gaps; commands validate; decisions ADR-112 | tests gaps-references-blocked; tests gaps-references-unresolved; tests generate-openapi-reference-refused; tests generate-sql-reference; tests validate-references; tests validate-references-wrong |
 | SA-66 | commands document; commands gaps; commands validate; decisions ADR-113 | tests document-estate-map; tests gaps-estate; tests validate-estate; tests validate-estate-cycle; tests validate-estate-modules-wrong |
+| SA-67 | enums Rule; commands document; decisions ADR-119 | tests document-audience-external; tests document-audience-marked; tests document-audience-needs-out; tests document-audience-problems-refused; tests document-audience-value-refused; tests validate-audience |
+| SA-68 | enums Rule; commands document; decisions ADR-119 | tests document-audience-external; tests document-audience-marked; tests gaps-references-fulfilled-by; tests validate-requirement-fulfilled-by; tests validate-requirement-owned |
 
 ## Sources
 

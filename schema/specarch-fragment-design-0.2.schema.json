@@ -382,6 +382,13 @@
       "type": "string",
       "pattern": "^ADR-[0-9]{3,}$"
     },
+    "audience": {
+      "description": "SpecArch keyword. Who the element is for. internal: only the people who build and run the system, such as a note from inside the team or a requirement written as a proposal below the promises; specarch document --audience external leaves the element out and counts it, and every other document marks it. Left out, the element is for everyone. An element for everyone may not name an internal one through a $ref, a relation's target, a page's entity or a requirement's needs, since a document for everyone would then name what it may not show.",
+      "type": "string",
+      "enum": [
+        "internal"
+      ]
+    },
     "markdown": {
       "description": "Prose in Markdown.",
       "type": "string"
@@ -442,6 +449,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -943,6 +953,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -1016,6 +1029,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -1083,6 +1099,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -1225,6 +1244,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -1269,6 +1291,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -1319,6 +1344,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -1364,6 +1392,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "anyOf": [
@@ -1605,6 +1636,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -1762,6 +1796,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -1805,6 +1842,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -1856,6 +1896,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -2046,6 +2089,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -2315,6 +2361,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -2429,6 +2478,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -2943,6 +2995,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -3059,6 +3114,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -3276,6 +3334,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -3553,6 +3614,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -3671,6 +3735,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -3780,6 +3847,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -3832,6 +3902,9 @@
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [

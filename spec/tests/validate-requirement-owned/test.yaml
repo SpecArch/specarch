@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a design and a test that satisfy and verify no requirement, a requirement another stakeholder owns, one owned by a name that is not a stakeholder, and one with fulfilledBy and no ownedBy"
+when: "validate is run"
+then: "the owned requirement draws no requirement_unsatisfied or requirement_unverified warning, the unknown owner is refused as stakeholder, fulfilledBy without ownedBy is refused by the schema, and it exits 1"
+verifies: [SA-68]

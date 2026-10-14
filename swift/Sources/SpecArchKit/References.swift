@@ -47,7 +47,7 @@ private struct Ref {
     let text: String
     let dep: String
     let pointer: String
-    let kind: String   // ref, target, entity, source, picker or calls
+    let kind: String   // ref, target, entity, source, picker, calls or fulfilledBy
     let owner: YNode   // the relation, page or picker it stands in
     let page: YNode?   // for a picker, its page
 }
@@ -65,6 +65,8 @@ private func collectRefs(_ d: Design) -> [Ref] {
         }
         if path.count == 4 && path[0] == "entities" && path[2] == "relations" {
             add(n.child("target"), path + ["target"], "target", n, nil)
+        } else if path.count == 2 && path[0] == "requirements" {
+            add(n.child("fulfilledBy"), path + ["fulfilledBy"], "fulfilledBy", n, nil)
         } else if path.count == 2 && path[0] == "pages" {
             add(n.child("entity"), path + ["entity"], "entity", n, nil)
             add(n.child("source"), path + ["source"], "source", n, nil)
@@ -178,8 +180,8 @@ private final class Resolver {
         let about = "\(o.name) \(o.version)"
         if tokens.count == 2 {
             let section = tokens[0], el = tokens[1]
-            let sets: [String: [String: YNode]] = ["entities": od.entities, "enums": od.enums, "views": od.views, "schemas": od.schemas]
-            let what: [String: String] = ["entities": "an entity", "enums": "an enum", "views": "a view", "schemas": "a schema"]
+            let sets: [String: [String: YNode]] = ["entities": od.entities, "enums": od.enums, "views": od.views, "schemas": od.schemas, "requirements": od.requirements]
+            let what: [String: String] = ["entities": "an entity", "enums": "an enum", "views": "a view", "schemas": "a schema", "requirements": "a requirement"]
             let elements = sets[section] ?? [:]
             if sets[section] == nil || elements[el] == nil {
                 return fail(r.node, r.path, "\(el) is not \(what[section] ?? "") of \(about)\(suggest(el, elements))")

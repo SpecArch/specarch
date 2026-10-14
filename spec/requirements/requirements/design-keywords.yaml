@@ -345,3 +345,29 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: An estate's consistency is checked where the estate is, in one run over every module, and the umbrella that does it lists and pins the modules rather than copying them, so each team's specification stays the one truth of its module.
+  SA-67:
+    statement: Every element of a specification shall be able to say that it is internal, for the people who build and run the system only, and specarch document shall write a document for everyone without the internal elements, saying how many it left out in each section.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - audience internal is accepted on every element named by a key; left out, an element is for everyone.
+      - An element for everyone that names an internal element through a $ref, a relation's target, a page's entity or a requirement's needs is refused as audience at that name, the same in both builds; an element inside an internal one is internal with it.
+      - document --audience external writes every document but problems without the internal elements, the errors at them, the open questions that block only them and the links that name them, and its summary says how many elements it left out in each section.
+      - Every document written without --audience marks each internal element it shows.
+    verification: test
+    needs: [NEED-3]
+    why: A note from inside the team must never reach the customer's documents, and a rule read by people does not keep it out; one key on the element and one check of what names it do.
+  SA-68:
+    statement: A requirement shall be able to name the stakeholder whose component fulfils it, and the requirement of another specification that does, and the validator shall then ask no element to satisfy it and no test to verify it.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - ownedBy on a requirement names a stakeholder of the specification, or is refused as stakeholder.
+      - A requirement with ownedBy draws neither requirement_unsatisfied nor requirement_unverified, in both builds.
+      - fulfilledBy, written <dependency>#/requirements/<id> beside ownedBy, is checked as a reference into the other specification when it is given in the same run, and is counted as unresolved otherwise.
+      - The traceability document lists the requirements held elsewhere under a heading of their own, with the stakeholder and the requirement that fulfils each, and leaves them out of its gaps.
+    verification: test
+    needs: [NEED-5]
+    why: A promise in the customer's documents that another component keeps belongs in the specification, and without a form for it the validator asks for what satisfies and verifies it here, or the promise is left out and its trace is lost.

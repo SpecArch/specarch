@@ -404,6 +404,9 @@ func (s *site) overview() {
 	}
 	s.line("<p>%s.</p>", strings.Join(facts, "; "))
 
+	if n := s.d.withheld.audienceNotice(); n != "" {
+		s.line(`<p class="notice">%s</p>`, bold(n))
+	}
 	if ids := holding(s.d.questions, []string{"*"}); len(ids) > 0 {
 		s.line(`<p class="notice draft"><strong>Draft:</strong> %s hold up what this page shows (%s); see <a href="#%s">Open questions</a>.</p>`, esc(countText(len(ids), "must or should question", "must or should questions")), esc(strings.Join(ids, ", ")), esc(anchor("/questions")))
 	}
@@ -517,6 +520,10 @@ func (s *site) extras(key, name string, n *yaml.Node) {
 			s.line(`<p class="note">No screen preview: %s</p>`, esc(why))
 		}
 	case "requirements":
+		if held := heldElsewhere(n); held != "" {
+			s.line(`<p class="trace"><strong>Held elsewhere:</strong> %s.</p>`, esc(held))
+			break
+		}
 		trace := s.trace()
 		s.line(`<p class="trace"><strong>Satisfied by:</strong> %s. <strong>Verified by:</strong> %s.</p>`, s.links(trace.satisfied[name], "nothing yet"), s.links(trace.verified[name], "nothing yet"))
 	case "separationOfDuties":
@@ -1043,6 +1050,10 @@ func (s *site) traceability() {
 			needs = append(needs, s.linkName("needs", n))
 		}
 		gap := ""
+		if held := heldElsewhere(r.Value); held != "" {
+			s.line(`<tr data-search><th scope="row">%s</th><td>%s</td><td colspan="2">Held elsewhere: %s</td></tr>`, s.linkName("requirements", r.Key.Value), strings.Join(needs, ", "), esc(held))
+			continue
+		}
 		if len(t.satisfied[r.Key.Value]) == 0 || len(t.verified[r.Key.Value]) == 0 {
 			gap = ` class="gap"`
 		}

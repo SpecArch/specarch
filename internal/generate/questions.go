@@ -68,6 +68,9 @@ type State struct {
 	// References are the references into other specifications that the
 	// run could not resolve, in document order.
 	References []Reference
+	// Withheld is, for a document for everyone, the internal elements it
+	// left out (ADR-119); nil for a document that holds every element.
+	Withheld *Withheld
 }
 
 // Reference is one reference into another specification that waits: the
@@ -183,6 +186,7 @@ func holding(qs []question, sections []string) []string {
 // concern what it covers, and then the problems notice.
 func (d *doc) draftNotice(target string) {
 	defer d.problemsNotice(target)
+	d.para(d.withheld.audienceNotice())
 	ids := holding(d.questions, documentReads[target])
 	if len(ids) == 0 {
 		return
@@ -295,6 +299,7 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 		d.para(fmt.Sprintf("Version %s of the specification: %s (%d must, %d should, %d could). A must question holds up everything that reads what it blocks; a should question holds up code generation and approval until the stakeholder confirms what was inferred; a could question holds up nothing. Each is answered by the stakeholder named, with a decision record that names the question under answers; the question is then removed.",
 			str(info, "version"), countText(len(qs), "open question", "open questions"), must, should, could))
 	}
+	d.para(d.withheld.audienceNotice())
 	if str(info, "tracksOrigin") == "true" {
 		stated, inferred, decided, none := originCounts(root)
 		d.para(fmt.Sprintf("Elements by origin: %d stated, %d inferred, %d decided, %d without origin.", stated, inferred, decided, none))

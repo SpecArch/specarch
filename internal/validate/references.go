@@ -75,7 +75,7 @@ type ref struct {
 	text    string
 	dep     string
 	pointer string
-	kind    string     // ref, target, entity, source, picker or calls
+	kind    string     // ref, target, entity, source, picker, calls or fulfilledBy
 	owner   *yaml.Node // the relation, page or picker it stands in
 	page    *yaml.Node // for a picker, its page
 }
@@ -98,6 +98,8 @@ func collectRefs(d *design) []ref {
 		switch {
 		case len(path) == 4 && path[0] == "entities" && path[2] == "relations":
 			add(source.Child(n, "target"), at("target"), "target", n, nil)
+		case len(path) == 2 && path[0] == "requirements":
+			add(source.Child(n, "fulfilledBy"), at("fulfilledBy"), "fulfilledBy", n, nil)
 		case len(path) == 2 && path[0] == "pages":
 			add(source.Child(n, "entity"), at("entity"), "entity", n, nil)
 			add(source.Child(n, "source"), at("source"), "source", n, nil)
@@ -229,9 +231,9 @@ func (rv *resolver) resolve(r ref) referenceResult {
 	about := fmt.Sprintf("%s %s", o.name, o.version)
 	if len(tokens) == 2 {
 		section, el := tokens[0], tokens[1]
-		elements := map[string]map[string]*yaml.Node{"entities": od.entities, "enums": od.enums, "views": od.views, "schemas": od.schemas}[section]
+		elements := map[string]map[string]*yaml.Node{"entities": od.entities, "enums": od.enums, "views": od.views, "schemas": od.schemas, "requirements": od.requirements}[section]
 		if elements == nil || elements[el] == nil {
-			return fail(r.node, r.path, "%s is not %s of %s%s", el, map[string]string{"entities": "an entity", "enums": "an enum", "views": "a view", "schemas": "a schema"}[section], about, suggest(el, elements))
+			return fail(r.node, r.path, "%s is not %s of %s%s", el, map[string]string{"entities": "an entity", "enums": "an enum", "views": "a view", "schemas": "a schema", "requirements": "a requirement"}[section], about, suggest(el, elements))
 		}
 	}
 	var op operation

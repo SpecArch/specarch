@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-0.2.schema.json
+command: document
+level: system
+scenario: red
+covers: [usage error]
+given: "--audience internal, a value it does not have"
+when: "document is run"
+then: "it prints the usage error naming external as the one value and exits 2 without reading the folder"
+verifies: [SA-67]

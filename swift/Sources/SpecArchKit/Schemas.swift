@@ -580,6 +580,13 @@ let designSchemaJSON = #"""
       "type": "string",
       "pattern": "^ADR-[0-9]{3,}$"
     },
+    "audience": {
+      "description": "SpecArch keyword. Who the element is for. internal: only the people who build and run the system, such as a note from inside the team or a requirement written as a proposal below the promises; specarch document --audience external leaves the element out and counts it, and every other document marks it. Left out, the element is for everyone. An element for everyone may not name an internal one through a $ref, a relation's target, a page's entity or a requirement's needs, since a document for everyone would then name what it may not show.",
+      "type": "string",
+      "enum": [
+        "internal"
+      ]
+    },
     "markdown": {
       "description": "Prose in Markdown.",
       "type": "string"
@@ -834,6 +841,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -888,6 +898,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -992,6 +1005,16 @@ let designSchemaJSON = #"""
           "type": "string",
           "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
         },
+        "ownedBy": {
+          "description": "SpecArch keyword. The stakeholder whose component fulfils the requirement, when it is not this system: the requirement stays in the specification as a promise, and the validator asks no element to satisfy it and no test, check or monitor to verify it. The same word names the owner of a mapping in an implementation file.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "fulfilledBy": {
+          "description": "SpecArch keyword. With ownedBy: the requirement of another specification that fulfils this one, through a dependency that names that specification: the dependency's name, #/requirements/ and the ID, such as cardIssuer#/requirements/CI-4. It is resolved when that specification is given in the same run, and counted as unresolved otherwise.",
+          "type": "string",
+          "pattern": "^[a-z][A-Za-z0-9]*#/requirements/[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+        },
         "why": {
           "$ref": "#/$defs/why"
         },
@@ -1003,6 +1026,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -1011,6 +1037,11 @@ let designSchemaJSON = #"""
         "priority",
         "status"
       ],
+      "dependentRequired": {
+        "fulfilledBy": [
+          "ownedBy"
+        ]
+      },
       "propertyNames": {
         "not": {
           "$ref": "#/$defs/stackSpecificKey"
@@ -1041,6 +1072,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -1075,6 +1109,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -1118,6 +1155,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -1175,6 +1215,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -1676,6 +1719,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -1749,6 +1795,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -1816,6 +1865,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -1958,6 +2010,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -2002,6 +2057,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -2052,6 +2110,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -2097,6 +2158,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "anyOf": [
@@ -2338,6 +2402,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -2495,6 +2562,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -2538,6 +2608,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -2589,6 +2662,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -2779,6 +2855,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -3048,6 +3127,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -3162,6 +3244,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -3676,6 +3761,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -3792,6 +3880,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -4009,6 +4100,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -4330,6 +4424,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -4530,6 +4627,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -4573,6 +4673,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -4618,6 +4721,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -4664,6 +4770,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -4721,6 +4830,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -4772,6 +4884,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -4842,6 +4957,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -5040,6 +5158,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -5158,6 +5279,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -5267,6 +5391,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [
@@ -5319,6 +5446,9 @@ let designSchemaJSON = #"""
         },
         "decidedIn": {
           "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
         }
       },
       "required": [

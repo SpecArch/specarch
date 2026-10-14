@@ -236,6 +236,16 @@ element's audience and a requirement held elsewhere, with fourteen items
 in order and the owner's questions. Every keyword in it is an addition,
 so none waits for 0.3.
 
+The same estate's services call each other on a person's behalf, and
+`docs/caller-context.md` designs the four inputs of an authorisation
+decision beyond the person and the roles: the application the person
+signed in through as a condition on a grant (`kind` on a client,
+`through` on a role), the calling service with grants of its own, the
+delegation chain as RFC 8693's `act` claim with `via` on a token and an
+operation, and the audience per hop as `aud` required on every accepted
+token, with the confused-deputy red cases. It amends 0.3's steps 3 and
+4 before they are built and ends with the owner's questions.
+
 ## 6. Changes, defects, releases and operation
 
 The life after commissioning, designed in `docs/maintenance.md`: change

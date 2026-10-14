@@ -329,7 +329,11 @@ call is in the left-out table because no system asked for one
 by accident or by design, which is exactly what the question asks the
 owners. Whether 0.3 reopens that row, with a `callers: all` that the
 validator reports as every client reaching the operation, is the
-owner's question 3; until then the gate's question is the record.
+owner's question 3; until then the gate's question is the record. The
+meta-model side of the calling service, and the three inputs beside it
+(the application a person signed in through, the delegation chain and
+the audience per hop), are designed in `docs/caller-context.md`, which
+recommends `callers: all` for question 3.
 
 ### 7. The schema file's name, and the facts dump from the installed binary
 

@@ -273,6 +273,15 @@ schema is the token, and the actor rule is checked where the delegated
 token is accepted, which is where a requirement such as "the actor claim
 never equals the subject" is held against the binding.
 
+`docs/caller-context.md` designs what a service that is called on a
+person's behalf through other services needs beyond this: the
+application the person signed in through as a condition on a grant, a
+client of `kind: service` with no roles that only acts for people, the
+delegation chain as RFC 8693's registered `act` claim in place of the
+`actor` string above, with `via` naming the chains accepted, and `aud`
+required on every token a service accepts. The owner's answers to its
+questions settle what steps 3 and 4 build.
+
 ## Left out of 0.3
 
 | Candidate | Why it waits |
@@ -280,8 +289,8 @@ never equals the subject" is held against the binding.
 | seed data per profile | The permissions reader is built and reads one seed set into roles and permissions. Two profiles whose permission codes differ are two role models, not one with settings: each is extracted on its own, and `specarch merge` asks about every difference, which is where the two are compared. A value that differs by environment (a session limit of three in production) is a setting's value per deployment in the implementation file; a check that a requirement's number agrees with a deployment's value is a small item of its own, not a meta-model keyword. |
 | data held in a cache with an expiry, and tables kept but unused | Where data is held is the implementation file's; a record that expires is `validity`; an unused table is a mapping marked `ownedBy` or a question. |
 | more than one deliverable per specification | An implementation file is one stack's, and a second deliverable is a second implementation file of the same specification, naming what it builds in its mappings and targets. A design keyword waits for a second front end to be specified. |
-| the roles or the client in an expression | No rule needs them: rows are written per role, and a gate names its clients. Taking them would need sets in the expression language. |
-| a route both people and clients call | Not asked for; two operations with one handler say it. |
+| the roles or the client in an expression | No rule needs them: rows are written per role, and a gate names its clients. Taking them would need sets in the expression language. `docs/caller-context.md` keeps the row: the application, the calling service, the chain and the audience are each a condition declared by name. |
+| a route both people and clients call | Not asked for; two operations with one handler say it. An estate whose reporting service reads the list people read asks for it; `docs/estate.md`, question 3, and `docs/caller-context.md`, question 5, put `callers: all` to the owner. |
 | a shorthand for a tenant scope on every entity | Written per entity until a specification is long enough to want it. |
 | rows rules on a view's or a page's own fields | A rule is over the entity, and a view or page shows the entity's rows; a rule over a view's derived fields would be a second place to say it. |
 

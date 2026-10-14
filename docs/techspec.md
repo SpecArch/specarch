@@ -2420,8 +2420,9 @@ A release is a tagged commit of this repository; nothing is uploaded anywhere, s
 | Step | Action | Check |
 |---|---|---|
 | 1. Check the tree | Run the implementation's build, test, validate and document --check tasks on the commit to release. | Every task exits 0. |
-| 2. Tag the commit | Tag the commit with the program version, as the version command prints it. | The tag's name equals the output of specarch version. |
-| 3. Announce | Write the release in the history file of the day, with the tag. | The history file names the tag. |
+| 2. Point the editor hints | An editor hint names the newest tag that serves the schema it points at. When a schema changed since the last tag, point every hint, and the schema line extract writes, at the tag about to be made, in a commit before it; when no schema changed, the hints stay at the tag they name. | The schemas at the tag every hint names are the same files as on the commit to release. |
+| 3. Tag the commit | Tag the commit with the program version, as the version command prints it. | The tag's name equals the output of specarch version. |
+| 4. Announce | Write the release in the history file of the day, with the tag. | The history file names the tag. |
 
 ### Rollback
 

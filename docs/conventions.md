@@ -61,11 +61,16 @@ file's pointers use.
 
 The first line of the root file is the editor hint:
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.0/schema/specarch-design-0.2.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.2/schema/specarch-design-0.2.schema.json
 
 For an implementation file:
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.0/schema/specarch-implementation-0.1.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v0.6.2/schema/specarch-implementation-0.1.schema.json
+
+A hint names the newest release tag that serves its schema. A release
+whose schemas changed moves every hint, and the schema line `extract`
+writes, to its own tag before tagging; a release whose schemas did not
+change leaves them at the tag they name (`docs/deployment.md`, Release).
 
 The design schema describes the merged document, so a file under a stage
 folder, which holds only some of its sections, has a schema of its own:

@@ -23,7 +23,12 @@ type subject struct {
 	yamlKey string // the subject keys of a test, in flow style
 	name    string // for the suggested test name
 	raw     string // the subject's own name inside its case names, if any
-	cases   []derivedCase
+	// renamed says why the name has a suffix: another subject's name gave
+	// the same test name once both were made valid names. validNames
+	// notes the name without the suffix and that subject, and the text
+	// is written once the name is final.
+	renamed, unsuffixed, suffixed, renamedBy string
+	cases                                    []derivedCase
 	// success is the golden path the design implies: what a caller
 	// allowed to do it sends inside every limit, and the outcome.
 	success derivedCase
@@ -164,7 +169,75 @@ func (d *design) subjects() []*subject {
 			out = append(out, s)
 		}
 	}
+	validNames(out)
 	qualifyShared(out)
+	for _, s := range out {
+		if s.renamedBy != "" {
+			// qualifyShared may have put the subject key in front.
+			key := strings.TrimSuffix(s.name, s.suffixed)
+			s.renamed = fmt.Sprintf("its test name is %s, not %s, which %s gives as well once both are valid names", s.name, key+s.unsuffixed, s.renamedBy)
+		}
+	}
+	return out
+}
+
+// validNames makes every subject's name a valid test name, kebab-case
+// with a letter first, as a test folder's name must be: a requirement
+// AB-1.2 gives ab-1-2, every character other than a small letter or a
+// digit becoming a hyphen, and a name that starts with no letter gets its
+// subject key before it. Where two subjects of one key had different
+// names that give the same valid name, each after the first in document
+// order takes a suffix, -2, -3, until its name is free, and says so;
+// subjects whose names were the same to start with are left as they are,
+// which derive reports as names taken.
+func validNames(subjects []*subject) {
+	type key struct{ word, name string }
+	type holder struct{ name, label string }
+	first := map[key]holder{} // a valid name to the subject that gave it first
+	taken := map[key]bool{}
+	for _, s := range subjects {
+		taken[key{subjectKeyWord(s), validName(s.name, subjectKeyWord(s))}] = true
+	}
+	for _, s := range subjects {
+		word := subjectKeyWord(s)
+		valid := validName(s.name, word)
+		h, seen := first[key{word, valid}]
+		if !seen {
+			first[key{word, valid}] = holder{s.name, s.label}
+		}
+		if !seen || h.name == s.name {
+			s.name = valid
+			continue
+		}
+		name := valid
+		for n := 2; taken[key{word, name}]; n++ {
+			name = valid + "-" + strconv.Itoa(n)
+		}
+		taken[key{word, name}] = true
+		s.unsuffixed, s.suffixed, s.renamedBy = valid, name, h.label
+		s.name = name
+	}
+}
+
+// validName makes a name kebab-case: small letters and digits (a capital
+// letter of A to Z made small), every run of other characters one hyphen, none at either end, and a letter first,
+// putting the subject key before a name that has none.
+func validName(name, word string) string {
+	var b strings.Builder
+	for _, r := range name {
+		if r >= 'A' && r <= 'Z' {
+			r += 'a' - 'A'
+		}
+		if r >= 'a' && r <= 'z' || r >= '0' && r <= '9' {
+			b.WriteRune(r)
+		} else if b.Len() > 0 && !strings.HasSuffix(b.String(), "-") {
+			b.WriteByte('-')
+		}
+	}
+	out := strings.TrimSuffix(b.String(), "-")
+	if out == "" || out[0] < 'a' || out[0] > 'z' {
+		out = strings.TrimSuffix(word+"-"+out, "-")
+	}
 	return out
 }
 

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 0.6.3 of the specification: 62 requirements, 5 entities, 12 commands, 7 algorithms, 416 tests, 99 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.6.3 of the specification: 62 requirements, 5 entities, 12 commands, 7 algorithms, 419 tests, 100 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -429,7 +429,17 @@ exit, or the caller of a denied case, where the design says them for
 certain.
 
 A test is named after its subject, then its case: `create-loan-succeeds`.
-When subjects of different kinds give the same name, as page `sign-in`
+The subject's name is made a valid test name first, kebab-case with
+a letter first: small letters and digits, every run of other
+characters one hyphen, so requirement `AB-1.2` gives
+`ab-1-2-acceptance-1`, and a name that starts with no letter takes
+its subject key in front. The draft keeps the subject's own name in
+its keys and `verifies`. Where two subjects of one key have
+different names that give the same valid name, as `AB-1.2` and
+`AB-1_2` do, each after the first in document order takes a suffix,
+`-2`, `-3`, until its name is free; derive asks about it on standard
+error with `question:`, naming the subject that gave the name first,
+and the draft's `why` says it too. When subjects of different kinds give the same name, as page `sign-in`
 and operation `signIn` both give `sign-in`, each of them takes its
 subject key in front: `page-sign-in-succeeds` and
 `operation-sign-in-succeeds`. A draft whose name is still taken, by
@@ -447,7 +457,7 @@ keeps its tests in the root file is refused: each derived test needs
 a folder of its own. Writing tests changes the specification, so an
 approval of it no longer holds.
 
-**Insight:** The validator already says which tests a specification implies and gives each one to copy; writing them out is the step that turns the warnings into a test suite the author completes, instead of one the author types out from the warnings. A name takes its subject key only when it is shared, so the names of a specification without a shared one stay short; writing one of two drafts of a name would leave the other unwritten with nothing said, so a name that is still shared is an error at each draft. The missing-test errors of a 0.2 file do not stop it, because a command that refused the errors it exists to settle could never be run on the file that needs it (ADR-055).
+**Insight:** The validator already says which tests a specification implies and gives each one to copy; writing them out is the step that turns the warnings into a test suite the author completes, instead of one the author types out from the warnings. A name takes its subject key only when it is shared, so the names of a specification without a shared one stay short; writing one of two drafts of a name would leave the other unwritten with nothing said, so a name that is still shared is an error at each draft. The missing-test errors of a 0.2 file do not stop it, because a command that refused the errors it exists to settle could never be run on the file that needs it (ADR-055). A name made valid rather than copied, because a folder whose name validate refuses would make the tree derive writes one validate refuses, and every tree a command writes passes validate (ADR-122); a suffix and a question rather than an error, because the two subjects are different and each draft can be written, and the reviewer who reads the question decides whether the name suits.
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
@@ -459,7 +469,7 @@ Writes `tests/<name>/test.yaml under each specification's folder`: One draft tes
 
 Standard output: The errors of an invalid specification, one line each; otherwise the path of each test written, one per line.
 
-Standard error: A usage message on a usage error, the reason on an unreadable path, each test left out, kept or not written with the reason, and the count written.
+Standard error: A usage message on a usage error, the reason on an unreadable path, each test left out, kept or not written with the reason, a question for each test whose name took a suffix, and the count written.
 
 ```mermaid
 sequenceDiagram
@@ -1224,10 +1234,27 @@ The sources this build reads:
   of their router types, net/http's default mux, or a value of a
   type of the module that has `ServeMux`'s `Handle` or `HandleFunc`
   method, which is read as a `ServeMux`. The walk starts at each
-  function no call in the module names, follows every call of the
-  module's functions found by syntax, binding the routers it
-  passes, and then walks each function not reached with the
-  routers it is given as ones whose place is not known. A group, a
+  function no call in the module names or passes as a value,
+  follows every call of the module's functions found by syntax,
+  binding what it passes to the parameters as far as syntax shows
+  it (a router, a literal string, a function literal or a function
+  of the module), follows a call of a function literal held in a
+  local name or bound to a parameter the same way, in the scope the
+  literal is written in, even where a function it was passed to
+  calls it, a loop or a condition that function calls it behind
+  still holding, and a name declared in a block, a router, a
+  string or a literal, holding to the end of that block, so that a
+  helper taking a prefix and a function registering routes under
+  it is followed through both; walks a literal declared in a block
+  that no call walked at the end of that block, the last declared
+  first; counts a registration, and writes it or asks about it,
+  once for each call, router, arguments and whether it is behind a
+  loop or a condition, however often the walk reaches it;
+  walks a literal no call names, or passed to a call that never
+  calls it, once with nothing bound; and then walks each function
+  not reached, and each literal reached with nothing bound, with
+  the routers it is given as ones whose place is not known. A
+  group, a
   `Route`, a `Mount`, a subrouter under `PathPrefix` and a
   `ServeMux` pattern ending in a slash that hands a router its
   subtree, through `StripPrefix` or not, join their literal prefix
@@ -2126,7 +2153,16 @@ runs again into the merged specification, as extract runs it
   an operation by its path and method, a field by its entity and
   name) becomes one element with the citations of both. A key only
   one tree writes is kept. A key the trees give different values is
-  left out, and a must question cites both and blocks it. An
+  left out, and a must question cites both and blocks it. A
+  field's `type` is kept instead, since a field is not read without
+  one (ADR-122): the union of the types where they differ only in
+  whether null is allowed, else the first tree's type, with the
+  other trees' keys that go with their types (a format, a width, a
+  pattern, the values, a default or an example, the items, the
+  properties) left out with them; the question says what was kept and names each key left
+  out, and a line names the type kept. The question on a role's
+  `permissions` left out blocks, as well, each permission the lists
+  name that no merged role grants. The merged specification always passes validate. An
   entity's `required` is compared field by field: a field only one
   tree has keeps what that tree says, and a field both have that
   one requires and the other does not is left out of `required`,
@@ -4640,7 +4676,10 @@ field by its entity and name, and an entry of a list of named
 objects, such as a path's parameters, by its name. Citations are
 joined; a key only one tree writes is kept; a key with different
 values is left out, and one must question per key cites the
-element in every tree that gives it and offers each value. An
+element in every tree that gives it and offers each value; a
+field's type is kept instead, with the question saying which, and
+the question on a role's grants blocks the permissions the lists
+leave ungranted (ADR-122). An
 entity's required list is compared field by field, so a field one
 tree does not have is no disagreement, and a field both have that
 only one requires is left out of the list with a must question on
@@ -4671,7 +4710,7 @@ manual merged with the routes alone does not claim every table is
 missing. The order of the trees changes the questions' numbers and
 which file holds an element, never what is merged.
 
-**Insight:** Comparing only where the other side was read, because a reader reads one surface, and an element missing from a tree that never looked for it says nothing about the system; asking there would bury the real gaps under ones that are not. The side from the sources a tree declares, because that is what says whether a tree was read from code, and a tree written by hand from documents declares documents. The newest edition, because it is the commit rule of every reader, the newest of the commits that last changed each path read, applied to the paths of all the trees; the check that each path is unchanged up to it, because a citation is only true for the content it was read from, and git's ancestry is what says one commit includes another. A question per key, because the owner answers one fact at a time, and the key left out, because writing either value would be choosing between the sources (docs/from-sources.md, 3.2). A boolean named for what happened to the source, given outside, rather than a kind, because a manual and an interface can both be published, and the rule asks only whether someone outside holds the project to it. Numbering in the order given, because the order is the one input a reviewer chooses and can repeat.
+**Insight:** Comparing only where the other side was read, because a reader reads one surface, and an element missing from a tree that never looked for it says nothing about the system; asking there would bury the real gaps under ones that are not. The side from the sources a tree declares, because that is what says whether a tree was read from code, and a tree written by hand from documents declares documents. The newest edition, because it is the commit rule of every reader, the newest of the commits that last changed each path read, applied to the paths of all the trees; the check that each path is unchanged up to it, because a citation is only true for the content it was read from, and git's ancestry is what says one commit includes another. A question per key, because the owner answers one fact at a time, and the key left out, because writing either value would be choosing between the sources (docs/from-sources.md, 3.2); a field's type is the one key the tree is not read without, and ADR-122 says how it is kept without choosing. A boolean named for what happened to the source, given outside, rather than a kind, because a manual and an interface can both be published, and the rule asks only whether someone outside holds the project to it. Numbering in the order given, because the order is the one input a reviewer chooses and can repeat.
 
 ### ADR-046: An element another stakeholder owns is marked on its mapping with ownedBy; generators leave it out and everything that checks still reads it
 
@@ -7399,6 +7438,80 @@ named shape.
 
 **Insight:** The reference rather than the shape in place, because the design says a shape once and names it everywhere else (docs/principles.md, one way to say one thing); writing the shape out where the code has it would say the same thing twice and let the two drift. Comparing only what both say, because that is ADR-045's rule for every other key, and a struct cannot state a maximum length or a pattern that a document states; a key only one side gives was never a disagreement. Properties only one side lists as a should question rather than a union or a silence, because writing the code's extra property into the named schema would say every operation that refers to it takes that property, which the merge does not know, and leaving it out would hide a difference between the document and the code, which is what the merge is for; should rather than must, because the shapes do not contradict each other and the reader decides whether the document or the code is to change. Settling the position after every tree is in rather than as the trees are read, because the named entry may come from a tree merged later, or from a section merged after the one that refers to it, and the comparison needs the whole entry. Moving a question below the position to the named entry, because the validator holds every question to a pointer the tree has (issue 10), and the question is about the property, which now lives under its name; collapsing it to the position where the key is left out, for the same rule. Acceptance test: the first merge of a service's OpenAPI document with its Go source validates with no error, and an owner reading the techspec sees one schema per request body, cited from both, and a question wherever the struct and the schema disagree; the change asked for is one line at the property named, in the document or in the code.
 
+### ADR-122: Every tree a command writes passes validate; merge keeps a type where the trees give a field different types and blocks the permissions a role's disputed grants leave ungranted, and derive names a draft from its subject made a valid name
+
+Status: accepted, 2026-10-14.
+
+Context: ADR-045 leaves out a key the trees give different values and asks
+a must question that blocks the key. The validator covers a
+required key missing at a pointer a must question blocks, so a
+merged tree with such a key left out passes validate, except in
+two cases. A field with neither `$ref` nor `type` fails the design
+schema's one-of between the two forms of a field, and the error
+names `$ref`, which the question on `type` does not block; so two
+databases that give one column as `boolean` and as
+`[boolean, "null"]`, one a replica of the other, merged into a
+field with a default and no type, and validate, gaps and document
+refused the merged tree. A role's grants left out as a disputed
+list can leave a permission no role grants, which the validator
+reports at the permission, where no question blocks it. derive
+named a requirement's acceptance drafts from the requirement's ID
+as written, lower-cased, and an ID may hold a dot or an
+underscore, so a requirement `AB-1.2` gave the folder
+`tests/ab-1.2-acceptance-1`, which validate refuses as a test name
+that is not kebab-case.
+
+Decision: A field's `type` the trees give differently is kept with one value
+rather than left out, under the same must question. Where the
+types differ only in whether null is allowed, the union is kept,
+the types every tree lists and `"null"`. Otherwise the first
+tree's type is kept, and each key of another tree that goes with
+its type (a format, a width or a bound, a pattern, the values, a
+default or an example, the items, the properties) that the first
+tree does not give is left out with that type, and a tree that
+gives the kept type keeps its keys. The question's why says what the sources say,
+what the merge keeps and why, and names each key left out with a
+type; the merge's output names the type kept at the question.
+The must question on a role's `permissions` left out blocks, as
+well as the list, each permission the lists name that no merged
+role grants, among the permissions the merged specification declares, and its why says
+so.
+Every tree merge writes passes validate with no error: where
+leaving a key out would leave an entry the schema cannot read, one
+valid form is kept and the question says which; where a key left
+out leaves an error elsewhere, the question blocks that place too.
+derive makes each subject's name a valid test name before it names
+a draft from it: small letters and digits, every run of other
+characters one hyphen, none at either end, and the subject key in
+front of a name that starts with no letter; the draft keeps the
+subject's own name in its keys and `verifies`. Where two subjects
+of one key have different names that give the same valid name,
+each after the first in document order takes a suffix, `-2`, `-3`,
+and derive asks about it on standard error and in the draft's
+`why`. The validator suggests the same names, in both builds.
+One rule holds for every command that writes a tree, the readers
+of extract, merge, derive, and approve: what it writes passes
+validate with no error, the problems it found asked as questions
+at the nearest element rather than written as an entry validate
+refuses. The conformance suite validates the tree of every case of
+those commands that exits 0.
+
+Consequences: A merged specification whose trees disagree on a field's type
+validates on its own, and gaps and the documents read it with the
+type kept until the question is answered. Where the first tree's
+type is kept, a format or width only another tree gave is in the
+question and not in the tree. Where the types differ only in
+null, the tree says the column may be null until the owner says
+which service is wrong. A permission a disputed grants list leaves
+ungranted is blocked by the question on the list, and the
+validator reports it once the list is answered and it is still
+granted by nobody. A requirement whose ID holds a dot gets drafts
+validate accepts, under a name that is not its ID. A case of
+extract, merge, derive or approve whose tree does not validate
+fails the suite.
+
+**Insight:** A type kept rather than left out, because a field without one is not a field to the schema, the generators or a reader of the techspec, and SpecArch reads an incomplete definition rather than refusing it (docs/principles.md): the problem is marked at the entry, by the must question that blocks the type, and nothing is dropped. The union where only null differs, because a nullable column and a non-null one agree on the type and differ on one more value, and the union allows what either allows, so no tree is contradicted while the question is open. The first tree's type otherwise, because the order of the trees is the one input the reviewer chooses and can repeat (ADR-045), and the question says in words that it is not a choice between the sources; the keys that go with the other type leave with it, because a format of one type is refused on another, and leaving them out unsaid would hide what that tree says, so the question names them. A field's type alone and not every required key, because every other key left out is covered by the question that blocks it, and keeping a value the design does not need would choose between the sources where the merge has no reason to. The ungranted permissions blocked by the question on the grants, because the grant is what is missing and it is written in the role, not under the permission; the validator holds that a question on the permission itself is the one place that can say the grant is not known (issue 11), and the merge is where the grant was left out, so it is the merge that says so. A union of the grants would widen a role while the question is open, which ADR-045 refuses for anything that concerns security. A name made valid rather than copied, because a folder name validate refuses makes the whole tree one validate refuses, and the ID is still cited in the draft's keys, so nothing of it is lost; a suffix and a question rather than an error where two names meet, because the subjects differ and both drafts can be written, and the reviewer decides whether the name suits. Every output of a tree-writing command validated in the suite, because the three cases were found by users, each after a release, each a different command writing a tree validate refused, and one check over every case catches the next before it ships. Acceptance test: two database trees that differ on a column's nullability merge into a tree validate accepts with no error, the column read with the union type and one must question on it; an owner reading the techspec sees the column with both citations and the question, and the change asked for is one line in the migration of the service that is wrong.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -7414,6 +7527,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | derive-meta-model-0-2 | command derive | system | golden | a specification that says specarch 0.2, whose only errors are the tests derive writes, with a must question holding up one operation | derive is run | it writes the drafts of the operation and the requirement no test covers, leaves out the held-up operation's drafts, and exits 0 |
 | derive-meta-model-0-2-other-error | command derive | system | red | the same specification with an operation naming a permission that is not declared | derive is run | it prints that error and none of the missing tests, writes nothing, and exits 1 |
 | derive-name-taken | command derive | system | red | a specification whose two entities each have a constraint email_unique, and whose folder page-sign-in-succeeds holds a test of the operation signIn | derive is run | it writes neither constraint's draft nor the page's success draft, names each on standard error with what took its name, writes the other drafts and exits 1 |
+| derive-names-from-ids | command derive | system | golden | a specification whose requirements AB-1.2, AB-1_2 and AB-Shelf.Two each name a harm and have one acceptance criterion, and whose tests folder holds one test, of another requirement | derive is run | it names each draft from its requirement made a valid name, ab-1-2-acceptance-1 and ab-shelf-two-acceptance-1, gives the draft of AB-1_2, whose name AB-1.2 gives as well, the suffix -2 with a question on standard error and in its why, keeps each requirement's own ID in the draft's keys and verifies, and exits 0 with a tree validate passes |
 | derive-page-elements | command derive | system | golden | a specification whose form picks a member, checks a date against another and has a pin entered twice, and whose list offers Deactivate only to an active member with a reason, both pages satisfying a requirement with a harm | derive is run | it writes, among the operations' and the requirement's drafts, a test for the picker finding nothing, the check broken, the pin entered twice differently, Deactivate not offered and Deactivate without a reason, lists them and exits 0 |
 | derive-page-named-after-operation | command derive | system | golden | a specification whose form page sign-in submits to the operation signIn, both without a golden test | derive is run | it writes the operation's drafts under operation-sign-in- and the page's success draft as page-sign-in-succeeds, lists them and exits 0 |
 | derive-root-tests | command derive | system | red | a specification that keeps its tests in specarch.yaml | derive is run | it says each derived test needs a folder under tests/, writes nothing and exits 2 |
@@ -7625,6 +7739,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | merge-source-differs | command merge | system | red | two trees that both declare the source code, at two different urls | merge is run on the two trees | it refuses them, naming the source and what differs, writes nothing and exits 1 |
 | merge-takes-derived-drafts | command merge | system | golden | three trees on 0.2, two of which hold the drafts specarch derive writes for them | merge is run on the three trees | it leaves the trees' drafts out, writes the same merged specification as from the trees without them, with the drafts derived for it, and exits 0 |
 | merge-tree-invalid | command merge | system | red | two trees, the second of which has an entity without its properties, which validate reports | merge is run on the two trees | it refuses the second tree, saying validate reports errors in it, writes nothing and exits 1 |
+| merge-type-differs | command merge | system | red | two database trees whose entity Holds gives the field renewable as a boolean in one and a nullable boolean in the other, and the field branchCode as a string with a maximum length in one and an integer with a format and a default in the other | merge is run on the two trees | renewable keeps the type [boolean, "null"] and branchCode the first tree's string with its maximum length, the replica's format and default left out with its type, a must question on each type names what was kept, and the merged specification validates with no error; it exits 0 |
 | merge-usage-error | command merge | system | red | one tree | merge is run on it alone | it says merge needs at least two trees, prints how to use it and exits 2 |
 | merge-value-object-columns | command merge | system | golden | a tree read from a database whose members table has address_street, address_city and address_postcode columns with the check that an address is wholly absent or has its street and city, and a jsonb preferences column with the reader's question; and an interface tree whose Members holds address, an Address, and preferences, a Preferences, Address giving the postcode no width | merge is run on the two trees | it reads the three columns and the check back as the field address, writes the postcode's width into Address, writes preferences as Preferences kept as json, leaves out both questions of the database tree with a line each, asks nothing, and exits 0 |
 | merge-value-object-differs | command merge | system | red | a tree read from a database whose members table has address_street, address_city of at most 80 characters and address_postcode, with no check, and an interface tree whose Members holds address, an Address whose city is at most 100 characters | merge is run on the two trees | it joins nothing: the three columns stay fields, each an undocumented question, address stays as the interface gives it with its Not built yet question, and a must question at address names the city's two widths and the missing check that an address is wholly absent or has its required parts; it exits 0 |
@@ -7654,6 +7769,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-derived-cases-mistakes | command validate | acceptance | golden | an operation that satisfies no requirement with a harm, with a required field marked mistakes rare, a field with a maximum marked mistakes frequent, a message it emits, and no tests | validate is run | it warns for both boundary cases of the frequent field, for the failing channel and for the caller without the permission, not for the cases of the rare field, and exits 0 |
 | validate-derived-decision-table | command validate | system | golden | a check constraint copies >= 0 && (copies <= owned \|\| label == "spare") on a requirement with a harm, and only a golden test | validate is run | it warns for two decision-table cases, the first clause false alone and the two clauses of the \|\| false together, and exits 0 |
 | validate-derived-flow | command validate | system | golden | a Loan state machine with two paths, open to returned and open to overdue to returned, the move to overdue satisfying a requirement with a harm | validate is run | it warns for the path through overdue, leaves the other out, and exits 0 |
+| validate-derived-test-names | command validate | system | golden | requirements AB-1.2, AB-1_2 and AB-Shelf.Two, each with a harm, one acceptance criterion and no test | validate is run | the test it says to add for each is named from the requirement made a valid name, ab-1-2-acceptance-1, ab-1-2-2-acceptance-1 with a suffix since AB-1.2 gives ab-1-2 as well, and ab-shelf-two-acceptance-1, and it exits 0 |
 | validate-design-key | command validate | system | red | an implementation file with an entities key | validate is run | it reports design_key and exits 1 |
 | validate-design-ref | command validate | system | red | an implementation mapping that points at an entity the design does not have | validate is run | it reports design_ref and exits 1 |
 | validate-duplicate-key | command validate | system | red | a file with info twice | validate is run | it reports duplicate_key at the second info and exits 1 |
@@ -8077,14 +8193,14 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-18 | enums Rule; commands validate; decisions ADR-018 | tests document-draft-notice; tests validate-origin; tests validate-origin-tracked |
 | SA-19 | enums DocumentTarget; commands document; commands gaps | tests document-draft-notice; tests document-writes-questions; tests gaps-lists-questions; tests gaps-names-question; tests gaps-none |
 | SA-20 | commands approve; commands generate; decisions ADR-019; decisions ADR-086 | tests approve-refuses-open-question; tests approve-refuses-stale-document; tests approve-writes-record; tests generate-refuses-open-question; tests generate-refuses-unapproved; tests generate-unapproved |
-| SA-21 | commands validate; decisions ADR-020; decisions ADR-054; decisions ADR-055 | tests validate-derived-acceptance; tests validate-derived-cases-harm; tests validate-derived-cases-listed; tests validate-derived-cases-mistakes; tests validate-derived-decision-table; tests validate-derived-flow; tests validate-enabled-by; tests validate-meta-model-0-1-missing-test; tests validate-meta-model-0-2-missing-test; tests validate-schema-harm-unknown; tests validate-test-subject-no-state-machine |
+| SA-21 | commands validate; decisions ADR-020; decisions ADR-054; decisions ADR-055 | tests validate-derived-acceptance; tests validate-derived-cases-harm; tests validate-derived-cases-listed; tests validate-derived-cases-mistakes; tests validate-derived-decision-table; tests validate-derived-flow; tests validate-derived-test-names; tests validate-enabled-by; tests validate-meta-model-0-1-missing-test; tests validate-meta-model-0-2-missing-test; tests validate-schema-harm-unknown; tests validate-test-subject-no-state-machine |
 | SA-22 | commands document; decisions ADR-020 | tests document-testplan-left-out; tests document-traceability-harm; tests document-writes-traceability |
 | SA-23 | enums Rule; commands validate | tests validate-change-applied; tests validate-change-decision; tests validate-commissioning-record; tests validate-defect-duplicate; tests validate-defect-test; tests validate-incident-link; tests validate-layout-records-in-spec; tests validate-record-name; tests validate-record-ref; tests validate-record-schema; tests validate-record-tracker; tests validate-records-valid |
 | SA-24 | enums Rule; commands validate; decisions ADR-061 | tests document-testplan-by-release; tests validate-release-bump; tests validate-release-contents; tests validate-release-version; tests validate-releases-valid; tests validate-requirement-release |
 | SA-25 | commands diff | tests diff-classifies-changes; tests diff-invalid-spec; tests diff-lists-changes; tests diff-no-release; tests diff-not-covered; tests diff-tracker-unknown; tests diff-usage-error; tests diff-version-step; tests diff-version-unreadable |
 | SA-26 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-releases |
 | SA-27 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
-| SA-28 | commands derive; decisions ADR-055 | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-meta-model-0-2; tests derive-meta-model-0-2-other-error; tests derive-name-taken; tests derive-page-elements; tests derive-page-named-after-operation; tests derive-root-tests; tests derive-skips-blocked; tests derive-task-page-checks; tests derive-usage-error; tests derive-writes-drafts; tests merge-takes-derived-drafts |
+| SA-28 | commands derive; decisions ADR-055 | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-meta-model-0-2; tests derive-meta-model-0-2-other-error; tests derive-name-taken; tests derive-names-from-ids; tests derive-page-elements; tests derive-page-named-after-operation; tests derive-root-tests; tests derive-skips-blocked; tests derive-task-page-checks; tests derive-usage-error; tests derive-writes-drafts; tests merge-takes-derived-drafts |
 | SA-29 | enums Rule; commands validate; decisions ADR-021; decisions ADR-097 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-guard; tests validate-idempotency-key; tests validate-session; tests validate-validity |
 | SA-30 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests gaps-outline-not-read; tests validate-mapping-origin; tests validate-source-clause |
 | SA-31 | commands generate; decisions ADR-041; decisions ADR-078 | tests generate-stack-fallback; tests generate-stack-plugin; tests generate-tests-dart; tests generate-tests-framework-refused; tests generate-tests-go; tests generate-tests-swift; tests generate-tests-value-objects |
@@ -8101,7 +8217,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-42 | enums Rule; decisions ADR-034; decisions ADR-035; decisions ADR-036; decisions ADR-037; decisions ADR-038; decisions ADR-039; decisions ADR-056; decisions ADR-058; decisions ADR-064; decisions ADR-082 | tests derive-page-elements; tests derive-task-page-checks; tests validate-accessibility; tests validate-child-rows; tests validate-compact-columns; tests validate-flows; tests validate-page-action-with; tests validate-page-elements-unresolved; tests validate-page-events; tests validate-page-states; tests validate-sections; tests validate-task-page-checks; tests validate-task-page-checks-valid; tests validate-task-pages; tests validate-theme |
 | SA-43 | decisions ADR-040 | tests generate-ui |
 | SA-44 | commands extract; decisions ADR-043; decisions ADR-044; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-076; decisions ADR-081; decisions ADR-084; decisions ADR-087; decisions ADR-089; decisions ADR-090; decisions ADR-091; decisions ADR-092; decisions ADR-098 | tests extract-dart-flutter-screens; tests extract-dart-models; tests extract-dart-parser-version; tests extract-dart-server-clients; tests extract-database-json-column; tests extract-database-stale-dump; tests extract-database-writes-tree; tests extract-documents-not-markdown; tests extract-documents-upper-case-name; tests extract-documents-writes-tree; tests extract-exit-1; tests extract-go-dxlib-endpoints; tests extract-go-dxlib-tables-seeds; tests extract-go-http-handlers; tests extract-go-request-bodies; tests extract-go-routers; tests extract-javascript-express-routes; tests extract-javascript-fastify-validators; tests extract-javascript-parser-version; tests extract-javascript-plain-checkjs; tests extract-javascript-react-screens; tests extract-javascript-stale-dump; tests extract-javascript-template-parser-version; tests extract-javascript-vue-router; tests extract-openapi-dxlib-privileges; tests extract-openapi-not-openapi; tests extract-openapi-snake-case; tests extract-openapi-writes-tree; tests extract-outline-shallow-clone; tests extract-outline-uncommitted; tests extract-outline-writes-clauses; tests extract-pages-next-api-facts; tests extract-pages-next-app-facts; tests extract-pages-next-pages-router; tests extract-pages-nuxt-facts; tests extract-pages-nuxt-pages; tests extract-pages-nuxt-server; tests extract-pages-nuxt-server-facts; tests extract-pages-route-twice; tests extract-pages-router-guess; tests extract-pages-task; tests extract-pages-writes-tree; tests extract-permissions-grant-twice; tests extract-permissions-writes-tree; tests extract-router-dump-repository-not-gitlink; tests extract-router-dump-through-gitlink; tests extract-router-route-twice; tests extract-router-stale-gitlink; tests extract-router-stale-table; tests extract-router-writes-tree; tests extract-swift-clients-settings; tests extract-swift-models; tests extract-swift-parser-version; tests extract-swift-screens; tests extract-swift-stale-dump; tests extract-swift-vapor-routes; tests extract-workflows-not-bpmn; tests extract-workflows-writes-tree; tests gaps-outline-not-read; tests validate-source-reading |
-| SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-077; decisions ADR-116 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-printed-parsed; tests merge-printed-parsed-grants; tests merge-schema-reference-agrees; tests merge-schema-reference-agrees-code-first; tests merge-schema-reference-differs; tests merge-source-differs; tests merge-tree-invalid; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests merge-workflows-joins-trigger; tests validate-source-given-outside |
+| SA-45 | commands merge; decisions ADR-045; decisions ADR-048; decisions ADR-049; decisions ADR-050; decisions ADR-057; decisions ADR-062; decisions ADR-075; decisions ADR-077; decisions ADR-116; decisions ADR-122 | tests merge-documents-and-code; tests merge-joins-commits; tests merge-keeps-could-questions; tests merge-pages-field-by-name; tests merge-pages-joins-source; tests merge-path-changed; tests merge-permissions-asked-twice; tests merge-permissions-unchecked; tests merge-printed-parsed; tests merge-printed-parsed-grants; tests merge-schema-reference-agrees; tests merge-schema-reference-agrees-code-first; tests merge-schema-reference-differs; tests merge-source-differs; tests merge-tree-invalid; tests merge-type-differs; tests merge-value-object-columns; tests merge-value-object-differs; tests merge-value-object-unnamed; tests merge-workflows-joins-trigger; tests validate-source-given-outside |
 | SA-46 | commands generate; decisions ADR-046; decisions ADR-068 | tests generate-openapi-owned; tests generate-sql-owned; tests generate-sql-owned-handed-over; tests validate-mapping-menu-entry; tests validate-owned-by-unknown |
 | SA-47 | enums Rule; decisions ADR-054 | tests document-techspec-open-workflow; tests validate-maker-checker; tests validate-workflow; tests validate-workflow-valid |
 | SA-48 | enums Rule; decisions ADR-060; decisions ADR-063 | tests extract-openapi-writes-schema; tests generate-sql-value-object; tests validate-value-objects; tests validate-value-objects-valid |

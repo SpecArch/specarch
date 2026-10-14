@@ -152,7 +152,7 @@ documents gave:
 | Documents and code | What to write |
 |---|---|
 | agree | one element, `origin: stated`, citing the document section and the code line |
-| disagree | the element as far as both agree, and a `must` question (`decision`) that cites both and says "the document says X, the code does Y"; the disputed key is left out, and the question blocks it |
+| disagree | the element as far as both agree, and a `must` question (`decision`) that cites both and says "the document says X, the code does Y"; the disputed key is left out, and the question blocks it; a field's type is kept, the union or the first tree's, and the question says so (ADR-122) |
 | only the code has it | the element with `origin: inferred`, a `why` that starts "Undocumented, from code." and names the line, citing the code, and a question, `should` or `must` by the rule below, asking the owner to confirm it; a field, which holds no origin of its own, gets only the question |
 | only the documents have it | the element as the documents state it, and a question, `should` or `must` by the rule below, in `implementation/questions.yaml`, blocking `implementation`, that starts "Not built yet." and cites the section and the code where it would be |
 
@@ -187,7 +187,13 @@ field, are asked about as one `should` question rather than joined
 different commits, become one source at the newest commit, once git shows that every path each tree
 read is unchanged up to it. Where two trees give one key different
 values, the key is left out and a `must` question cites both, whichever
-side they are on. Where one tree refers to a named schema and another
+side they are on. A field's type is kept rather than left out, since a
+field is not read without one: the union where the types differ only in
+whether null is allowed, else the first tree's, with the other tree's
+format or width left out with its type; the question says what was kept
+(ADR-122). A role's grants left out can leave a permission no role
+grants, and the question on the grants blocks that permission too. The
+merged tree always passes `validate`. Where one tree refers to a named schema and another
 writes the shape in place, as an OpenAPI document and a Go handler do
 for one request body, the reference is kept when the shapes agree in all
 both say; a key both give that differs is left out with a `must`

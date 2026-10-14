@@ -1,0 +1,6 @@
+arguments: [derive, project]
+exitStatus: 0
+standardOutput: |
+  project/tests/ab-1-2-acceptance-1/test.yaml
+  project/tests/ab-1-2-2-acceptance-1/test.yaml
+  project/tests/ab-shelf-two-acceptance-1/test.yaml

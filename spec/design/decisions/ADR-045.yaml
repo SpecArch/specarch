@@ -23,7 +23,10 @@ decisions:
       objects, such as a path's parameters, by its name. Citations are
       joined; a key only one tree writes is kept; a key with different
       values is left out, and one must question per key cites the
-      element in every tree that gives it and offers each value. An
+      element in every tree that gives it and offers each value; a
+      field's type is kept instead, with the question saying which, and
+      the question on a role's grants blocks the permissions the lists
+      leave ungranted (ADR-122). An
       entity's required list is compared field by field, so a field one
       tree does not have is no disagreement, and a field both have that
       only one requires is left out of the list with a must question on
@@ -67,7 +70,9 @@ decisions:
       read from, and git's ancestry is what says one commit includes
       another. A question per key, because the owner answers one fact at a
       time, and the key left out, because writing either value would be
-      choosing between the sources (docs/from-sources.md, 3.2). A boolean
+      choosing between the sources (docs/from-sources.md, 3.2); a field's
+      type is the one key the tree is not read without, and ADR-122 says
+      how it is kept without choosing. A boolean
       named for what happened to the source, given outside, rather than a
       kind, because a manual and an interface can both be published, and
       the rule asks only whether someone outside holds the project to it.

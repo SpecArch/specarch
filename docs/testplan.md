@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 0.7.0-dev of the specification: 474 design tests, 213 golden and 261 red, about 15 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.7.0-dev of the specification: 477 design tests, 215 golden and 262 red, about 15 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 0.7.0-dev of the specification: 474 design tests, 213 golden and 261 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 470 |
+| system | 473 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -120,6 +120,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-28.
 - Given: a specification whose two entities each have a constraint email_unique, and whose folder page-sign-in-succeeds holds a test of the operation signIn
 - When: derive is run
 - Then: it writes neither constraint's draft nor the page's success draft, names each on standard error with what took its name, writes the other drafts and exits 1
+
+#### derive-names-from-ids
+
+Scenario: golden; level: system; verifies SA-28.
+
+- Given: a specification whose requirements AB-1.2, AB-1_2 and AB-Shelf.Two each name a harm and have one acceptance criterion, and whose tests folder holds one test, of another requirement
+- When: derive is run
+- Then: it names each draft from its requirement made a valid name, ab-1-2-acceptance-1 and ab-shelf-two-acceptance-1, gives the draft of AB-1_2, whose name AB-1.2 gives as well, the suffix -2 with a question on standard error and in its why, keeps each requirement's own ID in the draft's keys and verifies, and exits 0 with a tree validate passes
 
 #### derive-page-elements
 
@@ -2175,6 +2183,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-45.
 - When: merge is run on the two trees
 - Then: it refuses the second tree, saying validate reports errors in it, writes nothing and exits 1
 
+#### merge-type-differs
+
+Scenario: red; level: system; verifies SA-45.
+
+- Given: two database trees whose entity Holds gives the field renewable as a boolean in one and a nullable boolean in the other, and the field branchCode as a string with a maximum length in one and an integer with a format and a default in the other
+- When: merge is run on the two trees
+- Then: renewable keeps the type [boolean, "null"] and branchCode the first tree's string with its maximum length, the replica's format and default left out with its type, a must question on each type names what was kept, and the merged specification validates with no error; it exits 0
+
 #### merge-usage-error
 
 Scenario: red; level: system; covers usage error, exit 2.
@@ -2424,6 +2440,14 @@ Scenario: golden; level: system; verifies SA-21.
 - Given: a Loan state machine with two paths, open to returned and open to overdue to returned, the move to overdue satisfying a requirement with a harm
 - When: validate is run
 - Then: it warns for the path through overdue, leaves the other out, and exits 0
+
+#### validate-derived-test-names
+
+Scenario: golden; level: system; verifies SA-21.
+
+- Given: requirements AB-1.2, AB-1_2 and AB-Shelf.Two, each with a harm, one acceptance criterion and no test
+- When: validate is run
+- Then: the test it says to add for each is named from the requirement made a valid name, ab-1-2-acceptance-1, ab-1-2-2-acceptance-1 with a suffix since AB-1.2 gives ab-1-2 as well, and ab-shelf-two-acceptance-1, and it exits 0
 
 #### validate-design-key
 

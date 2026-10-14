@@ -1,9 +1,11 @@
 package extract
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -373,5 +375,336 @@ func (s *Server) Tag(c *gin.Context) {
 	}
 	if strings.Contains(questions, "/requestBody/content/application~1json/schema'") {
 		t.Errorf("a question blocks a schema the tree does not have:\n%s", questions)
+	}
+}
+
+// TestGoRouterThroughLocalHelper follows a route registered in a callback
+// handed to a helper that takes a prefix and a function: the helper a
+// local closure, and the helper a function of the module. The call binds
+// the string and the function as it binds a router, so the group's prefix
+// is known and the callback is walked with the group.
+func TestGoRouterThroughLocalHelper(t *testing.T) {
+	for name, routes := range map[string]string{
+		"closure": `package svc
+
+import "github.com/gin-gonic/gin"
+
+func Routes(r *gin.Engine) {
+	v1 := r.Group("/v1")
+	v1.GET("/things", listThings)
+
+	group := func(prefix string, reg func(g *gin.RouterGroup)) {
+		g := v1.Group(prefix)
+		reg(g)
+	}
+	group("/callbacks", func(g *gin.RouterGroup) {
+		g.POST("/thing-create", createThing)
+	})
+	group("/events", registerEvents)
+}
+
+func registerEvents(g *gin.RouterGroup) { g.POST("/thing-closed", closeThing) }
+
+func listThings(c *gin.Context)  {}
+func createThing(c *gin.Context) {}
+func closeThing(c *gin.Context)  {}
+`,
+		"function": `package svc
+
+import "github.com/gin-gonic/gin"
+
+func Routes(r *gin.Engine) {
+	v1 := r.Group("/v1")
+	v1.GET("/things", listThings)
+	group(v1, "/callbacks", func(g *gin.RouterGroup) {
+		g.POST("/thing-create", createThing)
+	})
+	group(v1, "/events", registerEvents)
+}
+
+func group(parent *gin.RouterGroup, prefix string, reg func(g *gin.RouterGroup)) {
+	reg(parent.Group(prefix))
+}
+
+func registerEvents(g *gin.RouterGroup) { g.POST("/thing-closed", closeThing) }
+
+func listThings(c *gin.Context)  {}
+func createThing(c *gin.Context) {}
+func closeThing(c *gin.Context)  {}
+`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			paths, questions := goRouterOperations(t, map[string]string{
+				"go.mod":    "module example.com/svc\n\ngo 1.26\n",
+				"routes.go": routes,
+				"cmd/main.go": `package main
+
+import (
+	"github.com/gin-gonic/gin"
+
+	"example.com/svc"
+)
+
+func main() {
+	r := gin.New()
+	svc.Routes(r)
+	_ = r.Run(":8080")
+}
+`,
+			})
+			for _, want := range []string{"/v1/things:", "/v1/callbacks/thing-create:", "/v1/events/thing-closed:"} {
+				if strings.Count(paths, want) != 1 {
+					t.Errorf("the paths fragment does not hold %q once:\n%s", want, paths)
+				}
+			}
+			if strings.Contains(questions, "whose place the reader does not know") {
+				t.Errorf("a route registered through the helper was not placed:\n%s", questions)
+			}
+		})
+	}
+}
+
+// TestGoLiteralSeesWhereItIsWritten holds the reader to walking a
+// function literal in the scope it is written in: one passed to a
+// function of the module sees the routers around it, not the callee's,
+// and a helper declared again in an inner block holds only to the end of
+// that block. A helper walked once per string its callers pass, where the
+// string does not change the route, counts the registration once.
+func TestGoLiteralSeesWhereItIsWritten(t *testing.T) {
+	for name, c := range map[string]struct {
+		code                  string
+		want, notWant         []string
+		counted, wrote, asked int
+	}{
+		"callee has a router of the same name": {code: `
+func Routes(r *gin.Engine) {
+	api := r.Group("/api")
+	apply(r, func() { api.GET("/x", h) })
+}
+
+func apply(r *gin.Engine, f func()) {
+	api := r.Group("/other")
+	_ = api
+	f()
+}
+`, want: []string{"/api/x:"}, notWant: []string{"/other/x:"}, counted: 1, wrote: 1},
+		"callee has no router of that name": {code: `
+func Routes(r *gin.Engine) {
+	api := r.Group("/api")
+	apply(r, func() { api.GET("/x", h) })
+}
+
+func apply(r *gin.Engine, f func()) { f() }
+`, want: []string{"/api/x:"}, counted: 1, wrote: 1},
+		"helper declared again in an inner block": {code: `
+func Routes(r *gin.Engine) {
+	v1, v2 := r.Group("/v1"), r.Group("/v2")
+	group := func(p string, reg func(*gin.RouterGroup)) { reg(v1.Group(p)) }
+	{
+		group := func(p string, reg func(*gin.RouterGroup)) { reg(v2.Group(p)) }
+		group("/in", func(g *gin.RouterGroup) { g.GET("/x", h) })
+	}
+	group("/out", func(g *gin.RouterGroup) { g.GET("/y", h) })
+}
+`, want: []string{"/v2/in/x:", "/v1/out/y:"}, notWant: []string{"/v2/out/y:"}, counted: 2, wrote: 2},
+		"string the route does not use": {code: `
+func Routes(r *gin.Engine) {
+	reg(r, "a")
+	reg(r, "b")
+}
+
+func reg(r *gin.Engine, name string) { r.GET("/health", h) }
+`, want: []string{"/health:"}, counted: 1, wrote: 1},
+		"callee calls it behind a condition": {code: `
+func Routes(r *gin.Engine) {
+	api := r.Group("/api")
+	apply(api, func(g *gin.RouterGroup) { g.GET("/x", h) })
+}
+
+func apply(g *gin.RouterGroup, f func(*gin.RouterGroup)) {
+	if os.Getenv("X") != "" {
+		f(g)
+	}
+}
+`, notWant: []string{"/api/x:"}, counted: 1, asked: 1},
+		"called twice, once behind a condition": {code: `
+func Routes(r *gin.Engine) {
+	api := r.Group("/api")
+	add := func(g *gin.RouterGroup) { g.GET("/x", h) }
+	add(api)
+	if os.Getenv("X") != "" {
+		add(api)
+	}
+}
+`, want: []string{"/api/x:"}, counted: 2, wrote: 1, asked: 1},
+		"helper walked per string, a route behind a condition": {code: `
+func Routes(r *gin.Engine) {
+	reg(r, "a")
+	reg(r, "b")
+}
+
+func reg(r *gin.Engine, name string) {
+	if name == "a" {
+		r.GET("/only", h)
+	}
+	r.GET("/health", h)
+}
+`, want: []string{"/health:"}, notWant: []string{"/only:"}, counted: 2, wrote: 1, asked: 1},
+		"helper called only from a literal nobody calls": {code: `
+var hooks []func()
+
+func Routes(r *gin.Engine) {
+	api := r.Group("/api")
+	add := func(g *gin.RouterGroup) { g.GET("/x", h) }
+	hook := func() { add(api) }
+	hooks = append(hooks, hook)
+}
+`, want: []string{"/api/x:"}, counted: 1, wrote: 1},
+		"router declared again inside a passed literal": {code: `
+func Routes(r *gin.Engine) {
+	api := r.Group("/api")
+	apply(func() {
+		api := r.Group("/other")
+		api.GET("/a", h)
+	})
+	api.GET("/b", h)
+}
+
+func apply(f func()) { f() }
+`, want: []string{"/other/a:", "/api/b:"}, notWant: []string{"/other/b:"}, counted: 2, wrote: 2},
+		"helper declared again in an if statement's init": {code: `
+func Routes(r *gin.Engine) {
+	a := r.Group("/a")
+	reg := func() { a.GET("/outer", h) }
+	if reg := func() { a.GET("/inner", h) }; os.Getenv("X") != "" {
+		_ = reg
+	}
+	reg()
+}
+`, want: []string{"/a/outer:"}, notWant: []string{"/a/inner:"}, counted: 2, wrote: 1, asked: 1},
+	} {
+		t.Run(name, func(t *testing.T) {
+			dir := goModuleRepository(t, map[string]string{
+				"go.mod":    "module example.com/svc\n\ngo 1.26\n",
+				"routes.go": "package svc\n\nimport (\n\t\"os\"\n\n\t\"github.com/gin-gonic/gin\"\n)\n\nvar _ = os.Getenv\n" + c.code + "\nfunc h(c *gin.Context) {}\n",
+				"cmd/main.go": `package main
+
+import (
+	"github.com/gin-gonic/gin"
+
+	"example.com/svc"
+)
+
+func main() {
+	r := gin.New()
+	svc.Routes(r)
+	_ = r.Run(":8080")
+}
+`,
+			})
+			res, err := Go([]string{dir}, filepath.Join(t.TempDir(), "out"), "code", "")
+			if err != nil {
+				t.Fatal(err)
+			}
+			res.Tree.anchorBlocks()
+			paths, err := encode(res.Tree.files["design/paths.yaml"])
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, want := range c.want {
+				if strings.Count(string(paths), want) != 1 {
+					t.Errorf("the paths fragment does not hold %q once:\n%s", want, paths)
+				}
+			}
+			for _, not := range c.notWant {
+				if strings.Contains(string(paths), not) {
+					t.Errorf("the paths fragment holds %q:\n%s", not, paths)
+				}
+			}
+			counted, written := 0, 0
+			for _, line := range res.Lines {
+				fmt.Sscanf(line, "routers: counted %d", &counted)
+				fmt.Sscanf(line, "routes: wrote %d", &written)
+			}
+			questions, err := encode(res.Tree.files["design/questions.yaml"])
+			if err != nil {
+				t.Fatal(err)
+			}
+			asked := len(regexp.MustCompile(`(?m)^    question: .* registers `).FindAll(questions, -1))
+			if counted != c.counted || written != c.wrote || asked != c.asked || counted != written+asked {
+				t.Errorf("counted %d registrations, wrote %d operations and asked %d questions, want %d, %d and %d, every registration written or asked once\n%s\n%s", counted, written, asked, c.counted, c.wrote, c.asked, strings.Join(res.Lines, "\n"), questions)
+			}
+		})
+	}
+}
+
+// TestGoRegistrationsAccountedFor holds the reader to the rule that a
+// counted registration is never dropped unsaid: each becomes an
+// operation, a question or a not-held line. The module registers routes
+// the reader places, routes it cannot place (a prefix that is not a
+// literal, a router from nowhere), a catch-all it does not hold, and
+// routes in a loop and behind a condition.
+func TestGoRegistrationsAccountedFor(t *testing.T) {
+	dir := goModuleRepository(t, map[string]string{
+		"go.mod": "module example.com/svc\n\ngo 1.26\n",
+		"cmd/main.go": `package main
+
+import (
+	"os"
+
+	"github.com/gin-gonic/gin"
+)
+
+func main() {
+	r := gin.New()
+	r.GET("/things", list)
+	r.GET("/files/*path", list)
+	under(os.Getenv("PREFIX"), func(g *gin.RouterGroup) { g.POST("/hidden", list) })
+	for _, p := range []string{"/a", "/b"} {
+		r.GET(p, list)
+	}
+	if os.Getenv("DEBUG") != "" {
+		r.GET("/debug", list)
+	}
+	r.Any("/every", list)
+	_ = r.Run(":8080")
+}
+
+func under(prefix string, reg func(g *gin.RouterGroup)) {}
+
+func stray(g *gin.RouterGroup) { g.DELETE("/stray", list) }
+
+func list(c *gin.Context) {}
+`,
+	})
+	res, err := Go([]string{dir}, filepath.Join(t.TempDir(), "out"), "code", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var counted, written, asked, notHeld int
+	for _, line := range res.Lines {
+		switch {
+		case strings.HasPrefix(line, "routers: counted "):
+			fmt.Sscanf(line, "routers: counted %d", &counted)
+		case strings.HasPrefix(line, "routes: wrote "):
+			fmt.Sscanf(line, "routes: wrote %d", &written)
+		case strings.HasPrefix(line, "not held: "):
+			notHeld++
+		}
+	}
+	res.Tree.anchorBlocks()
+	questions, err := encode(res.Tree.files["design/questions.yaml"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, said := range []string{"registers POST /hidden on a router whose place the reader does not know", "registers DELETE /stray on a router whose place", "registers a route in a loop", "registers a route behind a condition", "registers /every for every method"} {
+		if strings.Contains(string(questions), said) {
+			asked++
+		} else {
+			t.Errorf("no question says %q:\n%s", said, questions)
+		}
+	}
+	if counted != 7 || written != 1 || notHeld != 1 || counted != written+asked+notHeld {
+		t.Errorf("counted %d registrations, wrote %d operations, asked %d questions and printed %d not-held lines; every registration is one of the three\n%s", counted, written, asked, notHeld, strings.Join(res.Lines, "\n"))
 	}
 }

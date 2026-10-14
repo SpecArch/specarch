@@ -21,7 +21,17 @@ commands:
         an operation by its path and method, a field by its entity and
         name) becomes one element with the citations of both. A key only
         one tree writes is kept. A key the trees give different values is
-        left out, and a must question cites both and blocks it. An
+        left out, and a must question cites both and blocks it. A
+        field's `type` is kept instead, since a field is not read without
+        one (ADR-122): the union of the types where they differ only in
+        whether null is allowed, else the first tree's type, with the
+        other trees' keys that go with their types (a format, a width, a
+        pattern, the values, a default or an example, the items, the
+        properties) left out with them; the question says what was kept and names each key left
+        out, and a line names the type kept. The question on a role's
+        `permissions` left out blocks, as well, each permission the lists
+        name that no merged role grants, itself or through a permission
+        it implies. The merged specification always passes validate. An
         entity's `required` is compared field by field: a field only one
         tree has keeps what that tree says, and a field both have that
         one requires and the other does not is left out of `required`,

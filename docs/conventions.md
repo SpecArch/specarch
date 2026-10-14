@@ -1562,7 +1562,14 @@ state reached). A requirement and a state machine are subjects of a
 different kind: every case is golden and asked for on its own.
 
 A suggested test is named after its subject, then its case:
-`create-loan-missing-member-id`. When subjects of different kinds give
+`create-loan-missing-member-id`. The subject's name is made a valid test
+name first, kebab-case with a letter first: requirement `AB-1.2` gives
+`ab-1-2-acceptance-1`, every run of characters other than small letters
+and digits becoming one hyphen, and a name that starts with no letter
+takes its subject key in front. Where two subjects of one key have
+different names that give the same valid name, as `AB-1.2` and `AB-1_2`
+do, each after the first in document order takes a suffix, `-2`, `-3`.
+When subjects of different kinds give
 the same name, as page `sign-in` and operation `signIn` both give
 `sign-in`, each takes its subject key in front: `page-sign-in-succeeds`
 and `operation-sign-in-succeeds`.

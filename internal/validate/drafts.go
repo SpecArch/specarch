@@ -21,6 +21,9 @@ type Draft struct {
 	// Collision says why the draft cannot be written under its name: another
 	// draft has the same name, or a test of another subject already has it.
 	Collision string
+	// Renamed says why the name has a suffix, when another subject's name
+	// gives the same test name once both are valid names.
+	Renamed string
 }
 
 // Drafts lists the tests a valid specification implies and has not got:
@@ -54,7 +57,7 @@ func Drafts(root *yaml.Node) []Draft {
 		if !golden[s.yamlKey] && !whole && s.success.scenario != "" {
 			success := s.success
 			success.name = ""
-			out = append(out, Draft{Name: s.name + "-succeeds", Subject: s.label, BlockedBy: blocked,
+			out = append(out, Draft{Name: s.name + "-succeeds", Subject: s.label, BlockedBy: blocked, Renamed: s.renamed,
 				Text: d.draftText(root, s, success, "every subject needs a golden path, and this is the success the design gives")})
 			keys = append(keys, s.yamlKey)
 		}
@@ -64,7 +67,7 @@ func Drafts(root *yaml.Node) []Draft {
 				continue
 			}
 			seen[dc.name] = true
-			out = append(out, Draft{Name: testName(s, dc), Subject: s.label, BlockedBy: blocked, Text: d.draftText(root, s, dc, s.chosenReason(dc))})
+			out = append(out, Draft{Name: testName(s, dc), Subject: s.label, BlockedBy: blocked, Renamed: s.renamed, Text: d.draftText(root, s, dc, s.chosenReason(dc))})
 			keys = append(keys, s.yamlKey)
 		}
 	}
@@ -147,6 +150,9 @@ func (d *design) draftText(root *yaml.Node, s *subject, dc derivedCase, why stri
 		line("verifies: [%s]", strings.Join(v, ", "))
 	}
 	line("origin: inferred")
+	if s.renamed != "" {
+		why += "; " + s.renamed
+	}
 	line("why: %q", "Written by specarch derive: "+why+". A draft: complete the given, when and then, and remove what does not hold.")
 	if caller, expect := d.draftData(root, s, dc); caller != "" || expect != "" {
 		if caller != "" {

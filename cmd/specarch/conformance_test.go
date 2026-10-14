@@ -249,32 +249,51 @@ func TestConformance(t *testing.T) {
 					t.Errorf("%s is missing after the run", name)
 				}
 			}
-			if out := extractOut(c); out != "" {
-				// A tree a reader writes passes validate on its own, with
-				// no error: merge checks each tree before it merges it, and
-				// a question's pointer never points below a key the tree
-				// does not have.
+			for _, out := range treeOut(c) {
+				// A tree a command writes passes validate on its own, with no
+				// error: merge checks each tree before it merges it, a
+				// question's pointer never points below a key the tree does
+				// not have, where the trees disagree merge keeps one valid
+				// form and asks, derive names a draft from its subject made
+				// a valid name, and approve writes its record into a valid
+				// tree (ADR-122).
 				var vout, verr bytes.Buffer
 				if status := run([]string{"validate", out}, &vout, &verr); status != 0 {
-					t.Errorf("validate %s exits %d on the tree the case writes; every tree a reader writes passes validate on its own\n%s%s", out, status, vout.String(), verr.String())
+					t.Errorf("validate %s exits %d on the tree the case writes; every tree a command writes passes validate on its own\n%s%s", out, status, vout.String(), verr.String())
 				}
 			}
 		})
 	}
 }
 
-// extractOut is the folder an extract case writes its tree into, or ""
-// for a case of another command or one that writes no tree.
-func extractOut(c conformanceCase) string {
-	if len(c.Arguments) == 0 || c.Arguments[0] != "extract" || c.ExitStatus != 0 {
-		return ""
+// treeOut is the folders a case writes a tree into: the folder an extract
+// or merge case writes, each folder a derive case writes its drafts into
+// and each an approve case writes its record into; none for a case of another command or one that exits other than 0.
+func treeOut(c conformanceCase) []string {
+	if len(c.Arguments) == 0 || c.ExitStatus != 0 {
+		return nil
 	}
-	for i, a := range c.Arguments {
-		if a == "--out" && i+1 < len(c.Arguments) {
-			return c.Arguments[i+1]
+	switch c.Arguments[0] {
+	case "extract", "merge":
+		for i, a := range c.Arguments {
+			if a == "--out" && i+1 < len(c.Arguments) {
+				return []string{c.Arguments[i+1]}
+			}
 		}
+	case "derive", "approve":
+		var out []string
+		args := c.Arguments[1:]
+		for i := 0; i < len(args); i++ {
+			switch a := args[i]; {
+			case a == "--by" || a == "--date":
+				i++ // approve's options that take the next argument
+			case !strings.HasPrefix(a, "-"):
+				out = append(out, a)
+			}
+		}
+		return out
 	}
-	return ""
+	return nil
 }
 
 // readTree reads every file under dir, keyed by its slash path, leaving out

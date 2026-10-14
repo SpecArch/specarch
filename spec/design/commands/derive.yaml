@@ -17,7 +17,17 @@ commands:
       certain.
 
       A test is named after its subject, then its case: `create-loan-succeeds`.
-      When subjects of different kinds give the same name, as page `sign-in`
+      The subject's name is made a valid test name first, kebab-case with
+      a letter first: small letters and digits, every run of other
+      characters one hyphen, so requirement `AB-1.2` gives
+      `ab-1-2-acceptance-1`, and a name that starts with no letter takes
+      its subject key in front. The draft keeps the subject's own name in
+      its keys and `verifies`. Where two subjects of one key have
+      different names that give the same valid name, as `AB-1.2` and
+      `AB-1_2` do, each after the first in document order takes a suffix,
+      `-2`, `-3`, until its name is free; derive asks about it on standard
+      error with `question:`, naming the subject that gave the name first,
+      and the draft's `why` says it too. When subjects of different kinds give the same name, as page `sign-in`
       and operation `signIn` both give `sign-in`, each of them takes its
       subject key in front: `page-sign-in-succeeds` and
       `operation-sign-in-succeeds`. A draft whose name is still taken, by
@@ -46,7 +56,7 @@ commands:
     writes:
       - { path: "tests/<name>/test.yaml under each specification's folder", description: "One draft test per derived case no test covers, each problem in it marked above its entry with a `# specarch-problem:` line (ADR-066); no other file is touched." }
     standardOutput: The errors of an invalid specification, one line each; otherwise the path of each test written, one per line.
-    standardError: A usage message on a usage error, the reason on an unreadable path, each test left out, kept or not written with the reason, and the count written.
+    standardError: A usage message on a usage error, the reason on an unreadable path, each test left out, kept or not written with the reason, a question for each test whose name took a suffix, and the count written.
     exitCodes:
       "0": the tests were written, or there was nothing to write
       "1": a specification has errors other than the missing tests it writes, or a draft's name is taken by another draft or by a test of another subject
@@ -63,3 +73,10 @@ commands:
       an error at each draft. The missing-test errors of a 0.2 file do
       not stop it, because a command that refused the errors it exists to
       settle could never be run on the file that needs it (ADR-055).
+      A name made valid rather than copied, because a folder whose name
+      validate refuses would make the tree derive writes one validate
+      refuses, and every tree a command writes passes validate
+      (ADR-122); a suffix and a question rather than an error, because
+      the two subjects are different and each draft can be written, and
+      the reviewer who reads the question decides whether the name
+      suits.

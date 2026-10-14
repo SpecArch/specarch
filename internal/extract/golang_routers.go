@@ -207,13 +207,15 @@ type routeState struct {
 	methodOf  map[*ast.FuncDecl]*goFile
 	types     map[string]*ast.TypeSpec // folder|Type -> declaration
 	typeFile  map[*ast.TypeSpec]*goFile
-	walked    map[string]*routerNode // a function and its bound routers -> what it returns
+	walked    map[string]*routerNode // a function and what a call bound to it -> what it returns
 	seen      map[*ast.FuncDecl]bool
 	active    map[*ast.FuncDecl]bool
+	litCalled map[*ast.FuncLit]bool // the function literals walked at a call, with its arguments bound
 	fields    map[string]*routerNode
 	deflt     *routerNode
 	routes    []*goRoute
 	count     int
+	countedAt map[string]bool // each registration counted: its call, router and arguments
 	checks    []permissionCheck
 	checkFile string // the implementation file, "" when none was given
 	clients   []clientCall
@@ -227,6 +229,7 @@ func (g *goReader) readRouters() {
 	st.methods, st.methodOf = map[string]*ast.FuncDecl{}, map[*ast.FuncDecl]*goFile{}
 	st.types, st.typeFile = map[string]*ast.TypeSpec{}, map[*ast.TypeSpec]*goFile{}
 	st.walked, st.seen, st.active, st.fields = map[string]*routerNode{}, map[*ast.FuncDecl]bool{}, map[*ast.FuncDecl]bool{}, map[string]*routerNode{}
+	st.litCalled, st.countedAt = map[*ast.FuncLit]bool{}, map[string]bool{}
 	st.validates = map[string]bool{}
 	routerFiles := false
 	called := map[string]bool{}
@@ -265,6 +268,13 @@ func (g *goReader) readRouters() {
 					called[fn.Name] = true
 				case *ast.SelectorExpr:
 					called[fn.Sel.Name] = true
+				}
+				// A function passed to a call as a value is called
+				// from where it is passed, which the walk follows.
+				for _, a := range call.Args {
+					if id, ok := a.(*ast.Ident); ok {
+						called[id.Name] = true
+					}
 				}
 			}
 			return true
@@ -472,12 +482,136 @@ type routeScope struct {
 	skip  map[ast.Node]bool
 	stack []ast.Node
 	ret   *routerNode
+	// What a name holds besides a router, as a call's arguments bind it:
+	// a literal string, or a function value (a literal written in the
+	// function walked, or a function of the module).
+	strs  map[string]string
+	funcs map[string]heldFunc
+	// The function literals held in local names, in order; each is walked
+	// at every call of its name with the arguments bound, and one no call
+	// names is walked once with nothing bound, after the function.
+	lits   []*ast.FuncLit
+	active map[*ast.FuncLit]bool // the literals being walked, so one that calls itself ends
+	// blocks holds, per block being walked, what each function name
+	// declared in it held before, so a name declared in an inner block
+	// holds its literal only to the end of that block.
+	blocks []*walkBlock
+	// outer is the loop or condition a function a literal was passed to
+	// calls it behind, while the literal is walked in the scope it is
+	// written in; outerFile is that function's file.
+	outer     ast.Node
+	outerFile *goFile
 }
 
-// walkFunc walks one function with the routers its parameters are bound
-// to, and gives the router it returns, if any. given makes a router
-// parameter with nothing bound one whose place is not known.
-func (g *goReader) walkFunc(f *goFile, fd *ast.FuncDecl, bound map[int]*routerNode, given bool) *routerNode {
+// walkBlock is one block being walked: what each name declared in it held
+// before, and the function literals declared in it.
+type walkBlock struct {
+	saved map[string]heldName
+	lits  []*ast.FuncLit
+}
+
+// heldName is what a name held before a block declared it again.
+type heldName struct {
+	env                         *routerNode
+	typ, str                    string
+	fn                          heldFunc
+	hadEnv, hadTyp, hadStr, had bool
+}
+
+// declare notes that name is declared in the innermost block being
+// walked, so what it held before comes back at the block's end.
+func (sc *routeScope) declare(name string) {
+	if len(sc.blocks) == 0 {
+		return
+	}
+	top := sc.blocks[len(sc.blocks)-1].saved
+	if _, ok := top[name]; !ok {
+		h := heldName{}
+		h.env, h.hadEnv = sc.env[name]
+		h.typ, h.hadTyp = sc.types[name]
+		h.str, h.hadStr = sc.strs[name]
+		h.fn, h.had = sc.funcs[name]
+		top[name] = h
+	}
+}
+
+// endBlock walks each function literal declared in the block that no
+// call walked, the last declared first, while the names around it still hold, then gives each name
+// the block declared back what it held before.
+func (sc *routeScope) endBlock() {
+	b := sc.blocks[len(sc.blocks)-1]
+	// Last first: a literal declared later may call one declared before
+	// it, which is then walked with what that call binds.
+	for i := len(b.lits) - 1; i >= 0; i-- {
+		if lit := b.lits[i]; !sc.g.rt.litCalled[lit] {
+			sc.walkLit(lit, nil, true)
+		}
+	}
+	for name, h := range b.saved {
+		restoreName(h.hadEnv, func() { sc.env[name] = h.env }, func() { delete(sc.env, name) })
+		restoreName(h.hadTyp, func() { sc.types[name] = h.typ }, func() { delete(sc.types, name) })
+		restoreName(h.hadStr, func() { sc.strs[name] = h.str }, func() { delete(sc.strs, name) })
+		restoreName(h.had, func() { sc.funcs[name] = h.fn }, func() { delete(sc.funcs, name) })
+	}
+	sc.blocks = sc.blocks[:len(sc.blocks)-1]
+}
+
+func restoreName(had bool, set, unset func()) {
+	if had {
+		set()
+	} else {
+		unset()
+	}
+}
+
+// isBlock says whether a node opens a block of its own for the names
+// declared in it.
+func isBlock(n ast.Node) bool {
+	switch n.(type) {
+	case *ast.BlockStmt, *ast.CaseClause, *ast.CommClause, *ast.IfStmt, *ast.ForStmt, *ast.RangeStmt, *ast.SwitchStmt, *ast.TypeSwitchStmt, *ast.SelectStmt:
+		return true
+	}
+	return false
+}
+
+// heldFunc is a function a name holds: a literal with the scope it is
+// written in, or a function or method of the module.
+type heldFunc struct {
+	lit   *ast.FuncLit
+	scope *routeScope // where the literal is written, whose names it sees
+	fd    *ast.FuncDecl
+	file  *goFile
+}
+
+// binding is what a call passes to one parameter, as far as syntax shows:
+// a router, a literal string, or a function value. A helper that takes a
+// prefix and a function registering routes under it is followed through
+// all three.
+type binding struct {
+	router *routerNode
+	str    string
+	isStr  bool
+	fn     heldFunc
+}
+
+func (b binding) key() string {
+	switch {
+	case b.router != nil:
+		return fmt.Sprintf("r%p", b.router)
+	case b.isStr:
+		return "s" + strconv.Quote(b.str)
+	case b.fn.lit != nil:
+		return fmt.Sprintf("l%p@%p", b.fn.lit, b.fn.scope)
+	case b.fn.fd != nil:
+		return fmt.Sprintf("f%p", b.fn.fd)
+	}
+	return ""
+}
+
+// walkFunc walks one function with its parameters bound to what a call
+// passes them, and gives the router it returns, if any. given makes a
+// router parameter with nothing bound one whose place is not known.
+func (g *goReader) walkFunc(f *goFile, fd *ast.FuncDecl, bound map[int]binding, given bool) *routerNode {
 	st := g.rt
 	key := fmt.Sprintf("%p", fd)
 	var idx []int
@@ -486,7 +620,7 @@ func (g *goReader) walkFunc(f *goFile, fd *ast.FuncDecl, bound map[int]*routerNo
 	}
 	sort.Ints(idx)
 	for _, i := range idx {
-		key += fmt.Sprintf("|%d=%p", i, bound[i])
+		key += fmt.Sprintf("|%d=%s", i, bound[i].key())
 	}
 	if r, ok := st.walked[key]; ok {
 		return r
@@ -501,33 +635,165 @@ func (g *goReader) walkFunc(f *goFile, fd *ast.FuncDecl, bound map[int]*routerNo
 	if fd.Recv != nil && len(fd.Recv.List) == 1 && len(fd.Recv.List[0].Names) == 1 {
 		sc.types[fd.Recv.List[0].Names[0].Name] = g.typeKey(f, fd.Recv.List[0].Type)
 	}
-	i := 0
-	for _, p := range fd.Type.Params.List {
-		t := g.typeKey(f, p.Type)
-		if len(p.Names) == 0 {
-			i++
-			continue
-		}
-		for _, n := range p.Names {
-			if t != "" {
-				sc.types[n.Name] = t
-			}
-			switch {
-			case bound[i] != nil:
-				sc.env[n.Name] = bound[i]
-			case given && g.routerKind(t) != "":
-				sc.env[n.Name] = &routerNode{lib: g.routerKind(t), unknown: fmt.Sprintf("%s is given the router %s, and the reader found no call that passes it one whose path it knows", g.clause(f, fd.Pos()), n.Name)}
-			}
-			i++
-		}
-	}
+	sc.bindParams(fd.Type, bound, given, fd.Pos())
 	sc.walk(fd.Body)
+	sc.walkUncalled()
 	st.walked[key] = sc.ret
 	return sc.ret
 }
 
 func (g *goReader) newScope(f *goFile) *routeScope {
-	return &routeScope{g: g, file: f, env: map[string]*routerNode{}, types: map[string]string{}, nodes: map[ast.Expr]*routerNode{}, skip: map[ast.Node]bool{}}
+	return &routeScope{g: g, file: f, env: map[string]*routerNode{}, types: map[string]string{}, nodes: map[ast.Expr]*routerNode{}, skip: map[ast.Node]bool{},
+		strs: map[string]string{}, funcs: map[string]heldFunc{}, active: map[*ast.FuncLit]bool{}}
+}
+
+// bindParams binds a function's parameters to what a call passes them, and
+// gives back a function that restores what the names held before, for a
+// literal walked inside the function it is written in. given makes a
+// router parameter with nothing bound one whose place is not known, at
+// the clause of pos.
+func (sc *routeScope) bindParams(ft *ast.FuncType, bound map[int]binding, given bool, pos gotoken.Pos) func() {
+	g := sc.g
+	type held struct {
+		env      *routerNode
+		typ, str string
+		fn       heldFunc
+		hadEnv   bool
+		hadTyp   bool
+		hadStr   bool
+		hadFn    bool
+	}
+	before := map[string]held{}
+	i := 0
+	if ft.Params != nil {
+		for _, p := range ft.Params.List {
+			t := g.typeKey(sc.file, p.Type)
+			if len(p.Names) == 0 {
+				i++
+				continue
+			}
+			for _, n := range p.Names {
+				name := n.Name
+				h := held{}
+				h.env, h.hadEnv = sc.env[name]
+				h.typ, h.hadTyp = sc.types[name]
+				h.str, h.hadStr = sc.strs[name]
+				h.fn, h.hadFn = sc.funcs[name]
+				before[name] = h
+				delete(sc.env, name)
+				delete(sc.types, name)
+				delete(sc.strs, name)
+				delete(sc.funcs, name)
+				if t != "" {
+					sc.types[name] = t
+				}
+				switch b := bound[i]; {
+				case b.router != nil:
+					sc.env[name] = b.router
+				case b.isStr:
+					sc.strs[name] = b.str
+				case b.fn.lit != nil || b.fn.fd != nil:
+					sc.funcs[name] = b.fn
+				case given && g.routerKind(t) != "":
+					sc.env[name] = &routerNode{lib: g.routerKind(t), unknown: fmt.Sprintf("%s is given the router %s, and the reader found no call that passes it one whose path it knows", g.clause(sc.file, pos), name)}
+				}
+				i++
+			}
+		}
+	}
+	return func() {
+		for name, h := range before {
+			restore := func(had bool, set, unset func()) {
+				if had {
+					set()
+				} else {
+					unset()
+				}
+			}
+			restore(h.hadEnv, func() { sc.env[name] = h.env }, func() { delete(sc.env, name) })
+			restore(h.hadTyp, func() { sc.types[name] = h.typ }, func() { delete(sc.types, name) })
+			restore(h.hadStr, func() { sc.strs[name] = h.str }, func() { delete(sc.strs, name) })
+			restore(h.hadFn, func() { sc.funcs[name] = h.fn }, func() { delete(sc.funcs, name) })
+		}
+	}
+}
+
+// walkLit walks a function literal with its parameters bound to what a
+// call passes them, in the scope of the function it is written in, so it
+// sees the routers and names around it.
+func (sc *routeScope) walkLit(lit *ast.FuncLit, bound map[int]binding, given bool) {
+	if sc.active[lit] {
+		return
+	}
+	sc.active[lit], sc.g.rt.litCalled[lit] = true, true
+	defer delete(sc.active, lit)
+	restore := sc.bindParams(lit.Type, bound, given, lit.Pos())
+	// The routers the literal's own expressions give depend on what is
+	// bound, so each walk evaluates them afresh.
+	nodes := sc.nodes
+	sc.nodes = map[ast.Expr]*routerNode{}
+	sc.walk(lit.Body)
+	sc.nodes = nodes
+	restore()
+}
+
+// walkUncalled walks each function literal held in a local name that no
+// call of the function named, once, with nothing bound: a router it takes
+// is one whose place is not known.
+func (sc *routeScope) walkUncalled() {
+	for i := 0; i < len(sc.lits); i++ {
+		if lit := sc.lits[i]; !sc.g.rt.litCalled[lit] {
+			sc.walkLit(lit, nil, true)
+		}
+	}
+}
+
+// walkBound walks a function of the module with what a call passes it,
+// now when a router is among it or the function takes none, else later
+// as one given routers from nowhere; then walks, with nothing bound, each
+// function literal passed that the function never called, so a route it
+// registers is counted and asked about rather than dropped.
+func (sc *routeScope) walkBound(f *goFile, fd *ast.FuncDecl, bound map[int]binding, routers int) *routerNode {
+	var ret *routerNode
+	if routers > 0 || !sc.g.hasRouterParam(f, fd) {
+		ret = sc.g.walkFunc(f, fd, bound, false)
+	}
+	sc.walkUnused(bound)
+	return ret
+}
+
+// walkUnused walks each function literal a call passed that was never
+// called, in the order passed.
+func (sc *routeScope) walkUnused(bound map[int]binding) {
+	var idx []int
+	for i := range bound {
+		idx = append(idx, i)
+	}
+	sort.Ints(idx)
+	for _, i := range idx {
+		if hf := bound[i].fn; hf.lit != nil && !sc.g.rt.litCalled[hf.lit] {
+			hf.home(sc).walkLit(hf.lit, nil, true)
+		}
+	}
+}
+
+// stringValue is a string literal, a concatenation of them, or a name a
+// call bound to one.
+func (sc *routeScope) stringValue(e ast.Expr) (string, bool) {
+	switch e := e.(type) {
+	case *ast.Ident:
+		s, ok := sc.strs[e.Name]
+		return s, ok
+	case *ast.ParenExpr:
+		return sc.stringValue(e.X)
+	case *ast.BinaryExpr:
+		if e.Op == gotoken.ADD {
+			a, okA := sc.stringValue(e.X)
+			b, okB := sc.stringValue(e.Y)
+			return a + b, okA && okB
+		}
+	}
+	return sc.g.stringValue(sc.file, e)
 }
 
 // hasRouterParam says whether a function takes a router.
@@ -544,12 +810,18 @@ func (g *goReader) hasRouterParam(f *goFile, fd *ast.FuncDecl) bool {
 func (sc *routeScope) walk(body ast.Node) {
 	ast.Inspect(body, func(n ast.Node) bool {
 		if n == nil {
+			if isBlock(sc.stack[len(sc.stack)-1]) {
+				sc.endBlock()
+			}
 			sc.stack = sc.stack[:len(sc.stack)-1]
 			return true
 		}
 		descend := sc.visit(n)
 		if descend {
 			sc.stack = append(sc.stack, n)
+			if isBlock(n) {
+				sc.blocks = append(sc.blocks, &walkBlock{saved: map[string]heldName{}})
+			}
 		}
 		return descend
 	})
@@ -564,6 +836,9 @@ func (sc *routeScope) visit(n ast.Node) bool {
 			if !ok || len(n.Rhs) != len(n.Lhs) {
 				continue
 			}
+			if n.Tok == gotoken.DEFINE {
+				sc.declare(id.Name)
+			}
 			sc.assign(id.Name, n.Rhs[i])
 		}
 	case *ast.ValueSpec:
@@ -573,6 +848,7 @@ func (sc *routeScope) visit(n ast.Node) bool {
 					sc.types[id.Name] = t
 				}
 			}
+			sc.declare(id.Name)
 			if i < len(n.Values) {
 				sc.assign(id.Name, n.Values[i])
 			}
@@ -591,11 +867,30 @@ func (sc *routeScope) visit(n ast.Node) bool {
 			return true
 		}
 		return sc.call(n)
+	case *ast.FuncLit:
+		// A literal held in a name or handed to a call the reader
+		// follows is walked from there with its parameters bound; any
+		// other is walked here, a router it takes one whose place is
+		// not known.
+		if !sc.skip[n] {
+			sc.walkLit(n, nil, true)
+		}
+		return false
 	}
 	return true
 }
 
 func (sc *routeScope) assign(name string, rhs ast.Expr) {
+	if lit, ok := rhs.(*ast.FuncLit); ok {
+		sc.funcs[name] = heldFunc{lit: lit, scope: sc}
+		sc.lits = append(sc.lits, lit)
+		if len(sc.blocks) > 0 {
+			top := sc.blocks[len(sc.blocks)-1]
+			top.lits = append(top.lits, lit)
+		}
+		sc.skip[lit] = true
+		return
+	}
 	if node := sc.eval(rhs); node != nil {
 		sc.env[name] = node
 	}
@@ -738,7 +1033,6 @@ func (sc *routeScope) eval(e ast.Expr) *routerNode {
 // evalCall is the router a call gives: a library's maker, a group or
 // subrouter, or what a function of the module returns.
 func (sc *routeScope) evalCall(call *ast.CallExpr) *routerNode {
-	g := sc.g
 	sel, isSel := call.Fun.(*ast.SelectorExpr)
 	if isSel {
 		if x, ok := sel.X.(*ast.Ident); ok && sc.env[x.Name] == nil {
@@ -754,11 +1048,8 @@ func (sc *routeScope) evalCall(call *ast.CallExpr) *routerNode {
 		}
 	}
 	if fd, f := sc.callee(call); fd != nil {
-		bound := sc.bind(fd, f, call)
-		if len(bound) == 0 && g.hasRouterParam(f, fd) {
-			return nil
-		}
-		return g.walkFunc(f, fd, bound, false)
+		bound, routers := sc.bindings(call.Args)
+		return sc.walkBound(f, fd, bound, routers)
 	}
 	return nil
 }
@@ -782,7 +1073,7 @@ func (sc *routeScope) derive(recv *routerNode, call *ast.CallExpr, name string) 
 
 // prefix sets a group's prefix from its argument.
 func (sc *routeScope) prefix(child *routerNode, e ast.Expr, how string) {
-	p, ok := sc.g.stringValue(sc.file, e)
+	p, ok := sc.stringValue(e)
 	if !ok {
 		child.unknown = fmt.Sprintf("%s: %s is given the prefix %s, which is not a literal", sc.g.clause(sc.file, e.Pos()), how, exprText(e))
 		return
@@ -832,8 +1123,8 @@ func (sc *routeScope) within(child *routerNode, fn ast.Expr) {
 			delete(sc.env, name)
 		}
 	default:
-		if fd, f := sc.funcValue(fn); fd != nil {
-			sc.g.walkFunc(f, fd, map[int]*routerNode{0: child}, false)
+		if hf, ok := sc.heldFunc(fn); ok {
+			sc.callHeld(hf, map[int]binding{0: {router: child}}, 1)
 		}
 	}
 }
@@ -930,15 +1221,83 @@ func (sc *routeScope) funcValue(e ast.Expr) (*ast.FuncDecl, *goFile) {
 	return nil, nil
 }
 
-// bind is the routers a call passes to a function's parameters.
-func (sc *routeScope) bind(fd *ast.FuncDecl, f *goFile, call *ast.CallExpr) map[int]*routerNode {
-	bound := map[int]*routerNode{}
-	for i, a := range call.Args {
+// bindings is what a call passes to a function's parameters, by place: a
+// router, a literal string, or a function value; and how many routers.
+func (sc *routeScope) bindings(args []ast.Expr) (map[int]binding, int) {
+	bound := map[int]binding{}
+	routers := 0
+	for i, a := range args {
 		if n := sc.eval(a); n != nil {
-			bound[i] = n
+			bound[i] = binding{router: n}
+			routers++
+			continue
+		}
+		if s, ok := sc.stringValue(a); ok {
+			bound[i] = binding{str: s, isStr: true}
+			continue
+		}
+		if hf, ok := sc.heldFunc(a); ok {
+			bound[i] = binding{fn: hf}
 		}
 	}
-	return bound
+	return bound, routers
+}
+
+// heldFunc is the function value an expression is: a literal, a name a
+// call bound to one or a local name holding one, or a function or method
+// of the module.
+func (sc *routeScope) heldFunc(e ast.Expr) (heldFunc, bool) {
+	switch e := e.(type) {
+	case *ast.FuncLit:
+		sc.skip[e] = true
+		return heldFunc{lit: e, scope: sc}, true
+	case *ast.ParenExpr:
+		return sc.heldFunc(e.X)
+	case *ast.Ident:
+		if hf, ok := sc.funcs[e.Name]; ok {
+			return hf, true
+		}
+	}
+	if fd, f := sc.funcValue(e); fd != nil {
+		return heldFunc{fd: fd, file: f}, true
+	}
+	return heldFunc{}, false
+}
+
+// home is the scope a literal is written in, whose routers and names it
+// sees wherever it is called from: sc when nothing recorded one.
+func (hf heldFunc) home(sc *routeScope) *routeScope {
+	if hf.scope != nil {
+		return hf.scope
+	}
+	return sc
+}
+
+// callHeld walks a function value a call names with its parameters bound:
+// a literal in the scope it is written in, even when a function it was
+// passed to calls it, and a function of the module as any call of one. It
+// says whether the call's arguments are to be descended into.
+func (sc *routeScope) callHeld(hf heldFunc, bound map[int]binding, routers int) bool {
+	if hf.lit != nil {
+		home := hf.home(sc)
+		if home != sc {
+			// The literal is walked where it is written, but a loop or a
+			// condition this function calls it behind still holds.
+			outer, outerFile := home.outer, home.outerFile
+			if b := sc.branchNode(); b != nil {
+				home.outer, home.outerFile = b, sc.branchFile()
+			}
+			home.walkLit(hf.lit, bound, false)
+			home.outer, home.outerFile = outer, outerFile
+			sc.walkUnused(bound)
+			return false
+		}
+		home.walkLit(hf.lit, bound, false)
+		sc.walkUnused(bound)
+		return false
+	}
+	sc.walkBound(hf.file, hf.fd, bound, routers)
+	return true
 }
 
 // call reads one call: a registration, a mount, a check applied to a
@@ -977,11 +1336,15 @@ func (sc *routeScope) call(call *ast.CallExpr) bool {
 			}
 		}
 	}
-	if fd, f := sc.callee(call); fd != nil {
-		bound := sc.bind(fd, f, call)
-		if len(bound) > 0 || !g.hasRouterParam(f, fd) {
-			g.walkFunc(f, fd, bound, false)
+	if id, ok := call.Fun.(*ast.Ident); ok {
+		if hf, ok := sc.funcs[id.Name]; ok {
+			bound, routers := sc.bindings(call.Args)
+			return sc.callHeld(hf, bound, routers)
 		}
+	}
+	if fd, f := sc.callee(call); fd != nil {
+		bound, routers := sc.bindings(call.Args)
+		sc.walkBound(f, fd, bound, routers)
 	}
 	return true
 }
@@ -994,14 +1357,14 @@ func (sc *routeScope) mount(recv *routerNode, call *ast.CallExpr, prefix, h ast.
 	strip := ""
 	if c, ok := h.(*ast.CallExpr); ok && len(c.Args) == 2 {
 		if s, ok := c.Fun.(*ast.SelectorExpr); ok && exprText(s) == sc.netHTTP()+".StripPrefix" {
-			if p, ok := g.stringValue(sc.file, c.Args[0]); ok {
+			if p, ok := sc.stringValue(c.Args[0]); ok {
 				strip, h = p, c.Args[1]
 			}
 		}
 	}
 	target := sc.eval(h)
 	under := exprText(prefix)
-	if p, ok := g.stringValue(sc.file, prefix); ok {
+	if p, ok := sc.stringValue(prefix); ok {
 		under = p
 	}
 	if target == nil {
@@ -1052,7 +1415,9 @@ func (g *goReader) gorillaEnd(name string) bool {
 func (sc *routeScope) gorilla(recv *routerNode, chain []*ast.CallExpr) {
 	g := sc.g
 	clause := g.clause(sc.file, chain[0].Pos())
-	g.rt.count++
+	if !sc.countOnce(recv, chain...) {
+		return
+	}
 	sc.g.citeFile(sc.file)
 	var pathExpr, handler ast.Expr
 	var methods []ast.Expr
@@ -1085,7 +1450,7 @@ func (sc *routeScope) gorilla(recv *routerNode, chain []*ast.CallExpr) {
 	}
 	if other != "" {
 		p := exprText(pathExpr)
-		if v, ok := g.stringValue(sc.file, pathExpr); ok {
+		if v, ok := sc.stringValue(pathExpr); ok {
 			p = v
 		}
 		g.notHeld = append(g.notHeld, notHeld{text: fmt.Sprintf("%s: the route %s matches by %s as well as by method and path, which the meta-model does not hold; left out", clause, p, other), clause: clause, blocks: []string{"paths"}})
@@ -1118,7 +1483,9 @@ func (sc *routeScope) register(recv *routerNode, call *ast.CallExpr, name string
 		if name != "Handle" && name != "HandleFunc" || len(args) != 2 {
 			return false
 		}
-		g.rt.count++
+		if !sc.countOnce(recv, call) {
+			return true
+		}
 		g.citeFile(sc.file)
 		return sc.servemux(recv, call, clause, args[0], args[1])
 	case "chi":
@@ -1129,9 +1496,10 @@ func (sc *routeScope) register(recv *routerNode, call *ast.CallExpr, name string
 		case (name == "Method" || name == "MethodFunc") && len(args) == 3:
 			methods, pathExpr, handler = args[:1], args[1], args[2]
 		case (name == "Handle" || name == "HandleFunc") && len(args) == 2:
-			g.rt.count++
-			g.citeFile(sc.file)
-			sc.anyMethod(clause, args[0])
+			if sc.countOnce(recv, call) {
+				g.citeFile(sc.file)
+				sc.anyMethod(clause, args[0])
+			}
 			return true
 		default:
 			return false
@@ -1146,7 +1514,9 @@ func (sc *routeScope) register(recv *routerNode, call *ast.CallExpr, name string
 		case name == "Match" && len(args) >= 3:
 			list, ok := args[0].(*ast.CompositeLit)
 			if !ok {
-				g.rt.count++
+				if !sc.countOnce(recv, call) {
+					return true
+				}
 				g.citeFile(sc.file)
 				g.question("must", fmt.Sprintf("%s registers a route with Match on methods %s, which is not a literal list. Which methods and path does it register?", clause, exprText(args[0])),
 					[]string{"paths"}, "A method computed at run time is a guess for syntax; an operation is never written from a guess.", g.at(clause, "Calls Match with methods that are not a literal list."))
@@ -1154,9 +1524,10 @@ func (sc *routeScope) register(recv *routerNode, call *ast.CallExpr, name string
 			}
 			methods, pathExpr, args = list.Elts, args[1], args[1:]
 		case name == "Any" && len(args) >= 2:
-			g.rt.count++
-			g.citeFile(sc.file)
-			sc.anyMethod(clause, args[0])
+			if sc.countOnce(recv, call) {
+				g.citeFile(sc.file)
+				sc.anyMethod(clause, args[0])
+			}
 			return true
 		default:
 			return false
@@ -1170,9 +1541,41 @@ func (sc *routeScope) register(recv *routerNode, call *ast.CallExpr, name string
 	default:
 		return false
 	}
-	g.rt.count++
+	if !sc.countOnce(recv, call) {
+		return true
+	}
 	g.citeFile(sc.file)
 	sc.record(recv, call, clause, methods, pathExpr, handler, middleware)
+	return true
+}
+
+// countOnce counts a registration once for each call, router, arguments
+// and whether it is behind a loop or a condition, however often the walk
+// reaches it, and says whether this is the first time: a helper walked
+// once per string its callers pass registers a route the string does not
+// change once, so it is counted, and written or asked about, once.
+func (sc *routeScope) countOnce(recv *routerNode, calls ...*ast.CallExpr) bool {
+	root := recv
+	for root.parent != nil {
+		root = root.parent
+	}
+	place, unknown := recv.place()
+	key := fmt.Sprintf("%p|%s|%s|%t", root, place, unknown, sc.branchNode() != nil)
+	for _, c := range calls {
+		key += fmt.Sprintf("|%d", c.Pos())
+		for _, a := range c.Args {
+			if v, ok := sc.stringValue(a); ok {
+				key += "|" + strconv.Quote(v)
+			} else {
+				key += "|" + exprText(a)
+			}
+		}
+	}
+	if sc.g.rt.countedAt[key] {
+		return false
+	}
+	sc.g.rt.countedAt[key] = true
+	sc.g.rt.count++
 	return true
 }
 
@@ -1182,7 +1585,7 @@ func (sc *routeScope) servemux(recv *routerNode, call *ast.CallExpr, clause stri
 	if sc.branched(clause) {
 		return true
 	}
-	pattern, ok := g.stringValue(sc.file, patternExpr)
+	pattern, ok := sc.stringValue(patternExpr)
 	if !ok {
 		sc.unread(clause, "pattern "+exprText(patternExpr))
 		return true
@@ -1228,7 +1631,7 @@ func (sc *routeScope) anyMethod(clause string, pathExpr ast.Expr) {
 		return
 	}
 	p := exprText(pathExpr)
-	if s, ok := g.stringValue(sc.file, pathExpr); ok {
+	if s, ok := sc.stringValue(pathExpr); ok {
 		p = s
 	}
 	g.question("must", fmt.Sprintf("%s registers %s for every method. Which methods does the running system answer there, and what does each do?", clause, p),
@@ -1238,13 +1641,31 @@ func (sc *routeScope) anyMethod(clause string, pathExpr ast.Expr) {
 // record writes one route per method a registration names.
 // branched asks about a registration in a loop or behind a condition, and
 // says whether it is one.
+// branchNode is the loop or condition a registration is behind: one
+// between it and the function it is in, else the one a function it was
+// passed to calls the literal it is in behind.
+func (sc *routeScope) branchNode() ast.Node {
+	if b := branch(sc.stack); b != nil {
+		return b
+	}
+	return sc.outer
+}
+
+// branchFile is the file the branch of branchNode is in.
+func (sc *routeScope) branchFile() *goFile {
+	if branch(sc.stack) != nil || sc.outerFile == nil {
+		return sc.file
+	}
+	return sc.outerFile
+}
+
 func (sc *routeScope) branched(clause string) bool {
 	g := sc.g
-	b := branch(sc.stack)
+	b := sc.branchNode()
 	if b == nil {
 		return false
 	}
-	g.question("must", fmt.Sprintf("%s registers a route %s at %s, so the reader cannot tell how many routes it registers, or whether it registers one. Which routes does the running system register here?", clause, branchWord(b), g.clause(sc.file, b.Pos())),
+	g.question("must", fmt.Sprintf("%s registers a route %s at %s, so the reader cannot tell how many routes it registers, or whether it registers one. Which routes does the running system register here?", clause, branchWord(b), g.clause(sc.branchFile(), b.Pos())),
 		[]string{"paths"}, "Syntax does not run the code; only the running system's own list of routes, such as a route table, says what a loop or a condition registers.", g.at(clause, "Registers a route "+branchWord(b)+"."))
 	return true
 }
@@ -1254,7 +1675,7 @@ func (sc *routeScope) record(recv *routerNode, call ast.Node, clause string, met
 	if sc.branched(clause) {
 		return
 	}
-	p, ok := g.stringValue(sc.file, pathExpr)
+	p, ok := sc.stringValue(pathExpr)
 	if !ok {
 		sc.unread(clause, "path "+exprText(pathExpr))
 		return
@@ -1357,7 +1778,7 @@ func (sc *routeScope) checkCall(call *ast.CallExpr) (checkUse, bool) {
 		}
 		arg := call.Args[c.argument-1]
 		use.argument = exprText(arg)
-		if p, ok := sc.g.stringValue(sc.file, arg); ok {
+		if p, ok := sc.stringValue(arg); ok {
 			use.permission, use.argument = p, strconv.Quote(p)
 		}
 		sc.g.citeFile(sc.file)

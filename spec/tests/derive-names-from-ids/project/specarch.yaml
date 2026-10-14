@@ -1,0 +1,34 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [tests]
+stakeholders:
+  owner: { description: The product owner. }
+requirements:
+  AB-1.2:
+    statement: A clerk shall lend a book, which the library pays for when lost.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A lent book is on the member's loans.]
+    harm: [money]
+  AB-1_2:
+    statement: A clerk shall take a book back.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A returned book is on the shelf.]
+    harm: [money]
+  AB-Shelf.Two:
+    statement: A member shall see their loans.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A member sees each book they hold.]
+    harm: [privacy]
+  AB-9:
+    statement: A clerk shall see the books out on loan.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [The clerk sees each book out on loan.]
+    harm: [money]

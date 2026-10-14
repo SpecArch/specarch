@@ -58,10 +58,10 @@ questions:
     question: 'Which is right for #/roles/desk-staff/permissions: [loans.read, loans.write] or [fines.waive, loans.read, loans.write, members.write]?'
     kind: decision
     priority: must
-    blocks: ['#/roles/desk-staff/permissions']
+    blocks: ['#/roles/desk-staff/permissions', '#/permissions/loans.write', '#/permissions/fines.waive', '#/permissions/members.write']
     decidedBy: system-owner
     options: ['[loans.read, loans.write], as Permissions of access has it', '[fines.waive, loans.read, loans.write, members.write], as Lending desk grants has it']
-    why: 'The sources disagree: Permissions of access says [loans.read, loans.write], and Lending desk grants says [fines.waive, loans.read, loans.write, members.write]. The merge leaves the key out rather than choose between them.'
+    why: 'The sources disagree: Permissions of access says [loans.read, loans.write], and Lending desk grants says [fines.waive, loans.read, loans.write, members.write]. The merge leaves the key out rather than choose between them. While the list is out, no role grants loans.write, fines.waive and members.write, so the question blocks them too.'
     cites:
       - {source: code, clause: access role DESK_STAFF, says: DESK_STAFF grants loans.read and loans.write.}
       - {source: desk, clause: examples/lending-desk/sources/code role desk-staff, says: 'desk-staff grants fines.waive, loans.read, loans.write and members.write.'}

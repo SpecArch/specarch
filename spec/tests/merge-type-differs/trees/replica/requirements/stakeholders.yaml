@@ -1,0 +1,5 @@
+stakeholders:
+  system-owner:
+    description: Whoever owns the system that was read and answers for it.
+    origin: inferred
+    why: The surface names no one.

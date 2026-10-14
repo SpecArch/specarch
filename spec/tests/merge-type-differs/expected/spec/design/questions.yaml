@@ -1,0 +1,37 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which is right for #/entities/Holds/properties/renewable/type: boolean or [boolean, "null"]? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'Which is right for #/entities/Holds/properties/renewable/type: boolean or [boolean, "null"]?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Holds/properties/renewable/type']
+    decidedBy: system-owner
+    options: ['boolean, as Catalogue database has it', '[boolean, "null"], as Lending desk database has it']
+    why: 'The sources disagree: Catalogue database says boolean, and Lending desk database says [boolean, "null"]. The merge keeps [boolean, "null"], which allows what either allows, so the field is read until the question is answered.'
+    cites:
+      - {source: catalogue, clause: migrations public.holds, says: Table public.holds.}
+      - {source: desk, clause: migrations public.holds, says: 'Table public.holds, kept in step with the catalogue''s.'}
+  # specarch-problem: question: open_question: (must, decision) Which is right for #/entities/Holds/properties/branchCode/type: string or integer? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: 'Which is right for #/entities/Holds/properties/branchCode/type: string or integer?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Holds/properties/branchCode/type']
+    decidedBy: system-owner
+    options: ['string, as Catalogue database has it', 'integer, as Lending desk database has it']
+    why: 'The sources disagree: Catalogue database says string, and Lending desk database says integer. The merge keeps string, as Catalogue database, the first tree given, has it, so the field is read until the question is answered; it is not a choice between them. Lending desk database''s format int32 and Lending desk database''s default 5 go with their types and are left out.'
+    cites:
+      - {source: catalogue, clause: migrations public.holds, says: Table public.holds.}
+      - {source: desk, clause: migrations public.holds, says: 'Table public.holds, kept in step with the catalogue''s.'}
+  # specarch-problem: question: open_question: (must, decision) Which is right for #/entities/Holds/required: renewable required or renewable not required? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'Which is right for #/entities/Holds/required: renewable required or renewable not required?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Holds/required']
+    decidedBy: system-owner
+    options: ['renewable required, as Catalogue database has it', 'renewable not required, as Lending desk database has it']
+    why: 'The sources disagree: Catalogue database says renewable required, and Lending desk database says renewable not required. The merge leaves the key out rather than choose between them.'
+    cites:
+      - {source: catalogue, clause: migrations public.holds, says: Table public.holds.}
+      - {source: desk, clause: migrations public.holds, says: 'Table public.holds, kept in step with the catalogue''s.'}
